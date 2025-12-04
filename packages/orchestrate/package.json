@@ -1,0 +1,25 @@
+{
+  "name": "@sonate/orchestrate",
+  "version": "1.0.0",
+  "description": "Production agent management and orchestration for SONATE platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "jest"
+  },
+  "keywords": ["sonate", "orchestration", "agents", "did", "vc", "kubernetes"],
+  "author": "YSEEKU",
+  "license": "MIT",
+  "dependencies": {
+    "@sonate/core": "workspace:*",
+    "@digitalbazaar/did-method-key": "^5.0.0",
+    "@digitalbazaar/vc": "^6.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
