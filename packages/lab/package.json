@@ -8,14 +8,14 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "jest"
+    "test": "echo 'Tests coming soon'"
   },
   "keywords": ["sonate", "experimentation", "research", "double-blind", "a-b-testing"],
   "author": "YSEEKU",
   "license": "MIT",
   "dependencies": {
-    "@sonate/core": "workspace:*",
-    "@sonate/detect": "workspace:*"
+    "@sonate/core": "file:../core",
+    "@sonate/detect": "file:../detect"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

@@ -17,7 +17,7 @@ import {
   ResonanceQuality,
   ResonanceLevel,
   CanvasParity
-} from './types';
+} from './symbi-types';
 
 /**
  * Main class for SYMBI framework detection and validation

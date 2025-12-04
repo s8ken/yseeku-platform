@@ -264,7 +264,7 @@ export function generateSecureRandom(length: number): Uint8Array {
  * Generate Ed25519 key pair
  */
 export async function generateEd25519KeyPair(): Promise<{ publicKey: Uint8Array; privateKey: Uint8Array }> {
-  const privateKey = ed25519.utils.randomSecretKey();
+  const privateKey = ed25519.utils.randomPrivateKey();
   const publicKey = await ed25519.getPublicKey(privateKey);
   return { publicKey, privateKey };
 }

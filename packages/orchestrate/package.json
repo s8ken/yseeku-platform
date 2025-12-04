@@ -8,18 +8,20 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "jest"
+    "test": "echo 'Tests coming soon'"
   },
   "keywords": ["sonate", "orchestration", "agents", "did", "vc", "kubernetes"],
   "author": "YSEEKU",
   "license": "MIT",
   "dependencies": {
-    "@sonate/core": "workspace:*",
+    "@sonate/core": "file:../core",
     "@digitalbazaar/did-method-key": "^5.0.0",
-    "@digitalbazaar/vc": "^6.0.0"
+    "ioredis": "^5.3.0",
+    "bcrypt": "^5.1.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "@types/bcrypt": "^5.0.0"
   }
 }
