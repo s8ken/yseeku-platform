@@ -1,0 +1,26 @@
+{
+  "name": "resonate-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "recharts": "^2.12.7",
+    "lucide-react": "^0.447.0",
+    "tailwind-merge": "^2.5.2"
+  },
+  "devDependencies": {
+    "typescript": "5.5.4",
+    "@types/node": "22.5.1",
+    "@types/react": "18.3.5",
+    "tailwindcss": "3.4.10",
+    "autoprefixer": "10.4.20",
+    "postcss": "8.4.47"
+  }
+}
