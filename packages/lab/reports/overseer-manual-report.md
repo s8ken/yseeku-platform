@@ -1,5 +1,5 @@
 # Overseer Manual Report
-Generated: 2025-12-06T10:27:09.486Z
+Generated: 2025-12-06T11:05:38.403Z
 
 ## Executive Summary
 - Total conversations: 164

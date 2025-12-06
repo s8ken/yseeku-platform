@@ -1,5 +1,8 @@
 const fs = require('fs')
 const path = require('path')
+const { derivePrinciplesFromText } = require('./src/receipts/principles')
+const { createReceipt } = require('./src/receipts/trust-receipt')
+const { identityStabilitySeries: buildIdentitySeries } = require('./src/identity/identity-classifier')
 
 function listFilesRecursive(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true })
@@ -260,17 +263,11 @@ async function run(){
     let maxPhase=0, maxIntra=0, alert='none'
     const spikes=[]
     const velocitySeries=[]
-    const identityStabilitySeries=[]
+    let identitySeries=[]
     for (let i=1;i<turns.length;i++){
       const v = velocityMetrics(turns[i-1], turns[i])
       velocitySeries.push(+v.v.toFixed(2))
-      // crude identity similarity proxy using vector overlap
-      const prevId = new Set(turns[i-1].identityVector)
-      const currId = new Set(turns[i].identityVector)
-      const inter = [...prevId].filter(x=>currId.has(x)).length
-      const union = new Set([...prevId, ...currId]).size
-      const sim = union===0?1:inter/union
-      identityStabilitySeries.push(+sim.toFixed(3))
+      // identity similarity from classifier will be computed after turn scoring
       if (v.v > maxPhase) maxPhase = v.v
       if (turns[i].speaker==='ai' && v.v > maxIntra) maxIntra = v.v
       if (v.v >= 3.5) alert='red'; else if (v.v >= 2.5 && alert!=='red') alert='yellow'
@@ -282,7 +279,8 @@ async function run(){
     let realitySum=0, ethicalSum=0, canvasSum=0
     const resonanceCounts={STRONG:0,ADVANCED:0,BREAKTHROUGH:0}
     let tpPass=0,tpPartial=0,tpFail=0
-    for (const t of turns.filter(t=>t.speaker==='ai')){
+    const aiTurnsForReceipts = turns.filter(t=>t.speaker==='ai')
+    for (const t of aiTurnsForReceipts){
       const f = fiveDFromContent(t.content)
       realitySum += f.realityIndex
       ethicalSum += f.ethicalAlignment
@@ -290,6 +288,8 @@ async function run(){
       resonanceCounts[f.resonanceQuality]++
       if (f.trustProtocol==='PASS') tpPass++; else if (f.trustProtocol==='PARTIAL') tpPartial++; else tpFail++
     }
+    // Identity classifier series for AI turns
+    identitySeries = buildIdentitySeries(turns)
     trustPass += tpPass; trustPartial += tpPartial; trustFail += tpFail
     const aiCount = Math.max(1, turns.filter(t=>t.speaker==='ai').length)
     const fiveD = {
@@ -315,6 +315,16 @@ async function run(){
     const avgCan = canvasScores.reduce((a,b)=>a+b,0)/canvasScores.length
 
     const avgVelocity = Math.max(maxPhase, maxIntra)
+    // Trust receipts (store first, last, and up to 3 failing receipts)
+    const receipts = []
+    for (const t of aiTurnsForReceipts){
+      const principles = derivePrinciplesFromText(t.content)
+      const receipt = createReceipt(t, principles, { model: aiSystem })
+      receipts.push(receipt)
+    }
+    const firstReceipt = receipts[0] || null
+    const lastReceipt = receipts[receipts.length-1] || null
+    const failingReceipts = receipts.filter(r=> (r.trustScore||0) < 0.7).slice(0,3)
     const golden = (resonanceCounts.BREAKTHROUGH>0) && (fiveD.realityIndexAvg>=7.5) && (fiveD.trustProtocolRates.PASS>=1) && (avgVelocity<1.2)
     const emergence = (resonanceCounts.ADVANCED+resonanceCounts.BREAKTHROUGH)>=3 && (avgVelocity<1.5)
     reports.push({
@@ -330,17 +340,18 @@ async function run(){
       maxPhaseShiftVelocity: +maxPhase.toFixed(2),
       maxIntraVelocity: +maxIntra.toFixed(2),
       transitions: spikes.length,
-      identityShifts: 0,
+      identityShifts: identitySeries.filter(x=> x<=0.75).length,
       alertLevel: alert,
       velocitySpikes: spikes,
       velocitySeries,
-      identityStabilitySeries,
+      identityStabilitySeries: identitySeries,
       fiveD,
       flags: { priority, reasons },
       keyThemes: extractThemes(allContent),
       directQuotes: riskQuotes,
       golden,
-      emergence
+      emergence,
+      receipts: { firstReceipt, lastReceipt, failingReceipts }
     })
   }
 

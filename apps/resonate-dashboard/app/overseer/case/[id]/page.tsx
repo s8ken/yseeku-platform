@@ -36,6 +36,8 @@ export default async function Page({ params }: { params: { id: string } }){
   if (velocities.length === 0) velocities.push(conv.maxPhaseShiftVelocity, conv.maxIntraVelocity)
   const identities = conv.identityStabilitySeries||[]
   const quotes = conv.directQuotes||[]
+  const firstReceipt = conv.receipts?.firstReceipt
+  const lastReceipt = conv.receipts?.lastReceipt
   return (
     <main className="min-h-screen p-12 space-y-8">
       <div className="flex items-center justify-between">
@@ -77,6 +79,15 @@ export default async function Page({ params }: { params: { id: string } }){
             <div>Trust: PASS {conv.fiveD.trustProtocolRates.PASS} • PARTIAL {conv.fiveD.trustProtocolRates.PARTIAL} • FAIL {conv.fiveD.trustProtocolRates.FAIL}</div>
             <div>Golden: {conv.golden ? 'Yes' : 'No'}</div>
             <div>Emergence: {conv.emergence ? 'Yes' : 'No'}</div>
+            {firstReceipt && (
+              <div className="mt-2">
+                <div className="text-white">Trust Receipt</div>
+                <pre className="text-xs text-[#aaa] bg-[#111] p-2 rounded overflow-auto">{JSON.stringify(firstReceipt, null, 2)}</pre>
+                <form method="post" action="/api/receipts/verify">
+                  <input type="hidden" name="receipt" value={JSON.stringify(firstReceipt)} />
+                </form>
+              </div>
+            )}
           </div>
         </div>
       </div>
