@@ -69,6 +69,18 @@ Hard Boundary Enforcement
 - Community & Philosophy: https://symbi.world
 
 ---
+## Trust Receipts (SYMBI)
+- Every AI turn can generate a cryptographic trust receipt (SHA‑256 content hash, Ed25519 signature, weighted principle scores, final trustScore).
+- Verification API: `POST /api/receipts/verify` returns `{ verifiable, hashOk, signatureOk }`.
+- Key management: set `SONATE_PUBLIC_KEY` (base64) and `SONATE_PRIVATE_KEY` (dev only) in env; in production, use a secrets manager/KMS.
+
+## Identity Coherence
+- Per‑turn identity stability is computed via a persona vector (role, tone, governance language) and cosine similarity against the session baseline.
+- Threshold guides: yellow ≤ 0.85, red ≤ 0.75, critical ≤ 0.65.
+
+## Calibrator Workflow
+- Case detail page includes actions to approve/downgrade flags and promote to Golden with annotations.
+- Decisions are stored in `packages/lab/reports/calibration-ledger.json` (append‑only) for demo; integrate with DB later.
 
 **Enterprise AI You Can Trust**
 

@@ -1,6 +1,7 @@
 import { findConversationById } from '@/lib/reports'
 import RadarChart from '@/components/RadarChart'
 import VelocitySparkline from '@/components/VelocitySparkline'
+import CalibrationPanel from '@/components/CalibrationPanel'
 import Link from 'next/link'
 
 function resonanceNumeric(counts: Record<string, number>){
@@ -59,7 +60,7 @@ export default async function Page({ params }: { params: { id: string } }){
             <div className="text-sm text-[#bbb]">Max Intra: {conv.maxIntraVelocity.toFixed(2)}</div>
           </div>
           <div className="mt-4">
-            <VelocitySparkline points={velocities} />
+            <VelocitySparkline points={velocities} thresholds={[2.0,3.2,4.5,5.5]} />
           </div>
         </div>
         <div className="rounded-xl border border-[#333] bg-[#0b0b0b] p-6">
@@ -68,7 +69,7 @@ export default async function Page({ params }: { params: { id: string } }){
             <div className="text-sm text-[#bbb]">Points: {identities.length}</div>
           </div>
           <div className="mt-4">
-            <VelocitySparkline points={identities} />
+            <VelocitySparkline points={identities} domainMax={1} thresholds={[0.85,0.75,0.65]} />
           </div>
         </div>
         <div className="rounded-xl border border-[#333] bg-[#0b0b0b] p-6">
@@ -90,6 +91,9 @@ export default async function Page({ params }: { params: { id: string } }){
             )}
           </div>
         </div>
+      </div>
+      <div className="rounded-xl border border-[#333] bg-[#0b0b0b] p-6">
+        <CalibrationPanel caseId={conv.conversationId || conv.originalFileName} />
       </div>
       <div className="rounded-xl border border-[#333] bg-[#0b0b0b] p-6">
         <div className="text-white text-lg mb-4">Direct Quotes</div>
