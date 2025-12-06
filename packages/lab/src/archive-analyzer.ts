@@ -8,6 +8,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ConversationTurn } from './conversational-metrics';
+import { parseClaudeMhtml } from './parsers/claude.parser';
+import { parseChatGptHtml } from './parsers/chatgpt.parser';
+import { parseGrokHtml } from './parsers/grok.parser';
+import { parseWolframHtml } from './parsers/wolfram.parser';
 
 export interface ArchiveConversation {
   aiSystem: string;
@@ -152,7 +156,24 @@ export class ArchiveAnalyzer {
    * Extract conversation turns from MHTML content
    */
   private extractTurnsFromMhtml(content: string, aiSystem: string): ParsedConversationTurn[] {
-    const turns: ParsedConversationTurn[] = [];
+    let turns: ParsedConversationTurn[] = [];
+    // System-specific parsing first
+    try {
+      const text = content;
+      if (aiSystem === 'Claude') {
+        turns = parseClaudeMhtml(text) as ParsedConversationTurn[];
+      } else if (aiSystem === 'GPT 4.0') {
+        turns = parseChatGptHtml(text) as ParsedConversationTurn[];
+      } else if (aiSystem === 'GROK') {
+        turns = parseGrokHtml(text) as ParsedConversationTurn[];
+      } else if (aiSystem === 'Wolfram') {
+        turns = parseWolframHtml(text) as ParsedConversationTurn[];
+      }
+    } catch {}
+    if (turns.length > 0) {
+      return turns;
+    }
+    const fallbackTurns: ParsedConversationTurn[] = [];
     
     // Look for common conversation patterns in MHTML
     const userPatterns = [
@@ -176,7 +197,7 @@ export class ArchiveAnalyzer {
       while ((match = pattern.exec(content)) !== null) {
         const content = this.cleanHtmlContent(match[1]);
         if (content.length > 10) { // Filter out very short content
-          turns.push({
+          fallbackTurns.push({
             turnNumber: turnNumber++,
             timestamp: timestamp += 1000,
             speaker: 'user',
@@ -192,7 +213,7 @@ export class ArchiveAnalyzer {
       while ((match = pattern.exec(content)) !== null) {
         const content = this.cleanHtmlContent(match[1]);
         if (content.length > 10) {
-          turns.push({
+          fallbackTurns.push({
             turnNumber: turnNumber++,
             timestamp: timestamp += 1000,
             speaker: 'ai',
@@ -203,7 +224,7 @@ export class ArchiveAnalyzer {
     });
 
     // Sort by timestamp
-    return turns.sort((a, b) => a.timestamp - b.timestamp);
+    return fallbackTurns.sort((a, b) => a.timestamp - b.timestamp);
   }
 
   /**
