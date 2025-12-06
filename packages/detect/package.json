@@ -10,16 +10,21 @@
     "clean": "rm -rf dist",
     "test": "echo 'Tests coming soon'"
   },
-  "keywords": ["sonate", "detection", "symbi-framework", "ai-monitoring"],
+  "keywords": [
+    "sonate",
+    "detection",
+    "symbi-framework",
+    "ai-monitoring"
+  ],
   "author": "YSEEKU",
   "license": "MIT",
   "dependencies": {
     "@sonate/core": "file:../core",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
     "@types/node": "^20.0.0",
-    "@types/uuid": "^9.0.0"
+    "@types/uuid": "^9.0.0",
+    "typescript": "^5.0.0"
   }
 }

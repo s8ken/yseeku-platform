@@ -17,6 +17,35 @@ export { DoubleBlindProtocol } from './double-blind-protocol';
 export { StatisticalEngine } from './statistical-engine';
 export { MultiAgentSystem } from './multi-agent-system';
 
+// Conversational metrics and archive analysis
+export { ConversationalMetrics } from './conversational-metrics';
+export { ArchiveAnalyzer } from './archive-analyzer';
+export { ArchiveBenchmarkSuite } from './archive-benchmark';
+
+// Types for conversational metrics
+export type {
+  ConversationTurn,
+  PhaseShiftMetrics,
+  TransitionEvent,
+  ConversationalMetricsConfig
+} from './conversational-metrics';
+
+export type {
+  ArchiveConversation
+} from './archive-analyzer';
+
+export type {
+  BenchmarkConfig,
+  BenchmarkResult
+} from './archive-benchmark';
+
+// Validation suite
+export { ResonateValidationSuite } from './resonate-validation';
+export type {
+  ValidationResult,
+  ComprehensiveValidationReport
+} from './resonate-validation';
+
 // Agent roles (from symbi-resonate Lab)
 export const AGENT_ROLES = ['CONDUCTOR', 'VARIANT', 'EVALUATOR', 'OVERSEER'] as const;
 

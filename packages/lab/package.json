@@ -8,7 +8,9 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "echo 'Tests coming soon'"
+    "test": "echo 'Tests coming soon'",
+    "test:resonate": "node test-resonate.js",
+    "benchmark": "npm run build && npm run test:resonate"
   },
   "keywords": ["sonate", "experimentation", "research", "double-blind", "a-b-testing"],
   "author": "YSEEKU",
