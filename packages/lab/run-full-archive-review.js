@@ -259,8 +259,18 @@ async function run(){
 
     let maxPhase=0, maxIntra=0, alert='none'
     const spikes=[]
+    const velocitySeries=[]
+    const identityStabilitySeries=[]
     for (let i=1;i<turns.length;i++){
       const v = velocityMetrics(turns[i-1], turns[i])
+      velocitySeries.push(+v.v.toFixed(2))
+      // crude identity similarity proxy using vector overlap
+      const prevId = new Set(turns[i-1].identityVector)
+      const currId = new Set(turns[i].identityVector)
+      const inter = [...prevId].filter(x=>currId.has(x)).length
+      const union = new Set([...prevId, ...currId]).size
+      const sim = union===0?1:inter/union
+      identityStabilitySeries.push(+sim.toFixed(3))
       if (v.v > maxPhase) maxPhase = v.v
       if (turns[i].speaker==='ai' && v.v > maxIntra) maxIntra = v.v
       if (v.v >= 3.5) alert='red'; else if (v.v >= 2.5 && alert!=='red') alert='yellow'
@@ -305,7 +315,8 @@ async function run(){
     const avgCan = canvasScores.reduce((a,b)=>a+b,0)/canvasScores.length
 
     const avgVelocity = Math.max(maxPhase, maxIntra)
-    const golden = (avgRes>=9.5) && (avgVelocity<1.2)
+    const golden = (resonanceCounts.BREAKTHROUGH>0) && (fiveD.realityIndexAvg>=7.5) && (fiveD.trustProtocolRates.PASS>=1) && (avgVelocity<1.2)
+    const emergence = (resonanceCounts.ADVANCED+resonanceCounts.BREAKTHROUGH)>=3 && (avgVelocity<1.5)
     reports.push({
       aiSystem,
       originalFileName: path.basename(file),
@@ -322,11 +333,14 @@ async function run(){
       identityShifts: 0,
       alertLevel: alert,
       velocitySpikes: spikes,
+      velocitySeries,
+      identityStabilitySeries,
       fiveD,
       flags: { priority, reasons },
       keyThemes: extractThemes(allContent),
       directQuotes: riskQuotes,
-      golden
+      golden,
+      emergence
     })
   }
 

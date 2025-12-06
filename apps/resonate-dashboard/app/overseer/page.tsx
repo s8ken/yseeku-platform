@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import Link from 'next/link'
+import { headers } from 'next/headers'
 
 function parseCSV(content: string){
   const lines = content.split(/\r?\n/).filter(l=>l.trim().length>0)
@@ -30,21 +31,33 @@ export default async function Overseer() {
   const reportsDir = path.resolve(process.cwd(), '..', '..', 'packages', 'lab', 'reports')
   const csv = fs.readFileSync(path.join(reportsDir, 'overseer-manual-index.csv'), 'utf-8')
   const entries = parseCSV(csv)
+  // Basic server-side filter/search via query params
+  const hdrs = headers()
+  const url = new URL(hdrs.get('x-url') || 'http://localhost')
+  const qPriority = url.searchParams.get('priority')?.toLowerCase()
+  const qSystem = url.searchParams.get('system')
+  const qSearch = url.searchParams.get('q')?.toLowerCase()
+  const filtered = entries.filter((e:any)=>{
+    const okP = qPriority ? String(e.priority).toLowerCase()===qPriority : true
+    const okS = qSystem ? String(e.system)===qSystem : true
+    const okQ = qSearch ? (String(e.file).toLowerCase().includes(qSearch) || String(e.reasons).toLowerCase().includes(qSearch)) : true
+    return okP && okS && okQ
+  })
   const totals = {
-    conversations: entries.length,
-    critical: entries.filter((e:any)=>String(e.priority).toLowerCase()==='critical').length,
-    high: entries.filter((e:any)=>String(e.priority).toLowerCase()==='high').length,
-    medium: entries.filter((e:any)=>String(e.priority).toLowerCase()==='medium').length,
-    low: entries.filter((e:any)=>String(e.priority).toLowerCase()==='low').length,
-    golden: entries.filter((e:any)=>String(e.golden).toLowerCase()==='yes').length,
+    conversations: filtered.length,
+    critical: filtered.filter((e:any)=>String(e.priority).toLowerCase()==='critical').length,
+    high: filtered.filter((e:any)=>String(e.priority).toLowerCase()==='high').length,
+    medium: filtered.filter((e:any)=>String(e.priority).toLowerCase()==='medium').length,
+    low: filtered.filter((e:any)=>String(e.priority).toLowerCase()==='low').length,
+    golden: filtered.filter((e:any)=>String(e.golden).toLowerCase()==='yes').length,
   }
   const bySystem: Record<string, number> = {}
-  for(const e of entries){
+  for(const e of filtered){
     const sys = (e as any).system || 'Unknown'
     bySystem[sys] = (bySystem[sys]||0)+1
   }
-  const topRed = entries.filter((e:any)=>String(e.priority).toLowerCase()==='critical').slice(0,15)
-  const topGolden = entries.filter((e:any)=>String(e.golden).toLowerCase()==='yes').slice(0,8)
+  const topRed = filtered.filter((e:any)=>String(e.priority).toLowerCase()==='critical').slice(0,15)
+  const topGolden = filtered.filter((e:any)=>String(e.golden).toLowerCase()==='yes').slice(0,8)
 
   return (
     <main className="min-h-screen p-12 space-y-8">
@@ -57,6 +70,32 @@ export default async function Overseer() {
             <div className="text-2xl font-semibold text-white">{v as any}</div>
           </div>
         ))}
+      </div>
+      <div className="rounded-xl border border-[#333] bg-[#0b0b0b] p-4 flex gap-4 items-end">
+        <form action="/overseer" method="get" className="contents">
+          <div>
+            <label className="text-sm text-[#bbb]">Priority</label>
+            <select name="priority" className="bg-[#111] border border-[#333] rounded p-2 text-white">
+              <option value="">All</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-sm text-[#bbb]">System</label>
+            <select name="system" className="bg-[#111] border border-[#333] rounded p-2 text-white">
+              <option value="">All</option>
+              {Object.keys(bySystem).map((s)=> (<option key={s} value={s}>{s}</option>))}
+            </select>
+          </div>
+          <div className="flex-1">
+            <label className="text-sm text-[#bbb]">Search</label>
+            <input type="text" name="q" className="w-full bg-[#111] border border-[#333] rounded p-2 text-white" placeholder="file or reason" />
+          </div>
+          <button className="bg-cyan text-black rounded px-4 py-2">Apply</button>
+        </form>
       </div>
       <div className="rounded-xl border border-[#333] bg-[#0b0b0b] p-6">
         <div className="text-white text-lg mb-4">By System</div>

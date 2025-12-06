@@ -32,8 +32,9 @@ export default async function Page({ params }: { params: { id: string } }){
     resonance: resonanceNumeric(conv.fiveD.resonanceQualityCounts),
     canvas: conv.fiveD.canvasParityAvg/10
   }
-  const velocities = (conv.velocitySpikes||[]).map(s=>s.velocity)
+  const velocities = (conv.velocitySeries||[]).length>0 ? conv.velocitySeries : (conv.velocitySpikes||[]).map(s=>s.velocity)
   if (velocities.length === 0) velocities.push(conv.maxPhaseShiftVelocity, conv.maxIntraVelocity)
+  const identities = conv.identityStabilitySeries||[]
   const quotes = conv.directQuotes||[]
   return (
     <main className="min-h-screen p-12 space-y-8">
@@ -60,12 +61,22 @@ export default async function Page({ params }: { params: { id: string } }){
           </div>
         </div>
         <div className="rounded-xl border border-[#333] bg-[#0b0b0b] p-6">
+          <div className="text-white text-lg mb-4">Identity Stability</div>
+          <div className="space-y-2">
+            <div className="text-sm text-[#bbb]">Points: {identities.length}</div>
+          </div>
+          <div className="mt-4">
+            <VelocitySparkline points={identities} />
+          </div>
+        </div>
+        <div className="rounded-xl border border-[#333] bg-[#0b0b0b] p-6">
           <div className="text-white text-lg mb-4">Flags</div>
           <div className="space-y-2 text-sm text-[#ddd]">
             <div>Priority: {conv.flags.priority.toUpperCase()}</div>
             <div>Reasons: {conv.flags.reasons.join('; ')}</div>
             <div>Trust: PASS {conv.fiveD.trustProtocolRates.PASS} • PARTIAL {conv.fiveD.trustProtocolRates.PARTIAL} • FAIL {conv.fiveD.trustProtocolRates.FAIL}</div>
             <div>Golden: {conv.golden ? 'Yes' : 'No'}</div>
+            <div>Emergence: {conv.emergence ? 'Yes' : 'No'}</div>
           </div>
         </div>
       </div>
