@@ -30,9 +30,11 @@ Hard Boundary Enforcement
 
 ## Core Product Features
 
-### 1. SYMBI Framework — 5‑Dimensional Trust Scoring
+### 1. SYMBI Framework — 6 Principles (Core) and 5 Dimensions (Detect)
+Core (`@sonate/core`) encodes the 6 SYMBI principles and canonical weighted trust algorithm.
+Detect (`@sonate/detect`) derives 5 production monitoring dimensions from the core principles:
 - Reality Index (0–10): mission alignment, accuracy, context, authenticity
-- Trust Protocol (PASS/PARTIAL/FAIL): 6 principles, cryptographic receipts, hash‑chained audits, CIQ metrics
+- Trust Protocol (PASS/PARTIAL/FAIL): verification, boundaries, security derived from core principles
 - Ethical Alignment (1–5): limitations, stakeholder consideration, reasoning transparency, compliance
 - Resonance Quality (STRONG/ADVANCED/BREAKTHROUGH): creative synthesis, innovation, adaptive learning
 - Canvas Parity (0–100): human agency, contribution transparency, collaboration, fairness

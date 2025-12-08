@@ -250,3 +250,8 @@ This executes:
 ## License
 
 MIT - See LICENSE file for details
+## Boundary Summary
+
+- Allowed: Research experiments, double-blind protocols, archival analysis, calibration
+- Not Allowed: Production monitoring, live user data ingestion
+- Import Example: `import { ConversationalMetrics } from '@sonate/lab'`

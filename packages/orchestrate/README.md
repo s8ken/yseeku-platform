@@ -269,3 +269,8 @@ spec:
 ## License
 
 MIT
+### Boundary Summary
+
+- Allowed: Agent registry, DID/VC, workflows, tactical command, RBAC, audit, API keys
+- Not Allowed: Experiments, research-only workflows
+- Import Example: `import { AgentOrchestrator } from '@sonate/orchestrate'`

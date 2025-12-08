@@ -4,7 +4,7 @@ Real-time AI detection and scoring for the SONATE platform.
 
 ## Overview
 
-SONATE Detect provides production-grade real-time monitoring of AI interactions using the 5-dimension SYMBI Framework. Designed for < 100ms latency in production environments.
+SONATE Detect provides production-grade real-time monitoring of AI interactions using a 5-dimension scoring model built on top of the 6 SYMBI trust principles implemented in `@sonate/core`. Designed for < 100ms latency in production environments.
 
 ## HARD BOUNDARY
 

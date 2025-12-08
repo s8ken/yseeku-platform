@@ -14,7 +14,7 @@ export { TrustReceipt } from './trust-receipt';
 export { SymbiScorer } from './symbi-scorer';
 
 // Utility exports
-export { hashChain } from './utils/hash-chain';
+export { hashChain, genesisHash } from './utils/hash-chain';
 export { signPayload, verifySignature, generateKeyPair } from './utils/signatures';
 export * from './utils/crypto-advanced';
 
@@ -55,9 +55,11 @@ export const TRUST_PRINCIPLES = {
 // Types
 export type TrustPrincipleKey = keyof typeof TRUST_PRINCIPLES;
 
+export type PrincipleScores = Record<TrustPrincipleKey, number>;
+
 export interface TrustScore {
   overall: number;
-  principles: Record<TrustPrincipleKey, number>;
+  principles: PrincipleScores;
   violations: TrustPrincipleKey[];
   timestamp: number;
 }

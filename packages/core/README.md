@@ -137,3 +137,10 @@ This implementation follows the specifications at:
 ## License
 
 MIT
+### Boundary Summary
+
+- Allowed: Protocol logic (6-principle trust algorithm, trust receipts, hashing, signatures, CIQ metrics)
+- Not Allowed: UI components, production monitoring logic, orchestration workflows, experiments
+- Import Example: `import { TrustProtocol, hashChain } from '@sonate/core'`
+
+All SONATE trust scores MUST use `TrustProtocol` with 0–10 inputs and weights from `TRUST_PRINCIPLES`.

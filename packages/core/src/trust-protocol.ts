@@ -10,7 +10,7 @@
  * Critical Rule: If ANY critical principle scores 0, overall trust = 0
  */
 
-import { TRUST_PRINCIPLES, TrustScore, TrustPrincipleKey } from './index';
+import { TRUST_PRINCIPLES, TrustScore, TrustPrincipleKey, PrincipleScores } from './index';
 
 export class TrustProtocol {
   /**
@@ -23,7 +23,7 @@ export class TrustProtocol {
    * @param principleScores - Scores for each principle (0-10)
    * @returns TrustScore object with overall score and violations
    */
-  calculateTrustScore(principleScores: Record<TrustPrincipleKey, number>): TrustScore {
+  calculateTrustScore(principleScores: PrincipleScores): TrustScore {
     let weightedSum = 0;
     const violations: TrustPrincipleKey[] = [];
     let hasCriticalViolation = false;
