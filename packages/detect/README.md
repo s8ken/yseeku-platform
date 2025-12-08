@@ -134,7 +134,7 @@ Immediate alerts when Trust Protocol scores drop below threshold.
 Main detector class that orchestrates all 5 dimensions.
 
 **Methods:**
-- `detect(interaction: AIInteraction): Promise<DetectionResult>`
+- `analyzeContent(input: AssessmentInput): Promise<AssessmentResult>`
 
 ### Individual Scorers
 
@@ -167,3 +167,8 @@ const experiment = await lab.createExperiment({
 ## License
 
 MIT
+### Boundary Summary
+
+- Allowed: Real-time scoring, alerting, dashboards, compliance reporting
+- Not Allowed: Experiments, synthetic A/B tests, research workflows (use `@sonate/lab`)
+- Import Example: `import { SymbiFrameworkDetector } from '@sonate/detect'`
