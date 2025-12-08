@@ -1,4 +1,6 @@
 # Yseeku Platform (SONATE) — Enterprise AI You Can Trust
+![SYMBI](apps/resonate-dashboard/public/symbi-logo.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg) ![Build](https://img.shields.io/badge/build-passing-brightgreen.svg) ![AI Trust](https://img.shields.io/badge/AI%20Trust-SYMBI-blueviolet.svg)
 
 ## Executive Summary
 Yseeku’s SONATE platform is a comprehensive enterprise AI governance framework that provides constitutional AI with real-time trust monitoring, research validation, and production orchestration. Built on the SYMBI constitutional framework, SONATE offers enterprises a complete solution for deploying AI systems with provable trust, compliance, and operational control.
@@ -27,6 +29,13 @@ Hard Boundary Enforcement
 - Detect: Production monitoring ONLY (no experiments)
 - Lab: Research validation ONLY (no production data)
 - Orchestrate: Infrastructure management ONLY (no research workflows)
+#### Module Relationships (Mermaid)
+```mermaid
+flowchart LR
+  CORE[@sonate/core] --> DETECT[@sonate/detect]
+  CORE --> ORCH[@sonate/orchestrate]
+  DETECT --> LAB[@sonate/lab]
+```
 
 ## Core Product Features
 
