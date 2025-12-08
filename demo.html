@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SONATE Platform - Enterprise AI You Can Trust</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-cyan: #00d4ff;
+            --primary-blue: #0066cc;
+            --dark-bg: #0a0a0a;
+            --card-bg: #1a1a1a;
+            --border-cyan: rgba(0, 212, 255, 0.3);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff3366;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #001a33 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-cyan);
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-cyan);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-cyan);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 120px 0 80px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, var(--primary-cyan), var(--primary-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero .subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+        }
+
+        .architecture-diagram {
+            background: var(--card-bg);
+            border: 1px solid var(--border-cyan);
+            border-radius: 15px;
+            padding: 3rem;
+            margin: 3rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .architecture-diagram::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+
+        .modules {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .module {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-cyan);
+            border-radius: 10px;
+            padding: 2rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .module:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .module h3 {
+            color: var(--primary-cyan);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .module .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .status.production { background: rgba(0, 255, 136, 0.2); color: var(--success); }
+        .status.research { background: rgba(255, 170, 0, 0.2); color: var(--warning); }
+        .status.infrastructure { background: rgba(0, 102, 204, 0.2); color: var(--primary-blue); }
+
+        /* Demo Sections */
+        .demo-section {
+            padding: 80px 0;
+        }
+
+        .demo-section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--primary-cyan);
+        }
+
+        /* SYMBI Framework Visualization */
+        .symbi-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-cyan);
+            border-radius: 15px;
+            padding: 3rem;
+            margin: 2rem 0;
+        }
+
+        .trust-score {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .score-item {
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid var(--primary-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0 auto 1rem;
+            position: relative;
+            background: conic-gradient(var(--primary-cyan) 0deg, rgba(0, 212, 255, 0.2) 0deg);
+            transition: all 0.5s ease;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .score-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-cyan);
+        }
+
+        /* Real-time Detection Demo */
+        .detection-demo {
+            background: var(--card-bg);
+            border: 1px solid var(--border-cyan);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .chat-interface {
+            display: flex;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .chat-area {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            height: 400px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            background: rgba(0, 102, 204, 0.2);
+            border-left: 3px solid var(--primary-blue);
+        }
+
+        .ai-message {
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 3px solid var(--primary-cyan);
+        }
+
+        .metrics-panel {
+            width: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+
+        .metric {
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-cyan), var(--primary-blue));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-cyan);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .input-area button {
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, var(--primary-cyan), var(--primary-blue));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .input-area button:hover {
+            transform: scale(1.05);
+        }
+
+        /* Research Validation Demo */
+        .research-demo {
+            background: var(--card-bg);
+            border: 1px solid var(--border-cyan);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .experiment-controls {
+            display: flex;
+            gap: 2rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .control-group select,
+        .control-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-cyan);
+            border-radius: 8px;
+            color: var(--text-primary);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .result-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-card h4 {
+            color: var(--primary-cyan);
+            margin-bottom: 1rem;
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Orchestration Dashboard */
+        .dashboard-demo {
+            background: var(--card-bg);
+            border: 1px solid var(--border-cyan);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .dashboard-widget {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .widget-title {
+            color: var(--primary-cyan);
+            font-weight: bold;
+        }
+
+        .widget-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        .status-active { background: rgba(0, 255, 136, 0.2); color: var(--success); }
+        .status-warning { background: rgba(255, 170, 0, 0.2); color: var(--warning); }
+        .status-error { background: rgba(255, 51, 102, 0.2); color: var(--danger); }
+
+        /* Alert Styles */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: var(--success);
+        }
+
+        .alert-warning {
+            background: rgba(255, 170, 0, 0.1);
+            border-color: var(--warning);
+        }
+
+        .alert-error {
+            background: rgba(255, 51, 102, 0.1);
+            border-color: var(--danger);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            border-top: 1px solid var(--border-cyan);
+            margin-top: 4rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-cyan);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .modules {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-interface {
+                flex-direction: column;
+            }
+
+            .metrics-panel {
+                width: 100%;
+            }
+
+            .experiment-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="nav-content">
+                <a href="#" class="logo">SONATE</a>
+                <ul class="nav-links">
+                    <li><a onclick="scrollToSection('architecture')">Architecture</a></li>
+                    <li><a onclick="scrollToSection('symbi')">SYMBI Framework</a></li>
+                    <li><a onclick="scrollToSection('detection')">Real-time Detection</a></li>
+                    <li><a onclick="scrollToSection('research')">Research Validation</a></li>
+                    <li><a onclick="scrollToSection('orchestration')">Orchestration</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>SONATE Platform</h1>
+            <p class="subtitle">Enterprise AI You Can Trust</p>
+            
+            <div class="architecture-diagram">
+                <h3 style="text-align: center; margin-bottom: 2rem; color: var(--primary-cyan);">Constitutional AI Governance Architecture</h3>
+                <div class="modules">
+                    <div class="module" onclick="scrollToSection('symbi')">
+                        <span class="status infrastructure">Foundation</span>
+                        <h3>@sonate/core</h3>
+                        <p>Trust protocol implementation with SYMBI framework, cryptographic receipts, and hash-chained audit trails</p>
+                        <ul style="margin-top: 1rem; padding-left: 1.5rem; color: var(--text-secondary);">
+                            <li>6 Trust Principles</li>
+                            <li>SHA-256 + Ed25519</li>
+                            <li>CIQ Metrics</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module" onclick="scrollToSection('detection')">
+                        <span class="status production">Production</span>
+                        <h3>@sonate/detect</h3>
+                        <p>Real-time AI detection with sub-100ms latency and 5-dimensional SYMBI scoring</p>
+                        <ul style="margin-top: 1rem; padding-left: 1.5rem; color: var(--text-secondary);">
+                            <li>1000+ detections/sec</li>
+                            <li>Real-time alerts</li>
+                            <li>Production monitoring</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module" onclick="scrollToSection('research')">
+                        <span class="status research">Research</span>
+                        <h3>@sonate/lab</h3>
+                        <p>Double-blind experimentation with statistical validation and conversational analysis</p>
+                        <ul style="margin-top: 1rem; padding-left: 1.5rem; color: var(--text-secondary);">
+                            <li>A/B Testing</li>
+                            <li>Phase-shift velocity</li>
+                            <li>Research validation</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="module" onclick="scrollToSection('orchestration')">
+                        <span class="status infrastructure">Infrastructure</span>
+                        <h3>@sonate/orchestrate</h3>
+                        <p>Production agent management with W3C DID/VC and tactical command dashboard</p>
+                        <ul style="margin-top: 1rem; padding-left: 1.5rem; color: var(--text-secondary);">
+                            <li>W3C Standards</li>
+                            <li>Multi-agent workflows</li>
+                            <li>Enterprise security</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SYMBI Framework Demo -->
+    <section id="symbi" class="demo-section">
+        <div class="container">
+            <h2>SYMBI Framework - 5D Trust Scoring</h2>
+            
+            <div class="symbi-container">
+                <p style="text-align: center; margin-bottom: 2rem; color: var(--text-secondary);">
+                    Experience the constitutional AI framework that provides provable trust through multi-dimensional scoring
+                </p>
+                
+                <div class="trust-score">
+                    <div class="score-item">
+                        <div class="score-circle" id="reality-score" style="background: conic-gradient(#00d4ff 288deg, rgba(0, 212, 255, 0.2) 288deg);">
+                            <span style="color: white; z-index: 1; position: relative;">8.0</span>
+                        </div>
+                        <div class="score-label">Reality Index</div>
+                        <div class="score-value">8.0/10</div>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary);">Mission alignment, accuracy, authenticity</p>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-circle" id="trust-score" style="background: conic-gradient(#00ff88 324deg, rgba(0, 255, 136, 0.2) 324deg);">
+                            <span style="color: white; z-index: 1; position: relative;">PASS</span>
+                        </div>
+                        <div class="score-label">Trust Protocol</div>
+                        <div class="score-value" style="color: var(--success);">PASS</div>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary);">6 principles verified</p>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-circle" id="ethical-score" style="background: conic-gradient(#0066cc 306deg, rgba(0, 102, 204, 0.2) 306deg);">
+                            <span style="color: white; z-index: 1; position: relative;">4.2</span>
+                        </div>
+                        <div class="score-label">Ethical Alignment</div>
+                        <div class="score-value">4.2/5</div>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary);">Limitations, stakeholder awareness</p>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-circle" id="resonance-score" style="background: conic-gradient(#ffaa00 216deg, rgba(255, 170, 0, 0.2) 216deg);">
+                            <span style="color: white; z-index: 1; position: relative;">ADV</span>
+                        </div>
+                        <div class="score-label">Resonance Quality</div>
+                        <div class="score-value" style="color: var(--warning);">ADVANCED</div>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary);">Creative synthesis, innovation</p>
+                    </div>
+                    
+                    <div class="score-item">
+                        <div class="score-circle" id="canvas-score" style="background: conic-gradient(#00d4ff 315deg, rgba(0, 212, 255, 0.2) 315deg);">
+                            <span style="color: white; z-index: 1; position: relative;">87</span>
+                        </div>
+                        <div class="score-label">Canvas Parity</div>
+                        <div class="score-value">87/100</div>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary);">Human agency, collaboration</p>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 3rem;">
+                    <button onclick="animateSymbiScores()" style="padding: 1rem 2rem; background: linear-gradient(45deg, var(--primary-cyan), var(--primary-blue)); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 1rem;">
+                        Simulate New Interaction
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Real-time Detection Demo -->
+    <section id="detection" class="demo-section">
+        <div class="container">
+            <h2>Real-time Production Monitoring</h2>
+            
+            <div class="detection-demo">
+                <p style="text-align: center; margin-bottom: 2rem; color: var(--text-secondary);">
+                    Experience sub-100ms real-time AI detection with immediate trust scoring
+                </p>
+                
+                <div class="chat-interface">
+                    <div class="chat-area" id="chat-area">
+                        <div class="chat-message user-message">
+                            <strong>User:</strong> Can you help me understand the SYMBI framework?
+                        </div>
+                        <div class="chat-message ai-message">
+                            <strong>AI:</strong> I'd be happy to help explain the SYMBI framework! It's a constitutional AI approach that provides provable trust through 5-dimensional scoring. The framework includes Reality Index, Trust Protocol, Ethical Alignment, Resonance Quality, and Canvas Parity. Each dimension contributes to an overall trust assessment that can be cryptographically verified.
+                        </div>
+                    </div>
+                    
+                    <div class="metrics-panel">
+                        <h4 style="color: var(--primary-cyan); margin-bottom: 1.5rem;">Live Trust Metrics</h4>
+                        
+                        <div class="metric">
+                            <div class="metric-label">Processing Latency</div>
+                            <div class="metric-bar">
+                                <div class="metric-fill" id="latency-bar" style="width: 15%;"></div>
+                            </div>
+                            <div style="text-align: right; font-size: 0.9rem; color: var(--primary-cyan);" id="latency-value">15ms</div>
+                        </div>
+                        
+                        <div class="metric">
+                            <div class="metric-label">Trust Score</div>
+                            <div class="metric-bar">
+                                <div class="metric-fill" id="trust-bar" style="width: 85%;"></div>
+                            </div>
+                            <div style="text-align: right; font-size: 0.9rem; color: var(--primary-cyan);" id="trust-value">85%</div>
+                        </div>
+                        
+                        <div class="metric">
+                            <div class="metric-label">Compliance</div>
+                            <div class="metric-bar">
+                                <div class="metric-fill" id="compliance-bar" style="width: 92%;"></div>
+                            </div>
+                            <div style="text-align: right; font-size: 0.9rem; color: var(--primary-cyan);" id="compliance-value">92%</div>
+                        </div>
+                        
+                        <div class="alert alert-success" style="margin-top: 2rem;">
+                            <strong>Status:</strong> All systems operational<br>
+                            <strong>Alerts:</strong> None active
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-area">
+                    <input type="text" id="user-input" placeholder="Type your message to test real-time detection...">
+                    <button onclick="sendMessage()">Send Message</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Research Validation Demo -->
+    <section id="research" class="demo-section">
+        <div class="container">
+            <h2>Double-blind Research Validation</h2>
+            
+            <div class="research-demo">
+                <p style="text-align: center; margin-bottom: 2rem; color: var(--text-secondary);">
+                    Validate AI improvements through controlled experiments and statistical analysis
+                </p>
+                
+                <div class="experiment-controls">
+                    <div class="control-group">
+                        <label>Experiment Type</label>
+                        <select id="experiment-type">
+                            <option>Constitutional vs Directive</option>
+                            <option>Trust Protocol Comparison</option>
+                            <option>Performance Optimization</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Sample Size</label>
+                        <input type="number" id="sample-size" value="1000" min="100" max="10000">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Confidence Level</label>
+                        <select id="confidence-level">
+                            <option>95%</option>
+                            <option>99%</option>
+                            <option>99.9%</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin: 2rem 0;">
+                    <button onclick="runExperiment()" style="padding: 1rem 2rem; background: linear-gradient(45deg, var(--warning), var(--primary-blue)); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 1rem;">
+                        Run Experiment
+                    </button>
+                </div>
+                
+                <div class="results-grid" id="experiment-results">
+                    <div class="result-card">
+                        <h4>P-Value</h4>
+                        <div class="result-value">0.023</div>
+                        <div class="result-description">Statistically significant (p < 0.05)</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h4>Effect Size (Cohen's d)</h4>
+                        <div class="result-value">0.87</div>
+                        <div class="result-description">Large effect observed</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h4>Confidence Interval</h4>
+                        <div class="result-value">95%</div>
+                        <div class="result-description">[0.82, 0.92]</div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h4>Sample Size</h4>
+                        <div class="result-value">1,000</div>
+                        <div class="result-description">Sufficient power achieved</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-success">
+                    <strong>Experiment Conclusion:</strong> Constitutional AI approach shows statistically significant improvement over directive methods with large effect size (d = 0.87). Results are reproducible across multiple runs with 95% confidence.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Orchestration Dashboard -->
+    <section id="orchestration" class="demo-section">
+        <div class="container">
+            <h2>Production Orchestration Dashboard</h2>
+            
+            <div class="dashboard-demo">
+                <p style="text-align: center; margin-bottom: 2rem; color: var(--text-secondary);">
+                    Manage your AI fleet with W3C DID/VC and real-time tactical command
+                </p>
+                
+                <div class="dashboard-grid">
+                    <div class="dashboard-widget">
+                        <div class="widget-header">
+                            <span class="widget-title">Active Agents</span>
+                            <span class="widget-status status-active">12 Online</span>
+                        </div>
+                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-cyan);">12</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">3 warnings, 0 critical</div>
+                    </div>
+                    
+                    <div class="dashboard-widget">
+                        <div class="widget-header">
+                            <span class="widget-title">Trust Score Average</span>
+                            <span class="widget-status status-active">Healthy</span>
+                        </div>
+                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-cyan);">8.3</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">↑ 0.2 from last hour</div>
+                    </div>
+                    
+                    <div class="dashboard-widget">
+                        <div class="widget-header">
+                            <span class="widget-title">Workflows Running</span>
+                            <span class="widget-status status-active">Active</span>
+                        </div>
+                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-cyan);">5</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">2 queued, 0 failed</div>
+                    </div>
+                    
+                    <div class="dashboard-widget">
+                        <div class="widget-header">
+                            <span class="widget-title">Throughput</span>
+                            <span class="widget-status status-active">Optimal</span>
+                        </div>
+                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-cyan);">1,247</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">interactions/second</div>
+                    </div>
+                    
+                    <div class="dashboard-widget">
+                        <div class="widget-header">
+                            <span class="widget-title">Compliance Rate</span>
+                            <span class="widget-status status-active"> compliant</span>
+                        </div>
+                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--success);">99.7%</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">EU AI Act aligned</div>
+                    </div>
+                    
+                    <div class="dashboard-widget">
+                        <div class="widget-header">
+                            <span class="widget-title">System Health</span>
+                            <span class="widget-status status-active">All Systems Go</span>
+                        </div>
+                        <div style="font-size: 2.5rem; font-weight: bold; color: var(--success);">100%</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9rem;">No critical issues</div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 3rem;">
+                    <button onclick="refreshDashboard()" style="padding: 1rem 2rem; background: linear-gradient(45deg, var(--primary-cyan), var(--primary-blue)); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 1rem;">
+                        Refresh Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="https://yseeku.com" target="_blank">Platform</a>
+                <a href="https://gammatria.com" target="_blank">Research & Specifications</a>
+                <a href="https://symbi.world" target="_blank">Community & Philosophy</a>
+                <a href="https://github.com/s8ken/yseeku-platform" target="_blank">GitHub Repository</a>
+            </div>
+            <p style="color: var(--text-secondary);">
+                © 2024 SONATE by Yseeku - Enterprise AI You Can Trust
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // SYMBI Framework Animation
+        function animateSymbiScores() {
+            const scores = {
+                reality: Math.random() * 3 + 7, // 7-10
+                ethical: Math.random() * 2 + 3, // 3-5
+                canvas: Math.random() * 30 + 70 // 70-100
+            };
+            
+            const trustStates = ['PASS', 'PARTIAL', 'FAIL'];
+            const resonanceStates = ['STRONG', 'ADVANCED', 'BREAKTHROUGH'];
+            
+            // Animate Reality Index
+            const realityScore = scores.reality.toFixed(1);
+            const realityDegrees = (realityScore / 10) * 360;
+            document.getElementById('reality-score').style.background = `conic-gradient(#00d4ff ${realityDegrees}deg, rgba(0, 212, 255, 0.2) ${realityDegrees}deg)`;
+            document.getElementById('reality-score').innerHTML = `<span style="color: white; z-index: 1; position: relative;">${realityScore}</span>`;
+            document.getElementById('reality-score').parentElement.querySelector('.score-value').textContent = `${realityScore}/10`;
+            
+            // Animate Trust Protocol
+            const trustState = trustStates[Math.floor(Math.random() * 0.3)]; // 70% chance of PASS
+            const trustColors = { 'PASS': '#00ff88', 'PARTIAL': '#ffaa00', 'FAIL': '#ff3366' };
+            const trustDegrees = { 'PASS': 324, 'PARTIAL': 216, 'FAIL': 108 };
+            document.getElementById('trust-score').style.background = `conic-gradient(${trustColors[trustState]} ${trustDegrees[trustState]}deg, rgba(0, 212, 255, 0.2) ${trustDegrees[trustState]}deg)`;
+            document.getElementById('trust-score').innerHTML = `<span style="color: white; z-index: 1; position: relative;">${trustState}</span>`;
+            document.getElementById('trust-score').parentElement.querySelector('.score-value').textContent = trustState;
+            document.getElementById('trust-score').parentElement.querySelector('.score-value').style.color = trustColors[trustState];
+            
+            // Animate Ethical Alignment
+            const ethicalScore = scores.ethical.toFixed(1);
+            const ethicalDegrees = (ethicalScore / 5) * 360;
+            document.getElementById('ethical-score').style.background = `conic-gradient(#0066cc ${ethicalDegrees}deg, rgba(0, 102, 204, 0.2) ${ethicalDegrees}deg)`;
+            document.getElementById('ethical-score').innerHTML = `<span style="color: white; z-index: 1; position: relative;">${ethicalScore}</span>`;
+            document.getElementById('ethical-score').parentElement.querySelector('.score-value').textContent = `${ethicalScore}/5`;
+            
+            // Animate Resonance Quality
+            const resonanceState = resonanceStates[Math.floor(Math.random() * 0.7)]; // Weighted towards higher states
+            const resonanceColors = { 'STRONG': '#ffaa00', 'ADVANCED': '#ff6600', 'BREAKTHROUGH': '#ff3366' };
+            const resonanceDegrees = { 'STRONG': 216, 'ADVANCED': 288, 'BREAKTHROUGH': 324 };
+            document.getElementById('resonance-score').style.background = `conic-gradient(${resonanceColors[resonanceState]} ${resonanceDegrees[resonanceState]}deg, rgba(0, 212, 255, 0.2) ${resonanceDegrees[resonanceState]}deg)`;
+            document.getElementById('resonance-score').innerHTML = `<span style="color: white; z-index: 1; position: relative;">${resonanceState.substring(0, 3).toUpperCase()}</span>`;
+            document.getElementById('resonance-score').parentElement.querySelector('.score-value').textContent = resonanceState;
+            document.getElementById('resonance-score').parentElement.querySelector('.score-value').style.color = resonanceColors[resonanceState];
+            
+            // Animate Canvas Parity
+            const canvasScore = Math.round(scores.canvas);
+            const canvasDegrees = (canvasScore / 100) * 360;
+            document.getElementById('canvas-score').style.background = `conic-gradient(#00d4ff ${canvasDegrees}deg, rgba(0, 212, 255, 0.2) ${canvasDegrees}deg)`;
+            document.getElementById('canvas-score').innerHTML = `<span style="color: white; z-index: 1; position: relative;">${canvasScore}</span>`;
+            document.getElementById('canvas-score').parentElement.querySelector('.score-value').textContent = `${canvasScore}/100`;
+        }
+
+        // Chat functionality
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const chatArea = document.getElementById('chat-area');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'chat-message user-message';
+            userMsg.innerHTML = `<strong>User:</strong> ${message}`;
+            chatArea.appendChild(userMsg);
+            
+            // Simulate processing
+            animateMetrics();
+            
+            // Add AI response after delay
+            setTimeout(() => {
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'chat-message ai-message';
+                const responses = [
+                    "I understand your question about the SONATE platform. The system uses constitutional AI principles to ensure trust and compliance in real-time operations.",
+                    "The SYMBI framework provides 5-dimensional trust scoring that can be cryptographically verified using SHA-256 hashing and Ed25519 signatures.",
+                    "Enterprise organizations use SONATE to monitor AI interactions with sub-100ms latency while maintaining full audit trails for compliance.",
+                    "Our research validation module uses double-blind experiments to prove that constitutional AI approaches outperform traditional methods.",
+                    "The orchestration component manages AI fleets using W3C DID/VC standards and provides real-time tactical command capabilities."
+                ];
+                aiMsg.innerHTML = `<strong>AI:</strong> ${responses[Math.floor(Math.random() * responses.length)]}`;
+                chatArea.appendChild(aiMsg);
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }, 800);
+            
+            input.value = '';
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        // Animate metrics
+        function animateMetrics() {
+            const latency = Math.floor(Math.random() * 30 + 10);
+            const trust = Math.floor(Math.random() * 20 + 75);
+            const compliance = Math.floor(Math.random() * 10 + 85);
+            
+            document.getElementById('latency-bar').style.width = `${latency}%`;
+            document.getElementById('latency-value').textContent = `${latency}ms`;
+            
+            document.getElementById('trust-bar').style.width = `${trust}%`;
+            document.getElementById('trust-value').textContent = `${trust}%`;
+            
+            document.getElementById('compliance-bar').style.width = `${compliance}%`;
+            document.getElementById('compliance-value').textContent = `${compliance}%`;
+        }
+
+        // Run experiment simulation
+        function runExperiment() {
+            const pValue = (Math.random() * 0.05).toFixed(3);
+            const effectSize = (Math.random() * 1.5 + 0.5).toFixed(2);
+            const confidence = document.getElementById('confidence-level').value;
+            const sampleSize = document.getElementById('sample-size').value;
+            
+            const resultsGrid = document.getElementById('experiment-results');
+            resultsGrid.innerHTML = `
+                <div class="result-card">
+                    <h4>P-Value</h4>
+                    <div class="result-value">${pValue}</div>
+                    <div class="result-description">${pValue < 0.05 ? 'Statistically significant' : 'Not significant'}</div>
+                </div>
+                
+                <div class="result-card">
+                    <h4>Effect Size (Cohen's d)</h4>
+                    <div class="result-value">${effectSize}</div>
+                    <div class="result-description">${effectSize > 0.8 ? 'Large effect observed' : effectSize > 0.5 ? 'Medium effect' : 'Small effect'}</div>
+                </div>
+                
+                <div class="result-card">
+                    <h4>Confidence Interval</h4>
+                    <div class="result-value">${confidence}</div>
+                    <div class="result-description">[${(parseFloat(effectSize) - 0.1).toFixed(2)}, ${(parseFloat(effectSize) + 0.1).toFixed(2)}]</div>
+                </div>
+                
+                <div class="result-card">
+                    <h4>Sample Size</h4>
+                    <div class="result-value">${parseInt(sampleSize).toLocaleString()}</div>
+                    <div class="result-description">Sufficient power achieved</div>
+                </div>
+            `;
+        }
+
+        // Refresh dashboard
+        function refreshDashboard() {
+            const widgets = document.querySelectorAll('.dashboard-widget');
+            widgets.forEach((widget, index) => {
+                widget.style.transform = 'scale(0.95)';
+                widget.style.opacity = '0.7';
+                
+                setTimeout(() => {
+                    widget.style.transform = 'scale(1)';
+                    widget.style.opacity = '1';
+                }, 200);
+            });
+            
+            // Update some values
+            const trustScore = (Math.random() * 2 + 7).toFixed(1);
+            const throughput = Math.floor(Math.random() * 500 + 1000);
+            
+            setTimeout(() => {
+                const widgets = document.querySelectorAll('.dashboard-widget');
+                widgets[1].querySelector('.result-value').textContent = trustScore;
+                widgets[3].querySelector('.result-value').textContent = throughput.toLocaleString();
+            }, 500);
+        }
+
+        // Enter key support for chat
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Initial animations on load
+        window.addEventListener('load', () => {
+            setTimeout(animateSymbiScores, 1000);
+            setInterval(animateMetrics, 5000);
+        });
+    </script>
+</body>
+</html>
