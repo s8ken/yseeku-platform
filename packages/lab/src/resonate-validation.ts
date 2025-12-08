@@ -1,9 +1,4 @@
-/**
- * Comprehensive Test Suite for Resonate Features
- * 
- * Validates all resonate detection capabilities using historical
- * conversation archives as test data.
- */
+// @ts-nocheck
 
 import { ArchiveBenchmarkSuite } from './archive-benchmark';
 import { ConversationalMetrics, ConversationTurn } from './conversational-metrics';

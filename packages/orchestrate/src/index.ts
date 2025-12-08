@@ -18,6 +18,10 @@ export { DIDVCManager } from './did-vc-manager';
 export { WorkflowEngine } from './workflow-engine';
 export { TacticalCommand } from './tactical-command';
 
+// Security & Types
+export * from './security';
+export * from './agent-types-enhanced';
+
 // Types
 export interface Agent {
   id: string;

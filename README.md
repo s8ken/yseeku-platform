@@ -148,7 +148,7 @@ Production agent management (Infrastructure):
 npm install
 ```
 
-### Build All Packages
+### Build Production Packages
 
 ```bash
 npm run build
@@ -162,11 +162,25 @@ npm run dev
 
 This starts TypeScript watchers for all packages in parallel.
 
-### Test
+### Tests
 
 ```bash
-npm run test
+npm --workspace @sonate/core run test
+npm --workspace @sonate/detect run test
+npm --workspace @sonate/orchestrate run test
+npm --workspace @sonate/lab run test
 ```
+
+### Package Quick Start
+
+- Core: import `TrustProtocol`, `SymbiScorer`, `hashChain`, and signature helpers.
+- Detect: use `SymbiFrameworkDetector`, `BalancedSymbiDetector`, `CalibratedSymbiDetector`, `DriftDetector`, `detectEmergence`.
+- Orchestrate: use `AgentOrchestrator`, `WorkflowEngine`, `TacticalCommand`, and `security` (`rbac`, `audit`, `api-keys`, `rate-limiter`).
+
+### Environment Variables
+
+- `SONATE_PUBLIC_KEY` (base64) and `SONATE_PRIVATE_KEY` (development) for trust receipt verification.
+- `REDIS_URL` for rate limiting in orchestrate.
 
 ## Package Inter-Dependencies
 

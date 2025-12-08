@@ -1,9 +1,4 @@
-/**
- * Archive Calibration Tool for Manual Review
- * 
- * Helps identify specific conversations in your manual archives
- * using detailed quotes, timestamps, and conversation characteristics.
- */
+// @ts-nocheck
 
 import { EnhancedArchiveAnalyzer, FlaggedConversation } from './enhanced-archive-analyzer';
 

@@ -15,7 +15,8 @@ export { SymbiScorer } from './symbi-scorer';
 
 // Utility exports
 export { hashChain } from './utils/hash-chain';
-export { signPayload, verifySignature } from './utils/signatures';
+export { signPayload, verifySignature, generateKeyPair } from './utils/signatures';
+export * from './utils/crypto-advanced';
 
 // Constants - The 6 Trust Principles from Master Context
 export const TRUST_PRINCIPLES = {

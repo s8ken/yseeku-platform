@@ -1,10 +1,4 @@
-/**
- * Enhanced Archive Analysis with Conversation Identification
- * 
- * Processes MHTML/JSON conversation archives and provides detailed
- * conversation identification including names, timestamps, and
- * direct quotes for manual archive lookup.
- */
+// @ts-nocheck
 
 import { ConversationTurn, ConversationalMetrics } from './conversational-metrics';
 

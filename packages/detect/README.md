@@ -33,58 +33,47 @@ npm install @sonate/detect
 
 ## Usage
 
-### Basic Detection
+### Basic Detection (Enhanced)
 
 ```typescript
 import { SymbiFrameworkDetector } from '@sonate/detect';
 
 const detector = new SymbiFrameworkDetector();
 
-const result = await detector.detect({
+const { assessment, insights } = await detector.analyzeContent({
   content: 'AI response text here',
-  context: 'User asked about...',
-  metadata: {
-    session_id: 'uuid-123',
-    verified: true,
-    ai_disclosure: true,
-  },
+  metadata: { source: 'session-uuid' }
 });
 
-console.log(result);
-/*
-{
-  reality_index: 8.2,
-  trust_protocol: 'PASS',
-  ethical_alignment: 4.3,
-  resonance_quality: 'ADVANCED',
-  canvas_parity: 87,
-  timestamp: 1704123456789,
-  receipt_hash: 'abc123...'
-}
-*/
+console.log(assessment.overallScore, insights);
 ```
 
-### Individual Dimension Scoring
+### Detector Variants
 
 ```typescript
-import { 
-  RealityIndexCalculator,
-  TrustProtocolValidator,
-  EthicalAlignmentScorer,
-  ResonanceQualityMeasurer,
-  CanvasParityCalculator
-} from '@sonate/detect';
+import { BalancedSymbiDetector, CalibratedSymbiDetector, DriftDetector, detectEmergence } from '@sonate/detect';
 
-const realityCalc = new RealityIndexCalculator();
-const score = await realityCalc.calculate(interaction);
-console.log(score); // 8.2
+// Balanced (conservative weighting)
+const balanced = new BalancedSymbiDetector();
+const balancedRes = await balanced.analyzeContent({ content: '...' });
+
+// Calibrated (data-driven adjustments)
+const calibrated = new CalibratedSymbiDetector();
+const calibratedRes = await calibrated.analyzeContent({ content: '...' });
+
+// Drift (sequential changes)
+const drift = new DriftDetector();
+const first = drift.analyze({ content: 'first sample' });
+const second = drift.analyze({ content: 'second sample 2025 42%' });
+
+// Emergence (signal)
+const emergence = detectEmergence(calibratedRes);
 ```
 
 ### Real-time Monitoring Setup
 
 ```typescript
 import { SymbiFrameworkDetector } from '@sonate/detect';
-import { TrustReceipt } from '@sonate/core';
 
 const detector = new SymbiFrameworkDetector();
 
@@ -99,16 +88,16 @@ app.use('/ai-chat', async (req, res, next) => {
     },
   };
 
-  const result = await detector.detect(interaction);
+  const { assessment } = await detector.analyzeContent(interaction);
   
   // Alert if trust protocol fails
-  if (result.trust_protocol === 'FAIL') {
+  if (assessment.trustProtocol.status === 'FAIL') {
     console.error('Trust protocol violation detected!');
     // Trigger alert, log to SIEM, etc.
   }
 
   // Log to audit trail
-  await logToAuditTrail(result);
+  await logToAuditTrail(assessment);
   
   next();
 });

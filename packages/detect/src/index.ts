@@ -11,6 +11,11 @@ import { TrustProtocol } from '@sonate/core';
 
 // Core detector
 export { SymbiFrameworkDetector } from './framework-detector';
+export { SymbiFrameworkDetector as EnhancedDetector } from './detector-enhanced';
+export { BalancedSymbiDetector } from './balanced-detector';
+export { CalibratedSymbiDetector } from './calibrated-detector';
+export { DriftDetector } from './drift-detection';
+export { detectEmergence } from './emergence-detection';
 
 // 5 Dimension scorers
 export { RealityIndexCalculator } from './reality-index';
@@ -20,6 +25,7 @@ export { ResonanceQualityMeasurer } from './resonance-quality';
 export { CanvasParityCalculator } from './canvas-parity';
 
 // Types
+export * from './symbi-types';
 export interface DetectionResult {
   reality_index: number;           // 0-10
   trust_protocol: 'PASS' | 'PARTIAL' | 'FAIL';

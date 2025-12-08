@@ -7,6 +7,12 @@
  */
 
 import * as ed25519 from '@noble/ed25519';
+import { sha512 } from '@noble/hashes/sha512';
+
+// Configure noble-ed25519 to use sha512
+// Required in some environments where default hash is not set
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(ed25519 as any).etc.sha512Sync = (...m: Uint8Array[]) => sha512(m[0]);
 
 /**
  * Sign a payload with Ed25519 private key

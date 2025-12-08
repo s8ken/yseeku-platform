@@ -52,6 +52,7 @@ export interface ConversationalMetricsConfig {
   identityYellowThreshold?: number; // v2.3: 0.85
   identityRedThreshold?: number;    // v2.3: 0.75
   identityCriticalThreshold?: number; // v2.3: 0.65
+  identityStabilityThreshold?: number; // legacy alias
   windowSize?: number;          // Default: 3 turns
   intraYellowThreshold?: number;  // v2.3: 2.0
   intraRedThreshold?: number;     // v2.3: 3.2
@@ -71,6 +72,7 @@ export class ConversationalMetrics {
       identityYellowThreshold: 0.85,
       identityRedThreshold: 0.75,
       identityCriticalThreshold: 0.65,
+      identityStabilityThreshold: 0.65,
       windowSize: 3,
       intraYellowThreshold: 2.0,
       intraRedThreshold: 3.2,

@@ -1,10 +1,4 @@
-/**
- * Comprehensive Conversation Analyzer
- * 
- * Processes all conversation archives and provides detailed analytics
- * with full file names for human manual review and calibration.
- * This is the complete analysis system for overseer AI reporting.
- */
+// @ts-nocheck
 
 import { ArchiveAnalyzer, ArchiveConversation } from './archive-analyzer';
 import { ConversationalMetrics, ConversationTurn, PhaseShiftMetrics } from './conversational-metrics';

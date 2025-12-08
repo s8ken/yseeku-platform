@@ -3,7 +3,7 @@
  * Tracks all security-relevant events and user actions
  */
 
-import { Logger } from '../observability/logger';
+import { Logger, getLogger } from '../observability/logger';
 
 export enum AuditEventType {
   // Authentication Events

@@ -8,7 +8,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "echo 'Tests coming soon'",
+    "test": "node src/tests/run-tests.js",
     "test:resonate": "node test-resonate.js",
     "benchmark": "npm run build && npm run test:resonate"
   },
