@@ -23,7 +23,19 @@ Modular Three-Pillar Design
                      │ Experimentation  │
                      │ (Double-blind)   │
                      └──────────────────┘
-'''
+```
+
+Hard Boundary Enforcement
+- Detect: Production monitoring ONLY (no experiments)
+- Lab: Research validation ONLY (no production data)
+- Orchestrate: Infrastructure management ONLY (no research workflows)
+#### Module Relationships (Mermaid)
+```mermaid
+flowchart LR
+    CORE[core] --> DETECT[detect]
+    CORE --> ORCH[orchestrate]
+    DETECT --> LAB[lab]
+```
 
 ## Core Product Features
 
@@ -183,14 +195,17 @@ npm --workspace @sonate/lab run test
 
 ## Package Inter-Dependencies
 
-```
-@sonate/core (no dependencies)
-    ↓
-@sonate/detect (depends on core)
-    ↓
-@sonate/lab (depends on core + detect)
-
-@sonate/orchestrate (depends on core only)
+```mermaid
+graph TD
+    CORE[core]
+    DETECT[detect]
+    LAB[lab]
+    ORCH[orchestrate]
+    
+    CORE --> DETECT
+    CORE --> ORCH
+    DETECT --> LAB
+    CORE --> LAB
 ```
 
 ## Usage Examples
