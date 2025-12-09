@@ -23,19 +23,6 @@ Modular Three-Pillar Design
                      │ Experimentation  │
                      │ (Double-blind)   │
                      └──────────────────┘
-```
-
-Hard Boundary Enforcement
-- Detect: Production monitoring ONLY (no experiments)
-- Lab: Research validation ONLY (no production data)
-- Orchestrate: Infrastructure management ONLY (no research workflows)
-#### Module Relationships (Mermaid)
-```mermaid
-flowchart LR
-  CORE[@sonate/core] --> DETECT[@sonate/detect]
-  CORE --> ORCH[@sonate/orchestrate]
-  DETECT --> LAB[@sonate/lab]
-```
 
 ## Core Product Features
 
