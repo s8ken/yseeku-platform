@@ -32,9 +32,9 @@ Hard Boundary Enforcement
 #### Module Relationships (Mermaid)
 ```mermaid
 flowchart LR
-  CORE[\"@sonate/core\"] --> DETECT[\"@sonate/detect\"]
-  CORE --> ORCH[\"@sonate/orchestrate\"]
-  DETECT --> LAB[\"@sonate/lab\"]
+    CORE[core] --> DETECT[detect]
+    CORE --> ORCH[orchestrate]
+    DETECT --> LAB[lab]
 ```
 
 ## Core Product Features
@@ -197,10 +197,10 @@ npm --workspace @sonate/lab run test
 
 ```mermaid
 graph TD
-    CORE[@sonate/core]
-    DETECT[@sonate/detect]
-    LAB[@sonate/lab]
-    ORCH[@sonate/orchestrate]
+    CORE[core]
+    DETECT[detect]
+    LAB[lab]
+    ORCH[orchestrate]
     
     CORE --> DETECT
     CORE --> ORCH
