@@ -23,6 +23,7 @@ Modular Three-Pillar Design
                      │ Experimentation  │
                      │ (Double-blind)   │
                      └──────────────────┘
+'''
 
 ## Core Product Features
 
