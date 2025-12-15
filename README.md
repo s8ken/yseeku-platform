@@ -283,6 +283,13 @@ console.log(agent.did); // did:key:z6Mk...
 - **Detect**: [packages/detect/README.md](packages/detect/README.md)
 - **Lab**: [packages/lab/README.md](packages/lab/README.md)
 - **Orchestrate**: [packages/orchestrate/README.md](packages/orchestrate/README.md)
+- **Collaboration Ledger (SYMBI)**: [docs/SYMBI_COLLABORATION_LEDGER.md](docs/SYMBI_COLLABORATION_LEDGER.md)
+
+### Ledger Demo
+
+- Build ledger: `npm run build --workspace @sonate/collaboration-ledger`
+- Run demo: `npm run demo:ledger`
+- Output: `examples/ledger-demo/project-001.symbi` (portable manifest with `merkleRoot` and proofs)
 
 ## The Trinity
 

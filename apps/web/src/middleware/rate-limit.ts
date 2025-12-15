@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SecurityError } from '@yseeku/core/security/errors';
-import { getClientIp } from '../utils/security-utils';
+import { getClientIp } from '@/lib/security-utils';
 
 export interface RateLimitConfig {
   windowMs: number;      // Time window in milliseconds

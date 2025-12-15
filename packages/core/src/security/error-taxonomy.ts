@@ -147,13 +147,49 @@ export class EnhancedSecurityError extends Error {
 export class AuthenticationError extends EnhancedSecurityError {
   constructor(
     message: string,
-    context: Omit<ErrorContext, 'category' | 'timestamp'>,
-    options?: {
+    contextOrCode: Omit<ErrorContext, 'category' | 'timestamp'> | string,
+    optionsOrMetadata?: {
       originalError?: Error;
       metadata?: Record<string, any>;
       remediation?: string;
-    }
+    } | Record<string, any>
   ) {
+    if (typeof contextOrCode === 'string') {
+      const metadata = (optionsOrMetadata as Record<string, any>) || {};
+      const component = 'auth-middleware';
+      const operation = metadata.method || 'authenticate';
+      const severity: ErrorContext['severity'] = 'high';
+      super({
+        code: contextOrCode,
+        message,
+        context: {
+          component,
+          operation,
+          severity,
+          userId: metadata.userId,
+          tenantId: metadata.tenant,
+          requestId: metadata.requestId,
+          sessionId: metadata.sessionId,
+          ipAddress: metadata.ipAddress,
+          userAgent: metadata.userAgent,
+          category: 'authentication',
+          timestamp: Date.now()
+        },
+        originalError: metadata.originalError instanceof Error ? metadata.originalError : undefined,
+        metadata,
+        remediation: 'Verify authentication credentials and try again',
+        documentationUrl: '/docs/security/authentication'
+      });
+      return;
+    }
+
+    const context = contextOrCode as Omit<ErrorContext, 'category' | 'timestamp'>;
+    const options = optionsOrMetadata as {
+      originalError?: Error;
+      metadata?: Record<string, any>;
+      remediation?: string;
+    } | undefined;
+
     super({
       code: 'AUTH_ERROR',
       message,
@@ -201,6 +237,68 @@ export class AuthorizationError extends EnhancedSecurityError {
       },
       originalError: options?.originalError,
       metadata,
+      remediation: options?.remediation || 'Contact administrator for appropriate permissions',
+      documentationUrl: '/docs/security/authorization'
+    });
+  }
+}
+
+export class SecurityError extends EnhancedSecurityError {
+  constructor(
+    message: string,
+    codeOrContext: string | Omit<ErrorContext, 'category' | 'timestamp'>,
+    optionsOrMetadata?: {
+      originalError?: Error;
+      metadata?: Record<string, any>;
+      remediation?: string;
+    } | Record<string, any>
+  ) {
+    if (typeof codeOrContext === 'string') {
+      const metadata = (optionsOrMetadata as Record<string, any>) || {};
+      const component = metadata.component || 'security';
+      const operation = metadata.method || 'authorization_check';
+      const severity: ErrorContext['severity'] = 'medium';
+      super({
+        code: codeOrContext,
+        message,
+        context: {
+          component,
+          operation,
+          severity,
+          userId: metadata.userId,
+          tenantId: metadata.tenant || metadata.userTenant,
+          requestId: metadata.requestId,
+          sessionId: metadata.sessionId,
+          ipAddress: metadata.ipAddress,
+          userAgent: metadata.userAgent,
+          category: 'authorization',
+          timestamp: Date.now()
+        },
+        originalError: metadata.originalError instanceof Error ? metadata.originalError : undefined,
+        metadata,
+        remediation: 'Contact administrator for appropriate permissions',
+        documentationUrl: '/docs/security/authorization'
+      });
+      return;
+    }
+
+    const context = codeOrContext as Omit<ErrorContext, 'category' | 'timestamp'>;
+    const options = optionsOrMetadata as {
+      originalError?: Error;
+      metadata?: Record<string, any>;
+      remediation?: string;
+    } | undefined;
+
+    super({
+      code: 'SECURITY_ERROR',
+      message,
+      context: {
+        ...context,
+        category: 'authorization',
+        timestamp: Date.now()
+      },
+      originalError: options?.originalError,
+      metadata: options?.metadata,
       remediation: options?.remediation || 'Contact administrator for appropriate permissions',
       documentationUrl: '/docs/security/authorization'
     });
@@ -453,8 +551,7 @@ export class SecurityErrorHandler {
       {
         component: context.component || 'unknown',
         operation: context.operation || 'unknown',
-        severity: context.severity || 'medium',
-        timestamp: Date.now()
+        severity: context.severity || 'medium'
       },
       {
         originalError: error,

@@ -5,7 +5,6 @@ import {
   handleAuthError,
   createAuthMiddleware 
 } from './auth-middleware';
-import { AuthenticationError, SecurityError } from '@yseeku/core/security/errors';
 
 export interface RouteProtectionOptions {
   requireAuth?: boolean;
@@ -62,22 +61,7 @@ export function createProtectedRoute(
       // Call the actual handler
       return await handler(authenticatedRequest);
     } catch (error) {
-      if (error instanceof AuthenticationError || error instanceof SecurityError) {
-        return handleAuthError(error);
-      }
-
-      // Handle other errors
-      console.error('Route handler error:', error);
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: {
-            message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-          }
-        },
-        { status: 500, headers: getSecurityHeaders() }
-      );
+      return handleAuthError(error as Error);
     }
   };
 }

@@ -1,9 +1,23 @@
 import React from 'react'
 
-async function load(){
+type OverviewData = {
+  totals: {
+    conversations: number
+    critical: number
+    high: number
+    medium: number
+    low: number
+    golden: number
+  }
+  bySystem: Record<string, number>
+  topRed: Array<{ file: string; system: string; reasons: string }>
+  topGolden: Array<{ file: string; system: string; reasons: string }>
+}
+
+async function load(): Promise<OverviewData>{
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL||''}/api/reports/overview`, { cache: 'no-store' })
   const data = await res.json()
-  return data
+  return data as OverviewData
 }
 
 function StatCard({ title, value }: { title: string, value: string | number }){
@@ -30,7 +44,7 @@ function Bar({ label, value, max }: { label: string, value: number, max: number 
 
 export default async function Page(){
   const { totals, bySystem, topRed, topGolden } = await load()
-  const max = Math.max(...Object.values(bySystem))
+  const max = Math.max(...Object.values(bySystem as Record<string, number>))
   return (
     <div className="px-6 py-6 space-y-8">
       <h1 className="text-2xl font-semibold text-white">Archive Oversight Dashboard</h1>

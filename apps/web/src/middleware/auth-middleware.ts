@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { AuthenticationError, SecurityError } from '@yseeku/core/security/errors';
-import { getClientIp } from '../utils/security-utils';
+import { getClientIp } from '@/lib/security-utils';
+
+class SecurityError extends Error {
+  code: string;
+  context?: Record<string, any>;
+  constructor(message: string, code: string, context?: Record<string, any>) {
+    super(message);
+    this.code = code;
+    this.context = context;
+  }
+}
+
+class AuthenticationError extends SecurityError {}
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {

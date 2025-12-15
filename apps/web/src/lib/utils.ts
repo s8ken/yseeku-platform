@@ -197,3 +197,7 @@ export function addSecurityHeaders(response: Response): void {
   response.headers.delete('X-Powered-By');
   response.headers.delete('Server');
 }
+
+export function cn(...classes: Array<string | false | null | undefined>): string {
+  return classes.filter(Boolean).join(' ');
+}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -188,7 +189,15 @@ function RiskAlerts({ alerts }: { alerts: typeof riskAlerts }) {
 }
 
 export default function RiskManagementPage() {
-  const tenant = localStorage.getItem('tenant') || 'default';
+  const [tenant, setTenant] = useState('default');
+  useEffect(() => {
+    try {
+      const t = typeof window !== 'undefined' ? localStorage.getItem('tenant') : null;
+      setTenant(t || 'default');
+    } catch {
+      setTenant('default');
+    }
+  }, []);
 
   const { data: riskMetrics, isLoading } = useQuery({
     queryKey: ['risk-metrics', tenant],

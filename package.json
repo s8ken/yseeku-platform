@@ -8,11 +8,12 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "turbo run build",
+    "build": "turbo run build --filter=web",
     "dev": "turbo run dev --parallel",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "clean": "turbo run clean && rm -rf node_modules"
+    "clean": "turbo run clean && rm -rf node_modules",
+    "demo:ledger": "npm run build --workspace @sonate/collaboration-ledger && node examples/ledger-demo/index.js"
   },
   "devDependencies": {
     "turbo": "^1.10.0",

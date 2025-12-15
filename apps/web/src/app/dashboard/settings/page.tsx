@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,10 +53,13 @@ export default function TenantSettingsPage() {
       // Mock API call - replace with actual endpoint
       return { success: true, data: defaultSettings };
     },
-    onSuccess: (data) => {
-      setSettings(data.data);
-    },
   });
+
+  useEffect(() => {
+    if (currentSettings) {
+      setSettings(currentSettings.data);
+    }
+  }, [currentSettings]);
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (newSettings: TenantSettings) => {

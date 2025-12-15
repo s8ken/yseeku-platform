@@ -81,7 +81,7 @@ const tenants = [
   { id: 'startup1', name: 'Startup Inc' }
 ];
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 

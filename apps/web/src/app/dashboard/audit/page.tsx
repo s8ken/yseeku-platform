@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,7 +44,16 @@ export default function AuditTrailsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 50;
 
-  const tenant = localStorage.getItem('tenant') || 'default';
+  const [tenant, setTenant] = useState('default');
+  // Read tenant from localStorage on client only
+  useEffect(() => {
+    try {
+      const t = typeof window !== 'undefined' ? localStorage.getItem('tenant') : null;
+      setTenant(t || 'default');
+    } catch {
+      setTenant('default');
+    }
+  }, []);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['audit-logs', tenant, currentPage, filters],

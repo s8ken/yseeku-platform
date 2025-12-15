@@ -1,8 +1,8 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DashboardLayout } from './layout';
 
 interface KPIData {
   tenant: string;
@@ -65,7 +65,15 @@ interface ExperimentData {
 }
 
 export default function DashboardPage() {
-  const tenant = localStorage.getItem('tenant') || 'default';
+  const [tenant, setTenant] = useState('default');
+  useEffect(() => {
+    try {
+      const t = typeof window !== 'undefined' ? localStorage.getItem('tenant') : null;
+      setTenant(t || 'default');
+    } catch {
+      setTenant('default');
+    }
+  }, []);
 
   const { data: kpiData, isLoading: kpiLoading } = useQuery({
     queryKey: ['kpis', tenant],
