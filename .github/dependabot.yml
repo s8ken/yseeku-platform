@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+  - package-ecosystem: npm
+    directory: "/apps/web"
+    schedule:
+      interval: daily
+  - package-ecosystem: npm
+    directory: "/packages/core"
+    schedule:
+      interval: daily
+  - package-ecosystem: npm
+    directory: "/packages/detect"
+    schedule:
+      interval: daily
+  - package-ecosystem: npm
+    directory: "/packages/lab"
+    schedule:
+      interval: daily
+  - package-ecosystem: npm
+    directory: "/packages/orchestrate"
+    schedule:
+      interval: daily
