@@ -209,6 +209,8 @@ graph TD
 ```
 
 ## Usage Examples
+ 
+More examples: [examples/README.md](examples/README.md)
 
 ### Example 1: Real-time Detection
 
@@ -279,6 +281,7 @@ console.log(agent.did); // did:key:z6Mk...
 
 ## Documentation
 
+- Index: [docs/README.md](docs/README.md)
 - **Core**: [packages/core/README.md](packages/core/README.md)
 - **Detect**: [packages/detect/README.md](packages/detect/README.md)
 - **Lab**: [packages/lab/README.md](packages/lab/README.md)
@@ -321,5 +324,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md)
 MIT
 
 ---
+
+### Terminology Consistency
+- SONATE’s trust protocol is defined across 6 SYMBI principles; references to other article counts are historical and will be harmonized to these 6 principles throughout documentation.
 
 **SONATE** by YSEEKU - Enterprise AI You Can Trust
