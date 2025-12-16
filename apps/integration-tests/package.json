@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "echo \"Integration tests skip build\"",
+    "pretest": "npm --workspace @sonate/core run build && npm --workspace @sonate/detect run build",
     "test": "node src/run-tests.js && node src/compare-detectors.js"
   },
   "dependencies": {

@@ -84,6 +84,15 @@ export default function DashboardPage() {
     },
   });
 
+  const { data: policyStatus } = useQuery({
+    queryKey: ['policy-status'],
+    queryFn: async () => {
+      const response = await fetch(`/api/dashboard/policy-status`);
+      if (!response.ok) throw new Error('Failed to fetch policy status');
+      return response.json() as Promise<{ overallPass: boolean; violations: string[] }>;
+    },
+  });
+
   const { data: alertData, isLoading: alertLoading } = useQuery({
     queryKey: ['alerts', tenant],
     queryFn: async () => {
@@ -126,6 +135,16 @@ export default function DashboardPage() {
             <CardContent>
               <div className="text-2xl font-bold">{kpis.trustScore}/100</div>
               <p className="text-xs text-muted-foreground">Overall trust score</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Policy Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{policyStatus ? (policyStatus.overallPass ? 'PASS' : 'FAIL') : 'N/A'}</div>
+              <p className="text-xs text-muted-foreground">Violations: {policyStatus ? policyStatus.violations.length : 0}</p>
             </CardContent>
           </Card>
 

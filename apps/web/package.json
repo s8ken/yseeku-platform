@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "jest"
+    "test": "jest",
+    "e2e": "node scripts/e2e.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -24,6 +25,8 @@
     "@sonate/detect": "file:../../packages/detect",
     "@sonate/lab": "file:../../packages/lab",
     "@sonate/orchestrate": "file:../../packages/orchestrate",
+    "@sonate/persistence": "file:../../packages/persistence",
+    "ioredis": "^5.8.2",
     "@tanstack/react-query": "^5.90.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

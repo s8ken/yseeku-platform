@@ -20,6 +20,7 @@ export { TacticalCommand } from './tactical-command';
 
 // Security & Types
 export * from './security';
+export { Env, validateCritical } from './security/env-config';
 export * from './agent-types-enhanced';
 
 // Types

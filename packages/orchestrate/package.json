@@ -23,6 +23,7 @@
   "dependencies": {
     "@digitalbazaar/did-method-key": "^5.0.0",
     "@sonate/core": "file:../core",
+    "@sonate/persistence": "file:../persistence",
     "bcrypt": "^5.1.1",
     "ioredis": "^5.8.2"
   },
