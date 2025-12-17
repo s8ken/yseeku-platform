@@ -23,5 +23,17 @@ function assert(condition: boolean, message?: string) {
   // Basic checks
   console.log('Merkle Root:', manifest.merkleRoot);
   assert(typeof manifest.merkleRoot === 'string' && manifest.merkleRoot.length > 0, 'Invalid merkle root');
+
+  // Human signature verification (Ed25519)
+  const crypto = require('crypto');
+  const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
+  const humanId = 'human-001';
+  const payload = `${humanId}:accept:${w2.workId}`;
+  const msgHash = crypto.createHash('sha256').update(payload).digest();
+  const signature = crypto.sign(null, msgHash, privateKey).toString('base64');
+  const pubDerB64 = publicKey.export({ type: 'spki', format: 'der' }).toString('base64');
+  process.env.SONATE_HUMAN_PUBKEYS_JSON = JSON.stringify({ [humanId]: pubDerB64 });
+  const decision = ledger.logDecision(humanId, signature, 'accept', w2.workId, 'Looks good', [w2.workId]);
+  assert(decision.humanId === humanId, 'Decision should record human id');
   console.log('All tests passed');
 })();

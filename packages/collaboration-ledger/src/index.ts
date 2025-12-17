@@ -90,7 +90,8 @@ export class SYMBICollaborationLedger {
     basedOn: string[],
     modifications?: DecisionCheckpoint['modifications']
   ): DecisionCheckpoint {
-    if (!this.verifyHumanSignature(humanId, humanSignature)) {
+    const payload = `${humanId}:${action}:${targetWorkId}`;
+    if (!this.verifyHumanSignature(humanId, payload, humanSignature)) {
       throw new Error('Invalid human signature');
     }
 
@@ -157,9 +158,39 @@ export class SYMBICollaborationLedger {
     this.merkleTree = new SimpleMerkleTree(leaves, sha256);
   }
 
-  private verifyHumanSignature(_humanId: string, _signature: string): boolean {
-    // TODO: implement ECDSA/Ed25519 verification with provided public keys
-    return true;
+  private verifyHumanSignature(humanId: string, payload: string, signatureB64: string): boolean {
+    try {
+      const crypto = require('crypto');
+      const mappingStr = process.env.SONATE_HUMAN_PUBKEYS_JSON || '{}';
+      const mapping = JSON.parse(mappingStr);
+      const pubKeyB64 = mapping[humanId];
+      if (!pubKeyB64) return false;
+      const sig = Buffer.from(signatureB64, 'base64');
+      const msgHash = crypto.createHash('sha256').update(payload).digest();
+      let pubKey: any;
+      try {
+        pubKey = Buffer.from(pubKeyB64, 'base64');
+      } catch {
+        pubKey = pubKeyB64;
+      }
+      // Prefer Ed25519 verification; fall back to RSA/ECDSA if key is PEM
+      try {
+        // If DER SPKI base64 provided
+        const keyObj = crypto.createPublicKey({ key: pubKey, format: Buffer.isBuffer(pubKey) ? 'der' : 'pem', type: Buffer.isBuffer(pubKey) ? 'spki' : 'spki' });
+        // Ed25519 uses null algorithm in Node's crypto
+        const ok = crypto.verify(null, msgHash, keyObj, sig);
+        if (ok) return true;
+      } catch {}
+      try {
+        // Attempt ECDSA/RSA using SHA-256 if PEM provided
+        const keyObj = crypto.createPublicKey(pubKey);
+        const ok = crypto.verify('sha256', msgHash, keyObj, sig);
+        if (ok) return true;
+      } catch {}
+      return false;
+    } catch {
+      return false;
+    }
   }
 
   private generateProofs(tree: SimpleMerkleTree, leaves: Buffer[]): { [entryId: string]: string[] } {
