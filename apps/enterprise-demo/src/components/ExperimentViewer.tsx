@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { Play, CheckCircle, Eye, EyeOff, Circle } from 'lucide-react';
 import { ExperimentViewerProps } from '../types';
 
 export const ExperimentViewer: React.FC<ExperimentViewerProps> = ({ 

@@ -8,7 +8,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "node src/tests/run-tests.js",
+    "test": "c8 --check-coverage --branches 30 --functions 25 --lines 30 --statements 30 node src/tests/run-tests.js",
     "test:resonate": "node test-resonate.js",
     "benchmark": "npm run build && npm run test:resonate"
   },

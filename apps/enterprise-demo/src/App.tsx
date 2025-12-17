@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Shield, Activity, Eye, Users, FileText } from 'lucide-react';
 import { TrustPillarCard } from './components/TrustPillarCard';
 import { ReceiptChain } from './components/ReceiptChain';

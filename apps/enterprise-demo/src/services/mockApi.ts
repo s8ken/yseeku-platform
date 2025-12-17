@@ -26,13 +26,13 @@ export class MockApiService {
     // Simulate weighted scoring
     const principles = TRUST_PRINCIPLES.map(principle => {
       const score = Math.random() * 30 + 70; // 70-100 range for enterprise readiness
-      const status = score >= 90 ? 'OK' : score >= 80 ? 'WARN' : 'FAIL';
+      const status: TrustScore['principles'][number]['status'] = score >= 90 ? 'OK' : score >= 80 ? 'WARN' : 'FAIL';
       
       return {
         ...principle,
         score: Math.round(score),
         status,
-      };
+      } as const;
     });
 
     // Calculate weighted total score

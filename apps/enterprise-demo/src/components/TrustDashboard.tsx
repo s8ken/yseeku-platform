@@ -206,39 +206,3 @@ export const TrustDashboard: React.FC<TrustDashboardProps> = ({
     </div>
   );
 };
-
-// Add the import for TrustDashboardProps
-import { TrustDashboardProps as ITrustDashboardProps } from '../types';
-
-type TrustDashboardProps = ITrustDashboardProps & {
-  trustScore?: {
-    total: number;
-    tier: 'HIGH' | 'MEDIUM' | 'LOW' | 'CRITICAL';
-    principles: any[];
-    timestamp: number;
-    receiptHash: string;
-  };
-  metrics?: {
-    throughput: {
-      requestsPerSecond: number;
-      activeSessions: number;
-      dataProcessed: string;
-    };
-    latency: {
-      current: number;
-      average: number;
-      p99: number;
-    };
-    compliance: {
-      euAiAct: number;
-      soc2: number;
-      gdpr: number;
-    };
-    security: {
-      encryption: 'AES-256';
-      hashing: 'SHA-256';
-      signatures: 'Ed25519';
-      didVerified: boolean;
-    };
-  };
-};

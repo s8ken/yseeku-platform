@@ -22,6 +22,7 @@ export { TacticalCommand } from './tactical-command';
 export * from './security';
 export { Env, validateCritical } from './security/env-config';
 export * from './agent-types-enhanced';
+export { getLogger, Logger } from './observability/logger';
 
 // Types
 export interface Agent {

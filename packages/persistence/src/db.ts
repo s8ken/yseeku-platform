@@ -1,4 +1,4 @@
-import { getLogger } from '@sonate/orchestrate/src/observability/logger';
+import { getLogger } from '@sonate/orchestrate';
 
 let pool: any | null = null;
 
