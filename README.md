@@ -107,8 +107,8 @@ yseeku-platform/
 │   ├── lab/            @sonate/lab - Research experiments
 │   └── orchestrate/    @sonate/orchestrate - Production orchestration
 └── apps/
-    ├── web/            React frontend (SONATE dashboard)
-    └── backend/        Express API server
+    ├── web/                Next.js admin dashboard + API routes
+    └── resonate-dashboard/  Next.js public mirror & overseer tools
 ```
 
 ## The SONATE Modules
@@ -282,11 +282,14 @@ console.log(agent.did); // did:key:z6Mk...
 ## Documentation
 
 - Index: [docs/README.md](docs/README.md)
+- **API Reference**: [docs/API.md](docs/API.md)
 - **Core**: [packages/core/README.md](packages/core/README.md)
 - **Detect**: [packages/detect/README.md](packages/detect/README.md)
 - **Lab**: [packages/lab/README.md](packages/lab/README.md)
 - **Orchestrate**: [packages/orchestrate/README.md](packages/orchestrate/README.md)
 - **Collaboration Ledger (SYMBI)**: [docs/SYMBI_COLLABORATION_LEDGER.md](docs/SYMBI_COLLABORATION_LEDGER.md)
+- **Enterprise Readiness**: [docs/ENTERPRISE_READINESS.md](docs/ENTERPRISE_READINESS.md)
+- **Investor Brief**: [docs/INVESTOR_BRIEF.md](docs/INVESTOR_BRIEF.md)
 
 ### Ledger Demo
 
