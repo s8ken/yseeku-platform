@@ -10,7 +10,7 @@
   "scripts": {
     "build": "turbo run build --filter=web",
     "dev": "turbo run dev --parallel",
-    "test": "turbo run test --filter=@sonate/core --filter=@sonate/detect --filter=@sonate/orchestrate --filter=@sonate/lab --filter=@sonate/persistence",
+    "test": "turbo run test --filter=@sonate/core --filter=@sonate/detect --filter=@sonate/orchestrate --filter=@sonate/lab --filter=@sonate/persistence --filter=web",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rm -rf node_modules",
     "demo:ledger": "npm run build --workspace @sonate/collaboration-ledger && node examples/ledger-demo/index.js"

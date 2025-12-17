@@ -1,21 +1,17 @@
-'use client';
-
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
-const geistSans = Geist({
+const geistSans = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+const geistMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-const queryClient = new QueryClient();
 
 export default function RootLayout({
   children,
@@ -27,9 +23,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <QueryClientProvider client={queryClient}>
+        <Providers>
           {children}
-        </QueryClientProvider>
+        </Providers>
       </body>
     </html>
   );
