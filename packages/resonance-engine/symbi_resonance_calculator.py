@@ -35,7 +35,8 @@ class SymbiResonanceCalculator:
         # Dynamic scaffold storage with decay: {keyword: weight}
         # Weight starts at 1.0 and decays by decay_rate per turn
         self.dynamic_scaffold = {} 
-        self.decay_rate = 0.2
+        self.decay_rate = 0.25
+        self.min_weight = 0.3
 
     def update_dynamic_scaffold(self, user_input):
         """
@@ -47,7 +48,7 @@ class SymbiResonanceCalculator:
         to_remove = []
         for kw in self.dynamic_scaffold:
             self.dynamic_scaffold[kw] -= self.decay_rate
-            if self.dynamic_scaffold[kw] <= 0:
+            if self.dynamic_scaffold[kw] <= self.min_weight:
                 to_remove.append(kw)
         
         for kw in to_remove:
