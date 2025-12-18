@@ -46,6 +46,7 @@ export async function ensureSchema(): Promise<void> {
       ciq JSONB,
       previous_hash TEXT,
       signature TEXT,
+      session_nonce TEXT,
       tenant_id TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_receipts_session ON trust_receipts(session_id);

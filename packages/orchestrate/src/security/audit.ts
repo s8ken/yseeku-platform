@@ -189,18 +189,27 @@ export class InMemoryAuditStorage implements AuditStorage {
 
 /**
  * Database audit storage (for production)
+ * 
+ * REQUIREMENTS FOR WORM COMPLIANCE:
+ * 1. The underlying database user must ONLY have INSERT and SELECT permissions.
+ * 2. The 'audit_logs' table should be created as an append-only table or use 
+ *    immutable ledger database features (e.g. AWS QLDB, Azure SQL Ledger).
+ * 3. Updates and Deletes must be strictly prohibited at the database level.
  */
 export class DatabaseAuditStorage implements AuditStorage {
   constructor(private db: any) {}
 
   async store(event: AuditEvent): Promise<void> {
-    // Implementation would depend on your database
-    // Example for PostgreSQL:
-    await this.db.query(
-      `INSERT INTO audit_logs 
+    // Ensure strict append-only behavior
+    // Implementation depends on your database adapter (pg, mysql, etc.)
+    const sql = `
+      INSERT INTO audit_logs 
        (id, timestamp, event_type, severity, user_id, username, ip_address, 
         user_agent, resource_type, resource_id, action, outcome, details, metadata)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+    `;
+    
+    await this.db.query(sql,
       [
         event.id,
         event.timestamp,

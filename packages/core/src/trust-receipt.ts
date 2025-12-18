@@ -21,6 +21,7 @@ export interface TrustReceiptData {
   mode: 'constitutional' | 'directive';
   ciq_metrics: CIQMetrics;
   previous_hash?: string; // For hash chaining
+  session_nonce?: string;
 }
 
 export class TrustReceipt {
@@ -32,6 +33,7 @@ export class TrustReceipt {
   previous_hash?: string;
   self_hash: string;
   signature: string;
+  session_nonce?: string;
 
   constructor(data: TrustReceiptData) {
     this.version = data.version;
@@ -40,6 +42,7 @@ export class TrustReceipt {
     this.mode = data.mode;
     this.ciq_metrics = data.ciq_metrics;
     this.previous_hash = data.previous_hash;
+    this.session_nonce = data.session_nonce;
     
     // Calculate hash as per GAMMATRIA spec
     this.self_hash = this.calculateHash();
@@ -94,6 +97,39 @@ export class TrustReceipt {
   }
 
   /**
+   * Sign with session binding (self_hash + session_id + session_nonce)
+   */
+  async signBound(privateKey: Uint8Array): Promise<void> {
+    const payload = JSON.stringify({
+      self_hash: this.self_hash,
+      session_id: this.session_id,
+      session_nonce: this.session_nonce || '',
+    });
+    const msg = createHash('sha256').update(payload).digest();
+    const signature = await ed25519.sign(msg, privateKey);
+    this.signature = Buffer.from(signature).toString('hex');
+  }
+
+  /**
+   * Verify signature with session binding
+   */
+  async verifyBound(publicKey: Uint8Array): Promise<boolean> {
+    if (!this.signature) return false;
+    const payload = JSON.stringify({
+      self_hash: this.self_hash,
+      session_id: this.session_id,
+      session_nonce: this.session_nonce || '',
+    });
+    const msg = createHash('sha256').update(payload).digest();
+    const signature = Buffer.from(this.signature, 'hex');
+    try {
+      return await ed25519.verify(signature, msg, publicKey);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Verify hash chain integrity
    * Checks if this receipt correctly chains from previous
    */
@@ -114,6 +150,7 @@ export class TrustReceipt {
       previous_hash: this.previous_hash,
       self_hash: this.self_hash,
       signature: this.signature,
+      session_nonce: this.session_nonce,
     };
   }
 
@@ -128,6 +165,7 @@ export class TrustReceipt {
       mode: data.mode,
       ciq_metrics: data.ciq_metrics,
       previous_hash: data.previous_hash,
+      session_nonce: data.session_nonce,
     });
     
     receipt.signature = data.signature || '';

@@ -5,8 +5,8 @@ export async function saveTrustReceipt(receipt: TrustReceipt, tenantId?: string)
   const pool = getPool();
   if (!pool) return false;
   await pool.query(
-    `INSERT INTO trust_receipts(self_hash, session_id, version, timestamp, mode, ciq, previous_hash, signature, tenant_id)
-     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)
+    `INSERT INTO trust_receipts(self_hash, session_id, version, timestamp, mode, ciq, previous_hash, signature, session_nonce, tenant_id)
+     VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
      ON CONFLICT (self_hash) DO NOTHING`,
     [
       receipt.self_hash,
@@ -17,6 +17,7 @@ export async function saveTrustReceipt(receipt: TrustReceipt, tenantId?: string)
       JSON.stringify(receipt.ciq_metrics),
       receipt.previous_hash || null,
       receipt.signature || null,
+      receipt.session_nonce || null,
       tenantId || null,
     ]
   );
@@ -27,7 +28,7 @@ export async function getReceiptsBySession(sessionId: string, tenantId?: string)
   const pool = getPool();
   if (!pool) return [];
   const res = await pool.query(
-    `SELECT version, session_id, timestamp, mode, ciq, previous_hash, self_hash, signature FROM trust_receipts WHERE session_id = $1 AND (tenant_id = $2 OR $2 IS NULL) ORDER BY timestamp ASC`,
+    `SELECT version, session_id, timestamp, mode, ciq, previous_hash, self_hash, signature, session_nonce FROM trust_receipts WHERE session_id = $1 AND (tenant_id = $2 OR $2 IS NULL) ORDER BY timestamp ASC`,
     [sessionId, tenantId || null]
   );
   return res.rows.map((row: any) => {
@@ -40,6 +41,7 @@ export async function getReceiptsBySession(sessionId: string, tenantId?: string)
       previous_hash: row.previous_hash,
       signature: row.signature,
       self_hash: row.self_hash,
+      session_nonce: row.session_nonce,
     });
     // Ensure calculated self_hash matches stored
     r.self_hash = row.self_hash;

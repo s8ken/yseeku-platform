@@ -21,11 +21,14 @@
   "author": "YSEEKU",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-kms": "^3.954.0",
     "@digitalbazaar/did-method-key": "^5.0.0",
+    "@google-cloud/kms": "^5.2.1",
     "@sonate/core": "file:../core",
     "@sonate/persistence": "file:../persistence",
     "bcrypt": "^5.1.1",
-    "ioredis": "^5.8.2"
+    "ioredis": "^5.8.2",
+    "node-vault": "^0.10.9"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
