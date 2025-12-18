@@ -14,12 +14,34 @@ import { createHash } from 'crypto';
 import * as ed25519 from '@noble/ed25519';
 import { CIQMetrics } from './index';
 
+export interface SymbiTrustReceipt {
+  id: string;                 // SHA-256 Hash of the interaction
+  timestamp: string;          // ISO Date
+  
+  // The "Soul" of the receipt
+  telemetry: {
+    resonance_score: number;  // e.g. 0.994
+    resonance_quality: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
+    reality_index: number;    // e.g. 9.9
+  };
+
+  // The "Proof"
+  scaffold_proof: {
+    detected_vectors: string[]; // ['sovereign', 'integrity', 'third mind']
+    ethics_verified: boolean;   // true
+  };
+
+  // The "Seal"
+  signature: string;          // Ed25519 signature from the Agent's Private Key
+}
+
 export interface TrustReceiptData {
   version: string;
   session_id: string;
   timestamp: number;
   mode: 'constitutional' | 'directive';
   ciq_metrics: CIQMetrics;
+  symbi_trust_receipt?: SymbiTrustReceipt; // Optional SymbiTrustReceipt data
   previous_hash?: string; // For hash chaining
   session_nonce?: string;
 }
@@ -30,6 +52,7 @@ export class TrustReceipt {
   timestamp: number;
   mode: 'constitutional' | 'directive';
   ciq_metrics: CIQMetrics;
+  symbi_trust_receipt?: SymbiTrustReceipt;
   previous_hash?: string;
   self_hash: string;
   signature: string;
@@ -41,6 +64,7 @@ export class TrustReceipt {
     this.timestamp = data.timestamp;
     this.mode = data.mode;
     this.ciq_metrics = data.ciq_metrics;
+    this.symbi_trust_receipt = data.symbi_trust_receipt;
     this.previous_hash = data.previous_hash;
     this.session_nonce = data.session_nonce;
     
@@ -62,6 +86,7 @@ export class TrustReceipt {
       timestamp: this.timestamp,
       mode: this.mode,
       ciq_metrics: this.ciq_metrics,
+      symbi_trust_receipt: this.symbi_trust_receipt || null,
       previous_hash: this.previous_hash || null,
     });
     
@@ -147,6 +172,7 @@ export class TrustReceipt {
       timestamp: this.timestamp,
       mode: this.mode,
       ciq_metrics: this.ciq_metrics,
+      symbi_trust_receipt: this.symbi_trust_receipt,
       previous_hash: this.previous_hash,
       self_hash: this.self_hash,
       signature: this.signature,
@@ -164,6 +190,7 @@ export class TrustReceipt {
       timestamp: data.timestamp,
       mode: data.mode,
       ciq_metrics: data.ciq_metrics,
+      symbi_trust_receipt: data.symbi_trust_receipt,
       previous_hash: data.previous_hash,
       session_nonce: data.session_nonce,
     });
