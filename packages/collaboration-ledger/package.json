@@ -16,7 +16,7 @@
     "@lit-protocol/lit-node-client": "^2.1.215"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
+    "typescript": "^5.9.3",
     "@types/node": "^20.0.0"
   }
 }
