@@ -7,8 +7,6 @@ export * from './rbac';
 export * from './audit';
 export * from './rate-limiter';
 export * from './api-keys';
-export * from './signer';
-export * from './persistence';
 
 // Re-export commonly used types and functions
 export {
@@ -40,17 +38,3 @@ export {
   getAPIKeyManager,
   APIKeyManager,
 } from './api-keys';
-
-export {
-  getDefaultSigner,
-  SignerProvider,
-  SignResult,
-  SignRequest,
-} from './signer';
-
-export {
-  createNonceStore,
-  createRevocationStore,
-  NonceStore,
-  RevocationStore,
-} from './persistence';
