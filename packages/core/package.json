@@ -8,7 +8,7 @@
     "build": "tsc && cp src/index.d.ts dist/index.d.ts",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "npm run build && node dist/tests/run-tests.js"
+    "test": "npm run build && c8 --check-coverage --branches 40 --functions 40 --lines 40 --statements 40 node dist/tests/run-tests.js"
   },
   "keywords": [
     "sonate",

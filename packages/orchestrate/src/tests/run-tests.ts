@@ -1,6 +1,7 @@
 import { APIKeyManager, getAPIKeyManager } from '../security/api-keys';
 import { initializeAuditLogger, getAuditLogger, InMemoryAuditStorage, AuditEventType, AuditSeverity } from '../security/audit';
 import { getRBACManager, Permission, Role } from '../security/rbac';
+import { InMemoryRateLimitStore, RateLimiter } from '../security/rate-limiter';
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(message);
@@ -34,11 +35,21 @@ async function testRBAC() {
   assert(!canAdmin, 'Operator should not have SYSTEM_ADMIN');
 }
 
+async function testRateLimiterBasic() {
+  const store = new InMemoryRateLimitStore({ windowMs: 1000, maxRequests: 2 });
+  const limiter = new RateLimiter(store, { windowMs: 1000, maxRequests: 2 });
+  const r1 = await limiter.checkLimit('ip:1');
+  const r2 = await limiter.checkLimit('ip:1');
+  const r3 = await limiter.checkLimit('ip:1');
+  assert(r1.allowed && r2.allowed && !r3.allowed, 'Rate limiter did not block on third request');
+}
+
 async function main() {
   const tests = [
     ['API keys generate/validate/revoke', testAPIKeys],
     ['Audit logger basic flow', testAudit],
     ['RBAC permissions', testRBAC],
+    ['Rate limiter basic', testRateLimiterBasic],
   ] as const;
   const results: string[] = [];
   for (const [name, fn] of tests) {

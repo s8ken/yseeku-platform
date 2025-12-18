@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Providers } from '../providers';
 import {
   Home,
   Settings,
@@ -124,6 +125,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   return (
+    <Providers>
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       {/* Skip Link */}
       <a
@@ -200,5 +202,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div aria-live="polite" aria-atomic="true" className="sr-only" id="announcements"></div>
       </div>
     </div>
+    </Providers>
   );
 }

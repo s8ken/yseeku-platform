@@ -34,8 +34,8 @@ interface AuditResponse {
 
 export default function AuditTrailsPage() {
   const [filters, setFilters] = useState({
-    severity: '',
-    resourceType: '',
+    severity: 'all',
+    resourceType: 'all',
     userId: '',
     startDate: '',
     endDate: '',
@@ -66,7 +66,7 @@ export default function AuditTrailsPage() {
 
       // Add filters
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
+        if (value && value !== 'all') params.append(key, value);
       });
 
       const response = await fetch(`/api/audit/logs?${params}`);
@@ -82,8 +82,8 @@ export default function AuditTrailsPage() {
 
   const clearFilters = () => {
     setFilters({
-      severity: '',
-      resourceType: '',
+      severity: 'all',
+      resourceType: 'all',
       userId: '',
       startDate: '',
       endDate: '',
@@ -145,7 +145,7 @@ export default function AuditTrailsPage() {
                   <SelectValue placeholder="All severities" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All severities</SelectItem>
+                  <SelectItem value="all">All severities</SelectItem>
                   <SelectItem value="info">Info</SelectItem>
                   <SelectItem value="warning">Warning</SelectItem>
                   <SelectItem value="error">Error</SelectItem>
@@ -161,7 +161,7 @@ export default function AuditTrailsPage() {
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All types</SelectItem>
+                  <SelectItem value="all">All types</SelectItem>
                   <SelectItem value="agent">Agent</SelectItem>
                   <SelectItem value="experiment">Experiment</SelectItem>
                   <SelectItem value="tenant">Tenant</SelectItem>

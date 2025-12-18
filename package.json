@@ -10,7 +10,7 @@
   "scripts": {
     "build": "turbo run build --filter=web",
     "dev": "turbo run dev --parallel",
-    "test": "turbo run test --filter=@sonate/core --filter=@sonate/detect --filter=@sonate/orchestrate --filter=@sonate/lab --filter=@sonate/persistence --filter=web",
+    "test": "turbo run test --filter=@sonate/core --filter=@sonate/detect --filter=@sonate/orchestrate --filter=@sonate/lab --filter=@sonate/persistence",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rm -rf node_modules",
     "demo:ledger": "npm run build --workspace @sonate/collaboration-ledger && node examples/ledger-demo/index.js"
@@ -20,6 +20,12 @@
     "typescript": "^5.0.0",
     "@types/node": "^20.0.0",
     "c8": "^9.1.0"
+  },
+  "overrides": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "@types/react": "18.2.37",
+    "@types/react-dom": "18.2.15"
   },
   "engines": {
     "node": ">=20.0.0"

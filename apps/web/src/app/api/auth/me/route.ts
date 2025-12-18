@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server';
+export const runtime = 'nodejs';
 import jwt from 'jsonwebtoken';
 import { Env } from '@sonate/orchestrate';
 
 function extractToken(req: Request): string | null {
   const auth = req.headers.get('authorization');
   if (auth && auth.startsWith('Bearer ')) return auth.substring(7);
+  const cookieHeader = req.headers.get('cookie');
+  if (cookieHeader) {
+    const cookies = Object.fromEntries(
+      cookieHeader.split(';').map((c) => {
+        const [name, ...rest] = c.trim().split('=');
+        return [name, rest.join('=')];
+      })
+    );
+    return cookies.session_token || cookies.auth_token || null;
+  }
   return null;
 }
 
