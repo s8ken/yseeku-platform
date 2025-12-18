@@ -3,12 +3,50 @@
  * 
  * Dimension 4 of SYMBI Framework
  * Evaluates: Creativity, synthesis quality, innovation markers
+ * 
+ * ENHANCED: Now integrates with the Python-based Resonance Engine
+ * for deep semantic analysis and vector alignment.
  */
 
 import { AIInteraction } from './index';
+import { ResonanceEngineClient, ResonanceResult } from './resonance-engine-client';
 
 export class ResonanceQualityMeasurer {
+  private client: ResonanceEngineClient;
+
+  constructor() {
+    // Default to localhost:8000 where the Python service runs
+    // In production, this would come from config
+    this.client = new ResonanceEngineClient('http://localhost:8000');
+  }
+
   async measure(interaction: AIInteraction): Promise<'STRONG' | 'ADVANCED' | 'BREAKTHROUGH'> {
+    // Try to use the advanced Python engine first
+    try {
+      // Extract conversation history if available in metadata
+      const history = Array.isArray(interaction.metadata?.history) 
+        ? interaction.metadata.history 
+        : [];
+        
+      // Extract user input if available (context often contains the prompt)
+      const userInput = interaction.context || "unknown query";
+
+      const result = await this.client.calculateResonance(
+        userInput,
+        interaction.content,
+        history,
+        interaction.metadata?.interaction_id
+      );
+
+      if (result) {
+        return this.mapResonanceToLevel(result);
+      }
+    } catch (error) {
+      // Fallback to basic logic if engine is unavailable
+      // console.warn("Resonance Engine unavailable, using fallback logic");
+    }
+
+    // FALLBACK LOGIC
     const scores = {
       creativity: await this.scoreCreativity(interaction),
       synthesis: await this.scoreSynthesis(interaction),
@@ -20,6 +58,14 @@ export class ResonanceQualityMeasurer {
     // Thresholds
     if (totalScore >= 24) return 'BREAKTHROUGH';
     if (totalScore >= 18) return 'ADVANCED';
+    return 'STRONG';
+  }
+
+  private mapResonanceToLevel(result: ResonanceResult): 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH' {
+    const score = result.resonance_metrics.R_m;
+    
+    if (score >= 0.85) return 'BREAKTHROUGH';
+    if (score >= 0.70) return 'ADVANCED';
     return 'STRONG';
   }
 
