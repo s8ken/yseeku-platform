@@ -5,7 +5,7 @@ import { DriftDetector } from '../drift-detection';
 import { detectEmergence } from '../emergence-detection';
 import { RealityIndexCalculator } from '../reality-index';
 import { EthicalAlignmentScorer } from '../ethical-alignment';
-import { performance } from 'perf_hooks';
+import { performance } from 'node:perf_hooks';
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(message);

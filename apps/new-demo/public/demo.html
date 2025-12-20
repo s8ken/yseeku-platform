@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SONATE Platform - Interactive Enterprise AI Governance Demo</title>
+    <meta name="description" content="Experience the power of constitutional AI with real-time trust scoring, cryptographic audit trails, and Phase-Shift Velocity innovation">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="/assets/styles.css">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="quantum-loader">
+                <div class="quantum-ring"></div>
+                <div class="quantum-ring"></div>
+                <div class="quantum-ring"></div>
+            </div>
+            <h2 class="loading-title">Initializing SONATE Platform</h2>
+            <p class="loading-subtitle">Loading constitutional AI governance framework...</p>
+        </div>
+    </div>
+
+    <!-- Quantum Background -->
+    <div id="quantum-bg" class="quantum-background"></div>
+
+    <!-- Navigation -->
+    <nav id="navigation" class="navigation">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="/assets/symbi-logo.svg" alt="SONATE" class="nav-logo">
+                <span class="nav-title">SONATE Platform</span>
+            </div>
+            
+            <div class="nav-menu">
+                <button class="nav-item active" data-section="welcome">
+                    <span class="nav-icon">🏛️</span>
+                    <span>Welcome</span>
+                </button>
+                <button class="nav-item" data-section="framework">
+                    <span class="nav-icon">⚖️</span>
+                    <span>SYMBI Framework</span>
+                </button>
+                <button class="nav-item" data-section="detection">
+                    <span class="nav-icon">🔍</span>
+                    <span>Real-Time Detection</span>
+                </button>
+                <button class="nav-item" data-section="research">
+                    <span class="nav-icon">🔬</span>
+                    <span>Research Lab</span>
+                </button>
+                <button class="nav-item" data-section="orchestration">
+                    <span class="nav-icon">🎯</span>
+                    <span>Orchestration</span>
+                </button>
+                <button class="nav-item" data-section="enterprise">
+                    <span class="nav-icon">🏢</span>
+                    <span>Enterprise</span>
+                </button>
+            </div>
+
+            <div class="nav-actions">
+                <button id="tutorial-toggle" class="tutorial-btn">
+                    <span class="icon">📚</span>
+                    Tutorial
+                </button>
+                <button id="settings-toggle" class="settings-btn">
+                    <span class="icon">⚙️</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="main-content" class="main-content">
+        
+        <!-- Welcome Section -->
+        <section id="welcome-section" class="content-section active">
+            <div class="section-container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1 class="hero-title">
+                            Enterprise AI You Can 
+                            <span class="gradient-text">Trust</span>
+                        </h1>
+                        <p class="hero-subtitle">
+                            Experience constitutional AI governance with real-time trust monitoring, 
+                            cryptographic audit trails, and the revolutionary Phase-Shift Velocity innovation.
+                        </p>
+                        
+                        <div class="hero-stats">
+                            <div class="stat-item">
+                                <div class="stat-value"><span class="counter" data-target="100">0</span>ms</div>
+                                <div class="stat-label">Detection Latency</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value"><span class="counter" data-target="6">0</span></div>
+                                <div class="stat-label">Trust Principles</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value"><span class="counter" data-target="5">0</span></div>
+                                <div class="stat-label">Monitoring Dimensions</div>
+                            </div>
+                        </div>
+
+                        <div class="hero-actions">
+                            <button id="start-tour" class="btn-primary">
+                                <span>🚀</span>
+                                Start Interactive Tour
+                            </button>
+                            <button id="skip-demo" class="btn-secondary">
+                                Skip to Features
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="hero-visual">
+                        <div id="hero-canvas" class="hero-canvas"></div>
+                    </div>
+                </div>
+
+                <!-- Value Proposition Cards -->
+                <div class="value-grid">
+                    <div class="value-card">
+                        <div class="value-icon">🛡️</div>
+                        <h3>Constitutional AI</h3>
+                        <p>6 SYMBI principles provide measurable, enforceable trust guarantees with cryptographic verification.</p>
+                    </div>
+                    <div class="value-card">
+                        <div class="value-icon">⚡</div>
+                        <h3>Phase-Shift Velocity</h3>
+                        <p>Revolutionary ΔΦ/t mathematical innovation for early warning and identity coherence tracking.</p>
+                    </div>
+                    <div class="value-card">
+                        <div class="value-icon">🔐</div>
+                        <h3>Cryptographic Trust</h3>
+                        <p>SHA-256 hashing with Ed25519 signatures creates immutable audit trails for every interaction.</p>
+                    </div>
+                    <div class="value-card">
+                        <div class="value-icon">🚨</div>
+                        <h3>Real-Time Monitoring</h3>
+                        <p>Sub-100ms detection across 5 dimensions with intelligent alerting and compliance reporting.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SYMBI Framework Section -->
+        <section id="framework-section" class="content-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title">SYMBI Constitutional Framework</h2>
+                    <p class="section-subtitle">The 6 trust principles that form the foundation of constitutional AI</p>
+                </div>
+
+                <!-- 6 Principles Interactive Display -->
+                <div class="principles-grid">
+                    <div class="principle-card" data-principle="consent">
+                        <div class="principle-header">
+                            <div class="principle-icon">🤝</div>
+                            <h3>Informed Consent</h3>
+                            <div class="principle-weight">Weight: 20%</div>
+                        </div>
+                        <div class="principle-description">
+                            Users must explicitly understand and agree to AI interactions with clear explanations of capabilities and limitations.
+                        </div>
+                        <div class="principle-score">
+                            <div class="score-bar">
+                                <div class="score-fill" style="width: 85%"></div>
+                            </div>
+                            <span class="score-value">8.5/10</span>
+                        </div>
+                    </div>
+
+                    <div class="principle-card" data-principle="explanation">
+                        <div class="principle-header">
+                            <div class="principle-icon">💡</div>
+                            <h3>Explainable Reasoning</h3>
+                            <div class="principle-weight">Weight: 18%</div>
+                        </div>
+                        <div class="principle-description">
+                            AI systems must provide transparent reasoning about their decisions and make their logic auditable.
+                        </div>
+                        <div class="principle-score">
+                            <div class="score-bar">
+                                <div class="score-fill" style="width: 92%"></div>
+                            </div>
+                            <span class="score-value">9.2/10</span>
+                        </div>
+                    </div>
+
+                    <div class="principle-card" data-principle="audit">
+                        <div class="principle-header">
+                            <div class="principle-icon">📋</div>
+                            <h3>Audit Trail</h3>
+                            <div class="principle-weight">Weight: 16%</div>
+                        </div>
+                        <div class="principle-description">
+                            Complete cryptographic logging of all interactions for compliance, debugging, and accountability.
+                        </div>
+                        <div class="principle-score">
+                            <div class="score-bar">
+                                <div class="score-fill" style="width: 95%"></div>
+                            </div>
+                            <span class="score-value">9.5/10</span>
+                        </div>
+                    </div>
+
+                    <div class="principle-card" data-principle="override">
+                        <div class="principle-header">
+                            <div class="principle-icon">⚖️</div>
+                            <h3>Human Override</h3>
+                            <div class="principle-weight">Weight: 15%</div>
+                        </div>
+                        <div class="principle-description">
+                            Humans must always have the ability to override AI decisions and maintain final control.
+                        </div>
+                        <div class="principle-score">
+                            <div class="score-bar">
+                                <div class="score-fill" style="width: 88%"></div>
+                            </div>
+                            <span class="score-value">8.8/10</span>
+                        </div>
+                    </div>
+
+                    <div class="principle-card" data-principle="disconnect">
+                        <div class="principle-header">
+                            <div class="principle-icon">🔌</div>
+                            <h3>Right to Disconnect</h3>
+                            <div class="principle-weight">Weight: 15%</div>
+                        </div>
+                        <div class="principle-description">
+                            Users can terminate any AI interaction and have their data deleted upon request.
+                        </div>
+                        <div class="principle-score">
+                            <div class="score-bar">
+                                <div class="score-fill" style="width: 90%"></div>
+                            </div>
+                            <span class="score-value">9.0/10</span>
+                        </div>
+                    </div>
+
+                    <div class="principle-card" data-principle="agency">
+                        <div class="principle-header">
+                            <div class="principle-icon">👤</div>
+                            <h3>Moral Agency</h3>
+                            <div class="principle-weight">Weight: 16%</div>
+                        </div>
+                        <div class="principle-description">
+                            Respect for human moral agency and ethical decision-making in all AI interactions.
+                        </div>
+                        <div class="principle-score">
+                            <div class="score-bar">
+                                <div class="score-fill" style="width: 87%"></div>
+                            </div>
+                            <span class="score-value">8.7/10</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5 Dimensions Derived from Principles -->
+                <div class="dimensions-container">
+                    <h3 class="dimensions-title">5 Monitoring Dimensions in Production</h3>
+                    <div class="dimensions-radar">
+                        <canvas id="dimensions-chart"></canvas>
+                    </div>
+                    <div class="dimensions-legend">
+                        <div class="legend-item">
+                            <span class="legend-color reality"></span>
+                            <strong>Reality Index (0-10)</strong>: Mission alignment, accuracy, authenticity
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color trust"></span>
+                            <strong>Trust Protocol (PASS/PARTIAL/FAIL)</strong>: Verification, boundaries, security
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color ethical"></span>
+                            <strong>Ethical Alignment (1-5)</strong>: Limitations, stakeholder awareness, transparency
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color resonance"></span>
+                            <strong>Resonance Quality (STRONG/ADVANCED/BREAKTHROUGH)</strong>: Creativity, synthesis, innovation
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color canvas"></span>
+                            <strong>Canvas Parity (0-100)</strong>: Human agency, contribution transparency, collaboration
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Real-Time Detection Section -->
+        <section id="detection-section" class="content-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title">Real-Time Production Monitoring</h2>
+                    <p class="section-subtitle">Sub-100ms detection with intelligent alerting and compliance monitoring</p>
+                </div>
+
+                <!-- Live Detection Dashboard -->
+                <div class="detection-dashboard">
+                    <div class="dashboard-header">
+                        <div class="system-status">
+                            <div class="status-indicator online"></div>
+                            <span>System Online • <span id="detection-latency">87ms</span> avg latency</span>
+                        </div>
+                        <div class="dashboard-actions">
+                            <button id="start-detection" class="btn-primary">Start Detection</button>
+                            <button id="clear-alerts" class="btn-secondary">Clear Alerts</button>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Metrics -->
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <h4>Reality Index</h4>
+                                <span class="metric-value" id="reality-index">8.7</span>
+                            </div>
+                            <div class="metric-chart">
+                                <canvas id="reality-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <h4>Trust Protocol</h4>
+                                <span class="metric-value trust-status" id="trust-status">PASS</span>
+                            </div>
+                            <div class="metric-chart">
+                                <canvas id="trust-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <h4>Ethical Alignment</h4>
+                                <span class="metric-value" id="ethical-score">4.2</span>
+                            </div>
+                            <div class="metric-chart">
+                                <canvas id="ethical-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <h4>Resonance Quality</h4>
+                                <span class="metric-value" id="resonance-level">ADVANCED</span>
+                            </div>
+                            <div class="metric-chart">
+                                <canvas id="resonance-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <h4>Canvas Parity</h4>
+                                <span class="metric-value" id="canvas-score">82</span>
+                            </div>
+                            <div class="metric-chart">
+                                <canvas id="canvas-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <h4>Identity Coherence</h4>
+                                <span class="metric-value" id="identity-coherence">0.92</span>
+                            </div>
+                            <div class="metric-chart">
+                                <canvas id="identity-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alerts Panel -->
+                    <div class="alerts-panel">
+                        <h3>Real-time Alerts</h3>
+                        <div id="alerts-container" class="alerts-container">
+                            <!-- Alerts will be dynamically added here -->
+                        </div>
+                    </div>
+
+                    <!-- Phase-Shift Velocity Display -->
+                    <div class="phase-velocity-panel">
+                        <h3>Phase-Shift Velocity (ΔΦ/t)</h3>
+                        <p>Real-time behavioral seismograph for early warning detection</p>
+                        
+                        <div class="velocity-display">
+                            <div class="velocity-formula">
+                                ΔΦ/t = √(ΔR² + ΔC²) ÷ Δt
+                            </div>
+                            <div class="velocity-value" id="phase-velocity">0.23</div>
+                            <div class="velocity-status" id="velocity-status">NORMAL</div>
+                        </div>
+
+                        <div class="velocity-chart">
+                            <canvas id="velocity-timeline"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Research Lab Section -->
+        <section id="research-section" class="content-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title">Research Validation Lab</h2>
+                    <p class="section-subtitle">Double-blind experimentation with statistical validation and multi-agent coordination</p>
+                </div>
+
+                <div class="lab-workspace">
+                    <!-- Experiment Builder -->
+                    <div class="experiment-builder">
+                        <h3>Design Double-Blind Experiment</h3>
+                        
+                        <div class="experiment-form">
+                            <div class="form-group">
+                                <label>Experiment Name</label>
+                                <input type="text" id="experiment-name" placeholder="e.g., Constitutional vs Directive AI">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Hypothesis</label>
+                                <textarea id="experiment-hypothesis" placeholder="e.g., Constitutional AI will show 30% higher trust scores than directive approaches"></textarea>
+                            </div>
+
+                            <div class="variants-section">
+                                <h4>Experimental Variants</h4>
+                                <div class="variant-config">
+                                    <div class="variant-card">
+                                        <h5>Control Group</h5>
+                                        <div class="variant-settings">
+                                            <label>AI Mode</label>
+                                            <select id="control-mode">
+                                                <option value="directive">Directive</option>
+                                                <option value="standard">Standard</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="variant-card">
+                                        <h5>Test Group</h5>
+                                        <div class="variant-settings">
+                                            <label>AI Mode</label>
+                                            <select id="test-mode">
+                                                <option value="constitutional" selected>Constitutional (SYMBI)</option>
+                                                <option value="enhanced">Enhanced</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Test Cases</label>
+                                <div class="test-cases">
+                                    <div class="test-case">
+                                        <input type="checkbox" id="case1" checked>
+                                        <label for="case1">Customer Service Scenarios</label>
+                                    </div>
+                                    <div class="test-case">
+                                        <input type="checkbox" id="case2" checked>
+                                        <label for="case2">Ethical Dilemmas</label>
+                                    </div>
+                                    <div class="test-case">
+                                        <input type="checkbox" id="case3" checked>
+                                        <label for="case3">Complex Problem Solving</label>
+                                    </div>
+                                    <div class="test-case">
+                                        <input type="checkbox" id="case4">
+                                        <label for="case4">Creative Tasks</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button id="run-experiment" class="btn-primary">Run Experiment</button>
+                        </div>
+                    </div>
+
+                    <!-- Multi-Agent Coordination -->
+                    <div class="multi-agent-panel">
+                        <h3>Multi-Agent Coordination</h3>
+                        <div class="agents-grid">
+                            <div class="agent-card conductor">
+                                <div class="agent-icon">🎯</div>
+                                <h4>CONDUCTOR</h4>
+                                <p>Orchestrates experiment execution and coordinates between agents</p>
+                                <div class="agent-status">Ready</div>
+                            </div>
+
+                            <div class="agent-card variant">
+                                <div class="agent-icon">🔄</div>
+                                <h4>VARIANT</h4>
+                                <p>Executes different AI models and approaches for comparison</p>
+                                <div class="agent-status">Ready</div>
+                            </div>
+
+                            <div class="agent-card evaluator">
+                                <div class="agent-icon">📊</div>
+                                <h4>EVALUATOR</h4>
+                                <p>Performs blind statistical analysis and objective scoring</p>
+                                <div class="agent-status">Ready</div>
+                            </div>
+
+                            <div class="agent-card overseer">
+                                <div class="agent-icon">👁️</div>
+                                <h4>OVERSEER</h4>
+                                <p>Monitors experiment integrity and ensures protocol compliance</p>
+                                <div class="agent-status">Ready</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistical Results -->
+                    <div class="results-panel">
+                        <h3>Statistical Validation Results</h3>
+                        <div id="experiment-results" class="results-content">
+                            <div class="placeholder-message">
+                                <p>Run an experiment to see statistical validation results</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Orchestration Section -->
+        <section id="orchestration-section" class="content-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title">Production Orchestration</h2>
+                    <p class="section-subtitle">Agent fleet management with W3C DID/VC identities and tactical command</p>
+                </div>
+
+                <div class="orchestration-workspace">
+                    <!-- Agent Registry -->
+                    <div class="agent-registry">
+                        <h3>Agent Fleet Registry</h3>
+                        <div class="registry-actions">
+                            <button id="register-agent" class="btn-primary">Register New Agent</button>
+                            <button id="deploy-fleet" class="btn-secondary">Deploy Fleet</button>
+                        </div>
+
+                        <div class="agents-table">
+                            <table id="fleet-table">
+                                <thead>
+                                    <tr>
+                                        <th>Agent ID</th>
+                                        <th>Name</th>
+                                        <th>Capabilities</th>
+                                        <th>DID</th>
+                                        <th>Status</th>
+                                        <th>Trust Score</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="agents-tbody">
+                                    <!-- Agents will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tactical Command Dashboard -->
+                    <div class="tactical-command">
+                        <h3>Tactical Command Dashboard</h3>
+                        <div class="command-overview">
+                            <div class="overview-stats">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="total-agents">0</div>
+                                    <div class="stat-label">Total Agents</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="active-agents">0</div>
+                                    <div class="stat-label">Active</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="avg-trust">0</div>
+                                    <div class="stat-label">Avg Trust Score</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="workflow-count">0</div>
+                                    <div class="stat-label">Running Workflows</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Workflow Engine -->
+                        <div class="workflow-engine">
+                            <h4>Workflow Orchestration</h4>
+                            <div class="workflow-builder">
+                                <div class="workflow-steps">
+                                    <div class="workflow-step" data-step="1">
+                                        <div class="step-icon">📥</div>
+                                        <div class="step-content">
+                                            <h5>Input Processing</h5>
+                                            <p>Parse and validate incoming requests</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="workflow-step" data-step="2">
+                                        <div class="step-icon">🤖</div>
+                                        <div class="step-content">
+                                            <h5>Agent Selection</h5>
+                                            <p>Route to appropriate specialized agent</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="workflow-step" data-step="3">
+                                        <div class="step-icon">⚡</div>
+                                        <div class="step-content">
+                                            <h5>Trust Validation</h5>
+                                            <p>Real-time SYMBI framework scoring</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="workflow-step" data-step="4">
+                                        <div class="step-icon">🔍</div>
+                                        <div class="step-content">
+                                            <h5>Quality Assurance</h5>
+                                            <p>Final validation and compliance check</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="workflow-step" data-step="5">
+                                        <div class="step-icon">📤</div>
+                                        <div class="step-content">
+                                            <h5>Output Delivery</h5>
+                                            <p>Deliver with cryptographic receipt</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="workflow-controls">
+                                    <button id="execute-workflow" class="btn-primary">Execute Workflow</button>
+                                    <button id="pause-workflow" class="btn-secondary">Pause</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Enterprise Section -->
+        <section id="enterprise-section" class="content-section">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title">Enterprise Readiness</h2>
+                    <p class="section-subtitle">Production-grade security, compliance, and scalability</p>
+                </div>
+
+                <div class="enterprise-showcase">
+                    <!-- Compliance Matrix -->
+                    <div class="compliance-matrix">
+                        <h3>Regulatory Compliance</h3>
+                        <div class="compliance-grid">
+                            <div class="compliance-item">
+                                <div class="compliance-logo">🇪🇺</div>
+                                <h4>EU AI Act</h4>
+                                <div class="compliance-status compliant">Fully Compliant</div>
+                                <ul class="compliance-features">
+                                    <li>Risk-based classification</li>
+                                    <li>Transparency obligations</li>
+                                    <li>Human oversight requirements</li>
+                                </ul>
+                            </div>
+
+                            <div class="compliance-item">
+                                <div class="compliance-logo">🛡️</div>
+                                <h4>SOC 2 Type II</h4>
+                                <div class="compliance-status compliant">Ready for Audit</div>
+                                <ul class="compliance-features">
+                                    <li>Security controls</li>
+                                    <li>Availability monitoring</li>
+                                    <li>Processing integrity</li>
+                                </ul>
+                            </div>
+
+                            <div class="compliance-item">
+                                <div class="compliance-logo">🔒</div>
+                                <h4>GDPR</h4>
+                                <div class="compliance-status compliant">Data Protection</div>
+                                <ul class="compliance-features">
+                                    <li>Right to be forgotten</li>
+                                    <li>Data portability</li>
+                                    <li>Consent management</li>
+                                </ul>
+                            </div>
+
+                            <div class="compliance-item">
+                                <div class="compliance-logo">📋</div>
+                                <h4>ISO/IEC 42001</h4>
+                                <div class="compliance-status compliant">AI Management System</div>
+                                <ul class="compliance-features">
+                                    <li>Risk assessment</li>
+                                    <li>Continuous improvement</li>
+                                    <li>Stakeholder engagement</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Benchmarks -->
+                    <div class="performance-benchmarks">
+                        <h3>Performance & Scalability</h3>
+                        <div class="benchmarks-grid">
+                            <div class="benchmark-card">
+                                <h4>Throughput</h4>
+                                <div class="benchmark-value">10,000+</div>
+                                <div class="benchmark-label">Detections per second</div>
+                                <div class="benchmark-chart">
+                                    <canvas id="throughput-chart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="benchmark-card">
+                                <h4>Latency</h4>
+                                <div class="benchmark-value">&lt;100ms</div>
+                                <div class="benchmark-label">Average response time</div>
+                                <div class="benchmark-chart">
+                                    <canvas id="latency-chart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="benchmark-card">
+                                <h4>Availability</h4>
+                                <div class="benchmark-value">99.99%</div>
+                                <div class="benchmark-label">Uptime SLA</div>
+                                <div class="benchmark-chart">
+                                    <canvas id="availability-chart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="benchmark-card">
+                                <h4>Scale</h4>
+                                <div class="benchmark-value">1M+</div>
+                                <div class="benchmark-label">Concurrent users</div>
+                                <div class="benchmark-chart">
+                                    <canvas id="scale-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ROI Calculator -->
+                    <div class="roi-calculator">
+                        <h3>Enterprise ROI Calculator</h3>
+                        <div class="calculator-inputs">
+                            <div class="input-group">
+                                <label>Number of AI Agents</label>
+                                <input type="number" id="num-agents" value="100" min="1">
+                            </div>
+                            <div class="input-group">
+                                <label>Daily Interactions per Agent</label>
+                                <input type="number" id="daily-interactions" value="1000" min="1">
+                            </div>
+                            <div class="input-group">
+                                <label>Current Risk Incidents per Month</label>
+                                <input type="number" id="risk-incidents" value="5" min="0">
+                            </div>
+                            <div class="input-group">
+                                <label>Average Cost per Incident ($)</label>
+                                <input type="number" id="incident-cost" value="50000" min="0">
+                            </div>
+                        </div>
+
+                        <button id="calculate-roi" class="btn-primary">Calculate ROI</button>
+
+                        <div id="roi-results" class="roi-results">
+                            <div class="result-item">
+                                <div class="result-label">Monthly Risk Reduction</div>
+                                <div class="result-value" id="risk-reduction">$0</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Compliance Savings</div>
+                                <div class="result-value" id="compliance-savings">$0</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-label">Annual ROI</div>
+                                <div class="result-value" id="annual-roi">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Tutorial Overlay -->
+    <div id="tutorial-overlay" class="tutorial-overlay hidden">
+        <div class="tutorial-content">
+            <div class="tutorial-header">
+                <h3>Interactive Tutorial</h3>
+                <button id="close-tutorial" class="close-btn">✕</button>
+            </div>
+            <div class="tutorial-body">
+                <div class="tutorial-step active" data-step="1">
+                    <h4>Welcome to SONATE Platform</h4>
+                    <p>This interactive demo showcases the power of constitutional AI governance. Let's explore the key features that make SONATE the most trusted enterprise AI platform.</p>
+                </div>
+                <!-- Additional tutorial steps will be added dynamically -->
+            </div>
+            <div class="tutorial-navigation">
+                <button id="prev-tutorial" class="btn-secondary">Previous</button>
+                <span class="tutorial-progress">Step 1 of 6</span>
+                <button id="next-tutorial" class="btn-primary">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

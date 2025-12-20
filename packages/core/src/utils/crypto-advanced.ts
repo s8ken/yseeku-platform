@@ -8,7 +8,7 @@
 import * as ed25519 from '@noble/ed25519';
 import * as secp256k1 from '@noble/secp256k1';
 import { canonicalize } from 'json-canonicalize';
-import { sha256, sha512 } from '@noble/hashes/sha2.js';
+import crypto from 'crypto';
 
 export type SignatureAlgorithm = 'Ed25519' | 'ES256K' | 'RS256';
 
@@ -22,6 +22,12 @@ export interface SignatureVerificationResult {
 export interface CanonicalizeOptions {
   method: 'JCS' | 'URDNA2015';
 }
+
+const sha256Sync = (msg: Uint8Array): Uint8Array =>
+  new Uint8Array(crypto.createHash('sha256').update(msg).digest());
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(ed25519 as any).etc.sha512Sync = (...m: Uint8Array[]) =>
+  new Uint8Array(crypto.createHash('sha512').update(m[0]).digest());
 
 /**
  * Canonicalize JSON for deterministic signing
@@ -96,7 +102,7 @@ export async function verifySecp256k1Signature(
     const message = new TextEncoder().encode(canonical);
 
     // Hash the message with SHA-256 (ES256K uses SHA-256)
-    const hash = sha256(message);
+    const hash = sha256Sync(message);
 
     // Decode signature and public key (hex format for Ethereum)
     const signature = hexToBytes(signatureHex);
@@ -130,7 +136,6 @@ export async function verifyRSASignature(
 ): Promise<SignatureVerificationResult> {
   try {
     // For RSA signatures, we'll need Node.js crypto module
-    const crypto = await import('crypto');
     
     const canonical = canonicalizeJSON(data, options);
     const message = Buffer.from(canonical, 'utf8');
@@ -256,7 +261,6 @@ function hexToBytes(hex: string): Uint8Array {
  */
 export function generateSecureRandom(length: number): Uint8Array {
   // Use Node.js crypto module for secure random generation
-  const crypto = require('crypto');
   return crypto.randomBytes(length);
 }
 
@@ -304,6 +308,5 @@ export function timingSafeEqual(a: string, b: string): boolean {
   }
   
   // Use Node.js crypto module for timing-safe comparison
-  const crypto = require('crypto');
   return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }

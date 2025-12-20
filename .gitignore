@@ -9,3 +9,6 @@ coverage/
 Archives/
 apps/**/.next/
 **/tsconfig.tsbuildinfo
+**/__pycache__/
+**/*.pyc
+.DS_Store
