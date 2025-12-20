@@ -29,8 +29,11 @@
     "@tanstack/react-query": "^5.90.12",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
+    "@types/three": "^0.182.0",
+    "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "gsap": "^3.14.2",
     "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.555.0",
@@ -40,6 +43,7 @@
     "react-hook-form": "^7.68.0",
     "recharts": "^2.15.4",
     "tailwind-merge": "^3.4.0",
+    "three": "^0.182.0",
     "zustand": "^5.0.9"
   },
   "devDependencies": {

@@ -65,3 +65,17 @@
     @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
   }
 }
+
+:root {
+  --quantum-cyan: #00ffff;
+  --neural-purple: #8b5cf6;
+  --blockchain-gold: #fbbf24;
+  --trust-green: #10b981;
+  --security-red: #ef4444;
+  --dark-matter: #0a0a0f;
+  --void-black: #000000;
+  --plasma-blue: #3b82f6;
+  --holographic: rgba(139, 92, 246, 0.3);
+  --glitch-red: #ff0080;
+  --data-stream: #00d4ff;
+}
