@@ -41,3 +41,10 @@ export interface AIInteraction {
   context: string;
   metadata: Record<string, any>;
 }
+
+// New V2.1 Exports
+export { explainableSymbiResonance, RobustResonanceResult, Transcript } from './calculator';
+export { resonanceWithStickiness, StickyResonance, SessionState } from './stickiness';
+export { adversarialCheck, AdversarialEvidence } from './adversarial';
+export { classifyStakes, StakesEvidence } from './stakes';
+export { normalizeScore, normalizeEmbedding } from './model-normalize';

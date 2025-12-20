@@ -18,6 +18,8 @@ export { hashChain, genesisHash } from './utils/hash-chain';
 export { signPayload, verifySignature, generateKeyPair } from './utils/signatures';
 export * from './utils/crypto-advanced';
 
+export * from './canonicalize';
+
 // Constants - The 6 Trust Principles from Master Context
 export const TRUST_PRINCIPLES = {
   CONSENT_ARCHITECTURE: { 
