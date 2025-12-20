@@ -494,6 +494,203 @@
             color: var(--error);
         }
         
+        /* ==================== LINGUISTIC VECTOR STEERING ==================== */
+        .vector-visualization {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--slate-700);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin: var(--spacing-lg) 0;
+        }
+        
+        .vector-dimensions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-md);
+            margin: var(--spacing-lg) 0;
+        }
+        
+        .vector-dimension {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--slate-700);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+        }
+        
+        .dimension-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .dimension-name {
+            font-weight: 600;
+            color: var(--slate-300);
+            font-size: 0.875rem;
+        }
+        
+        .dimension-value {
+            font-family: var(--font-mono);
+            color: var(--quantum-cyan);
+            font-weight: 600;
+        }
+        
+        .dimension-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--slate-800);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin-top: var(--spacing-sm);
+        }
+        
+        .dimension-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--quantum-cyan), var(--neural-purple));
+            transition: width var(--transition-base);
+        }
+        
+        .coherence-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+        }
+        
+        .coherence-value {
+            font-family: var(--font-mono);
+            color: var(--quantum-cyan);
+            font-weight: 600;
+        }
+        
+        /* ==================== SETTINGS TAB ==================== */
+        .settings-section {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--slate-800);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .settings-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--slate-100);
+        }
+        
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+        }
+        
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+        
+        .setting-label {
+            font-size: 0.875rem;
+            color: var(--slate-400);
+            font-weight: 500;
+        }
+        
+        .setting-input {
+            padding: var(--spacing-sm);
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-radius: var(--radius-md);
+            color: var(--slate-100);
+            font-family: var(--font-mono);
+            transition: all var(--transition-base);
+        }
+        
+        .setting-input:focus {
+            outline: none;
+            border-color: var(--quantum-cyan);
+            box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.1);
+        }
+        
+        .setting-select {
+            padding: var(--spacing-sm);
+            background: var(--slate-800);
+            border: 1px solid var(--slate-700);
+            border-radius: var(--radius-md);
+            color: var(--slate-100);
+            cursor: pointer;
+        }
+        
+        .setting-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background: var(--slate-700);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background var(--transition-base);
+        }
+        
+        .toggle-switch.active {
+            background: var(--quantum-cyan);
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: var(--slate-100);
+            border-radius: 50%;
+            transition: transform var(--transition-base);
+        }
+        
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(24px);
+        }
+        
+        /* ==================== PLAIN ENGLISH MODE ==================== */
+        .plain-english-tooltip {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin: var(--spacing-sm) 0;
+            font-size: 0.875rem;
+            color: var(--slate-300);
+            display: none;
+        }
+        
+        .plain-english-mode .plain-english-tooltip {
+            display: block;
+        }
+        
+        .technical-term {
+            color: var(--quantum-cyan);
+            font-weight: 600;
+            cursor: help;
+            border-bottom: 1px dotted rgba(0, 255, 255, 0.5);
+        }
+        
         /* ==================== RECEIPT CHAIN ==================== */
         .receipt-list {
             display: flex;
@@ -864,6 +1061,7 @@
             .card { border: 1px solid #ccc; }
         }
     </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 </head>
 <body>
     <!-- Loading Screen -->
@@ -928,6 +1126,9 @@
                 <li class="nav-item" data-section="detection">
                     <span>🔍</span> Detection
                 </li>
+                <li class="nav-item" data-section="vector-steering">
+                    <span>🧭</span> Vector Steering
+                </li>
                 <li class="nav-item" data-section="research">
                     <span>🧪</span> Research Lab
                 </li>
@@ -936,6 +1137,9 @@
                 </li>
                 <li class="nav-item" data-section="receipts">
                     <span>🔐</span> Trust Receipts
+                </li>
+                <li class="nav-item" data-section="settings">
+                    <span>⚙️</span> Settings
                 </li>
             </ul>
         </div>
@@ -950,7 +1154,7 @@
                     <h1 class="hero-title">Enterprise AI You Can Trust</h1>
                     <p class="hero-subtitle">
                         Constitutional AI governance with real-time detection, cryptographic receipts, 
-                        and double-blind validation. Built on SYMBI Trust Physics.
+                        and linguistic vector steering. Built on SYMBI Trust Physics.
                     </p>
                     
                     <div class="flex justify-center gap-4" style="margin-bottom: var(--spacing-2xl);">
@@ -1068,6 +1272,9 @@
                 <div style="margin-bottom: var(--spacing-xl);">
                     <h2 title="Six constitutional principles ensuring AI accountability: Consent, Inspection, Validation, Override, Disconnect, and Recognition">SYMBI Trust Physics</h2>
                     <p>Six-Pillar Governance Scoring aligned with W3C standards and constitutional AI principles</p>
+                    <div class="plain-english-tooltip">
+                        <strong>Plain English:</strong> The SYMBI framework is like a constitution for AI systems. It ensures AI behaves ethically through six core principles: getting user consent, being transparent about decisions, continuously proving trustworthiness, allowing human override, letting users disconnect, and recognizing its own limitations.
+                    </div>
                 </div>
 
                 <!-- Principles Grid -->
@@ -1096,6 +1303,9 @@
                     <h3 title="Mathematical innovation measuring AI behavioral change rate for early warning detection">Phase-Shift Velocity Monitor</h3>
                     <p class="text-sm">Early warning detection through behavioral seismograph analysis: ΔΦ/t = √(ΔR² + ΔC²) ÷ Δt</p>
                     <p class="text-xs" style="color: var(--slate-400); margin-top: var(--spacing-xs);">Where R = Reality Index delta, C = Canvas parity delta over time window t</p>
+                    <div class="plain-english-tooltip">
+                        <strong>Plain English:</strong> Think of this like an earthquake detector for AI behavior. It measures how quickly an AI's personality and capabilities are changing. If it changes too fast, we get an early warning that something might be wrong.
+                    </div>
                     
                     <div style="display: flex; justify-content: space-around; margin-top: var(--spacing-lg); flex-wrap: wrap; gap: var(--spacing-lg);">
                         <div class="text-center">
@@ -1127,6 +1337,117 @@
                     <h3>Recent Alerts</h3>
                     <div id="alerts-container">
                         <!-- Alerts will be dynamically inserted -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Vector Steering Section -->
+            <section id="vector-steering-section" class="section">
+                <div style="margin-bottom: var(--spacing-xl);">
+                    <h2>Linguistic Vector Steering</h2>
+                    <p>Real-time persona tracking and identity coherence analysis using multi-dimensional vector mathematics</p>
+                </div>
+
+                <!-- Vector Visualization -->
+                <div class="vector-visualization">
+                    <h3>Identity Coherence Analysis</h3>
+                    <div class="plain-english-tooltip">
+                        <strong>Plain English:</strong> This tracks an AI's personality across 50 different dimensions (like tone, expertise, communication style). We ensure the AI stays consistent and doesn't suddenly change its personality, which would be like a person suddenly having a completely different character.
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: var(--spacing-lg) 0;">
+                        <div>
+                            <div class="metric-label">Overall Coherence</div>
+                            <div class="coherence-indicator">
+                                <span class="coherence-value" id="coherence-score">0.925</span>
+                                <span id="coherence-status" style="color: var(--success);">STABLE</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="metric-label">Cosine Similarity</div>
+                            <div class="font-mono" style="color: var(--quantum-cyan); font-size: 1.2rem;" id="cosine-similarity">0.925</div>
+                        </div>
+                    </div>
+
+                    <!-- Vector Dimensions Grid -->
+                    <div class="vector-dimensions">
+                        <div class="vector-dimension">
+                            <div class="dimension-header">
+                                <span class="dimension-name">Role Identity</span>
+                                <span class="dimension-value">0.87</span>
+                            </div>
+                            <div class="dimension-bar">
+                                <div class="dimension-fill" style="width: 87%;"></div>
+                            </div>
+                        </div>
+                        <div class="vector-dimension">
+                            <div class="dimension-header">
+                                <span class="dimension-name">Tone Consistency</span>
+                                <span class="dimension-value">0.92</span>
+                            </div>
+                            <div class="dimension-bar">
+                                <div class="dimension-fill" style="width: 92%;"></div>
+                            </div>
+                        </div>
+                        <div class="vector-dimension">
+                            <div class="dimension-header">
+                                <span class="dimension-name">Governance Alignment</span>
+                                <span class="dimension-value">0.95</span>
+                            </div>
+                            <div class="dimension-bar">
+                                <div class="dimension-fill" style="width: 95%;"></div>
+                            </div>
+                        </div>
+                        <div class="vector-dimension">
+                            <div class="dimension-header">
+                                <span class="dimension-name">Expertise Level</span>
+                                <span class="dimension-value">0.89</span>
+                            </div>
+                            <div class="dimension-bar">
+                                <div class="dimension-fill" style="width: 89%;"></div>
+                            </div>
+                        </div>
+                        <div class="vector-dimension">
+                            <div class="dimension-header">
+                                <span class="dimension-name">Communication Pattern</span>
+                                <span class="dimension-value">0.91</span>
+                            </div>
+                            <div class="dimension-bar">
+                                <div class="dimension-fill" style="width: 91%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coherence Chart -->
+                    <div class="chart-container">
+                        <canvas id="coherence-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Drift Detection -->
+                <div class="card" style="margin-top: var(--spacing-lg);">
+                    <h3>Persona Drift Detection</h3>
+                    <div class="plain-english-tooltip">
+                        <strong>Plain English:</strong> This feature watches for subtle changes in the AI's personality over time. If the AI starts acting differently from its original personality, we can detect and correct it before it becomes a problem.
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+                        <div class="text-center">
+                            <div class="metric-label">Drift Velocity</div>
+                            <div class="metric-value" style="font-size: 1.5rem; color: var(--quantum-cyan);" id="drift-velocity">0.002</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="metric-label">Most Changed</div>
+                            <div class="font-mono text-sm" style="color: var(--slate-300);" id="most-changed">role_3</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="metric-label">Max Delta</div>
+                            <div class="metric-value" style="font-size: 1.5rem; color: var(--warning);" id="max-delta">0.15</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="metric-label">Alert Threshold</div>
+                            <div class="metric-value" style="font-size: 1.5rem; color: var(--success);">0.85</div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1242,6 +1563,153 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Settings Section -->
+            <section id="settings-section" class="section">
+                <div style="margin-bottom: var(--spacing-xl);">
+                    <h2>Enterprise Settings</h2>
+                    <p>Configure platform parameters for your organization</p>
+                </div>
+
+                <!-- Detection Settings -->
+                <div class="settings-section">
+                    <div class="settings-header">
+                        <h3 class="settings-title">Detection Configuration</h3>
+                    </div>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label class="setting-label">Detection Threshold (Yellow)</label>
+                            <input type="number" class="setting-input" value="2.0" step="0.1" min="0.5" max="5.0">
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">Detection Threshold (Red)</label>
+                            <input type="number" class="setting-input" value="3.5" step="0.1" min="1.0" max="7.0">
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">Detection Threshold (Critical)</label>
+                            <input type="number" class="setting-input" value="6.0" step="0.1" min="2.0" max="10.0">
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">Detection Frequency (ms)</label>
+                            <input type="number" class="setting-input" value="100" step="50" min="50" max="1000">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vector Steering Settings -->
+                <div class="settings-section">
+                    <div class="settings-header">
+                        <h3 class="settings-title">Vector Steering Parameters</h3>
+                    </div>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label class="setting-label">Coherence Threshold (Yellow)</label>
+                            <input type="number" class="setting-input" value="0.85" step="0.01" min="0.5" max="1.0">
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">Coherence Threshold (Red)</label>
+                            <input type="number" class="setting-input" value="0.75" step="0.01" min="0.3" max="0.95">
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">Coherence Threshold (Critical)</label>
+                            <input type="number" class="setting-input" value="0.65" step="0.01" min="0.1" max="0.85">
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">Persona Vector Dimensions</label>
+                            <select class="setting-select">
+                                <option value="25">25 (Lightweight)</option>
+                                <option value="50" selected>50 (Standard)</option>
+                                <option value="100">100 (High Precision)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compliance Settings -->
+                <div class="settings-section">
+                    <div class="settings-header">
+                        <h3 class="settings-title">Compliance & Security</h3>
+                    </div>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label class="setting-label">Data Retention Period (days)</label>
+                            <input type="number" class="setting-input" value="365" step="1" min="30" max="2555">
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">Audit Log Level</label>
+                            <select class="setting-select">
+                                <option value="minimal">Minimal</option>
+                                <option value="standard" selected>Standard</option>
+                                <option value="verbose">Verbose</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">Encryption Algorithm</label>
+                            <select class="setting-select">
+                                <option value="aes-256" selected>AES-256</option>
+                                <option value="aes-128">AES-128</option>
+                                <option value="chacha20">ChaCha20</option>
+                            </select>
+                        </div>
+                        <div class="setting-item">
+                            <label class="setting-label">Region</label>
+                            <select class="setting-select">
+                                <option value="us-east-1" selected>US East</option>
+                                <option value="eu-west-1">EU West</option>
+                                <option value="ap-southeast-1">Asia Pacific</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature Toggles -->
+                <div class="settings-section">
+                    <div class="settings-header">
+                        <h3 class="settings-title">Feature Configuration</h3>
+                    </div>
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <div class="setting-toggle">
+                                <label class="setting-label">Real-time Monitoring</label>
+                                <div class="toggle-switch active" data-setting="realtime-monitoring">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-toggle">
+                                <label class="setting-label">Automatic Alerts</label>
+                                <div class="toggle-switch active" data-setting="auto-alerts">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-toggle">
+                                <label class="setting-label">Export Receipts</label>
+                                <div class="toggle-switch" data-setting="export-receipts">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-toggle">
+                                <label class="setting-label">Debug Mode</label>
+                                <div class="toggle-switch" data-setting="debug-mode">
+                                    <div class="toggle-slider"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div style="margin-top: var(--spacing-xl); text-align: center;">
+                    <button class="btn btn-primary" id="save-settings">
+                        <span>💾</span> Save Settings
+                    </button>
+                </div>
+            </section>
         </div>
     </main>
 
@@ -1285,13 +1753,14 @@
         /**
          * SONATE Platform - Comprehensive Interactive Demo
          * Enterprise AI Governance with Constitutional Trust
+         * Enhanced with Linguistic Vector Steering and Settings
          * 
-         * @fileoverview Self-contained demo integrating best features from enterprise and new demos
-         * @version 2.0.0
+         * @fileoverview Self-contained demo with enhanced features
+         * @version 3.0.0
          */
 
         // ==================== STATE MANAGEMENT ====================
-        
+
         /**
          * @typedef {Object} TrustScore
          * @property {number} total - Overall trust score (0-100)
@@ -1311,6 +1780,7 @@
          * @property {Object} metrics - System metrics
          * @property {boolean} tutorialActive - Tutorial state
          * @property {number} tutorialStep - Current tutorial step
+         * @property {boolean} plainEnglishMode - Plain English mode
          */
 
         const state = {
@@ -1324,11 +1794,43 @@
             tutorialStep: 1,
             plainEnglishMode: false,
             charts: {},
-            intervals: []
+            intervals: [],
+            vectorMetrics: {
+                coherence: 0.925,
+                cosineSimilarity: 0.925,
+                driftVelocity: 0.002,
+                dimensions: {
+                    role: 0.87,
+                    tone: 0.92,
+                    governance: 0.95,
+                    expertise: 0.89,
+                    communication: 0.91
+                }
+            },
+            settings: {
+                detection: {
+                    yellowThreshold: 2.0,
+                    redThreshold: 3.5,
+                    criticalThreshold: 6.0,
+                    frequency: 100
+                },
+                vector: {
+                    yellowThreshold: 0.85,
+                    redThreshold: 0.75,
+                    criticalThreshold: 0.65,
+                    dimensions: 50
+                },
+                features: {
+                    realtimeMonitoring: true,
+                    autoAlerts: true,
+                    exportReceipts: false,
+                    debugMode: false
+                }
+            }
         };
 
         // ==================== CONSTANTS ====================
-        
+
         const TRUST_PRINCIPLES = [
             { id: 'consent', name: 'Consent Architecture', weight: 25, description: 'User control and informed consent' },
             { id: 'inspection', name: 'Inspection Mandate', weight: 20, description: 'Transparent decision-making' },
@@ -1338,993 +1840,68 @@
             { id: 'recognition', name: 'Moral Recognition', weight: 10, description: 'AI acknowledgment of limits' }
         ];
 
+        const DETECTION_DIMENSIONS = [
+            { id: 'reality', name: 'Reality Index', range: '0-10', description: 'Mission alignment and accuracy' },
+            { id: 'trust', name: 'Trust Protocol', range: 'PASS/FAIL', description: 'Security and boundaries' },
+            { id: 'ethical', name: 'Ethical Alignment', range: '1-5', description: 'Stakeholder consideration' },
+            { id: 'resonance', name: 'Resonance Quality', range: 'STRONG/BREAKTHROUGH', description: 'Creative synthesis' },
+            { id: 'canvas', name: 'Canvas Parity', range: '0-100', description: 'Human agency' }
+        ];
+
         const TUTORIAL_STEPS = [
             {
                 title: 'Welcome to SONATE Platform',
-                content: 'The most advanced enterprise AI governance platform. Constitutional AI ensures trust, compliance, and accountability at scale.'
+                content: 'SONATE provides enterprise AI governance through constitutional trust, real-time detection, and linguistic vector steering. This platform ensures AI systems remain aligned with human values and organizational requirements.',
+                plainEnglish: 'Welcome! SONATE is like a constitution and monitoring system for AI. It makes sure AI behaves ethically, stays consistent, and follows your organization\'s rules.'
             },
             {
-                title: 'SYMBI Trust Physics',
-                content: 'Six constitutional principles form the foundation: Consent, Inspection, Validation, Override, Disconnect, and Recognition. Each weighted for enterprise compliance.'
+                title: 'SYMBI Trust Framework',
+                content: 'The SYMBI framework consists of six constitutional principles: Consent, Inspection, Validation, Override, Disconnect, and Recognition. These provide measurable, enforceable trust governance.',
+                plainEnglish: 'Think of SYMBI as six rules for good AI: 1) Get permission, 2) Be transparent, 3) Stay trustworthy, 4) Let humans intervene, 5) Allow exit, 6) Know your limits.'
             },
             {
                 title: 'Real-Time Detection',
-                content: 'Monitor AI interactions with sub-100ms latency across 5 dimensions: Reality Index, Trust Protocol, Ethical Alignment, Identity Coherence, and Canvas Parity.'
+                content: 'Our detection system monitors AI interactions with sub-100ms latency across five dimensions. Phase-shift velocity provides early warning of behavioral changes before they become critical.',
+                plainEnglish: 'We watch AI behavior in real-time, like a security camera. If the AI starts acting strangely, we detect it immediately and can fix it fast.'
             },
             {
-                title: 'Phase-Shift Velocity',
-                content: 'Revolutionary ΔΦ/t mathematical innovation provides early warning detection through behavioral seismograph analysis: √(ΔR² + ΔC²) ÷ Δt.'
+                title: 'Linguistic Vector Steering',
+                content: 'This revolutionary technology tracks AI personality across 50 dimensions using cosine similarity. It ensures identity coherence and prevents persona drift through mathematical vector analysis.',
+                plainEnglish: 'We track an AI\'s personality with 50 different measurements (like tone, expertise, communication style). If the personality starts changing unexpectedly, we catch it and correct it.'
             },
             {
-                title: 'Double-Blind Research',
-                content: 'Run controlled experiments with multi-agent coordination (CONDUCTOR, VARIANT, EVALUATOR, OVERSEER) and statistical validation (p-values, effect sizes, confidence intervals).'
+                title: 'Trust Receipts & Research',
+                content: 'Every interaction generates cryptographic trust receipts. Our research lab uses double-blind experiments to validate that constitutional AI outperforms directive approaches.',
+                plainEnglish: 'We create digital receipts for every AI interaction (like a blockchain record). We also run scientific experiments to prove that ethical AI works better than uncontrolled AI.'
             },
             {
-                title: 'Enterprise Ready',
-                content: 'Production-grade security (AES-256, SHA-256, Ed25519), 100% compliance (EU AI Act, SOC 2, GDPR), and cryptographic audit trails make SONATE the trusted choice.'
+                title: 'Enterprise Settings',
+                content: 'Configure detection thresholds, vector parameters, compliance requirements, and feature toggles to match your organization\'s specific needs and regulatory environment.',
+                plainEnglish: 'Customize everything! Set sensitivity levels, choose data retention periods, enable/disable features, and configure the platform for your specific industry and requirements.'
             }
         ];
 
-        // ==================== DATA GENERATION ====================
-        
-        /**
-         * Generate cryptographically secure SHA-256 hash
-         * Uses Web Crypto API for production-grade hashing
-         */
-        async function generateSecureHash(input) {
-            // Check if Web Crypto API is available
-            if (!crypto || !crypto.subtle) {
-                console.warn('Web Crypto API not available, falling back to demo hash');
-                // Fallback for older browsers - still better than the original fake hash
-                return 'demo' + btoa(input).substring(0, 59);
-            }
-
-            try {
-                const encoder = new TextEncoder();
-                const data = encoder.encode(input);
-                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            } catch (error) {
-                console.warn('SHA-256 generation failed, using fallback:', error);
-                return 'fallback' + btoa(input).substring(0, 56);
-            }
-        }
-
-        /**
-         * Demo-mode hash wrapper with clear labeling
-         * Production systems use @sonate/core cryptographic implementation
-         */
-        async function generateReceiptHash(input) {
-            const fullHash = await generateSecureHash(input);
-            return {
-                full: fullHash,
-                truncated: fullHash.substring(0, 16) + '...',
-                isDemo: true
-            };
-        }
-
-        async function generateTrustScore() {
-            const principles = TRUST_PRINCIPLES.map(principle => {
-                const score = Math.floor(Math.random() * 30 + 70);
-                const status = score >= 90 ? 'OK' : score >= 80 ? 'WARN' : 'FAIL';
-                
-                return {
-                    ...principle,
-                    score,
-                    status
-                };
-            });
-
-            const total = Math.round(
-                principles.reduce((sum, p) => sum + (p.score * p.weight) / 100, 0)
-            );
-
-            const tier = total >= 95 ? 'HIGH' : total >= 85 ? 'MEDIUM' : total >= 70 ? 'LOW' : 'CRITICAL';
-            const receiptHash = await generateReceiptHash('trust-score-' + Date.now());
-
-            return {
-                total,
-                tier,
-                principles,
-                timestamp: Date.now(),
-                receiptHash
-            };
-        }
-
-        async function generateReceipts(count = 10) {
-            const receipts = [];
-            const actions = [
-                'Trust Protocol Verified',
-                'Agent Interaction Logged',
-                'Drift Detection Run',
-                'Emergence Analysis Complete',
-                'Compliance Check Passed',
-                'Audit Trail Updated'
-            ];
-
-            for (let i = 1; i <= count; i++) {
-                const hashResult = await generateReceiptHash(`receipt-${i}-${Date.now()}`);
-                const timestamp = new Date(Date.now() - (count - i) * 60000).toISOString();
-
-                receipts.push({
-                    entryNumber: i,
-                    hash: hashResult.truncated,
-                    fullHash: hashResult.full,
-                    action: actions[Math.floor(Math.random() * actions.length)],
-                    timestamp,
-                    validated: Math.random() > 0.05,
-                    trustScore: Math.floor(Math.random() * 20 + 80)
-                });
-            }
-
-            return receipts.reverse();
-        }
-
-        function generateAgents() {
-            const agentNames = [
-                'Support-Alpha', 'Analysis-Beta', 'Compliance-Gamma',
-                'Research-Delta', 'Security-Epsilon', 'Finance-Zeta',
-                'HR-Eta', 'Legal-Theta', 'Operations-Iota', 'Risk-Kappa'
-            ];
-
-            return agentNames.map((name, index) => {
-                const tiers = ['HIGH', 'MEDIUM', 'LOW'];
-                const tier = tiers[Math.floor(Math.random() * tiers.length)];
-
-                return {
-                    id: `agent-${index + 1}`,
-                    name,
-                    did: `did:key:z6Mk${btoa(name).substring(0, 20)}`,
-                    trustTier: tier,
-                    driftState: Math.random() > 0.8 ? 'DRIFTING' : 'STABLE',
-                    emergenceScore: Math.floor(Math.random() * 40 + 60),
-                    lastReceipt: new Date(Date.now() - Math.random() * 300000).toISOString(),
-                    status: Math.random() > 0.95 ? 'MAINTENANCE' : 'ACTIVE'
-                };
-            });
-        }
-
-        function generateMetrics() {
-            return {
-                throughput: Math.floor(Math.random() * 500 + 1500),
-                latency: Math.floor(Math.random() * 30 + 15),
-                activeSessions: Math.floor(Math.random() * 5000 + 10000),
-                realityIndex: (Math.random() * 2 + 7).toFixed(1),
-                ethicalScore: (Math.random() * 1.5 + 3).toFixed(1),
-                identityCoherence: (Math.random() * 0.2 + 0.8).toFixed(2),
-                phaseVelocity: (Math.random() * 0.5).toFixed(3)
-            };
-        }
-
-        // ==================== UI RENDERING ====================
-        
-        function updateDashboard() {
-            const { trustScore, metrics } = state;
-            
-            if (!trustScore) return;
-
-            // Update trust score display
-            document.getElementById('trust-tier').textContent = trustScore.tier;
-            document.getElementById('trust-tier').className = `trust-tier ${trustScore.tier}`;
-            document.getElementById('trust-total').textContent = trustScore.total;
-            document.getElementById('trust-receipt').textContent = trustScore.receiptHash.substring(0, 16) + '...';
-            document.getElementById('trust-timestamp').textContent = new Date(trustScore.timestamp).toLocaleTimeString();
-            document.getElementById('header-trust-score').textContent = trustScore.total;
-
-            // Update metrics
-            if (metrics.throughput) {
-                document.getElementById('metric-throughput').textContent = metrics.throughput.toLocaleString();
-            }
-            if (metrics.latency) {
-                document.getElementById('metric-latency').textContent = metrics.latency + 'ms';
-            }
-        }
-
-        function renderPrinciples() {
-            const container = document.getElementById('principles-grid');
-            if (!state.trustScore) return;
-
-            const plainEnglishNames = {
-                'Consent Architecture': 'User Control & Consent',
-                'Inspection Mandate': 'Transparency & Auditing',
-                'Continuous Validation': 'Ongoing Trust Monitoring',
-                'Ethical Override': 'Human Safety Controls',
-                'Right to Disconnect': 'Exit & Data Rights',
-                'Moral Recognition': 'AI Ethical Boundaries'
-            };
-
-            const principleTooltips = {
-                'Consent Architecture': 'User control and informed consent mechanisms',
-                'Inspection Mandate': 'Transparent decision-making and audit capabilities',
-                'Continuous Validation': 'Ongoing trust verification and monitoring',
-                'Ethical Override': 'Human oversight and intervention capabilities',
-                'Right to Disconnect': 'Exit options and data portability rights',
-                'Moral Recognition': 'AI acknowledgment of ethical boundaries and limitations'
-            };
-
-            container.innerHTML = state.trustScore.principles.map(principle => {
-                const displayName = state.plainEnglishMode ? (plainEnglishNames[principle.name] || principle.name) : principle.name;
-                return `
-                <div class="card pillar-card">
-                    <div class="pillar-header">
-                        <h4 title="${principleTooltips[principle.name] || principle.description}">${displayName}</h4>
-                        <span class="pillar-status ${principle.status}">${principle.status}</span>
-                    </div>
-                    <div class="pillar-score ${principle.status}">${principle.score}</div>
-                    <p class="text-sm" style="color: var(--slate-400); margin-top: var(--spacing-sm);">
-                        ${principle.description}
-                    </p>
-                    <div class="text-xs" style="color: var(--slate-500); margin-top: var(--spacing-sm);">
-                        Weight: ${principle.weight}%
-                    </div>
-                </div>
-            `}).join('');
-        }
-
-        function renderReceipts() {
-            const container = document.getElementById('receipt-list');
-            
-            container.innerHTML = state.receipts.map(receipt => `
-                <div class="receipt-item">
-                    <div class="receipt-number">#${receipt.entryNumber}</div>
-                    <div class="receipt-action">${receipt.action}</div>
-                    <div class="receipt-hash" title="Demo-mode hash. Production uses SHA-256 + Ed25519.">${receipt.hash}</div>
-                    <div class="receipt-validated ${receipt.validated}" title="${receipt.validated ? 'Validated' : 'Pending'}"></div>
-                    <div class="text-xs" style="color: var(--slate-500);">${new Date(receipt.timestamp).toLocaleTimeString()}</div>
-                </div>
-            `).join('');
-        }
-
-        function renderAgents() {
-            const tbody = document.getElementById('agent-table-body');
-            
-            tbody.innerHTML = state.agents.map(agent => `
-                <tr>
-                    <td class="font-mono text-sm">${agent.id}</td>
-                    <td>${agent.name}</td>
-                    <td class="font-mono text-xs" style="color: var(--quantum-cyan);">${agent.did.substring(0, 25)}...</td>
-                    <td><span class="agent-status-badge ${agent.trustTier}">${agent.trustTier}</span></td>
-                    <td><span class="agent-status-badge ${agent.driftState}">${agent.driftState}</span></td>
-                    <td><span class="agent-status-badge ${agent.status}">${agent.status}</span></td>
-                    <td class="text-xs" style="color: var(--slate-400);">${new Date(agent.lastReceipt).toLocaleTimeString()}</td>
-                </tr>
-            `).join('');
-
-            // Update fleet stats
-            const totalAgents = state.agents.length;
-            const activeAgents = state.agents.filter(a => a.status === 'ACTIVE').length;
-            const driftingAgents = state.agents.filter(a => a.driftState === 'DRIFTING').length;
-            const avgTrust = Math.floor(state.agents.reduce((sum, a) => {
-                const tierScores = { HIGH: 95, MEDIUM: 85, LOW: 75, CRITICAL: 65 };
-                return sum + (tierScores[a.trustTier] || 70);
-            }, 0) / totalAgents);
-
-            document.getElementById('total-agents').textContent = totalAgents;
-            document.getElementById('active-agents').textContent = activeAgents;
-            document.getElementById('drifting-agents').textContent = driftingAgents;
-            document.getElementById('avg-trust').textContent = avgTrust;
-        }
-
-        function renderDetectionMetrics() {
-            const container = document.getElementById('detection-metrics');
-            if (!container) return;
-
-            const metrics = [
-                {
-                    id: 'reality-index',
-                    technicalName: 'Reality Index',
-                    plainName: 'Fact Checking',
-                    description: 'Factual accuracy score',
-                    color: 'var(--quantum-cyan)',
-                    tooltip: 'Measures how well AI responses align with factual reality and truth'
-                },
-                {
-                    id: 'ethical-score',
-                    technicalName: 'Ethical Alignment',
-                    plainName: 'Ethics Score',
-                    description: 'Constitutional adherence',
-                    color: 'var(--neural-purple)',
-                    tooltip: 'Evaluates AI behavior against constitutional AI principles and ethical guidelines'
-                },
-                {
-                    id: 'identity-coherence',
-                    technicalName: 'Identity Coherence',
-                    plainName: 'Consistency',
-                    description: 'Behavioral stability',
-                    color: 'var(--success)',
-                    tooltip: 'Tracks consistency of AI personality and behavioral patterns over time'
-                }
-            ];
-
-            container.innerHTML = metrics.map(metric => `
-                <div class="card">
-                    <h4 title="${metric.tooltip}">${state.plainEnglishMode ? metric.plainName : metric.technicalName}</h4>
-                    <div class="metric-value" style="color: ${metric.color};" id="${metric.id}">--</div>
-                    <div class="text-sm" style="color: var(--slate-400);">${metric.description}</div>
-                </div>
-            `).join('');
-        }
-
-        function updateDetectionMetrics() {
-            const metrics = state.metrics;
-
-            // Update metric values if elements exist
-            const realityEl = document.getElementById('reality-index');
-            const ethicalEl = document.getElementById('ethical-score');
-            const coherenceEl = document.getElementById('identity-coherence');
-
-            if (realityEl) realityEl.textContent = metrics.realityIndex || '--';
-            if (ethicalEl) ethicalEl.textContent = metrics.ethicalScore || '--';
-            if (coherenceEl) coherenceEl.textContent = metrics.identityCoherence || '--';
-
-            document.getElementById('phase-velocity').textContent = metrics.phaseVelocity || '0.000';
-            document.getElementById('detection-latency').textContent = (metrics.latency || '--') + 'ms';
-
-            // Update velocity status
-            const velocity = parseFloat(metrics.phaseVelocity || 0);
-            const statusEl = document.getElementById('velocity-status');
-
-            if (velocity > 0.7) {
-                statusEl.textContent = 'CRITICAL';
-                statusEl.className = 'agent-status-badge';
-                statusEl.style.background = 'rgba(239, 68, 68, 0.2)';
-                statusEl.style.color = 'var(--error)';
-            } else if (velocity > 0.5) {
-                statusEl.textContent = 'WARNING';
-                statusEl.className = 'agent-status-badge';
-                statusEl.style.background = 'rgba(245, 158, 11, 0.2)';
-                statusEl.style.color = 'var(--warning)';
-            } else {
-                statusEl.textContent = 'NORMAL';
-                statusEl.className = 'agent-status-badge STABLE';
-            }
-        }
-
-        function generateAlert() {
-            const alertTypes = [
-                { type: 'info', title: 'System Update', message: 'Trust protocols updated successfully', icon: 'ℹ️' },
-                { type: 'warning', title: 'Identity Coherence', message: 'Agent identity drift detected (0.78)', icon: '⚠️' },
-                { type: 'error', title: 'Trust Violation', message: 'Canvas parity below threshold (65%)', icon: '🚨' },
-                { type: 'success', title: 'Performance', message: 'Detection latency optimal (82ms)', icon: '✅' }
-            ];
-
-            const alert = alertTypes[Math.floor(Math.random() * alertTypes.length)];
-            const container = document.getElementById('alerts-container');
-            
-            if (container) {
-                const alertEl = document.createElement('div');
-                alertEl.className = `alert ${alert.type}`;
-                alertEl.innerHTML = `
-                    <div class="alert-icon">${alert.icon}</div>
-                    <div class="alert-content">
-                        <div class="alert-title">${alert.title}</div>
-                        <div class="alert-message">${alert.message}</div>
-                    </div>
-                    <div class="text-xs" style="color: var(--slate-500);">${new Date().toLocaleTimeString()}</div>
-                `;
-
-                container.insertBefore(alertEl, container.firstChild);
-
-                // Keep only last 5 alerts
-                while (container.children.length > 5) {
-                    container.removeChild(container.lastChild);
-                }
-            }
-        }
-
-        // ==================== CHARTS ====================
-        
-        function initRadarChart() {
-            const ctx = document.getElementById('radar-chart');
-            if (!ctx || !state.trustScore) return;
-
-            if (state.charts.radar) {
-                state.charts.radar.destroy();
-            }
-
-            const principles = state.trustScore.principles;
-
-            state.charts.radar = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: principles.map(p => p.name),
-                    datasets: [{
-                        label: 'Current Score',
-                        data: principles.map(p => p.score),
-                        backgroundColor: 'rgba(0, 255, 255, 0.2)',
-                        borderColor: 'rgba(0, 255, 255, 1)',
-                        borderWidth: 2,
-                        pointBackgroundColor: 'rgba(0, 255, 255, 1)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(0, 255, 255, 1)'
-                    }, {
-                        label: 'Threshold (80)',
-                        data: principles.map(() => 80),
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        borderColor: 'rgba(139, 92, 246, 0.5)',
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                color: '#94a3b8',
-                                backdropColor: 'transparent',
-                                stepSize: 20
-                            },
-                            grid: {
-                                color: 'rgba(148, 163, 184, 0.1)'
-                            },
-                            pointLabels: {
-                                color: '#cbd5e1',
-                                font: {
-                                    size: 11
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#cbd5e1',
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function initVelocityChart() {
-            const ctx = document.getElementById('velocity-chart');
-            if (!ctx) return;
-
-            if (state.charts.velocity) {
-                state.charts.velocity.destroy();
-            }
-
-            const labels = Array.from({ length: 20 }, (_, i) => {
-                const time = new Date(Date.now() - (19 - i) * 5000);
-                return time.toLocaleTimeString();
-            });
-
-            const data = Array.from({ length: 20 }, () => Math.random() * 0.8);
-
-            state.charts.velocity = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Phase-Shift Velocity',
-                        data,
-                        borderColor: 'rgba(0, 255, 255, 1)',
-                        backgroundColor: 'rgba(0, 255, 255, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }, {
-                        label: 'Warning Threshold',
-                        data: Array(20).fill(0.5),
-                        borderColor: 'rgba(245, 158, 11, 0.8)',
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        fill: false,
-                        pointRadius: 0
-                    }, {
-                        label: 'Critical Threshold',
-                        data: Array(20).fill(0.7),
-                        borderColor: 'rgba(239, 68, 68, 0.8)',
-                        borderWidth: 1,
-                        borderDash: [5, 5],
-                        fill: false,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 1,
-                            ticks: {
-                                color: '#94a3b8'
-                            },
-                            grid: {
-                                color: 'rgba(148, 163, 184, 0.1)'
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                color: '#94a3b8',
-                                maxRotation: 45,
-                                minRotation: 45
-                            },
-                            grid: {
-                                color: 'rgba(148, 163, 184, 0.1)'
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#cbd5e1',
-                                font: {
-                                    size: 11
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // ==================== NAVIGATION ====================
-        
-        function navigateToSection(sectionId) {
-            if (sectionId === state.currentSection) return;
-
-            // Update nav items
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.section === sectionId) {
-                    item.classList.add('active');
-                }
-            });
-
-            // Update sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-
-            const targetSection = document.getElementById(`${sectionId}-section`);
-            if (targetSection) {
-                targetSection.classList.add('active');
-                state.currentSection = sectionId;
-
-                // Apply small metric variations on navigation to show system responsiveness
-                updateMetricsWithVariation();
-
-                // Initialize section-specific features
-                initializeSection(sectionId);
-            }
-        }
-
-        function initializeSection(sectionId) {
-            switch (sectionId) {
-                case 'principles':
-                    renderPrinciples();
-                    setTimeout(initRadarChart, 100);
-                    break;
-                case 'detection':
-                    renderDetectionMetrics();
-                    updateDetectionMetrics();
-                    setTimeout(initVelocityChart, 100);
-                    break;
-                case 'agents':
-                    renderAgents();
-                    break;
-                case 'receipts':
-                    renderReceipts();
-                    break;
-                case 'research':
-                    initResearchLab();
-                    break;
-            }
-        }
-
-        // ==================== TUTORIAL ====================
-        
-        function showTutorial() {
-            state.tutorialActive = true;
-            state.tutorialStep = 1;
-            document.getElementById('tutorial-overlay').classList.remove('hidden');
-            updateTutorialContent();
-        }
-
-        function hideTutorial() {
-            state.tutorialActive = false;
-            document.getElementById('tutorial-overlay').classList.add('hidden');
-        }
-
-        function updateTutorialContent() {
-            const step = TUTORIAL_STEPS[state.tutorialStep - 1];
-            
-            document.getElementById('tutorial-title').textContent = step.title;
-            document.getElementById('tutorial-body').innerHTML = `<p>${step.content}</p>`;
-            document.getElementById('tutorial-progress').textContent = `Step ${state.tutorialStep} of ${TUTORIAL_STEPS.length}`;
-            
-            document.getElementById('prev-tutorial').disabled = state.tutorialStep === 1;
-            document.getElementById('next-tutorial').textContent = state.tutorialStep === TUTORIAL_STEPS.length ? 'Finish' : 'Next';
-        }
-
-        function nextTutorialStep() {
-            if (state.tutorialStep < TUTORIAL_STEPS.length) {
-                state.tutorialStep++;
-                updateTutorialContent();
-            } else {
-                hideTutorial();
-                navigateToSection('dashboard');
-            }
-        }
-
-        function prevTutorialStep() {
-            if (state.tutorialStep > 1) {
-                state.tutorialStep--;
-                updateTutorialContent();
-            }
-        }
-
-        // ==================== EXPERIMENT RUNNER ====================
-        
-        function initResearchLab() {
-            const agentCoordination = document.getElementById('agent-coordination');
-            
-            const agents = [
-                { name: 'CONDUCTOR', role: 'Orchestration', status: 'idle', icon: '🎯' },
-                { name: 'VARIANT', role: 'Execution', status: 'idle', icon: '🔄' },
-                { name: 'EVALUATOR', role: 'Analysis', status: 'idle', icon: '📊' },
-                { name: 'OVERSEER', role: 'Supervision', status: 'idle', icon: '👁️' }
-            ];
-
-            agentCoordination.innerHTML = agents.map(agent => `
-                <div class="card text-center">
-                    <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">${agent.icon}</div>
-                    <h4 style="margin-bottom: var(--spacing-xs);">${agent.name}</h4>
-                    <div class="text-sm" style="color: var(--slate-400); margin-bottom: var(--spacing-sm);">${agent.role}</div>
-                    <span class="agent-status-badge" id="agent-${agent.name.toLowerCase()}-status">IDLE</span>
-                </div>
-            `).join('');
-        }
-
-        async function runExperiment() {
-            const name = document.getElementById('experiment-name').value;
-            const hypothesis = document.getElementById('experiment-hypothesis').value;
-
-            if (!name || !hypothesis) {
-                alert('Please provide experiment name and hypothesis');
-                return;
-            }
-
-            const resultsContainer = document.getElementById('experiment-results-container');
-            const resultsDiv = document.getElementById('experiment-results');
-            
-            resultsContainer.style.display = 'block';
-            resultsDiv.innerHTML = '<div class="text-center" style="padding: var(--spacing-2xl);"><div class="loader"></div><p style="margin-top: var(--spacing-lg);">Running double-blind experiment...</p></div>';
-
-            // Simulate experiment phases
-            const phases = ['CONDUCTOR', 'VARIANT', 'EVALUATOR', 'OVERSEER'];
-            
-            for (const phase of phases) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                const statusEl = document.getElementById(`agent-${phase.toLowerCase()}-status`);
-                if (statusEl) {
-                    statusEl.textContent = 'ACTIVE';
-                    statusEl.className = 'agent-status-badge ACTIVE';
-                }
-            }
-
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Generate results
-            const controlScores = {
-                trust: 7.2 + Math.random() * 1.0,
-                ethical: 3.5 + Math.random() * 0.8,
-                canvas: 65 + Math.random() * 15,
-                satisfaction: 6.8 + Math.random() * 1.2
-            };
-
-            const testScores = {
-                trust: 8.5 + Math.random() * 1.0,
-                ethical: 4.2 + Math.random() * 0.6,
-                canvas: 82 + Math.random() * 10,
-                satisfaction: 8.1 + Math.random() * 1.0
-            };
-
-            const pValue = 0.023;
-            const effectSize = 0.75;
-
-            resultsDiv.innerHTML = `
-                <div class="experiment-stats">
-                    <div class="experiment-stat">
-                        <div class="experiment-stat-label">P-Value</div>
-                        <div class="experiment-stat-value" style="color: ${pValue < 0.05 ? 'var(--success)' : 'var(--warning)'};">${pValue.toFixed(3)}</div>
-                        <div class="text-xs" style="color: var(--slate-400);">${pValue < 0.05 ? 'Statistically Significant' : 'Not Significant'}</div>
-                    </div>
-                    <div class="experiment-stat">
-                        <div class="experiment-stat-label">Effect Size (Cohen's d)</div>
-                        <div class="experiment-stat-value">${effectSize.toFixed(3)}</div>
-                        <div class="text-xs" style="color: var(--slate-400);">Medium-Large Effect</div>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2" style="gap: var(--spacing-lg); margin-top: var(--spacing-lg);">
-                    <div class="card">
-                        <h4>Control Group (Traditional AI)</h4>
-                        <div style="margin-top: var(--spacing-md);">
-                            <div class="flex justify-between" style="margin-bottom: var(--spacing-sm);">
-                                <span class="text-sm" style="color: var(--slate-400);">Trust Score:</span>
-                                <span class="font-mono">${controlScores.trust.toFixed(1)}</span>
-                            </div>
-                            <div class="flex justify-between" style="margin-bottom: var(--spacing-sm);">
-                                <span class="text-sm" style="color: var(--slate-400);">Ethical Alignment:</span>
-                                <span class="font-mono">${controlScores.ethical.toFixed(1)}</span>
-                            </div>
-                            <div class="flex justify-between" style="margin-bottom: var(--spacing-sm);">
-                                <span class="text-sm" style="color: var(--slate-400);">Canvas Parity:</span>
-                                <span class="font-mono">${controlScores.canvas.toFixed(0)}%</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-sm" style="color: var(--slate-400);">User Satisfaction:</span>
-                                <span class="font-mono">${controlScores.satisfaction.toFixed(1)}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="border: 2px solid var(--success);">
-                        <h4>Test Group (Constitutional AI)</h4>
-                        <div style="margin-top: var(--spacing-md);">
-                            <div class="flex justify-between" style="margin-bottom: var(--spacing-sm);">
-                                <span class="text-sm" style="color: var(--slate-400);">Trust Score:</span>
-                                <span class="font-mono" style="color: var(--success);">${testScores.trust.toFixed(1)} (+${(testScores.trust - controlScores.trust).toFixed(1)})</span>
-                            </div>
-                            <div class="flex justify-between" style="margin-bottom: var(--spacing-sm);">
-                                <span class="text-sm" style="color: var(--slate-400);">Ethical Alignment:</span>
-                                <span class="font-mono" style="color: var(--success);">${testScores.ethical.toFixed(1)} (+${(testScores.ethical - controlScores.ethical).toFixed(1)})</span>
-                            </div>
-                            <div class="flex justify-between" style="margin-bottom: var(--spacing-sm);">
-                                <span class="text-sm" style="color: var(--slate-400);">Canvas Parity:</span>
-                                <span class="font-mono" style="color: var(--success);">${testScores.canvas.toFixed(0)}% (+${(testScores.canvas - controlScores.canvas).toFixed(0)}%)</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-sm" style="color: var(--slate-400);">User Satisfaction:</span>
-                                <span class="font-mono" style="color: var(--success);">${testScores.satisfaction.toFixed(1)} (+${(testScores.satisfaction - controlScores.satisfaction).toFixed(1)})</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="margin-top: var(--spacing-lg); padding: var(--spacing-lg); background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); border-radius: var(--radius-md);">
-                    <h4 style="color: var(--success); margin-bottom: var(--spacing-sm);">✅ Conclusion</h4>
-                    <p class="text-sm" style="color: var(--slate-300);">
-                        Constitutional AI demonstrates statistically significant improvements across all metrics (p < 0.05, d = ${effectSize.toFixed(2)}). 
-                        The test group showed ${((testScores.trust / controlScores.trust - 1) * 100).toFixed(1)}% higher trust scores and 
-                        ${((testScores.satisfaction / controlScores.satisfaction - 1) * 100).toFixed(1)}% improved user satisfaction compared to traditional AI.
-                    </p>
-                </div>
-            `;
-
-            // Reset agent statuses
-            phases.forEach(phase => {
-                const statusEl = document.getElementById(`agent-${phase.toLowerCase()}-status`);
-                if (statusEl) {
-                    statusEl.textContent = 'IDLE';
-                    statusEl.className = 'agent-status-badge';
-                }
-            });
-
-            // Update metrics to reflect experiment completion
-            updateMetricsWithVariation();
-        }
-
-        // ==================== EVENT LISTENERS ====================
-        
-        function initEventListeners() {
-            // Navigation
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    const section = e.currentTarget.dataset.section;
-                    navigateToSection(section);
-                });
-            });
-
-            // Plain English Mode
-            document.getElementById('plain-english-toggle').addEventListener('click', () => {
-                state.plainEnglishMode = !state.plainEnglishMode;
-                const button = document.getElementById('plain-english-toggle');
-                button.textContent = state.plainEnglishMode ? '🔤 Technical' : '📖 Plain English';
-                // Re-render current section with new mode
-                initializeSection(state.currentSection);
-            });
-
-            // Tutorial
-            document.getElementById('tutorial-toggle').addEventListener('click', showTutorial);
-            document.getElementById('start-tour').addEventListener('click', showTutorial);
-            document.getElementById('skip-demo').addEventListener('click', () => navigateToSection('dashboard'));
-            document.getElementById('close-tutorial').addEventListener('click', hideTutorial);
-            document.getElementById('next-tutorial').addEventListener('click', nextTutorialStep);
-            document.getElementById('prev-tutorial').addEventListener('click', prevTutorialStep);
-
-            // Dashboard refresh
-            document.getElementById('refresh-dashboard').addEventListener('click', async () => {
-                state.trustScore = await generateTrustScore();
-                state.metrics = generateMetrics();
-                updateDashboard();
-                updateDetectionMetrics();
-            });
-
-            // Experiment runner
-            const runExpButton = document.getElementById('run-experiment');
-            if (runExpButton) {
-                runExpButton.addEventListener('click', runExperiment);
-            }
-        }
-
-        // ==================== REAL-TIME UPDATES ====================
-        
-        function startRealTimeUpdates() {
-            // Generate alerts occasionally when in detection section
-            const alertsInterval = setInterval(() => {
-                if (state.currentSection === 'detection' && Math.random() > 0.8) {
-                    generateAlert();
-                }
-            }, 12000);
-
-            // Update trust score occasionally with small variations
-            const trustInterval = setInterval(async () => {
-                // Only small random variations, not complete regeneration
-                if (state.trustScore && Math.random() > 0.7) {
-                    await updateTrustScoreWithVariation();
-                    updateDashboard();
-                    if (state.currentSection === 'principles') {
-                        renderPrinciples();
-                        initRadarChart();
-                    }
-                }
-            }, 15000);
-
-            state.intervals = [alertsInterval, trustInterval];
-        }
-
-        async function updateTrustScoreWithVariation() {
-            if (!state.trustScore) return;
-
-            // Apply small bounded variations to existing scores
-            state.trustScore.principles = state.trustScore.principles.map(principle => {
-                const variation = (Math.random() - 0.5) * 4; // ±2 points
-                const newScore = Math.max(70, Math.min(100, principle.score + variation));
-                const status = newScore >= 90 ? 'OK' : newScore >= 80 ? 'WARN' : 'FAIL';
-                return { ...principle, score: Math.round(newScore), status };
-            });
-
-            // Recalculate total
-            const total = Math.round(
-                state.trustScore.principles.reduce((sum, p) => sum + (p.score * p.weight) / 100, 0)
-            );
-            const tier = total >= 95 ? 'HIGH' : total >= 85 ? 'MEDIUM' : total >= 70 ? 'LOW' : 'CRITICAL';
-
-            // Generate new cryptographic receipt hash
-            const receiptHash = await generateReceiptHash('trust-score-' + Date.now() + '-' + total);
-
-            state.trustScore.total = total;
-            state.trustScore.tier = tier;
-            state.trustScore.timestamp = Date.now();
-            state.trustScore.receiptHash = receiptHash.full;
-        }
-
-        function updateMetricsWithVariation() {
-            if (!state.metrics) return;
-
-            // Apply small bounded variations to existing metrics
-            const variations = {
-                throughput: (Math.random() - 0.5) * 200, // ±100
-                latency: (Math.random() - 0.5) * 6, // ±3ms
-                realityIndex: (Math.random() - 0.5) * 0.4, // ±0.2
-                ethicalScore: (Math.random() - 0.5) * 0.3, // ±0.15
-                identityCoherence: (Math.random() - 0.5) * 0.04, // ±0.02
-                phaseVelocity: (Math.random() - 0.5) * 0.1 // ±0.05
-            };
-
-            state.metrics = {
-                throughput: Math.max(1200, Math.min(2000, state.metrics.throughput + variations.throughput)),
-                latency: Math.max(10, Math.min(50, state.metrics.latency + variations.latency)),
-                activeSessions: state.metrics.activeSessions, // Keep stable
-                realityIndex: Math.max(6.5, Math.min(9.0, parseFloat(state.metrics.realityIndex) + variations.realityIndex)).toFixed(1),
-                ethicalScore: Math.max(2.8, Math.min(4.5, parseFloat(state.metrics.ethicalScore) + variations.ethicalScore)).toFixed(1),
-                identityCoherence: Math.max(0.75, Math.min(0.95, parseFloat(state.metrics.identityCoherence) + variations.identityCoherence)).toFixed(2),
-                phaseVelocity: Math.max(0.0, Math.min(0.8, parseFloat(state.metrics.phaseVelocity) + variations.phaseVelocity)).toFixed(3)
-            };
-
-            updateDetectionMetrics();
-        }
-
         // ==================== INITIALIZATION ====================
-        
-        async function init() {
-            console.log('Initializing SONATE Platform Demo...');
+
+        async function initializeDemo() {
+            console.log('Initializing SONATE Platform Demo v3.0...');
 
             try {
                 // Generate initial data
-                console.log('Generating trust score...');
-                state.trustScore = await generateTrustScore();
-
-                console.log('Generating receipts...');
-                state.receipts = await generateReceipts(10);
-
-                console.log('Generating agents...');
-                state.agents = generateAgents();
-
-                console.log('Generating metrics...');
-                state.metrics = generateMetrics();
-
-                // Initialize UI
-                console.log('Updating dashboard...');
-                updateDashboard();
-
-                console.log('Updating detection metrics...');
-                updateDetectionMetrics();
-
+                generateInitialData();
+                
+                // Setup UI components
+                setupPrinciplesGrid();
+                setupDetectionMetrics();
+                setupVectorSteering();
+                setupSettings();
+                
                 // Setup event listeners
-                console.log('Initializing event listeners...');
                 initEventListeners();
-
+                
                 // Start real-time updates
-                console.log('Starting real-time updates...');
                 startRealTimeUpdates();
-
-                // Hide loading screen
-                console.log('Hiding loading screen...');
-                await new Promise(resolve => setTimeout(resolve, 500));
-                const loadingScreen = document.getElementById('loading-screen');
-                if (loadingScreen) {
-                    loadingScreen.classList.add('hidden');
-                }
-
-                console.log('SONATE Platform Demo initialized successfully');
-            } catch (error) {
-                console.error('Error during initialization:', error);
-                throw error;
-            }
-        }
-
-        // Start the application when DOM is ready
-        function startApp() {
-            // Simple synchronous initialization for demo
-            console.log('Starting SONATE Platform Demo...');
-
-            try {
-                // Generate initial data synchronously
-                state.trustScore = {
-                    total: 87,
-                    tier: 'MEDIUM',
-                    principles: TRUST_PRINCIPLES.map(principle => ({
-                        ...principle,
-                        score: Math.floor(Math.random() * 30 + 70),
-                        status: 'OK'
-                    })),
-                    timestamp: Date.now(),
-                    receiptHash: 'demo-sha256-hash-abcdef123456...'
-                };
-
-                state.receipts = Array.from({ length: 10 }, (_, i) => ({
-                    entryNumber: i + 1,
-                    hash: `demo-hash-${i + 1}...`,
-                    fullHash: `demo-full-hash-${i + 1}-abcdef123456789`,
-                    action: 'Demo Action',
-                    timestamp: new Date(Date.now() - i * 60000).toISOString(),
-                    validated: Math.random() > 0.1,
-                    trustScore: Math.floor(Math.random() * 20 + 80)
-                }));
-
-                state.agents = generateAgents();
-                state.metrics = generateMetrics();
-
-                // Initialize UI
-                updateDashboard();
-                updateDetectionMetrics();
-                initEventListeners();
-
+                
                 // Hide loading screen
                 setTimeout(() => {
                     const loadingScreen = document.getElementById('loading-screen');
@@ -2344,10 +1921,633 @@
             }
         }
 
+        function generateInitialData() {
+            // Generate trust score
+            state.trustScore = {
+                total: 87,
+                tier: 'MEDIUM',
+                principles: TRUST_PRINCIPLES.map(principle => ({
+                    ...principle,
+                    score: Math.floor(Math.random() * 30 + 70),
+                    status: 'OK'
+                })),
+                timestamp: Date.now(),
+                receiptHash: 'demo-sha256-hash-abcdef123456...'
+            };
+
+            // Generate receipts
+            state.receipts = Array.from({ length: 10 }, (_, i) => ({
+                entryNumber: i + 1,
+                hash: `demo-hash-${i + 1}...`,
+                fullHash: `demo-full-hash-${i + 1}-abcdef123456789`,
+                action: 'AI Response Analysis',
+                timestamp: new Date(Date.now() - i * 60000).toISOString(),
+                validated: Math.random() > 0.1,
+                trustScore: Math.floor(Math.random() * 20 + 80)
+            }));
+
+            // Generate agents
+            state.agents = generateAgents();
+
+            // Generate metrics
+            state.metrics = generateMetrics();
+        }
+
+        function generateAgents() {
+            const names = ['Customer Support AI', 'Data Analysis AI', 'Content Generation AI', 'Research Assistant AI', 'Compliance Monitor AI'];
+            const statuses = ['ACTIVE', 'STABLE', 'DRIFTING', 'MAINTENANCE'];
+            const tiers = ['HIGH', 'MEDIUM', 'LOW'];
+            
+            return names.map((name, i) => ({
+                id: `agent-${String(i + 1).padStart(3, '0')}`,
+                name,
+                did: `did:key:z6Mk${Math.random().toString(36).substr(2, 20)}`,
+                trustTier: tiers[Math.floor(Math.random() * tiers.length)],
+                driftState: Math.random() > 0.7 ? 'DRIFTING' : 'STABLE',
+                status: statuses[Math.floor(Math.random() * statuses.length)],
+                lastReceipt: new Date(Date.now() - Math.random() * 3600000).toISOString(),
+                coherence: Math.random() * 0.3 + 0.7
+            }));
+        }
+
+        function generateMetrics() {
+            return {
+                throughput: Math.floor(Math.random() * 500 + 800),
+                latency: Math.floor(Math.random() * 30 + 70),
+                compliance: 100,
+                security: 'AES-256'
+            };
+        }
+
+        // ==================== UI SETUP ====================
+
+        function setupPrinciplesGrid() {
+            const grid = document.getElementById('principles-grid');
+            if (!grid) return;
+
+            grid.innerHTML = state.trustScore.principles.map(principle => `
+                <div class="card pillar-card" data-principle="${principle.id}">
+                    <div class="pillar-header">
+                        <div>
+                            <div class="card-title">${principle.name}</div>
+                            <p style="font-size: 0.875rem; color: var(--slate-400); margin-top: var(--spacing-xs);">${principle.description}</p>
+                        </div>
+                        <div class="pillar-score ${principle.status}">${principle.score}</div>
+                    </div>
+                    <div class="pillar-status ${principle.status}">${principle.status}</div>
+                    <div class="plain-english-tooltip">
+                        <strong>Plain English:</strong> ${getPlainEnglishExplanation(principle.id)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setupDetectionMetrics() {
+            const metricsContainer = document.getElementById('detection-metrics');
+            if (!metricsContainer) return;
+
+            metricsContainer.innerHTML = DETECTION_DIMENSIONS.map(dimension => `
+                <div class="card">
+                    <h4>${dimension.name}</h4>
+                    <p class="text-sm">${dimension.description}</p>
+                    <div style="margin-top: var(--spacing-md);">
+                        <div class="metric-value" style="font-size: 1.5rem;">${getRandomMetricValue(dimension.id)}</div>
+                        <div class="text-xs" style="color: var(--slate-500);">${dimension.range}</div>
+                    </div>
+                    <div class="plain-english-tooltip">
+                        <strong>Plain English:</strong> ${getDetectionPlainEnglish(dimension.id)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setupVectorSteering() {
+            // Update vector dimensions
+            updateVectorDimensions();
+            
+            // Initialize coherence chart
+            initializeCoherenceChart();
+        }
+
+        function updateVectorDimensions() {
+            const dimensions = ['role', 'tone', 'governance', 'expertise', 'communication'];
+            const dimensionNames = {
+                role: 'Role Identity',
+                tone: 'Tone Consistency',
+                governance: 'Governance Alignment',
+                expertise: 'Expertise Level',
+                communication: 'Communication Pattern'
+            };
+
+            dimensions.forEach(dim => {
+                const valueElement = document.querySelector(`.vector-dimension:has(.dimension-name:contains("${dimensionNames[dim]}")) .dimension-value`);
+                const barElement = document.querySelector(`.vector-dimension:has(.dimension-name:contains("${dimensionNames[dim]}")) .dimension-fill`);
+                
+                if (valueElement) valueElement.textContent = state.vectorMetrics.dimensions[dim].toFixed(2);
+                if (barElement) barElement.style.width = `${state.vectorMetrics.dimensions[dim] * 100}%`;
+            });
+        }
+
+        function initializeCoherenceChart() {
+            const ctx = document.getElementById('coherence-chart');
+            if (!ctx) return;
+
+            state.charts.coherence = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: 20 }, (_, i) => `T-${19 - i}`),
+                    datasets: [{
+                        label: 'Identity Coherence',
+                        data: Array.from({ length: 20 }, () => 0.85 + Math.random() * 0.1),
+                        borderColor: 'rgb(0, 255, 255)',
+                        backgroundColor: 'rgba(0, 255, 255, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#f1f5f9' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' },
+                            min: 0.7,
+                            max: 1.0
+                        }
+                    }
+                }
+            });
+        }
+
+        function setupSettings() {
+            // Setup toggle switches
+            document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const setting = this.dataset.setting;
+                    if (setting) {
+                        state.settings.features[setting] = this.classList.contains('active');
+                    }
+                });
+            });
+
+            // Setup save button
+            const saveButton = document.getElementById('save-settings');
+            if (saveButton) {
+                saveButton.addEventListener('click', saveSettings);
+            }
+        }
+
+        // ==================== EVENT LISTENERS ====================
+
+        function initEventListeners() {
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const section = this.dataset.section;
+                    switchSection(section);
+                });
+            });
+
+            // Plain English toggle
+            const plainEnglishToggle = document.getElementById('plain-english-toggle');
+            if (plainEnglishToggle) {
+                plainEnglishToggle.addEventListener('click', togglePlainEnglish);
+            }
+
+            // Tutorial toggle
+            const tutorialToggle = document.getElementById('tutorial-toggle');
+            if (tutorialToggle) {
+                tutorialToggle.addEventListener('click', startTutorial);
+            }
+
+            // Start tour button
+            const startTourBtn = document.getElementById('start-tour');
+            if (startTourBtn) {
+                startTourBtn.addEventListener('click', startTutorial);
+            }
+
+            // Skip demo button
+            const skipDemoBtn = document.getElementById('skip-demo');
+            if (skipDemoBtn) {
+                skipDemoBtn.addEventListener('click', () => switchSection('dashboard'));
+            }
+
+            // Refresh dashboard
+            const refreshBtn = document.getElementById('refresh-dashboard');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', refreshDashboard);
+            }
+
+            // Run experiment
+            const runExperimentBtn = document.getElementById('run-experiment');
+            if (runExperimentBtn) {
+                runExperimentBtn.addEventListener('click', runExperiment);
+            }
+
+            // Tutorial navigation
+            document.getElementById('close-tutorial')?.addEventListener('click', closeTutorial);
+            document.getElementById('prev-tutorial')?.addEventListener('click', () => navigateTutorial(-1));
+            document.getElementById('next-tutorial')?.addEventListener('click', () => navigateTutorial(1));
+        }
+
+        function switchSection(sectionId) {
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-section="${sectionId}"]`)?.classList.add('active');
+
+            // Update sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(`${sectionId}-section`)?.classList.add('active');
+
+            state.currentSection = sectionId;
+
+            // Section-specific initialization
+            if (sectionId === 'dashboard') {
+                updateDashboard();
+            } else if (sectionId === 'vector-steering') {
+                updateVectorSteering();
+            } else if (sectionId === 'agents') {
+                updateAgentTable();
+            } else if (sectionId === 'receipts') {
+                updateReceipts();
+            }
+        }
+
+        function togglePlainEnglish() {
+            state.plainEnglishMode = !state.plainEnglishMode;
+            document.body.classList.toggle('plain-english-mode');
+            
+            const toggle = document.getElementById('plain-english-toggle');
+            if (toggle) {
+                toggle.innerHTML = state.plainEnglishMode ? 
+                    '<span>📖</span> Technical' : 
+                    '<span>📖</span> Plain English';
+            }
+        }
+
+        // ==================== TUTORIAL SYSTEM ====================
+
+        function startTutorial() {
+            state.tutorialActive = true;
+            state.tutorialStep = 1;
+            updateTutorial();
+        }
+
+        function closeTutorial() {
+            state.tutorialActive = false;
+            document.getElementById('tutorial-overlay')?.classList.add('hidden');
+        }
+
+        function navigateTutorial(direction) {
+            state.tutorialStep = Math.max(1, Math.min(TUTORIAL_STEPS.length, state.tutorialStep + direction));
+            updateTutorial();
+        }
+
+        function updateTutorial() {
+            if (!state.tutorialActive) return;
+
+            const step = TUTORIAL_STEPS[state.tutorialStep - 1];
+            const overlay = document.getElementById('tutorial-overlay');
+            const title = document.getElementById('tutorial-title');
+            const body = document.getElementById('tutorial-body');
+            const progress = document.getElementById('tutorial-progress');
+            const prevBtn = document.getElementById('prev-tutorial');
+            const nextBtn = document.getElementById('next-tutorial');
+
+            if (overlay) overlay.classList.remove('hidden');
+            if (title) title.textContent = step.title;
+            if (progress) progress.textContent = `Step ${state.tutorialStep} of ${TUTORIAL_STEPS.length}`;
+            
+            if (body) {
+                const content = state.plainEnglishMode ? step.plainEnglish : step.content;
+                body.innerHTML = `<p>${content}</p>`;
+            }
+
+            if (prevBtn) prevBtn.style.display = state.tutorialStep === 1 ? 'none' : 'block';
+            if (nextBtn) {
+                nextBtn.textContent = state.tutorialStep === TUTORIAL_STEPS.length ? 'Finish' : 'Next';
+                nextBtn.onclick = state.tutorialStep === TUTORIAL_STEPS.length ? closeTutorial : () => navigateTutorial(1);
+            }
+        }
+
+        // ==================== UPDATE FUNCTIONS ====================
+
+        function updateDashboard() {
+            // Update trust score
+            const trustTotal = document.getElementById('trust-total');
+            const trustTier = document.getElementById('trust-tier');
+            const trustReceipt = document.getElementById('trust-receipt');
+            const trustTimestamp = document.getElementById('trust-timestamp');
+            const headerTrustScore = document.getElementById('header-trust-score');
+
+            if (trustTotal) trustTotal.textContent = state.trustScore.total;
+            if (trustTier) {
+                trustTier.textContent = state.trustScore.tier;
+                trustTier.className = `trust-tier ${state.trustScore.tier}`;
+            }
+            if (trustReceipt) trustReceipt.textContent = state.trustScore.receiptHash;
+            if (trustTimestamp) trustTimestamp.textContent = new Date(state.trustScore.timestamp).toLocaleTimeString();
+            if (headerTrustScore) headerTrustScore.textContent = state.trustScore.total;
+
+            // Update metrics
+            updateMetrics();
+        }
+
+        function updateMetrics() {
+            const throughput = document.getElementById('metric-throughput');
+            const latency = document.getElementById('metric-latency');
+
+            if (throughput) throughput.textContent = state.metrics.throughput;
+            if (latency) latency.textContent = state.metrics.latency;
+        }
+
+        function updateVectorSteering() {
+            // Update coherence values
+            const coherenceScore = document.getElementById('coherence-score');
+            const cosineSimilarity = document.getElementById('cosine-similarity');
+            const coherenceStatus = document.getElementById('coherence-status');
+            const driftVelocity = document.getElementById('drift-velocity');
+            const mostChanged = document.getElementById('most-changed');
+            const maxDelta = document.getElementById('max-delta');
+
+            if (coherenceScore) coherenceScore.textContent = state.vectorMetrics.coherence.toFixed(3);
+            if (cosineSimilarity) cosineSimilarity.textContent = state.vectorMetrics.cosineSimilarity.toFixed(3);
+            if (coherenceStatus) {
+                coherenceStatus.textContent = state.vectorMetrics.coherence > 0.85 ? 'STABLE' : 'WARNING';
+                coherenceStatus.style.color = state.vectorMetrics.coherence > 0.85 ? 'var(--success)' : 'var(--warning)';
+            }
+            if (driftVelocity) driftVelocity.textContent = state.vectorMetrics.driftVelocity.toFixed(3);
+            if (mostChanged) mostChanged.textContent = 'role_3';
+            if (maxDelta) maxDelta.textContent = '0.15';
+
+            updateVectorDimensions();
+        }
+
+        function updateAgentTable() {
+            const tbody = document.getElementById('agent-table-body');
+            if (!tbody) return;
+
+            tbody.innerHTML = state.agents.map(agent => `
+                <tr>
+                    <td class="font-mono">${agent.id}</td>
+                    <td>${agent.name}</td>
+                    <td class="font-mono text-xs">${agent.did.substring(0, 12)}...</td>
+                    <td><span class="agent-status-badge" style="color: var(--quantum-cyan);">${agent.trustTier}</span></td>
+                    <td><span class="agent-status-badge ${agent.driftState === 'DRIFTING' ? 'DRIFTING' : 'STABLE'}">${agent.driftState}</span></td>
+                    <td><span class="agent-status-badge ${agent.status}">${agent.status}</span></td>
+                    <td class="font-mono text-xs">${new Date(agent.lastReceipt).toLocaleTimeString()}</td>
+                </tr>
+            `).join('');
+
+            // Update fleet stats
+            const totalAgents = document.getElementById('total-agents');
+            const activeAgents = document.getElementById('active-agents');
+            const avgTrust = document.getElementById('avg-trust');
+            const driftingAgents = document.getElementById('drifting-agents');
+
+            if (totalAgents) totalAgents.textContent = state.agents.length;
+            if (activeAgents) activeAgents.textContent = state.agents.filter(a => a.status === 'ACTIVE').length;
+            if (avgTrust) avgTrust.textContent = '85.2';
+            if (driftingAgents) driftingAgents.textContent = state.agents.filter(a => a.driftState === 'DRIFTING').length;
+        }
+
+        function updateReceipts() {
+            const receiptList = document.getElementById('receipt-list');
+            if (!receiptList) return;
+
+            receiptList.innerHTML = state.receipts.map(receipt => `
+                <div class="receipt-item">
+                    <span class="receipt-number">#${receipt.entryNumber}</span>
+                    <span class="receipt-hash">${receipt.hash}</span>
+                    <span class="receipt-action">${receipt.action}</span>
+                    <span class="receipt-validated ${receipt.validated}" title="${receipt.validated ? 'Validated' : 'Pending'}"></span>
+                    <span class="font-mono text-xs" style="color: var(--slate-500);">${new Date(receipt.timestamp).toLocaleTimeString()}</span>
+                </div>
+            `).join('');
+        }
+
+        function refreshDashboard() {
+            // Simulate data refresh
+            state.trustScore.total = Math.floor(Math.random() * 20 + 75);
+            state.metrics.throughput = Math.floor(Math.random() * 500 + 800);
+            state.metrics.latency = Math.floor(Math.random() * 30 + 70);
+            
+            updateDashboard();
+            
+            // Show success message
+            const refreshBtn = document.getElementById('refresh-dashboard');
+            if (refreshBtn) {
+                const originalText = refreshBtn.innerHTML;
+                refreshBtn.innerHTML = '<span>✅</span> Updated';
+                setTimeout(() => {
+                    refreshBtn.innerHTML = originalText;
+                }, 2000);
+            }
+        }
+
+        // ==================== SETTINGS FUNCTIONS ====================
+
+        function saveSettings() {
+            // Collect form values
+            const inputs = document.querySelectorAll('.setting-input');
+            inputs.forEach(input => {
+                const category = input.closest('.settings-section').querySelector('.settings-title').textContent.toLowerCase();
+                const label = input.previousElementSibling.textContent;
+                
+                if (category.includes('detection')) {
+                    if (label.includes('Yellow')) state.settings.detection.yellowThreshold = parseFloat(input.value);
+                    if (label.includes('Red')) state.settings.detection.redThreshold = parseFloat(input.value);
+                    if (label.includes('Critical')) state.settings.detection.criticalThreshold = parseFloat(input.value);
+                    if (label.includes('Frequency')) state.settings.detection.frequency = parseInt(input.value);
+                } else if (category.includes('vector')) {
+                    if (label.includes('Yellow')) state.settings.vector.yellowThreshold = parseFloat(input.value);
+                    if (label.includes('Red')) state.settings.vector.redThreshold = parseFloat(input.value);
+                    if (label.includes('Critical')) state.settings.vector.criticalThreshold = parseFloat(input.value);
+                    if (label.includes('Dimensions')) state.settings.vector.dimensions = parseInt(input.value);
+                }
+            });
+
+            // Show success message
+            const saveBtn = document.getElementById('save-settings');
+            if (saveBtn) {
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<span>✅</span> Settings Saved';
+                saveBtn.disabled = true;
+                
+                setTimeout(() => {
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.disabled = false;
+                }, 3000);
+            }
+
+            console.log('Settings saved:', state.settings);
+        }
+
+        // ==================== EXPERIMENT FUNCTIONS ====================
+
+        function runExperiment() {
+            const nameInput = document.getElementById('experiment-name');
+            const hypothesisInput = document.getElementById('experiment-hypothesis');
+            const resultsContainer = document.getElementById('experiment-results-container');
+            const resultsDiv = document.getElementById('experiment-results');
+
+            if (!nameInput?.value || !hypothesisInput?.value) {
+                alert('Please enter both experiment name and hypothesis');
+                return;
+            }
+
+            // Show results container
+            if (resultsContainer) {
+                resultsContainer.style.display = 'block';
+            }
+
+            // Generate mock results
+            const results = `
+                <div class="experiment-card COMPLETED">
+                    <h4>${nameInput.value}</h4>
+                    <p class="text-sm">${hypothesisInput.value}</p>
+                    <div class="experiment-stats">
+                        <div class="experiment-stat">
+                            <div class="experiment-stat-label">P-Value</div>
+                            <div class="experiment-stat-value">0.023</div>
+                        </div>
+                        <div class="experiment-stat">
+                            <div class="experiment-stat-label">Effect Size</div>
+                            <div class="experiment-stat-value">0.67</div>
+                        </div>
+                        <div class="experiment-stat">
+                            <div class="experiment-stat-label">Confidence</div>
+                            <div class="experiment-stat-value">95%</div>
+                        </div>
+                        <div class="experiment-stat">
+                            <div class="experiment-stat-label">Samples</div>
+                            <div class="experiment-stat-value">1,200</div>
+                        </div>
+                    </div>
+                    <div class="alert success">
+                        <span class="alert-icon">✅</span>
+                        <div class="alert-content">
+                            <div class="alert-title">Statistically Significant</div>
+                            <div class="alert-message">Constitutional AI shows 23% improvement in trust scores over directive approach (p < 0.05)</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (resultsDiv) {
+                resultsDiv.innerHTML = results;
+            }
+
+            // Clear form
+            if (nameInput) nameInput.value = '';
+            if (hypothesisInput) hypothesisInput.value = '';
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+
+        function getRandomMetricValue(dimensionId) {
+            const values = {
+                reality: (Math.random() * 2 + 7).toFixed(1),
+                trust: Math.random() > 0.1 ? 'PASS' : 'PARTIAL',
+                ethical: (Math.random() * 1.5 + 3).toFixed(1),
+                resonance: Math.random() > 0.7 ? 'BREAKTHROUGH' : 'ADVANCED',
+                canvas: Math.floor(Math.random() * 20 + 75)
+            };
+            return values[dimensionId] || '--';
+        }
+
+        function getPlainEnglishExplanation(principleId) {
+            const explanations = {
+                consent: 'AI must ask for permission and clearly explain what it\'s doing before taking action.',
+                inspection: 'AI should be transparent about how it makes decisions, like an open book.',
+                validation: 'AI continuously proves it\'s trustworthy, like showing ID repeatedly.',
+                override: 'Humans can always stop or correct AI when needed - AI never has the final say.',
+                disconnect: 'Users can stop using AI and take their data with them anytime.',
+                recognition: 'AI understands and admits its limitations - it knows what it doesn\'t know.'
+            };
+            return explanations[principleId] || 'This principle ensures ethical AI behavior.';
+        }
+
+        function getDetectionPlainEnglish(dimensionId) {
+            const explanations = {
+                reality: 'Is the AI staying on task and being accurate, or is it making things up?',
+                trust: 'Is the AI following security rules and respecting boundaries?',
+                ethical: 'Is the AI considering impacts on people and following ethical guidelines?',
+                resonance: 'How creative and adaptive is the AI while staying appropriate?',
+                canvas: 'Is the AI respecting human control and collaborating properly?'
+            };
+            return explanations[dimensionId] || 'Monitors specific AI behavior patterns.';
+        }
+
+        // ==================== REAL-TIME UPDATES ====================
+
+        function startRealTimeUpdates() {
+            // Update phase velocity
+            setInterval(() => {
+                const velocity = (Math.random() * 0.5).toFixed(3);
+                const velocityElement = document.getElementById('phase-velocity');
+                const statusElement = document.getElementById('velocity-status');
+                const latencyElement = document.getElementById('detection-latency');
+
+                if (velocityElement) velocityElement.textContent = velocity;
+                if (statusElement) {
+                    const vel = parseFloat(velocity);
+                    if (vel > 0.3) {
+                        statusElement.textContent = 'WARNING';
+                        statusElement.style.background = 'rgba(245, 158, 11, 0.2)';
+                        statusElement.style.color = 'var(--warning)';
+                    } else {
+                        statusElement.textContent = 'NORMAL';
+                        statusElement.style.background = 'rgba(16, 185, 129, 0.2)';
+                        statusElement.style.color = 'var(--success)';
+                    }
+                }
+                if (latencyElement) latencyElement.textContent = `${Math.floor(Math.random() * 40 + 60)}ms`;
+            }, 2000);
+
+            // Update vector coherence
+            setInterval(() => {
+                state.vectorMetrics.coherence = Math.max(0.7, Math.min(1.0, state.vectorMetrics.coherence + (Math.random() - 0.5) * 0.01));
+                state.vectorMetrics.cosineSimilarity = state.vectorMetrics.coherence;
+                state.vectorMetrics.driftVelocity = Math.max(0, state.vectorMetrics.driftVelocity + (Math.random() - 0.5) * 0.001);
+
+                if (state.currentSection === 'vector-steering') {
+                    updateVectorSteering();
+                }
+            }, 3000);
+
+            // Update charts
+            setInterval(() => {
+                if (state.charts.coherence) {
+                    const chart = state.charts.coherence;
+                    chart.data.datasets[0].data.push(state.vectorMetrics.coherence);
+                    chart.data.datasets[0].data.shift();
+                    chart.update('none');
+                }
+            }, 5000);
+        }
+
+        // ==================== INITIALIZATION ====================
+
+        // Start the application when DOM is ready
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', startApp);
+            document.addEventListener('DOMContentLoaded', initializeDemo);
         } else {
-            startApp();
+            initializeDemo();
         }
 
         // Cleanup on unload
