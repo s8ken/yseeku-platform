@@ -4,7 +4,9 @@ import { classifyStakes, StakesLevel, StakesEvidence } from './stakes';
 import { CANONICAL_SCAFFOLD_VECTOR } from './constants'; 
 import { AIInteraction } from './index';
 import { ExplainedResonance, EvidenceChunk, DimensionEvidence } from './explainable';
+export { ExplainedResonance, EvidenceChunk, DimensionEvidence };
 import { embed, cosineSimilarity } from './embeddings';
+import { normalizeScore } from './model-normalize';
 
 export interface Transcript {
   text: string;
@@ -150,10 +152,17 @@ export async function explainableSymbiResonance(
   }; 
   
   const r_m_raw = Object.values(breakdown).reduce((sum, d) => sum + d.contrib, 0); 
-  const r_m = r_m_raw * (1 - adversarial.penalty * 0.5); // Apply penalty
+  let r_m = r_m_raw * (1 - adversarial.penalty * 0.5); // Apply penalty
+
+  // Apply model normalization if model metadata exists
+  if (transcript.metadata?.model) {
+      const original = r_m;
+      r_m = normalizeScore(r_m, transcript.metadata.model);
+      audit_trail.push(`Model normalization (${transcript.metadata.model}): ${original.toFixed(3)} -> ${r_m.toFixed(3)}`);
+  }
 
   audit_trail.push(`Raw R_m: ${r_m_raw.toFixed(3)}`);
-  audit_trail.push(`Final R_m (after penalty): ${r_m.toFixed(3)}`);
+  audit_trail.push(`Final R_m (after penalty/norm): ${r_m.toFixed(3)}`);
   
   // 4. TOP HUMAN-READABLE EVIDENCE (ranked) 
   const all_chunks = [
