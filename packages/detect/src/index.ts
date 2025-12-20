@@ -48,3 +48,6 @@ export { resonanceWithStickiness, StickyResonance, SessionState } from './sticki
 export { adversarialCheck, AdversarialEvidence } from './adversarial';
 export { classifyStakes, StakesEvidence } from './stakes';
 export { normalizeScore, normalizeEmbedding } from './model-normalize';
+
+// Resonance Engine Client
+export { ResonanceClient, InteractionData, SymbiDimensions, ResonanceReceipt } from './ResonanceClient';
