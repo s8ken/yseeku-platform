@@ -67,7 +67,15 @@ It triggers a **Coherence Boost**. The calculator overrides standard penalties (
 *   **Action**: Malicious inputs are hard-floored to $R_m = 0.1$.
 *   [Read the full Adversarial Robustness Documentation](./ADVERSARIAL_ROBUSTNESS.md)
 
-## 7. Technical Architecture
+## 7. Explainability & Stickiness (V2.1)
+**New in v2.1**: We have moved beyond "Black Box" scoring.
+*   **Explainable Resonance**: Granular breakdown of *why* a score was assigned, with evidence citations.
+*   **Context Stickiness**: Memory mechanism to prevent resonance drift across long conversations.
+*   **Cross-Model Normalization**: Standardized scoring for Gemini, GPT-4, and Claude.
+*   **Stakes-Awareness**: Dynamic ethics thresholds based on context (Medical vs. Casual).
+*   [Read the full Explainability & Drift Documentation](./EXPLAINABILITY_AND_DRIFT.md)
+
+## 8. Technical Architecture
 
 ```mermaid
 graph TD

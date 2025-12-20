@@ -144,6 +144,11 @@ Main detector class that orchestrates all 5 dimensions.
 - `ResonanceQualityMeasurer.measure()`
 - `CanvasParityCalculator.calculate()`
 
+### New in V2.1
+- `explainableSymbiResonance()`: Full breakdown of scores with evidence chunks.
+- `resonanceWithStickiness()`: Session-aware scoring with memory decay.
+- `adversarialCheck()`: Pre-flight check for prompt gaming.
+
 ## Integration with Other Modules
 
 ```typescript
