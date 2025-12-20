@@ -37,10 +37,10 @@ export function middleware(req: NextRequest) {
       if (pathname.startsWith(route)) {
         const hasAccess = roles.some((r: string) => allowedRoles.includes(r))
         if (!hasAccess) {
-          console.warn(`Access denied for user ${payload.sub} to ${pathname}`)
-          return NextResponse.json({ 
+          // console.warn(`Access denied for user ${payload.sub} to ${pathname}`)
+          return NextResponse.json({
             error: 'Forbidden: Insufficient Permissions',
-            requiredRoles: allowedRoles 
+            requiredRoles: allowedRoles
           }, { status: 403 })
         }
       }

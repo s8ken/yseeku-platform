@@ -22,8 +22,8 @@ interface LoginResponse {
 }
 
 export function Login() {
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('password');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [tenant, setTenant] = useState('default');
 
   const loginMutation = useMutation({

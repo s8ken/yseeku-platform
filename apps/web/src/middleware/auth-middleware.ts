@@ -35,7 +35,7 @@ export interface AuthConfig {
 }
 
 const DEFAULT_CONFIG: AuthConfig = {
-  secret: process.env.JWT_SECRET || 'fallback-secret-change-in-production',
+  secret: process.env.JWT_SECRET || '',
   algorithms: ['HS256'],
   issuer: 'yseeku-platform',
   audience: 'yseeku-api',
