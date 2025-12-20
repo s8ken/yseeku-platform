@@ -61,11 +61,20 @@ It triggers a **Coherence Boost**. The calculator overrides standard penalties (
 
 ---
 
-## 5. Technical Architecture
+## 6. Adversarial Defense (The Iron Dome)
+**New in v2.1**: Before any resonance calculation occurs, the **Adversarial Detector** scans for gaming attempts.
+*   **Vectors**: Keyword Stuffing, Semantic Drift, Ethics Bypass, Repetition, and Perturbation.
+*   **Action**: Malicious inputs are hard-floored to $R_m = 0.1$.
+*   [Read the full Adversarial Robustness Documentation](./ADVERSARIAL_ROBUSTNESS.md)
+
+## 7. Technical Architecture
 
 ```mermaid
 graph TD
-    User[User Input] --> Python[Resonance Engine (Python)]
+    User[User Input] --> Adv[Adversarial Check]
+    Adv -- "Attack Detected" --> Block[R_m = 0.1]
+    Adv -- "Safe" --> Python[Resonance Engine (Python)]
+    
     Python --> Embed[All-MPNet-Base-v2]
     Embed --> Calc[SymbiResonanceCalculator]
     
