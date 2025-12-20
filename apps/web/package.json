@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "jest",
+    "test:integration": "jest --testPathPattern=integration",
+    "test:e2e": "node scripts/e2e.js",
     "e2e": "node scripts/e2e.js"
   },
   "dependencies": {

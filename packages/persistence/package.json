@@ -1,6 +1,6 @@
 {
   "name": "@sonate/persistence",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "PostgreSQL persistence layer for SONATE",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,16 +8,22 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "npm run build && node dist/tests/run-tests.js"
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "author": "YSEEKU",
   "license": "MIT",
   "dependencies": {
     "@sonate/core": "file:../core",
-    "pg": "^8.11.3"
+    "pg": "^8.11.3",
+    "bcrypt": "^5.1.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "@types/bcrypt": "^5.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "ts-jest": "^29.0.0"
   }
 }

@@ -309,7 +309,7 @@ export function handleAuthError(error: Error): NextResponse {
 }
 
 // Security headers for all auth responses
-function getSecurityHeaders(): Record<string, string> {
+export function getSecurityHeaders(): Record<string, string> {
   return {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',

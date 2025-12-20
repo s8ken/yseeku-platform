@@ -34,6 +34,7 @@ export async function ensureSchema(): Promise<void> {
       id TEXT PRIMARY KEY,
       email TEXT,
       name TEXT,
+      password_hash TEXT,
       tenant_id TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
@@ -63,4 +64,22 @@ export async function ensureSchema(): Promise<void> {
     ALTER TABLE trust_receipts ADD COLUMN IF NOT EXISTS tenant_id TEXT;
     ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS tenant_id TEXT;
   `);
+}
+
+export async function healthCheck(): Promise<{ status: 'healthy' | 'unhealthy'; message: string }> {
+  const p = getPool();
+  if (!p) {
+    return { status: 'unhealthy', message: 'Database pool not initialized' };
+  }
+  try {
+    await p.query('SELECT 1');
+    return { status: 'healthy', message: 'Database connection is healthy' };
+  } catch (err) {
+    return { status: 'unhealthy', message: `Database health check failed: ${err}` };
+  }
+}
+
+export async function initializeDatabase(): Promise<void> {
+  const { runMigrations } = await import('./migrations');
+  await runMigrations();
 }

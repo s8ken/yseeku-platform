@@ -16,7 +16,6 @@ interface LoginResponse {
       roles: string[];
       metadata: { tenant: string };
     };
-    token: string;
     tenant: string;
   };
 }
@@ -47,11 +46,7 @@ export function Login() {
       return response.json() as Promise<LoginResponse>;
     },
     onSuccess: (data) => {
-      // Store token and user info
-      localStorage.setItem('token', data.data.token);
-      localStorage.setItem('user', JSON.stringify(data.data.user));
-      localStorage.setItem('tenant', data.data.tenant);
-
+      // Tokens are stored in httpOnly cookies, user info can be fetched from API if needed
       // Redirect to dashboard
       window.location.href = '/dashboard';
     },

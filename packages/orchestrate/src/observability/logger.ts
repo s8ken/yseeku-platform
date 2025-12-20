@@ -1,26 +1,27 @@
+import { winstonLogger } from './logger-config';
+
 export class Logger {
   constructor(private name: string) {}
 
-  private format(level: 'debug' | 'info' | 'warn' | 'error', message: string, meta?: any) {
-    const ts = new Date().toISOString();
-    const base = `[${ts}] [${this.name}] ${level.toUpperCase()}: ${message}`;
-    return meta ? `${base} ${JSON.stringify(meta)}` : base;
-  }
-
   debug(message: string, meta?: any) {
-    console.debug(this.format('debug', message, meta));
+    winstonLogger.debug(`[${this.name}] ${message}`, meta);
   }
 
   info(message: string, meta?: any) {
-    console.info(this.format('info', message, meta));
+    winstonLogger.info(`[${this.name}] ${message}`, meta);
   }
 
   warn(message: string, meta?: any) {
-    console.warn(this.format('warn', message, meta));
+    winstonLogger.warn(`[${this.name}] ${message}`, meta);
   }
 
   error(message: string, meta?: any) {
-    console.error(this.format('error', message, meta));
+    winstonLogger.error(`[${this.name}] ${message}`, meta);
+  }
+
+  // Add HTTP logging level for requests
+  http(message: string, meta?: any) {
+    winstonLogger.log('http', `[${this.name}] ${message}`, meta);
   }
 }
 
