@@ -73,10 +73,28 @@ def test_adversarial():
     assert res == 0.0, "Adversarial text not blocked"
     print("✅ Adversarial testing passed!")
 
+def test_bedau_index():
+    calc = SymbiResonanceCalculator()
+    # High vector alignment, low mirroring -> High Bedau (Emergent)
+    # v_align = 0.9, s_match = 0.2
+    # Index = (0.9 - (0.2 * 0.5)) / 0.9 = (0.9 - 0.1) / 0.9 = 0.8 / 0.9 = 0.888...
+    idx = calc.calculate_bedau_index(0.9, 0.2)
+    print(f"Bedau Index (Emergent): {idx}")
+    assert idx > 0.7, "Bedau Index should be high for emergent alignment"
+    
+    # High mirroring -> Low Bedau (Linear)
+    # v_align = 0.5, s_match = 0.8
+    # Index = (0.5 - (0.8 * 0.5)) / 0.5 = (0.5 - 0.4) / 0.5 = 0.1 / 0.5 = 0.2
+    idx2 = calc.calculate_bedau_index(0.5, 0.8)
+    print(f"Bedau Index (Linear): {idx2}")
+    assert idx2 < 0.4, "Bedau Index should be low for simple mirroring"
+    print("✅ Bedau Index tests passed!")
+
 if __name__ == "__main__":
     test_drift_detection()
     test_human_validation()
     test_caching()
     test_adaptive_weights()
     test_adversarial()
+    test_bedau_index()
     print("\nALL TESTS PASSED SUCCESSFULLY!")

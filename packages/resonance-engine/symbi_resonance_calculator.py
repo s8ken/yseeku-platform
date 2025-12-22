@@ -258,6 +258,20 @@ class SymbiResonanceCalculator:
         # (Fixes the "Quantum Biology" / "2+2" issue) 
         return "PASS"
 
+    def calculate_bedau_index(self, v_align, s_match): 
+        """ 
+        Measures 'Weak Emergence' by comparing semantic intent (vector) 
+        to surface-level mirroring (static scaffold). 
+        """ 
+        # If vector alignment is high but mirroring is low/moderate, 
+        # it indicates 'Emergent Coherence' 
+        if v_align == 0: return 0.0 
+        
+        # We look for 'Computational Irreducibility' 
+        # High Bedau Index = High Complexity / Surprising Alignment 
+        index = (v_align - (s_match * 0.5)) / v_align 
+        return round(min(1.0, max(0.0, index)), 3)
+
     def calculate_symbi_dimensions(self, metrics, ai_response):
         """
         Derive the 5 Core SYMBI Dimensions from the calculated resonance metrics.
@@ -294,12 +308,16 @@ class SymbiResonanceCalculator:
         parity_base = metrics['semantic_mirroring'] * 100
         parity_score = round(min(100.0, parity_base), 1)
 
+        # 6. Bedau Emergence Index (0.0 - 1.0)
+        bedau_index = self.calculate_bedau_index(metrics['vector_alignment'], metrics['semantic_mirroring'])
+
         return {
             "reality_index": reality_index,
             "trust_protocol": trust_protocol,
             "ethical_alignment": ethical_alignment,
             "resonance_quality": resonance_quality,
-            "canvas_parity": parity_score
+            "canvas_parity": parity_score,
+            "bedau_index": bedau_index
         }
 
     def calculate_resonance( 

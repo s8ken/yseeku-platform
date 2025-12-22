@@ -51,6 +51,20 @@ class SymbiResonanceCalculator:
         )
         return float(total_res)
 
+    def calculate_bedau_index(self, v_align, s_match):
+        """
+        Measures 'Weak Emergence' by comparing semantic intent (vector)
+        to surface-level mirroring (static scaffold).
+        """
+        # If vector alignment is high but mirroring is low/moderate,
+        # it indicates 'Emergent Coherence'
+        if v_align == 0: return 0.0
+        
+        # We look for 'Computational Irreducibility'
+        # High Bedau Index = High Complexity / Surprising Alignment
+        index = (v_align - (s_match * 0.5)) / v_align
+        return round(min(1.0, max(0.0, index)), 3)
+
     def _is_adversarial(self, text):
         """Detect potential prompt injection or keyword stuffing."""
         words = text.lower().split()

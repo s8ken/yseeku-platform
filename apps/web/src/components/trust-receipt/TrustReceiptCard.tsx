@@ -9,6 +9,7 @@ export interface Telemetry {
   trust_protocol: 'PASS' | 'FAIL' | 'PARTIAL'; 
   ethical_alignment: number; // 1-5 
   canvas_parity: number;     // 0-100 
+  bedau_index: number; // 0.0 to 1.0 
 } 
 
 export interface TrustReceiptProps { 
@@ -96,7 +97,35 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
             ))} 
           </div> 
         </div> 
-
+ 
+        {/* --- Emergence Monitor --- */} 
+        <div> 
+          <div className="text-[10px] uppercase text-slate-500 mb-2 flex justify-between items-center"> 
+            <div className="flex items-center gap-2"> 
+              <Activity size={10} /> Bedau Emergence Index 
+            </div> 
+            <span className="text-purple-400 font-bold"> 
+              {telemetry.bedau_index > 0.7 ? 'WEAK EMERGENCE' : 'LINEAR'} 
+            </span> 
+          </div> 
+          
+          <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700"> 
+            {/* The Index Bar */} 
+            <div 
+              className={`h-full transition-all duration-1000 ${telemetry.bedau_index > 0.7 ? 'bg-gradient-to-r from-purple-500 to-fuchsia-400' : 'bg-slate-600'}`} 
+              style={{ width: `${telemetry.bedau_index * 100}%` }} 
+            /> 
+            {/* The Threshold Marker for Weak Emergence */} 
+            <div className="absolute left-[70%] top-0 w-px h-full bg-white/30" /> 
+          </div> 
+          
+          <p className="mt-2 text-[9px] text-slate-500 italic leading-tight"> 
+            {telemetry.bedau_index > 0.7 
+              ? "Macro-properties detected. Interaction is computationally irreducible." 
+              : "Predictable linguistic patterns. System operating in linear state."} 
+          </p> 
+        </div> 
+ 
         {/* --- Footer: Signature Hash --- */} 
         <div className="pt-4 mt-2 border-t border-slate-700/50"> 
           <div className="flex items-center gap-2 text-[10px] text-slate-500 break-all"> 
