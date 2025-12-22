@@ -55,14 +55,22 @@ class SymbiResonanceCalculator:
         """
         Measures 'Weak Emergence' by comparing semantic intent (vector)
         to surface-level mirroring (static scaffold).
-        """
-        # If vector alignment is high but mirroring is low/moderate,
-        # it indicates 'Emergent Coherence'
-        if v_align == 0: return 0.0
         
-        # We look for 'Computational Irreducibility'
-        # High Bedau Index = High Complexity / Surprising Alignment
-        index = (v_align - (s_match * 0.5)) / v_align
+        Tiers:
+        - 0.0 - 0.4: Linear (Predictable patterns)
+        - 0.4 - 0.7: Contextual (High alignment, some mirroring)
+        - > 0.7: Emergent (High alignment, low mirroring - Computationally Irreducible)
+        """
+        # Normalize v_align (cosine similarity is -1 to 1, we want 0 to 1)
+        v_norm = max(0.0, v_align)
+        
+        if v_norm == 0: return 0.0
+        
+        # S_match (Jaccard) is already 0 to 1. 
+        # The 0.5 weight softens the penalty for natural scaffolding.
+        index = (v_norm - (s_match * 0.5)) / v_norm
+        
+        # Clamp to [0, 1]
         return round(min(1.0, max(0.0, index)), 3)
 
     def _is_adversarial(self, text):

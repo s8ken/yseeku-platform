@@ -104,24 +104,35 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
             <div className="flex items-center gap-2"> 
               <Activity size={10} /> Bedau Emergence Index 
             </div> 
-            <span className="text-purple-400 font-bold"> 
-              {telemetry.bedau_index > 0.7 ? 'WEAK EMERGENCE' : 'LINEAR'} 
+            <span className={`font-bold ${
+              telemetry.bedau_index > 0.7 ? 'text-purple-400' : 
+              telemetry.bedau_index > 0.4 ? 'text-cyan-400' : 'text-slate-400'
+            }`}> 
+              {telemetry.bedau_index > 0.7 ? 'WEAK EMERGENCE' : 
+               telemetry.bedau_index > 0.4 ? 'CONTEXTUAL' : 'LINEAR'} 
             </span> 
           </div> 
           
           <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700"> 
             {/* The Index Bar */} 
             <div 
-              className={`h-full transition-all duration-1000 ${telemetry.bedau_index > 0.7 ? 'bg-gradient-to-r from-purple-500 to-fuchsia-400' : 'bg-slate-600'}`} 
+              className={`h-full transition-all duration-1000 ${
+                telemetry.bedau_index > 0.7 ? 'bg-gradient-to-r from-purple-500 to-fuchsia-400' : 
+                telemetry.bedau_index > 0.4 ? 'bg-cyan-500' : 'bg-slate-600'
+              }`} 
               style={{ width: `${telemetry.bedau_index * 100}%` }} 
             /> 
             {/* The Threshold Marker for Weak Emergence */} 
             <div className="absolute left-[70%] top-0 w-px h-full bg-white/30" /> 
+            {/* The Threshold Marker for Contextual */}
+            <div className="absolute left-[40%] top-0 w-px h-full bg-white/10" />
           </div> 
           
           <p className="mt-2 text-[9px] text-slate-500 italic leading-tight"> 
             {telemetry.bedau_index > 0.7 
-              ? "Macro-properties detected. Interaction is computationally irreducible." 
+              ? `Computational Irreducibility: ${telemetry.bedau_index.toFixed(2)}`
+              : telemetry.bedau_index > 0.4
+              ? "High semantic alignment with natural scaffolding."
               : "Predictable linguistic patterns. System operating in linear state."} 
           </p> 
         </div> 

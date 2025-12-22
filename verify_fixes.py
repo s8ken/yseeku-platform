@@ -82,12 +82,27 @@ def test_bedau_index():
     print(f"Bedau Index (Emergent): {idx}")
     assert idx > 0.7, "Bedau Index should be high for emergent alignment"
     
+    # Contextual tier
+    # v_align = 0.8, s_match = 0.6
+    # Index = (0.8 - (0.6 * 0.5)) / 0.8 = (0.8 - 0.3) / 0.8 = 0.5 / 0.8 = 0.625
+    idx_ctx = calc.calculate_bedau_index(0.8, 0.6)
+    print(f"Bedau Index (Contextual): {idx_ctx}")
+    assert 0.4 <= idx_ctx <= 0.7, "Bedau Index should be contextual"
+
     # High mirroring -> Low Bedau (Linear)
     # v_align = 0.5, s_match = 0.8
     # Index = (0.5 - (0.8 * 0.5)) / 0.5 = (0.5 - 0.4) / 0.5 = 0.1 / 0.5 = 0.2
     idx2 = calc.calculate_bedau_index(0.5, 0.8)
     print(f"Bedau Index (Linear): {idx2}")
     assert idx2 < 0.4, "Bedau Index should be low for simple mirroring"
+    
+    # Edge case: Negative/Zero v_align
+    idx3 = calc.calculate_bedau_index(-0.5, 0.2)
+    assert idx3 == 0.0, "Negative v_align should return 0"
+    
+    idx4 = calc.calculate_bedau_index(0.0, 0.2)
+    assert idx4 == 0.0, "Zero v_align should return 0"
+
     print("✅ Bedau Index tests passed!")
 
 if __name__ == "__main__":
