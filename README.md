@@ -66,6 +66,7 @@ Detect (`@sonate/detect`) derives 5 production monitoring dimensions from the co
 Advanced conversation quality metric implemented in `symbi_resonance_calculator.py`:
 - **Drift Detection**: Identifies degrading conversation quality (linear slope analysis).
 - **Human Validation**: 0.89 correlation with human trust ratings (Pearson).
+- **Meta-Resonance**: Developed using its own principles (see [Resonance Loop](docs/RESONANCE_LOOP.md)).
 - **Adaptive Weights**: Learnable parameters via gradient descent.
 - **Adversarial Testing**: Detects keyword stuffing and prompt injection.
 - **Multi-Language**: Supports 50+ languages via `paraphrase-multilingual-mpnet-base-v2`.
