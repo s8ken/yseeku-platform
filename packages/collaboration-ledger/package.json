@@ -1,0 +1,22 @@
+{
+  "name": "@sonate/collaboration-ledger",
+  "version": "0.1.0",
+  "description": "SYMBI Collaboration Ledger: verifiable multi-agent collaboration provenance",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "npm run build && node dist/tests/run-tests.js"
+  },
+  "author": "YSEEKU",
+  "license": "MIT",
+  "dependencies": {
+    "@lit-protocol/lit-node-client": "^2.1.215"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

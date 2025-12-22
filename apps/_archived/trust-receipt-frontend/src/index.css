@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-sonate-dark text-white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code {
+    @apply font-mono;
+  }
+}
+
+@layer components {
+  .sonate-card {
+    @apply bg-sonate-card border border-gray-700 rounded-lg p-6;
+  }
+  
+  .sonate-button {
+    @apply bg-gradient-to-r from-sonate-cyan to-sonate-blue text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity;
+  }
+  
+  .sonate-input {
+    @apply bg-sonate-dark border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:border-sonate-cyan focus:outline-none;
+  }
+}

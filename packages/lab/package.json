@@ -1,0 +1,26 @@
+{
+  "name": "@sonate/lab",
+  "version": "1.0.0",
+  "description": "Double-blind experimentation and research for SONATE platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "c8 --check-coverage --branches 30 --functions 25 --lines 30 --statements 30 node src/tests/run-tests.js",
+    "test:resonate": "node test-resonate.js",
+    "benchmark": "npm run build && npm run test:resonate"
+  },
+  "keywords": ["sonate", "experimentation", "research", "double-blind", "a-b-testing"],
+  "author": "YSEEKU",
+  "license": "MIT",
+  "dependencies": {
+    "@sonate/core": "file:../core",
+    "@sonate/detect": "file:../detect"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

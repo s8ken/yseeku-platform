@@ -1,0 +1,66 @@
+{
+  "name": "@symbi/protocol",
+  "version": "1.0.0",
+  "description": "Core Symbi Trust Protocol - 6-pillar weighted scoring and cryptographic primitives",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
+  },
+  "keywords": [
+    "symbi",
+    "trust-protocol",
+    "ai-governance",
+    "constitutional-ai",
+    "ed25519",
+    "sha256",
+    "hash-chain"
+  ],
+  "author": "YSEEKU",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yseeku/symbi-symphony.git",
+    "directory": "src/protocol"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ],
+    "collectCoverageFrom": [
+      "**/*.ts",
+      "!**/*.d.ts",
+      "!**/__tests__/**"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
+      }
+    }
+  }
+}

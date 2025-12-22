@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "composite": false,
+    "incremental": false
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "src/archive-analytics-reporter.ts",
+    "src/archive-benchmark.ts",
+    "src/archive-calibration-tool.ts",
+    "src/comprehensive-conversation-analyzer.ts",
+    "src/comprehensive-validation.ts",
+    "src/enhanced-archive-analyzer.ts",
+    "src/intra-velocity-test.ts",
+    "src/resonate-validation.ts",
+    "src/test-runner.ts",
+    "src/thread3-velocity-test.ts"
+  ]
+}

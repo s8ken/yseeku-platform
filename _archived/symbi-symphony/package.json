@@ -1,0 +1,35 @@
+{
+  "name": "symbi-symphony",
+  "version": "1.0.0",
+  "description": "Symbi Protocol - Core Trust Framework Implementation",
+  "private": true,
+  "workspaces": [
+    "src/protocol"
+  ],
+  "scripts": {
+    "build": "cd src/protocol && npm run build",
+    "test": "cd src/protocol && npm test",
+    "test:coverage": "cd src/protocol && npm run test:coverage",
+    "dev": "cd src/protocol && npm run dev",
+    "clean": "cd src/protocol && npm run clean",
+    "install:all": "npm install && cd src/protocol && npm install",
+    "example": "node -r ts-node/register src/examples/protocol-examples.ts"
+  },
+  "keywords": [
+    "symbi",
+    "trust-protocol",
+    "ai-governance",
+    "constitutional-ai",
+    "ed25519",
+    "sha256"
+  ],
+  "author": "YSEEKU",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
+}
