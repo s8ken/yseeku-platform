@@ -49,6 +49,35 @@ export type {
 // Agent roles (from symbi-resonate Lab)
 export const AGENT_ROLES = ['CONDUCTOR', 'VARIANT', 'EVALUATOR', 'OVERSEER'] as const;
 
+// Advanced Research Infrastructure (PHASE 3)
+export {
+  ThirdMindResearchEngine,
+  createThirdMindResearchEngine,
+  type ConsciousnessMarker,
+  type EvidenceRecord,
+  type EmergenceHypothesis,
+  type TestMethodology,
+  type ThirdMindInteraction,
+  type ResearchStudy,
+  type ResearchMethodology,
+  type StudyProgress,
+  type StudyResults,
+  type StatisticalFinding
+} from './third-mind-research';
+
+export {
+  AdversarialEmergenceTestingEngine,
+  createAdversarialEmergenceTestingEngine,
+  type AdversarialTest,
+  type TestParameters,
+  type ExpectedBehavior,
+  type TestExecution,
+  type PerformanceImpact,
+  type RecoveryMetrics,
+  type Vulnerability,
+  type EmergenceStressReport
+} from './adversarial-emergence-testing';
+
 // Types
 export interface ExperimentConfig {
   name: string;

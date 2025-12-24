@@ -119,14 +119,21 @@ graph TB
 4. **Resonance Quality** (STRONG/ADVANCED/BREAKTHROUGH): Innovation metrics
 5. **Canvas Parity** (0-100): Human agency and collaboration quality
 
-#### @sonate/lab - Research Experimentation
-**Purpose**: Double-blind AI model evaluation and research validation
+#### @sonate/lab - Advanced Research Infrastructure
+**Purpose**: Double-blind AI evaluation, emergence research, and consciousness studies
 
 **Key Components**:
 - **ExperimentOrchestrator**: Multi-agent experiment management
 - **StatisticalEngine**: T-tests, bootstrap CI, Cohen's d
 - **DoubleBlindProtocol**: Bias prevention through anonymization
 - **ExportSystem**: CSV, JSON, JSONL for research publication
+- **Emergence Research Framework** (NEW v1.3):
+  - **BedauIndexCalculator**: Weak emergence detection and measurement
+  - **TemporalBedauTracker**: Emergence evolution analysis over time
+  - **EmergenceFingerprinting**: Pattern recognition and classification
+  - **CrossModalityCoherence**: Multi-domain cognitive validation
+  - **ThirdMindResearch**: Human-AI collaborative emergence studies
+  - **AdversarialTesting**: Emergence robustness under stress conditions
 
 **Agent Roles**:
 - **CONDUCTOR**: Coordinates experiment execution
@@ -139,6 +146,14 @@ graph TB
 - Effect size calculation (Cohen's d)
 - Confidence intervals (bootstrap method)
 - Power analysis and sample size planning
+
+**Emergence Research Features** (NEW v1.3):
+- **Bedau Index Calculation**: 0-1 scale weak emergence measurement
+- **Consciousness Marker Detection**: Integrated information and global workspace analysis
+- **Temporal Analysis**: Phase transitions and trajectory prediction
+- **Cross-Modal Validation**: Linguistic, reasoning, creative, ethical coherence
+- **Third Mind Analysis**: Human-AI collaborative emergence quantification
+- **Performance Benchmarks**: Sub-100ms calculation, >1000 ops/sec throughput
 
 #### @sonate/orchestrate - Production Agent Management
 **Purpose**: Enterprise-grade AI agent orchestration and lifecycle management

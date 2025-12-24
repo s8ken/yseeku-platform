@@ -23,10 +23,6 @@ export interface SymbiTrustReceipt {
     resonance_score: number;  // e.g. 0.994
     resonance_quality: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
     reality_index: number;    // e.g. 9.9
-       bedau_index?: number;     // e.g. 0.73 (weak emergence: 0-1)
-       emergence_type?: 'LINEAR' | 'WEAK_EMERGENCE'; // Classification
-       kolmogorov_complexity?: number; // Approximation of irreducibility
-       semantic_entropy?: number; // Cognitive diversity measure
   };
 
   // The "Proof"

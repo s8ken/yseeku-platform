@@ -51,3 +51,65 @@ export { normalizeScore, normalizeEmbedding } from './model-normalize';
 
 // Resonance Engine Client
 export { ResonanceClient, InteractionData, SymbiDimensions, ResonanceReceipt } from './ResonanceClient';
+
+// Bedau Index & Emergence Research
+export { 
+  BedauIndexCalculator, 
+  createBedauIndexCalculator, 
+  calculateBedauIndex,
+  type BedauMetrics,
+  type SemanticIntent,
+  type SurfacePattern
+} from './bedau-index';
+export { 
+  detectEmergence, 
+  detectEmergenceSync, 
+  extractSurfacePattern,
+  type EmergenceSignal,
+  type EmergenceTrajectory
+} from './emergence-detection';
+
+// Emergence Research Framework (PHASE 2)
+export {
+  TemporalBedauTracker,
+  createTemporalBedauTracker,
+  type TemporalBedauRecord,
+  type EmergencePattern,
+  type PhaseTransition,
+  type EmergenceSignature
+} from './temporal-bedau-tracker';
+
+export {
+  EmergenceFingerprintingEngine,
+  createEmergenceFingerprintingEngine,
+  createEmergenceFingerprint,
+  type EmergenceFingerprint,
+  type EmergenceCategory,
+  type FingerprintComparison,
+  type CrossModalityCoherence
+} from './emergence-fingerprinting';
+
+export {
+  CrossModalityCoherenceValidator,
+  createCrossModalityCoherenceValidator,
+  analyzeCrossModalityCoherence,
+  validateCrossModalityCoherence,
+  type ModalityMetrics,
+  type CoherenceAnalysis,
+  type CoherenceValidation
+} from './cross-modality-coherence';
+
+// Integration & Testing Infrastructure (PHASE 4)
+export {
+  PerformanceBenchmarkingEngine,
+  createPerformanceBenchmarkingEngine,
+  runQuickPerformanceBenchmark,
+  type BenchmarkResult,
+  type PerformanceMetrics,
+  type PerformanceTargets,
+  type BenchmarkDetails,
+  type ScalabilityResult,
+  type LoadLevel,
+  type RegressionReport,
+  type BenchmarkSummary
+} from './performance-benchmarks';
