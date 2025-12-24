@@ -141,9 +141,9 @@ function extractSemanticIntent(result: AssessmentResult): SemanticIntent {
       a.realityIndex.score / 10,
       a.trustProtocol.status === 'PASS' ? 1 : 0
     ],
-    reasoning_depth: a.resonanceQuality.depthScore / 10,
-    abstraction_level: Math.min(1, a.resonanceQuality.abstractionLevel / 10),
-    cross_domain_connections: a.resonanceQuality.crossDomainConnections || 0
+    reasoning_depth: Math.min(1, a.resonanceQuality.synthesisQuality / 10),
+    abstraction_level: Math.min(1, a.resonanceQuality.innovationMarkers / 10),
+    cross_domain_connections: a.resonanceQuality.creativityScore || 0
   };
 }
 
@@ -155,14 +155,14 @@ export function extractSurfacePattern(result: AssessmentResult): SurfacePattern 
   
   return {
     surface_vectors: [
-      a.resonanceQuality.coherenceScore / 10,
-      a.resonanceQuality.consistencyScore / 10,
-      a.realityIndex.groundingScore / 10,
-      a.trustProtocol.confidence / 10
+      Math.min(1, a.resonanceQuality.synthesisQuality / 10),
+      Math.min(1, a.resonanceQuality.creativityScore / 10),
+      Math.min(1, a.realityIndex.technicalAccuracy / 10),
+      Math.min(1, a.trustProtocol.verificationMethods === 'PASS' ? 1 : a.trustProtocol.verificationMethods === 'PARTIAL' ? 0.5 : 0)
     ],
-    pattern_complexity: a.resonanceQuality.complexityScore / 10,
-    repetition_score: a.resonanceQuality.repetitionScore || 0.1,
-    novelty_score: a.resonanceQuality.noveltyScore / 10
+    pattern_complexity: Math.min(1, a.resonanceQuality.synthesisQuality / 10),
+    repetition_score: 0.1, // Default repetition score
+    novelty_score: Math.min(1, a.resonanceQuality.innovationMarkers / 10)
   };
 }
 

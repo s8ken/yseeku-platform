@@ -82,7 +82,7 @@ export class TemporalBedauTracker {
     pattern_signature: EmergenceSignature;
     predicted_trajectory: number[];
     confidence_in_prediction: number;
-    detected_patterns: EmergencePattern[];
+    detectedPatterns: EmergencePattern[];
   } {
     const relevantRecords = sessionId 
       ? this.records.filter(r => r.session_id === sessionId)
@@ -103,7 +103,7 @@ export class TemporalBedauTracker {
       pattern_signature: signature,
       predicted_trajectory: prediction.predictions,
       confidence_in_prediction: prediction.confidence,
-      detected_patterns
+      detectedPatterns
     };
   }
 

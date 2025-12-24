@@ -187,7 +187,7 @@ export class RBACService {
     
     for (const userRole of userRoles) {
       const roleDefinition = this.roleDefinitions.get(userRole.role);
-      if (roleDefinition &amp;&amp; roleDefinition.permissions.includes(permission)) {
+      if (roleDefinition && roleDefinition.permissions.includes(permission)) {
         return true;
       }
       
@@ -195,7 +195,7 @@ export class RBACService {
       if (roleDefinition?.inherits) {
         for (const inheritedRole of roleDefinition.inherits) {
           const inheritedDef = this.roleDefinitions.get(inheritedRole);
-          if (inheritedDef &amp;&amp; inheritedDef.permissions.includes(permission)) {
+          if (inheritedDef && inheritedDef.permissions.includes(permission)) {
             return true;
           }
         }

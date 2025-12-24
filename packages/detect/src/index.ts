@@ -15,7 +15,7 @@ export { SymbiFrameworkDetector as EnhancedDetector } from './detector-enhanced'
 export { BalancedSymbiDetector } from './balanced-detector';
 export { CalibratedSymbiDetector } from './calibrated-detector';
 export { DriftDetector } from './drift-detection';
-export { detectEmergence } from './emergence-detection';
+
 
 // 5 Dimension scorers
 export { RealityIndexCalculator } from './reality-index';

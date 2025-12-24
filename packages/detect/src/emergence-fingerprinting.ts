@@ -54,7 +54,7 @@ export interface FingerprintComparison {
     trajectory_similarity: number;
   };
   differences: string[];
-  common_patterns: string[];
+  commonPatterns: string[];
 }
 
 export interface CrossModalityCoherence {
@@ -164,7 +164,7 @@ export class EmergenceFingerprintingEngine {
         trajectory_similarity: trajectorySimilarity
       },
       differences,
-      common_patterns
+      commonPatterns
     };
   }
 

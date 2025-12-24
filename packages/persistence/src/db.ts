@@ -1,4 +1,12 @@
-import { getLogger } from '@sonate/orchestrate';
+// Simple logger implementation to avoid circular dependencies
+function getLogger(component: string) {
+  return {
+    info: (message: string, data?: any) => console.log(`[${component}] ${message}`, data || ''),
+    error: (message: string, data?: any) => console.error(`[${component}] ${message}`, data || ''),
+    warn: (message: string, data?: any) => console.warn(`[${component}] ${message}`, data || ''),
+    debug: (message: string, data?: any) => console.debug(`[${component}] ${message}`, data || ''),
+  };
+}
 
 let pool: any | null = null;
 

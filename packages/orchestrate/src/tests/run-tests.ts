@@ -1,7 +1,7 @@
 import { APIKeyManager, getAPIKeyManager } from '../security/api-keys';
 import { initializeAuditLogger, getAuditLogger, InMemoryAuditStorage, AuditEventType, AuditSeverity } from '../security/audit';
 import { getRBACManager, Permission, Role } from '../security/rbac';
-import { InMemoryRateLimitStore, RateLimiter } from '../security/rate-limiter';
+import { InMemoryRateLimitStore, createRateLimiter, RateLimitConfig } from '../security/rate-limiter';
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(message);
@@ -36,11 +36,12 @@ async function testRBAC() {
 }
 
 async function testRateLimiterBasic() {
-  const store = new InMemoryRateLimitStore({ windowMs: 1000, maxRequests: 2 });
-  const limiter = new RateLimiter(store, { windowMs: 1000, maxRequests: 2 });
-  const r1 = await limiter.checkLimit('ip:1');
-  const r2 = await limiter.checkLimit('ip:1');
-  const r3 = await limiter.checkLimit('ip:1');
+  const store = new InMemoryRateLimitStore();
+  const config: RateLimitConfig = { windowMs: 1000, maxRequests: 2, identifier: 'test', identifierType: 'ip' };
+  const limiter = createRateLimiter(store);
+  const r1 = await limiter.checkLimit(config);
+  const r2 = await limiter.checkLimit(config);
+  const r3 = await limiter.checkLimit(config);
   assert(r1.allowed && r2.allowed && !r3.allowed, 'Rate limiter did not block on third request');
 }
 
