@@ -1,6 +1,6 @@
 {
   "name": "@sonate/persistence",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "PostgreSQL persistence layer for SONATE",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
