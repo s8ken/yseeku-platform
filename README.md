@@ -5,6 +5,32 @@
 ## Executive Summary
 Yseeku’s SONATE platform is a comprehensive enterprise AI governance framework that provides constitutional AI with real-time trust monitoring, research validation, and production orchestration. Built on the SYMBI constitutional framework, SONATE offers enterprises a complete solution for deploying AI systems with provable trust, compliance, and operational control.
 
+## 📚 Quick Start
+
+### Enterprise Deployment Guide
+🚀 **[Enterprise Guide v1.4.0](docs/ENTERPRISE_GUIDE_v1.4.0.md)** - Complete enterprise deployment and operations guide
+
+### Latest Release
+✅ **[v1.4.0 "Enterprise Symphony"](https://github.com/s8ken/yseeku-platform/releases/tag/v1.4.0)** - Production-ready enterprise platform
+
+## 📚 Documentation & Guides
+
+### 🏢 Enterprise Documentation
+- **[Enterprise Guide v1.4.0](docs/ENTERPRISE_GUIDE_v1.4.0.md)** - Complete enterprise deployment and operations
+- **[Release Notes v1.4.0](docs/releases/RELEASE_NOTES_v1.4.0.md)** - Comprehensive release documentation
+- **[Enterprise Architecture](docs/architecture/ENTERPRISE_ARCHITECTURE.md)** - System design and architecture
+- **[Security Guide](docs/security/SECURITY_GUIDE.md)** - Security best practices and hardening
+
+### 🧠 Research Documentation  
+- **[Bedau Research Framework](docs/research/BEDAU_RESEARCH.md)** - AI emergence and consciousness research
+- **[Research Methodology](docs/research/RESEARCH_METHODOLOGY.md)** - Experimental design and validation
+
+### 🔌 API Documentation
+- **[Core API](packages/core/README.md)** - Core trust protocol APIs
+- **[Detection API](packages/detect/README.md)** - AI detection and emergence APIs  
+- **[Orchestration API](packages/orchestrate/README.md)** - Enterprise orchestration APIs
+- **[Research API](packages/lab/README.md)** - Research framework APIs
+
 ## Architecture Overview
 Modular Three-Pillar Design
 
