@@ -113,3 +113,13 @@ export {
   type RegressionReport,
   type BenchmarkSummary
 } from './performance-benchmarks';
+
+// Resonance Detection (LVS & R_m Integration)
+export {
+  ResonanceDetector,
+  detectResonance,
+  checkResonanceAlert,
+  type ResonanceAlert,
+  type ResonanceMonitoringConfig,
+  type ResonanceHistory
+} from './resonance-detector';

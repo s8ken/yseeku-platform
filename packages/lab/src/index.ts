@@ -133,3 +133,16 @@ export interface StatisticalAnalysis {
   effect_size: number;
   significant: boolean;
 }
+
+// LVS Experiment Framework
+export {
+  LVSExperimentOrchestrator,
+  createDefaultLVSExperiment,
+  type LVSExperimentConfig,
+  type LVSVariant,
+  type LVSTestCase,
+  type LVSExperimentResult,
+  type LVSVariantResult,
+  type LVSTestCaseResult,
+  type LVSStatisticalAnalysis
+} from './lvs-experiment';

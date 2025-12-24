@@ -71,3 +71,8 @@ export interface CIQMetrics {
   integrity: number;  // 0-1: Reasoning transparency
   quality: number;    // 0-1: Overall value
 }
+
+// Linguistic Vector Steering (LVS) and Resonance Metric (R_m)
+export * from './resonance-metric';
+export * from './linguistic-vector-steering';
+export * from './trust-protocol-enhanced';
