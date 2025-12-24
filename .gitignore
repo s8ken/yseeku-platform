@@ -1,14 +1,83 @@
+# Dependencies
 node_modules/
+package-lock.json
+
+# Build outputs
 dist/
+build/
 .turbo/
+.next/
+out/
+*.tsbuildinfo
+
+# Environment variables
 .env
 .env.local
+.env.*.local
+.env.production
+.env.development
+
+# Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Testing
 coverage/
+.nyc_output/
+*.lcov
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Archives and temporary files
 Archives/
-apps/**/.next/
-**/tsconfig.tsbuildinfo
-**/__pycache__/
-**/*.pyc
+_archived/
+*.tmp
+*.temp
+temp.js
+temp.py
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Vercel
+.vercel
+
+# Turbo
+.turbo
+
+# Local development
+.roo/
+.trae/
+
+# Test files (if not needed in repo)
+archive_tester.py
+verify_fixes.py
+
+# Demo files (consider if these should be in examples/)
+demo.html
+comprehensive-demo.html
+
+# Duplicate Python files (if already in packages/)
+symbi_resonance_calculator.py

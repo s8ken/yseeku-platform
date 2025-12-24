@@ -327,6 +327,31 @@ cd packages/lab && npm publish --access public
 cd packages/orchestrate && npm publish --access public
 ```
 
+## 📚 Documentation
+
+### Getting Started
+- [Main README](README.md) - You are here
+- [Contributing Guide](CONTRIBUTING.md) - How to contribute
+- [Changelog](CHANGELOG.md) - Version history
+
+### Architecture & Design
+- [Enterprise Architecture](docs/architecture/ENTERPRISE_ARCHITECTURE.md) - Complete system design (500+ lines)
+- [Enhanced Documentation](docs/README_ENHANCED.md) - Detailed platform documentation
+
+### Release Information
+- [v1.2.0 Release Notes](docs/releases/RELEASE_NOTES_v1.2.md) - Latest release details
+- [v1.2.0 Release Summary](docs/releases/V1.2_RELEASE_SUMMARY.md) - Complete release summary
+- [GitHub Release](https://github.com/s8ken/yseeku-platform/releases/tag/v1.2.0) - Official v1.2.0 release
+
+### Examples & Demos
+- [Basic Demo](examples/demos/demo.html) - Simple demonstration
+- [Comprehensive Demo](examples/demos/comprehensive-demo.html) - Full feature showcase
+
+### Additional Resources
+- [Analysis Reports](docs/analysis/) - Platform analysis and comparisons
+- [Validation](VALIDATION.md) - Validation documentation
+- [Archived Documentation](docs/archive/) - Historical documentation
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md)
@@ -340,4 +365,4 @@ MIT
 ### Terminology Consistency
 - SONATE’s trust protocol is defined across 6 SYMBI principles; references to other article counts are historical and will be harmonized to these 6 principles throughout documentation.
 
-**SONATE** by YSEEKU - Enterprise AI You Can Trust
+**SONATE v1.2.0** by YSEEKU - The Definitive SYMBI Framework Platform
