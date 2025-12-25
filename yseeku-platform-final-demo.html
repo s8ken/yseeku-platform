@@ -1521,7 +1521,25 @@
       }
 
       // Load page content
-      document.getElementById('page-content').innerHTML = pages[page]();
+      const contentDiv = document.getElementById('page-content');
+      if (!contentDiv) {
+        console.error('page-content div not found!');
+        return;
+      }
+      
+      if (!pages[page]) {
+        console.error('Page not found:', page, 'Available pages:', Object.keys(pages));
+        contentDiv.innerHTML = '<div class="p-8"><h1 class="text-2xl font-bold text-red-600">Error: Page not found</h1></div>';
+        return;
+      }
+      
+      try {
+        contentDiv.innerHTML = pages[page]();
+        console.log('Content loaded successfully for:', page);
+      } catch (error) {
+        console.error('Error rendering page:', error);
+        contentDiv.innerHTML = '<div class="p-8"><h1 class="text-2xl font-bold text-red-600">Error rendering page</h1><pre>' + error.message + '</pre></div>';
+      }
       
       // Initialize charts if dashboard
       if (page === 'dashboard') {
@@ -1956,10 +1974,15 @@
       if (overviewEl) {
         overviewEl.style.maxHeight = overviewEl.scrollHeight + 'px';
       }
+      console.log('DOM loaded, calling showPage(overview)');
       showPage('overview');
+      console.log('showPage(overview) completed');
       
       // Start with normal scenario
-      dataEngine.setScenario('normal');
+      if (dataEngine) {
+        console.log('Starting normal scenario');
+        dataEngine.setScenario('normal');
+      }
     });
   </script>
 </body>
