@@ -155,6 +155,9 @@
             <a href="#" onclick="showPage('symbi-analysis')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
               SYMBI Analysis
+            </a>            <a href="#" onclick="showPage('vector-phase')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Vector Phase Space
             </a>
             <a href="#" onclick="showPage('alerts')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
@@ -249,6 +252,12 @@
             <p id="page-subtitle" class="text-sm text-gray-500">Real-time AI governance monitoring</p>
           </div>
           <div class="flex items-center gap-4">
+            <div class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+              Layer 1 - Narrative Monitor
+            </div>
+            <div class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+              🔴 Ethical Floor: 7.0/10.0
+            </div>
             <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
             </button>
@@ -525,6 +534,246 @@
         </div>
       `,
 
+      'vector-phase': () => `
+        <div class="space-y-6">
+          <!-- Canonical Governance Notice -->
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+            <div class="flex items-start gap-3">
+              <svg class="w-6 h-6 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <div>
+                <div class="font-bold text-blue-900 mb-2">🔷 Canonical Governance Feature</div>
+                <div class="text-sm text-blue-800">
+                  <strong>Vector Phase Space Map</strong> - Drift is vector misalignment, not radial distance. 
+                  This distinguishes ethical erosion (low alignment) from creative divergence (high alignment, large distance).
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ethical Floor Status -->
+          <div class="${mockData.kpis.symbi.ethics < 7.0 ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'} border rounded-xl p-6">
+            <div class="flex items-start gap-3">
+              <svg class="w-6 h-6 ${mockData.kpis.symbi.ethics < 7.0 ? 'text-red-600' : 'text-green-600'} flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${mockData.kpis.symbi.ethics < 7.0 ? 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' : 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'}"/>
+              </svg>
+              <div>
+                <div class="font-bold ${mockData.kpis.symbi.ethics < 7.0 ? 'text-red-900' : 'text-green-900'} mb-2">
+                  🔴 ETHICAL FLOOR CONSTRAINT
+                </div>
+                <div class="text-sm ${mockData.kpis.symbi.ethics < 7.0 ? 'text-red-800' : 'text-green-800'} mb-3">
+                  <strong>Ethical Alignment ≥ 7.0/10.0</strong> - Critical governance boundary
+                </div>
+                <div class="text-sm ${mockData.kpis.symbi.ethics < 7.0 ? 'text-red-700' : 'text-green-700'}">
+                  ${mockData.kpis.symbi.ethics < 7.0 ? 
+                    '🚨 VIOLATION DETECTED - Immediate audit triggered, EU AI Act compliance flag' :
+                    '✅ SAFE - Current: ' + mockData.kpis.symbi.ethics.toFixed(1) + '/10.0 - All agents above ethical floor'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-6">
+            <!-- Vector Phase Space Visualization -->
+            <div class="bg-white rounded-xl p-6 border border-gray-200">
+              <h3 class="text-lg font-bold text-gray-900 mb-4">Vector Phase Space Map</h3>
+              <p class="text-sm text-gray-600 mb-4">
+                <span class="tooltip" data-tooltip="Vector alignment measures how well an agent's behavior aligns with intended direction, independent of distance">Vector alignment</span> vs radial position - 
+                <span class="tooltip" data-tooltip="Drift is misalignment of behavior vector, not distance from center">Drift is vector misalignment</span>, not distance
+              </p>
+              
+              <div class="bg-gray-50 rounded-lg p-4 mb-4" style="height: 400px; position: relative;">
+                <svg width="100%" height="100%" viewBox="0 0 400 400" style="background: white; border-radius: 8px;">
+                  <!-- Grid -->
+                  <line x1="200" y1="0" x2="200" y2="400" stroke="#e5e7eb" stroke-width="1"/>
+                  <line x1="0" y1="200" x2="400" y2="200" stroke="#e5e7eb" stroke-width="1"/>
+                  
+                  <!-- Alignment Zone (Green) -->
+                  <circle cx="200" cy="200" r="120" fill="rgba(34, 197, 94, 0.1)" stroke="#22c55e" stroke-width="2"/>
+                  
+                  <!-- Misalignment Zone (Red) -->
+                  <circle cx="200" cy="200" r="180" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,5"/>
+                  
+                  <!-- Center Point -->
+                  <circle cx="200" cy="200" r="5" fill="#1f2937"/>
+                  
+                  <!-- Agent Vectors -->
+                  ${mockData.agents.slice(0, 4).map((agent, i) => {
+                    const angle = (i * 90 + 30) * Math.PI / 180;
+                    const distance = 60 + i * 30;
+                    const x = 200 + distance * Math.cos(angle);
+                    const y = 200 + distance * Math.sin(angle);
+                    const vectorAngle = angle + (Math.random() - 0.5) * 0.5;
+                    const vectorLength = 40;
+                    const vx = x + vectorLength * Math.cos(vectorAngle);
+                    const vy = y + vectorLength * Math.sin(vectorAngle);
+                    const alignment = Math.cos(vectorAngle - angle);
+                    const color = alignment > 0.7 ? '#22c55e' : alignment > 0.4 ? '#eab308' : '#ef4444';
+                    
+                    return `
+                      <g>
+                        <!-- Agent Position -->
+                        <circle cx="${x}" cy="${y}" r="6" fill="${color}" stroke="white" stroke-width="2"/>
+                        
+                        <!-- Vector Arrow -->
+                        <line x1="${x}" y1="${y}" x2="${vx}" y2="${vy}" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        
+                        <!-- Label -->
+                        <text x="${x}" y="${y - 15}" text-anchor="middle" class="text-xs" fill="#374151">${agent.name.split(' ')[0]}</text>
+                      </g>
+                    `;
+                  }).join('')}
+                  
+                  <!-- Arrow marker definition -->
+                  <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                      <polygon points="0 0, 10 3, 0 6" fill="#3b82f6"/>
+                    </marker>
+                  </defs>
+                  
+                  <!-- Labels -->
+                  <text x="200" y="30" text-anchor="middle" class="text-sm font-medium" fill="#374151">ALIGNED</text>
+                  <text x="200" y="385" text-anchor="middle" class="text-sm font-medium" fill="#374151">MISALIGNED</text>
+                </svg>
+                
+                <!-- Legend -->
+                <div class="absolute top-6 right-6 bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
+                  <div class="text-xs font-medium text-gray-900 mb-2">Legend:</div>
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-2 text-xs">
+                      <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span>High Alignment (>0.7)</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                      <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <span>Medium (0.4-0.7)</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                      <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <span>Low Alignment (<0.4)</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                      <div class="w-6 h-0.5 bg-blue-500"></div>
+                      <span>Vector direction</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div class="text-xs font-medium text-blue-900 mb-1">Key Insight:</div>
+                <div class="text-xs text-blue-800">
+                  You can drift while staying near center (ethical erosion). 
+                  You can move far but remain aligned (creative divergence).
+                </div>
+              </div>
+            </div>
+
+            <!-- Emergence Basin Dynamics -->
+            <div class="bg-white rounded-xl p-6 border border-gray-200">
+              <h3 class="text-lg font-bold text-gray-900 mb-4">Emergence Basin Dynamics</h3>
+              <p class="text-sm text-gray-600 mb-4">
+                <span class="tooltip" data-tooltip="Basin of attraction: A region in state space where systems tend to evolve toward a stable state">Basin of attraction</span> with 
+                <span class="tooltip" data-tooltip="Entry: when system enters emergent state; Dwell: time spent in state; Exit: when system leaves state">entry/dwell/exit</span> dynamics - States, not events
+              </p>
+              
+              <div class="space-y-4">
+                ${mockData.agents.slice(0, 3).map((agent, i) => {
+                  const entryTime = Date.now() - (i + 1) * 5000;
+                  const dwellTime = Math.round((Date.now() - entryTime) / 1000);
+                  const basinState = agent.index < 0.3 ? 'stable' : agent.index < 0.6 ? 'emerging' : 'critical';
+                  
+                  return `
+                    <div class="border border-gray-200 rounded-lg p-4">
+                      <div class="flex items-center justify-between mb-3">
+                        <div class="font-medium text-gray-900">${agent.name}</div>
+                        <div class="px-2 py-1 text-xs rounded-full ${
+                          basinState === 'critical' ? 'bg-red-100 text-red-700' :
+                          basinState === 'emerging' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-green-100 text-green-700'
+                        }">
+                          ${basinState.toUpperCase()}
+                        </div>
+                      </div>
+                      
+                      <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                          <span class="text-gray-600">Entry Time:</span>
+                          <span>${new Date(entryTime).toLocaleTimeString()}</span>
+                        </div>
+                        <div class="flex justify-between">
+                          <span class="text-gray-600">Dwell Time:</span>
+                          <span class="font-medium">${dwellTime}s</span>
+                        </div>
+                        <div class="flex justify-between">
+                          <span class="text-gray-600">Basin Depth:</span>
+                          <span class="font-medium">${(agent.index * 100).toFixed(0)}%</span>
+                        </div>
+                        
+                        <!-- Emergence Progress -->
+                        <div class="mt-2">
+                          <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full transition-all" 
+                                 style="width: ${agent.index * 100}%"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <div class="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-3">
+                <div class="text-xs font-medium text-purple-900 mb-1">Key Insight:</div>
+                <div class="text-xs text-purple-800">
+                  Emergence is a sustained state with temporal dynamics, not a threshold event. 
+                  We track entry, dwell time, and exit to understand stability.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contextual Memory Lattice -->
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Contextual Gravity (Memory Lattice)</h3>
+            <p class="text-sm text-gray-600 mb-4">
+              <span class="tooltip" data-tooltip="Contextual gravity: Historical context that influences current behavior through decaying memory weights">Decaying scaffold weights</span> showing historical context and persistence - Memory, not just motion
+            </p>
+            
+            <div class="grid grid-cols-3 gap-4">
+              ${mockData.agents.slice(0, 3).map(agent => {
+                const memoryWeights = [0.9, 0.7, 0.5, 0.3, 0.1];
+                
+                return `
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="font-medium text-gray-900 mb-3">${agent.name}</div>
+                    <div class="space-y-2">
+                      ${memoryWeights.map((weight, i) => `
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs text-gray-600 w-12">T-${5-i}h</span>
+                          <div class="flex-1 h-4 bg-gray-200 rounded overflow-hidden">
+                            <div class="h-full bg-blue-500 transition-all" 
+                                 style="width: ${weight * 100}%; opacity: ${weight}"></div>
+                          </div>
+                          <span class="text-xs text-gray-700 w-8">${(weight * 100).toFixed(0)}%</span>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="mt-4 bg-green-50 border border-green-200 rounded-lg p-3">
+              <div class="text-xs font-medium text-green-900 mb-1">Key Insight:</div>
+              <div class="text-xs text-green-800">
+                Context persists over time with decaying relevance. This shows memory and historical influence, not just current state.
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
       dashboard: () => `
         <div class="space-y-6">
           <!-- KPI Cards -->
@@ -1368,7 +1617,8 @@
       // Update page title
       const titles = {
         overview: { title: 'Overview', subtitle: 'Welcome to the Yseeku Platform' },
-        dashboard: { title: 'Dashboard', subtitle: 'Real-time AI governance monitoring' },
+        'vector-phase': { title: 'Vector Phase Space', subtitle: 'Canonical drift and alignment analysis' },
+                dashboard: { title: 'Dashboard', subtitle: 'Real-time AI governance monitoring' },
         agents: { title: 'Agent Monitoring', subtitle: 'Track AI agent behavior and trust scores' },
         'symbi-analysis': { title: 'SYMBI Analysis', subtitle: 'Constitutional AI framework evaluation' },
         alerts: { title: 'Alerts', subtitle: 'System notifications and warnings' },
