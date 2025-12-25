@@ -34,7 +34,7 @@ interface BedauMetric {
     irreducibility: number;
     downwardCausation: number;
   };
-  classification: 'nominal' | 'weak' | 'strong' | 'critical';
+  classification: 'nominal' | 'weak' | 'moderate_weak' | 'high_weak' | 'investigating_strong';
 }
 
 interface HistoricalDataPoint {
@@ -63,7 +63,7 @@ const mockMetrics: BedauMetric[] = [
     bedauIndex: 0.68,
     trend: 'increasing',
     components: { novelty: 0.72, unpredictability: 0.65, irreducibility: 0.58, downwardCausation: 0.77 },
-    classification: 'strong'
+    classification: 'high_weak'
   },
   {
     id: 'metric-003',
@@ -83,7 +83,7 @@ const mockMetrics: BedauMetric[] = [
     bedauIndex: 0.84,
     trend: 'increasing',
     components: { novelty: 0.89, unpredictability: 0.81, irreducibility: 0.78, downwardCausation: 0.88 },
-    classification: 'critical'
+    classification: 'investigating_strong'
   }
 ];
 

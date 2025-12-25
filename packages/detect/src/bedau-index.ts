@@ -12,11 +12,28 @@
 
 export interface BedauMetrics {
   bedau_index: number;           // 0-1: Weak emergence strength
-  emergence_type: 'LINEAR' | 'WEAK_EMERGENCE';
+  emergence_type: 'LINEAR' | 'WEAK_EMERGENCE' | 'POTENTIAL_STRONG_EMERGENCE';
   kolmogorov_complexity: number; // Approximation of irreducibility
   semantic_entropy: number;      // Cognitive diversity measure
   confidence_interval: [number, number]; // Bootstrap CI
   effect_size: number;          // Cohen's d for emergence significance
+  strong_emergence_indicators?: StrongEmergenceIndicators; // For future strong emergence detection
+}
+
+/**
+ * Strong Emergence Indicators
+ * 
+ * Strong emergence is characterized by unpredictable collective behavior
+ * that cannot be reduced to component interactions, even with complete
+ * knowledge of the system. This is distinct from weak emergence measured
+ * by the Bedau Index.
+ */
+export interface StrongEmergenceIndicators {
+  irreducibility_proof: boolean;      // Cannot be predicted from components
+  downward_causation: boolean;        // Higher level affects lower level
+  novel_causal_powers: boolean;       // New causal capabilities emerge
+  unpredictability_verified: boolean; // Verified through testing
+  collective_behavior_score: number;  // 0-1: Degree of collective behavior
 }
 
 export interface SemanticIntent {
@@ -177,17 +194,29 @@ export class BedauIndexCalculator {
 
   /**
    * Analyze emergence type and calculate effect size
+   * 
+   * Note: This method detects WEAK EMERGENCE only. Strong emergence
+   * (unpredictable collective behavior) requires additional verification
+   * beyond the Bedau Index calculation.
    */
   private analyzeEmergenceType(
     divergence: number,
     complexity: number,
     entropy: number
-  ): { type: 'LINEAR' | 'WEAK_EMERGENCE', effectSize: number } {
+  ): { type: 'LINEAR' | 'WEAK_EMERGENCE' | 'POTENTIAL_STRONG_EMERGENCE', effectSize: number } {
     // Calculate composite emergence score
     const emergenceScore = (divergence + complexity + entropy) / 3;
     
-    // Determine emergence type
-    const type = emergenceScore > this.EMERGENCE_THRESHOLD ? 'WEAK_EMERGENCE' : 'LINEAR';
+    // Determine emergence type (weak emergence levels)
+    let type: 'LINEAR' | 'WEAK_EMERGENCE' | 'POTENTIAL_STRONG_EMERGENCE';
+    if (emergenceScore > 0.7) {
+      // High weak emergence - may warrant investigation for strong emergence
+      type = 'POTENTIAL_STRONG_EMERGENCE';
+    } else if (emergenceScore > this.EMERGENCE_THRESHOLD) {
+      type = 'WEAK_EMERGENCE';
+    } else {
+      type = 'LINEAR';
+    }
     
     // Calculate effect size (Cohen's d)
     const effectSize = emergenceScore / this.EMERGENCE_THRESHOLD;
