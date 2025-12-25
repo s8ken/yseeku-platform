@@ -172,7 +172,7 @@ export function Dashboard() {
                       <div className="flex-1">
                         <p className="text-sm font-medium">{alert.title}</p>
                         <p className="text-xs text-gray-600">{alert.description}</p>
-                        <p className="text-xs text-gray-400">{new Date(alert.timestamp).toLocaleString()}</p>
+                        <p className="text-xs text-gray-400">{new Date(alert.timestamp).toLocaleString('en-US')}</p>
                       </div>
                     </div>
                   ))}

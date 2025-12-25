@@ -18,6 +18,7 @@ import {
   FileText,
   Download
 } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 
 // Mock data for trust score visualization
 const trustPrinciples = [
@@ -69,6 +70,7 @@ function TrustScoreVisualization({ principles, overallScore }: { principles: typ
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <span className="font-medium">{principle.name}</span>
+                <InfoTooltip term={principle.name} />
                 {principle.critical && (
                   <Badge variant="destructive" className="text-xs">Critical</Badge>
                 )}
@@ -130,8 +132,8 @@ function ComplianceReports({ reports }: { reports: typeof complianceReports }) {
                 {getStatusIcon(report.status)}
                 <div>
                   <h4 className="font-medium">{report.title}</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Last checked: {new Date(report.lastChecked).toLocaleDateString()}
+                  <p className="text-sm text-muted-foreground" suppressHydrationWarning>
+                    Last checked: {new Date(report.lastChecked).toLocaleDateString('en-US')}
                   </p>
                 </div>
               </div>
@@ -173,8 +175,8 @@ function RiskAlerts({ alerts }: { alerts: typeof riskAlerts }) {
               <div className="flex-1">
                 <h4 className="font-medium">{alert.title}</h4>
                 <p className="text-sm text-muted-foreground mb-2">{alert.description}</p>
-                <p className="text-xs text-gray-500">
-                  {new Date(alert.timestamp).toLocaleString()}
+                <p className="text-xs text-gray-500" suppressHydrationWarning>
+                  {new Date(alert.timestamp).toLocaleString('en-US')}
                 </p>
               </div>
               <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'}>
@@ -199,22 +201,20 @@ export default function RiskManagementPage() {
     }
   }, []);
 
-  const { data: riskMetrics, isLoading } = useQuery({
+  const { data: riskMetrics } = useQuery({
     queryKey: ['risk-metrics', tenant],
     queryFn: async () => {
       const response = await fetch(`/api/dashboard/risk?tenant=${tenant}`);
       if (!response.ok) throw new Error('Failed to fetch risk metrics');
       return response.json() as Promise<{ success: boolean; data: RiskMetrics }>;
     },
+    retry: false,
+    staleTime: Infinity,
   });
 
   const overallTrustScore = trustPrinciples.reduce((acc, principle) => {
     return acc + (principle.score * principle.weight / 100);
   }, 0);
-
-  if (isLoading) {
-    return <div className="flex justify-center items-center min-h-screen" role="status">Loading...</div>;
-  }
 
   const metrics = riskMetrics?.data || {
     overallRiskScore: 15,
@@ -228,7 +228,10 @@ export default function RiskManagementPage() {
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Risk Management</h2>
+        <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          Risk Management
+          <InfoTooltip term="Drift" />
+        </h2>
       </div>
 
       {/* Key Metrics */}
@@ -248,7 +251,10 @@ export default function RiskManagementPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Trust Score</CardTitle>
+            <CardTitle className="text-sm font-medium flex items-center gap-1">
+              Trust Score
+              <InfoTooltip term="Trust Score" />
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

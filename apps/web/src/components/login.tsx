@@ -18,6 +18,8 @@ interface LoginResponse {
     };
     tenant: string;
   };
+  token: string;
+  refresh: string;
 }
 
 export function Login() {
@@ -33,6 +35,7 @@ export function Login() {
           'Content-Type': 'application/json',
           'x-tenant-id': data.tenant,
         },
+        credentials: 'include',
         body: JSON.stringify({
           username: data.username,
           password: data.password,
@@ -46,7 +49,9 @@ export function Login() {
       return response.json() as Promise<LoginResponse>;
     },
     onSuccess: (data) => {
-      // Tokens are stored in httpOnly cookies, user info can be fetched from API if needed
+      // Store token in localStorage for client-side auth
+      localStorage.setItem('session_token', data.token);
+      localStorage.setItem('refresh_token', data.refresh);
       // Redirect to dashboard
       window.location.href = '/dashboard';
     },

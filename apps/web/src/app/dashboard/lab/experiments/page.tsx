@@ -18,6 +18,7 @@ import {
   Plus,
   TrendingUp
 } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 
 interface Experiment {
   id: string;
@@ -140,21 +141,31 @@ export default function LabPage() {
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Significant Results</CardTitle>
+            <CardTitle className="text-sm font-medium flex items-center gap-1">
+              Significant Results
+              <InfoTooltip term="Statistical Significance" />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-emerald-500">2</div>
-            <p className="text-xs text-muted-foreground mt-1">p &lt; 0.05</p>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              p &lt; 0.05 <InfoTooltip term="p-value" />
+            </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Avg Effect Size</CardTitle>
+            <CardTitle className="text-sm font-medium flex items-center gap-1">
+              Avg Effect Size
+              <InfoTooltip term="Effect Size" />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">0.42</div>
-            <p className="text-xs text-muted-foreground mt-1">Cohen's d</p>
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+              Cohen's d <InfoTooltip term="Cohen's d" />
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -270,7 +281,7 @@ export default function LabPage() {
                 </div>
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" />
-                  Started: {new Date(exp.startedAt).toLocaleDateString('en-US')}
+                  Started: <span suppressHydrationWarning>{new Date(exp.startedAt).toLocaleDateString('en-US')}</span>
                 </span>
               </div>
             </CardContent>
