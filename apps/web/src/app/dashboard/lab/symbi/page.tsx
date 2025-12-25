@@ -15,6 +15,7 @@ import {
   Zap,
   BarChart3
 } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 
 interface SymbiScores {
   realityIndex: number;
@@ -159,7 +160,10 @@ export default function SymbiPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">SYMBI Framework Analysis</h1>
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            SYMBI Framework Analysis
+            <InfoTooltip term="SYMBI" />
+          </h1>
           <p className="text-muted-foreground">5-Dimension AI interaction scoring</p>
         </div>
         <span className="module-badge badge-lab">LAB</span>

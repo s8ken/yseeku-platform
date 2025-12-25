@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Replit-specific configuration for iframe compatibility
+  ...(process.env.REPLIT === 'true' && {
+    allowedDevOrigins: [
+      '*.worf.replit.dev',
+      '*.replit.dev',
+    ],
+  }),
   typescript: {
     ignoreBuildErrors: true,
   },

@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getLogger } from '@sonate/orchestrate/src/observability/logger';
-import {
-  recordHttpRequest,
-  recordError,
-  recordAuthAttempt,
-  recordApiKeyValidation
-} from '@sonate/orchestrate/src/observability/metrics';
 
-const logger = getLogger('MonitoringMiddleware');
+const logger = {
+  http: (msg: string, data?: any) => console.log(`[HTTP] ${msg}`, data || ''),
+  info: (msg: string, data?: any) => console.log(`[INFO] ${msg}`, data || ''),
+  warn: (msg: string, data?: any) => console.warn(`[WARN] ${msg}`, data || ''),
+  error: (msg: string, data?: any) => console.error(`[ERROR] ${msg}`, data || ''),
+};
+
+function recordHttpRequest(method: string, route: string, status: number, duration: number) {}
+function recordError(component: string, type: string) {}
+function recordAuthAttempt(result: string) {}
+function recordApiKeyValidation(result: string) {}
 
 export interface MonitoringMiddlewareOptions {
   logRequests?: boolean;

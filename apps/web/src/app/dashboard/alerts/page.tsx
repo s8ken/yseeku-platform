@@ -289,7 +289,7 @@ export default function AlertsManagementPage() {
                           {alert.description}
                         </p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                          <span>{new Date(alert.timestamp).toLocaleString()}</span>
+                          <span>{new Date(alert.timestamp).toLocaleString('en-US')}</span>
                           {alert.acknowledgedBy && (
                             <span>
                               <User className="inline h-3 w-3 mr-1" />

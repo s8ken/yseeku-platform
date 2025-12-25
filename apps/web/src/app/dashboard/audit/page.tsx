@@ -145,7 +145,7 @@ export default function AuditTrailsPage() {
                   <SelectValue placeholder="All severities" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All severities</SelectItem>
+                  <SelectItem value="all">All severities</SelectItem>
                   <SelectItem value="info">Info</SelectItem>
                   <SelectItem value="warning">Warning</SelectItem>
                   <SelectItem value="error">Error</SelectItem>
@@ -161,7 +161,7 @@ export default function AuditTrailsPage() {
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All types</SelectItem>
+                  <SelectItem value="all">All types</SelectItem>
                   <SelectItem value="agent">Agent</SelectItem>
                   <SelectItem value="experiment">Experiment</SelectItem>
                   <SelectItem value="tenant">Tenant</SelectItem>
@@ -240,7 +240,7 @@ export default function AuditTrailsPage() {
                 {logs.map((log) => (
                   <TableRow key={log.id}>
                     <TableCell className="font-mono text-xs">
-                      {new Date(log.timestamp).toLocaleString()}
+                      {new Date(log.timestamp).toLocaleString('en-US')}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

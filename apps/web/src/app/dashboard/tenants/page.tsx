@@ -353,8 +353,8 @@ export default function TenantManagementPage() {
                         <span className="capitalize">{tenant.complianceStatus}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm">
-                      {new Date(tenant.lastActivity).toLocaleDateString()}
+                    <TableCell className="text-sm" suppressHydrationWarning>
+                      {new Date(tenant.lastActivity).toLocaleDateString('en-US')}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
