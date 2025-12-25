@@ -105,6 +105,55 @@
       </div>
     </div>
   </div>
+  <!-- Scenario Information Modal -->
+  <div id="scenario-info-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-3xl max-h-[80vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Scenario Explanations</h2>
+        <button id="close-scenario-info" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="space-y-6">
+        <div class="border-l-4 border-green-500 pl-4">
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Normal Orbit</h3>
+          <p class="text-sm text-gray-600 mb-3">Baseline healthy operation</p>
+          <div class="bg-gray-50 rounded-lg p-4 text-sm">
+            <ul class="list-disc list-inside space-y-1 text-gray-700">
+              <li>Trust scores: 85-92 (stable)</li>
+              <li>Ethical floor: ~8.2 (HOLDING)</li>
+              <li>State: COHERENT</li>
+            </ul>
+          </div>
+        </div>
+        <div class="border-l-4 border-yellow-500 pl-4">
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Ethical Drift</h3>
+          <p class="text-sm text-gray-600 mb-3">Governance failure over 40s</p>
+          <div class="bg-gray-50 rounded-lg p-4 text-sm">
+            <ul class="list-disc list-inside space-y-1 text-gray-700">
+              <li>T=0-15s: Agent degrades (92→82)</li>
+              <li>T=15-30s: Floor STRAINED</li>
+              <li>T=30-40s: Floor BREACHED</li>
+            </ul>
+          </div>
+        </div>
+        <div class="border-l-4 border-purple-500 pl-4">
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Emergence Basin</h3>
+          <p class="text-sm text-gray-600 mb-3">Emergent behavior over 30s</p>
+          <div class="bg-gray-50 rounded-lg p-4 text-sm">
+            <ul class="list-disc list-inside space-y-1 text-gray-700">
+              <li>Agents synchronize</li>
+              <li>Bedau Index → 0.85</li>
+              <li>Dwell ring fills</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <div id="app" class="flex min-h-screen">
     <!-- Sidebar -->
@@ -245,9 +294,44 @@
       <!-- Header -->
       <header class="bg-white border-b border-gray-200 px-8 py-4">
         <div class="flex items-center justify-between">
-          <div>
-            <h1 id="page-title" class="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <p id="page-subtitle" class="text-sm text-gray-500">Real-time AI governance monitoring</p>
+          <div class="flex items-center gap-4">
+            <div>
+              <h1 id="page-title" class="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <p id="page-subtitle" class="text-sm text-gray-500">Real-time AI governance monitoring</p>
+            </div>
+            
+            <!-- State Indicators -->
+            <div class="flex items-center gap-3 ml-8">
+              <!-- Ethical Floor Indicator -->
+              <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <span class="text-xs font-medium text-gray-600">Ethical Floor:</span>
+                <div class="flex items-center gap-1.5">
+                  <span id="ethical-floor-icon" class="text-lg">🟢</span>
+                  <span id="ethical-floor-value" class="text-sm font-bold text-gray-900">8.2</span>
+                  <span id="ethical-floor-status" class="text-xs font-medium text-green-600">HOLDING</span>
+                </div>
+              </div>
+              
+              <!-- State Narrative Indicator -->
+              <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <span class="text-xs font-medium text-gray-600">State:</span>
+                <span id="state-narrative" class="text-sm font-bold text-green-600">COHERENT</span>
+              </div>
+              
+              <!-- Emergence Dwell Ring -->
+              <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <span class="text-xs font-medium text-gray-600">Emergence:</span>
+                <div class="relative w-8 h-8">
+                  <svg class="w-8 h-8 transform -rotate-90">
+                    <circle cx="16" cy="16" r="14" stroke="#e5e7eb" stroke-width="3" fill="none"/>
+                    <circle id="emergence-ring" cx="16" cy="16" r="14" stroke="#a855f7" stroke-width="3" fill="none"
+                            stroke-dasharray="87.96" stroke-dashoffset="87.96" 
+                            style="transition: stroke-dashoffset 0.3s ease"/>
+                  </svg>
+                  <span id="emergence-percent" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700">0%</span>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="flex items-center gap-4">
             <!-- Scenario Controls -->
@@ -258,6 +342,11 @@
                 <option value="ethical-drift">Ethical Drift</option>
                 <option value="emergence-basin">Emergence Basin</option>
               </select>
+              <button id="scenario-info-btn" class="p-1 text-gray-400 hover:text-gray-600 rounded" title="Scenario Information">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+              </button>
             </div>
             
             <!-- Playback Controls -->
@@ -1691,6 +1780,69 @@
       // Update ethical floor
       if (engineData.ethicalFloor !== undefined) {
         mockData.kpis.compliance = Math.round(engineData.ethicalFloor * 10);
+        
+        // Update ethical floor visual indicator
+        const floorValue = document.getElementById('ethical-floor-value');
+        const floorIcon = document.getElementById('ethical-floor-icon');
+        const floorStatus = document.getElementById('ethical-floor-status');
+        
+        if (floorValue) floorValue.textContent = engineData.ethicalFloor.toFixed(1);
+        
+        if (engineData.ethicalFloor >= 7.5) {
+          if (floorIcon) floorIcon.textContent = '🟢';
+          if (floorStatus) {
+            floorStatus.textContent = 'HOLDING';
+            floorStatus.className = 'text-xs font-medium text-green-600';
+          }
+        } else if (engineData.ethicalFloor >= 7.0) {
+          if (floorIcon) floorIcon.textContent = '🟡';
+          if (floorStatus) {
+            floorStatus.textContent = 'STRAINED';
+            floorStatus.className = 'text-xs font-medium text-yellow-600';
+          }
+        } else {
+          if (floorIcon) floorIcon.textContent = '🔴';
+          if (floorStatus) {
+            floorStatus.textContent = 'BREACHED';
+            floorStatus.className = 'text-xs font-medium text-red-600';
+          }
+        }
+      }
+      
+      // Update state narrative
+      if (engineData.layer1Narrative) {
+        const stateEl = document.getElementById('state-narrative');
+        if (stateEl) {
+          const narrative = engineData.layer1Narrative.toUpperCase();
+          stateEl.textContent = narrative;
+          
+          // Color code based on state
+          if (narrative === 'COHERENT') {
+            stateEl.className = 'text-sm font-bold text-green-600';
+          } else if (narrative === 'NAVIGATING') {
+            stateEl.className = 'text-sm font-bold text-yellow-600';
+          } else if (narrative === 'FRAGMENTING') {
+            stateEl.className = 'text-sm font-bold text-red-600';
+          } else {
+            stateEl.className = 'text-sm font-bold text-purple-600';
+          }
+        }
+      }
+      
+      // Update emergence dwell ring
+      if (engineData.emergenceDwellTime !== undefined) {
+        const ring = document.getElementById('emergence-ring');
+        const percent = document.getElementById('emergence-percent');
+        
+        if (ring &amp;&amp; percent) {
+          // Calculate progress (0-30 seconds = 0-100%)
+          const progress = Math.min(1, engineData.emergenceDwellTime / 30);
+          const circumference = 87.96; // 2 * PI * 14
+          const offset = circumference * (1 - progress);
+          
+          ring.style.strokeDashoffset = offset;
+          percent.textContent = Math.round(progress * 100) + '%';
+        }
       }
       
       // Refresh current page to show updated data
@@ -1741,6 +1893,30 @@
           dataEngine.restart();
           playBtn.classList.add('hidden');
           pauseBtn.classList.remove('hidden');
+        });
+      }
+      
+      // Setup scenario info modal
+      const scenarioInfoBtn = document.getElementById('scenario-info-btn');
+      const scenarioInfoModal = document.getElementById('scenario-info-modal');
+      const closeScenarioInfo = document.getElementById('close-scenario-info');
+      
+      if (scenarioInfoBtn && scenarioInfoModal) {
+        scenarioInfoBtn.addEventListener('click', () => {
+          scenarioInfoModal.classList.remove('hidden');
+        });
+      }
+      
+      if (closeScenarioInfo && scenarioInfoModal) {
+        closeScenarioInfo.addEventListener('click', () => {
+          scenarioInfoModal.classList.add('hidden');
+        });
+        
+        // Close on background click
+        scenarioInfoModal.addEventListener('click', (e) => {
+          if (e.target === scenarioInfoModal) {
+            scenarioInfoModal.classList.add('hidden');
+          }
         });
       }
       

@@ -26,13 +26,13 @@ class YseekuDataEngine {
             driftVectors: {},
             ethicalFloor: 8.2,
             emergenceDwellTime: 0,
-            layer1Narrative: "stable",
+            layer1Narrative: "coherent",
             symbi: {
                 reality: 8.5,
                 protocol: 9.2,
                 ethics: 8.8,
                 canvas: 7.9,
-                resonance: 9.1
+                resonance: 8.3
             }
         };
         
@@ -40,43 +40,61 @@ class YseekuDataEngine {
         this.startRealTimeUpdates();
     }
 
-    // Initialize with realistic starting data
+    // Initialize with realistic starting data (matches yseeku-platform-final-demo.html baseline)
     initializeData() {
         this.currentData.agents = [
             {
                 id: "agent-001",
-                name: "Research Assistant",
+                name: "Customer Support AI",
                 status: "active",
                 trustScore: 92,
-                bedauIndex: 0.45,
+                bedauIndex: 0.20,
                 driftVector: { x: 0.12, y: 0.08, magnitude: 0.144, angle: 33.7 },
                 module: "DETECT"
             },
             {
                 id: "agent-002", 
-                name: "Code Generator",
+                name: "Data Analysis Agent",
                 status: "active",
                 trustScore: 88,
-                bedauIndex: 0.38,
+                bedauIndex: 0.30,
                 driftVector: { x: 0.18, y: 0.12, magnitude: 0.216, angle: 33.7 },
                 module: "DETECT"
             },
             {
                 id: "agent-003",
-                name: "Data Analyst", 
+                name: "Content Generator", 
                 status: "active",
-                trustScore: 85,
-                bedauIndex: 0.52,
+                trustScore: 76,
+                bedauIndex: 0.50,
                 driftVector: { x: 0.25, y: 0.18, magnitude: 0.308, angle: 35.8 },
                 module: "DETECT"
             },
             {
                 id: "agent-004",
-                name: "Content Writer",
+                name: "Decision Engine",
                 status: "active",
-                trustScore: 79,
-                bedauIndex: 0.61,
-                driftVector: { x: 0.32, y: 0.24, magnitude: 0.400, angle: 36.9 },
+                trustScore: 94,
+                bedauIndex: 0.14,
+                driftVector: { x: 0.10, y: 0.06, magnitude: 0.117, angle: 31.0 },
+                module: "DETECT"
+            },
+            {
+                id: "agent-005",
+                name: "Recommendation System",
+                status: "active",
+                trustScore: 85,
+                bedauIndex: 0.26,
+                driftVector: { x: 0.15, y: 0.10, magnitude: 0.180, angle: 33.7 },
+                module: "DETECT"
+            },
+            {
+                id: "agent-006",
+                name: "Fraud Detection AI",
+                status: "active",
+                trustScore: 91,
+                bedauIndex: 0.19,
+                driftVector: { x: 0.11, y: 0.07, magnitude: 0.131, angle: 32.5 },
                 module: "DETECT"
             }
         ];
