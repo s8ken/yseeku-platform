@@ -6,6 +6,7 @@
   <title>Yseeku Platform (SONATE) - Enterprise AI Governance & Trust Framework</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="yseeku-data-engine.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -249,6 +250,30 @@
             <p id="page-subtitle" class="text-sm text-gray-500">Real-time AI governance monitoring</p>
           </div>
           <div class="flex items-center gap-4">
+            <!-- Scenario Controls -->
+            <div class="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+              <span class="text-xs font-medium text-gray-600">Scenario:</span>
+              <select id="scenario-selector" class="text-sm font-medium text-gray-900 bg-transparent border-none focus:outline-none cursor-pointer">
+                <option value="normal">Normal Orbit</option>
+                <option value="ethical-drift">Ethical Drift</option>
+                <option value="emergence-basin">Emergence Basin</option>
+              </select>
+            </div>
+            
+            <!-- Playback Controls -->
+            <div class="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg border border-gray-200">
+              <button id="play-btn" class="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded" title="Play">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              </button>
+              <button id="pause-btn" class="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded hidden" title="Pause">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
+              </button>
+              <button id="restart-btn" class="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded" title="Restart">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+              </button>
+              <span id="scenario-time" class="text-xs font-mono text-gray-600 ml-2">0:00</span>
+            </div>
+            
             <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
             </button>
@@ -1402,10 +1427,28 @@
       }
     }
 
+    // Chart instances for cleanup
+    let chartInstances = {};
+
+    // Cleanup existing chart instances to prevent conflicts
+    function cleanupCharts() {
+      Object.values(chartInstances).forEach(chart => {
+        if (chart) chart.destroy();
+      });
+      chartInstances = {};
+    }
+
     function initCharts() {
+      // Cleanup any existing charts first
+      cleanupCharts();
+      
       // SYMBI Radar Chart
       const symbiCtx = document.getElementById('symbiChart');
       if (symbiCtx) {
+        // Set explicit canvas dimensions to prevent layout issues
+        symbiCtx.style.height = '250px';
+        symbiCtx.style.width = '100%';
+        
         new Chart(symbiCtx, {
           type: 'radar',
           data: {
@@ -1428,7 +1471,11 @@
       // Trust Distribution Chart
       const trustCtx = document.getElementById('trustChart');
       if (trustCtx) {
-        new Chart(trustCtx, {
+        // Set explicit canvas dimensions to prevent layout issues
+        trustCtx.style.height = '250px';
+        trustCtx.style.width = '100%';
+        
+        chartInstances.trustChart = new Chart(trustCtx, {
           type: 'bar',
           data: {
             labels: mockData.agents.map(a => a.name.split(' ')[0]),
@@ -1451,6 +1498,10 @@
     function initSymbiRadar() {
       const symbiCtx = document.getElementById('symbiRadarChart');
       if (symbiCtx) {
+        // Set explicit canvas dimensions to prevent layout issues
+        symbiCtx.style.height = '250px';
+        symbiCtx.style.width = '100%';
+        
         new Chart(symbiCtx, {
           type: 'radar',
           data: {
@@ -1593,15 +1644,122 @@
       document.getElementById('tour-popup').classList.remove('active');
     }
 
+    // Scenario Engine Integration
+    let dataEngine = null;
+    
+    // Listen for data updates from the engine
+    document.addEventListener('yseekuDataUpdate', (event) => {
+      const data = event.detail;
+      updateUIFromEngine(data);
+    });
+    
+    function updateUIFromEngine(engineData) {
+      // Update scenario time display
+      const timeEl = document.getElementById('scenario-time');
+      if (timeEl && engineData.scenarioTime !== undefined) {
+        const minutes = Math.floor(engineData.scenarioTime / 60);
+        const seconds = Math.floor(engineData.scenarioTime % 60);
+        timeEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+      
+      // Update mockData with engine data
+      if (engineData.agents) {
+        mockData.agents = engineData.agents.map((agent, i) => ({
+          id: i + 1,
+          name: agent.name,
+          trust: Math.round(agent.trustScore),
+          status: agent.trustScore >= 85 ? 'healthy' : agent.trustScore >= 70 ? 'warning' : 'alert',
+          novelty: Math.round(agent.bedauIndex * 100),
+          unpredictability: Math.round(agent.bedauIndex * 80),
+          irreducibility: Math.round(agent.bedauIndex * 90),
+          downwardCausation: Math.round(agent.bedauIndex * 70),
+          index: agent.bedauIndex
+        }));
+      }
+      
+      // Update SYMBI scores
+      if (engineData.symbi) {
+        mockData.kpis.symbi = {
+          reality: engineData.symbi.reality,
+          protocol: engineData.symbi.protocol,
+          ethics: engineData.symbi.ethics,
+          canvas: engineData.symbi.canvas,
+          resonance: engineData.symbi.resonance
+        };
+      }
+      
+      // Update ethical floor
+      if (engineData.ethicalFloor !== undefined) {
+        mockData.kpis.compliance = Math.round(engineData.ethicalFloor * 10);
+      }
+      
+      // Refresh current page to show updated data
+      const currentPage = document.querySelector('.sidebar-item.active')?.dataset.page || 'overview';
+      if (currentPage === 'dashboard') {
+        // Reinitialize charts with new data
+        setTimeout(initCharts, 100);
+      }
+    }
+    
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-      // Open all sections by default
+      // Get reference to data engine
+      dataEngine = window.yseekuDataEngine;
+      
+      // Setup scenario controls
+      const scenarioSelector = document.getElementById('scenario-selector');
+      const playBtn = document.getElementById('play-btn');
+      const pauseBtn = document.getElementById('pause-btn');
+      const restartBtn = document.getElementById('restart-btn');
+      
+      if (scenarioSelector) {
+        scenarioSelector.addEventListener('change', (e) => {
+          dataEngine.setScenario(e.target.value);
+          playBtn.classList.add('hidden');
+          pauseBtn.classList.remove('hidden');
+        });
+      }
+      
+      if (playBtn) {
+        playBtn.addEventListener('click', () => {
+          dataEngine.play();
+          playBtn.classList.add('hidden');
+          pauseBtn.classList.remove('hidden');
+        });
+      }
+      
+      if (pauseBtn) {
+        pauseBtn.addEventListener('click', () => {
+          dataEngine.pause();
+          pauseBtn.classList.add('hidden');
+          playBtn.classList.remove('hidden');
+        });
+      }
+      
+      if (restartBtn) {
+        restartBtn.addEventListener('click', () => {
+          dataEngine.restart();
+          playBtn.classList.add('hidden');
+          pauseBtn.classList.remove('hidden');
+        });
+      }
+      
+      // Only open Overview section by default - prevent auto-expansion scroll issues
       ['detect', 'lab', 'orchestrate'].forEach(section => {
         const el = document.getElementById(section + '-section');
-        el.style.maxHeight = el.scrollHeight + 'px';
+        el.style.maxHeight = '0px'; // Keep sections collapsed by default
       });
+      
+      // Open Overview section
+      const overviewEl = document.getElementById('overview-section');
+      if (overviewEl) {
+        overviewEl.style.maxHeight = overviewEl.scrollHeight + 'px';
+      }
       showPage('overview');
+      
+      // Start with normal scenario
+      dataEngine.setScenario('normal');
     });
   </script>
 </body>
-</html>// Enhanced with real-time updates and accessibility features
+</html>
