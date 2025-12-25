@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yseeku SONATE - Dual Layer Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            padding: 20px;
+            border-bottom: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #10b981);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        h1 {
+            font-size: 24px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #10b981;
+            border-radius: 8px;
+        }
+
+        .sync-indicator {
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: calc(100vh - 80px);
+            gap: 2px;
+            background: #333;
+        }
+
+        .layer-panel {
+            background: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .layer-header {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+            border-bottom: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .layer-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .layer-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .layer-badge.layer1 {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .layer-badge.layer2 {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        .layer-content {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            padding: 8px 16px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid #3b82f6;
+            color: #3b82f6;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .sync-log {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            max-height: 300px;
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .sync-log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .sync-log-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .sync-log-clear {
+            font-size: 12px;
+            color: #ef4444;
+            cursor: pointer;
+        }
+
+        .sync-log-item {
+            padding: 8px;
+            margin-bottom: 6px;
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .sync-log-item.layer1 {
+            border-left-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .sync-log-item.layer2 {
+            border-left-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .sync-log-time {
+            color: #666;
+            font-size: 10px;
+        }
+
+        .toggle-log {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            z-index: 999;
+        }
+
+        .sync-log.hidden {
+            display: none;
+        }
+    </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">Y</div>
+            <div>
+                <h1>Yseeku SONATE Dual Layer Demo</h1>
+                <div style="font-size: 12px; color: #666;">Real-time Layer Synchronization</div>
+            </div>
+        </div>
+        <div class="sync-status">
+            <div class="sync-indicator"></div>
+            <span style="font-size: 14px; font-weight: 600;">Layers Synced</span>
+            <span id="sync-count" style="font-size: 12px; color: #666;">0 events</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="layer-panel">
+            <div class="layer-header">
+                <div>
+                    <div class="layer-title">Layer 1: Human Interface</div>
+                    <div style="font-size: 12px; color: #666; margin-top: 4px;">Poetic, intuitive, 3-second comprehension</div>
+                </div>
+                <div class="controls">
+                    <span class="layer-badge layer1">LAYER 1</span>
+                    <button class="control-btn" onclick="reloadLayer1()">↻ Reload</button>
+                </div>
+            </div>
+            <div class="layer-content">
+                <iframe id="layer1-frame" src="yseeku-platform-final-demo.html"></iframe>
+            </div>
+        </div>
+
+        <div class="layer-panel">
+            <div class="layer-header">
+                <div>
+                    <div class="layer-title">Layer 2: Expert Interface</div>
+                    <div style="font-size: 12px; color: #666; margin-top: 4px;">Detailed metrics, compliance, diagnostics</div>
+                </div>
+                <div class="controls">
+                    <span class="layer-badge layer2">LAYER 2</span>
+                    <button class="control-btn" onclick="reloadLayer2()">↻ Reload</button>
+                </div>
+            </div>
+            <div class="layer-content">
+                <iframe id="layer2-frame" src="yseeku-platform-enhanced-canonical.html"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <button class="toggle-log" onclick="toggleLog()">📊 Sync Log</button>
+
+    <div id="sync-log" class="sync-log hidden">
+        <div class="sync-log-header">
+            <div class="sync-log-title">🔄 Synchronization Log</div>
+            <div class="sync-log-clear" onclick="clearLog()">Clear</div>
+        </div>
+        <div id="sync-log-content"></div>
+    </div>
+
+    <script>
+        let syncCount = 0;
+        const syncLogContent = document.getElementById('sync-log-content');
+        const syncCountEl = document.getElementById('sync-count');
+
+        // Listen for sync events from BroadcastChannel
+        const syncChannel = new BroadcastChannel('yseeku-layer-sync');
+        
+        syncChannel.onmessage = (event) => {
+            const { type, data, timestamp, source } = event.data;
+            
+            syncCount++;
+            syncCountEl.textContent = `${syncCount} events`;
+            
+            // Add to log
+            addLogEntry(type, source, data, timestamp);
+        };
+
+        function addLogEntry(type, source, data, timestamp) {
+            const entry = document.createElement('div');
+            entry.className = `sync-log-item ${source}`;
+            
+            const time = new Date(timestamp).toLocaleTimeString();
+            const dataStr = JSON.stringify(data).substring(0, 100);
+            
+            entry.innerHTML = `
+                <div style="font-weight: 600; margin-bottom: 4px;">
+                    ${source === 'layer1' ? '🔵' : '🟣'} ${type}
+                </div>
+                <div style="color: #999; font-size: 11px; margin-bottom: 4px;">${dataStr}...</div>
+                <div class="sync-log-time">${time}</div>
+            `;
+            
+            syncLogContent.insertBefore(entry, syncLogContent.firstChild);
+            
+            // Keep only last 50 entries
+            while (syncLogContent.children.length > 50) {
+                syncLogContent.removeChild(syncLogContent.lastChild);
+            }
+        }
+
+        function toggleLog() {
+            const log = document.getElementById('sync-log');
+            log.classList.toggle('hidden');
+        }
+
+        function clearLog() {
+            syncLogContent.innerHTML = '';
+            syncCount = 0;
+            syncCountEl.textContent = '0 events';
+        }
+
+        function reloadLayer1() {
+            document.getElementById('layer1-frame').src = 'yseeku-platform-final-demo.html';
+        }
+
+        function reloadLayer2() {
+            document.getElementById('layer2-frame').src = 'yseeku-platform-enhanced-canonical.html';
+        }
+
+        // Log initial message
+        setTimeout(() => {
+            addLogEntry('system', 'dual-demo', { message: 'Dual layer demo initialized' }, new Date().toISOString());
+        }, 1000);
+    </script>
+</body>
+</html>

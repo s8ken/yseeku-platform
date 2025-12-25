@@ -6,11 +6,9 @@
   <title>Yseeku Platform (SONATE) - Enterprise AI Governance & Trust Framework</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    // Embedded Data Engine (to avoid CORS issues when opening file directly)
-    // This is the content of yseeku-data-engine.js embedded inline
-  </script>
-  <script src="yseeku-data-engine.js"></script>
+  <!-- Data engine removed temporarily to fix loading issue -->
+          <script src="yseeku-timeline.js"></script>
+          <script src="yseeku-layer-sync.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -180,7 +178,7 @@
       <!-- Navigation -->
       <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
         <!-- Overview -->
-        <a href="#" onclick="showPage('overview')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+        <a href="#" onclick="showPage('overview', event, event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
           </svg>
@@ -197,20 +195,20 @@
             <span class="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">LIVE</span>
           </button>
           <div id="detect-section" class="sidebar-section ml-4 mt-1 space-y-1">
-            <a href="#" onclick="showPage('dashboard')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('dashboard', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
               Dashboard
               <span class="ml-auto w-2 h-2 bg-blue-500 rounded-full animate-pulse-slow"></span>
             </a>
-            <a href="#" onclick="showPage('agents')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('agents', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
               Agent Monitoring
             </a>
-            <a href="#" onclick="showPage('symbi-analysis')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('symbi-analysis', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
               SYMBI Analysis
             </a>
-            <a href="#" onclick="showPage('alerts')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('alerts', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
               Alerts
             </a>
@@ -227,19 +225,19 @@
             <span class="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">RESEARCH</span>
           </button>
           <div id="lab-section" class="sidebar-section ml-4 mt-1 space-y-1">
-            <a href="#" onclick="showPage('experiments')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('experiments', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
               Experiments
             </a>
-            <a href="#" onclick="showPage('bedau')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('bedau', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
               Bedau Index
             </a>
-            <a href="#" onclick="showPage('emergence')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('emergence', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
               Emergence Testing
             </a>
-            <a href="#" onclick="showPage('resonance')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('resonance', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
               Resonance Detection
             </a>
@@ -256,15 +254,15 @@
             <span class="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">ACTIVE</span>
           </button>
           <div id="orchestrate-section" class="sidebar-section ml-4 mt-1 space-y-1">
-            <a href="#" onclick="showPage('principles')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('principles', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
               Trust Principles
             </a>
-            <a href="#" onclick="showPage('receipts')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('receipts', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
               Trust Receipts
             </a>
-            <a href="#" onclick="showPage('governance')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('governance', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
               Governance
             </a>
@@ -273,11 +271,17 @@
 
         <!-- Additional Pages -->
         <div class="pt-4 border-t border-gray-200">
-          <a href="#" onclick="showPage('glossary')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+          <a href="#" onclick="showPage('timeline', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Timeline
+          </a>
+          <a href="#" onclick="showPage('glossary', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
             Glossary
           </a>
-          <a href="#" onclick="showPage('documentation')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+          <a href="#" onclick="showPage('documentation', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             Documentation
           </a>
@@ -559,7 +563,7 @@
           </div>
 
           <div class="grid grid-cols-3 gap-6">
-            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('dashboard')">
+            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('dashboard', event)">
               <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
               </div>
@@ -571,7 +575,7 @@
               </div>
             </div>
 
-            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('experiments')">
+            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('experiments', event)">
               <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
                 <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
               </div>
@@ -583,7 +587,7 @@
               </div>
             </div>
 
-            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('principles')">
+            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('principles', event)">
               <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
                 <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
               </div>
@@ -1253,7 +1257,84 @@
         </div>
       `,
 
-      documentation: () => `
+      timeline: () => `
+           <div class="space-y-6">
+             <!-- Timeline Controls -->
+             <div class="bg-white rounded-xl p-6 border border-gray-200">
+               <div class="flex items-center justify-between mb-6">
+                 <h3 class="text-lg font-bold text-gray-900">Timeline Controls</h3>
+                 <div class="flex items-center gap-4">
+                   <select id="timeline-filter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                     <option value="all">All Events</option>
+                     <option value="trust">Trust Changes</option>
+                     <option value="emergence">Emergence Events</option>
+                     <option value="alerts">Alerts</option>
+                     <option value="symbi">SYMBI Changes</option>
+                   </select>
+                   <button onclick="playTimeline()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                     </svg>
+                     Play
+                   </button>
+                   <button onclick="resetTimeline()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                     Reset
+                   </button>
+                 </div>
+               </div>
+               
+               <!-- Timeline Range Slider -->
+               <div class="mb-4">
+                 <label class="block text-sm font-medium text-gray-700 mb-2">Time Range: <span id="timeline-range-label">Last 24 hours</span></label>
+                 <input type="range" id="timeline-range" min="1" max="168" value="24" class="w-full" onchange="updateTimelineRange(this.value)">
+               </div>
+             </div>
+
+             <!-- Main Timeline Visualization -->
+             <div class="bg-white rounded-xl p-6 border border-gray-200">
+               <h3 class="text-lg font-bold text-gray-900 mb-6">Event Timeline</h3>
+               <div id="timeline-container" class="relative">
+                 <!-- Timeline will be rendered here -->
+                 <div class="text-center text-gray-500 py-8">
+                   <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                   </svg>
+                   <p>Timeline visualization loading...</p>
+                 </div>
+               </div>
+             </div>
+
+             <!-- Event Details Panel -->
+             <div class="bg-white rounded-xl p-6 border border-gray-200">
+               <h3 class="text-lg font-bold text-gray-900 mb-4">Event Details</h3>
+               <div id="event-details" class="text-gray-500">
+                 <p>Click on any timeline event to see detailed information</p>
+               </div>
+             </div>
+
+             <!-- Statistics Summary -->
+             <div class="grid grid-cols-4 gap-4">
+               <div class="bg-white rounded-xl p-4 border border-gray-200">
+                 <div class="text-sm text-gray-600 mb-1">Total Events</div>
+                 <div class="text-2xl font-bold text-gray-900" id="total-events">0</div>
+               </div>
+               <div class="bg-white rounded-xl p-4 border border-gray-200">
+                 <div class="text-sm text-gray-600 mb-1">Trust Changes</div>
+                 <div class="text-2xl font-bold text-blue-600" id="trust-changes">0</div>
+               </div>
+               <div class="bg-white rounded-xl p-4 border border-gray-200">
+                 <div class="text-sm text-gray-600 mb-1">Emergence Events</div>
+                 <div class="text-2xl font-bold text-purple-600" id="emergence-events">0</div>
+               </div>
+               <div class="bg-white rounded-xl p-4 border border-gray-200">
+                 <div class="text-sm text-gray-600 mb-1">Critical Alerts</div>
+                 <div class="text-2xl font-bold text-red-600" id="critical-alerts">0</div>
+               </div>
+             </div>
+           </div>
+         `,
+         documentation: () => `
         <div class="space-y-6">
           <div class="bg-white rounded-xl p-6 border border-gray-200">
             <h3 class="text-lg font-bold text-gray-900 mb-4">Platform Documentation</h3>
@@ -1476,26 +1557,29 @@
       }
     }
 
-    function showPage(page) {
-      console.log('showPage called with page:', page);
-      
-      // Prevent default link behavior
-      if (window.event) {
-        window.event.preventDefault();
-      }
-      
+    function showPage(page, event) {
+         console.log('showPage called with:', page, event);
+         
+         // Prevent default link behavior
+         if (event) {
+           event.preventDefault();
+         }
+         
+         // Debug: Check if pages object exists
+         console.log('Pages object exists:', typeof pages !== 'undefined');
+         console.log('Available pages:', Object.keys(pages || {}));
       // Update navigation
       document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('bg-gray-100', 'text-blue-600');
       });
-      
-      // Find and highlight the clicked link
-      const clickedLink = window.event?.target?.closest('.nav-link');
-      if (clickedLink) {
-        clickedLink.classList.add('bg-gray-100', 'text-blue-600');
-      }
-      
-      console.log('Navigation updated for:', page);
+      // Prevent default link behavior
+         if (event) {
+           event.preventDefault();
+         }
+         
+         if (event && event.target) {
+           event.target.closest('.nav-link')?.classList.add('bg-gray-100', 'text-blue-600');
+         }
 
       // Update page title
       const titles = {
@@ -1511,7 +1595,8 @@
         principles: { title: 'Trust Principles', subtitle: 'Six core SYMBI principles' },
         receipts: { title: 'Trust Receipts', subtitle: 'Cryptographic audit trails' },
         governance: { title: 'Governance', subtitle: 'Compliance and risk management' },
-        glossary: { title: 'Glossary', subtitle: 'Key terms and definitions' },
+        timeline: { title: 'Narrative Timeline', subtitle: 'Temporal evolution of AI behaviors and events' },
+           glossary: { title: 'Glossary', subtitle: 'Key terms and definitions' },
         documentation: { title: 'Documentation', subtitle: 'Guides and API reference' }
       };
 
@@ -1521,25 +1606,21 @@
       }
 
       // Load page content
-      const contentDiv = document.getElementById('page-content');
-      if (!contentDiv) {
-        console.error('page-content div not found!');
-        return;
-      }
-      
-      if (!pages[page]) {
-        console.error('Page not found:', page, 'Available pages:', Object.keys(pages));
-        contentDiv.innerHTML = '<div class="p-8"><h1 class="text-2xl font-bold text-red-600">Error: Page not found</h1></div>';
-        return;
-      }
-      
-      try {
-        contentDiv.innerHTML = pages[page]();
-        console.log('Content loaded successfully for:', page);
-      } catch (error) {
-        console.error('Error rendering page:', error);
-        contentDiv.innerHTML = '<div class="p-8"><h1 class="text-2xl font-bold text-red-600">Error rendering page</h1><pre>' + error.message + '</pre></div>';
-      }
+      // Load page content with error handling
+         try {
+           console.log('Trying to load page:', page);
+           if (pages && pages[page]) {
+             const content = pages[page]();
+             console.log('Page content generated successfully');
+             document.getElementById('page-content').innerHTML = content;
+           } else {
+             console.error('Page function not found:', page);
+             document.getElementById('page-content').innerHTML = `<div class="p-6 text-red-600">Error: Page '${page}' not found</div>`;
+           }
+         } catch (error) {
+           console.error('Error loading page:', error);
+           document.getElementById('page-content').innerHTML = `<div class="p-6 text-red-600">Error loading page: ${error.message}</div>`;
+         }
       
       // Initialize charts if dashboard
       if (page === 'dashboard') {
@@ -1779,6 +1860,9 @@
     });
     
     function updateUIFromEngine(engineData) {
+      // Data engine disabled temporarily
+      console.log('updateUIFromEngine called with:', engineData);
+      return;
       // Update scenario time display
       const timeEl = document.getElementById('scenario-time');
       if (timeEl && engineData.scenarioTime !== undefined) {
@@ -1866,11 +1950,11 @@
       }
       
       // Update emergence dwell ring
-      if (engineData.emergenceDwellTime !== undefined) {
+      if (engineData && engineData.emergenceDwellTime !== undefined) {
         const ring = document.getElementById('emergence-ring');
         const percent = document.getElementById('emergence-percent');
         
-        if (ring &amp;&amp; percent) {
+        if (ring && percent) {
           // Calculate progress (0-30 seconds = 0-100%)
           const progress = Math.min(1, engineData.emergenceDwellTime / 30);
           const circumference = 87.96; // 2 * PI * 14
@@ -1892,14 +1976,8 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
       // Get reference to data engine
-      dataEngine = window.yseekuDataEngine;
-      
-      // Check if data engine loaded
-      if (!dataEngine) {
-        console.error('Data engine failed to load!');
-        alert('Warning: Data engine not loaded. Scenario features will not work.');
-        return;
-      }
+      // dataEngine = window.yseekuDataEngine;
+        dataEngine = null;
       
       // Setup scenario controls
       const scenarioSelector = document.getElementById('scenario-selector');
@@ -1909,7 +1987,7 @@
       
       if (scenarioSelector) {
         scenarioSelector.addEventListener('change', (e) => {
-          dataEngine.setScenario(e.target.value);
+          // dataEngine.setScenario(e.target.value);
           playBtn.classList.add('hidden');
           pauseBtn.classList.remove('hidden');
         });
@@ -1917,7 +1995,7 @@
       
       if (playBtn) {
         playBtn.addEventListener('click', () => {
-          dataEngine.play();
+          // dataEngine.play();
           playBtn.classList.add('hidden');
           pauseBtn.classList.remove('hidden');
         });
@@ -1925,7 +2003,7 @@
       
       if (pauseBtn) {
         pauseBtn.addEventListener('click', () => {
-          dataEngine.pause();
+          // dataEngine.pause();
           pauseBtn.classList.add('hidden');
           playBtn.classList.remove('hidden');
         });
@@ -1933,7 +2011,7 @@
       
       if (restartBtn) {
         restartBtn.addEventListener('click', () => {
-          dataEngine.restart();
+          // dataEngine.restart();
           playBtn.classList.add('hidden');
           pauseBtn.classList.remove('hidden');
         });
@@ -1974,16 +2052,39 @@
       if (overviewEl) {
         overviewEl.style.maxHeight = overviewEl.scrollHeight + 'px';
       }
-      console.log('DOM loaded, calling showPage(overview)');
       showPage('overview');
-      console.log('showPage(overview) completed');
       
       // Start with normal scenario
-      if (dataEngine) {
-        console.log('Starting normal scenario');
-        dataEngine.setScenario('normal');
-      }
+      // dataEngine.setScenario('normal');
     });
   </script>
 </body>
-</html>
+</html><script>
+// Layer 1 Sync Integration
+document.addEventListener('DOMContentLoaded', () => {
+  // Setup layer sync listeners
+  if (window.layerSync) {
+    // Listen for trust score changes from Layer 2
+    window.layerSync.on('trust-score-change', (data) => {
+      console.log('[Layer 1] Received trust score update:', data);
+    });
+    
+    // Listen for emergence events from Layer 2
+    window.layerSync.on('emergence-event', (data) => {
+      console.log('[Layer 1] Received emergence event:', data);
+    });
+    
+    // Listen for alerts from Layer 2
+    window.layerSync.on('alert-triggered', (data) => {
+      console.log('[Layer 1] Received alert:', data);
+    });
+    
+    // Listen for diagnostic results from Layer 2
+    window.layerSync.on('diagnostic-result', (data) => {
+      console.log('[Layer 1] Received diagnostic result:', data);
+    });
+    
+    console.log('[Layer 1] Sync listeners registered');
+  }
+});
+</script>

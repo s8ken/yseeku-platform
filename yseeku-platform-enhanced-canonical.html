@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yseeku Platform - Enterprise AI Governance with SONATE Framework</title>
+    <title>Yseeku SONATE - Enterprise AI Governance Framework</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="yseeku-data-engine.js"></script>
+    <script src="yseeku-layer-sync.js"></script>
     <style>
         :root {
             --bg-primary: #0a0a0a;
@@ -201,6 +203,8 @@
         .nav-tab.detect { color: var(--accent-detect); }
         .nav-tab.lab { color: var(--accent-lab); }
         .nav-tab.orchestrate { color: var(--accent-orchestrate); }
+        .nav-tab.compliance { color: #f59e0b; }
+        .nav-tab.diagnostics { color: #ef4444; }
 
         .nav-tab.active {
             color: white;
@@ -210,6 +214,8 @@
         .nav-tab.detect.active { background: linear-gradient(135deg, var(--accent-detect), #2563eb); }
         .nav-tab.lab.active { background: linear-gradient(135deg, var(--accent-lab), #7c3aed); }
         .nav-tab.orchestrate.active { background: linear-gradient(135deg, var(--accent-orchestrate), #059669); }
+        .nav-tab.compliance.active { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .nav-tab.diagnostics.active { background: linear-gradient(135deg, #ef4444, #dc2626); }
 
         .module-divider {
             width: 2px;
@@ -787,6 +793,122 @@
             outline: 2px solid var(--accent-detect);
             outline-offset: 2px;
         }
+    /* Compliance & Diagnostics Specific Styles */
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .file-name {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .file-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .file-status.success {
+            background: var(--success);
+            color: white;
+        }
+
+        .file-status.warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .alert-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .alert-item {
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid;
+            font-size: 13px;
+        }
+
+        .alert-item.critical {
+            background: rgba(239, 68, 68, 0.1);
+            border-left-color: var(--critical);
+            color: var(--critical);
+        }
+
+        .alert-item.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .evidence-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .evidence-item {
+            display: flex;
+            gap: 12px;
+            padding: 8px;
+            background: var(--bg-card);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .evidence-item .timestamp {
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+            min-width: 80px;
+        }
+
+        .evidence-item .event {
+            color: var(--text-primary);
+        }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .tool-btn {
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .tool-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-detect);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
     </style>
 <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 </head>
@@ -797,8 +919,8 @@
             <div class="logo-section">
                 <div class="logo">YK</div>
                 <div class="title-section">
-                    <h1>Yseeku Platform</h1>
-                    <div class="subtitle">Enterprise AI Governance with SONATE Framework</div>
+                    <h1>Yseeku SONATE</h1>
+                    <div class="subtitle">Vector Phase Space Inspector • Expert/Audit Layer</div>
                 </div>
             </div>
             <div class="header-actions">
@@ -846,6 +968,8 @@
                 <div class="module-section">
                     <button class="nav-tab orchestrate" onclick="switchTab('principles')">Principles</button>
                     <button class="nav-tab orchestrate" onclick="switchTab('receipts')">Trust Receipts</button>
+                    <button class="nav-tab orchestrate" onclick="switchTab('compliance')">Compliance</button>
+                    <button class="nav-tab orchestrate" onclick="switchTab('diagnostics')">Diagnostics</button>
                     <button class="nav-tab orchestrate" onclick="switchTab('api')">API</button>
                 </div>
             </div>
@@ -1576,6 +1700,232 @@
             </div>
 
             <!-- API Documentation Tab -->
+            <div id="compliance" class="tab-content">
+                <div class="module-header orchestrate">
+                    <h2>⚖️ Regulatory Compliance Dashboard</h2>
+                    <p>Comprehensive compliance monitoring across GDPR, EU AI Act, and SOC 2 frameworks</p>
+                </div>
+
+                <div class="grid">
+                    <div class="card">
+                        <h3>🇪🇺 EU AI Act Compliance</h3>
+                        <div class="metric">
+                            <span class="metric-label">Risk Classification</span>
+                            <span class="metric-value warning">High-Risk</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Conformity Assessment</span>
+                            <span class="metric-value success">94.2%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">CE Marking</span>
+                            <span class="metric-value success">Pending</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 94.2%"></div>
+                        </div>
+                        <p>High-risk AI system with comprehensive quality management and risk mitigation procedures.</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>🔒 GDPR Compliance</h3>
+                        <div class="metric">
+                            <span class="metric-label">Data Processing Records</span>
+                            <span class="metric-value success">Complete</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">DPIA Status</span>
+                            <span class="metric-value success">Approved</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Data Subject Requests</span>
+                            <span class="metric-value">12/48h</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 98.7%"></div>
+                        </div>
+                        <p>Full GDPR compliance with automated data subject request processing and comprehensive DPIA.</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>🏢 SOC 2 Type II Readiness</h3>
+                        <div class="metric">
+                            <span class="metric-label">Trust Services Criteria</span>
+                            <span class="metric-value warning">83%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Control Maturity</span>
+                            <span class="metric-value warning">Developing</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Audit Timeline</span>
+                            <span class="metric-value">Q3 2026</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: 83%"></div>
+                        </div>
+                        <p>SOC 2 Type II certification in progress with security, availability, and confidentiality controls.</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>📊 Compliance Scorecard</h3>
+                        <canvas id="complianceChart" width="400" height="300"></canvas>
+                        <p>Real-time compliance scoring across all regulatory frameworks with automated monitoring.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📋 Compliance Reports</h3>
+                    <div class="file-list">
+                        <div class="file-item">
+                            <span class="file-name">📄 Q4 2024 Compliance Report</span>
+                            <span class="file-status success">✅ Certified</span>
+                        </div>
+                        <div class="file-item">
+                            <span class="file-name">📄 DPIA Documentation</span>
+                            <span class="file-status success">✅ Approved</span>
+                        </div>
+                        <div class="file-item">
+                            <span class="file-name">📄 Risk Assessment Matrix</span>
+                            <span class="file-status warning">⚠️ Review</span>
+                        </div>
+                        <div class="file-item">
+                            <span class="file-name">📄 Audit Trail Logs</span>
+                            <span class="file-status">🔄 Processing</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="diagnostics" class="tab-content">
+                <div class="module-header orchestrate">
+                    <h2>🔬 Advanced Diagnostics & Forensics</h2>
+                    <p>Deep system analysis, performance profiling, and forensic investigation tools</p>
+                </div>
+
+                <div class="grid">
+                    <div class="card">
+                        <h3>🧠 Neural Network Analysis</h3>
+                        <div class="metric">
+                            <span class="metric-label">Model Drift</span>
+                            <span class="metric-value warning">2.3%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Weight Entropy</span>
+                            <span class="metric-value success">0.847</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Gradient Flow</span>
+                            <span class="metric-value critical">Anomaly</span>
+                        </div>
+                        <canvas id="neuralAnalysis" width="400" height="200"></canvas>
+                        <p>Real-time neural network performance monitoring with drift detection and anomaly identification.</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>⚡ Performance Profiling</h3>
+                        <div class="metric">
+                            <span class="metric-label">Latency (P99)</span>
+                            <span class="metric-value">127ms</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Throughput</span>
+                            <span class="metric-value success">1,247 TPS</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Memory Usage</span>
+                            <span class="metric-value warning">78.3%</span>
+                        </div>
+                        <canvas id="performanceChart" width="400" height="200"></canvas>
+                        <p>Comprehensive performance profiling with real-time metrics and automated optimization suggestions.</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>🔍 Anomaly Detection</h3>
+                        <div class="metric">
+                            <span class="metric-label">Active Anomalies</span>
+                            <span class="metric-value critical">3</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">False Positive Rate</span>
+                            <span class="metric-value success">0.2%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Detection Confidence</span>
+                            <span class="metric-value success">94.7%</span>
+                        </div>
+                        <div class="alert-list">
+                            <div class="alert-item critical">
+                                🚨 Unusual pattern in Agent Beta decision tree
+                            </div>
+                            <div class="alert-item warning">
+                                ⚠️ Memory leak detected in emergence module
+                            </div>
+                            <div class="alert-item warning">
+                                ⚠️ Elevated latency in vector calculations
+                            </div>
+                        </div>
+                        <p>AI-powered anomaly detection with root cause analysis and automated remediation recommendations.</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>🧬 Forensic Analysis</h3>
+                        <div class="metric">
+                            <span class="metric-label">Evidence Integrity</span>
+                            <span class="metric-value success">100%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Chain of Custody</span>
+                            <span class="metric-value success">Valid</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Investigation Status</span>
+                            <span class="metric-value">Active</span>
+                        </div>
+                        <div class="evidence-timeline">
+                            <div class="evidence-item">
+                                <span class="timestamp">12:34:56</span>
+                                <span class="event">Anomaly detected in Agent Alpha</span>
+                            </div>
+                            <div class="evidence-item">
+                                <span class="timestamp">12:35:12</span>
+                                <span class="event">Automated isolation triggered</span>
+                            </div>
+                            <div class="evidence-item">
+                                <span class="timestamp">12:35:28</span>
+                                <span class="event">Forensic snapshot captured</span>
+                            </div>
+                        </div>
+                        <p>Comprehensive forensic analysis with immutable evidence collection and chain of custody tracking.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🔧 Diagnostic Tools</h3>
+                    <div class="tool-grid">
+                        <button class="tool-btn" onclick="runDiagnostics('deep-scan')">
+                            🔬 Deep System Scan
+                        </button>
+                        <button class="tool-btn" onclick="runDiagnostics('memory-leak')">
+                            💾 Memory Leak Detection
+                        </button>
+                        <button class="tool-btn" onclick="runDiagnostics('performance')">
+                            ⚡ Performance Analysis
+                        </button>
+                        <button class="tool-btn" onclick="runDiagnostics('security')">
+                            🔒 Security Audit
+                        </button>
+                        <button class="tool-btn" onclick="runDiagnostics('compliance')">
+                            ⚖️ Compliance Check
+                        </button>
+                        <button class="tool-btn" onclick="runDiagnostics('forensic')">
+                            🔍 Forensic Analysis
+                        </button>
+                    </div>
+                    <p>Advanced diagnostic tools for comprehensive system analysis and troubleshooting.</p>
+                </div>
+            </div>
+
             <div id="api" class="tab-content">
                 <div class="module-header orchestrate">
                     <h2>🔌 API Documentation</h2>
@@ -1633,7 +1983,7 @@
     <!-- Tour Popup -->
     <div class="tour-popup" id="tourPopup" style="display: none;">
         <button class="close-btn" onclick="closeTour()">×</button>
-        <h3 id="tourTitle">Welcome to Yseeku Platform</h3>
+        <h3 id="tourTitle">Welcome to Yseeku SONATE</h3>
         <p id="tourContent">Let's explore the enterprise AI governance platform with real-time emergence detection.</p>
         <div class="tour-nav">
             <button id="tourPrev" onclick="previousTourStep()">Previous</button>
@@ -1645,7 +1995,7 @@
     <!-- Welcome Modal -->
     <div class="welcome-modal" id="welcomeModal">
         <button class="close-btn" onclick="closeWelcome()">×</button>
-        <h2>🚀 Welcome to Yseeku Platform</h2>
+        <h2>🚀 Welcome to Yseeku SONATE</h2>
         <p>Enterprise AI Governance with Constitutional Alignment and Real-time Emergence Detection</p>
         
         <div class="welcome-features">
@@ -1703,6 +2053,174 @@
         let tourStep = 0;
         let isDarkTheme = true;
         let ethicalFloorScore = 8.2;
+
+        // Layer 2 Interface - Connect to shared data engine
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeLayer2Interface();
+        });
+
+        function initializeLayer2Interface() {
+            // Wait for shared data engine
+            if (window.yseekuDataEngine) {
+                connectToSharedEngine();
+            } else {
+                setTimeout(connectToSharedEngine, 100);
+            }
+        }
+
+        function connectToSharedEngine() {
+            const dataEngine = window.yseekuDataEngine;
+            
+            // Listen for shared updates
+            document.addEventListener('yseekuDataUpdate', function(event) {
+                updateLayer2UI(event.detail);
+            });
+
+            // Initial update with Layer 2 data
+            updateLayer2UI(dataEngine.exportForDemo2());
+            
+            // Start Layer 2 specific features
+            startLayer2Features();
+        }
+
+        function updateLayer2UI(data) {
+            // Update all Layer 2 displays with shared data
+            updatePhaseSpaceVectors(data.phaseSpace);
+            updateBasinDynamics(data.basinDynamics);
+            updateMemoryLattice(data.memoryLattice);
+            updateTrustReceipts(data.trustReceipts);
+            updateDetectMetrics(data.detectV2);
+            updateContextualGravity(data.contextualGravity);
+            updateRmDisplay(data.rm);
+            updateAgentsDetailed(data.agents);
+        }
+
+        function updatePhaseSpaceVectors(phaseSpace) {
+            const vectorsContainer = document.getElementById('agentVectors');
+            if (vectorsContainer && phaseSpace.agents) {
+                let vectorsHTML = '';
+                phaseSpace.agents.forEach(agent => {
+                    const x = 400 + agent.x * 100; // Scale for display
+                    const y = 200 + agent.y * 100;
+                    const endX = x + Math.cos(agent.angle * Math.PI / 180) * 30;
+                    const endY = y + Math.sin(agent.angle * Math.PI / 180) * 30;
+                    
+                    vectorsHTML += `
+                        <g class="drift-vector">
+                            <line x1="${x}" y1="${y}" x2="${endX}" y2="${endY}" 
+                                  stroke="${getDriftColor(agent.magnitude)}" stroke-width="2" marker-end="url(#arrowhead)"/>
+                            <circle cx="${x}" cy="${y}" r="4" fill="${getDriftColor(agent.magnitude)}"/>
+                            <text x="${x}" y="${y - 10}" text-anchor="middle" fill="#a0a0a0" font-size="10">${agent.name}</text>
+                        </g>
+                    `;
+                });
+                
+                vectorsContainer.innerHTML = vectorsHTML + `
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                                refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+                        </marker>
+                    </defs>
+                `;
+            }
+        }
+
+        function updateBasinDynamics(basinDynamics) {
+            // Update basin state indicators
+            const statesContainer = document.querySelector('.basin-states');
+            if (statesContainer && basinDynamics.states) {
+                statesContainer.innerHTML = basinDynamics.states.map(state => `
+                    <div class="basin-state ${state.active ? 'active' : ''}">
+                        <div class="basin-state-name">${state.name}</div>
+                        <div class="basin-state-duration">Duration: ${state.duration}s</div>
+                    </div>
+                `).join('');
+            }
+
+            // Update basin metrics
+            updateMetricsDisplay(basinDynamics.metrics);
+        }
+
+        function updateMemoryLattice(memoryLattice) {
+            const nodesContainer = document.getElementById('memoryNodes');
+            if (nodesContainer && memoryLattice.nodes) {
+                nodesContainer.innerHTML = memoryLattice.nodes.map(node => `
+                    <div class="memory-node">
+                        <div class="memory-weight">${node.weight.toFixed(2)}</div>
+                        <div>Node ${node.id.split('-')[1]}</div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">Connections: ${node.connections}</div>
+                    </div>
+                `).join('');
+            }
+
+            // Update memory metrics
+            updateMetricsDisplay(memoryLattice.metrics);
+        }
+
+        function updateTrustReceipts(trustReceipts) {
+            // Update trust receipt displays
+            const receiptElements = document.querySelectorAll('[data-receipt-metric]');
+            receiptElements.forEach(element => {
+                const metric = element.getAttribute('data-receipt-metric');
+                if (trustReceipts[metric] !== undefined) {
+                    element.textContent = trustReceipts[metric];
+                }
+            });
+        }
+
+        function updateDetectMetrics(detectV2) {
+            // Update Detect v2 engine metrics
+            updateMetricsDisplay(detectV2);
+        }
+
+        function updateContextualGravity(contextualGravity) {
+            // Update contextual gravity displays
+            updateMetricsDisplay(contextualGravity);
+        }
+
+        function updateRmDisplay(rm) {
+            // Update Rm calculator display
+            const rmElement = document.getElementById('rmValue');
+            if (rmElement) {
+                rmElement.textContent = rm.toFixed(3);
+            }
+        }
+
+        function updateAgentsDetailed(agents) {
+            // Update detailed agent information
+            agents.forEach(agent => {
+                const agentCard = document.querySelector(`[data-agent-id="${agent.id}"]`);
+                if (agentCard) {
+                    // Update detailed metrics
+                    const driftMagnitude = agentCard.querySelector('.drift-magnitude');
+                    const driftAngle = agentCard.querySelector('.drift-angle');
+                    const trustScore = agentCard.querySelector('.trust-score-detailed');
+                    
+                    if (driftMagnitude) driftMagnitude.textContent = agent.driftVector.magnitude.toFixed(3);
+                    if (driftAngle) driftAngle.textContent = agent.driftVector.angle.toFixed(1) + '°';
+                    if (trustScore) trustScore.textContent = agent.trustScore.toFixed(2);
+                }
+            });
+        }
+
+        function updateMetricsDisplay(metrics) {
+            // Helper to update metric displays
+            Object.keys(metrics).forEach(key => {
+                const element = document.querySelector(`[data-metric="${key}"]`);
+                if (element) {
+                    element.textContent = metrics[key];
+                }
+            });
+        }
+
+        function startLayer2Features() {
+            // Start Layer 2 specific visualizations
+            setInterval(() => {
+                updateVectorField();
+                generateMemoryNodes();
+            }, 1000);
+        }
 
         // Glossary Terms
         const glossaryTerms = [
@@ -1794,6 +2312,11 @@
             event.target.classList.add('active');
             currentTab = tabName;
             
+            // Broadcast tab change to Layer 1
+            if (window.layerSync) {
+                window.layerSync.broadcast('page-change', { page: tabName });
+            }
+            
             // Initialize tab-specific content
             if (tabName === 'symbi') {
                 updateSymbiChart();
@@ -1805,6 +2328,10 @@
                 updateBasinChart();
             } else if (tabName === 'memoryLattice') {
                 updateMemoryDecayChart();
+            } else if (tabName === 'compliance') {
+                updateComplianceDashboard();
+            } else if (tabName === 'diagnostics') {
+                updateDiagnosticsDashboard();
             }
         }
 
@@ -1878,7 +2405,7 @@
 
         // Tour System
         const tourSteps = [
-            { title: "Welcome to Yseeku Platform", content: "Let's explore the enterprise AI governance platform with real-time emergence detection.", target: null },
+            { title: "Welcome to Yseeku SONATE", content: "Let's explore the enterprise AI governance framework with real-time emergence detection.", target: null },
             { title: "Governance Indicators", content: "Monitor Layer 1 Narrative state and Ethical Floor compliance in real-time.", target: "governance-indicators" },
             { title: "Three Module Architecture", content: "Navigate between DETECT (monitoring), LAB (analysis), and ORCHESTRATE (governance) modules.", target: "nav-tabs" },
             { title: "Platform Overview", content: "See real-time metrics across all three modules and system health status.", target: "overview" },
@@ -2288,6 +2815,352 @@
                 openGlossary();
             }
         });
+        
+        // Setup Layer 2 sync listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.layerSync) {
+                // Listen for page changes from Layer 1
+                window.layerSync.on('page-change', (data, source) => {
+                    if (source === 'layer1') {
+                        console.log('[Layer 2] Layer 1 navigated to:', data.page);
+                    }
+                });
+                
+                // Listen for scenario changes from Layer 1
+                window.layerSync.on('scenario-change', (data, source) => {
+                    if (source === 'layer1') {
+                        console.log('[Layer 2] Layer 1 changed scenario to:', data.scenario);
+                    }
+                });
+                
+                // Broadcast compliance updates to Layer 1
+                setInterval(() => {
+                    if (currentTab === 'compliance' && window.layerSync) {
+                        window.layerSync.syncCompliance({
+                            euAiAct: 94.2,
+                            gdpr: 98.7,
+                            soc2: 83.0,
+                            timestamp: Date.now()
+                        });
+                    }
+                }, 10000); // Every 10 seconds
+                
+                console.log('[Layer 2] Sync listeners registered');
+            }
+        });
+
+        // Compliance Dashboard Functions
+        function updateComplianceDashboard() {
+            // Initialize compliance chart
+            const ctx = document.getElementById('complianceChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['EU AI Act', 'GDPR', 'SOC 2', 'ISO 27001', 'NIST AI RMF', 'CCPA'],
+                        datasets: [{
+                            label: 'Current Compliance',
+                            data: [94.2, 98.7, 83.0, 89.5, 91.2, 95.8],
+                            backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                            borderColor: 'rgba(245, 158, 11, 1)',
+                            borderWidth: 2
+                        }, {
+                            label: 'Required Compliance',
+                            data: [100, 100, 100, 100, 100, 100],
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderColor: 'rgba(59, 130, 246, 0.5)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Start real-time compliance monitoring
+            setInterval(updateComplianceMetrics, 5000);
+        }
+
+        function updateComplianceMetrics() {
+            // Simulate real-time compliance updates
+            const complianceMetrics = document.querySelectorAll('.metric-value');
+            complianceMetrics.forEach(metric => {
+                if (metric.textContent.includes('%')) {
+                    const currentValue = parseFloat(metric.textContent);
+                    const variation = (Math.random() - 0.5) * 2;
+                    const newValue = Math.max(0, Math.min(100, currentValue + variation));
+                    metric.textContent = newValue.toFixed(1) + '%';
+                }
+            });
+        }
+
+        // Diagnostics Dashboard Functions
+        function updateDiagnosticsDashboard() {
+            // Initialize neural network analysis chart
+            const neuralCtx = document.getElementById('neuralAnalysis');
+            if (neuralCtx) {
+                new Chart(neuralCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                        datasets: [{
+                            label: 'Model Drift',
+                            data: [1.2, 1.8, 2.1, 2.3, 2.0, 1.9, 2.3],
+                            borderColor: 'rgb(239, 68, 68)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Weight Entropy',
+                            data: [0.842, 0.845, 0.848, 0.847, 0.849, 0.846, 0.847],
+                            borderColor: 'rgb(16, 185, 129)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initialize performance chart
+            const perfCtx = document.getElementById('performanceChart');
+            if (perfCtx) {
+                new Chart(perfCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['CPU', 'Memory', 'Network', 'Disk I/O', 'GPU'],
+                        datasets: [{
+                            label: 'Current Usage',
+                            data: [65, 78.3, 42, 35, 89],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(245, 158, 11, 0.8)',
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(139, 92, 246, 0.8)',
+                                'rgba(239, 68, 68, 0.8)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Start real-time diagnostics monitoring
+            setInterval(updateDiagnosticsMetrics, 3000);
+        }
+
+        function updateDiagnosticsMetrics() {
+            // Update performance metrics in real-time
+            const metrics = document.querySelectorAll('#diagnostics .metric-value');
+            metrics.forEach(metric => {
+                if (metric.textContent.includes('ms')) {
+                    const currentValue = parseFloat(metric.textContent);
+                    const variation = (Math.random() - 0.5) * 10;
+                    metric.textContent = Math.max(50, currentValue + variation).toFixed(0) + 'ms';
+                } else if (metric.textContent.includes('TPS')) {
+                    const currentValue = parseFloat(metric.textContent);
+                    const variation = (Math.random() - 0.5) * 100;
+                    metric.textContent = Math.max(1000, currentValue + variation).toFixed(0) + ' TPS';
+                } else if (metric.textContent.includes('%')) {
+                    const currentValue = parseFloat(metric.textContent);
+                    const variation = (Math.random() - 0.5) * 5;
+                    metric.textContent = Math.max(0, Math.min(100, currentValue + variation)).toFixed(1) + '%';
+                }
+            });
+        }
+
+        // Diagnostic Tools Functions
+        function runDiagnostics(type) {
+            console.log(`Running diagnostic: ${type}`);
+            
+            // Broadcast diagnostic start to Layer 1
+            if (window.layerSync) {
+                window.layerSync.broadcast('diagnostic-start', { type, timestamp: Date.now() });
+            }
+            
+            // Create loading overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'diagnostic-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                color: white;
+                font-size: 18px;
+            `;
+            overlay.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="width: 60px; height: 60px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                    <div>Running ${type} diagnostic...</div>
+                    <div style="font-size: 14px; opacity: 0.7; margin-top: 10px;">This may take a few moments</div>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
+            `;
+            document.body.appendChild(overlay);
+
+            // Simulate diagnostic processing
+            setTimeout(() => {
+                overlay.remove();
+                showDiagnosticResults(type);
+                
+                // Broadcast diagnostic completion to Layer 1
+                if (window.layerSync) {
+                    window.layerSync.syncDiagnostic({
+                        type,
+                        status: 'complete',
+                        timestamp: Date.now()
+                    });
+                }
+            }, 3000);
+        }
+
+        function showDiagnosticResults(type) {
+            const results = {
+                'deep-scan': {
+                    title: 'Deep System Scan Results',
+                    status: 'success',
+                    findings: [
+                        '✅ System integrity verified',
+                        '⚠️ 3 minor performance bottlenecks detected',
+                        '✅ All security patches up to date',
+                        '🔧 Optimization suggestions available'
+                    ]
+                },
+                'memory-leak': {
+                    title: 'Memory Leak Detection Results',
+                    status: 'warning',
+                    findings: [
+                        '⚠️ Minor memory leak in emergence module',
+                    '💾 2.3MB cumulative leak detected',
+                    '🔧 Recommended: Module restart in 24 hours',
+                    '✅ No critical memory issues found'
+                    ]
+                },
+                'performance': {
+                    title: 'Performance Analysis Results',
+                    status: 'success',
+                    findings: [
+                        '📊 Overall performance: Good',
+                        '⚡ Latency within acceptable range',
+                        '📈 Throughput increased by 12%',
+                        '💡 2 optimization opportunities identified'
+                    ]
+                },
+                'security': {
+                    title: 'Security Audit Results',
+                    status: 'success',
+                    findings: [
+                        '🔒 All security protocols operational',
+                        '✅ No unauthorized access attempts',
+                        '🛡️ Firewall rules up to date',
+                        '🔐 Encryption standards compliant'
+                    ]
+                },
+                'compliance': {
+                    title: 'Compliance Check Results',
+                    status: 'warning',
+                    findings: [
+                        '⚖️ 94.2% overall compliance score',
+                        '⚠️ 2 minor compliance gaps identified',
+                        '📋 Documentation requires updates',
+                        '✅ All critical requirements met'
+                    ]
+                },
+                'forensic': {
+                    title: 'Forensic Analysis Results',
+                    status: 'info',
+                    findings: [
+                        '🔍 Evidence collection complete',
+                        '📊 3 anomalies documented',
+                        '🧬 Chain of custody maintained',
+                        '📈 Pattern analysis in progress'
+                    ]
+                }
+            };
+
+            const result = results[type] || results['deep-scan'];
+            
+            // Create results modal
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: var(--bg-card);
+                border: 2px solid var(--border-color);
+                border-radius: 15px;
+                padding: 30px;
+                max-width: 600px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                z-index: 10001;
+                box-shadow: var(--shadow);
+            `;
+            
+            modal.innerHTML = `
+                <h3 style="color: var(--text-primary); margin-bottom: 20px; font-size: 20px;">
+                    ${result.status === 'success' ? '✅' : result.status === 'warning' ? '⚠️' : 'ℹ️'} ${result.title}
+                </h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    ${result.findings.map(finding => `
+                        <div style="padding: 12px; background: var(--bg-secondary); border-radius: 8px; color: var(--text-primary); font-size: 14px;">
+                            ${finding}
+                        </div>
+                    `).join('')}
+                </div>
+                <button onclick="this.parentElement.remove()" style="
+                    margin-top: 20px;
+                    padding: 12px 24px;
+                    background: var(--accent-detect);
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    width: 100%;
+                ">Close Results</button>
+            `;
+            
+            document.body.appendChild(modal);
+        }
     </script>
 </body>
 </html>
