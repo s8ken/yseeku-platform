@@ -1473,11 +1473,21 @@
     }
 
     function showPage(page) {
+      // Prevent default link behavior
+      if (window.event) {
+        window.event.preventDefault();
+      }
+      
       // Update navigation
       document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('bg-gray-100', 'text-blue-600');
       });
-      event.target.closest('.nav-link')?.classList.add('bg-gray-100', 'text-blue-600');
+      
+      // Find and highlight the clicked link
+      const clickedLink = window.event?.target?.closest('.nav-link');
+      if (clickedLink) {
+        clickedLink.classList.add('bg-gray-100', 'text-blue-600');
+      }
 
       // Update page title
       const titles = {
