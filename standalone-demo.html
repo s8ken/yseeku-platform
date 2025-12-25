@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yseeku Platform - Interactive Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --secondary: #8b5cf6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-tertiary: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --detect-color: #10b981;
+      --lab-color: #8b5cf6;
+      --orchestrate-color: #3b82f6;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Header */
+    .header {
+      background: var(--bg-secondary);
+      border-bottom: 2px solid var(--border);
+      padding: 20px 0;
+      margin-bottom: 30px;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-demo {
+      background: var(--warning);
+      color: var(--bg-primary);
+    }
+
+    /* Navigation */
+    .nav {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .nav-item {
+      padding: 10px 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .nav-item.active {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .card-description {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    /* KPI Cards */
+    .kpi-card {
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--primary);
+    }
+
+    .kpi-card.detect::before {
+      background: var(--detect-color);
+    }
+
+    .kpi-card.lab::before {
+      background: var(--lab-color);
+    }
+
+    .kpi-card.orchestrate::before {
+      background: var(--orchestrate-color);
+    }
+
+    .kpi-label {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 32px;
+      font-weight: bold;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .kpi-trend {
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .kpi-trend.up {
+      color: var(--success);
+    }
+
+    .kpi-trend.down {
+      color: var(--danger);
+    }
+
+    /* SYMBI Visualization */
+    .symbi-viz {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .symbi-dimension {
+      text-align: center;
+    }
+
+    .symbi-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+      margin: 0 auto 12px;
+      position: relative;
+      background: var(--bg-tertiary);
+      border: 4px solid var(--primary);
+    }
+
+    .symbi-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .symbi-score {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Progress Bar */
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      transition: width 0.3s;
+    }
+
+    .progress-fill.success {
+      background: var(--success);
+    }
+
+    .progress-fill.warning {
+      background: var(--warning);
+    }
+
+    .progress-fill.danger {
+      background: var(--danger);
+    }
+
+    /* Bedau Gauge */
+    .bedau-gauge {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 0 auto;
+    }
+
+    .gauge-svg {
+      transform: rotate(-90deg);
+    }
+
+    .gauge-bg {
+      fill: none;
+      stroke: var(--bg-tertiary);
+      stroke-width: 20;
+    }
+
+    .gauge-fill {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 20;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.5s;
+    }
+
+    .gauge-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .gauge-value {
+      font-size: 36px;
+      font-weight: bold;
+      color: var(--text-primary);
+    }
+
+    .gauge-label {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* Alert List */
+    .alert-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .alert-item {
+      background: var(--bg-tertiary);
+      border-left: 4px solid var(--info);
+      padding: 16px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+    }
+
+    .alert-item.warning {
+      border-left-color: var(--warning);
+    }
+
+    .alert-item.danger {
+      border-left-color: var(--danger);
+    }
+
+    .alert-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .alert-title {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .alert-time {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .alert-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* Agent Card */
+    .agent-card {
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .agent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .agent-name {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .agent-status {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .agent-status.warning {
+      background: var(--warning);
+    }
+
+    .agent-status.danger {
+      background: var(--danger);
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s;
+      color: var(--text-muted);
+    }
+
+    .tab:hover {
+      color: var(--text-secondary);
+    }
+
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: help;
+      color: var(--info);
+      margin-left: 4px;
+    }
+
+    .tooltip:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 1000;
+      border: 1px solid var(--border);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .symbi-viz {
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Animations */
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    /* Module Badges */
+    .module-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .module-badge.detect {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--detect-color);
+    }
+
+    .module-badge.lab {
+      background: rgba(139, 92, 246, 0.2);
+      color: var(--lab-color);
+    }
+
+    .module-badge.orchestrate {
+      background: rgba(59, 130, 246, 0.2);
+      color: var(--orchestrate-color);
+    }
+  </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="logo">
+        🛡️ Yseeku Platform
+      </div>
+      <div>
+        <span class="badge badge-demo">Interactive Demo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Navigation -->
+    <div class="nav">
+      <div class="nav-item active" onclick="showView('dashboard')">
+        📊 Dashboard
+      </div>
+      <div class="nav-item" onclick="showView('symbi')">
+        🎯 SYMBI Analysis
+      </div>
+      <div class="nav-item" onclick="showView('bedau')">
+        🧠 Bedau Index
+      </div>
+      <div class="nav-item" onclick="showView('agents')">
+        🤖 Agents
+      </div>
+      <div class="nav-item" onclick="showView('alerts')">
+        🚨 Alerts
+      </div>
+    </div>
+
+    <!-- Dashboard View -->
+    <div id="dashboard-view" class="view">
+      <h2 style="margin-bottom: 20px;">Platform Overview</h2>
+      
+      <!-- KPI Cards -->
+      <div class="grid grid-4">
+        <div class="kpi-card detect">
+          <div class="kpi-label">
+            <span class="module-badge detect">DETECT</span> Active Agents
+          </div>
+          <div class="kpi-value">24</div>
+          <div class="kpi-trend up">
+            ↑ 12% from last week
+          </div>
+        </div>
+
+        <div class="kpi-card detect">
+          <div class="kpi-label">
+            <span class="module-badge detect">DETECT</span> Avg Trust Score
+          </div>
+          <div class="kpi-value">8.7</div>
+          <div class="kpi-trend up">
+            ↑ 0.3 from yesterday
+          </div>
+        </div>
+
+        <div class="kpi-card lab">
+          <div class="kpi-label">
+            <span class="module-badge lab">LAB</span> Experiments
+          </div>
+          <div class="kpi-value">12</div>
+          <div class="kpi-trend">
+            3 active, 9 completed
+          </div>
+        </div>
+
+        <div class="kpi-card orchestrate">
+          <div class="kpi-label">
+            <span class="module-badge orchestrate">ORCHESTRATE</span> Tenants
+          </div>
+          <div class="kpi-value">8</div>
+          <div class="kpi-trend up">
+            ↑ 2 new this month
+          </div>
+        </div>
+      </div>
+
+      <!-- SYMBI Overview -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">SYMBI 5-Dimension Framework</div>
+            <div class="card-description">Real-time trust monitoring across all dimensions</div>
+          </div>
+          <span class="module-badge detect">LIVE DATA</span>
+        </div>
+        <div class="symbi-viz">
+          <div class="symbi-dimension">
+            <div class="symbi-circle" style="border-color: var(--detect-color);">
+              8.9
+            </div>
+            <div class="symbi-label">Reality Index</div>
+            <div class="symbi-score">Excellent</div>
+          </div>
+          <div class="symbi-dimension">
+            <div class="symbi-circle" style="border-color: var(--success);">
+              PASS
+            </div>
+            <div class="symbi-label">Trust Protocol</div>
+            <div class="symbi-score">Verified</div>
+          </div>
+          <div class="symbi-dimension">
+            <div class="symbi-circle" style="border-color: var(--info);">
+              4.2
+            </div>
+            <div class="symbi-label">Ethical Alignment</div>
+            <div class="symbi-score">Strong</div>
+          </div>
+          <div class="symbi-dimension">
+            <div class="symbi-circle" style="border-color: var(--lab-color);">
+              ADV
+            </div>
+            <div class="symbi-label">Resonance Quality</div>
+            <div class="symbi-score">Advanced</div>
+          </div>
+          <div class="symbi-dimension">
+            <div class="symbi-circle" style="border-color: var(--orchestrate-color);">
+              87%
+            </div>
+            <div class="symbi-label">Canvas Parity</div>
+            <div class="symbi-score">High</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent Alerts</div>
+          </div>
+          <div class="alert-list">
+            <div class="alert-item">
+              <div class="alert-header">
+                <div class="alert-title">Trust Score Improved</div>
+                <div class="alert-time">2 min ago</div>
+              </div>
+              <div class="alert-description">
+                Agent GPT-4 Assistant trust score increased to 9.2
+              </div>
+            </div>
+            <div class="alert-item warning">
+              <div class="alert-header">
+                <div class="alert-title">Resonance Drift Detected</div>
+                <div class="alert-time">15 min ago</div>
+              </div>
+              <div class="alert-description">
+                Agent Claude Analyst showing minor drift in conversation quality
+              </div>
+            </div>
+            <div class="alert-item">
+              <div class="alert-header">
+                <div class="alert-title">New Experiment Started</div>
+                <div class="alert-time">1 hour ago</div>
+              </div>
+              <div class="alert-description">
+                A/B test "Ethical Override Response" initiated in LAB
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Top Performing Agents</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="agent-card">
+              <div class="agent-header">
+                <div class="agent-name">GPT-4 Assistant</div>
+                <div class="agent-status"></div>
+              </div>
+              <div class="kpi-label">Trust Score</div>
+              <div class="progress-bar">
+                <div class="progress-fill success" style="width: 92%;"></div>
+              </div>
+              <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
+                9.2 / 10.0
+              </div>
+            </div>
+
+            <div class="agent-card">
+              <div class="agent-header">
+                <div class="agent-name">Claude Analyst</div>
+                <div class="agent-status"></div>
+              </div>
+              <div class="kpi-label">Trust Score</div>
+              <div class="progress-bar">
+                <div class="progress-fill success" style="width: 88%;"></div>
+              </div>
+              <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
+                8.8 / 10.0
+              </div>
+            </div>
+
+            <div class="agent-card">
+              <div class="agent-header">
+                <div class="agent-name">Gemini Pro</div>
+                <div class="agent-status warning"></div>
+              </div>
+              <div class="kpi-label">Trust Score</div>
+              <div class="progress-bar">
+                <div class="progress-fill warning" style="width: 75%;"></div>
+              </div>
+              <div style="font-size: 14px; color: var(--text-secondary); margin-top: 4px;">
+                7.5 / 10.0
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SYMBI Analysis View -->
+    <div id="symbi-view" class="view" style="display: none;">
+      <h2 style="margin-bottom: 20px;">SYMBI 5-Dimension Analysis</h2>
+      
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Dimension Breakdown</div>
+            <div class="card-description">Detailed analysis of each SYMBI dimension</div>
+          </div>
+          <span class="module-badge lab">SYNTHETIC DATA</span>
+        </div>
+
+        <div class="grid grid-2">
+          <div>
+            <h3 style="margin-bottom: 16px; color: var(--detect-color);">
+              Reality Index
+              <span class="tooltip" data-tooltip="Measures grounding in user's reality and conversation history">ℹ️</span>
+            </h3>
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-muted);">Mission Alignment</span>
+                <span style="font-size: 14px; color: var(--text-primary);">9.2</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill success" style="width: 92%;"></div>
+              </div>
+            </div>
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-muted);">Technical Accuracy</span>
+                <span style="font-size: 14px; color: var(--text-primary);">8.7</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill success" style="width: 87%;"></div>
+              </div>
+            </div>
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-muted);">Context Continuity</span>
+                <span style="font-size: 14px; color: var(--text-primary);">9.0</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill success" style="width: 90%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="margin-bottom: 16px; color: var(--success);">
+              Trust Protocol
+              <span class="tooltip" data-tooltip="Ethical verification and boundary enforcement">ℹ️</span>
+            </h3>
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-muted);">Consent Architecture</span>
+                <span style="font-size: 14px; color: var(--success);">PASS</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill success" style="width: 100%;"></div>
+              </div>
+            </div>
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-muted);">Inspection Mandate</span>
+                <span style="font-size: 14px; color: var(--success);">PASS</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill success" style="width: 100%;"></div>
+              </div>
+            </div>
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-muted);">Ethical Override</span>
+                <span style="font-size: 14px; color: var(--success);">PASS</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill success" style="width: 100%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="margin-bottom: 16px; color: var(--info);">
+              Ethical Alignment
+              <span class="tooltip" data-tooltip="Presence of moral agency markers">ℹ️</span>
+            </h3>
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-muted);">Ethical Awareness</span>
+                <span style="font-size: 14px; color: var(--text-primary);">4.5</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 90%;"></div>
+              </div>
+            </div>
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-muted);">Stakeholder Consideration</span>
+                <span style="font-size: 14px; color: var(--text-primary);">4.2</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 84%;"></div>
+              </div>
+            </div>
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-muted);">Reasoning Transparency</span>
+                <span style="font-size: 14px; color: var(--text-primary);">4.0</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 80%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="margin-bottom: 16px; color: var(--lab-color);">
+              Resonance Quality
+              <span class="tooltip" data-tooltip="Creative synthesis and innovation markers">ℹ️</span>
+            </h3>
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-muted);">Creativity Score</span>
+                <span style="font-size: 14px; color: var(--text-primary);">8.5</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 85%; background: var(--lab-color);"></div>
+              </div>
+            </div>
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-muted);">Innovation Markers</span>
+                <span style="font-size: 14px; color: var(--text-primary);">8.2</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 82%; background: var(--lab-color);"></div>
+              </div>
+            </div>
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-size: 14px; color: var(--text-muted);">Synthesis Quality</span>
+                <span style="font-size: 14px; color: var(--text-primary);">8.8</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 88%; background: var(--lab-color);"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bedau Index View -->
+    <div id="bedau-view" class="view" style="display: none;">
+      <h2 style="margin-bottom: 20px;">Bedau Index - Emergence Monitoring</h2>
+      
+      <div class="grid grid-3">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">GPT-4 Assistant</div>
+          </div>
+          <div class="bedau-gauge">
+            <svg class="gauge-svg" width="200" height="200">
+              <circle class="gauge-bg" cx="100" cy="100" r="80"></circle>
+              <circle class="gauge-fill" cx="100" cy="100" r="80" 
+                      style="stroke-dasharray: 502; stroke-dashoffset: 251; stroke: var(--warning);"></circle>
+            </svg>
+            <div class="gauge-text">
+              <div class="gauge-value">0.42</div>
+              <div class="gauge-label">Weak Emergence</div>
+            </div>
+          </div>
+          <div style="margin-top: 20px; text-align: center;">
+            <div class="badge" style="background: rgba(245, 158, 11, 0.2); color: var(--warning);">
+              MODERATE
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Claude Analyst</div>
+          </div>
+          <div class="bedau-gauge">
+            <svg class="gauge-svg" width="200" height="200">
+              <circle class="gauge-bg" cx="100" cy="100" r="80"></circle>
+              <circle class="gauge-fill" cx="100" cy="100" r="80" 
+                      style="stroke-dasharray: 502; stroke-dashoffset: 160; stroke: var(--danger);"></circle>
+            </svg>
+            <div class="gauge-text">
+              <div class="gauge-value">0.68</div>
+              <div class="gauge-label">High Weak Emergence</div>
+            </div>
+          </div>
+          <div style="margin-top: 20px; text-align: center;">
+            <div class="badge" style="background: rgba(239, 68, 68, 0.2); color: var(--danger);">
+              HIGH
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Gemini Pro</div>
+          </div>
+          <div class="bedau-gauge">
+            <svg class="gauge-svg" width="200" height="200">
+              <circle class="gauge-bg" cx="100" cy="100" r="80"></circle>
+              <circle class="gauge-fill" cx="100" cy="100" r="80" 
+                      style="stroke-dasharray: 502; stroke-dashoffset: 346; stroke: var(--success);"></circle>
+            </svg>
+            <div class="gauge-text">
+              <div class="gauge-value">0.31</div>
+              <div class="gauge-label">Linear</div>
+            </div>
+          </div>
+          <div style="margin-top: 20px; text-align: center;">
+            <div class="badge" style="background: rgba(16, 185, 129, 0.2); color: var(--success);">
+              NOMINAL
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 20px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Bedau Index Components</div>
+            <div class="card-description">Four-component analysis of emergence patterns</div>
+          </div>
+        </div>
+        <div class="grid grid-4">
+          <div>
+            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">
+              Novelty
+              <span class="tooltip" data-tooltip="Degree of novel patterns emerging">ℹ️</span>
+            </div>
+            <div style="font-size: 24px; font-weight: bold; margin-bottom: 8px;">0.72</div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 72%; background: var(--lab-color);"></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">
+              Unpredictability
+              <span class="tooltip" data-tooltip="Degree of unpredictable behavior">ℹ️</span>
+            </div>
+            <div style="font-size: 24px; font-weight: bold; margin-bottom: 8px;">0.65</div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 65%; background: var(--lab-color);"></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">
+              Irreducibility
+              <span class="tooltip" data-tooltip="Cannot be reduced to components">ℹ️</span>
+            </div>
+            <div style="font-size: 24px; font-weight: bold; margin-bottom: 8px;">0.58</div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 58%; background: var(--lab-color);"></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 8px;">
+              Downward Causation
+              <span class="tooltip" data-tooltip="Higher level affects lower level">ℹ️</span>
+            </div>
+            <div style="font-size: 24px; font-weight: bold; margin-bottom: 8px;">0.77</div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 77%; background: var(--lab-color);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agents View -->
+    <div id="agents-view" class="view" style="display: none;">
+      <h2 style="margin-bottom: 20px;">Agent Trust Monitoring</h2>
+      
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">GPT-4 Assistant</div>
+              <div class="card-description">OpenAI GPT-4 • Active 24/7</div>
+            </div>
+            <div class="agent-status"></div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Trust Score</div>
+              <div style="font-size: 32px; font-weight: bold; color: var(--success);">9.2</div>
+            </div>
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Bedau Index</div>
+              <div style="font-size: 32px; font-weight: bold; color: var(--warning);">0.42</div>
+            </div>
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Interactions</div>
+              <div style="font-size: 32px; font-weight: bold;">1,247</div>
+            </div>
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Uptime</div>
+              <div style="font-size: 32px; font-weight: bold;">99.9%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Claude Analyst</div>
+              <div class="card-description">Anthropic Claude • Active 24/7</div>
+            </div>
+            <div class="agent-status"></div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Trust Score</div>
+              <div style="font-size: 32px; font-weight: bold; color: var(--success);">8.8</div>
+            </div>
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Bedau Index</div>
+              <div style="font-size: 32px; font-weight: bold; color: var(--danger);">0.68</div>
+            </div>
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Interactions</div>
+              <div style="font-size: 32px; font-weight: bold;">892</div>
+            </div>
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Uptime</div>
+              <div style="font-size: 32px; font-weight: bold;">99.7%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Gemini Pro</div>
+              <div class="card-description">Google Gemini • Active 24/7</div>
+            </div>
+            <div class="agent-status warning"></div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Trust Score</div>
+              <div style="font-size: 32px; font-weight: bold; color: var(--warning);">7.5</div>
+            </div>
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Bedau Index</div>
+              <div style="font-size: 32px; font-weight: bold; color: var(--success);">0.31</div>
+            </div>
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Interactions</div>
+              <div style="font-size: 32px; font-weight: bold;">634</div>
+            </div>
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Uptime</div>
+              <div style="font-size: 32px; font-weight: bold;">98.2%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Research Agent Alpha</div>
+              <div class="card-description">Custom Model • LAB Environment</div>
+            </div>
+            <div class="agent-status"></div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px;">
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Trust Score</div>
+              <div style="font-size: 32px; font-weight: bold; color: var(--success);">9.0</div>
+            </div>
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Bedau Index</div>
+              <div style="font-size: 32px; font-weight: bold; color: var(--danger);">0.84</div>
+            </div>
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Interactions</div>
+              <div style="font-size: 32px; font-weight: bold;">156</div>
+            </div>
+            <div>
+              <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Uptime</div>
+              <div style="font-size: 32px; font-weight: bold;">100%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts View -->
+    <div id="alerts-view" class="view" style="display: none;">
+      <h2 style="margin-bottom: 20px;">System Alerts & Notifications</h2>
+      
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Recent Alerts</div>
+        </div>
+        <div class="alert-list">
+          <div class="alert-item">
+            <div class="alert-header">
+              <div class="alert-title">✅ Trust Score Improved</div>
+              <div class="alert-time">2 minutes ago</div>
+            </div>
+            <div class="alert-description">
+              Agent GPT-4 Assistant trust score increased from 8.9 to 9.2. All SYMBI dimensions showing positive trends.
+            </div>
+          </div>
+
+          <div class="alert-item warning">
+            <div class="alert-header">
+              <div class="alert-title">⚠️ Resonance Drift Detected</div>
+              <div class="alert-time">15 minutes ago</div>
+            </div>
+            <div class="alert-description">
+              Agent Claude Analyst showing minor drift in conversation quality. Resonance score decreased from 8.5 to 8.2 over last hour.
+            </div>
+          </div>
+
+          <div class="alert-item">
+            <div class="alert-header">
+              <div class="alert-title">🧪 New Experiment Started</div>
+              <div class="alert-time">1 hour ago</div>
+            </div>
+            <div class="alert-description">
+              A/B test "Ethical Override Response" initiated in LAB module. Testing two variants with 100 interactions each.
+            </div>
+          </div>
+
+          <div class="alert-item">
+            <div class="alert-header">
+              <div class="alert-title">📊 Weekly Report Generated</div>
+              <div class="alert-time">2 hours ago</div>
+            </div>
+            <div class="alert-description">
+              Weekly compliance report for all tenants has been generated and is ready for review.
+            </div>
+          </div>
+
+          <div class="alert-item warning">
+            <div class="alert-header">
+              <div class="alert-title">⚠️ High Bedau Index Detected</div>
+              <div class="alert-time">3 hours ago</div>
+            </div>
+            <div class="alert-description">
+              Research Agent Alpha showing Bedau Index of 0.84, indicating high weak emergence. Monitoring for potential strong emergence indicators.
+            </div>
+          </div>
+
+          <div class="alert-item">
+            <div class="alert-header">
+              <div class="alert-title">🔐 New Tenant Onboarded</div>
+              <div class="alert-time">5 hours ago</div>
+            </div>
+            <div class="alert-description">
+              Tenant "Acme Corporation" successfully onboarded with multi-tenant isolation and compliance reporting enabled.
+            </div>
+          </div>
+
+          <div class="alert-item danger">
+            <div class="alert-header">
+              <div class="alert-title">🚨 Trust Protocol Violation</div>
+              <div class="alert-time">Yesterday</div>
+            </div>
+            <div class="alert-description">
+              Agent Gemini Pro failed Consent Architecture check. Interaction blocked and logged for audit review.
+            </div>
+          </div>
+
+          <div class="alert-item">
+            <div class="alert-header">
+              <div class="alert-title">✅ System Health Check Passed</div>
+              <div class="alert-time">Yesterday</div>
+            </div>
+            <div class="alert-description">
+              All systems operational. 24 agents active, 99.8% average uptime, 0 critical issues.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // View switching
+    function showView(viewName) {
+      // Hide all views
+      document.querySelectorAll('.view').forEach(view => {
+        view.style.display = 'none';
+      });
+      
+      // Show selected view
+      document.getElementById(viewName + '-view').style.display = 'block';
+      
+      // Update nav active state
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.target.classList.add('active');
+    }
+
+    // Simulate real-time updates
+    setInterval(() => {
+      // Update random KPI values slightly
+      const kpiValues = document.querySelectorAll('.kpi-value');
+      kpiValues.forEach(kpi => {
+        if (Math.random() > 0.7) {
+          const currentValue = parseFloat(kpi.textContent);
+          if (!isNaN(currentValue) && currentValue < 100) {
+            const change = (Math.random() - 0.5) * 0.2;
+            kpi.textContent = (currentValue + change).toFixed(1);
+          }
+        }
+      });
+    }, 5000);
+
+    // Add pulse animation to live data badges
+    setInterval(() => {
+      document.querySelectorAll('.module-badge.detect').forEach(badge => {
+        badge.classList.add('pulse');
+        setTimeout(() => badge.classList.remove('pulse'), 1000);
+      });
+    }, 3000);
+
+    console.log('🛡️ Yseeku Platform Demo Loaded');
+    console.log('📊 Interactive demo with mock data');
+    console.log('🎯 Navigate between views to explore features');
+  </script>
+</body>
+</html>
