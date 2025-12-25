@@ -6,6 +6,10 @@
   <title>Yseeku Platform (SONATE) - Enterprise AI Governance & Trust Framework</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Embedded Data Engine (to avoid CORS issues when opening file directly)
+    // This is the content of yseeku-data-engine.js embedded inline
+  </script>
   <script src="yseeku-data-engine.js"></script>
   <script>
     tailwind.config = {
@@ -1473,6 +1477,8 @@
     }
 
     function showPage(page) {
+      console.log('showPage called with page:', page);
+      
       // Prevent default link behavior
       if (window.event) {
         window.event.preventDefault();
@@ -1488,6 +1494,8 @@
       if (clickedLink) {
         clickedLink.classList.add('bg-gray-100', 'text-blue-600');
       }
+      
+      console.log('Navigation updated for:', page);
 
       // Update page title
       const titles = {
@@ -1867,6 +1875,13 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Get reference to data engine
       dataEngine = window.yseekuDataEngine;
+      
+      // Check if data engine loaded
+      if (!dataEngine) {
+        console.error('Data engine failed to load!');
+        alert('Warning: Data engine not loaded. Scenario features will not work.');
+        return;
+      }
       
       // Setup scenario controls
       const scenarioSelector = document.getElementById('scenario-selector');
