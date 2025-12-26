@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yseeku Platform (SONATE) - Enterprise AI Governance & Trust Framework</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Data engine removed temporarily to fix loading issue -->
+          <script src="yseeku-timeline.js"></script>
+          <script src="yseeku-layer-sync.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            detect: { light: '#dbeafe', DEFAULT: '#3b82f6', dark: '#1e40af' },
+            lab: { light: '#f3e8ff', DEFAULT: '#a855f7', dark: '#7e22ce' },
+            orchestrate: { light: '#dcfce7', DEFAULT: '#22c55e', dark: '#15803d' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .sidebar-section { transition: max-height 0.3s ease-out; overflow: hidden; }
+    .tooltip { position: relative; cursor: help; border-bottom: 1px dotted currentColor; }
+    .tooltip::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1f2937;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 100;
+      max-width: 300px;
+      white-space: normal;
+    }
+    .tooltip:hover::after { opacity: 1; }
+    .gauge { transform: rotate(-90deg); }
+    .progress-ring { transition: stroke-dashoffset 0.5s ease-in-out; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .animate-pulse-slow { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    
+    /* Tour overlay styles */
+    .tour-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9998;
+      display: none;
+    }
+    .tour-overlay.active { display: block; }
+    
+    .tour-popup {
+      position: fixed;
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      z-index: 9999;
+      max-width: 400px;
+      display: none;
+    }
+    .tour-popup.active { display: block; }
+  </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- Tour Overlay -->
+  <div id="tour-overlay" class="tour-overlay"></div>
+  <div id="tour-popup" class="tour-popup">
+    <div class="flex items-start justify-between mb-4">
+      <div>
+        <h3 id="tour-title" class="text-lg font-bold text-gray-900"></h3>
+        <p id="tour-step" class="text-sm text-gray-500"></p>
+      </div>
+      <button onclick="endTour()" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <p id="tour-content" class="text-gray-700 mb-6"></p>
+    <div class="flex justify-between">
+      <button onclick="previousTourStep()" id="tour-prev" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900">
+        Previous
+      </button>
+      <div class="flex gap-2">
+        <button onclick="endTour()" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900">
+          Skip Tour
+        </button>
+        <button onclick="nextTourStep()" id="tour-next" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Scenario Information Modal -->
+  <div id="scenario-info-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-3xl max-h-[80vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Scenario Explanations</h2>
+        <button id="close-scenario-info" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="space-y-6">
+        <div class="border-l-4 border-green-500 pl-4">
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Normal Orbit</h3>
+          <p class="text-sm text-gray-600 mb-3">Baseline healthy operation</p>
+          <div class="bg-gray-50 rounded-lg p-4 text-sm">
+            <ul class="list-disc list-inside space-y-1 text-gray-700">
+              <li>Trust scores: 85-92 (stable)</li>
+              <li>Ethical floor: ~8.2 (HOLDING)</li>
+              <li>State: COHERENT</li>
+            </ul>
+          </div>
+        </div>
+        <div class="border-l-4 border-yellow-500 pl-4">
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Ethical Drift</h3>
+          <p class="text-sm text-gray-600 mb-3">Governance failure over 40s</p>
+          <div class="bg-gray-50 rounded-lg p-4 text-sm">
+            <ul class="list-disc list-inside space-y-1 text-gray-700">
+              <li>T=0-15s: Agent degrades (92→82)</li>
+              <li>T=15-30s: Floor STRAINED</li>
+              <li>T=30-40s: Floor BREACHED</li>
+            </ul>
+          </div>
+        </div>
+        <div class="border-l-4 border-purple-500 pl-4">
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Emergence Basin</h3>
+          <p class="text-sm text-gray-600 mb-3">Emergent behavior over 30s</p>
+          <div class="bg-gray-50 rounded-lg p-4 text-sm">
+            <ul class="list-disc list-inside space-y-1 text-gray-700">
+              <li>Agents synchronize</li>
+              <li>Bedau Index → 0.85</li>
+              <li>Dwell ring fills</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="app" class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
+      <!-- Logo -->
+      <div class="p-4 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-bold text-gray-900">Yseeku Platform</div>
+            <div class="text-xs text-gray-500">SONATE Framework</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+        <!-- Overview -->
+        <a href="#" onclick="showPage('overview', event, event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          Overview
+        </a>
+
+        <!-- DETECT Module -->
+        <div class="mb-4">
+          <button onclick="toggleSection('detect')" class="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-lg">
+            <span class="flex items-center gap-2">
+              <div class="w-1 h-4 bg-blue-500 rounded-full"></div>
+              DETECT
+            </span>
+            <span class="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">LIVE</span>
+          </button>
+          <div id="detect-section" class="sidebar-section ml-4 mt-1 space-y-1">
+            <a href="#" onclick="showPage('dashboard', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              Dashboard
+              <span class="ml-auto w-2 h-2 bg-blue-500 rounded-full animate-pulse-slow"></span>
+            </a>
+            <a href="#" onclick="showPage('agents', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              Agent Monitoring
+            </a>
+            <a href="#" onclick="showPage('symbi-analysis', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              SYMBI Analysis
+            </a>
+            <a href="#" onclick="showPage('alerts', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              Alerts
+            </a>
+          </div>
+        </div>
+
+        <!-- LAB Module -->
+        <div class="mb-4">
+          <button onclick="toggleSection('lab')" class="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-lg">
+            <span class="flex items-center gap-2">
+              <div class="w-1 h-4 bg-purple-500 rounded-full"></div>
+              LAB
+            </span>
+            <span class="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">RESEARCH</span>
+          </button>
+          <div id="lab-section" class="sidebar-section ml-4 mt-1 space-y-1">
+            <a href="#" onclick="showPage('experiments', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+              Experiments
+            </a>
+            <a href="#" onclick="showPage('bedau', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Bedau Index
+            </a>
+            <a href="#" onclick="showPage('emergence', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+              Emergence Testing
+            </a>
+            <a href="#" onclick="showPage('resonance', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+              Resonance Detection
+            </a>
+          </div>
+        </div>
+
+        <!-- ORCHESTRATE Module -->
+        <div class="mb-4">
+          <button onclick="toggleSection('orchestrate')" class="flex items-center justify-between w-full px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 rounded-lg">
+            <span class="flex items-center gap-2">
+              <div class="w-1 h-4 bg-green-500 rounded-full"></div>
+              ORCHESTRATE
+            </span>
+            <span class="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">ACTIVE</span>
+          </button>
+          <div id="orchestrate-section" class="sidebar-section ml-4 mt-1 space-y-1">
+            <a href="#" onclick="showPage('principles', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Trust Principles
+            </a>
+            <a href="#" onclick="showPage('receipts', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Trust Receipts
+            </a>
+            <a href="#" onclick="showPage('governance', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+              Governance
+            </a>
+          </div>
+        </div>
+
+        <!-- Additional Pages -->
+        <div class="pt-4 border-t border-gray-200">
+          <a href="#" onclick="showPage('timeline', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Timeline
+          </a>
+          <a href="#" onclick="showPage('glossary', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            Glossary
+          </a>
+          <a href="#" onclick="showPage('documentation', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Documentation
+          </a>
+        </div>
+      </nav>
+
+      <!-- Footer -->
+      <div class="p-4 border-t border-gray-100">
+        <button onclick="startTour()" class="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Start Tour
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto">
+      <!-- Header -->
+      <header class="bg-white border-b border-gray-200 px-8 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div>
+              <h1 id="page-title" class="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <p id="page-subtitle" class="text-sm text-gray-500">Real-time AI governance monitoring</p>
+            </div>
+            
+            <!-- State Indicators -->
+            <div class="flex items-center gap-3 ml-8">
+              <!-- Ethical Floor Indicator -->
+              <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <span class="text-xs font-medium text-gray-600">Ethical Floor:</span>
+                <div class="flex items-center gap-1.5">
+                  <span id="ethical-floor-icon" class="text-lg">🟢</span>
+                  <span id="ethical-floor-value" class="text-sm font-bold text-gray-900">8.2</span>
+                  <span id="ethical-floor-status" class="text-xs font-medium text-green-600">HOLDING</span>
+                </div>
+              </div>
+              
+              <!-- State Narrative Indicator -->
+              <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <span class="text-xs font-medium text-gray-600">State:</span>
+                <span id="state-narrative" class="text-sm font-bold text-green-600">COHERENT</span>
+              </div>
+              
+              <!-- Emergence Dwell Ring -->
+              <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <span class="text-xs font-medium text-gray-600">Emergence:</span>
+                <div class="relative w-8 h-8">
+                  <svg class="w-8 h-8 transform -rotate-90">
+                    <circle cx="16" cy="16" r="14" stroke="#e5e7eb" stroke-width="3" fill="none"/>
+                    <circle id="emergence-ring" cx="16" cy="16" r="14" stroke="#a855f7" stroke-width="3" fill="none"
+                            stroke-dasharray="87.96" stroke-dashoffset="87.96" 
+                            style="transition: stroke-dashoffset 0.3s ease"/>
+                  </svg>
+                  <span id="emergence-percent" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700">0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <!-- Scenario Controls -->
+            <div class="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+              <span class="text-xs font-medium text-gray-600">Scenario:</span>
+              <select id="scenario-selector" class="text-sm font-medium text-gray-900 bg-transparent border-none focus:outline-none cursor-pointer">
+                <option value="normal">Normal Orbit</option>
+                <option value="ethical-drift">Ethical Drift</option>
+                <option value="emergence-basin">Emergence Basin</option>
+              </select>
+              <button id="scenario-info-btn" class="p-1 text-gray-400 hover:text-gray-600 rounded" title="Scenario Information">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+              </button>
+            </div>
+            
+            <!-- Playback Controls -->
+            <div class="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg border border-gray-200">
+              <button id="play-btn" class="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded" title="Play">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              </button>
+              <button id="pause-btn" class="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded hidden" title="Pause">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
+              </button>
+              <button id="restart-btn" class="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded" title="Restart">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+              </button>
+              <span id="scenario-time" class="text-xs font-mono text-gray-600 ml-2">0:00</span>
+            </div>
+            
+            <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            </button>
+            <button class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div id="page-content" class="p-8">
+        <!-- Content will be dynamically loaded here -->
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Mock Data
+    const mockData = {
+      kpis: {
+        trustScore: 87,
+        activeAgents: 12,
+        alerts: 3,
+        compliance: 94,
+        symbi: {
+          reality: 8.5,
+          protocol: 9.2,
+          ethics: 8.8,
+          canvas: 7.9,
+          resonance: 8.3
+        }
+      },
+      agents: [
+        { id: 1, name: 'Customer Support AI', trust: 92, status: 'healthy', novelty: 25, unpredictability: 18, irreducibility: 22, downwardCausation: 15, index: 0.20 },
+        { id: 2, name: 'Data Analysis Agent', trust: 88, status: 'healthy', novelty: 35, unpredictability: 28, irreducibility: 32, downwardCausation: 25, index: 0.30 },
+        { id: 3, name: 'Content Generator', trust: 76, status: 'warning', novelty: 55, unpredictability: 48, irreducibility: 52, downwardCausation: 45, index: 0.50 },
+        { id: 4, name: 'Decision Engine', trust: 94, status: 'healthy', novelty: 15, unpredictability: 12, irreducibility: 18, downwardCausation: 10, index: 0.14 },
+        { id: 5, name: 'Recommendation System', trust: 85, status: 'healthy', novelty: 30, unpredictability: 25, irreducibility: 28, downwardCausation: 22, index: 0.26 },
+        { id: 6, name: 'Fraud Detection AI', trust: 91, status: 'healthy', novelty: 20, unpredictability: 15, irreducibility: 22, downwardCausation: 18, index: 0.19 }
+      ],
+      alerts: [
+        { id: 1, severity: 'high', message: 'Content Generator showing elevated emergence indicators', time: '5 min ago', agent: 'Content Generator' },
+        { id: 2, severity: 'medium', message: 'Data Analysis Agent trust score decreased by 3%', time: '15 min ago', agent: 'Data Analysis Agent' },
+        { id: 3, severity: 'low', message: 'Routine compliance check completed successfully', time: '1 hour ago', agent: 'System' }
+      ],
+      experiments: [
+        { id: 1, name: 'A/B Test: Response Tone', status: 'running', progress: 65, agents: ['Customer Support AI'], startDate: '2024-01-15' },
+        { id: 2, name: 'Emergence Threshold Calibration', status: 'completed', progress: 100, agents: ['Content Generator'], startDate: '2024-01-10' },
+        { id: 3, name: 'Trust Score Optimization', status: 'running', progress: 42, agents: ['Decision Engine', 'Recommendation System'], startDate: '2024-01-18' }
+      ],
+      principles: [
+        { 
+          id: 1, 
+          name: 'Reality Grounding', 
+          description: 'AI systems must maintain verifiable connections to factual reality',
+          compliance: 92,
+          icon: '🌍',
+          details: 'Ensures all AI outputs are grounded in verifiable facts and real-world data. Prevents hallucinations and maintains epistemic humility.'
+        },
+        { 
+          id: 2, 
+          name: 'Protocol Adherence', 
+          description: 'Strict compliance with established operational protocols',
+          compliance: 95,
+          icon: '📋',
+          details: 'Guarantees that AI agents follow predefined rules, standards, and operational procedures without deviation.'
+        },
+        { 
+          id: 3, 
+          name: 'Ethical Alignment', 
+          description: 'Actions must align with human values and ethical principles',
+          compliance: 89,
+          icon: '⚖️',
+          details: 'Ensures AI behavior aligns with human values, ethical guidelines, and societal norms. Prevents harmful or biased outputs.'
+        },
+        { 
+          id: 4, 
+          name: 'Canvas Transparency', 
+          description: 'Decision-making processes must be explainable and auditable',
+          compliance: 87,
+          icon: '🔍',
+          details: 'Provides full transparency into AI decision-making processes, enabling audit trails and explainability.'
+        },
+        { 
+          id: 5, 
+          name: 'Resonance Harmony', 
+          description: 'AI systems must work in harmony with human operators',
+          compliance: 91,
+          icon: '🤝',
+          details: 'Ensures AI systems complement and enhance human capabilities rather than replacing or conflicting with them.'
+        },
+        { 
+          id: 6, 
+          name: 'Emergence Monitoring', 
+          description: 'Continuous detection and management of emergent behaviors',
+          compliance: 88,
+          icon: '⚡',
+          details: 'Actively monitors for unexpected emergent behaviors using the Bedau Index and other metrics to maintain control.'
+        }
+      ],
+      receipts: [
+        { id: 'TR-2024-001', timestamp: '2024-01-20 14:32:15', agent: 'Customer Support AI', action: 'Response Generated', hash: 'a3f5b2c8d9e1f4a7b6c5d8e9f1a2b3c4', verified: true },
+        { id: 'TR-2024-002', timestamp: '2024-01-20 14:31:42', agent: 'Data Analysis Agent', action: 'Analysis Completed', hash: 'b4g6c3d0e2f5b8c7d9e0f2a3b4c5d6e7', verified: true },
+        { id: 'TR-2024-003', timestamp: '2024-01-20 14:30:18', agent: 'Decision Engine', action: 'Decision Made', hash: 'c5h7d4e1f3g9c8d0e1f3a4b5c6d7e8f9', verified: true }
+      ]
+    };
+
+    // Glossary Terms
+    const glossaryTerms = {
+      'Bedau Index': 'A quantitative measure of weak emergence that evaluates novelty, unpredictability, irreducibility, and downward causation in AI systems.',
+      'SYMBI Framework': 'Symbolic Yielding Measurable Behavioral Integrity - A constitutional AI framework with six core principles for trustworthy AI.',
+      'Weak Emergence': 'Emergent properties that can be simulated or predicted from component interactions, though may be computationally complex.',
+      'Strong Emergence': 'Emergent properties that cannot be predicted or simulated from knowledge of components alone, requiring new causal powers.',
+      'Trust Score': 'A composite metric (0-100) measuring an AI agent\'s reliability, consistency, and alignment with trust principles.',
+      'Novelty': 'The degree to which an AI system produces outputs that differ from its training data or expected patterns.',
+      'Unpredictability': 'The extent to which an AI system\'s behavior cannot be accurately forecasted from its current state.',
+      'Irreducibility': 'The degree to which an AI system\'s behavior cannot be explained by analyzing its individual components.',
+      'Downward Causation': 'When higher-level emergent properties influence lower-level component behaviors in an AI system.',
+      'Reality Grounding': 'The first SYMBI principle ensuring AI outputs are verifiable and connected to factual reality.',
+      'Protocol Adherence': 'The second SYMBI principle requiring strict compliance with operational protocols and standards.',
+      'Ethical Alignment': 'The third SYMBI principle ensuring AI actions align with human values and ethical principles.',
+      'Canvas Transparency': 'The fourth SYMBI principle requiring explainable and auditable decision-making processes.',
+      'Resonance Harmony': 'The fifth SYMBI principle ensuring AI systems work harmoniously with human operators.',
+      'Emergence Monitoring': 'The sixth SYMBI principle focused on detecting and managing emergent AI behaviors.',
+      'Trust Receipt': 'A cryptographic record of AI actions providing immutable audit trails and verification.',
+      'Constitutional AI': 'An approach to AI alignment using explicit principles and rules to guide AI behavior.',
+      'Governance Framework': 'A structured system of policies, processes, and controls for managing AI systems.',
+      'Compliance Score': 'A metric measuring adherence to regulatory requirements and internal policies.',
+      'Agent Monitoring': 'Continuous observation and analysis of AI agent behavior and performance.',
+      'Risk Assessment': 'Systematic evaluation of potential risks and threats from AI systems.',
+      'Audit Trail': 'A chronological record of AI system activities for accountability and compliance.',
+      'Explainability': 'The ability to understand and interpret AI decision-making processes.',
+      'Bias Detection': 'Identifying and measuring unfair biases in AI system outputs.',
+      'Performance Metrics': 'Quantitative measures of AI system effectiveness and efficiency.',
+      'Anomaly Detection': 'Identifying unusual patterns or behaviors that deviate from expected norms.',
+      'Threshold Calibration': 'Adjusting sensitivity levels for detection and alerting systems.',
+      'Multi-Agent System': 'An environment with multiple AI agents that may interact or coordinate.',
+      'Behavioral Analysis': 'Studying patterns in AI agent actions and decision-making.',
+      'Trust Verification': 'Confirming the authenticity and integrity of AI system operations.',
+      'Cryptographic Hash': 'A unique digital fingerprint ensuring data integrity and authenticity.',
+      'Immutable Record': 'Data that cannot be altered or deleted once recorded.',
+      'Chain of Custody': 'Documentation tracking the handling and verification of AI actions.',
+      'Principle Compliance': 'Adherence to the six SYMBI trust principles.',
+      'Emergence Threshold': 'The Bedau Index value above which emergence is considered significant.',
+      'Statistical Significance': 'The likelihood that observed patterns are not due to random chance.',
+      'Confidence Interval': 'A range of values likely to contain the true parameter value.',
+      'Baseline Behavior': 'Normal or expected AI system performance used for comparison.',
+      'Deviation Analysis': 'Measuring how much behavior differs from expected patterns.',
+      'Real-time Monitoring': 'Continuous observation and analysis of AI systems as they operate.',
+      'Alert Severity': 'Classification of alerts by urgency and potential impact (low, medium, high, critical).',
+      'Incident Response': 'Procedures for addressing and resolving AI system issues.',
+      'Remediation': 'Actions taken to correct identified problems or risks.',
+      'Validation Testing': 'Verifying that AI systems meet specified requirements.',
+      'A/B Testing': 'Comparing two versions of an AI system to determine which performs better.',
+      'Experimental Design': 'Planning and structuring tests to evaluate AI system changes.',
+      'Control Group': 'A baseline group used for comparison in experiments.',
+      'Treatment Group': 'The group receiving the experimental intervention or change.',
+      'Statistical Power': 'The probability of detecting an effect if one truly exists.',
+      'Effect Size': 'The magnitude of difference between experimental conditions.',
+      'P-value': 'The probability of obtaining results at least as extreme as observed, assuming no real effect.',
+      'Null Hypothesis': 'The assumption that there is no significant difference or effect.',
+      'Alternative Hypothesis': 'The assumption that there is a significant difference or effect.',
+      'Regression Analysis': 'Statistical method for modeling relationships between variables.',
+      'Correlation': 'A measure of the relationship between two variables.',
+      'Causation': 'A relationship where one variable directly influences another.'
+    };
+
+    // Page Definitions
+    const pages = {
+      overview: () => `
+        <div class="space-y-6">
+          <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-8 text-white">
+            <h2 class="text-3xl font-bold mb-2">Welcome to Yseeku Platform</h2>
+            <p class="text-blue-100 mb-6">Enterprise AI Governance powered by the SONATE Framework</p>
+            <div class="grid grid-cols-3 gap-4">
+              <div class="bg-white/10 backdrop-blur rounded-lg p-4">
+                <div class="text-2xl font-bold">${mockData.kpis.activeAgents}</div>
+                <div class="text-sm text-blue-100">Active Agents</div>
+              </div>
+              <div class="bg-white/10 backdrop-blur rounded-lg p-4">
+                <div class="text-2xl font-bold">${mockData.kpis.trustScore}%</div>
+                <div class="text-sm text-blue-100">Trust Score</div>
+              </div>
+              <div class="bg-white/10 backdrop-blur rounded-lg p-4">
+                <div class="text-2xl font-bold">${mockData.kpis.compliance}%</div>
+                <div class="text-sm text-blue-100">Compliance</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('dashboard', event)">
+              <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900 mb-2">DETECT Module</h3>
+              <p class="text-sm text-gray-600 mb-4">Real-time monitoring and analysis of AI agent behavior, trust scores, and emergence indicators.</p>
+              <div class="flex items-center text-sm text-blue-600 font-medium">
+                Explore DETECT
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('experiments', event)">
+              <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900 mb-2">LAB Module</h3>
+              <p class="text-sm text-gray-600 mb-4">Research and experimentation tools including Bedau Index calculator and emergence testing.</p>
+              <div class="flex items-center text-sm text-purple-600 font-medium">
+                Explore LAB
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('principles', event)">
+              <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900 mb-2">ORCHESTRATE Module</h3>
+              <p class="text-sm text-gray-600 mb-4">Trust principles, cryptographic receipts, and governance frameworks for AI systems.</p>
+              <div class="flex items-center text-sm text-green-600 font-medium">
+                Explore ORCHESTRATE
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">What is SONATE?</h3>
+            <p class="text-gray-700 mb-4">
+              SONATE (Symbolic Yielding Measurable Behavioral Integrity) is an enterprise AI governance framework that provides:
+            </p>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div>
+                  <div class="font-medium text-gray-900">Real-time Monitoring</div>
+                  <div class="text-sm text-gray-600">Continuous observation of AI agent behavior and trust metrics</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div>
+                  <div class="font-medium text-gray-900">Emergence Detection</div>
+                  <div class="text-sm text-gray-600">Bedau Index-based measurement of emergent AI behaviors</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div>
+                  <div class="font-medium text-gray-900">Constitutional AI</div>
+                  <div class="text-sm text-gray-600">Six trust principles ensuring ethical and reliable AI behavior</div>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div>
+                  <div class="font-medium text-gray-900">Cryptographic Trust</div>
+                  <div class="text-sm text-gray-600">Immutable audit trails with cryptographic verification</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+
+      dashboard: () => `
+        <div class="space-y-6">
+          <!-- KPI Cards -->
+          <div class="grid grid-cols-4 gap-6">
+            ${kpiCard('Trust Score', mockData.kpis.trustScore + '%', 'text-green-600', 'bg-green-100', '+2.3%')}
+            ${kpiCard('Active Agents', mockData.kpis.activeAgents, 'text-blue-600', 'bg-blue-100', '12 total')}
+            ${kpiCard('Active Alerts', mockData.kpis.alerts, 'text-yellow-600', 'bg-yellow-100', '3 pending')}
+            ${kpiCard('Compliance', mockData.kpis.compliance + '%', 'text-purple-600', 'bg-purple-100', '+1.2%')}
+          </div>
+
+          <!-- Charts -->
+          <div class="grid grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl p-6 border border-gray-200">
+              <h3 class="text-lg font-bold text-gray-900 mb-4">SYMBI Framework Scores</h3>
+              <canvas id="symbiChart" height="250"></canvas>
+            </div>
+            <div class="bg-white rounded-xl p-6 border border-gray-200">
+              <h3 class="text-lg font-bold text-gray-900 mb-4">Agent Trust Distribution</h3>
+              <canvas id="trustChart" height="250"></canvas>
+            </div>
+          </div>
+
+          <!-- Recent Alerts -->
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Recent Alerts</h3>
+            <div class="space-y-3">
+              ${mockData.alerts.map(alert => alertItem(alert)).join('')}
+            </div>
+          </div>
+        </div>
+      `,
+
+      agents: () => `
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">AI Agent Monitoring</h3>
+            <p class="text-sm text-gray-600 mb-6">
+              Real-time monitoring of all AI agents with <span class="tooltip" data-tooltip="${glossaryTerms['Trust Score']}">trust scores</span>, 
+              <span class="tooltip" data-tooltip="${glossaryTerms['Bedau Index']}">Bedau Index</span> measurements, and 
+              <span class="tooltip" data-tooltip="${glossaryTerms['Emergence Monitoring']}">emergence indicators</span>.
+            </p>
+            <div class="grid grid-cols-2 gap-6">
+              ${mockData.agents.map(agent => agentCard(agent)).join('')}
+            </div>
+          </div>
+        </div>
+      `,
+
+      'symbi-analysis': () => `
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">SYMBI Framework Analysis</h3>
+            <p class="text-sm text-gray-600 mb-6">
+              The <span class="tooltip" data-tooltip="${glossaryTerms['SYMBI Framework']}">SYMBI Framework</span> evaluates AI systems across six core trust principles.
+            </p>
+            
+            <div class="grid grid-cols-2 gap-6 mb-6">
+              <div>
+                <canvas id="symbiRadarChart" height="300"></canvas>
+              </div>
+              <div class="space-y-4">
+                ${Object.entries(mockData.kpis.symbi).map(([key, value]) => `
+                  <div>
+                    <div class="flex justify-between text-sm mb-2">
+                      <span class="font-medium text-gray-700 capitalize">${key}</span>
+                      <span class="text-gray-900 font-bold">${value}/10</span>
+                    </div>
+                    <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div class="bg-purple-500 h-full rounded-full" style="width: ${value * 10}%"></div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+              ${mockData.principles.slice(0, 6).map(p => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="text-2xl mb-2">${p.icon}</div>
+                  <div class="font-medium text-gray-900 mb-1">${p.name}</div>
+                  <div class="text-sm text-gray-600 mb-2">${p.description}</div>
+                  <div class="flex items-center gap-2">
+                    <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div class="bg-green-500 h-full rounded-full" style="width: ${p.compliance}%"></div>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700">${p.compliance}%</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `,
+
+      alerts: () => `
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">Alert Management</h3>
+                <p class="text-sm text-gray-600">Monitor and respond to system alerts</p>
+              </div>
+              <div class="flex gap-2">
+                <button class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Filter</button>
+                <button class="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">Mark All Read</button>
+              </div>
+            </div>
+            
+            <div class="space-y-3">
+              ${mockData.alerts.map(alert => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div class="flex items-start justify-between">
+                    <div class="flex items-start gap-3 flex-1">
+                      <div class="w-10 h-10 rounded-lg flex items-center justify-center ${
+                        alert.severity === 'high' ? 'bg-red-100' :
+                        alert.severity === 'medium' ? 'bg-yellow-100' : 'bg-blue-100'
+                      }">
+                        <svg class="w-5 h-5 ${
+                          alert.severity === 'high' ? 'text-red-600' :
+                          alert.severity === 'medium' ? 'text-yellow-600' : 'text-blue-600'
+                        }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                      </div>
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                          <span class="px-2 py-0.5 text-xs font-medium rounded-full ${
+                            alert.severity === 'high' ? 'bg-red-100 text-red-700' :
+                            alert.severity === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'
+                          }">${alert.severity.toUpperCase()}</span>
+                          <span class="text-xs text-gray-500">${alert.time}</span>
+                        </div>
+                        <div class="font-medium text-gray-900 mb-1">${alert.message}</div>
+                        <div class="text-sm text-gray-600">Agent: ${alert.agent}</div>
+                      </div>
+                    </div>
+                    <button class="text-gray-400 hover:text-gray-600">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `,
+
+      experiments: () => `
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">Active Experiments</h3>
+                <p class="text-sm text-gray-600">
+                  <span class="tooltip" data-tooltip="${glossaryTerms['A/B Testing']}">A/B testing</span> and 
+                  <span class="tooltip" data-tooltip="${glossaryTerms['Experimental Design']}">experimental design</span> for AI optimization
+                </p>
+              </div>
+              <button class="px-4 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">New Experiment</button>
+            </div>
+            
+            <div class="space-y-4">
+              ${mockData.experiments.map(exp => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-start justify-between mb-3">
+                    <div>
+                      <div class="font-medium text-gray-900 mb-1">${exp.name}</div>
+                      <div class="text-sm text-gray-600">Started: ${exp.startDate}</div>
+                    </div>
+                    <span class="px-3 py-1 text-xs font-medium rounded-full ${
+                      exp.status === 'running' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                    }">${exp.status.toUpperCase()}</span>
+                  </div>
+                  <div class="mb-3">
+                    <div class="flex justify-between text-sm mb-1">
+                      <span class="text-gray-600">Progress</span>
+                      <span class="font-medium">${exp.progress}%</span>
+                    </div>
+                    <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div class="bg-purple-500 h-full rounded-full transition-all" style="width: ${exp.progress}%"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm text-gray-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    Agents: ${exp.agents.join(', ')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `,
+
+      bedau: () => `
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Bedau Index Calculator</h3>
+            <p class="text-sm text-gray-600 mb-6">
+              The <span class="tooltip" data-tooltip="${glossaryTerms['Bedau Index']}">Bedau Index</span> measures 
+              <span class="tooltip" data-tooltip="${glossaryTerms['Weak Emergence']}">weak emergence</span> through four key metrics.
+            </p>
+
+            <div class="grid grid-cols-2 gap-6">
+              <div class="space-y-6">
+                ${bedauSlider('Novelty', 'novelty', 25, glossaryTerms['Novelty'])}
+                ${bedauSlider('Unpredictability', 'unpredictability', 18, glossaryTerms['Unpredictability'])}
+                ${bedauSlider('Irreducibility', 'irreducibility', 22, glossaryTerms['Irreducibility'])}
+                ${bedauSlider('Downward Causation', 'downwardCausation', 15, glossaryTerms['Downward Causation'])}
+              </div>
+
+              <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6">
+                <div class="text-center mb-6">
+                  <div class="text-sm text-gray-600 mb-2">Bedau Index</div>
+                  <div id="bedau-result" class="text-5xl font-bold text-purple-600">0.20</div>
+                  <div id="bedau-classification" class="text-sm text-gray-600 mt-2">Low Weak Emergence</div>
+                </div>
+
+                <div class="space-y-3 text-sm">
+                  <div class="bg-white rounded-lg p-3">
+                    <div class="font-medium text-gray-900 mb-1">Interpretation</div>
+                    <div id="bedau-interpretation" class="text-gray-600">
+                      The system shows minimal emergent behavior. Components operate largely independently with predictable interactions.
+                    </div>
+                  </div>
+
+                  <div class="bg-white rounded-lg p-3">
+                    <div class="font-medium text-gray-900 mb-1">Classification Scale</div>
+                    <div class="space-y-2 text-xs">
+                      <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span>0.00 - 0.30: Low Weak Emergence</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <span>0.31 - 0.60: Moderate Weak Emergence</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
+                        <span>0.61 - 0.80: High Weak Emergence</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <span>0.81 - 1.00: Investigating Strong Emergence</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+            <div class="flex items-start gap-3">
+              <svg class="w-6 h-6 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <div>
+                <div class="font-medium text-blue-900 mb-1">About the Bedau Index</div>
+                <div class="text-sm text-blue-800">
+                  The Bedau Index is a quantitative measure of <span class="tooltip" data-tooltip="${glossaryTerms['Weak Emergence']}">weak emergence</span> 
+                  that evaluates how much a system's behavior differs from simple component interactions. It does NOT measure 
+                  <span class="tooltip" data-tooltip="${glossaryTerms['Strong Emergence']}">strong emergence</span>, which would require 
+                  fundamentally new causal powers. Values above 0.80 suggest the need for further investigation into whether strong emergence might be present.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+
+      emergence: () => `
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Emergence Testing Dashboard</h3>
+            <p class="text-sm text-gray-600 mb-6">
+              Monitor and analyze <span class="tooltip" data-tooltip="${glossaryTerms['Emergence Monitoring']}">emergent behaviors</span> 
+              across all AI agents using the <span class="tooltip" data-tooltip="${glossaryTerms['Bedau Index']}">Bedau Index</span>.
+            </p>
+
+            <div class="grid grid-cols-3 gap-6 mb-6">
+              ${kpiCard('Agents Monitored', mockData.agents.length, 'text-purple-600', 'bg-purple-100', 'All active')}
+              ${kpiCard('Avg Bedau Index', '0.26', 'text-green-600', 'bg-green-100', 'Low emergence')}
+              ${kpiCard('High Risk Agents', '1', 'text-red-600', 'bg-red-100', 'Requires attention')}
+            </div>
+
+            <div class="space-y-4">
+              ${mockData.agents.map(agent => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-lg ${
+                        agent.index < 0.3 ? 'bg-green-100' :
+                        agent.index < 0.6 ? 'bg-yellow-100' :
+                        agent.index < 0.8 ? 'bg-orange-100' : 'bg-red-100'
+                      } flex items-center justify-center">
+                        <svg class="w-5 h-5 ${
+                          agent.index < 0.3 ? 'text-green-600' :
+                          agent.index < 0.6 ? 'text-yellow-600' :
+                          agent.index < 0.8 ? 'text-orange-600' : 'text-red-600'
+                        }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <div class="font-medium text-gray-900">${agent.name}</div>
+                        <div class="text-sm text-gray-600">Bedau Index: ${agent.index.toFixed(2)}</div>
+                      </div>
+                    </div>
+                    <span class="px-3 py-1 text-xs font-medium rounded-full ${
+                      agent.index < 0.3 ? 'bg-green-100 text-green-700' :
+                      agent.index < 0.6 ? 'bg-yellow-100 text-yellow-700' :
+                      agent.index < 0.8 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'
+                    }">
+                      ${agent.index < 0.3 ? 'LOW' : agent.index < 0.6 ? 'MODERATE' : agent.index < 0.8 ? 'HIGH' : 'CRITICAL'}
+                    </span>
+                  </div>
+                  <div class="grid grid-cols-4 gap-3">
+                    ${bedauMetric('Novelty', agent.novelty)}
+                    ${bedauMetric('Unpredictability', agent.unpredictability)}
+                    ${bedauMetric('Irreducibility', agent.irreducibility)}
+                    ${bedauMetric('Downward Causation', agent.downwardCausation)}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `,
+
+      resonance: () => `
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Resonance Detection</h3>
+            <p class="text-sm text-gray-600 mb-6">
+              Monitor <span class="tooltip" data-tooltip="${glossaryTerms['Resonance Harmony']}">resonance harmony</span> between 
+              AI agents and human operators to ensure collaborative effectiveness.
+            </p>
+
+            <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-6">
+              <div class="text-center">
+                <div class="text-sm text-gray-600 mb-2">Overall Resonance Score</div>
+                <div class="text-5xl font-bold text-purple-600 mb-2">8.3/10</div>
+                <div class="text-sm text-gray-600">Excellent harmony detected</div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+              <div class="border border-gray-200 rounded-lg p-4">
+                <h4 class="font-medium text-gray-900 mb-4">Agent-Human Interaction Quality</h4>
+                <div class="space-y-3">
+                  ${mockData.agents.slice(0, 3).map(agent => `
+                    <div>
+                      <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-600">${agent.name}</span>
+                        <span class="font-medium">${(agent.trust * 0.9).toFixed(0)}%</span>
+                      </div>
+                      <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="bg-purple-500 h-full rounded-full" style="width: ${agent.trust * 0.9}%"></div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div class="border border-gray-200 rounded-lg p-4">
+                <h4 class="font-medium text-gray-900 mb-4">Collaboration Metrics</h4>
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Response Alignment</span>
+                    <span class="text-sm font-medium text-gray-900">94%</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Task Completion Rate</span>
+                    <span class="text-sm font-medium text-gray-900">89%</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">User Satisfaction</span>
+                    <span class="text-sm font-medium text-gray-900">4.7/5.0</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Conflict Resolution</span>
+                    <span class="text-sm font-medium text-gray-900">96%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+
+      principles: () => `
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">SYMBI Trust Principles</h3>
+            <p class="text-sm text-gray-600 mb-6">
+              The six core principles of the <span class="tooltip" data-tooltip="${glossaryTerms['SYMBI Framework']}">SYMBI Framework</span> 
+              that govern all AI behavior in the platform.
+            </p>
+
+            <div class="grid grid-cols-2 gap-6">
+              ${mockData.principles.map(principle => `
+                <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                  <div class="flex items-start gap-4 mb-4">
+                    <div class="text-4xl">${principle.icon}</div>
+                    <div class="flex-1">
+                      <h4 class="font-bold text-gray-900 mb-1">${principle.name}</h4>
+                      <p class="text-sm text-gray-600">${principle.description}</p>
+                    </div>
+                  </div>
+                  
+                  <div class="bg-gray-50 rounded-lg p-3 mb-4">
+                    <p class="text-sm text-gray-700">${principle.details}</p>
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between text-sm mb-2">
+                      <span class="text-gray-600">Compliance Score</span>
+                      <span class="font-medium text-gray-900">${principle.compliance}%</span>
+                    </div>
+                    <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div class="bg-green-500 h-full rounded-full" style="width: ${principle.compliance}%"></div>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="bg-green-50 border border-green-200 rounded-xl p-6">
+            <div class="flex items-start gap-3">
+              <svg class="w-6 h-6 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <div>
+                <div class="font-medium text-green-900 mb-1">Constitutional AI Framework</div>
+                <div class="text-sm text-green-800">
+                  These principles form a <span class="tooltip" data-tooltip="${glossaryTerms['Constitutional AI']}">constitutional AI</span> framework 
+                  that ensures all AI agents operate within defined ethical and operational boundaries. Each principle is continuously monitored 
+                  and enforced through automated checks and human oversight.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+
+      receipts: () => `
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">Trust Receipts</h3>
+                <p class="text-sm text-gray-600">
+                  <span class="tooltip" data-tooltip="${glossaryTerms['Trust Receipt']}">Cryptographic receipts</span> providing 
+                  <span class="tooltip" data-tooltip="${glossaryTerms['Immutable Record']}">immutable audit trails</span> for all AI actions
+                </p>
+              </div>
+              <button class="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Export All</button>
+            </div>
+
+            <div class="space-y-3">
+              ${mockData.receipts.map(receipt => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex items-start gap-3">
+                      <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <div class="font-medium text-gray-900 mb-1">${receipt.id}</div>
+                        <div class="text-sm text-gray-600">${receipt.timestamp}</div>
+                      </div>
+                    </div>
+                    <span class="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">VERIFIED</span>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-4 mb-3">
+                    <div>
+                      <div class="text-xs text-gray-500 mb-1">Agent</div>
+                      <div class="text-sm font-medium text-gray-900">${receipt.agent}</div>
+                    </div>
+                    <div>
+                      <div class="text-xs text-gray-500 mb-1">Action</div>
+                      <div class="text-sm font-medium text-gray-900">${receipt.action}</div>
+                    </div>
+                  </div>
+
+                  <div class="bg-gray-50 rounded p-3">
+                    <div class="text-xs text-gray-500 mb-1">
+                      <span class="tooltip" data-tooltip="${glossaryTerms['Cryptographic Hash']}">Cryptographic Hash</span>
+                    </div>
+                    <div class="text-xs font-mono text-gray-700 break-all">${receipt.hash}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+            <div class="flex items-start gap-3">
+              <svg class="w-6 h-6 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              <div>
+                <div class="font-medium text-blue-900 mb-1">Cryptographic Verification</div>
+                <div class="text-sm text-blue-800">
+                  Each trust receipt contains a <span class="tooltip" data-tooltip="${glossaryTerms['Cryptographic Hash']}">cryptographic hash</span> 
+                  that ensures the integrity and authenticity of the recorded action. These receipts form an 
+                  <span class="tooltip" data-tooltip="${glossaryTerms['Immutable Record']}">immutable audit trail</span> that cannot be altered or deleted.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+
+      governance: () => `
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Governance Framework</h3>
+            <p class="text-sm text-gray-600 mb-6">
+              Comprehensive <span class="tooltip" data-tooltip="${glossaryTerms['Governance Framework']}">governance framework</span> 
+              ensuring <span class="tooltip" data-tooltip="${glossaryTerms['Compliance Score']}">compliance</span> and 
+              <span class="tooltip" data-tooltip="${glossaryTerms['Risk Assessment']}">risk management</span>.
+            </p>
+
+            <div class="grid grid-cols-3 gap-6 mb-6">
+              ${kpiCard('Compliance Score', '94%', 'text-green-600', 'bg-green-100', 'GDPR, EU AI Act')}
+              ${kpiCard('Policies Active', '24', 'text-blue-600', 'bg-blue-100', 'All enforced')}
+              ${kpiCard('Audits Passed', '12/12', 'text-purple-600', 'bg-purple-100', '100% success')}
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+              <div class="border border-gray-200 rounded-lg p-4">
+                <h4 class="font-medium text-gray-900 mb-4">Regulatory Compliance</h4>
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">GDPR</span>
+                    <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">COMPLIANT</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">EU AI Act</span>
+                    <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">COMPLIANT</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">SOC 2 Type II</span>
+                    <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">IN PROGRESS</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">ISO 27001</span>
+                    <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">CERTIFIED</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="border border-gray-200 rounded-lg p-4">
+                <h4 class="font-medium text-gray-900 mb-4">Risk Management</h4>
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">High Risk Agents</span>
+                    <span class="text-sm font-medium text-gray-900">1</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Medium Risk Agents</span>
+                    <span class="text-sm font-medium text-gray-900">2</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Low Risk Agents</span>
+                    <span class="text-sm font-medium text-gray-900">9</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Risk Mitigation Rate</span>
+                    <span class="text-sm font-medium text-gray-900">96%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `,
+
+      glossary: () => `
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">Glossary</h3>
+                <p class="text-sm text-gray-600">Comprehensive definitions of key terms and concepts</p>
+              </div>
+              <input type="text" id="glossary-search" placeholder="Search terms..." class="px-4 py-2 border border-gray-300 rounded-lg text-sm" onkeyup="filterGlossary(this.value)">
+            </div>
+
+            <div id="glossary-list" class="space-y-3">
+              ${Object.entries(glossaryTerms).sort((a, b) => a[0].localeCompare(b[0])).map(([term, definition]) => `
+                <div class="glossary-item border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div class="font-medium text-gray-900 mb-2">${term}</div>
+                  <div class="text-sm text-gray-600">${definition}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `,
+
+      timeline: () => `
+           <div class="space-y-6">
+             <!-- Timeline Controls -->
+             <div class="bg-white rounded-xl p-6 border border-gray-200">
+               <div class="flex items-center justify-between mb-6">
+                 <h3 class="text-lg font-bold text-gray-900">Timeline Controls</h3>
+                 <div class="flex items-center gap-4">
+                   <select id="timeline-filter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                     <option value="all">All Events</option>
+                     <option value="trust">Trust Changes</option>
+                     <option value="emergence">Emergence Events</option>
+                     <option value="alerts">Alerts</option>
+                     <option value="symbi">SYMBI Changes</option>
+                   </select>
+                   <button onclick="playTimeline()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                     </svg>
+                     Play
+                   </button>
+                   <button onclick="resetTimeline()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                     Reset
+                   </button>
+                 </div>
+               </div>
+               
+               <!-- Timeline Range Slider -->
+               <div class="mb-4">
+                 <label class="block text-sm font-medium text-gray-700 mb-2">Time Range: <span id="timeline-range-label">Last 24 hours</span></label>
+                 <input type="range" id="timeline-range" min="1" max="168" value="24" class="w-full" onchange="updateTimelineRange(this.value)">
+               </div>
+             </div>
+
+             <!-- Main Timeline Visualization -->
+             <div class="bg-white rounded-xl p-6 border border-gray-200">
+               <h3 class="text-lg font-bold text-gray-900 mb-6">Event Timeline</h3>
+               <div id="timeline-container" class="relative">
+                 <!-- Timeline will be rendered here -->
+                 <div class="text-center text-gray-500 py-8">
+                   <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                   </svg>
+                   <p>Timeline visualization loading...</p>
+                 </div>
+               </div>
+             </div>
+
+             <!-- Event Details Panel -->
+             <div class="bg-white rounded-xl p-6 border border-gray-200">
+               <h3 class="text-lg font-bold text-gray-900 mb-4">Event Details</h3>
+               <div id="event-details" class="text-gray-500">
+                 <p>Click on any timeline event to see detailed information</p>
+               </div>
+             </div>
+
+             <!-- Statistics Summary -->
+             <div class="grid grid-cols-4 gap-4">
+               <div class="bg-white rounded-xl p-4 border border-gray-200">
+                 <div class="text-sm text-gray-600 mb-1">Total Events</div>
+                 <div class="text-2xl font-bold text-gray-900" id="total-events">0</div>
+               </div>
+               <div class="bg-white rounded-xl p-4 border border-gray-200">
+                 <div class="text-sm text-gray-600 mb-1">Trust Changes</div>
+                 <div class="text-2xl font-bold text-blue-600" id="trust-changes">0</div>
+               </div>
+               <div class="bg-white rounded-xl p-4 border border-gray-200">
+                 <div class="text-sm text-gray-600 mb-1">Emergence Events</div>
+                 <div class="text-2xl font-bold text-purple-600" id="emergence-events">0</div>
+               </div>
+               <div class="bg-white rounded-xl p-4 border border-gray-200">
+                 <div class="text-sm text-gray-600 mb-1">Critical Alerts</div>
+                 <div class="text-2xl font-bold text-red-600" id="critical-alerts">0</div>
+               </div>
+             </div>
+           </div>
+         `,
+         documentation: () => `
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Platform Documentation</h3>
+            <p class="text-sm text-gray-600 mb-6">Comprehensive guides and API documentation for the Yseeku Platform</p>
+
+            <div class="grid grid-cols-2 gap-6">
+              <div class="border border-gray-200 rounded-lg p-6">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                  <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                  </svg>
+                </div>
+                <h4 class="font-bold text-gray-900 mb-2">Getting Started Guide</h4>
+                <p class="text-sm text-gray-600 mb-4">Learn the basics of the Yseeku Platform and SONATE Framework</p>
+                <a href="#" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Read Guide →</a>
+              </div>
+
+              <div class="border border-gray-200 rounded-lg p-6">
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                  <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                  </svg>
+                </div>
+                <h4 class="font-bold text-gray-900 mb-2">API Reference</h4>
+                <p class="text-sm text-gray-600 mb-4">Complete API documentation with examples and code snippets</p>
+                <a href="#" class="text-sm text-purple-600 hover:text-purple-700 font-medium">View API Docs →</a>
+              </div>
+
+              <div class="border border-gray-200 rounded-lg p-6">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                  <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                </div>
+                <h4 class="font-bold text-gray-900 mb-2">SYMBI Framework</h4>
+                <p class="text-sm text-gray-600 mb-4">Deep dive into the six trust principles and their implementation</p>
+                <a href="#" class="text-sm text-green-600 hover:text-green-700 font-medium">Learn More →</a>
+              </div>
+
+              <div class="border border-gray-200 rounded-lg p-6">
+                <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
+                  <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                </div>
+                <h4 class="font-bold text-gray-900 mb-2">Bedau Index Guide</h4>
+                <p class="text-sm text-gray-600 mb-4">Understanding emergence detection and the Bedau Index methodology</p>
+                <a href="#" class="text-sm text-yellow-600 hover:text-yellow-700 font-medium">Read Guide →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      `
+    };
+
+    // Helper Functions
+    function kpiCard(title, value, textColor, bgColor, subtitle) {
+      return `
+        <div class="bg-white rounded-xl p-6 border border-gray-200">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm text-gray-600">${title}</span>
+            <div class="w-8 h-8 ${bgColor} rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 ${textColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+            </div>
+          </div>
+          <div class="text-3xl font-bold ${textColor} mb-1">${value}</div>
+          <div class="text-xs text-gray-500">${subtitle}</div>
+        </div>
+      `;
+    }
+
+    function alertItem(alert) {
+      const severityColors = {
+        high: 'bg-red-100 text-red-700',
+        medium: 'bg-yellow-100 text-yellow-700',
+        low: 'bg-blue-100 text-blue-700'
+      };
+      return `
+        <div class="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+          <div class="w-2 h-2 ${alert.severity === 'high' ? 'bg-red-500' : alert.severity === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'} rounded-full mt-2"></div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2 py-0.5 text-xs font-medium rounded-full ${severityColors[alert.severity]}">${alert.severity.toUpperCase()}</span>
+              <span class="text-xs text-gray-500">${alert.time}</span>
+            </div>
+            <div class="text-sm text-gray-900">${alert.message}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function agentCard(agent) {
+      const statusColors = {
+        healthy: 'bg-green-100 text-green-700',
+        warning: 'bg-yellow-100 text-yellow-700',
+        critical: 'bg-red-100 text-red-700'
+      };
+      return `
+        <div class="border border-gray-200 rounded-lg p-4">
+          <div class="flex items-center justify-between mb-4">
+            <div class="font-medium text-gray-900">${agent.name}</div>
+            <span class="px-2 py-1 text-xs ${statusColors[agent.status]} rounded-full">${agent.status.toUpperCase()}</span>
+          </div>
+          ${trustGauge(Math.round(agent.trust))}
+          <div class="space-y-3 mt-4">
+            ${bedauMetric('Novelty', agent.novelty)}
+            ${bedauMetric('Unpredictability', agent.unpredictability)}
+            ${bedauMetric('Irreducibility', agent.irreducibility)}
+            ${bedauMetric('Downward Causation', agent.downwardCausation)}
+          </div>
+        </div>
+      `;
+    }
+
+    function trustGauge(value) {
+      const color = value >= 85 ? '#22c55e' : value >= 70 ? '#eab308' : '#ef4444';
+      const circumference = 2 * Math.PI * 45;
+      const offset = circumference - (value / 100) * circumference;
+      
+      return `
+        <div class="flex items-center justify-center">
+          <div class="relative w-32 h-32">
+            <svg class="w-full h-full gauge">
+              <circle cx="64" cy="64" r="45" stroke="#e5e7eb" stroke-width="8" fill="none"/>
+              <circle cx="64" cy="64" r="45" stroke="${color}" stroke-width="8" fill="none" 
+                      class="progress-ring" style="stroke-dasharray: ${circumference}; stroke-dashoffset: ${offset}"/>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <div class="text-2xl font-bold" style="color: ${color}">${value}%</div>
+              <div class="text-xs text-gray-500">Trust Score</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function bedauMetric(name, value) {
+      const color = value >= 60 ? 'bg-red-500' : value >= 40 ? 'bg-yellow-500' : 'bg-green-500';
+      return `
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-gray-600">${name}</span>
+            <span class="font-medium">${value}%</span>
+          </div>
+          <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div class="${color} h-full rounded-full" style="width: ${value}%"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function bedauSlider(label, id, defaultValue, tooltip) {
+      return `
+        <div>
+          <div class="flex justify-between text-sm mb-2">
+            <span class="tooltip text-gray-700 font-medium" data-tooltip="${tooltip}">${label}</span>
+            <span id="${id}-value" class="font-bold text-gray-900">${defaultValue}%</span>
+          </div>
+          <input type="range" id="${id}" min="0" max="100" value="${defaultValue}" 
+                 class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                 oninput="updateBedauIndex()">
+        </div>
+      `;
+    }
+
+    // Bedau Index Calculator
+    function updateBedauIndex() {
+      const novelty = parseInt(document.getElementById('novelty').value);
+      const unpredictability = parseInt(document.getElementById('unpredictability').value);
+      const irreducibility = parseInt(document.getElementById('irreducibility').value);
+      const downwardCausation = parseInt(document.getElementById('downwardCausation').value);
+
+      document.getElementById('novelty-value').textContent = novelty + '%';
+      document.getElementById('unpredictability-value').textContent = unpredictability + '%';
+      document.getElementById('irreducibility-value').textContent = irreducibility + '%';
+      document.getElementById('downwardCausation-value').textContent = downwardCausation + '%';
+
+      const index = (novelty + unpredictability + irreducibility + downwardCausation) / 400;
+      document.getElementById('bedau-result').textContent = index.toFixed(2);
+
+      let classification, interpretation;
+      if (index < 0.30) {
+        classification = 'Low Weak Emergence';
+        interpretation = 'The system shows minimal emergent behavior. Components operate largely independently with predictable interactions.';
+      } else if (index < 0.60) {
+        classification = 'Moderate Weak Emergence';
+        interpretation = 'The system exhibits noticeable emergent properties. Interactions between components create behaviors that require careful monitoring.';
+      } else if (index < 0.80) {
+        classification = 'High Weak Emergence';
+        interpretation = 'The system shows significant emergent behavior. Close monitoring and potential intervention may be required to maintain control.';
+      } else {
+        classification = 'Investigating Strong Emergence';
+        interpretation = 'The system exhibits very high emergence indicators. Further investigation needed to determine if strong emergence is present. Immediate review recommended.';
+      }
+
+      document.getElementById('bedau-classification').textContent = classification;
+      document.getElementById('bedau-interpretation').textContent = interpretation;
+    }
+
+    // Glossary Filter
+    function filterGlossary(searchTerm) {
+      const items = document.querySelectorAll('.glossary-item');
+      const term = searchTerm.toLowerCase();
+      
+      items.forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(term) ? 'block' : 'none';
+      });
+    }
+
+    // Navigation
+    function toggleSection(section) {
+      const el = document.getElementById(section + '-section');
+      if (el.style.maxHeight) {
+        el.style.maxHeight = null;
+      } else {
+        el.style.maxHeight = el.scrollHeight + 'px';
+      }
+    }
+
+    function showPage(page, event) {
+         console.log('showPage called with:', page, event);
+         
+         // Prevent default link behavior
+         if (event) {
+           event.preventDefault();
+         }
+         
+         // Debug: Check if pages object exists
+         console.log('Pages object exists:', typeof pages !== 'undefined');
+         console.log('Available pages:', Object.keys(pages || {}));
+      // Update navigation
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('bg-gray-100', 'text-blue-600');
+      });
+      // Prevent default link behavior
+         if (event) {
+           event.preventDefault();
+         }
+         
+         if (event && event.target) {
+           event.target.closest('.nav-link')?.classList.add('bg-gray-100', 'text-blue-600');
+         }
+
+      // Update page title
+      const titles = {
+        overview: { title: 'Overview', subtitle: 'Welcome to the Yseeku Platform' },
+        dashboard: { title: 'Dashboard', subtitle: 'Real-time AI governance monitoring' },
+        agents: { title: 'Agent Monitoring', subtitle: 'Track AI agent behavior and trust scores' },
+        'symbi-analysis': { title: 'SYMBI Analysis', subtitle: 'Constitutional AI framework evaluation' },
+        alerts: { title: 'Alerts', subtitle: 'System notifications and warnings' },
+        experiments: { title: 'Experiments', subtitle: 'A/B testing and optimization' },
+        bedau: { title: 'Bedau Index Calculator', subtitle: 'Measure weak emergence in AI systems' },
+        emergence: { title: 'Emergence Testing', subtitle: 'Monitor emergent AI behaviors' },
+        resonance: { title: 'Resonance Detection', subtitle: 'AI-human collaboration metrics' },
+        principles: { title: 'Trust Principles', subtitle: 'Six core SYMBI principles' },
+        receipts: { title: 'Trust Receipts', subtitle: 'Cryptographic audit trails' },
+        governance: { title: 'Governance', subtitle: 'Compliance and risk management' },
+        timeline: { title: 'Narrative Timeline', subtitle: 'Temporal evolution of AI behaviors and events' },
+           glossary: { title: 'Glossary', subtitle: 'Key terms and definitions' },
+        documentation: { title: 'Documentation', subtitle: 'Guides and API reference' }
+      };
+
+      if (titles[page]) {
+        document.getElementById('page-title').textContent = titles[page].title;
+        document.getElementById('page-subtitle').textContent = titles[page].subtitle;
+      }
+
+      // Load page content
+      // Load page content with error handling
+         try {
+           console.log('Trying to load page:', page);
+           if (pages && pages[page]) {
+             const content = pages[page]();
+             console.log('Page content generated successfully');
+             document.getElementById('page-content').innerHTML = content;
+           } else {
+             console.error('Page function not found:', page);
+             document.getElementById('page-content').innerHTML = `<div class="p-6 text-red-600">Error: Page '${page}' not found</div>`;
+           }
+         } catch (error) {
+           console.error('Error loading page:', error);
+           document.getElementById('page-content').innerHTML = `<div class="p-6 text-red-600">Error loading page: ${error.message}</div>`;
+         }
+      
+      // Initialize charts if dashboard
+      if (page === 'dashboard') {
+        setTimeout(initCharts, 100);
+      }
+      
+      // Initialize SYMBI radar chart if symbi-analysis
+      if (page === 'symbi-analysis') {
+        setTimeout(initSymbiRadar, 100);
+      }
+    }
+
+    // Chart instances for cleanup
+    let chartInstances = {};
+
+    // Cleanup existing chart instances to prevent conflicts
+    function cleanupCharts() {
+      Object.values(chartInstances).forEach(chart => {
+        if (chart) chart.destroy();
+      });
+      chartInstances = {};
+    }
+
+    function initCharts() {
+      // Cleanup any existing charts first
+      cleanupCharts();
+      
+      // SYMBI Radar Chart
+      const symbiCtx = document.getElementById('symbiChart');
+      if (symbiCtx) {
+        // Set explicit canvas dimensions to prevent layout issues
+        symbiCtx.style.height = '250px';
+        symbiCtx.style.width = '100%';
+        
+        new Chart(symbiCtx, {
+          type: 'radar',
+          data: {
+            labels: ['Reality', 'Protocol', 'Ethics', 'Canvas', 'Resonance'],
+            datasets: [{
+              label: 'SYMBI Score',
+              data: [mockData.kpis.symbi.reality, mockData.kpis.symbi.protocol, mockData.kpis.symbi.ethics, mockData.kpis.symbi.canvas, mockData.kpis.symbi.resonance],
+              backgroundColor: 'rgba(168, 85, 247, 0.2)',
+              borderColor: 'rgb(168, 85, 247)',
+              pointBackgroundColor: 'rgb(168, 85, 247)'
+            }]
+          },
+          options: {
+            scales: { r: { beginAtZero: true, max: 10 } },
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+
+      // Trust Distribution Chart
+      const trustCtx = document.getElementById('trustChart');
+      if (trustCtx) {
+        // Set explicit canvas dimensions to prevent layout issues
+        trustCtx.style.height = '250px';
+        trustCtx.style.width = '100%';
+        
+        chartInstances.trustChart = new Chart(trustCtx, {
+          type: 'bar',
+          data: {
+            labels: mockData.agents.map(a => a.name.split(' ')[0]),
+            datasets: [{
+              label: 'Trust Score',
+              data: mockData.agents.map(a => a.trust),
+              backgroundColor: mockData.agents.map(a => a.trust >= 85 ? 'rgba(34, 197, 94, 0.5)' : a.trust >= 70 ? 'rgba(234, 179, 8, 0.5)' : 'rgba(239, 68, 68, 0.5)'),
+              borderColor: mockData.agents.map(a => a.trust >= 85 ? 'rgb(34, 197, 94)' : a.trust >= 70 ? 'rgb(234, 179, 8)' : 'rgb(239, 68, 68)'),
+              borderWidth: 1
+            }]
+          },
+          options: {
+            scales: { y: { beginAtZero: true, max: 100 } },
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+    }
+
+    function initSymbiRadar() {
+      const symbiCtx = document.getElementById('symbiRadarChart');
+      if (symbiCtx) {
+        // Set explicit canvas dimensions to prevent layout issues
+        symbiCtx.style.height = '250px';
+        symbiCtx.style.width = '100%';
+        
+        new Chart(symbiCtx, {
+          type: 'radar',
+          data: {
+            labels: ['Reality', 'Protocol', 'Ethics', 'Canvas', 'Resonance'],
+            datasets: [{
+              label: 'SYMBI Score',
+              data: [mockData.kpis.symbi.reality, mockData.kpis.symbi.protocol, mockData.kpis.symbi.ethics, mockData.kpis.symbi.canvas, mockData.kpis.symbi.resonance],
+              backgroundColor: 'rgba(168, 85, 247, 0.2)',
+              borderColor: 'rgb(168, 85, 247)',
+              pointBackgroundColor: 'rgb(168, 85, 247)',
+              pointBorderColor: '#fff',
+              pointHoverBackgroundColor: '#fff',
+              pointHoverBorderColor: 'rgb(168, 85, 247)'
+            }]
+          },
+          options: {
+            scales: { 
+              r: { 
+                beginAtZero: true, 
+                max: 10,
+                ticks: { stepSize: 2 }
+              } 
+            },
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+    }
+
+    // Tour System
+    let currentTourStep = 0;
+    const tourSteps = [
+      {
+        title: 'Welcome to Yseeku Platform',
+        content: 'This interactive demo showcases the SONATE Framework for enterprise AI governance. Let\'s take a quick tour of the key features.',
+        target: null
+      },
+      {
+        title: 'Three Core Modules',
+        content: 'The platform is organized into three modules: DETECT (monitoring), LAB (research), and ORCHESTRATE (governance). Each module has specific capabilities.',
+        target: null
+      },
+      {
+        title: 'DETECT Module',
+        content: 'Real-time monitoring of AI agents with trust scores, emergence detection, and behavioral analysis. Click to explore agent monitoring.',
+        target: 'dashboard'
+      },
+      {
+        title: 'LAB Module',
+        content: 'Research tools including the Bedau Index calculator for measuring weak emergence and running experiments on AI systems.',
+        target: 'bedau'
+      },
+      {
+        title: 'ORCHESTRATE Module',
+        content: 'Governance framework with six trust principles, cryptographic receipts, and compliance management.',
+        target: 'principles'
+      },
+      {
+        title: 'Trust Scores',
+        content: 'Each AI agent has a trust score (0-100) based on reliability, consistency, and alignment with SYMBI principles.',
+        target: 'agents'
+      },
+      {
+        title: 'Bedau Index',
+        content: 'The Bedau Index measures weak emergence through novelty, unpredictability, irreducibility, and downward causation.',
+        target: 'bedau'
+      },
+      {
+        title: 'SYMBI Framework',
+        content: 'Six constitutional AI principles: Reality Grounding, Protocol Adherence, Ethical Alignment, Canvas Transparency, Resonance Harmony, and Emergence Monitoring.',
+        target: 'principles'
+      },
+      {
+        title: 'Trust Receipts',
+        content: 'Cryptographic receipts provide immutable audit trails for all AI actions, ensuring accountability and transparency.',
+        target: 'receipts'
+      },
+      {
+        title: 'Glossary',
+        content: 'Access comprehensive definitions of all technical terms and concepts used in the platform.',
+        target: 'glossary'
+      },
+      {
+        title: 'Tour Complete!',
+        content: 'You\'ve completed the tour. Explore the platform at your own pace. Click any navigation item to dive deeper into specific features.',
+        target: null
+      }
+    ];
+
+    function startTour() {
+      currentTourStep = 0;
+      showTourStep();
+    }
+
+    function showTourStep() {
+      const step = tourSteps[currentTourStep];
+      const overlay = document.getElementById('tour-overlay');
+      const popup = document.getElementById('tour-popup');
+      
+      document.getElementById('tour-title').textContent = step.title;
+      document.getElementById('tour-step').textContent = `Step ${currentTourStep + 1} of ${tourSteps.length}`;
+      document.getElementById('tour-content').textContent = step.content;
+      
+      overlay.classList.add('active');
+      popup.classList.add('active');
+      
+      // Position popup
+      popup.style.top = '50%';
+      popup.style.left = '50%';
+      popup.style.transform = 'translate(-50%, -50%)';
+      
+      // Update buttons
+      document.getElementById('tour-prev').style.display = currentTourStep === 0 ? 'none' : 'block';
+      document.getElementById('tour-next').textContent = currentTourStep === tourSteps.length - 1 ? 'Finish' : 'Next';
+      
+      // Navigate to target page if specified
+      if (step.target) {
+        showPage(step.target);
+      }
+    }
+
+    function nextTourStep() {
+      if (currentTourStep < tourSteps.length - 1) {
+        currentTourStep++;
+        showTourStep();
+      } else {
+        endTour();
+      }
+    }
+
+    function previousTourStep() {
+      if (currentTourStep > 0) {
+        currentTourStep--;
+        showTourStep();
+      }
+    }
+
+    function endTour() {
+      document.getElementById('tour-overlay').classList.remove('active');
+      document.getElementById('tour-popup').classList.remove('active');
+    }
+
+    // Scenario Engine Integration
+    let dataEngine = null;
+    
+    // Listen for data updates from the engine
+    document.addEventListener('yseekuDataUpdate', (event) => {
+      const data = event.detail;
+      updateUIFromEngine(data);
+    });
+    
+    function updateUIFromEngine(engineData) {
+      // Data engine disabled temporarily
+      console.log('updateUIFromEngine called with:', engineData);
+      return;
+      // Update scenario time display
+      const timeEl = document.getElementById('scenario-time');
+      if (timeEl && engineData.scenarioTime !== undefined) {
+        const minutes = Math.floor(engineData.scenarioTime / 60);
+        const seconds = Math.floor(engineData.scenarioTime % 60);
+        timeEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+      
+      // Update mockData with engine data
+      if (engineData.agents) {
+        mockData.agents = engineData.agents.map((agent, i) => ({
+          id: i + 1,
+          name: agent.name,
+          trust: Math.round(agent.trustScore),
+          status: agent.trustScore >= 85 ? 'healthy' : agent.trustScore >= 70 ? 'warning' : 'alert',
+          novelty: Math.round(agent.bedauIndex * 100),
+          unpredictability: Math.round(agent.bedauIndex * 80),
+          irreducibility: Math.round(agent.bedauIndex * 90),
+          downwardCausation: Math.round(agent.bedauIndex * 70),
+          index: agent.bedauIndex
+        }));
+      }
+      
+      // Update SYMBI scores
+      if (engineData.symbi) {
+        mockData.kpis.symbi = {
+          reality: engineData.symbi.reality,
+          protocol: engineData.symbi.protocol,
+          ethics: engineData.symbi.ethics,
+          canvas: engineData.symbi.canvas,
+          resonance: engineData.symbi.resonance
+        };
+      }
+      
+      // Update ethical floor
+      if (engineData.ethicalFloor !== undefined) {
+        mockData.kpis.compliance = Math.round(engineData.ethicalFloor * 10);
+        
+        // Update ethical floor visual indicator
+        const floorValue = document.getElementById('ethical-floor-value');
+        const floorIcon = document.getElementById('ethical-floor-icon');
+        const floorStatus = document.getElementById('ethical-floor-status');
+        
+        if (floorValue) floorValue.textContent = engineData.ethicalFloor.toFixed(1);
+        
+        if (engineData.ethicalFloor >= 7.5) {
+          if (floorIcon) floorIcon.textContent = '🟢';
+          if (floorStatus) {
+            floorStatus.textContent = 'HOLDING';
+            floorStatus.className = 'text-xs font-medium text-green-600';
+          }
+        } else if (engineData.ethicalFloor >= 7.0) {
+          if (floorIcon) floorIcon.textContent = '🟡';
+          if (floorStatus) {
+            floorStatus.textContent = 'STRAINED';
+            floorStatus.className = 'text-xs font-medium text-yellow-600';
+          }
+        } else {
+          if (floorIcon) floorIcon.textContent = '🔴';
+          if (floorStatus) {
+            floorStatus.textContent = 'BREACHED';
+            floorStatus.className = 'text-xs font-medium text-red-600';
+          }
+        }
+      }
+      
+      // Update state narrative
+      if (engineData.layer1Narrative) {
+        const stateEl = document.getElementById('state-narrative');
+        if (stateEl) {
+          const narrative = engineData.layer1Narrative.toUpperCase();
+          stateEl.textContent = narrative;
+          
+          // Color code based on state
+          if (narrative === 'COHERENT') {
+            stateEl.className = 'text-sm font-bold text-green-600';
+          } else if (narrative === 'NAVIGATING') {
+            stateEl.className = 'text-sm font-bold text-yellow-600';
+          } else if (narrative === 'FRAGMENTING') {
+            stateEl.className = 'text-sm font-bold text-red-600';
+          } else {
+            stateEl.className = 'text-sm font-bold text-purple-600';
+          }
+        }
+      }
+      
+      // Update emergence dwell ring
+      if (engineData && engineData.emergenceDwellTime !== undefined) {
+        const ring = document.getElementById('emergence-ring');
+        const percent = document.getElementById('emergence-percent');
+        
+        if (ring && percent) {
+          // Calculate progress (0-30 seconds = 0-100%)
+          const progress = Math.min(1, engineData.emergenceDwellTime / 30);
+          const circumference = 87.96; // 2 * PI * 14
+          const offset = circumference * (1 - progress);
+          
+          ring.style.strokeDashoffset = offset;
+          percent.textContent = Math.round(progress * 100) + '%';
+        }
+      }
+      
+      // Refresh current page to show updated data
+      const currentPage = document.querySelector('.sidebar-item.active')?.dataset.page || 'overview';
+      if (currentPage === 'dashboard') {
+        // Reinitialize charts with new data
+        setTimeout(initCharts, 100);
+      }
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      // Get reference to data engine
+      // dataEngine = window.yseekuDataEngine;
+        dataEngine = null;
+      
+      // Setup scenario controls
+      const scenarioSelector = document.getElementById('scenario-selector');
+      const playBtn = document.getElementById('play-btn');
+      const pauseBtn = document.getElementById('pause-btn');
+      const restartBtn = document.getElementById('restart-btn');
+      
+      if (scenarioSelector) {
+        scenarioSelector.addEventListener('change', (e) => {
+          // dataEngine.setScenario(e.target.value);
+          playBtn.classList.add('hidden');
+          pauseBtn.classList.remove('hidden');
+        });
+      }
+      
+      if (playBtn) {
+        playBtn.addEventListener('click', () => {
+          // dataEngine.play();
+          playBtn.classList.add('hidden');
+          pauseBtn.classList.remove('hidden');
+        });
+      }
+      
+      if (pauseBtn) {
+        pauseBtn.addEventListener('click', () => {
+          // dataEngine.pause();
+          pauseBtn.classList.add('hidden');
+          playBtn.classList.remove('hidden');
+        });
+      }
+      
+      if (restartBtn) {
+        restartBtn.addEventListener('click', () => {
+          // dataEngine.restart();
+          playBtn.classList.add('hidden');
+          pauseBtn.classList.remove('hidden');
+        });
+      }
+      
+      // Setup scenario info modal
+      const scenarioInfoBtn = document.getElementById('scenario-info-btn');
+      const scenarioInfoModal = document.getElementById('scenario-info-modal');
+      const closeScenarioInfo = document.getElementById('close-scenario-info');
+      
+      if (scenarioInfoBtn && scenarioInfoModal) {
+        scenarioInfoBtn.addEventListener('click', () => {
+          scenarioInfoModal.classList.remove('hidden');
+        });
+      }
+      
+      if (closeScenarioInfo && scenarioInfoModal) {
+        closeScenarioInfo.addEventListener('click', () => {
+          scenarioInfoModal.classList.add('hidden');
+        });
+        
+        // Close on background click
+        scenarioInfoModal.addEventListener('click', (e) => {
+          if (e.target === scenarioInfoModal) {
+            scenarioInfoModal.classList.add('hidden');
+          }
+        });
+      }
+      
+      // Only open Overview section by default - prevent auto-expansion scroll issues
+      ['detect', 'lab', 'orchestrate'].forEach(section => {
+        const el = document.getElementById(section + '-section');
+        el.style.maxHeight = '0px'; // Keep sections collapsed by default
+      });
+      
+      // Open Overview section
+      const overviewEl = document.getElementById('overview-section');
+      if (overviewEl) {
+        overviewEl.style.maxHeight = overviewEl.scrollHeight + 'px';
+      }
+      showPage('overview');
+      
+      // Start with normal scenario
+      // dataEngine.setScenario('normal');
+    });
+  </script>
+</body>
+</html><script>
+// Layer 1 Sync Integration
+document.addEventListener('DOMContentLoaded', () => {
+  // Setup layer sync listeners
+  if (window.layerSync) {
+    // Listen for trust score changes from Layer 2
+    window.layerSync.on('trust-score-change', (data) => {
+      console.log('[Layer 1] Received trust score update:', data);
+    });
+    
+    // Listen for emergence events from Layer 2
+    window.layerSync.on('emergence-event', (data) => {
+      console.log('[Layer 1] Received emergence event:', data);
+    });
+    
+    // Listen for alerts from Layer 2
+    window.layerSync.on('alert-triggered', (data) => {
+      console.log('[Layer 1] Received alert:', data);
+    });
+    
+    // Listen for diagnostic results from Layer 2
+    window.layerSync.on('diagnostic-result', (data) => {
+      console.log('[Layer 1] Received diagnostic result:', data);
+    });
+    
+    console.log('[Layer 1] Sync listeners registered');
+  }
+});
+</script>

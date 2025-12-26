@@ -1,17 +1,28 @@
-# Yseeku Platform (SONATE) v1.4.0 — Enterprise Symphony
+# Yseeku Platform (SONATE) v1.5.0 — Enterprise AI Governance
 ![SYMBI](apps/resonate-dashboard/public/symbi-logo.svg)
-![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg) [![CI](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml) [![CodeQL](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml) ![Dependabot](https://img.shields.io/badge/Dependabot-enabled-brightgreen) ![AI Trust](https://img.shields.io/badge/AI%20Trust-SYMBI-blueviolet.svg) ![Enterprise Ready](https://img.shields.io/badge/Enterprise-Ready-green.svg) ![Version: 1.4.0](https://img.shields.io/badge/version-1.4.0-blue.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg) [![CI](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml) [![CodeQL](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml) ![Dependabot](https://img.shields.io/badge/Dependabot-enabled-brightgreen) ![AI Trust](https://img.shields.io/badge/AI%20Trust-SYMBI-blueviolet.svg) ![Enterprise Ready](https://img.shields.io/badge/Enterprise-Ready-green.svg) ![Version: 1.5.0](https://img.shields.io/badge/version-1.5.0-blue.svg)
 
 ## Executive Summary
 Yseeku’s SONATE platform is a comprehensive enterprise AI governance framework that provides constitutional AI with real-time trust monitoring, research validation, and production orchestration. Built on the SYMBI constitutional framework, SONATE offers enterprises a complete solution for deploying AI systems with provable trust, compliance, and operational control.
 
-## 📚 Quick Start
+## 🚀 Quick Start
 
-### Enterprise Deployment Guide
-🚀 **[Enterprise Guide v1.4.0](docs/ENTERPRISE_GUIDE_v1.4.0.md)** - Complete enterprise deployment and operations guide
+### 🎯 Platform Demos
+🚀 **[Live Demo](https://s8ken.github.io/yseeku-platform/demos/)** - Interactive platform demonstration  
+🔬 **[Advanced Demo](https://s8ken.github.io/yseeku-platform/demos/advanced.html)** - Expert diagnostics & compliance  
+
+### 📦 Quick Install
+
+```bash
+git clone https://github.com/s8ken/yseeku-platform.git
+cd yseeku-platform
+npm install
+npm run build
+npm run dev
+```
 
 ### Latest Release
-✅ **[v1.4.0 "Enterprise Symphony"](https://github.com/s8ken/yseeku-platform/releases/tag/v1.4.0)** - Production-ready enterprise platform
+✅ **[v1.5.0 Release](https://github.com/s8ken/yseeku-platform/releases/tag/v1.5.0)** - Enterprise AI governance with real-time orchestration
 
 ## 📚 Documentation & Guides
 
