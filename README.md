@@ -8,8 +8,8 @@ Yseeku’s SONATE platform is a comprehensive enterprise AI governance framework
 ## 🚀 Quick Start
 
 ### 🎯 Platform Demos
-🚀 **[Live Demo](https://s8ken.github.io/yseeku-platform/demos/)** - Interactive platform demonstration  
-🔬 **[Advanced Demo](https://s8ken.github.io/yseeku-platform/demos/advanced.html)** - Expert diagnostics & compliance  
+🚀 **[Live Demo](https://demo.yseeku.com/demos/)** - Interactive platform demonstration  
+🔬 **[Advanced Demo](https://demo.yseeku.com/demos/advanced.html)** - Expert diagnostics & compliance  
 
 ### 📦 Quick Install
 
