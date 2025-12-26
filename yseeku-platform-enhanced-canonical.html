@@ -2907,19 +2907,42 @@
             
             // Position popup if target exists
             if (step.target) {
-                const targetElement = document.getElementById(step.target);
-                if (targetElement) {
-                    const rect = targetElement.getBoundingClientRect();
-                    const popup = document.getElementById('tourPopup');
-                    popup.style.left = `${rect.left + window.scrollX}px`;
-                    popup.style.top = `${rect.bottom + window.scrollY + 10}px`;
-                }
-            } else {
-                // Center popup
-                const popup = document.getElementById('tourPopup');
-                popup.style.left = '50%';
-                popup.style.top = '50%';
-                popup.style.transform = 'translate(-50%, -50%)';
+               // Position popup if target exists
+               if (step.target) {
+                   const targetElement = document.getElementById(step.target);
+                   if (targetElement) {
+                       const rect = targetElement.getBoundingClientRect();
+                       const popup = document.getElementById('tourPopup');
+                       
+                       // Reset transform and position relative to target
+                       popup.style.transform = 'none';
+                       popup.style.left = `${rect.left + window.scrollX}px`;
+                       popup.style.top = `${rect.bottom + window.scrollY + 10}px`;
+                       
+                       // Ensure popup stays within viewport
+                       setTimeout(() => {
+                           const popupRect = popup.getBoundingClientRect();
+                           if (popupRect.right > window.innerWidth) {
+                               popup.style.left = `${window.innerWidth - popupRect.width - 20}px`;
+                           }
+                           if (popupRect.bottom > window.innerHeight) {
+                               popup.style.top = `${rect.top + window.scrollY - popupRect.height - 10}px`;
+                           }
+                       }, 10);
+                   } else {
+                       // Target not found, center popup
+                       const popup = document.getElementById('tourPopup');
+                       popup.style.left = '50%';
+                       popup.style.top = '50%';
+                       popup.style.transform = 'translate(-50%, -50%)';
+                   }
+               } else {
+                   // Center popup
+                   const popup = document.getElementById('tourPopup');
+                   popup.style.left = '50%';
+                   popup.style.top = '50%';
+                   popup.style.transform = 'translate(-50%, -50%)';
+               }
             }
         }
 
