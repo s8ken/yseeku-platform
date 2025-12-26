@@ -489,7 +489,7 @@
           name: 'Customer Onboarding',
           description: 'Automated customer verification and account setup',
           status: 'running',
-          progress: 60,
+          progress: 40,
           agents: ['Customer Support AI', 'Data Analysis Agent', 'Decision Engine'],
           agentIds: [1, 2, 4],
           tasks: [
@@ -514,7 +514,7 @@
           name: 'Fraud Investigation',
           description: 'Multi-agent fraud detection and analysis',
           status: 'running',
-          progress: 35,
+          progress: 25,
           agents: ['Fraud Detection AI', 'Data Analysis Agent'],
           agentIds: [6, 2],
           tasks: [
@@ -2322,8 +2322,8 @@
         // Update running workflows
         mockData.workflows.forEach(workflow => {
           if (workflow.status === 'running') {
-            // Increment progress
-            workflow.progress = Math.min(100, workflow.progress + Math.random() * 5);
+            // Increment progress (use whole numbers)
+            workflow.progress = Math.min(100, Math.round(workflow.progress + (Math.random() * 3) + 1));
             workflow.metrics.elapsed += 0.3;
             
             // Update task statuses
@@ -2339,6 +2339,9 @@
                 }
               }
             });
+            
+            // Update progress based on completed tasks
+            workflow.progress = Math.round((workflow.metrics.tasksComplete / workflow.metrics.tasksTotal) * 100);
             
             // Complete workflow if all tasks done
             if (workflow.metrics.tasksComplete === workflow.metrics.tasksTotal) {
