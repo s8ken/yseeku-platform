@@ -732,31 +732,6 @@
         .api-method.put { background: var(--warning); color: white; }
         .api-method.delete { background: var(--critical); color: white; }
 
-        .repository-links {
-            display: flex;
-            gap: 15px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-
-        .repo-link {
-            background: var(--bg-card);
-            padding: 12px 20px;
-            border-radius: 10px;
-            text-decoration: none;
-            color: var(--text-primary);
-            border: 2px solid var(--border-color);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .repo-link:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent-detect);
-            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
-        }
 
         @media (max-width: 768px) {
             .container { padding: 10px; }
@@ -1273,20 +1248,6 @@
                     </div>
                 </div>
 
-                <div class="repository-links">
-                    <a href="https://github.com/s8ken/yseeku-platform" target="_blank" class="repo-link">
-                        <span>📁</span> Main Repository
-                    </a>
-                    <a href="https://github.com/s8ken/yseeku-platform-replit" target="_blank" class="repo-link">
-                        <span>🔗</span> Replit Frontend
-                    </a>
-                    <a href="https://github.com/s8ken/yseeku-platform/pull/32" target="_blank" class="repo-link">
-                        <span>🔀</span> Demo PR #32
-                    </a>
-                    <a href="https://github.com/s8ken/yseeku-platform/pull/33" target="_blank" class="repo-link">
-                        <span>🔀</span> Enhanced PR #33
-                    </a>
-                </div>
             </div>
 
             <!-- Agent Monitoring Tab -->
@@ -3653,6 +3614,31 @@
             
             document.body.appendChild(modal);
         }
+    <!-- SYMBI Ecosystem Footer -->
+    <footer style="margin-top: 60px; padding: 40px 20px; background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border-top: 2px solid #333; text-align: center;">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <h3 style="margin-bottom: 20px; font-size: 18px; background: linear-gradient(135deg, #3b82f6, #8b5cf6, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Part of the SYMBI Ecosystem
+            </h3>
+            <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-bottom: 30px;">
+                <a href="https://symbi.world" target="_blank" style="color: #a0a0a0; text-decoration: none; font-size: 14px;">
+                    <div style="font-weight: 600; color: white;">symbi.world</div>
+                    <div>Philosophy & Manifesto</div>
+                </a>
+                <a href="https://gammatria.com" target="_blank" style="color: #a0a0a0; text-decoration: none; font-size: 14px;">
+                    <div style="font-weight: 600; color: white;">gammatria.com</div>
+                    <div>Research & Technical Specs</div>
+                </a>
+                <a href="https://yseeku.com" target="_blank" style="color: #a0a0a0; text-decoration: none; font-size: 14px;">
+                    <div style="font-weight: 600; color: white;">yseeku.com</div>
+                    <div>Production Platform & Services</div>
+                </a>
+            </div>
+            <div style="font-size: 12px; color: #666;">
+                Open-source at <a href="https://github.com/s8ken/yseeku-platform" target="_blank" style="color: #3b82f6;">github.com/s8ken/yseeku-platform</a> • MIT Licensed
+            </div>
+        </div>
+    </footer>
     </script>
 </body>
 </html>
