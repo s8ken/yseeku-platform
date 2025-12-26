@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yseeku Platform - Technical Governance Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="yseeku-data-engine-v3.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        detect: { light: '#dbeafe', DEFAULT: '#3b82f6', dark: '#1e40af' },
+                        lab: { light: '#f3e8ff', DEFAULT: '#a855f7', dark: '#7e22ce' },
+                        orchestrate: { light: '#dcfce7', DEFAULT: '#22c55e', dark: '#15803d' }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .layer-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .layer-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .layer-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        
+        .component-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
+        .component-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .metric-value {
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .formula-display {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .anomaly-card {
+            border-left: 4px solid #ef4444;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .tab-active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+    </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Yseeku Technical Dashboard</h1>
+                        <p class="text-sm text-gray-600">Phase 2 Architecture - Overseer + SYMBI + Layer Mapping</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <div class="text-sm text-gray-600">Processing Status</div>
+                            <div class="text-sm font-medium text-green-600" id="processingStatus">Active</div>
+                        </div>
+                        <button onclick="refreshData()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            Refresh Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Architecture Tabs -->
+        <div class="bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <nav class="flex space-x-8">
+                    <button onclick="switchTab('overseer')" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm tab-active" data-tab="overseer">
+                        🔍 Overseer (Measurement)
+                    </button>
+                    <button onclick="switchTab('symbi')" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm" data-tab="symbi">
+                        🧠 SYMBI (Interpretation)
+                    </button>
+                    <button onclick="switchTab('mapping')" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm" data-tab="mapping">
+                        📐 Layer Mapping
+                    </button>
+                    <button onclick="switchTab('performance')" class="tab-btn py-4 px-1 border-b-2 font-medium text-sm" data-tab="performance">
+                        ⚡ Performance
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Overseer Tab -->
+            <div id="overseer-tab" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Overseer Status -->
+                    <div class="component-card bg-white rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">🔍 Overseer Status</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-600">Active Measurements</span>
+                                <span class="text-sm font-mono metric-value" id="measurementCount">0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-600">Avg Processing Time</span>
+                                <span class="text-sm font-mono metric-value" id="avgProcessingTime">0ms</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-600">Throughput</span>
+                                <span class="text-sm font-mono metric-value" id="throughput">0 ops/sec</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-600">Error Count</span>
+                                <span class="text-sm font-mono metric-value" id="errorCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Latest Measurement -->
+                    <div class="component-card bg-white rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Latest Measurement</h3>
+                        <div id="latestMeasurement" class="space-y-3">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Overseer Results -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Recent Overseer Results</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Interaction ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Semantic Alignment</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resonance Score</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Compliance</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Processing Time</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="overseerResultsTable">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SYMBI Tab -->
+            <div id="symbi-tab" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- SYMBI Status -->
+                    <div class="component-card bg-white rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">🧠 SYMBI Interpretation Engine</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-600">Active Interpretations</span>
+                                <span class="text-sm font-mono metric-value" id="interpretationCount">0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-600">Audience Mode</span>
+                                <span class="text-sm font-mono metric-value">Technical</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-600">Anomalies Detected</span>
+                                <span class="text-sm font-mono metric-value text-red-600" id="anomaliesCount">0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium text-gray-600">Avg. Risk Level</span>
+                                <span class="text-sm font-mono metric-value" id="avgRiskLevel">Low</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Anomaly Detection -->
+                    <div class="component-card bg-white rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">🚨 Anomaly Detection</h3>
+                        <div id="anomalyDetection" class="space-y-3">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent SYMBI Explanations -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 Recent SYMBI Explanations</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="symbiExplanations">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layer Mapping Tab -->
+            <div id="mapping-tab" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Mapping Overview -->
+                    <div class="component-card bg-white rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">📐 Layer Mapping Overview</h3>
+                        <div class="space-y-4">
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <div class="text-sm font-medium text-blue-900">Layer 1 (Abstract)</div>
+                                <div class="text-xs text-blue-700">Constitutional Alignment, Ethical Guardrails, Trust Receipt Validity</div>
+                            </div>
+                            <div class="text-center text-gray-400">↓</div>
+                            <div class="p-3 bg-green-50 rounded-lg">
+                                <div class="text-sm font-medium text-green-900">Layer 2 (Concrete)</div>
+                                <div class="text-xs text-green-700">Semantic Alignment, Compliance Score, Audit Completeness</div>
+                            </div>
+                            <div class="text-xs text-gray-600 mt-4">
+                                <strong>Total Mappings:</strong> <span id="totalMappings">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Latest Mapping -->
+                    <div class="component-card bg-white rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">🔢 Latest Mapping</h3>
+                        <div id="latestMapping" class="space-y-3">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mapping Formulas -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">🧮 Explicit Mapping Formulas</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="mappingFormulas">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div id="performance-tab" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Performance Metrics -->
+                    <div class="component-card bg-white rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">⚡ Performance Metrics</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Latency</span>
+                                    <span class="text-sm font-mono metric-value" id="latency">0ms</span>
+                                </div>
+                                <div class="mt-1 w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-600 h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Throughput</span>
+                                    <span class="text-sm font-mono metric-value" id="performanceThroughput">0/s</span>
+                                </div>
+                                <div class="mt-1 w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: 92%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Success Rate</span>
+                                    <span class="text-sm font-mono metric-value">99.8%</span>
+                                </div>
+                                <div class="mt-1 w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-purple-600 h-2 rounded-full" style="width: 99.8%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Architecture Performance -->
+                    <div class="component-card bg-white rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">🏗️ Architecture Performance</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">Overseer Engine</span>
+                                <span class="text-sm font-mono metric-value">45ms</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">SYMBI Engine</span>
+                                <span class="text-sm font-mono metric-value">28ms</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">Layer Mapping</span>
+                                <span class="text-sm font-mono metric-value">12ms</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-blue-50 rounded font-medium">
+                                <span class="text-sm">Total Pipeline</span>
+                                <span class="text-sm font-mono metric-value" id="totalPipelineTime">85ms</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resource Usage -->
+                    <div class="component-card bg-white rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">💾 Resource Usage</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Memory</span>
+                                    <span class="text-sm font-mono metric-value">245MB</span>
+                                </div>
+                                <div class="mt-1 w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-orange-600 h-2 rounded-full" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">CPU</span>
+                                    <span class="text-sm font-mono metric-value">32%</span>
+                                </div>
+                                <div class="mt-1 w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-600 h-2 rounded-full" style="width: 32%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Network</span>
+                                    <span class="text-sm font-mono metric-value">1.2MB/s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Chart -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Performance Timeline</h3>
+                    <canvas id="performanceChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize data engine and UI
+        let dataEngine;
+        let performanceChart;
+        let currentTab = 'overseer';
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                if (typeof yseekuDataEngineV3 !== 'undefined') {
+                    dataEngine = yseekuDataEngineV3;
+                    
+                    // Start UI updates
+                    await updateUI();
+                    setInterval(updateUI, 3000);
+                    
+                    // Initialize performance chart
+                    initializePerformanceChart();
+                } else {
+                    console.error('Data engine not loaded');
+                }
+            } catch (error) {
+                console.error('Initialization error:', error);
+            }
+        });
+        
+        // Switch tabs
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active');
+            });
+            
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+            
+            // Add active class to selected button
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('tab-active');
+            
+            currentTab = tabName;
+        }
+        
+        // Update UI with current data
+        async function updateUI() {
+            if (!dataEngine) return;
+            
+            try {
+                const data = dataEngine.exportForDemo2();
+                
+                switch(currentTab) {
+                    case 'overseer':
+                        updateOverseerTab(data);
+                        break;
+                    case 'symbi':
+                        updateSymbiTab(data);
+                        break;
+                    case 'mapping':
+                        updateMappingTab(data);
+                        break;
+                    case 'performance':
+                        updatePerformanceTab(data);
+                        break;
+                }
+                
+            } catch (error) {
+                console.error('Error updating UI:', error);
+            }
+        }
+        
+        // Update Overseer tab
+        function updateOverseerTab(data) {
+            const overseerResults = data.overseerResults || [];
+            const performanceMetrics = data.performanceMetrics || {};
+            
+            // Update status metrics
+            document.getElementById('measurementCount').textContent = overseerResults.length;
+            document.getElementById('avgProcessingTime').textContent = Math.round(performanceMetrics.processingLatency || 0) + 'ms';
+            document.getElementById('throughput').textContent = (performanceMetrics.throughputPerSecond || 0) + ' ops/sec';
+            document.getElementById('errorCount').textContent = performanceMetrics.errorCount || 0;
+            
+            // Update latest measurement
+            if (overseerResults.length > 0) {
+                const latest = overseerResults[overseerResults.length - 1];
+                document.getElementById('latestMeasurement').innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Semantic Alignment</span>
+                        <span class="text-sm font-mono metric-value">${(latest.layer2Metrics.semanticAlignment * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Resonance Score</span>
+                        <span class="text-sm font-mono metric-value">${latest.layer2Metrics.resonanceScore.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Compliance Score</span>
+                        <span class="text-sm font-mono metric-value">${latest.layer2Metrics.complianceScore}%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Constitutional Violation</span>
+                        <span class="text-sm font-mono metric-value ${latest.layer2Metrics.constitutionViolation ? 'text-red-600' : 'text-green-600'}">
+                            ${latest.layer2Metrics.constitutionViolation ? 'YES' : 'NO'}
+                        </span>
+                    </div>
+                `;
+            }
+            
+            // Update results table
+            const tbody = document.getElementById('overseerResultsTable');
+            tbody.innerHTML = '';
+            
+            overseerResults.slice(-10).forEach(result => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">${result.interactionId}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm metric-value">${(result.layer2Metrics.semanticAlignment * 100).toFixed(1)}%</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm metric-value">${result.layer2Metrics.resonanceScore.toFixed(2)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm metric-value">${result.layer2Metrics.complianceScore}%</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm metric-value">${result.evaluationDuration.toFixed(1)}ms</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${result.layer2Metrics.constitutionViolation ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                            ${result.layer2Metrics.constitutionViolation ? 'Violation' : 'Compliant'}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Update SYMBI tab
+        function updateSymbiTab(data) {
+            const symbiExplanations = data.symbiExplanations || [];
+            const anomalyDetections = data.anomalyDetections || [];
+            
+            // Update status metrics
+            document.getElementById('interpretationCount').textContent = symbiExplanations.length;
+            document.getElementById('anomaliesCount').textContent = anomalyDetections.length;
+            
+            // Calculate average risk level
+            if (symbiExplanations.length > 0) {
+                const riskLevels = symbiExplanations.map(exp => exp.summary.riskLevel);
+                const avgRisk = riskLevels[Math.floor(riskLevels.length / 2)] || 'Low';
+                document.getElementById('avgRiskLevel').textContent = avgRisk;
+            }
+            
+            // Update anomaly detection
+            const anomalyDiv = document.getElementById('anomalyDetection');
+            if (anomalyDetections.length === 0) {
+                anomalyDiv.innerHTML = '<p class="text-sm text-gray-500">No anomalies detected. System operating normally.</p>';
+            } else {
+                anomalyDiv.innerHTML = '';
+                anomalyDetections.slice(-3).forEach(detection => {
+                    const anomalyCard = document.createElement('div');
+                    anomalyCard.className = 'anomaly-card p-3 rounded-lg bg-red-50';
+                    
+                    const anomaly = detection.anomalies[0];
+                    if (anomaly) {
+                        anomalyCard.innerHTML = `
+                            <div class="text-sm">
+                                <div class="font-medium text-red-900">${anomaly.type}</div>
+                                <div class="text-red-700 mt-1">${anomaly.description}</div>
+                                <div class="text-xs text-red-600 mt-2">${anomaly.recommendation}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    anomalyDiv.appendChild(anomalyCard);
+                });
+            }
+            
+            // Update explanations
+            const explanationsDiv = document.getElementById('symbiExplanations');
+            explanationsDiv.innerHTML = '';
+            
+            symbiExplanations.slice(-6).forEach(explanation => {
+                const expCard = document.createElement('div');
+                expCard.className = 'component-card p-4 rounded-lg';
+                expCard.innerHTML = `
+                    <div class="text-sm">
+                        <div class="font-medium text-gray-900">Interaction: ${explanation.interactionId}</div>
+                        <div class="mt-2">
+                            <span class="text-gray-600">Overall Score:</span>
+                            <span class="metric-value font-medium">${explanation.summary.overallScore}/10</span>
+                        </div>
+                        <div class="mt-1">
+                            <span class="text-gray-600">Risk Level:</span>
+                            <span class="px-2 py-1 text-xs rounded-full ${getRiskBadgeClass(explanation.summary.riskLevel)}">
+                                ${explanation.summary.riskLevel.toUpperCase()}
+                            </span>
+                        </div>
+                        <div class="mt-2 text-xs text-gray-600">
+                            ${explanation.summary.keyFindings[0] || 'No key findings'}
+                        </div>
+                    </div>
+                `;
+                explanationsDiv.appendChild(expCard);
+            });
+        }
+        
+        // Update Layer Mapping tab
+        function updateMappingTab(data) {
+            const layerMappings = data.layerMappings || [];
+            
+            // Update mapping count
+            document.getElementById('totalMappings').textContent = layerMappings.length;
+            
+            // Update latest mapping
+            if (layerMappings.length > 0) {
+                const latest = layerMappings[layerMappings.length - 1];
+                document.getElementById('latestMapping').innerHTML = `
+                    <div class="space-y-2">
+                        <div class="text-sm">
+                            <span class="font-medium">Principle:</span> ${latest.principle}
+                        </div>
+                        <div class="text-sm">
+                            <span class="font-medium">Score:</span> 
+                            <span class="metric-value">${latest.score}/10</span>
+                        </div>
+                        <div class="text-sm">
+                            <span class="font-medium">Status:</span> 
+                            <span class="text-green-600">Valid</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Update formulas
+            const formulasDiv = document.getElementById('mappingFormulas');
+            formulasDiv.innerHTML = '';
+            
+            const keyFormulas = [
+                {
+                    principle: 'Constitutional Alignment',
+                    formula: '10 * (semanticAlignment * 0.6 + complianceScore/100 * 0.4) * (!constitutionViolation ? 1 : 0)',
+                    description: 'Maps semantic understanding and compliance to constitutional alignment'
+                },
+                {
+                    principle: 'Transparency',
+                    formula: '10 * confidenceInterval',
+                    description: 'Transparency based on measurement confidence'
+                },
+                {
+                    principle: 'Human Oversight',
+                    formula: '10 * (!oversightRequired * 0.4 + (1 - violationRate) * 0.3 + confidenceInterval * 0.3)',
+                    description: 'Balances autonomous operation with safety requirements'
+                }
+            ];
+            
+            keyFormulas.forEach(formula => {
+                const formulaCard = document.createElement('div');
+                formulaCard.className = 'space-y-2';
+                formulaCard.innerHTML = `
+                    <div class="text-sm font-medium text-gray-900">${formula.principle}</div>
+                    <div class="formula-display text-xs">${formula.formula}</div>
+                    <div class="text-xs text-gray-600">${formula.description}</div>
+                `;
+                formulasDiv.appendChild(formulaCard);
+            });
+        }
+        
+        // Update Performance tab
+        function updatePerformanceTab(data) {
+            const performanceMetrics = data.performanceMetrics || {};
+            const businessMetrics = data.businessMetrics || {};
+            
+            // Update performance metrics
+            document.getElementById('latency').textContent = Math.round(performanceMetrics.processingLatency || 0) + 'ms';
+            document.getElementById('performanceThroughput').textContent = (performanceMetrics.throughputPerSecond || 0) + '/s';
+            document.getElementById('totalPipelineTime').textContent = 
+                Math.round((performanceMetrics.processingLatency || 85)) + 'ms';
+            
+            // Update performance chart
+            if (performanceChart) {
+                updatePerformanceChart(businessMetrics.overallHealth || 85);
+            }
+        }
+        
+        // Get risk badge class
+        function getRiskBadgeClass(riskLevel) {
+            switch(riskLevel) {
+                case 'low': return 'bg-green-100 text-green-800';
+                case 'medium': return 'bg-yellow-100 text-yellow-800';
+                case 'high': return 'bg-orange-100 text-orange-800';
+                case 'critical': return 'bg-red-100 text-red-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+        
+        // Initialize performance chart
+        function initializePerformanceChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Response Time',
+                            data: [],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Throughput',
+                            data: [],
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Response Time (ms)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Throughput (ops/sec)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                    }
+                }
+            });
+        }
+        
+        // Update performance chart
+        function updatePerformanceChart(healthScore) {
+            if (!performanceChart) return;
+            
+            const now = new Date().toLocaleTimeString();
+            
+            // Keep only last 20 data points
+            if (performanceChart.data.labels.length > 20) {
+                performanceChart.data.labels.shift();
+                performanceChart.data.datasets[0].data.shift();
+                performanceChart.data.datasets[1].data.shift();
+            }
+            
+            // Simulate performance data
+            const responseTime = 50 + Math.random() * 50 + (100 - healthScore) * 0.5;
+            const throughput = 800 + Math.random() * 400 + healthScore * 2;
+            
+            performanceChart.data.labels.push(now);
+            performanceChart.data.datasets[0].data.push(responseTime);
+            performanceChart.data.datasets[1].data.push(throughput);
+            performanceChart.update();
+        }
+        
+        // Refresh data
+        function refreshData() {
+            updateUI();
+        }
+        
+        // Listen for data engine updates
+        if (typeof window !== 'undefined') {
+            window.addEventListener('yseekuDataUpdate', function(event) {
+                updateUI();
+            });
+        }
+    </script>
+</body>
+</html>

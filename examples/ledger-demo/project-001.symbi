@@ -1,0 +1,98 @@
+{
+  "projectId": "project-001",
+  "name": "SYMBI Collaboration project-001",
+  "created": 1765827788360,
+  "updated": 1765827788361,
+  "humans": [
+    "0xYourWalletAddress"
+  ],
+  "agents": [
+    {
+      "agentId": "claude-3.7-sonnet",
+      "provider": "anthropic",
+      "version": "3.7",
+      "timestamp": 1765827788360,
+      "verification": {
+        "method": "provider_signed",
+        "proof": "anthropic_sig_abc123"
+      }
+    },
+    {
+      "agentId": "gpt-5",
+      "provider": "openai",
+      "version": "5.0",
+      "timestamp": 1765827788360,
+      "verification": {
+        "method": "provider_signed",
+        "proof": "openai_sig_xyz789"
+      }
+    }
+  ],
+  "workUnits": [
+    {
+      "workId": "16d3f4819ef0c7379ce846bfe5a930cdac06b1cba2e3875bc894f2e0fbcd5ad7",
+      "agent": {
+        "agentId": "claude-3.7-sonnet",
+        "provider": "anthropic",
+        "version": "3.7",
+        "timestamp": 1765827788360,
+        "verification": {
+          "method": "provider_signed",
+          "proof": "anthropic_sig_abc123"
+        }
+      },
+      "timestamp": 1765827788360,
+      "inputHash": "b30d17d26644825f04f8de1cff29f978ab2eb1e5f28dcee6758f21fceabb3d43",
+      "outputHash": "af17a1730ff5e14250934d5c5002fe9f44c4a21997ac7ec506522ab6e484983f",
+      "contentType": "text"
+    },
+    {
+      "workId": "68808f735d5cce9f6e68fba0250fff696c1469c2662f1f023b7f6f73aaf622d1",
+      "previousWorkId": "16d3f4819ef0c7379ce846bfe5a930cdac06b1cba2e3875bc894f2e0fbcd5ad7",
+      "agent": {
+        "agentId": "gpt-5",
+        "provider": "openai",
+        "version": "5.0",
+        "timestamp": 1765827788360,
+        "verification": {
+          "method": "provider_signed",
+          "proof": "openai_sig_xyz789"
+        }
+      },
+      "timestamp": 1765827788360,
+      "inputHash": "3241cc7cea73ac0252cc5bd9e9f067eb9f44fd0bff794b2210aba7b3a31c5b67",
+      "outputHash": "0d880ac091d430c610c83f33e6bd5fb0b03aeabc4472ddaba43490f988997774",
+      "contentType": "text"
+    }
+  ],
+  "decisions": [
+    {
+      "decisionId": "8d9be1d561b3e7cdbd62e95d605ef77bbfc6fd29877eb0416e2e66f9c46d1d9c",
+      "humanId": "0xYourWalletAddress",
+      "timestamp": 1765827788361,
+      "action": "accept",
+      "targetWorkId": "68808f735d5cce9f6e68fba0250fff696c1469c2662f1f023b7f6f73aaf622d1",
+      "reasoning": "Security feedback is valid and actionable",
+      "basedOn": [
+        "16d3f4819ef0c7379ce846bfe5a930cdac06b1cba2e3875bc894f2e0fbcd5ad7",
+        "68808f735d5cce9f6e68fba0250fff696c1469c2662f1f023b7f6f73aaf622d1"
+      ],
+      "humanSignature": "signed_message_here"
+    }
+  ],
+  "merkleRoot": "69ef9a536c8a1309c4835c9eb093e1460164c2e77f785c33d6c8d4299a48ff22",
+  "merkleProofs": {
+    "76d9bc7ea128b73d48c96f962f61a1fe54715ec408206ba4a7b23e22d5abf5e5": [
+      "2008122d075ab074b95a9674cd27bf1f004fbd20ee35cc6acac67f108b932a97",
+      "2658b2ebb1b3af55615a8971fb145347b02cc1be104a620fe76a677e755e73eb"
+    ],
+    "2008122d075ab074b95a9674cd27bf1f004fbd20ee35cc6acac67f108b932a97": [
+      "76d9bc7ea128b73d48c96f962f61a1fe54715ec408206ba4a7b23e22d5abf5e5",
+      "2658b2ebb1b3af55615a8971fb145347b02cc1be104a620fe76a677e755e73eb"
+    ],
+    "7d78a2025b4542eead76780401e53775932093eed695219e1fb81e225628dd1d": [
+      "7d78a2025b4542eead76780401e53775932093eed695219e1fb81e225628dd1d",
+      "c263219a1203ae110d233784747082eaed823290dd58dd40c45de408bab84c47"
+    ]
+  }
+}

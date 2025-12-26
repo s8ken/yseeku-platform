@@ -1,0 +1,23 @@
+{
+  "name": "@sonate/new-demo",
+  "version": "1.0.0",
+  "description": "Interactive SONATE Platform Demo with Advanced Features",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "vite preview --port 3000"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.0",
+    "gsap": "^3.12.2",
+    "lucide-react": "^0.294.0",
+    "three": "^0.158.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.158.0",
+    "typescript": "^5.0.0",
+    "vite": "^7.3.0"
+  }
+}

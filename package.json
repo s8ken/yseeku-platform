@@ -1,0 +1,42 @@
+{
+  "name": "yseeku-platform",
+  "version": "1.4.0",
+  "description": "SONATE Platform - Enterprise AI Trust Framework",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "turbo run build --filter=web",
+    "dev": "turbo run dev --parallel",
+    "test": "turbo run test --filter=@sonate/core --filter=@sonate/detect --filter=@sonate/orchestrate --filter=@sonate/lab --filter=@sonate/persistence",
+    "test:integration": "turbo run test --filter=integration-tests",
+    "test:e2e": "turbo run e2e --filter=web",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "demo:ledger": "npm run build --workspace @sonate/collaboration-ledger && node examples/ledger-demo/index.js",
+    "demo:interactive": "npm run dev --workspace @sonate/new-demo"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "c8": "^9.1.0",
+    "turbo": "^1.10.0",
+    "typescript": "^5.0.0"
+  },
+  "overrides": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "@types/react": "18.2.37",
+    "@types/react-dom": "18.2.15"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "esbuild": "^0.25.12",
+    "parse-duration": "^2.1.5",
+    "vite": "^6.4.1"
+  }
+}

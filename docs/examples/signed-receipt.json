@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "session_id": "sess_1766039964548",
+  "timestamp": 1766039964548,
+  "mode": "constitutional",
+  "ciq_metrics": {
+    "clarity": 0.92,
+    "integrity": 0.97,
+    "quality": 0.94
+  },
+  "previous_hash": null,
+  "self_hash": "d2fbd2f4451fbd98c0505ba82f268ee7ea4568fed4ad3cb829bdfe46d5f4e621",
+  "signature_hex": "fd280b6f0705ce269839b6824e613831d25abf47e6a38ba30a0386dbd2691cfa901005bfd6264424a456bac2e9d31faa8ecf3b96a128889cd0bf42ea7e4fa10c",
+  "signature_base64": "/SgLbwcFziaYObaCTmE4MdJav0fmo4ujCgOG29JpHPqQEAW/1iZEJKRWusLp0x+qjs87lqEoiJzQv0Lqfk+hDA==",
+  "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAvEldK/c1NApiFDtqgImRw+o6D0hHFpQ5rYhVvJi+jb4=\n-----END PUBLIC KEY-----\n",
+  "signature_valid": true
+}

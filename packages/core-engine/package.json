@@ -1,0 +1,63 @@
+{
+  "name": "@symbi/core-engine",
+  "version": "0.2.0",
+  "description": "SYMBI Core Engine - Enterprise AI Governance with Objective Measurement and Interpretive Analysis",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "demo": "node dist/demo.js",
+    "demo:phase2": "node dist/demo-architecture.js",
+    "validate": "node dist/tests/mathematical-tests.js",
+    "architecture-test": "node dist/tests/architecture-tests.js",
+    "clean": "rm -rf dist",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix"
+  },
+  "keywords": [
+    "ai-governance",
+    "symbi",
+    "constitutional-ai",
+    "enterprise-ai",
+    "overseer",
+    "semantic-metrics",
+    "resonance",
+    "compliance",
+    "audit",
+    "trust-receipts"
+  ],
+  "author": "SYMBI Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/s8ken/yseeku-platform.git",
+    "directory": "packages/core-engine"
+  },
+  "dependencies": {
+    "openai": "^4.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.0"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

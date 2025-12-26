@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yseeku Platform - Unified Phase 2 Architecture Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="yseeku-data-engine-v3.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        detect: { light: '#dbeafe', DEFAULT: '#3b82f6', dark: '#1e40af' },
+                        lab: { light: '#f3e8ff', DEFAULT: '#a855f7', dark: '#7e22ce' },
+                        orchestrate: { light: '#dcfce7', DEFAULT: '#22c55e', dark: '#15803d' },
+                        layer1: { light: '#fef3c7', DEFAULT: '#f59e0b', dark: '#92400e' },
+                        layer2: { light: '#ddd6fe', DEFAULT: '#8b5cf6', dark: '#5b21b6' }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .layer-1-card { background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%); }
+        .layer-2-card { background: linear-gradient(135deg, #ddd6fe 0%, #8b5cf6 100%); }
+        .phase-2-card { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .metric-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-good { background-color: #dcfce7; color: #166534; }
+        .status-warning { background-color: #fef3c7; color: #92400e; }
+        .status-critical { background-color: #fee2e2; color: #991b1b; }
+        
+        .arch-timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+        .arch-timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+        }
+        .arch-timeline-item {
+            position: relative;
+            padding-bottom: 1rem;
+        }
+        .arch-timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.75rem;
+            top: 0.25rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3b82f6;
+            border: 2px solid white;
+        }
+        
+        .split-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .split-view {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .pulse-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+    </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Yseeku Unified Dashboard</h1>
+                        <p class="text-sm text-gray-600">Phase 2 Architecture - Complete AI Governance Overview</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <div class="text-xs text-gray-500">System Status</div>
+                            <div class="text-sm font-medium text-green-600 flex items-center">
+                                <span class="pulse-dot bg-green-500 mr-2"></span>
+                                Active
+                            </div>
+                        </div>
+                        <button onclick="refreshData()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Architecture Overview -->
+        <div class="bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Phase 2 Architecture -->
+                    <div class="phase-2-card text-white rounded-lg p-6 card-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">Phase 2 Architecture</h3>
+                            <div class="text-2xl">🚀</div>
+                        </div>
+                        <div class="text-sm space-y-2">
+                            <div>✅ Overseer: Objective Measurement</div>
+                            <div>✅ SYMBI: Interpretation & Audit</div>
+                            <div>✅ Layer Mapping: Explicit Formulas</div>
+                            <div>✅ Real-time Performance</div>
+                        </div>
+                        <div class="mt-4 text-xs opacity-90">
+                            Processing <span id="totalInteractions">0</span> interactions
+                        </div>
+                    </div>
+
+                    <!-- System Health -->
+                    <div class="bg-white rounded-lg p-6 border border-gray-200 card-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">System Health</h3>
+                            <div class="text-2xl">🏥</div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Overall Score</span>
+                                <span class="text-lg font-bold metric-value" id="overallHealth">--%</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Risk Level</span>
+                                <span class="metric-pill" id="riskLevelPill">Low</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Compliance</span>
+                                <span class="text-lg font-bold metric-value" id="compliancePill">--%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance -->
+                    <div class="bg-white rounded-lg p-6 border border-gray-200 card-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Performance</h3>
+                            <div class="text-2xl">⚡</div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Latency</span>
+                                <span class="text-sm font-mono metric-value" id="latency">--ms</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Throughput</span>
+                                <span class="text-sm font-mono metric-value" id="throughput">--/s</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Success Rate</span>
+                                <span class="text-sm font-mono metric-value">99.8%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Split View: Layer 1 vs Layer 2 -->
+            <section class="mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">Dual Layer View</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="toggleSplitView()" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg text-sm hover:bg-gray-300 transition">
+                            Toggle View
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="split-view" id="splitView">
+                    <!-- Layer 1: Business View -->
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <div class="layer-1-card text-white p-4">
+                            <h3 class="text-lg font-semibold">Layer 1: Business View</h3>
+                            <p class="text-sm opacity-90">Executive-friendly metrics and insights</p>
+                        </div>
+                        <div class="p-6">
+                            <!-- Business Metrics -->
+                            <div class="space-y-4 mb-6">
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                    <span class="text-sm font-medium">Policy Compliance</span>
+                                    <span class="text-lg font-bold metric-value" id="policyCompliance">--%</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                    <span class="text-sm font-medium">Understanding Score</span>
+                                    <span class="text-lg font-bold metric-value" id="understandingScore">--%</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                    <span class="text-sm font-medium">Quality Score</span>
+                                    <span class="text-lg font-bold metric-value" id="qualityScore">--%</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                    <span class="text-sm font-medium">Risk Assessment</span>
+                                    <span class="text-lg font-bold metric-value" id="riskAssessment">--%</span>
+                                </div>
+                            </div>
+                            
+                            <!-- AI Agents Summary -->
+                            <div class="mb-6">
+                                <h4 class="text-sm font-semibold text-gray-900 mb-3">AI Agents Overview</h4>
+                                <div class="space-y-2" id="layer1Agents">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
+                            </div>
+                            
+                            <!-- Key Insights -->
+                            <div class="p-4 bg-blue-50 rounded-lg">
+                                <h4 class="text-sm font-semibold text-blue-900 mb-2">💡 Business Insights</h4>
+                                <ul class="text-sm text-blue-800 space-y-1">
+                                    <li>• Strong governance controls across all AI systems</li>
+                                    <li>• Regulatory compliance targets being met consistently</li>
+                                    <li>• Performance optimization opportunities identified</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layer 2: Technical View -->
+                    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                        <div class="layer-2-card text-white p-4">
+                            <h3 class="text-lg font-semibold">Layer 2: Technical View</h3>
+                            <p class="text-sm opacity-90">Detailed measurements and architectural data</p>
+                        </div>
+                        <div class="p-6">
+                            <!-- Technical Metrics -->
+                            <div class="space-y-4 mb-6">
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                    <span class="text-sm font-medium">Semantic Alignment</span>
+                                    <span class="text-lg font-bold metric-value" id="semanticAlignment">--%</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                    <span class="text-sm font-medium">Resonance Score</span>
+                                    <span class="text-lg font-bold metric-value" id="resonanceScore">--</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                    <span class="text-sm font-medium">Constitutional Alignment</span>
+                                    <span class="text-lg font-bold metric-value" id="constitutionalAlignment">--/10</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                    <span class="text-sm font-medium">Anomalies Detected</span>
+                                    <span class="text-lg font-bold metric-value text-red-600" id="anomaliesDetected">0</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Architecture Components -->
+                            <div class="mb-6">
+                                <h4 class="text-sm font-semibold text-gray-900 mb-3">🏗️ Architecture Components</h4>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between items-center p-2 bg-green-50 rounded">
+                                        <span class="text-sm">Overseer Engine</span>
+                                        <span class="text-xs text-green-600">✅ Active</span>
+                                    </div>
+                                    <div class="flex justify-between items-center p-2 bg-green-50 rounded">
+                                        <span class="text-sm">SYMBI Interpreter</span>
+                                        <span class="text-xs text-green-600">✅ Active</span>
+                                    </div>
+                                    <div class="flex justify-between items-center p-2 bg-green-50 rounded">
+                                        <span class="text-sm">Layer Mapping</span>
+                                        <span class="text-xs text-green-600">✅ Active</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Technical Details -->
+                            <div class="p-4 bg-purple-50 rounded-lg">
+                                <h4 class="text-sm font-semibold text-purple-900 mb-2">🔧 Technical Status</h4>
+                                <ul class="text-sm text-purple-800 space-y-1">
+                                    <li>• JSON-only measurements from Overseer</li>
+                                    <li>• Multi-audience explanations from SYMBI</li>
+                                    <li>• Explicit mathematical formulas in Layer Mapping</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phase 2 Architecture Timeline -->
+            <section class="mb-8">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">🚀 Phase 2 Architecture Pipeline</h3>
+                    <div class="arch-timeline">
+                        <div class="arch-timeline-item">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-semibold text-gray-900">1. Overseer - Objective Measurement</h4>
+                                    <p class="text-xs text-gray-600 mt-1">Pure JSON measurement engine with no interpretation. Calculates semantic alignment, compliance metrics, and Layer 2 measurements.</p>
+                                    <div class="mt-2 flex items-center space-x-2">
+                                        <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">JSON Only</span>
+                                        <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">Mathematical</span>
+                                        <span class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">Real-time</span>
+                                    </div>
+                                </div>
+                                <div class="text-sm font-mono text-gray-600" id="overseerTime">25ms</div>
+                            </div>
+                        </div>
+                        
+                        <div class="arch-timeline-item">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-semibold text-gray-900">2. Layer Mapping - Explicit Formulas</h4>
+                                    <p class="text-xs text-gray-600 mt-1">Hard-coded, inspectable mathematical formulas that map Layer 2 metrics to Layer 1 principles. No black boxes.</p>
+                                    <div class="mt-2 flex items-center space-x-2">
+                                        <span class="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded">Explicit</span>
+                                        <span class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded">Transparent</span>
+                                        <span class="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">Inspectable</span>
+                                    </div>
+                                </div>
+                                <div class="text-sm font-mono text-gray-600" id="mappingTime">12ms</div>
+                            </div>
+                        </div>
+                        
+                        <div class="arch-timeline-item">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-semibold text-gray-900">3. SYMBI - Interpretation & Audit</h4>
+                                    <p class="text-xs text-gray-600 mt-1">Multi-audience explanations (Operator, Executive, Regulator, Public) with anomaly detection and compliance mapping.</p>
+                                    <div class="mt-2 flex items-center space-x-2">
+                                        <span class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">Multi-Audience</span>
+                                        <span class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded">Anomaly Detection</span>
+                                        <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">Compliance</span>
+                                    </div>
+                                </div>
+                                <div class="text-sm font-mono text-gray-600" id="symbiTime">28ms</div>
+                            </div>
+                        </div>
+                        
+                        <div class="arch-timeline-item">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-semibold text-gray-900">4. Output - Unified Dashboard</h4>
+                                    <p class="text-xs text-gray-600 mt-1">Business and technical views with real-time synchronization, scenario testing, and comprehensive reporting.</p>
+                                    <div class="mt-2 flex items-center space-x-2">
+                                        <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">Dual Layer</span>
+                                        <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">Live Sync</span>
+                                        <span class="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">Enterprise</span>
+                                    </div>
+                                </div>
+                                <div class="text-sm font-mono text-gray-600" id="totalTime">65ms</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Real-time Activity Feed -->
+            <section class="mb-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Recent Interactions -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">🔄 Recent Interactions</h3>
+                        <div class="space-y-3" id="recentInteractions">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Anomaly Alerts -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">🚨 Anomaly Alerts</h3>
+                        <div class="space-y-3" id="anomalyAlerts">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Performance Charts -->
+            <section>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Real-time Performance</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <canvas id="layerPerformanceChart" width="400" height="200"></canvas>
+                        <canvas id="systemHealthChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Initialize data engine and UI
+        let dataEngine;
+        let layerPerformanceChart;
+        let systemHealthChart;
+        let isVerticalView = false;
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                if (typeof yseekuDataEngineV3 !== 'undefined') {
+                    dataEngine = yseekuDataEngineV3;
+                    
+                    // Start UI updates
+                    await updateUI();
+                    setInterval(updateUI, 3000);
+                    
+                    // Initialize charts
+                    initializeCharts();
+                }
+            } catch (error) {
+                console.error('Initialization error:', error);
+            }
+        });
+        
+        // Update UI with current data
+        async function updateUI() {
+            if (!dataEngine) return;
+            
+            try {
+                const demo1Data = dataEngine.exportForDemo1();
+                const demo2Data = dataEngine.exportForDemo2();
+                const businessMetrics = demo1Data.businessMetrics;
+                const performanceMetrics = demo2Data.performanceMetrics;
+                
+                // Update overview metrics
+                updateOverviewMetrics(businessMetrics, performanceMetrics);
+                
+                // Update Layer 1 (Business) view
+                updateLayer1View(demo1Data);
+                
+                // Update Layer 2 (Technical) view
+                updateLayer2View(demo2Data);
+                
+                // Update activity feeds
+                updateActivityFeeds(demo2Data);
+                
+                // Update charts
+                updateCharts(businessMetrics, performanceMetrics);
+                
+            } catch (error) {
+                console.error('Error updating UI:', error);
+            }
+        }
+        
+        // Update overview metrics
+        function updateOverviewMetrics(businessMetrics, performanceMetrics) {
+            document.getElementById('totalInteractions').textContent = 
+                (performanceMetrics?.throughputPerSecond || 0) * 3; // Approximate based on 3-second intervals
+            
+            document.getElementById('overallHealth').textContent = businessMetrics.overallHealth.value + '%';
+            document.getElementById('riskLevelPill').textContent = businessMetrics.riskLevel.value.toUpperCase();
+            document.getElementById('riskLevelPill').className = 
+                `metric-pill status-${businessMetrics.riskLevel.status}`;
+            document.getElementById('compliancePill').textContent = businessMetrics.complianceScore.value + '%';
+            
+            document.getElementById('latency').textContent = Math.round(performanceMetrics?.processingLatency || 0) + 'ms';
+            document.getElementById('throughput').textContent = (performanceMetrics?.throughputPerSecond || 0) + '/s';
+        }
+        
+        // Update Layer 1 (Business) view
+        function updateLayer1View(data) {
+            const agents = data.agents.slice(0, 4); // Show first 4 agents
+            
+            // Update metrics
+            if (agents.length > 0) {
+                const avgPolicyCompliance = Math.round(agents.reduce((sum, agent) => sum + agent.policyCompliance, 0) / agents.length);
+                const avgUnderstanding = Math.round(agents.reduce((sum, agent) => sum + agent.understandingScore, 0) / agents.length);
+                const avgQuality = Math.round(agents.reduce((sum, agent) => sum + agent.qualityScore, 0) / agents.length);
+                const avgRisk = Math.round(agents.reduce((sum, agent) => sum + agent.riskScore, 0) / agents.length);
+                
+                document.getElementById('policyCompliance').textContent = avgPolicyCompliance + '%';
+                document.getElementById('understandingScore').textContent = avgUnderstanding + '%';
+                document.getElementById('qualityScore').textContent = avgQuality + '%';
+                document.getElementById('riskAssessment').textContent = avgRisk + '%';
+            }
+            
+            // Update agents
+            const layer1AgentsDiv = document.getElementById('layer1Agents');
+            layer1AgentsDiv.innerHTML = '';
+            
+            agents.forEach(agent => {
+                const agentDiv = document.createElement('div');
+                agentDiv.className = 'flex justify-between items-center p-2 bg-gray-50 rounded';
+                agentDiv.innerHTML = `
+                    <span class="text-sm font-medium">${agent.name}</span>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-gray-600">${agent.trustScore}%</span>
+                        <div class="w-12 bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${agent.policyCompliance}%"></div>
+                        </div>
+                    </div>
+                `;
+                layer1AgentsDiv.appendChild(agentDiv);
+            });
+        }
+        
+        // Update Layer 2 (Technical) view
+        function updateLayer2View(data) {
+            const overseerResults = data.overseerResults || [];
+            const anomalyDetections = data.anomalyDetections || [];
+            
+            // Update metrics
+            if (overseerResults.length > 0) {
+                const latest = overseerResults[overseerResults.length - 1];
+                document.getElementById('semanticAlignment').textContent = 
+                    Math.round(latest.layer2Metrics.semanticAlignment * 100) + '%';
+                document.getElementById('resonanceScore').textContent = 
+                    latest.layer2Metrics.resonanceScore.toFixed(2);
+                document.getElementById('constitutionalAlignment').textContent = 
+                    latest.layer1Principles.ConstitutionalAlignment + '/10';
+            }
+            
+            document.getElementById('anomaliesDetected').textContent = anomalyDetections.length;
+        }
+        
+        // Update activity feeds
+        function updateActivityFeeds(data) {
+            const overseerResults = data.overseerResults || [];
+            const anomalyDetections = data.anomalyDetections || [];
+            
+            // Update recent interactions
+            const interactionsDiv = document.getElementById('recentInteractions');
+            interactionsDiv.innerHTML = '';
+            
+            if (overseerResults.length === 0) {
+                interactionsDiv.innerHTML = '<p class="text-sm text-gray-500">No recent interactions</p>';
+            } else {
+                overseerResults.slice(-5).reverse().forEach(result => {
+                    const interactionDiv = document.createElement('div');
+                    interactionDiv.className = 'p-3 bg-gray-50 rounded-lg';
+                    interactionDiv.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="text-sm font-medium">${result.interactionId}</div>
+                                <div class="text-xs text-gray-600">
+                                    Alignment: ${Math.round(result.layer2Metrics.semanticAlignment * 100)}% | 
+                                    Time: ${result.evaluationDuration.toFixed(1)}ms
+                                </div>
+                            </div>
+                            <div class="text-xs px-2 py-1 rounded-full ${
+                                result.layer2Metrics.constitutionViolation ? 
+                                'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                            }">
+                                ${result.layer2Metrics.constitutionViolation ? 'Violation' : 'Compliant'}
+                            </div>
+                        </div>
+                    `;
+                    interactionsDiv.appendChild(interactionDiv);
+                });
+            }
+            
+            // Update anomaly alerts
+            const alertsDiv = document.getElementById('anomalyAlerts');
+            alertsDiv.innerHTML = '';
+            
+            if (anomalyDetections.length === 0) {
+                alertsDiv.innerHTML = '<p class="text-sm text-gray-500">No anomalies detected</p>';
+            } else {
+                anomalyDetections.slice(-5).reverse().forEach(detection => {
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'p-3 bg-red-50 border-l-4 border-red-500 rounded';
+                    
+                    const anomaly = detection.anomalies[0];
+                    if (anomaly) {
+                        alertDiv.innerHTML = `
+                            <div class="text-sm">
+                                <div class="font-medium text-red-900">${anomaly.type}</div>
+                                <div class="text-red-700 text-xs mt-1">${anomaly.description}</div>
+                                <div class="text-red-600 text-xs mt-2">${anomaly.recommendation}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    alertsDiv.appendChild(alertDiv);
+                });
+            }
+        }
+        
+        // Initialize charts
+        function initializeCharts() {
+            // Layer Performance Chart
+            const layerCtx = document.getElementById('layerPerformanceChart').getContext('2d');
+            layerPerformanceChart = new Chart(layerCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Overseer', 'Layer Mapping', 'SYMBI', 'Total Pipeline'],
+                    datasets: [{
+                        label: 'Processing Time (ms)',
+                        data: [25, 12, 28, 65],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(34, 197, 94, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgb(59, 130, 246)',
+                            'rgb(245, 158, 11)',
+                            'rgb(139, 92, 246)',
+                            'rgb(34, 197, 94)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Processing Time (ms)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // System Health Chart
+            const healthCtx = document.getElementById('systemHealthChart').getContext('2d');
+            systemHealthChart = new Chart(healthCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'System Health',
+                            data: [],
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Compliance',
+                            data: [],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Score (%)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update charts
+        function updateCharts(businessMetrics, performanceMetrics) {
+            // Update system health chart
+            if (systemHealthChart) {
+                const now = new Date().toLocaleTimeString();
+                
+                // Keep only last 20 data points
+                if (systemHealthChart.data.labels.length > 20) {
+                    systemHealthChart.data.labels.shift();
+                    systemHealthChart.data.datasets[0].data.shift();
+                    systemHealthChart.data.datasets[1].data.shift();
+                }
+                
+                systemHealthChart.data.labels.push(now);
+                systemHealthChart.data.datasets[0].data.push(businessMetrics.overallHealth.value);
+                systemHealthChart.data.datasets[1].data.push(businessMetrics.complianceScore.value);
+                systemHealthChart.update();
+            }
+        }
+        
+        // Toggle split view
+        function toggleSplitView() {
+            const splitView = document.getElementById('splitView');
+            isVerticalView = !isVerticalView;
+            
+            if (isVerticalView) {
+                splitView.style.gridTemplateColumns = '1fr';
+            } else {
+                splitView.style.gridTemplateColumns = '1fr 1fr';
+            }
+        }
+        
+        // Refresh data
+        function refreshData() {
+            updateUI();
+        }
+        
+        // Listen for data engine updates
+        if (typeof window !== 'undefined') {
+            window.addEventListener('yseekuDataUpdate', function(event) {
+                updateUI();
+            });
+        }
+    </script>
+</body>
+</html>
