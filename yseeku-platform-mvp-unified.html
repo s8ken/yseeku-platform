@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yseeku Platform - Unified MVP Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="yseeku-data-engine-v3.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        detect: { light: '#dbeafe', DEFAULT: '#3b82f6', dark: '#1e40af' },
+                        lab: { light: '#f3e8ff', DEFAULT: '#a855f7', dark: '#7e22ce' },
+                        orchestrate: { light: '#dcfce7', DEFAULT: '#22c55e', dark: '#15803d' },
+                        layer1: { light: '#fef3c7', DEFAULT: '#f59e0b', dark: '#92400e' },
+                        layer2: { light: '#ddd6fe', DEFAULT: '#8b5cf6', dark: '#5b21b6' }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .layer-1-card { background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%); }
+        .layer-2-card { background: linear-gradient(135deg, #ddd6fe 0%, #8b5cf6 100%); }
+        .phase-2-card { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .metric-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-good { background-color: #dcfce7; color: #166534; }
+        .status-warning { background-color: #fef3c7; color: #92400e; }
+        .status-critical { background-color: #fee2e2; color: #991b1b; }
+        
+        .pulse-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        .module-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .module-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        .nav-tab {
+            transition: all 0.2s ease;
+        }
+        .nav-tab:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        .nav-tab.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .scenario-btn {
+            transition: all 0.2s ease;
+        }
+        .scenario-btn:hover {
+            transform: scale(1.05);
+        }
+        .scenario-btn.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+    </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">Y</span>
+                            </div>
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-900">Yseeku Platform</h1>
+                                <p class="text-xs text-gray-600">Enterprise AI Governance - Unified MVP</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Phase 2 Badges -->
+                        <div class="hidden md:flex items-center space-x-2">
+                            <span class="metric-pill status-good text-xs">Layer 1 Monitor</span>
+                            <span class="metric-pill status-warning text-xs">Ethical Floor: <span id="ethical-floor">7.8</span>/10</span>
+                            <span class="metric-pill status-critical text-xs">Emergence: <span id="emergence-state">Dwelling</span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Scenario Controls -->
+                        <div class="hidden md:flex items-center space-x-2">
+                            <button onclick="setScenario('normal')" class="scenario-btn px-3 py-1 text-sm border border-gray-300 rounded-lg" id="scenario-normal">Normal</button>
+                            <button onclick="setScenario('drift')" class="scenario-btn px-3 py-1 text-sm border border-gray-300 rounded-lg" id="scenario-drift">Drift</button>
+                            <button onclick="setScenario('emergence')" class="scenario-btn px-3 py-1 text-sm border border-gray-300 rounded-lg" id="scenario-emergence">Emergence</button>
+                        </div>
+                        
+                        <!-- Play Controls -->
+                        <div class="flex items-center space-x-2">
+                            <button onclick="togglePlayPause()" class="p-2 bg-gray-100 rounded-lg hover:bg-gray-200" id="play-pause-btn">
+                                <span id="play-pause-icon">⏸️</span>
+                            </button>
+                            <button onclick="restart()" class="p-2 bg-gray-100 rounded-lg hover:bg-gray-200">🔄</button>
+                        </div>
+                        
+                        <button onclick="startTour()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            🎯 Start Tour
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Navigation -->
+        <nav class="bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex space-x-1">
+                    <!-- Overview Tab -->
+                    <button onclick="showPage('overview')" class="nav-tab active px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-overview">
+                        📊 Overview
+                    </button>
+                    
+                    <!-- DETECT Module Tabs -->
+                    <div class="flex items-center">
+                        <div class="w-px h-6 bg-gray-300"></div>
+                    </div>
+                    <button onclick="showPage('detect-dashboard')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-detect-dashboard">
+                        🔍 DETECT
+                    </button>
+                    <button onclick="showPage('agents')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-agents">
+                        👥 Agents
+                    </button>
+                    <button onclick="showPage('symbi-analysis')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-symbi-analysis">
+                        🧠 SYMBI Analysis
+                    </button>
+                    
+                    <!-- LAB Module Tabs -->
+                    <div class="flex items-center">
+                        <div class="w-px h-6 bg-gray-300"></div>
+                    </div>
+                    <button onclick="showPage('lab-experiments')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-lab-experiments">
+                        🧪 LAB
+                    </button>
+                    <button onclick="showPage('bedau-calculator')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-bedau-calculator">
+                        📈 Bedau Index
+                    </button>
+                    <button onclick="showPage('emergence-testing')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-emergence-testing">
+                        🌊 Emergence
+                    </button>
+                    
+                    <!-- ORCHESTRATE Module Tabs -->
+                    <div class="flex items-center">
+                        <div class="w-px h-6 bg-gray-300"></div>
+                    </div>
+                    <button onclick="showPage('orchestrate-policies')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-orchestrate-policies">
+                        🎯 ORCHESTRATE
+                    </button>
+                    <button onclick="showPage('workflows')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-workflows">
+                        ⚙️ Workflows
+                    </button>
+                    <button onclick="showPage('trust-receipts')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-trust-receipts">
+                        🔐 Trust Receipts
+                    </button>
+                    
+                    <!-- Support Tabs -->
+                    <div class="flex items-center">
+                        <div class="w-px h-6 bg-gray-300"></div>
+                    </div>
+                    <button onclick="showPage('principles')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-principles">
+                        📜 Principles
+                    </button>
+                    <button onclick="showPage('api')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-api">
+                        🛠️ API
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            
+            <!-- Overview Page -->
+            <div id="overview" class="tab-content active">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Welcome to Yseeku SONATE</h2>
+                    <p class="text-lg text-gray-600">Enterprise AI Governance with Complete Oversight</p>
+                </div>
+                
+                <!-- Module Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- DETECT Module -->
+                    <div onclick="showPage('detect-dashboard')" class="module-card bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-2xl">🔍</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900">DETECT</h3>
+                                    <p class="text-sm text-gray-600">Real-time Monitoring</p>
+                                </div>
+                            </div>
+                            <div class="text-sm font-semibold text-blue-600">Active</div>
+                        </div>
+                        <p class="text-gray-700 mb-4">Monitor AI agents for trustworthiness, emergence events, and behavioral drift with real-time alerts.</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Agents Monitoring</span>
+                                <span class="font-semibold" id="overview-agents-count">12</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Trust Score</span>
+                                <span class="font-semibold text-green-600">87.3%</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Emergence Events</span>
+                                <span class="font-semibold text-yellow-600">2</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LAB Module -->
+                    <div onclick="showPage('lab-experiments')" class="module-card bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-2xl">🧪</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900">LAB</h3>
+                                    <p class="text-sm text-gray-600">Research & Experiments</p>
+                                </div>
+                            </div>
+                            <div class="text-sm font-semibold text-purple-600">3 Running</div>
+                        </div>
+                        <p class="text-gray-700 mb-4">Conduct controlled experiments, analyze emergence patterns, and validate AI improvements.</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Active Experiments</span>
+                                <span class="font-semibold" id="overview-experiments-count">3</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Bedau Index</span>
+                                <span class="font-semibold text-yellow-600">0.24</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Research Insights</span>
+                                <span class="font-semibold text-green-600">847</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ORCHESTRATE Module -->
+                    <div onclick="showPage('orchestrate-policies')" class="module-card bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <span class="text-2xl">🎯</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900">ORCHESTRATE</h3>
+                                    <p class="text-sm text-gray-600">Governance & Control</p>
+                                </div>
+                            </div>
+                            <div class="text-sm font-semibold text-green-600">Compliant</div>
+                        </div>
+                        <p class="text-gray-700 mb-4">Apply policies, orchestrate workflows, and generate trust receipts for complete auditability.</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Active Policies</span>
+                                <span class="font-semibold" id="overview-policies-count">18</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Trust Receipts</span>
+                                <span class="font-semibold text-green-600">2,847</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Compliance Score</span>
+                                <span class="font-semibold text-green-600">94.2%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 2 Architecture Overview -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Phase 2 Architecture</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl mb-2">📊</div>
+                            <h4 class="font-semibold text-blue-900">Overseer</h4>
+                            <p class="text-sm text-blue-700">Objective Measurement</p>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-2xl mb-2">🧠</div>
+                            <h4 class="font-semibold text-purple-900">SYMBI</h4>
+                            <p class="text-sm text-purple-700">Interpretation & Audit</p>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl mb-2">🔄</div>
+                            <h4 class="font-semibold text-green-900">Layer Mapping</h4>
+                            <p class="text-sm text-green-700">Explicit Formulas</p>
+                        </div>
+                        <div class="text-center p-4 bg-orange-50 rounded-lg">
+                            <div class="text-2xl mb-2">⚡</div>
+                            <h4 class="font-semibold text-orange-900">Real-time</h4>
+                            <p class="text-sm text-orange-700">Performance</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">System Health</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Overall Score</span>
+                                <span class="font-bold text-green-600" id="system-health">85%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Risk Level</span>
+                                <span class="metric-pill status-warning">Low</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Compliance</span>
+                                <span class="font-bold text-green-600">92%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Performance</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Latency</span>
+                                <span class="font-bold text-blue-600">47ms</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Throughput</span>
+                                <span class="font-bold text-blue-600">1,247/s</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Success Rate</span>
+                                <span class="font-bold text-green-600">99.8%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Current Scenario</h4>
+                        <div class="text-center">
+                            <div class="text-3xl mb-2" id="scenario-icon">🟢</div>
+                            <h5 class="font-bold text-lg" id="scenario-name">Normal Orbit</h5>
+                            <p class="text-sm text-gray-600" id="scenario-description">Baseline healthy operation</p>
+                            <div class="mt-3 text-xs text-gray-500">
+                                Running for <span id="scenario-time">0</span>s
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DETECT Dashboard Page -->
+            <div id="detect-dashboard" class="tab-content">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">DETECT Dashboard</h2>
+                    <p class="text-lg text-gray-600">Real-time monitoring and emergence detection</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">Active Agents</h3>
+                        <p class="text-3xl font-bold text-blue-600">12</p>
+                        <p class="text-sm text-green-600 mt-2">+2 from last hour</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">Avg Trust Score</h3>
+                        <p class="text-3xl font-bold text-green-600">87.3%</p>
+                        <p class="text-sm text-gray-600 mt-2">+1.2% improvement</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">Emergence Events</h3>
+                        <p class="text-3xl font-bold text-yellow-600">2</p>
+                        <p class="text-sm text-gray-600 mt-2">Investigating</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-sm font-medium text-gray-500 mb-2">Ethical Floor</h3>
+                        <p class="text-3xl font-bold text-green-600">7.8/10</p>
+                        <p class="text-sm text-green-600 mt-2">Above threshold</p>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Agent Trust Distribution</h3>
+                        <canvas id="agentTrustChart"></canvas>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Emergence Detection Timeline</h3>
+                        <canvas id="emergenceTimelineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agents Page -->
+            <div id="agents" class="tab-content">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Agent Monitoring</h2>
+                    <p class="text-lg text-gray-600">Individual agent performance and behavior analysis</p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trust Score</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resonance</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Activity</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="agents-table-body">
+                            <!-- Agent rows will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- LAB Experiments Page -->
+            <div id="lab-experiments" class="tab-content">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">LAB Experiments</h2>
+                    <p class="text-lg text-gray-600">Controlled experiments and statistical analysis</p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Experiment 1 -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Resonance Threshold Calibration</h3>
+                                <p class="text-sm text-gray-600 mt-1">Lowering resonance detection threshold from 0.7 to 0.5 improves early detection</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="metric-pill bg-blue-100 text-blue-800">Running</span>
+                                <div class="text-sm text-gray-600">72% Complete</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-blue-600">0.0023</div>
+                                <div class="text-sm text-gray-600">P-Value</div>
+                            </div>
+                            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-green-600">0.42</div>
+                                <div class="text-sm text-gray-600">Effect Size</div>
+                            </div>
+                            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-purple-600">2,434</div>
+                                <div class="text-sm text-gray-600">Sample Size</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Experiment 2 -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Bedau Index Window Size</h3>
+                                <p class="text-sm text-gray-600 mt-1">Extending temporal window from 10 to 25 interactions improves emergence detection</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="metric-pill bg-blue-100 text-blue-800">Running</span>
+                                <div class="text-sm text-gray-600">45% Complete</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-yellow-600">0.089</div>
+                                <div class="text-sm text-gray-600">P-Value</div>
+                            </div>
+                            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-yellow-600">0.18</div>
+                                <div class="text-sm text-gray-600">Effect Size</div>
+                            </div>
+                            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                <div class="text-2xl font-bold text-purple-600">1,935</div>
+                                <div class="text-sm text-gray-600">Sample Size</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Placeholder for other pages -->
+            <div id="symbi-analysis" class="tab-content">
+                <div class="text-center py-12">
+                    <div class="text-6xl mb-4">🧠</div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">SYMBI Analysis</h2>
+                    <p class="text-gray-600">Multi-audience interpretation and anomaly detection</p>
+                    <p class="text-sm text-gray-500 mt-4">This page is being implemented with comprehensive SYMBI analysis tools</p>
+                </div>
+            </div>
+
+            <div id="bedau-calculator" class="tab-content">
+                <div class="text-center py-12">
+                    <div class="text-6xl mb-4">📈</div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Bedau Index Calculator</h2>
+                    <p class="text-gray-600">Interactive emergence risk assessment</p>
+                    <p class="text-sm text-gray-500 mt-4">Interactive Bedau Index calculator with real-time emergence risk analysis</p>
+                </div>
+            </div>
+
+            <div id="emergence-testing" class="tab-content">
+                <div class="text-center py-12">
+                    <div class="text-6xl mb-4">🌊</div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Emergence Testing</h2>
+                    <p class="text-gray-600">Advanced emergence hypothesis testing and validation</p>
+                    <p class="text-sm text-gray-500 mt-4">Statistical emergence testing with validation framework</p>
+                </div>
+            </div>
+
+            <div id="orchestrate-policies" class="tab-content">
+                <div class="text-center py-12">
+                    <div class="text-6xl mb-4">🎯</div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">ORCHESTRATE Policies</h2>
+                    <p class="text-gray-600">Governance policies and compliance frameworks</p>
+                    <p class="text-sm text-gray-500 mt-4">Complete policy management with EU AI Act, GDPR, and SOC 2 compliance</p>
+                </div>
+            </div>
+
+            <div id="workflows" class="tab-content">
+                <div class="text-center py-12">
+                    <div class="text-6xl mb-4">⚙️</div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Workflows</h2>
+                    <p class="text-gray-600">Multi-agent orchestration and workflow management</p>
+                    <p class="text-sm text-gray-500 mt-4">Workflow orchestration with dependency management and intervention points</p>
+                </div>
+            </div>
+
+            <div id="trust-receipts" class="tab-content">
+                <div class="text-center py-12">
+                    <div class="text-6xl mb-4">🔐</div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Trust Receipts</h2>
+                    <p class="text-gray-600">Cryptographic audit trails and compliance documentation</p>
+                    <p class="text-sm text-gray-500 mt-4">Immutable trust receipts with ZK proofs and merkle verification</p>
+                </div>
+            </div>
+
+            <div id="principles" class="tab-content">
+                <div class="text-center py-12">
+                    <div class="text-6xl mb-4">📜</div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Trust Principles</h2>
+                    <p class="text-gray-600">Six core principles for AI trust and governance</p>
+                    <p class="text-sm text-gray-500 mt-4">Complete framework of trust principles with implementation guidance</p>
+                </div>
+            </div>
+
+            <div id="api" class="tab-content">
+                <div class="text-center py-12">
+                    <div class="text-6xl mb-4">🛠️</div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">API Documentation</h2>
+                    <p class="text-gray-600">Complete API reference and integration guides</p>
+                    <p class="text-sm text-gray-500 mt-4">RESTful API with comprehensive documentation and examples</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Tour Overlay -->
+    <div id="tour-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div id="tour-tooltip" class="absolute bg-white rounded-lg shadow-xl p-6 max-w-sm">
+            <h3 id="tour-title" class="text-lg font-bold text-gray-900 mb-2">Welcome to Yseeku</h3>
+            <p id="tour-content" class="text-gray-600 mb-4">Let's take a tour of the platform's capabilities</p>
+            <div class="flex justify-between">
+                <button onclick="previousTourStep()" class="px-4 py-2 text-gray-600 hover:text-gray-900">Previous</button>
+                <button onclick="endTour()" class="px-4 py-2 text-gray-600 hover:text-gray-900">Skip</button>
+                <button onclick="nextTourStep()" id="tour-next" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize data engine
+        let dataEngine;
+        let currentScenario = 'normal';
+        let isPlaying = true;
+        let scenarioStartTime = Date.now();
+        
+        // Tour state
+        let tourStep = 0;
+        const tourSteps = [
+            {
+                title: "Welcome to Yseeku SONATE",
+                content: "Enterprise AI governance with complete oversight across three modules: DETECT, LAB, and ORCHESTRATE.",
+                element: null
+            },
+            {
+                title: "Three-Module Architecture",
+                content: "Each module serves a specific purpose: DETECT monitors, LAB researches, and ORCHESTRATE governs.",
+                element: "overview"
+            },
+            {
+                title: "Phase 2 Architecture",
+                content: "Our latest architecture includes Overseer for objective measurement, SYMBI for interpretation, and explicit layer mapping.",
+                element: null
+            },
+            {
+                title: "Scenario Engine",
+                content: "Test different scenarios: Normal operation, ethical drift, or emergence events.",
+                element: null
+            },
+            {
+                title: "DETECT Module",
+                content: "Real-time monitoring with trust scores, emergence detection, and behavioral analysis.",
+                element: "nav-detect-dashboard"
+            },
+            {
+                title: "LAB Module",
+                content: "Research experiments, emergence testing, and statistical validation.",
+                element: "nav-lab-experiments"
+            },
+            {
+                title: "ORCHESTRATE Module",
+                content: "Governance policies, workflows, and cryptographic trust receipts.",
+                element: "nav-orchestrate-policies"
+            }
+        ];
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // Initialize data engine
+            if (typeof YseekuDataEngineV3 !== 'undefined') {
+                dataEngine = new YseekuDataEngineV3();
+            } else {
+                // Fallback mock data
+                createMockDataEngine();
+            }
+            
+            // Start real-time updates
+            setInterval(updateUI, 3000);
+            
+            // Initialize charts
+            initializeCharts();
+            
+            // Update scenario time
+            setInterval(updateScenarioTime, 1000);
+        }
+
+        function createMockDataEngine() {
+            dataEngine = {
+                currentData: {
+                    businessMetrics: {
+                        overallHealth: 85,
+                        riskLevel: 'low',
+                        complianceScore: 92,
+                        userTrustIndex: 88,
+                        operationalEfficiency: 79
+                    },
+                    agents: [],
+                    performanceMetrics: {
+                        processingLatency: 47,
+                        throughputPerSecond: 1247,
+                        errorCount: 0
+                    }
+                },
+                exportForLayer1: function() {
+                    return this.currentData;
+                }
+            };
+            
+            // Generate mock agents
+            for (let i = 0; i < 12; i++) {
+                dataEngine.currentData.agents.push({
+                    id: `agent-${i + 1}`,
+                    name: `Agent ${i + 1}`,
+                    trustScore: 75 + Math.random() * 20,
+                    resonance: 6 + Math.random() * 4,
+                    status: 'Active',
+                    lastActivity: new Date(Date.now() - Math.random() * 3600000).toISOString()
+                });
+            }
+        }
+
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.tab-content').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Remove active class from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected page
+            const selectedPage = document.getElementById(pageId);
+            if (selectedPage) {
+                selectedPage.classList.add('active');
+            }
+            
+            // Add active class to corresponding nav tab
+            const navTab = document.getElementById(`nav-${pageId}`);
+            if (navTab) {
+                navTab.classList.add('active');
+            }
+            
+            // Update page-specific content
+            updatePageContent(pageId);
+        }
+
+        function updatePageContent(pageId) {
+            if (pageId === 'agents') {
+                populateAgentsTable();
+            }
+        }
+
+        function populateAgentsTable() {
+            const tbody = document.getElementById('agents-table-body');
+            if (!tbody || !dataEngine) return;
+            
+            tbody.innerHTML = '';
+            dataEngine.currentData.agents.forEach(agent => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${agent.name}</div>
+                        <div class="text-sm text-gray-500">${agent.id}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${agent.trustScore.toFixed(1)}%</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${agent.resonance.toFixed(2)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="metric-pill status-good">${agent.status}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${new Date(agent.lastActivity).toLocaleTimeString()}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function initializeCharts() {
+            // Agent Trust Distribution Chart
+            const trustCtx = document.getElementById('agentTrustChart');
+            if (trustCtx) {
+                new Chart(trustCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Trust', 'Transparency', 'Reliability', 'Ethical Alignment', 'Performance'],
+                        datasets: [{
+                            label: 'Average Agent Scores',
+                            data: [87, 82, 91, 85, 89],
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Emergence Timeline Chart
+            const timelineCtx = document.getElementById('emergenceTimelineChart');
+            if (timelineCtx) {
+                new Chart(timelineCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                        datasets: [{
+                            label: 'Emergence Events',
+                            data: [0, 1, 0, 2, 1, 0, 1],
+                            borderColor: 'rgba(168, 85, 247, 1)',
+                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateUI() {
+            if (!dataEngine) return;
+            
+            // Update system health
+            const health = dataEngine.currentData.businessMetrics.overallHealth;
+            document.getElementById('system-health').textContent = health + '%';
+            document.getElementById('overview-agents-count').textContent = dataEngine.currentData.agents.length;
+            document.getElementById('overview-experiments-count').textContent = '3';
+            document.getElementById('overview-policies-count').textContent = '18';
+            
+            // Update performance metrics
+            const perf = dataEngine.currentData.performanceMetrics;
+            if (perf) {
+                document.getElementById('ethical-floor').textContent = (7 + Math.random() * 2).toFixed(1);
+            }
+        }
+
+        function setScenario(scenario) {
+            currentScenario = scenario;
+            scenarioStartTime = Date.now();
+            
+            // Update button states
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`scenario-${scenario}`).classList.add('active');
+            
+            // Update scenario display
+            const scenarioInfo = {
+                normal: { name: 'Normal Orbit', description: 'Baseline healthy operation', icon: '🟢' },
+                drift: { name: 'Ethical Drift', description: 'Governance failure in progress', icon: '🟡' },
+                emergence: { name: 'Emergence Basin', description: 'Emergent behavior detected', icon: '🟣' }
+            };
+            
+            const info = scenarioInfo[scenario];
+            document.getElementById('scenario-name').textContent = info.name;
+            document.getElementById('scenario-description').textContent = info.description;
+            document.getElementById('scenario-icon').textContent = info.icon;
+            
+            // Update emergence state
+            const emergenceStates = { normal: 'Stable', drift: 'Entering', emergence: 'Dwelling' };
+            document.getElementById('emergence-state').textContent = emergenceStates[scenario];
+        }
+
+        function togglePlayPause() {
+            isPlaying = !isPlaying;
+            document.getElementById('play-pause-icon').textContent = isPlaying ? '⏸️' : '▶️';
+        }
+
+        function restart() {
+            scenarioStartTime = Date.now();
+            setScenario('normal');
+        }
+
+        function updateScenarioTime() {
+            if (isPlaying) {
+                const elapsed = Math.floor((Date.now() - scenarioStartTime) / 1000);
+                document.getElementById('scenario-time').textContent = elapsed;
+            }
+        }
+
+        function refreshData() {
+            updateUI();
+            showNotification('Data refreshed successfully');
+        }
+
+        function startTour() {
+            tourStep = 0;
+            document.getElementById('tour-overlay').classList.remove('hidden');
+            showTourStep();
+        }
+
+        function showTourStep() {
+            const step = tourSteps[tourStep];
+            document.getElementById('tour-title').textContent = step.title;
+            document.getElementById('tour-content').textContent = step.content;
+            
+            // Update button states
+            document.getElementById('tour-next').textContent = tourStep < tourSteps.length - 1 ? 'Next' : 'Finish';
+            
+            // Position tooltip if element specified
+            if (step.element) {
+                const element = document.getElementById(step.element);
+                if (element) {
+                    const rect = element.getBoundingClientRect();
+                    const tooltip = document.getElementById('tour-tooltip');
+                    tooltip.style.top = rect.bottom + 10 + 'px';
+                    tooltip.style.left = rect.left + 'px';
+                }
+            }
+        }
+
+        function nextTourStep() {
+            tourStep++;
+            if (tourStep >= tourSteps.length) {
+                endTour();
+            } else {
+                showTourStep();
+            }
+        }
+
+        function previousTourStep() {
+            if (tourStep > 0) {
+                tourStep--;
+                showTourStep();
+            }
+        }
+
+        function endTour() {
+            document.getElementById('tour-overlay').classList.add('hidden');
+        }
+
+        function showNotification(message) {
+            // Simple notification implementation
+            const notification = document.createElement('div');
+            notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+</parameter>
