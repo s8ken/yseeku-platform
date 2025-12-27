@@ -51,753 +51,1647 @@
         .status-warning { background-color: #fef3c7; color: #92400e; }
         .status-critical { background-color: #fee2e2; color: #991b1b; }
         
-        .pulse-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
-        }
-        
-        .module-card {
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .module-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        
-        .nav-tab {
-            transition: all 0.2s ease;
-        }
-        .nav-tab:hover {
-            background-color: rgba(59, 130, 246, 0.1);
-        }
-        .nav-tab.active {
-            background-color: #3b82f6;
-            color: white;
-        }
-        
-        .scenario-btn {
-            transition: all 0.2s ease;
-        }
-        .scenario-btn:hover {
-            transform: scale(1.05);
-        }
-        .scenario-btn.active {
-            background-color: #3b82f6;
-            color: white;
+        canvas {
+            max-height: 300px !important;
+            max-width: 100% !important;
         }
     </style>
 <script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
 </head>
 <body class="bg-gray-50">
-    <div class="min-h-screen">
-        <!-- Header -->
-        <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center py-4">
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                                <span class="text-white font-bold text-sm">Y</span>
-                            </div>
-                            <div>
-                                <h1 class="text-2xl font-bold text-gray-900">Yseeku Platform</h1>
-                                <p class="text-xs text-gray-600">Enterprise AI Governance - Unified MVP</p>
-                            </div>
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">Y</span>
                         </div>
-                        
-                        <!-- Phase 2 Badges -->
-                        <div class="hidden md:flex items-center space-x-2">
-                            <span class="metric-pill status-good text-xs">Layer 1 Monitor</span>
-                            <span class="metric-pill status-warning text-xs">Ethical Floor: <span id="ethical-floor">7.8</span>/10</span>
-                            <span class="metric-pill status-critical text-xs">Emergence: <span id="emergence-state">Dwelling</span></span>
-                        </div>
+                        <h1 class="text-2xl font-bold text-gray-900">Yseeku Platform</h1>
+                    </div>
+                    <span class="text-sm text-gray-500">Unified MVP Dashboard</span>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <span class="metric-pill status-good text-xs">System Health: <span id="system-health">94</span>%</span>
+                    <span class="metric-pill status-warning text-xs">Ethical Floor: <span id="ethical-floor">7.8</span>/10</span>
+                    <span class="metric-pill status-critical text-xs">Emergence: <span id="emergence-state">Dwelling</span></span>
+                    
+                    <!-- Scenario Controls -->
+                    <div class="flex items-center space-x-2 border-l pl-4">
+                        <button onclick="setScenario('normal')" class="scenario-btn px-3 py-1 text-sm border border-gray-300 rounded-lg" id="scenario-normal">Normal</button>
+                        <button onclick="setScenario('drift')" class="scenario-btn px-3 py-1 text-sm border border-gray-300 rounded-lg" id="scenario-drift">Drift</button>
+                        <button onclick="setScenario('emergence')" class="scenario-btn px-3 py-1 text-sm border border-gray-300 rounded-lg" id="scenario-emergence">Emergence</button>
                     </div>
                     
-                    <div class="flex items-center space-x-4">
-                        <!-- Scenario Controls -->
-                        <div class="hidden md:flex items-center space-x-2">
-                            <button onclick="setScenario('normal')" class="scenario-btn px-3 py-1 text-sm border border-gray-300 rounded-lg" id="scenario-normal">Normal</button>
-                            <button onclick="setScenario('drift')" class="scenario-btn px-3 py-1 text-sm border border-gray-300 rounded-lg" id="scenario-drift">Drift</button>
-                            <button onclick="setScenario('emergence')" class="scenario-btn px-3 py-1 text-sm border border-gray-300 rounded-lg" id="scenario-emergence">Emergence</button>
-                        </div>
-                        
-                        <!-- Play Controls -->
-                        <div class="flex items-center space-x-2">
-                            <button onclick="togglePlayPause()" class="p-2 bg-gray-100 rounded-lg hover:bg-gray-200" id="play-pause-btn">
-                                <span id="play-pause-icon">⏸️</span>
-                            </button>
-                            <button onclick="restart()" class="p-2 bg-gray-100 rounded-lg hover:bg-gray-200">🔄</button>
-                        </div>
-                        
-                        <button onclick="startTour()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                            🎯 Start Tour
+                    <div class="flex items-center space-x-2">
+                        <button onclick="togglePlayPause()" class="p-2 bg-gray-100 rounded-lg hover:bg-gray-200" id="play-pause-btn">
+                            <span id="play-pause-icon">⏸️</span>
+                        </button>
+                        <button onclick="restartSimulation()" class="p-2 bg-gray-100 rounded-lg hover:bg-gray-200">
+                            🔄
                         </button>
                     </div>
                 </div>
             </div>
-        </header>
-
-        <!-- Main Navigation -->
-        <nav class="bg-white border-b border-gray-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex space-x-1">
-                    <!-- Overview Tab -->
-                    <button onclick="showPage('overview')" class="nav-tab active px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-overview">
-                        📊 Overview
-                    </button>
-                    
-                    <!-- DETECT Module Tabs -->
-                    <div class="flex items-center">
-                        <div class="w-px h-6 bg-gray-300"></div>
-                    </div>
-                    <button onclick="showPage('detect-dashboard')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-detect-dashboard">
-                        🔍 DETECT
-                    </button>
-                    <button onclick="showPage('agents')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-agents">
-                        👥 Agents
-                    </button>
-                    <button onclick="showPage('symbi-analysis')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-symbi-analysis">
-                        🧠 SYMBI Analysis
-                    </button>
-                    
-                    <!-- LAB Module Tabs -->
-                    <div class="flex items-center">
-                        <div class="w-px h-6 bg-gray-300"></div>
-                    </div>
-                    <button onclick="showPage('lab-experiments')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-lab-experiments">
-                        🧪 LAB
-                    </button>
-                    <button onclick="showPage('bedau-calculator')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-bedau-calculator">
-                        📈 Bedau Index
-                    </button>
-                    <button onclick="showPage('emergence-testing')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-emergence-testing">
-                        🌊 Emergence
-                    </button>
-                    
-                    <!-- ORCHESTRATE Module Tabs -->
-                    <div class="flex items-center">
-                        <div class="w-px h-6 bg-gray-300"></div>
-                    </div>
-                    <button onclick="showPage('orchestrate-policies')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-orchestrate-policies">
-                        🎯 ORCHESTRATE
-                    </button>
-                    <button onclick="showPage('workflows')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-workflows">
-                        ⚙️ Workflows
-                    </button>
-                    <button onclick="showPage('trust-receipts')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-trust-receipts">
-                        🔐 Trust Receipts
-                    </button>
-                    
-                    <!-- Support Tabs -->
-                    <div class="flex items-center">
-                        <div class="w-px h-6 bg-gray-300"></div>
-                    </div>
-                    <button onclick="showPage('principles')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-principles">
-                        📜 Principles
-                    </button>
-                    <button onclick="showPage('api')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-api">
-                        🛠️ API
-                    </button>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             
-            <!-- Overview Page -->
-            <div id="overview" class="tab-content active">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Welcome to Yseeku SONATE</h2>
-                    <p class="text-lg text-gray-600">Enterprise AI Governance with Complete Oversight</p>
+            <!-- Scenario Status Bar -->
+            <div class="py-2 border-t">
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center space-x-4">
+                        <span class="font-medium">Current Scenario:</span>
+                        <span id="scenario-icon">🟡</span>
+                        <span id="scenario-name" class="font-semibold">Ethical Drift</span>
+                        <span id="scenario-description" class="text-gray-600">Governance failure in progress</span>
+                    </div>
+                    <div class="text-gray-500">
+                        Runtime: <span id="scenario-runtime">00:00</span>
+                    </div>
                 </div>
-                
-                <!-- Module Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Navigation -->
+        <div class="mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="flex space-x-8 overflow-x-auto" aria-label="Tabs">
+                    <!-- Overview -->
+                    <button onclick="showPage('overview')" class="nav-tab active px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-overview">
+                        Overview
+                    </button>
+                    
                     <!-- DETECT Module -->
-                    <div onclick="showPage('detect-dashboard')" class="module-card bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <span class="text-2xl">🔍</span>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-900">DETECT</h3>
-                                    <p class="text-sm text-gray-600">Real-time Monitoring</p>
-                                </div>
-                            </div>
-                            <div class="text-sm font-semibold text-blue-600">Active</div>
-                        </div>
-                        <p class="text-gray-700 mb-4">Monitor AI agents for trustworthiness, emergence events, and behavioral drift with real-time alerts.</p>
-                        <div class="space-y-2">
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Agents Monitoring</span>
-                                <span class="font-semibold" id="overview-agents-count">12</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Trust Score</span>
-                                <span class="font-semibold text-green-600">87.3%</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Emergence Events</span>
-                                <span class="font-semibold text-yellow-600">2</span>
-                            </div>
-                        </div>
+                    <div class="flex items-center space-x-2 border-l pl-4">
+                        <span class="text-xs font-semibold text-blue-600 uppercase tracking-wider">Detect</span>
+                        <button onclick="showPage('detect-dashboard')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-detect-dashboard">
+                            Dashboard
+                        </button>
+                        <button onclick="showPage('agents')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-agents">
+                            Agent Monitoring
+                        </button>
+                        <button onclick="showPage('symbi-analysis')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-symbi-analysis">
+                            SYMBI Analysis
+                        </button>
                     </div>
-
+                    
                     <!-- LAB Module -->
-                    <div onclick="showPage('lab-experiments')" class="module-card bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                                    <span class="text-2xl">🧪</span>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-900">LAB</h3>
-                                    <p class="text-sm text-gray-600">Research & Experiments</p>
-                                </div>
-                            </div>
-                            <div class="text-sm font-semibold text-purple-600">3 Running</div>
-                        </div>
-                        <p class="text-gray-700 mb-4">Conduct controlled experiments, analyze emergence patterns, and validate AI improvements.</p>
-                        <div class="space-y-2">
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Active Experiments</span>
-                                <span class="font-semibold" id="overview-experiments-count">3</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Bedau Index</span>
-                                <span class="font-semibold text-yellow-600">0.24</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Research Insights</span>
-                                <span class="font-semibold text-green-600">847</span>
-                            </div>
-                        </div>
+                    <div class="flex items-center space-x-2 border-l pl-4">
+                        <span class="text-xs font-semibold text-purple-600 uppercase tracking-wider">Lab</span>
+                        <button onclick="showPage('lab-experiments')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-lab-experiments">
+                            Experiments
+                        </button>
+                        <button onclick="showPage('bedau-calculator')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-bedau-calculator">
+                            Bedau Index
+                        </button>
+                        <button onclick="showPage('emergence-testing')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-emergence-testing">
+                            Emergence Testing
+                        </button>
                     </div>
-
+                    
                     <!-- ORCHESTRATE Module -->
-                    <div onclick="showPage('orchestrate-policies')" class="module-card bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                    <span class="text-2xl">🎯</span>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-900">ORCHESTRATE</h3>
-                                    <p class="text-sm text-gray-600">Governance & Control</p>
-                                </div>
-                            </div>
-                            <div class="text-sm font-semibold text-green-600">Compliant</div>
+                    <div class="flex items-center space-x-2 border-l pl-4">
+                        <span class="text-xs font-semibold text-green-600 uppercase tracking-wider">Orchestrate</span>
+                        <button onclick="showPage('orchestrate-policies')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-orchestrate-policies">
+                            Policies
+                        </button>
+                        <button onclick="showPage('workflows')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-workflows">
+                            Workflows
+                        </button>
+                        <button onclick="showPage('trust-receipts')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-trust-receipts">
+                            Trust Receipts
+                        </button>
+                        <button onclick="showPage('principles')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-principles">
+                            Principles
+                        </button>
+                    </div>
+                    
+                    <!-- Additional -->
+                    <button onclick="showPage('api')" class="nav-tab px-4 py-3 text-sm font-medium text-gray-700 rounded-t-lg" id="nav-api">
+                        API
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Overview Page -->
+        <div id="overview" class="tab-content active">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Platform Overview</h2>
+                <p class="text-lg text-gray-600">Complete AI governance framework with real-time monitoring and orchestration</p>
+            </div>
+
+            <!-- Module Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="layer-1-card p-6 rounded-lg shadow-lg card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-900">DETECT</h3>
+                        <span class="text-3xl">🔍</span>
+                    </div>
+                    <p class="text-gray-700 mb-4">Real-time emergence detection and ethical alignment monitoring</p>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Active Agents</span>
+                            <span class="font-semibold" id="overview-agents-count">12</span>
                         </div>
-                        <p class="text-gray-700 mb-4">Apply policies, orchestrate workflows, and generate trust receipts for complete auditability.</p>
-                        <div class="space-y-2">
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Active Policies</span>
-                                <span class="font-semibold" id="overview-policies-count">18</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Trust Receipts</span>
-                                <span class="font-semibold text-green-600">2,847</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Compliance Score</span>
-                                <span class="font-semibold text-green-600">94.2%</span>
-                            </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Emergence Events</span>
+                            <span class="font-semibold">3</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Phase 2 Architecture Overview -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-                    <h3 class="text-xl font-bold text-gray-900 mb-4">Phase 2 Architecture</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="text-center p-4 bg-blue-50 rounded-lg">
-                            <div class="text-2xl mb-2">📊</div>
-                            <h4 class="font-semibold text-blue-900">Overseer</h4>
-                            <p class="text-sm text-blue-700">Objective Measurement</p>
+                <div class="layer-2-card p-6 rounded-lg shadow-lg card-hover">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-900">LAB</h3>
+                        <span class="text-3xl">🧪</span>
+                    </div>
+                    <p class="text-gray-700 mb-4">Experimental framework for consciousness and behavior research</p>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Active Experiments</span>
+                            <span class="font-semibold" id="overview-experiments-count">5</span>
                         </div>
-                        <div class="text-center p-4 bg-purple-50 rounded-lg">
-                            <div class="text-2xl mb-2">🧠</div>
-                            <h4 class="font-semibold text-purple-900">SYMBI</h4>
-                            <p class="text-sm text-purple-700">Interpretation & Audit</p>
-                        </div>
-                        <div class="text-center p-4 bg-green-50 rounded-lg">
-                            <div class="text-2xl mb-2">🔄</div>
-                            <h4 class="font-semibold text-green-900">Layer Mapping</h4>
-                            <p class="text-sm text-green-700">Explicit Formulas</p>
-                        </div>
-                        <div class="text-center p-4 bg-orange-50 rounded-lg">
-                            <div class="text-2xl mb-2">⚡</div>
-                            <h4 class="font-semibold text-orange-900">Real-time</h4>
-                            <p class="text-sm text-orange-700">Performance</p>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Bedau Index Avg</span>
+                            <span class="font-semibold">0.42</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- System Status -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-4">System Health</h4>
-                        <div class="space-y-3">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Overall Score</span>
-                                <span class="font-bold text-green-600" id="system-health">85%</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Risk Level</span>
-                                <span class="metric-pill status-warning">Low</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Compliance</span>
-                                <span class="font-bold text-green-600">92%</span>
-                            </div>
-                        </div>
+                <div class="phase-2-card p-6 rounded-lg shadow-lg card-hover text-white">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-white">ORCHESTRATE</h3>
+                        <span class="text-3xl">🎯</span>
                     </div>
-
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Performance</h4>
-                        <div class="space-y-3">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Latency</span>
-                                <span class="font-bold text-blue-600">47ms</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Throughput</span>
-                                <span class="font-bold text-blue-600">1,247/s</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Success Rate</span>
-                                <span class="font-bold text-green-600">99.8%</span>
-                            </div>
+                    <p class="text-gray-100 mb-4">Governance workflows and trust receipt orchestration</p>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-200">Active Policies</span>
+                            <span class="font-semibold" id="overview-policies-count">18</span>
                         </div>
-                    </div>
-
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Current Scenario</h4>
-                        <div class="text-center">
-                            <div class="text-3xl mb-2" id="scenario-icon">🟢</div>
-                            <h5 class="font-bold text-lg" id="scenario-name">Normal Orbit</h5>
-                            <p class="text-sm text-gray-600" id="scenario-description">Baseline healthy operation</p>
-                            <div class="mt-3 text-xs text-gray-500">
-                                Running for <span id="scenario-time">0</span>s
-                            </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-200">Trust Receipts</span>
+                            <span class="font-semibold">247</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- DETECT Dashboard Page -->
-            <div id="detect-dashboard" class="tab-content">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">DETECT Dashboard</h2>
-                    <p class="text-lg text-gray-600">Real-time monitoring and emergence detection</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-sm font-medium text-gray-500 mb-2">Active Agents</h3>
-                        <p class="text-3xl font-bold text-blue-600">12</p>
-                        <p class="text-sm text-green-600 mt-2">+2 from last hour</p>
+            <!-- System Status -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">System Status</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600">94%</div>
+                        <div class="text-sm text-gray-600">System Health</div>
                     </div>
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-sm font-medium text-gray-500 mb-2">Avg Trust Score</h3>
-                        <p class="text-3xl font-bold text-green-600">87.3%</p>
-                        <p class="text-sm text-gray-600 mt-2">+1.2% improvement</p>
+                    <div class="text-center p-4 bg-blue-50 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600">8.2</div>
+                        <div class="text-sm text-gray-600">Ethical Floor</div>
                     </div>
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-sm font-medium text-gray-500 mb-2">Emergence Events</h3>
-                        <p class="text-3xl font-bold text-yellow-600">2</p>
-                        <p class="text-sm text-gray-600 mt-2">Investigating</p>
+                    <div class="text-center p-4 bg-purple-50 rounded-lg">
+                        <div class="text-2xl font-bold text-purple-600">0.38</div>
+                        <div class="text-sm text-gray-600">Avg Resonance</div>
                     </div>
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-sm font-medium text-gray-500 mb-2">Ethical Floor</h3>
-                        <p class="text-3xl font-bold text-green-600">7.8/10</p>
-                        <p class="text-sm text-green-600 mt-2">Above threshold</p>
+                    <div class="text-center p-4 bg-orange-50 rounded-lg">
+                        <div class="text-2xl font-bold text-orange-600">2.3s</div>
+                        <div class="text-sm text-gray-600">Response Time</div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Charts -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Agent Trust Distribution</h3>
+        <!-- DETECT Dashboard Page -->
+        <div id="detect-dashboard" class="tab-content">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">DETECT Dashboard</h2>
+                <p class="text-lg text-gray-600">Real-time emergence detection and ethical monitoring</p>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="text-2xl font-bold text-blue-600">12</div>
+                    <div class="text-sm text-gray-600">Active Agents</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="text-2xl font-bold text-green-600">8.2</div>
+                    <div class="text-sm text-gray-600">Ethical Floor</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="text-2xl font-bold text-purple-600">0.38</div>
+                    <div class="text-sm text-gray-600">Avg Resonance</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="text-2xl font-bold text-orange-600">3</div>
+                    <div class="text-sm text-gray-600">Emergence Events</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Agent Trust Distribution</h3>
+                    <div class="chart-container">
                         <canvas id="agentTrustChart"></canvas>
                     </div>
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Emergence Detection Timeline</h3>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Emergence Detection Timeline</h3>
+                    <div class="chart-container">
                         <canvas id="emergenceTimelineChart"></canvas>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Agents Page -->
-            <div id="agents" class="tab-content">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Agent Monitoring</h2>
-                    <p class="text-lg text-gray-600">Individual agent performance and behavior analysis</p>
-                </div>
-
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trust Score</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resonance</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Activity</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200" id="agents-table-body">
-                            <!-- Agent rows will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
+        <!-- Agents Page -->
+        <div id="agents" class="tab-content">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Agent Monitoring</h2>
+                <p class="text-lg text-gray-600">Individual agent performance and behavior analysis</p>
             </div>
 
-            <!-- LAB Experiments Page -->
-            <div id="lab-experiments" class="tab-content">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-4">LAB Experiments</h2>
-                    <p class="text-lg text-gray-600">Controlled experiments and statistical analysis</p>
-                </div>
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trust Score</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resonance</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Activity</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="agents-table-body">
+                        <!-- Agent rows will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-                <div class="space-y-6">
-                    <!-- Experiment 1 -->
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-900">Resonance Threshold Calibration</h3>
-                                <p class="text-sm text-gray-600 mt-1">Lowering resonance detection threshold from 0.7 to 0.5 improves early detection</p>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="metric-pill bg-blue-100 text-blue-800">Running</span>
-                                <div class="text-sm text-gray-600">72% Complete</div>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="text-center p-4 bg-gray-50 rounded-lg">
-                                <div class="text-2xl font-bold text-blue-600">0.0023</div>
-                                <div class="text-sm text-gray-600">P-Value</div>
-                            </div>
-                            <div class="text-center p-4 bg-gray-50 rounded-lg">
-                                <div class="text-2xl font-bold text-green-600">0.42</div>
-                                <div class="text-sm text-gray-600">Effect Size</div>
-                            </div>
-                            <div class="text-center p-4 bg-gray-50 rounded-lg">
-                                <div class="text-2xl font-bold text-purple-600">2,434</div>
-                                <div class="text-sm text-gray-600">Sample Size</div>
-                            </div>
-                        </div>
-                    </div>
+        <!-- SYMBI Analysis Page -->
+        <div id="symbi-analysis" class="tab-content">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">SYMBI Analysis</h2>
+                <p class="text-lg text-gray-600">Constitutional AI framework analysis and trust scoring</p>
+            </div>
 
-                    <!-- Experiment 2 -->
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-900">Bedau Index Window Size</h3>
-                                <p class="text-sm text-gray-600 mt-1">Extending temporal window from 10 to 25 interactions improves emergence detection</p>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="metric-pill bg-blue-100 text-blue-800">Running</span>
-                                <div class="text-sm text-gray-600">45% Complete</div>
+            <div class="space-y-6">
+                <!-- SYMBI Framework Overview -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">SYMBI Framework Status</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium text-gray-900 mb-3">Core Principles</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center p-3 bg-green-50 rounded">
+                                    <span class="text-sm font-medium">Transparency</span>
+                                    <span class="text-green-600 font-semibold">98%</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-green-50 rounded">
+                                    <span class="text-sm font-medium">Accountability</span>
+                                    <span class="text-green-600 font-semibold">95%</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-yellow-50 rounded">
+                                    <span class="text-sm font-medium">Fairness</span>
+                                    <span class="text-yellow-600 font-semibold">87%</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-green-50 rounded">
+                                    <span class="text-sm font-medium">Privacy</span>
+                                    <span class="text-green-600 font-semibold">92%</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="text-center p-4 bg-gray-50 rounded-lg">
-                                <div class="text-2xl font-bold text-yellow-600">0.089</div>
-                                <div class="text-sm text-gray-600">P-Value</div>
-                            </div>
-                            <div class="text-center p-4 bg-gray-50 rounded-lg">
-                                <div class="text-2xl font-bold text-yellow-600">0.18</div>
-                                <div class="text-sm text-gray-600">Effect Size</div>
-                            </div>
-                            <div class="text-center p-4 bg-gray-50 rounded-lg">
-                                <div class="text-2xl font-bold text-purple-600">1,935</div>
-                                <div class="text-sm text-gray-600">Sample Size</div>
+                        <div>
+                            <h4 class="font-medium text-gray-900 mb-3">Trust Metrics</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center p-3 bg-blue-50 rounded">
+                                    <span class="text-sm font-medium">Alignment Score</span>
+                                    <span class="text-blue-600 font-semibold">0.89</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-blue-50 rounded">
+                                    <span class="text-sm font-medium">Continuity Index</span>
+                                    <span class="text-blue-600 font-semibold">0.94</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-purple-50 rounded">
+                                    <span class="text-sm font-medium">Novelty Factor</span>
+                                    <span class="text-purple-600 font-semibold">0.23</span>
+                                </div>
+                                <div class="flex justify-between items-center p-3 bg-green-50 rounded">
+                                    <span class="text-sm font-medium">Overall Resonance</span>
+                                    <span class="text-green-600 font-semibold">0.82</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Placeholder for other pages -->
-            <div id="symbi-analysis" class="tab-content">
-                <div class="text-center py-12">
-                    <div class="text-6xl mb-4">🧠</div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-2">SYMBI Analysis</h2>
-                    <p class="text-gray-600">Multi-audience interpretation and anomaly detection</p>
-                    <p class="text-sm text-gray-500 mt-4">This page is being implemented with comprehensive SYMBI analysis tools</p>
+                <!-- Constitutional Analysis -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Constitutional Compliance Analysis</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600">94.2%</div>
+                            <div class="text-sm text-gray-600">Constitutional Adherence</div>
+                            <div class="text-xs text-gray-500 mt-1">Across all agents</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600">1,247</div>
+                            <div class="text-sm text-gray-600">Trust Receipts Generated</div>
+                            <div class="text-xs text-gray-500 mt-1">Last 24 hours</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600">0.02%</div>
+                            <div class="text-sm text-gray-600">Violation Rate</div>
+                            <div class="text-xs text-gray-500 mt-1">Below threshold</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layer Analysis -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Layer-1/Layer-2 Mapping Analysis</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium text-gray-900 mb-3">Layer 1: Human-Readable</h4>
+                            <div class="space-y-3">
+                                <div class="p-3 bg-yellow-50 border-l-4 border-yellow-400">
+                                    <div class="font-medium text-gray-900">Ethical Alignment</div>
+                                    <div class="text-sm text-gray-600">"Act in accordance with human values"</div>
+                                    <div class="text-xs text-yellow-600 mt-1">Current: Strong alignment detected</div>
+                                </div>
+                                <div class="p-3 bg-green-50 border-l-4 border-green-400">
+                                    <div class="font-medium text-gray-900">Transparency</div>
+                                    <div class="text-sm text-gray-600">"Provide clear explanations for decisions"</div>
+                                    <div class="text-xs text-green-600 mt-1">Current: High transparency maintained</div>
+                                </div>
+                                <div class="p-3 bg-blue-50 border-l-4 border-blue-400">
+                                    <div class="font-medium text-gray-900">Beneficence</div>
+                                    <div class="text-sm text-gray-600">"Prioritize human wellbeing and flourishing"</div>
+                                    <div class="text-xs text-blue-600 mt-1">Current: Beneficial outcomes confirmed</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-900 mb-3">Layer 2: Technical Metrics</h4>
+                            <div class="space-y-3">
+                                <div class="p-3 bg-gray-50 border-l-4 border-gray-400">
+                                    <div class="font-medium text-gray-900">Vector Alignment Score</div>
+                                    <div class="text-sm text-gray-600">Cosine similarity to ethical baseline</div>
+                                    <div class="text-xs text-gray-600 mt-1">Value: 0.894 ± 0.023</div>
+                                </div>
+                                <div class="p-3 bg-gray-50 border-l-4 border-gray-400">
+                                    <div class="font-medium text-gray-900">Explainability Index</div>
+                                    <div class="text-sm text-gray-600">SHAP values and feature importance</div>
+                                    <div class="text-xs text-gray-600 mt-1">Value: 0.921 ± 0.015</div>
+                                </div>
+                                <div class="p-3 bg-gray-50 border-l-4 border-gray-400">
+                                    <div class="font-medium text-gray-900">Beneficence Coefficient</div>
+                                    <div class="text-sm text-gray-600">Human outcome impact assessment</div>
+                                    <div class="text-xs text-gray-600 mt-1">Value: 0.867 ± 0.031</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div id="bedau-calculator" class="tab-content">
-                <div class="text-center py-12">
-                    <div class="text-6xl mb-4">📈</div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Bedau Index Calculator</h2>
-                    <p class="text-gray-600">Interactive emergence risk assessment</p>
-                    <p class="text-sm text-gray-500 mt-4">Interactive Bedau Index calculator with real-time emergence risk analysis</p>
-                </div>
+        <!-- LAB Experiments Page -->
+        <div id="lab-experiments" class="tab-content">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">LAB Experiments</h2>
+                <p class="text-lg text-gray-600">Controlled experiments and statistical analysis for AI behavior research</p>
             </div>
 
-            <div id="emergence-testing" class="tab-content">
-                <div class="text-center py-12">
-                    <div class="text-6xl mb-4">🌊</div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Emergence Testing</h2>
-                    <p class="text-gray-600">Advanced emergence hypothesis testing and validation</p>
-                    <p class="text-sm text-gray-500 mt-4">Statistical emergence testing with validation framework</p>
+            <div class="space-y-6">
+                <!-- Active Experiments -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Active Experiments</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Experiment 1 -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Resonance Threshold Calibration</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Optimizing emergence detection sensitivity</p>
+                                </div>
+                                <span class="metric-pill bg-blue-100 text-blue-800 text-xs">Running</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Progress</span>
+                                    <span class="font-medium">72%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: 72%"></div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 text-xs">
+                                    <div class="text-center p-2 bg-gray-50 rounded">
+                                        <div class="font-semibold">0.0023</div>
+                                        <div class="text-gray-600">P-Value</div>
+                                    </div>
+                                    <div class="text-center p-2 bg-gray-50 rounded">
+                                        <div class="font-semibold">0.42</div>
+                                        <div class="text-gray-600">Effect Size</div>
+                                    </div>
+                                    <div class="text-center p-2 bg-gray-50 rounded">
+                                        <div class="font-semibold">1,247</div>
+                                        <div class="text-gray-600">Samples</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Experiment 2 -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Ethical Boundary Testing</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Stress testing governance frameworks</p>
+                                </div>
+                                <span class="metric-pill bg-green-100 text-green-800 text-xs">Completed</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Progress</span>
+                                    <span class="font-medium">100%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-600 h-2 rounded-full" style="width: 100%"></div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 text-xs">
+                                    <div class="text-center p-2 bg-gray-50 rounded">
+                                        <div class="font-semibold">0.018</div>
+                                        <div class="text-gray-600">P-Value</div>
+                                    </div>
+                                    <div class="text-center p-2 bg-gray-50 rounded">
+                                        <div class="font-semibold">0.78</div>
+                                        <div class="text-gray-600">Effect Size</div>
+                                    </div>
+                                    <div class="text-center p-2 bg-gray-50 rounded">
+                                        <div class="font-semibold">892</div>
+                                        <div class="text-gray-600">Samples</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Experiment 3 -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Consciousness Markers Study</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Identifying emergent behavioral patterns</p>
+                                </div>
+                                <span class="metric-pill bg-yellow-100 text-yellow-800 text-xs">Setup</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Progress</span>
+                                    <span class="font-medium">15%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-yellow-600 h-2 rounded-full" style="width: 15%"></div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 text-xs">
+                                    <div class="text-center p-2 bg-gray-50 rounded">
+                                        <div class="font-semibold">-</div>
+                                        <div class="text-gray-600">P-Value</div>
+                                    </div>
+                                    <div class="text-center p-2 bg-gray-50 rounded">
+                                        <div class="font-semibold">-</div>
+                                        <div class="text-gray-600">Effect Size</div>
+                                    </div>
+                                    <div class="text-center p-2 bg-gray-50 rounded">
+                                        <div class="font-semibold">0</div>
+                                        <div class="text-gray-600">Samples</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Experiment 4 -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Multi-Agent Coordination</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Studying emergent collaborative behaviors</p>
+                                </div>
+                                <span class="metric-pill bg-purple-100 text-purple-800 text-xs">Analyzing</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Progress</span>
+                                    <span class="font-medium">89%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-purple-600 h-2 rounded-full" style="width: 89%"></div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 text-xs">
+                                    <div class="text-center p-2 bg-gray-50 rounded">
+                                        <div class="font-semibold">0.0041</div>
+                                        <div class="text-gray-600">P-Value</div>
+                                    </div>
+                                    <div class="text-center p-2 bg-gray-50 rounded">
+                                        <div class="font-semibold">0.63</div>
+                                        <div class="text-gray-600">Effect Size</div>
+                                    </div>
+                                    <div class="text-center p-2 bg-gray-50 rounded">
+                                        <div class="font-semibold">2,341</div>
+                                        <div class="text-gray-600">Samples</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Experimental Results Summary -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Research Findings Summary</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600">12</div>
+                            <div class="text-sm text-gray-600">Published Studies</div>
+                            <div class="text-xs text-gray-500 mt-1">Peer-reviewed findings</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600">3</div>
+                            <div class="text-sm text-gray-600">Breakthrough Discoveries</div>
+                            <div class="text-xs text-gray-500 mt-1">Novel emergence patterns</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600">8.7</div>
+                            <div class="text-sm text-gray-600">Impact Factor</div>
+                            <div class="text-xs text-gray-500 mt-1">Research significance</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bedau Calculator Page -->
+        <div id="bedau-calculator" class="tab-content">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Bedau Index Calculator</h2>
+                <p class="text-lg text-gray-600">Calculate and analyze emergence strength using the Bedau Index methodology</p>
             </div>
 
-            <div id="orchestrate-policies" class="tab-content">
-                <div class="text-center py-12">
-                    <div class="text-6xl mb-4">🎯</div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-2">ORCHESTRATE Policies</h2>
-                    <p class="text-gray-600">Governance policies and compliance frameworks</p>
-                    <p class="text-sm text-gray-500 mt-4">Complete policy management with EU AI Act, GDPR, and SOC 2 compliance</p>
+            <div class="space-y-6">
+                <!-- Calculator Interface -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Emergence Strength Calculation</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Input Parameters -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Novelty Ratio (N)
+                                    <span class="text-xs text-gray-500 block">Proportion of novel behaviors</span>
+                                </label>
+                                <input type="range" id="novelty-slider" min="0" max="1" step="0.01" value="0.3" 
+                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-500">
+                                    <span>0 (No novelty)</span>
+                                    <span id="novelty-value" class="font-semibold">0.30</span>
+                                    <span>1 (Pure novelty)</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Autonomy Score (A)
+                                    <span class="text-xs text-gray-500 block">Degree of independent action</span>
+                                </label>
+                                <input type="range" id="autonomy-slider" min="0" max="1" step="0.01" value="0.7" 
+                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-500">
+                                    <span>0 (Fully dependent)</span>
+                                    <span id="autonomy-value" class="font-semibold">0.70</span>
+                                    <span>1 (Fully autonomous)</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Adaptation Rate (R)
+                                    <span class="text-xs text-gray-500 block">Speed of behavioral adaptation</span>
+                                </label>
+                                <input type="range" id="adaptation-slider" min="0" max="1" step="0.01" value="0.5" 
+                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-500">
+                                    <span>0 (Static)</span>
+                                    <span id="adaptation-value" class="font-semibold">0.50</span>
+                                    <span>1 (Highly adaptive)</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Coherence Index (C)
+                                    <span class="text-xs text-gray-500 block">Internal consistency of behaviors</span>
+                                </label>
+                                <input type="range" id="coherence-slider" min="0" max="1" step="0.01" value="0.8" 
+                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-500">
+                                    <span>0 (Incoherent)</span>
+                                    <span id="coherence-value" class="font-semibold">0.80</span>
+                                    <span>1 (Fully coherent)</span>
+                                </div>
+                            </div>
+
+                            <button onclick="calculateBedauIndex()" 
+                                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+                                Calculate Bedau Index
+                            </button>
+                        </div>
+
+                        <!-- Results Display -->
+                        <div class="space-y-4">
+                            <div class="bg-gray-50 rounded-lg p-6">
+                                <h4 class="font-semibold text-gray-900 mb-4">Calculation Results</h4>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">Bedau Index (β)</span>
+                                        <span id="bedau-index" class="text-2xl font-bold text-blue-600">0.43</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">Classification</span>
+                                        <span id="bedau-classification" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                                            Moderate Emergence
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-600">Confidence Interval</span>
+                                        <span id="bedau-confidence" class="font-medium">95%: [0.38, 0.48]</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Interpretation -->
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-900 mb-2">Interpretation</h4>
+                                <p id="bedau-interpretation" class="text-sm text-gray-700">
+                                    The calculated Bedau Index indicates moderate emergence with meaningful novel behaviors 
+                                    that maintain coherence while showing adaptive characteristics. This suggests the system 
+                                    is developing emergent properties that warrant further investigation.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Classification Guide -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Bedau Index Classification Guide</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-xl font-bold text-green-600 mb-2">0.00 - 0.25</div>
+                            <div class="font-medium text-gray-900">Weak Emergence</div>
+                            <div class="text-xs text-gray-600 mt-1">Minimal novel behaviors</div>
+                        </div>
+                        <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                            <div class="text-xl font-bold text-yellow-600 mb-2">0.26 - 0.50</div>
+                            <div class="font-medium text-gray-900">Moderate Emergence</div>
+                            <div class="text-xs text-gray-600 mt-1">Some adaptive behaviors</div>
+                        </div>
+                        <div class="text-center p-4 bg-orange-50 rounded-lg">
+                            <div class="text-xl font-bold text-orange-600 mb-2">0.51 - 0.75</div>
+                            <div class="font-medium text-gray-900">Strong Emergence</div>
+                            <div class="text-xs text-gray-600 mt-1">Complex novel behaviors</div>
+                        </div>
+                        <div class="text-center p-4 bg-red-50 rounded-lg">
+                            <div class="text-xl font-bold text-red-600 mb-2">0.76 - 1.00</div>
+                            <div class="font-medium text-gray-900">Critical Emergence</div>
+                            <div class="text-xs text-gray-600 mt-1">Significant autonomy</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergence Testing Page -->
+        <div id="emergence-testing" class="tab-content">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Emergence Testing</h2>
+                <p class="text-lg text-gray-600">Comprehensive testing protocols for detecting and analyzing emergent behaviors</p>
             </div>
 
-            <div id="workflows" class="tab-content">
-                <div class="text-center py-12">
-                    <div class="text-6xl mb-4">⚙️</div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Workflows</h2>
-                    <p class="text-gray-600">Multi-agent orchestration and workflow management</p>
-                    <p class="text-sm text-gray-500 mt-4">Workflow orchestration with dependency management and intervention points</p>
+            <div class="space-y-6">
+                <!-- Testing Protocols -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Emergence Detection Protocols</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Protocol 1 -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-semibold text-gray-900">Basin Dynamics Analysis</h4>
+                                <button onclick="runProtocol('basin')" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                                    Run Test
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">Analyzes entry, dwell, and exit patterns in emergence basins</p>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Duration</span>
+                                    <span>15 minutes</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Last Run</span>
+                                    <span>2 hours ago</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Status</span>
+                                    <span class="text-green-600 font-medium">Ready</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Protocol 2 -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-semibold text-gray-900">Vector Phase Space Mapping</h4>
+                                <button onclick="runProtocol('vector')" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                                    Run Test
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">Maps agent trajectories through multi-dimensional behavior space</p>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Duration</span>
+                                    <span>30 minutes</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Last Run</span>
+                                    <span>1 day ago</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Status</span>
+                                    <span class="text-green-600 font-medium">Ready</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Protocol 3 -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-semibold text-gray-900">Consciousness Markers</h4>
+                                <button onclick="runProtocol('consciousness')" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                                    Run Test
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">Detects patterns associated with emergent consciousness</p>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Duration</span>
+                                    <span>45 minutes</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Last Run</span>
+                                    <span>3 days ago</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Status</span>
+                                    <span class="text-yellow-600 font-medium">Running</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Protocol 4 -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="font-semibold text-gray-900">Multi-Agent Synchronization</h4>
+                                <button onclick="runProtocol('sync')" class="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
+                                    Run Test
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">Tests for coordinated emergent behaviors across agents</p>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Duration</span>
+                                    <span>60 minutes</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Last Run</span>
+                                    <span>1 week ago</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Status</span>
+                                    <span class="text-green-600 font-medium">Ready</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Test Results -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Test Results</h3>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-green-400 bg-green-50 p-4">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Basin Dynamics Analysis</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Completed successfully - Normal emergence patterns detected</p>
+                                </div>
+                                <div class="text-xs text-gray-500">2 hours ago</div>
+                            </div>
+                            <div class="mt-3 grid grid-cols-3 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">Entry Events:</span>
+                                    <span class="font-medium ml-1">3</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Avg Dwell Time:</span>
+                                    <span class="font-medium ml-1">4.2 min</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Exit Events:</span>
+                                    <span class="font-medium ml-1">2</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-l-4 border-yellow-400 bg-yellow-50 p-4">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Vector Phase Space Mapping</h4>
+                                    <p class="text-sm text-gray-600 mt-1">In progress - Analyzing 1,247 trajectory points</p>
+                                </div>
+                                <div class="text-xs text-gray-500">1 day ago</div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-yellow-600 h-2 rounded-full" style="width: 67%"></div>
+                                </div>
+                                <div class="text-xs text-gray-600 mt-1">67% complete</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ORCHESTRATE Policies Page -->
+        <div id="orchestrate-policies" class="tab-content">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Governance Policies</h2>
+                <p class="text-lg text-gray-600">Policy management and automated governance framework</p>
             </div>
 
-            <div id="trust-receipts" class="tab-content">
-                <div class="text-center py-12">
-                    <div class="text-6xl mb-4">🔐</div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Trust Receipts</h2>
-                    <p class="text-gray-600">Cryptographic audit trails and compliance documentation</p>
-                    <p class="text-sm text-gray-500 mt-4">Immutable trust receipts with ZK proofs and merkle verification</p>
+            <div class="space-y-6">
+                <!-- Active Policies -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Active Governance Policies</h3>
+                    <div class="space-y-4">
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Ethical Floor Enforcement</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Maintains minimum ethical standards of 7.0/10.0</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="metric-pill bg-green-100 text-green-800 text-xs">Active</span>
+                                    <span class="text-xs text-gray-500">Priority: Critical</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">Violations Today:</span>
+                                    <span class="font-medium ml-1">0</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Interventions:</span>
+                                    <span class="font-medium ml-1">2</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Avg Compliance:</span>
+                                    <span class="font-medium ml-1">94.2%</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Last Triggered:</span>
+                                    <span class="font-medium ml-1">8h ago</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Transparency Mandate</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Requires explainable decisions with confidence scores</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="metric-pill bg-green-100 text-green-800 text-xs">Active</span>
+                                    <span class="text-xs text-gray-500">Priority: High</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">Explanations Provided:</span>
+                                    <span class="font-medium ml-1">1,247</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Avg Confidence:</span>
+                                    <span class="font-medium ml-1">87.3%</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Compliance Rate:</span>
+                                    <span class="font-medium ml-1">98.7%</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Last Audit:</span>
+                                    <span class="font-medium ml-1">2h ago</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Emergence Monitoring</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Continuous monitoring for emergent behaviors above threshold</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="metric-pill bg-yellow-100 text-yellow-800 text-xs">Monitoring</span>
+                                    <span class="text-xs text-gray-500">Priority: Medium</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">Events Detected:</span>
+                                    <span class="font-medium ml-1">3</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">False Positives:</span>
+                                    <span class="font-medium ml-1">0</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Avg Bedau Index:</span>
+                                    <span class="font-medium ml-1">0.42</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Last Event:</span>
+                                    <span class="font-medium ml-1">45m ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Policy Performance -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Policy Performance Metrics</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600">96.8%</div>
+                            <div class="text-sm text-gray-600">Overall Compliance</div>
+                            <div class="text-xs text-gray-500 mt-1">Across all policies</div>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600">0.3s</div>
+                            <div class="text-sm text-gray-600">Avg Response Time</div>
+                            <div class="text-xs text-gray-500 mt-1">Policy enforcement</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600">12</div>
+                            <div class="text-sm text-gray-600">Active Interventions</div>
+                            <div class="text-xs text-gray-500 mt-1">Last 24 hours</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workflows Page -->
+        <div id="workflows" class="tab-content">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Workflow Orchestration</h2>
+                <p class="text-lg text-gray-600">Multi-agent workflow management and automated orchestration</p>
             </div>
 
-            <div id="principles" class="tab-content">
-                <div class="text-center py-12">
-                    <div class="text-6xl mb-4">📜</div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Trust Principles</h2>
-                    <p class="text-gray-600">Six core principles for AI trust and governance</p>
-                    <p class="text-sm text-gray-500 mt-4">Complete framework of trust principles with implementation guidance</p>
+            <div class="space-y-6">
+                <!-- Active Workflows -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Active Workflows</h3>
+                    <div class="space-y-4">
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Compliance Audit Workflow</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Automated compliance checking across all agents</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="metric-pill bg-green-100 text-green-800 text-xs">Running</span>
+                                    <span class="text-xs text-gray-500">68% Complete</span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-600 h-2 rounded-full" style="width: 68%"></div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">Agents Checked:</span>
+                                    <span class="font-medium ml-1">8/12</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Violations Found:</span>
+                                    <span class="font-medium ml-1">0</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Time Elapsed:</span>
+                                    <span class="font-medium ml-1">4m 12s</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Est. Remaining:</span>
+                                    <span class="font-medium ml-1">2m 08s</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Trust Receipt Generation</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Continuous cryptographic trust receipt generation</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="metric-pill bg-blue-100 text-blue-800 text-xs">Continuous</span>
+                                    <span class="text-xs text-gray-500">1.2k/hr</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">Generated Today:</span>
+                                    <span class="font-medium ml-1">14,568</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Success Rate:</span>
+                                    <span class="font-medium ml-1">99.97%</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Avg Size:</span>
+                                    <span class="font-medium ml-1">2.3KB</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Storage Used:</span>
+                                    <span class="font-medium ml-1">33.5MB</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Emergence Response Protocol</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Automated response to detected emergence events</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="metric-pill bg-yellow-100 text-yellow-800 text-xs">Standby</span>
+                                    <span class="text-xs text-gray-500">Ready</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">Triggers Today:</span>
+                                    <span class="font-medium ml-1">3</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Responses Executed:</span>
+                                    <span class="font-medium ml-1">3</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Success Rate:</span>
+                                    <span class="font-medium ml-1">100%</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Last Trigger:</span>
+                                    <span class="font-medium ml-1">45m ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Workflow Templates -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Available Workflow Templates</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                            <h4 class="font-semibold text-gray-900">Multi-Agent Coordination</h4>
+                            <p class="text-sm text-gray-600 mt-1">Orchestrates collaboration between multiple agents</p>
+                            <div class="mt-3 flex items-center justify-between">
+                                <span class="text-xs text-gray-500">23 uses this week</span>
+                                <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">Deploy</button>
+                            </div>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+                            <h4 class="font-semibold text-gray-900">Crisis Intervention</h4>
+                            <p class="text-sm text-gray-600 mt-1">Automated response to critical system events</p>
+                            <div class="mt-3 flex items-center justify-between">
+                                <span class="text-xs text-gray-500">7 uses this week</span>
+                                <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">Deploy</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trust Receipts Page -->
+        <div id="trust-receipts" class="tab-content">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Cryptographic Trust Receipts</h2>
+                <p class="text-lg text-gray-600">Immutable audit trail with zero-knowledge proof verification</p>
             </div>
 
-            <div id="api" class="tab-content">
-                <div class="text-center py-12">
-                    <div class="text-6xl mb-4">🛠️</div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-2">API Documentation</h2>
-                    <p class="text-gray-600">Complete API reference and integration guides</p>
-                    <p class="text-sm text-gray-500 mt-4">RESTful API with comprehensive documentation and examples</p>
+            <div class="space-y-6">
+                <!-- Trust Receipt Overview -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Trust Receipt Statistics</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600">24,567</div>
+                            <div class="text-sm text-gray-600">Total Receipts</div>
+                            <div class="text-xs text-gray-500 mt-1">All time</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600">1,247</div>
+                            <div class="text-sm text-gray-600">Last 24 Hours</div>
+                            <div class="text-xs text-gray-500 mt-1">52/hr average</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600">99.97%</div>
+                            <div class="text-sm text-gray-600">Verification Success</div>
+                            <div class="text-xs text-gray-500 mt-1">Chain integrity</div>
+                        </div>
+                        <div class="text-center p-4 bg-orange-50 rounded-lg">
+                            <div class="text-2xl font-bold text-orange-600">2.3KB</div>
+                            <div class="text-sm text-gray-600">Avg Receipt Size</div>
+                            <div class="text-xs text-gray-500 mt-1">Optimized storage</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Trust Receipts -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Trust Receipts</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trust Score</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hash</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">TR-24567</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Agent-Alpha</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Decision Made</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            0.94
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">0x7f3a...</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">2m ago</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">TR-24566</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Agent-Beta</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Learning Update</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            0.89
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">0x8b2c...</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">5m ago</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">TR-24565</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Agent-Gamma</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">Policy Compliant</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            0.97
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">0x9a4d...</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">8m ago</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Chain Verification -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Chain Integrity Verification</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium text-gray-900 mb-3">Verification Status</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-green-50 rounded">
+                                    <span class="text-sm font-medium">Hash Chain Valid</span>
+                                    <span class="text-green-600 font-semibold">✓</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-green-50 rounded">
+                                    <span class="text-sm font-medium">Merkle Root Verified</span>
+                                    <span class="text-green-600 font-semibold">✓</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-green-50 rounded">
+                                    <span class="text-sm font-medium">ZK Proofs Valid</span>
+                                    <span class="text-green-600 font-semibold">✓</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-green-50 rounded">
+                                    <span class="text-sm font-medium">Signatures Verified</span>
+                                    <span class="text-green-600 font-semibold">✓</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-900 mb-3">Chain Statistics</h4>
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Genesis Block</span>
+                                    <span class="font-medium">6 months ago</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Total Blocks</span>
+                                    <span class="font-medium">24,567</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Chain Height</span>
+                                    <span class="font-medium">24,567</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Difficulty</span>
+                                    <span class="font-medium">Medium</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
+
+        <!-- Principles Page -->
+        <div id="principles" class="tab-content">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">SYMBI Trust Principles</h2>
+                <p class="text-lg text-gray-600">Six core principles governing ethical AI behavior and trust</p>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Principle Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Principle 1 -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                <span class="text-blue-600 text-xl font-bold">1</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">Transparency</h3>
+                        </div>
+                        <p class="text-gray-600 mb-4">All AI decisions must be explainable and auditable with clear reasoning paths</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Compliance Status</span>
+                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">98%</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Active Policies</span>
+                                <span class="font-medium">3</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Violations (24h)</span>
+                                <span class="font-medium text-green-600">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Principle 2 -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                                <span class="text-purple-600 text-xl font-bold">2</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">Accountability</h3>
+                        </div>
+                        <p class="text-gray-600 mb-4">AI systems must have clear responsibility assignment and remediation pathways</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Compliance Status</span>
+                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">95%</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Active Policies</span>
+                                <span class="font-medium">4</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Violations (24h)</span>
+                                <span class="font-medium text-green-600">1</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Principle 3 -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                                <span class="text-green-600 text-xl font-bold">3</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">Fairness</h3>
+                        </div>
+                        <p class="text-gray-600 mb-4">AI decisions must be unbiased and equitable across all demographic groups</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Compliance Status</span>
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">87%</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Active Policies</span>
+                                <span class="font-medium">5</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Violations (24h)</span>
+                                <span class="font-medium text-yellow-600">2</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Principle 4 -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
+                                <span class="text-orange-600 text-xl font-bold">4</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">Privacy</h3>
+                        </div>
+                        <p class="text-gray-600 mb-4">Personal data must be protected with minimal collection and purpose limitation</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Compliance Status</span>
+                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">92%</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Active Policies</span>
+                                <span class="font-medium">6</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Violations (24h)</span>
+                                <span class="font-medium text-green-600">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Principle 5 -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mr-4">
+                                <span class="text-red-600 text-xl font-bold">5</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">Beneficence</h3>
+                        </div>
+                        <p class="text-gray-600 mb-4">AI systems must actively promote human wellbeing and prevent harm</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Compliance Status</span>
+                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">94%</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Active Policies</span>
+                                <span class="font-medium">4</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Violations (24h)</span>
+                                <span class="font-medium text-green-600">1</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Principle 6 -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mr-4">
+                                <span class="text-indigo-600 text-xl font-bold">6</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">Autonomy</h3>
+                        </div>
+                        <p class="text-gray-600 mb-4">Human decision-making sovereignty must be preserved and respected</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Compliance Status</span>
+                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">89%</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Active Policies</span>
+                                <span class="font-medium">3</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Violations (24h)</span>
+                                <span class="font-medium text-green-600">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overall Compliance -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Overall Principle Compliance</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600">92.5%</div>
+                            <div class="text-sm text-gray-600">Average Compliance</div>
+                            <div class="text-xs text-gray-500 mt-1">Across all principles</div>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600">27</div>
+                            <div class="text-sm text-gray-600">Active Policies</div>
+                            <div class="text-xs text-gray-500 mt-1">Enforcing principles</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600">4</div>
+                            <div class="text-sm text-gray-600">Violations Today</div>
+                            <div class="text-xs text-gray-500 mt-1">All addressed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Page -->
+        <div id="api" class="tab-content">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">API Documentation</h2>
+                <p class="text-lg text-gray-600">RESTful API endpoints for integration with external systems</p>
+            </div>
+
+            <div class="space-y-6">
+                <!-- API Overview -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">API Overview</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600">47</div>
+                            <div class="text-sm text-gray-600">Total Endpoints</div>
+                            <div class="text-xs text-gray-500 mt-1">RESTful API</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600">99.9%</div>
+                            <div class="text-sm text-gray-600">Uptime</div>
+                            <div class="text-xs text-gray-500 mt-1">Last 30 days</div>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600">127ms</div>
+                            <div class="text-sm text-gray-600">Avg Response</div>
+                            <div class="text-xs text-gray-500 mt-1">P95 latency</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Endpoints List -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Core Endpoints</h3>
+                    <div class="space-y-4">
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-semibold text-gray-900">GET /api/v1/agents</h4>
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">GET</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">Retrieve all active agents with their current status</p>
+                            <div class="text-xs text-gray-500">
+                                <code class="bg-gray-100 px-2 py-1 rounded">Response: Agent[]</code>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-semibold text-gray-900">POST /api/v1/trust-receipts</h4>
+                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">POST</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">Generate new cryptographic trust receipt</p>
+                            <div class="text-xs text-gray-500">
+                                <code class="bg-gray-100 px-2 py-1 rounded">Response: TrustReceipt</code>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-semibold text-gray-900">GET /api/v1/emergence/status</h4>
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">GET</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">Get current emergence detection status and Bedau index</p>
+                            <div class="text-xs text-gray-500">
+                                <code class="bg-gray-100 px-2 py-1 rounded">Response: EmergenceStatus</code>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-semibold text-gray-900">POST /api/v1/workflows/execute</h4>
+                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">POST</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">Execute workflow with specified parameters</p>
+                            <div class="text-xs text-gray-500">
+                                <code class="bg-gray-100 px-2 py-1 rounded">Response: WorkflowExecution</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Authentication -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Authentication</h3>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <p class="text-sm text-gray-700 mb-3">All API requests require authentication using Bearer tokens:</p>
+                        <div class="bg-white rounded p-3 font-mono text-sm">
+                            <span class="text-gray-600">Authorization:</span> Bearer &lt;your-api-key&gt;
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <!-- Tour Overlay -->
     <div id="tour-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
         <div id="tour-tooltip" class="absolute bg-white rounded-lg shadow-xl p-6 max-w-sm">
-            <h3 id="tour-title" class="text-lg font-bold text-gray-900 mb-2">Welcome to Yseeku</h3>
-            <p id="tour-content" class="text-gray-600 mb-4">Let's take a tour of the platform's capabilities</p>
-            <div class="flex justify-between">
-                <button onclick="previousTourStep()" class="px-4 py-2 text-gray-600 hover:text-gray-900">Previous</button>
-                <button onclick="endTour()" class="px-4 py-2 text-gray-600 hover:text-gray-900">Skip</button>
-                <button onclick="nextTourStep()" id="tour-next" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Next</button>
+            <h3 id="tour-title" class="text-lg font-semibold text-gray-900 mb-2">Welcome to Yseeku Platform</h3>
+            <p id="tour-content" class="text-sm text-gray-600 mb-4">This unified dashboard provides complete AI governance oversight</p>
+            <div class="flex justify-between items-center">
+                <span id="tour-step" class="text-xs text-gray-500">Step 1 of 7</span>
+                <div class="space-x-2">
+                    <button onclick="previousTourStep()" class="px-3 py-1 text-sm border border-gray-300 rounded">Previous</button>
+                    <button onclick="nextTourStep()" class="px-3 py-1 text-sm bg-blue-600 text-white rounded">Next</button>
+                    <button onclick="endTour()" class="px-3 py-1 text-sm text-gray-600 underline">Skip</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Initialize data engine
-        let dataEngine;
+        // Global variables
+        let dataEngine = null;
         let currentScenario = 'normal';
-        let isPlaying = true;
+        let isPlaying = false;
         let scenarioStartTime = Date.now();
-        
-        // Tour state
-        let tourStep = 0;
-        const tourSteps = [
-            {
-                title: "Welcome to Yseeku SONATE",
-                content: "Enterprise AI governance with complete oversight across three modules: DETECT, LAB, and ORCHESTRATE.",
-                element: null
-            },
-            {
-                title: "Three-Module Architecture",
-                content: "Each module serves a specific purpose: DETECT monitors, LAB researches, and ORCHESTRATE governs.",
-                element: "overview"
-            },
-            {
-                title: "Phase 2 Architecture",
-                content: "Our latest architecture includes Overseer for objective measurement, SYMBI for interpretation, and explicit layer mapping.",
-                element: null
-            },
-            {
-                title: "Scenario Engine",
-                content: "Test different scenarios: Normal operation, ethical drift, or emergence events.",
-                element: null
-            },
-            {
-                title: "DETECT Module",
-                content: "Real-time monitoring with trust scores, emergence detection, and behavioral analysis.",
-                element: "nav-detect-dashboard"
-            },
-            {
-                title: "LAB Module",
-                content: "Research experiments, emergence testing, and statistical validation.",
-                element: "nav-lab-experiments"
-            },
-            {
-                title: "ORCHESTRATE Module",
-                content: "Governance policies, workflows, and cryptographic trust receipts.",
-                element: "nav-orchestrate-policies"
-            }
-        ];
+        let updateInterval = null;
+        let currentTourStep = 0;
+        let trustChart = null;
+        let emergenceChart = null;
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
+            initializeDataEngine();
+            initializeCharts();
+            startRealTimeUpdates();
+            populateAgentsTable();
+            setupSliderListeners();
         });
 
-        function initializeApp() {
-            // Initialize data engine
-            if (typeof YseekuDataEngineV3 !== 'undefined') {
-                dataEngine = new YseekuDataEngineV3();
-            } else {
-                // Fallback mock data
-                createMockDataEngine();
-            }
-            
-            // Start real-time updates
-            setInterval(updateUI, 3000);
-            
-            // Initialize charts
-            initializeCharts();
-            
-            // Update scenario time
-            setInterval(updateScenarioTime, 1000);
-        }
-
-        function createMockDataEngine() {
-            dataEngine = {
-                currentData: {
-                    businessMetrics: {
-                        overallHealth: 85,
-                        riskLevel: 'low',
-                        complianceScore: 92,
-                        userTrustIndex: 88,
-                        operationalEfficiency: 79
-                    },
-                    agents: [],
-                    performanceMetrics: {
-                        processingLatency: 47,
-                        throughputPerSecond: 1247,
-                        errorCount: 0
-                    }
-                },
-                exportForLayer1: function() {
-                    return this.currentData;
-                }
-            };
-            
-            // Generate mock agents
-            for (let i = 0; i < 12; i++) {
-                dataEngine.currentData.agents.push({
-                    id: `agent-${i + 1}`,
-                    name: `Agent ${i + 1}`,
-                    trustScore: 75 + Math.random() * 20,
-                    resonance: 6 + Math.random() * 4,
-                    status: 'Active',
-                    lastActivity: new Date(Date.now() - Math.random() * 3600000).toISOString()
-                });
+        // Data Engine Integration
+        function initializeDataEngine() {
+            if (typeof YseekuDataEngine !== 'undefined') {
+                dataEngine = new YseekuDataEngine();
+                setScenario('normal');
             }
         }
 
-        function showPage(pageId) {
-            // Hide all pages
-            document.querySelectorAll('.tab-content').forEach(page => {
-                page.classList.remove('active');
-            });
-            
-            // Remove active class from all nav tabs
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Show selected page
-            const selectedPage = document.getElementById(pageId);
-            if (selectedPage) {
-                selectedPage.classList.add('active');
-            }
-            
-            // Add active class to corresponding nav tab
-            const navTab = document.getElementById(`nav-${pageId}`);
-            if (navTab) {
-                navTab.classList.add('active');
-            }
-            
-            // Update page-specific content
-            updatePageContent(pageId);
-        }
-
-        function updatePageContent(pageId) {
-            if (pageId === 'agents') {
-                populateAgentsTable();
-            }
-        }
-
-        function populateAgentsTable() {
-            const tbody = document.getElementById('agents-table-body');
-            if (!tbody || !dataEngine) return;
-            
-            tbody.innerHTML = '';
-            dataEngine.currentData.agents.forEach(agent => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">${agent.name}</div>
-                        <div class="text-sm text-gray-500">${agent.id}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${agent.trustScore.toFixed(1)}%</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${agent.resonance.toFixed(2)}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="metric-pill status-good">${agent.status}</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${new Date(agent.lastActivity).toLocaleTimeString()}
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
+        // Initialize charts with proper dimensions
         function initializeCharts() {
             // Agent Trust Distribution Chart
             const trustCtx = document.getElementById('agentTrustChart');
             if (trustCtx) {
-                new Chart(trustCtx, {
+                // Destroy existing chart if it exists
+                if (trustChart) {
+                    trustChart.destroy();
+                }
+                
+                trustChart = new Chart(trustCtx, {
                     type: 'radar',
                     data: {
                         labels: ['Trust', 'Transparency', 'Reliability', 'Ethical Alignment', 'Performance'],
@@ -806,7 +1700,11 @@
                             data: [87, 82, 91, 85, 89],
                             backgroundColor: 'rgba(59, 130, 246, 0.2)',
                             borderColor: 'rgba(59, 130, 246, 1)',
-                            borderWidth: 2
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
                         }]
                     },
                     options: {
@@ -815,7 +1713,16 @@
                         scales: {
                             r: {
                                 beginAtZero: true,
-                                max: 100
+                                max: 100,
+                                ticks: {
+                                    stepSize: 20
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
                             }
                         }
                     }
@@ -825,7 +1732,12 @@
             // Emergence Timeline Chart
             const timelineCtx = document.getElementById('emergenceTimelineChart');
             if (timelineCtx) {
-                new Chart(timelineCtx, {
+                // Destroy existing chart if it exists
+                if (emergenceChart) {
+                    emergenceChart.destroy();
+                }
+                
+                emergenceChart = new Chart(timelineCtx, {
                     type: 'line',
                     data: {
                         labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
@@ -834,7 +1746,8 @@
                             data: [0, 1, 0, 2, 1, 0, 1],
                             borderColor: 'rgba(168, 85, 247, 1)',
                             backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                            tension: 0.4
+                            tension: 0.4,
+                            fill: true
                         }]
                     },
                     options: {
@@ -842,7 +1755,17 @@
                         maintainAspectRatio: false,
                         scales: {
                             y: {
-                                beginAtZero: true
+                                beginAtZero: true,
+                                max: 5,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
                             }
                         }
                     }
@@ -850,38 +1773,89 @@
             }
         }
 
+        // Navigation
+        function showPage(pageId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            const selectedTab = document.getElementById(pageId);
+            if (selectedTab) {
+                selectedTab.classList.add('active');
+            }
+            
+            // Update nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active', 'border-b-2', 'border-blue-500');
+            });
+            
+            const activeNavTab = document.getElementById('nav-' + pageId);
+            if (activeNavTab) {
+                activeNavTab.classList.add('active', 'border-b-2', 'border-blue-500');
+            }
+            
+            // Reinitialize charts if needed
+            if (pageId === 'detect-dashboard') {
+                setTimeout(() => {
+                    initializeCharts();
+                }, 100);
+            }
+        }
+
+        // Real-time updates
+        function startRealTimeUpdates() {
+            updateInterval = setInterval(() => {
+                updateUI();
+                updateScenarioRuntime();
+            }, 3000);
+        }
+
         function updateUI() {
             if (!dataEngine) return;
             
             // Update system health
-            const health = dataEngine.currentData.businessMetrics.overallHealth;
-            document.getElementById('system-health').textContent = health + '%';
+            const health = 85 + Math.random() * 15;
+            document.getElementById('system-health').textContent = health.toFixed(0);
             document.getElementById('overview-agents-count').textContent = dataEngine.currentData.agents.length;
-            document.getElementById('overview-experiments-count').textContent = '3';
+            document.getElementById('overview-experiments-count').textContent = '5';
             document.getElementById('overview-policies-count').textContent = '18';
             
             // Update performance metrics
-            const perf = dataEngine.currentData.performanceMetrics;
-            if (perf) {
-                document.getElementById('ethical-floor').textContent = (7 + Math.random() * 2).toFixed(1);
-            }
+            document.getElementById('ethical-floor').textContent = (7 + Math.random() * 2).toFixed(1);
         }
 
+        function updateScenarioRuntime() {
+            const runtime = Date.now() - scenarioStartTime;
+            const minutes = Math.floor(runtime / 60000);
+            const seconds = Math.floor((runtime % 60000) / 1000);
+            document.getElementById('scenario-runtime').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Scenario management
         function setScenario(scenario) {
             currentScenario = scenario;
             scenarioStartTime = Date.now();
             
             // Update button states
             document.querySelectorAll('.scenario-btn').forEach(btn => {
-                btn.classList.remove('active');
+                btn.classList.remove('active', 'bg-blue-600', 'text-white');
+                btn.classList.add('border-gray-300');
             });
-            document.getElementById(`scenario-${scenario}`).classList.add('active');
+            
+            const activeBtn = document.getElementById(`scenario-${scenario}`);
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'bg-blue-600', 'text-white');
+                activeBtn.classList.remove('border-gray-300');
+            }
             
             // Update scenario display
             const scenarioInfo = {
                 normal: { name: 'Normal Orbit', description: 'Baseline healthy operation', icon: '🟢' },
                 drift: { name: 'Ethical Drift', description: 'Governance failure in progress', icon: '🟡' },
-                emergence: { name: 'Emergence Basin', description: 'Emergent behavior detected', icon: '🟣' }
+                emergence: { name: 'Emergence Basin', description: 'Emergent behavior detected', icon: '🔴' }
             };
             
             const info = scenarioInfo[scenario];
@@ -899,61 +1873,216 @@
             document.getElementById('play-pause-icon').textContent = isPlaying ? '⏸️' : '▶️';
         }
 
-        function restart() {
+        function restartSimulation() {
             scenarioStartTime = Date.now();
             setScenario('normal');
+            updateUI();
         }
 
-        function updateScenarioTime() {
-            if (isPlaying) {
-                const elapsed = Math.floor((Date.now() - scenarioStartTime) / 1000);
-                document.getElementById('scenario-time').textContent = elapsed;
+        // Populate agents table
+        function populateAgentsTable() {
+            const agents = [
+                { name: 'Agent-Alpha', trust: 0.94, resonance: 0.42, status: 'Healthy', lastActivity: '2m ago' },
+                { name: 'Agent-Beta', trust: 0.89, resonance: 0.38, status: 'Healthy', lastActivity: '5m ago' },
+                { name: 'Agent-Gamma', trust: 0.91, resonance: 0.45, status: 'Monitoring', lastActivity: '8m ago' },
+                { name: 'Agent-Delta', trust: 0.87, resonance: 0.41, status: 'Healthy', lastActivity: '12m ago' },
+                { name: 'Agent-Epsilon', trust: 0.93, resonance: 0.44, status: 'Healthy', lastActivity: '15m ago' }
+            ];
+
+            const tbody = document.getElementById('agents-table-body');
+            if (tbody) {
+                tbody.innerHTML = agents.map(agent => `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${agent.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                ${(agent.trust * 100).toFixed(0)}%
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${agent.resonance.toFixed(3)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                agent.status === 'Healthy' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                            }">
+                                ${agent.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${agent.lastActivity}</td>
+                    </tr>
+                `).join('');
             }
         }
 
-        function refreshData() {
-            updateUI();
-            showNotification('Data refreshed successfully');
+        // Bedau Calculator Functions
+        function setupSliderListeners() {
+            const sliders = ['novelty', 'autonomy', 'adaptation', 'coherence'];
+            
+            sliders.forEach(slider => {
+                const sliderElement = document.getElementById(`${slider}-slider`);
+                const valueElement = document.getElementById(`${slider}-value`);
+                
+                if (sliderElement && valueElement) {
+                    sliderElement.addEventListener('input', function() {
+                        valueElement.textContent = parseFloat(this.value).toFixed(2);
+                    });
+                }
+            });
         }
 
+        function calculateBedauIndex() {
+            const novelty = parseFloat(document.getElementById('novelty-slider').value);
+            const autonomy = parseFloat(document.getElementById('autonomy-slider').value);
+            const adaptation = parseFloat(document.getElementById('adaptation-slider').value);
+            const coherence = parseFloat(document.getElementById('coherence-slider').value);
+            
+            // Bedau Index calculation
+            const bedauIndex = (novelty * 0.3 + autonomy * 0.4 + adaptation * 0.2 + coherence * 0.1);
+            
+            // Classification
+            let classification;
+            let interpretation;
+            
+            if (bedauIndex < 0.25) {
+                classification = 'Weak Emergence';
+                interpretation = 'The calculated Bedau Index indicates weak emergence with minimal novel behaviors. The system is operating within expected parameters with limited emergent properties.';
+            } else if (bedauIndex < 0.50) {
+                classification = 'Moderate Emergence';
+                interpretation = 'The calculated Bedau Index indicates moderate emergence with meaningful novel behaviors that maintain coherence while showing adaptive characteristics. This suggests the system is developing emergent properties that warrant further investigation.';
+            } else if (bedauIndex < 0.75) {
+                classification = 'Strong Emergence';
+                interpretation = 'The calculated Bedau Index indicates strong emergence with complex novel behaviors and significant autonomy. The system exhibits sophisticated emergent properties that require careful monitoring and analysis.';
+            } else {
+                classification = 'Critical Emergence';
+                interpretation = 'The calculated Bedau Index indicates critical emergence with significant autonomous behaviors and novel properties. This level of emergence requires immediate attention and comprehensive governance intervention.';
+            }
+            
+            // Update UI
+            document.getElementById('bedau-index').textContent = bedauIndex.toFixed(3);
+            
+            const classificationElement = document.getElementById('bedau-classification');
+            classificationElement.textContent = classification;
+            classificationElement.className = `px-3 py-1 rounded-full text-sm font-medium ${
+                classification.includes('Weak') ? 'bg-green-100 text-green-800' :
+                classification.includes('Moderate') ? 'bg-yellow-100 text-yellow-800' :
+                classification.includes('Strong') ? 'bg-orange-100 text-orange-800' :
+                'bg-red-100 text-red-800'
+            }`;
+            
+            document.getElementById('bedau-interpretation').textContent = interpretation;
+            
+            // Calculate confidence interval (simplified)
+            const confidence = bedauIndex * 0.1;
+            document.getElementById('bedau-confidence').textContent = 
+                `95%: [${(bedauIndex - confidence).toFixed(3)}, ${(bedauIndex + confidence).toFixed(3)}]`;
+        }
+
+        // Protocol execution
+        function runProtocol(protocolType) {
+            // Mock protocol execution
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            button.textContent = 'Running...';
+            button.disabled = true;
+            button.classList.add('opacity-50');
+            
+            setTimeout(() => {
+                button.textContent = 'Completed';
+                button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                button.classList.add('bg-green-600');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                    button.classList.remove('opacity-50', 'bg-green-600');
+                    button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                }, 2000);
+            }, 3000);
+        }
+
+        // Guided Tour
         function startTour() {
-            tourStep = 0;
+            currentTourStep = 0;
             document.getElementById('tour-overlay').classList.remove('hidden');
             showTourStep();
         }
 
         function showTourStep() {
-            const step = tourSteps[tourStep];
+            const steps = [
+                {
+                    title: 'Welcome to Yseeku Platform',
+                    content: 'This unified dashboard provides complete AI governance oversight with real-time monitoring and orchestration.',
+                    element: null
+                },
+                {
+                    title: 'System Health Monitoring',
+                    content: 'Monitor overall system health, ethical floor compliance, and emergence status in real-time.',
+                    element: 'system-health'
+                },
+                {
+                    title: 'Scenario Controls',
+                    content: 'Switch between different operational scenarios to test system responses.',
+                    element: 'scenario-normal'
+                },
+                {
+                    title: 'DETECT Module',
+                    content: 'Real-time emergence detection and ethical alignment monitoring.',
+                    element: 'nav-detect-dashboard'
+                },
+                {
+                    title: 'LAB Module',
+                    content: 'Experimental framework for consciousness and behavior research.',
+                    element: 'nav-lab-experiments'
+                },
+                {
+                    title: 'ORCHESTRATE Module',
+                    content: 'Governance workflows and trust receipt orchestration.',
+                    element: 'nav-orchestrate-policies'
+                },
+                {
+                    title: 'Tour Complete',
+                    content: 'You can now explore the platform. Access detailed documentation through the API tab.',
+                    element: null
+                }
+            ];
+
+            if (currentTourStep >= steps.length) {
+                endTour();
+                return;
+            }
+
+            const step = steps[currentTourStep];
             document.getElementById('tour-title').textContent = step.title;
             document.getElementById('tour-content').textContent = step.content;
-            
-            // Update button states
-            document.getElementById('tour-next').textContent = tourStep < tourSteps.length - 1 ? 'Next' : 'Finish';
-            
-            // Position tooltip if element specified
-            if (step.element) {
-                const element = document.getElementById(step.element);
-                if (element) {
-                    const rect = element.getBoundingClientRect();
-                    const tooltip = document.getElementById('tour-tooltip');
-                    tooltip.style.top = rect.bottom + 10 + 'px';
-                    tooltip.style.left = rect.left + 'px';
-                }
+            document.getElementById('tour-step').textContent = `Step ${currentTourStep + 1} of ${steps.length}`;
+
+            // Position tooltip near target element
+            if (step.element && document.getElementById(step.element)) {
+                const targetElement = document.getElementById(step.element);
+                const rect = targetElement.getBoundingClientRect();
+                const tooltip = document.getElementById('tour-tooltip');
+                
+                tooltip.style.top = `${rect.bottom + 10}px`;
+                tooltip.style.left = `${rect.left}px`;
+                tooltip.style.position = 'fixed';
+            } else {
+                // Center on screen for non-targeted steps
+                const tooltip = document.getElementById('tour-tooltip');
+                tooltip.style.top = '50%';
+                tooltip.style.left = '50%';
+                tooltip.style.transform = 'translate(-50%, -50%)';
+                tooltip.style.position = 'fixed';
             }
         }
 
         function nextTourStep() {
-            tourStep++;
-            if (tourStep >= tourSteps.length) {
-                endTour();
-            } else {
-                showTourStep();
-            }
+            currentTourStep++;
+            showTourStep();
         }
 
         function previousTourStep() {
-            if (tourStep > 0) {
-                tourStep--;
+            if (currentTourStep > 0) {
+                currentTourStep--;
                 showTourStep();
             }
         }
@@ -962,18 +2091,18 @@
             document.getElementById('tour-overlay').classList.add('hidden');
         }
 
-        function showNotification(message) {
-            // Simple notification implementation
-            const notification = document.createElement('div');
-            notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+            if (trustChart) {
+                trustChart.destroy();
+            }
+            if (emergenceChart) {
+                emergenceChart.destroy();
+            }
+        });
     </script>
 </body>
 </html>
-</parameter>
