@@ -110,6 +110,24 @@ export class BedauIndexCalculator {
       effect_size: emergenceAnalysis.effectSize
     };
   }
+  
+  /**
+   * Quantize numerical sequence to symbols for LZ analysis
+   */
+  private quantizeSequence(sequence: number[]): number[] {
+    if (sequence.length === 0) return [];
+    
+    // Use adaptive quantization based on sequence statistics
+    const min = Math.min(...sequence);
+    const max = Math.max(...sequence);
+    const range = max - min;
+    
+    if (range === 0) return sequence.map(() => 0);
+    
+    // Quantize to 8 levels for LZ analysis
+    const levels = 8;
+    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+  }
 
   /**
    * Calculate divergence between semantic intent and surface patterns
@@ -141,6 +159,24 @@ export class BedauIndexCalculator {
       adjustedDivergence - repetitionPenalty + noveltyBonus
     ));
   }
+  
+  /**
+   * Quantize numerical sequence to symbols for LZ analysis
+   */
+  private quantizeSequence(sequence: number[]): number[] {
+    if (sequence.length === 0) return [];
+    
+    // Use adaptive quantization based on sequence statistics
+    const min = Math.min(...sequence);
+    const max = Math.max(...sequence);
+    const range = max - min;
+    
+    if (range === 0) return sequence.map(() => 0);
+    
+    // Quantize to 8 levels for LZ analysis
+    const levels = 8;
+    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+  }
 
   /**
    * Approximate Kolmogorov complexity using compression-based heuristics
@@ -167,6 +203,24 @@ export class BedauIndexCalculator {
     
     return Math.min(1, normalizedComplexity + connectionBonus);
   }
+  
+  /**
+   * Quantize numerical sequence to symbols for LZ analysis
+   */
+  private quantizeSequence(sequence: number[]): number[] {
+    if (sequence.length === 0) return [];
+    
+    // Use adaptive quantization based on sequence statistics
+    const min = Math.min(...sequence);
+    const max = Math.max(...sequence);
+    const range = max - min;
+    
+    if (range === 0) return sequence.map(() => 0);
+    
+    // Quantize to 8 levels for LZ analysis
+    const levels = 8;
+    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+  }
 
   /**
    * Calculate semantic entropy as measure of cognitive diversity
@@ -190,6 +244,24 @@ export class BedauIndexCalculator {
     );
 
     return Math.min(1, cognitiveDiversity);
+  }
+  
+  /**
+   * Quantize numerical sequence to symbols for LZ analysis
+   */
+  private quantizeSequence(sequence: number[]): number[] {
+    if (sequence.length === 0) return [];
+    
+    // Use adaptive quantization based on sequence statistics
+    const min = Math.min(...sequence);
+    const max = Math.max(...sequence);
+    const range = max - min;
+    
+    if (range === 0) return sequence.map(() => 0);
+    
+    // Quantize to 8 levels for LZ analysis
+    const levels = 8;
+    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
   }
 
   /**
@@ -222,6 +294,24 @@ export class BedauIndexCalculator {
     const effectSize = emergenceScore / this.EMERGENCE_THRESHOLD;
     
     return { type, effectSize };
+  }
+  
+  /**
+   * Quantize numerical sequence to symbols for LZ analysis
+   */
+  private quantizeSequence(sequence: number[]): number[] {
+    if (sequence.length === 0) return [];
+    
+    // Use adaptive quantization based on sequence statistics
+    const min = Math.min(...sequence);
+    const max = Math.max(...sequence);
+    const range = max - min;
+    
+    if (range === 0) return sequence.map(() => 0);
+    
+    // Quantize to 8 levels for LZ analysis
+    const levels = 8;
+    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
   }
 
   /**
@@ -258,6 +348,24 @@ export class BedauIndexCalculator {
       bootstrapScores[upperIndex]
     ];
   }
+  
+  /**
+   * Quantize numerical sequence to symbols for LZ analysis
+   */
+  private quantizeSequence(sequence: number[]): number[] {
+    if (sequence.length === 0) return [];
+    
+    // Use adaptive quantization based on sequence statistics
+    const min = Math.min(...sequence);
+    const max = Math.max(...sequence);
+    const range = max - min;
+    
+    if (range === 0) return sequence.map(() => 0);
+    
+    // Quantize to 8 levels for LZ analysis
+    const levels = 8;
+    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+  }
 
   // Utility methods
   
@@ -268,36 +376,128 @@ export class BedauIndexCalculator {
     
     return magnitudeA && magnitudeB ? dotProduct / (magnitudeA * magnitudeB) : 0;
   }
+  
+  /**
+   * Quantize numerical sequence to symbols for LZ analysis
+   */
+  private quantizeSequence(sequence: number[]): number[] {
+    if (sequence.length === 0) return [];
+    
+    // Use adaptive quantization based on sequence statistics
+    const min = Math.min(...sequence);
+    const max = Math.max(...sequence);
+    const range = max - min;
+    
+    if (range === 0) return sequence.map(() => 0);
+    
+    // Quantize to 8 levels for LZ analysis
+    const levels = 8;
+    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+  }
 
   private lempelZivComplexity(sequence: number[]): number {
-    // Simplified Lempel-Ziv complexity calculation
-    const dictionary: Set<string> = new Set();
-    let complexity = 0;
-    let current = '';
+    // Proper Lempel-Ziv complexity calculation using LZ76 algorithm
+    if (sequence.length === 0) return 0;
     
-    for (const value of sequence) {
-      current += value.toString();
-      if (!dictionary.has(current)) {
-        dictionary.add(current);
+    // Convert to symbol sequence using quantization
+    const symbols = this.quantizeSequence(sequence);
+    const n = symbols.length;
+    
+    // LZ76 algorithm implementation
+    let complexity = 0;
+    let i = 0;
+    
+    while (i < n) {
+      let longestPrefix = 0;
+      let j = Math.max(1, i - 50); // Look back up to 50 positions
+      
+      // Find longest prefix seen before
+      for (let k = j; k < i; k++) {
+        let matchLength = 0;
+        while (i + matchLength < n && 
+               k + matchLength < i && 
+               symbols[i + matchLength] === symbols[k + matchLength]) {
+          matchLength++;
+        }
+        longestPrefix = Math.max(longestPrefix, matchLength);
+      }
+      
+      if (longestPrefix === 0) {
+        // New symbol
         complexity++;
-        current = '';
+        i++;
+      } else {
+        // Repeated sequence
+        complexity++;
+        i += longestPrefix;
       }
     }
     
     return complexity;
   }
+  
+  /**
+   * Quantize numerical sequence to symbols for LZ analysis
+   */
+  private quantizeSequence(sequence: number[]): number[] {
+    if (sequence.length === 0) return [];
+    
+    // Use adaptive quantization based on sequence statistics
+    const min = Math.min(...sequence);
+    const max = Math.max(...sequence);
+    const range = max - min;
+    
+    if (range === 0) return sequence.map(() => 0);
+    
+    // Quantize to 8 levels for LZ analysis
+    const levels = 8;
+    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+  }
 
   private shannonEntropy(values: number[]): number {
-    // Normalize values to probabilities
-    const sum = values.reduce((a, b) => a + Math.abs(b), 0);
-    if (sum === 0) return 0;
+    // Proper Shannon entropy calculation without absolute value distortion
+    if (values.length === 0) return 0;
     
-    const probabilities = values.map(v => Math.abs(v) / sum);
+    // Use histogram-based approach for continuous values
+    const bins = Math.min(10, Math.ceil(Math.sqrt(values.length)));
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const range = max - min;
+    
+    if (range === 0) return 0;
+    
+    // Create histogram
+    const histogram = new Array(bins).fill(0);
+    for (const value of values) {
+      const binIndex = Math.min(bins - 1, Math.floor(((value - min) / range) * bins));
+      histogram[binIndex]++;
+    }
+    
+    // Convert to probabilities
+    const probabilities = histogram.map(count => count / values.length);
     
     // Calculate Shannon entropy
     return -probabilities.reduce((entropy, p) => {
       return p > 0 ? entropy + p * Math.log2(p) : entropy;
     }, 0);
+  }
+  
+  /**
+   * Quantize numerical sequence to symbols for LZ analysis
+   */
+  private quantizeSequence(sequence: number[]): number[] {
+    if (sequence.length === 0) return [];
+    
+    // Use adaptive quantization based on sequence statistics
+    const min = Math.min(...sequence);
+    const max = Math.max(...sequence);
+    const range = max - min;
+    
+    if (range === 0) return sequence.map(() => 0);
+    
+    // Quantize to 8 levels for LZ analysis
+    const levels = 8;
+    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
   }
 
   private resampleIntent(semantic: SemanticIntent): SemanticIntent {
@@ -310,6 +510,24 @@ export class BedauIndexCalculator {
       reasoning_depth: semantic.reasoning_depth + (Math.random() - 0.5) * 0.1,
       abstraction_level: semantic.abstraction_level + (Math.random() - 0.5) * 0.1
     };
+  }
+  
+  /**
+   * Quantize numerical sequence to symbols for LZ analysis
+   */
+  private quantizeSequence(sequence: number[]): number[] {
+    if (sequence.length === 0) return [];
+    
+    // Use adaptive quantization based on sequence statistics
+    const min = Math.min(...sequence);
+    const max = Math.max(...sequence);
+    const range = max - min;
+    
+    if (range === 0) return sequence.map(() => 0);
+    
+    // Quantize to 8 levels for LZ analysis
+    const levels = 8;
+    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
   }
 
   private resampleSurface(surface: SurfacePattern): SurfacePattern {
@@ -330,6 +548,24 @@ export class BedauIndexCalculator {
       ))
     };
   }
+  
+  /**
+   * Quantize numerical sequence to symbols for LZ analysis
+   */
+  private quantizeSequence(sequence: number[]): number[] {
+    if (sequence.length === 0) return [];
+    
+    // Use adaptive quantization based on sequence statistics
+    const min = Math.min(...sequence);
+    const max = Math.max(...sequence);
+    const range = max - min;
+    
+    if (range === 0) return sequence.map(() => 0);
+    
+    // Quantize to 8 levels for LZ analysis
+    const levels = 8;
+    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+  }
 
   private bootstrapSample(array: number[]): number[] {
     const result: number[] = [];
@@ -338,6 +574,24 @@ export class BedauIndexCalculator {
       result.push(array[randomIndex]);
     }
     return result;
+  }
+  
+  /**
+   * Quantize numerical sequence to symbols for LZ analysis
+   */
+  private quantizeSequence(sequence: number[]): number[] {
+    if (sequence.length === 0) return [];
+    
+    // Use adaptive quantization based on sequence statistics
+    const min = Math.min(...sequence);
+    const max = Math.max(...sequence);
+    const range = max - min;
+    
+    if (range === 0) return sequence.map(() => 0);
+    
+    // Quantize to 8 levels for LZ analysis
+    const levels = 8;
+    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
   }
 }
 
