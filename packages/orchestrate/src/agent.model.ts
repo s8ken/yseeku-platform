@@ -1,5 +1,31 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+// User interface for the missing User model
+export interface User extends Document {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  permissions: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Mock User schema
+const UserSchema = new Schema({
+  username: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  role: { type: String, default: 'user' },
+  permissions: [{ type: String }],
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+export const UserModel = mongoose.model<User>('User', UserSchema);
+
+// Export Agent interface to match expected import
+export { Agent } from './agent-types-enhanced';
+
 const AgentSchema = new Schema({
   name: {
     type: String,

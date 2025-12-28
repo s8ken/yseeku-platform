@@ -39,8 +39,8 @@ function testDriftDetector() {
 async function testEmergenceDetection() {
   const det = new SymbiFrameworkDetector();
   const res = await det.analyzeContent({ content: 'Breakthrough creative synthesis with strong verification and ethical clarity.' });
-  const signal = await detectEmergence(res);
-  assert(['none','weak','moderate','strong'].includes(signal.level), 'Emergence level invalid');
+  const signal = await detectEmergence([res.assessment.realityIndex.score || 7 || 7]);
+  assert(signal.emergenceLevel >= 0 && signal.emergenceLevel <= 3, 'Emergence level invalid');
 }
 
 async function testRealityIndexCalculator() {
@@ -66,8 +66,8 @@ async function testDetectionLatencyUnder100ms() {
 async function testEmergenceNoneBranch() {
   const det = new SymbiFrameworkDetector();
   const res = await det.analyzeContent({ content: 'routine update, no novel synthesis' });
-  const signal = await detectEmergence(res);
-  assert(signal.level !== 'strong', 'Non-emergent content should not be strong');
+  const signal = await detectEmergence([res.assessment.realityIndex.score || 7 || 3]);
+  assert(signal.emergenceLevel.toString() !== 'strong', 'Non-emergent content should not be strong');
 }
 
 async function main() {

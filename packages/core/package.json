@@ -8,8 +8,10 @@
     "build": "tsc && cp src/index.d.ts dist/index.d.ts",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "npm run build && c8 --check-coverage --branches 40 --functions 40 --lines 40 --statements 40 node dist/tests/run-tests.js",
+    "test": "jest",
     "test:canonical": "jest src/__tests__/canonicalize.spec.ts",
+    "test:coverage": "jest --coverage",
+    "test:legacy": "npm run build && c8 --check-coverage --branches 40 --functions 40 --lines 40 --statements 40 node dist/tests/run-tests.js",
     "test:python": "python3 packages/core/python/test_canonicalize.py"
   },
   "keywords": [

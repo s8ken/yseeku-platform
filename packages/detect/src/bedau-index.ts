@@ -50,336 +50,206 @@ export interface SurfacePattern {
   novelty_score: number;         // 0-1: Novelty of patterns
 }
 
+export interface BedauIndexCalculator {
+  calculateBedauIndex(
+    semanticIntent: SemanticIntent,
+    surfacePattern: SurfacePattern
+  ): BedauMetrics;
+  
+  analyzeTemporalEvolution(
+    timeSeriesData: number[][]
+  ): {
+    emergence_trajectory: number[];
+    critical_transitions: number[];
+  };
+  
+  bootstrapConfidenceInterval(
+    data: number[],
+    nBootstrap: number
+  ): [number, number];
+}
+
 /**
- * Core Bedau Index Calculator
- * 
- * Calculates weak emergence by analyzing the gap between semantic intent
- * and surface-level patterns, measuring irreducibility and novelty.
+ * Core Bedau Index Calculator Implementation
  */
-export class BedauIndexCalculator {
-  private readonly BOOTSTRAP_SAMPLES = 1000;
-  private readonly EMERGENCE_THRESHOLD = 0.3;
+class BedauIndexCalculatorImpl implements BedauIndexCalculator {
+  private readonly emergenceThresholds = {
+    LINEAR: 0.3,
+    WEAK_EMERGENCE: 0.7,
+    STRONG_EMERGENCE: 0.9
+  };
 
   /**
-   * Calculate Bedau Index for weak emergence detection
+   * Calculate the Bedau Index for weak emergence detection
    */
-  async calculateBedauIndex(
+  calculateBedauIndex(
     semanticIntent: SemanticIntent,
-    surfacePattern: SurfacePattern,
-    historicalContext?: SemanticIntent[]
-  ): Promise<BedauMetrics> {
-    
-    // Step 1: Calculate semantic-surface divergence
+    surfacePattern: SurfacePattern
+  ): BedauMetrics {
+    // 1. Calculate semantic-surface divergence
     const semanticSurfaceDivergence = this.calculateSemanticSurfaceDivergence(
-      semanticIntent, 
+      semanticIntent,
       surfacePattern
     );
 
-    // Step 2: Approximate Kolmogorov complexity
+    // 2. Calculate irreducibility using Kolmogorov complexity approximation
     const kolmogorovComplexity = this.approximateKolmogorovComplexity(
-      semanticIntent, 
-      surfacePattern
+      semanticIntent.intent_vectors
     );
 
-    // Step 3: Calculate semantic entropy
-    const semanticEntropy = this.calculateSemanticEntropy(
-      semanticIntent, 
-      surfacePattern
-    );
+    // 3. Calculate semantic entropy
+    const semanticEntropy = this.calculateSemanticEntropy(semanticIntent);
 
-    // Step 4: Determine emergence type and effect size
-    const emergenceAnalysis = this.analyzeEmergenceType(
+    // 4. Combine metrics into Bedau Index
+    const bedau_index = this.combineMetrics(
       semanticSurfaceDivergence,
       kolmogorovComplexity,
       semanticEntropy
     );
 
-    // Step 5: Calculate confidence intervals via bootstrap
-    const confidenceInterval = this.bootstrapConfidenceInterval(
-      semanticIntent,
-      surfacePattern,
-      this.BOOTSTRAP_SAMPLES
-    );
+    // 5. Determine emergence type
+    const emergence_type = this.classifyEmergenceType(bedau_index);
+
+    // 6. Calculate confidence interval
+    const confidence_interval = this.calculateConfidenceInterval([
+      semanticSurfaceDivergence,
+      kolmogorovComplexity,
+      semanticEntropy
+    ]);
+
+    // 7. Calculate effect size
+    const effect_size = this.calculateEffectSize(bedau_index);
 
     return {
-      bedau_index: semanticSurfaceDivergence,
-      emergence_type: emergenceAnalysis.type,
+      bedau_index,
+      emergence_type,
       kolmogorov_complexity: kolmogorovComplexity,
       semantic_entropy: semanticEntropy,
-      confidence_interval: confidenceInterval,
-      effect_size: emergenceAnalysis.effectSize
+      confidence_interval,
+      effect_size
     };
-  }
-  
-  /**
-   * Quantize numerical sequence to symbols for LZ analysis
-   */
-  private quantizeSequence(sequence: number[]): number[] {
-    if (sequence.length === 0) return [];
-    
-    // Use adaptive quantization based on sequence statistics
-    const min = Math.min(...sequence);
-    const max = Math.max(...sequence);
-    const range = max - min;
-    
-    if (range === 0) return sequence.map(() => 0);
-    
-    // Quantize to 8 levels for LZ analysis
-    const levels = 8;
-    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
   }
 
   /**
-   * Calculate divergence between semantic intent and surface patterns
-   * Higher divergence indicates potential weak emergence
+   * Analyze temporal evolution of emergence
    */
+  analyzeTemporalEvolution(timeSeriesData: number[][]): {
+    emergence_trajectory: number[];
+    critical_transitions: number[];
+  } {
+    const emergence_trajectory: number[] = [];
+    const critical_transitions: number[] = [];
+
+    for (let i = 0; i < timeSeriesData.length; i++) {
+      const window = timeSeriesData[i];
+      const semanticIntent = this.extractSemanticIntent(window);
+      const surfacePattern = this.extractSurfacePattern(window);
+      
+      const metrics = this.calculateBedauIndex(semanticIntent, surfacePattern);
+      emergence_trajectory.push(metrics.bedau_index);
+
+      // Detect critical transitions
+      if (i > 0) {
+        const change = Math.abs(emergence_trajectory[i] - emergence_trajectory[i - 1]);
+        if (change > 0.2) {
+          critical_transitions.push(i);
+        }
+      }
+    }
+
+    return { emergence_trajectory, critical_transitions };
+  }
+
+  /**
+   * Bootstrap confidence interval calculation
+   */
+  bootstrapConfidenceInterval(data: number[], nBootstrap: number = 1000): [number, number] {
+    const bootstrapMeans: number[] = [];
+
+    for (let i = 0; i < nBootstrap; i++) {
+      const bootstrapSample = this.resample(data);
+      const mean = bootstrapSample.reduce((sum, val) => sum + val, 0) / bootstrapSample.length;
+      bootstrapMeans.push(mean);
+    }
+
+    bootstrapMeans.sort((a, b) => a - b);
+    const lowerIndex = Math.floor(0.025 * nBootstrap);
+    const upperIndex = Math.floor(0.975 * nBootstrap);
+
+    return [bootstrapMeans[lowerIndex], bootstrapMeans[upperIndex]];
+  }
+
+  // Private helper methods
+
   private calculateSemanticSurfaceDivergence(
     semantic: SemanticIntent,
     surface: SurfacePattern
   ): number {
-    // Cosine similarity between intent and surface vectors
-    const vectorSimilarity = this.cosineSimilarity(
-      semantic.intent_vectors,
-      surface.surface_vectors
-    );
-
-    // Adjust for reasoning depth and abstraction
-    const depthMultiplier = 1 + semantic.reasoning_depth * 0.5;
-    const abstractionMultiplier = 1 + semantic.abstraction_level * 0.3;
-
-    // Penalize surface repetition and reward novelty
-    const repetitionPenalty = surface.repetition_score * 0.2;
-    const noveltyBonus = surface.novelty_score * 0.3;
-
-    // Calculate divergence (1 - similarity) with adjustments
-    const baseDivergence = 1 - vectorSimilarity;
-    const adjustedDivergence = baseDivergence * depthMultiplier * abstractionMultiplier;
+    // Calculate cosine similarity between semantic and surface vectors
+    const semanticMean = semantic.intent_vectors.reduce((sum, val) => sum + val, 0) / semantic.intent_vectors.length;
+    const surfaceMean = surface.surface_vectors.reduce((sum, val) => sum + val, 0) / surface.surface_vectors.length;
     
-    return Math.min(1, Math.max(0, 
-      adjustedDivergence - repetitionPenalty + noveltyBonus
-    ));
-  }
-  
-  /**
-   * Quantize numerical sequence to symbols for LZ analysis
-   */
-  private quantizeSequence(sequence: number[]): number[] {
-    if (sequence.length === 0) return [];
-    
-    // Use adaptive quantization based on sequence statistics
-    const min = Math.min(...sequence);
-    const max = Math.max(...sequence);
-    const range = max - min;
-    
-    if (range === 0) return sequence.map(() => 0);
-    
-    // Quantize to 8 levels for LZ analysis
-    const levels = 8;
-    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+    // Divergence is inversely related to similarity
+    const similarity = Math.abs(semanticMean - surfaceMean) / Math.max(Math.abs(semanticMean), Math.abs(surfaceMean), 1);
+    return 1 - similarity;
   }
 
-  /**
-   * Approximate Kolmogorov complexity using compression-based heuristics
-   * Higher complexity suggests more irreducible behavior
-   */
-  private approximateKolmogorovComplexity(
-    semantic: SemanticIntent,
-    surface: SurfacePattern
-  ): number {
-    // Combine semantic and surface vectors
-    const combinedPattern = [
-      ...semantic.intent_vectors,
-      ...surface.surface_vectors
-    ];
-
+  private approximateKolmogorovComplexity(vectors: number[]): number {
     // Use Lempel-Ziv complexity as approximation
-    const lzComplexity = this.lempelZivComplexity(combinedPattern);
-    
-    // Normalize by pattern length
-    const normalizedComplexity = lzComplexity / combinedPattern.length;
-    
-    // Adjust for cross-domain connections (indicates complexity)
-    const connectionBonus = Math.min(0.3, semantic.cross_domain_connections * 0.05);
-    
-    return Math.min(1, normalizedComplexity + connectionBonus);
-  }
-  
-  /**
-   * Quantize numerical sequence to symbols for LZ analysis
-   */
-  private quantizeSequence(sequence: number[]): number[] {
-    if (sequence.length === 0) return [];
-    
-    // Use adaptive quantization based on sequence statistics
-    const min = Math.min(...sequence);
-    const max = Math.max(...sequence);
-    const range = max - min;
-    
-    if (range === 0) return sequence.map(() => 0);
-    
-    // Quantize to 8 levels for LZ analysis
-    const levels = 8;
-    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+    const quantized = this.quantizeSequence(vectors);
+    return this.lempelZivComplexity(quantized);
   }
 
-  /**
-   * Calculate semantic entropy as measure of cognitive diversity
-   */
-  private calculateSemanticEntropy(
-    semantic: SemanticIntent,
-    surface: SurfacePattern
-  ): number {
-    // Calculate entropy of intent vectors
-    const intentEntropy = this.shannonEntropy(semantic.intent_vectors);
-    
-    // Calculate entropy of surface patterns
-    const surfaceEntropy = this.shannonEntropy(surface.surface_vectors);
-    
-    // Combine with reasoning depth and abstraction diversity
-    const cognitiveDiversity = (
-      intentEntropy * 0.4 + 
-      surfaceEntropy * 0.3 + 
-      semantic.reasoning_depth * 0.2 +
-      semantic.abstraction_level * 0.1
+  private calculateSemanticEntropy(semantic: SemanticIntent): number {
+    // Calculate entropy based on reasoning depth and abstraction level
+    const entropy = -(
+      semantic.reasoning_depth * Math.log(semantic.reasoning_depth + 1e-10) +
+      semantic.abstraction_level * Math.log(semantic.abstraction_level + 1e-10)
     );
-
-    return Math.min(1, cognitiveDiversity);
-  }
-  
-  /**
-   * Quantize numerical sequence to symbols for LZ analysis
-   */
-  private quantizeSequence(sequence: number[]): number[] {
-    if (sequence.length === 0) return [];
-    
-    // Use adaptive quantization based on sequence statistics
-    const min = Math.min(...sequence);
-    const max = Math.max(...sequence);
-    const range = max - min;
-    
-    if (range === 0) return sequence.map(() => 0);
-    
-    // Quantize to 8 levels for LZ analysis
-    const levels = 8;
-    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+    return Math.min(1, entropy / Math.log(2));
   }
 
-  /**
-   * Analyze emergence type and calculate effect size
-   * 
-   * Note: This method detects WEAK EMERGENCE only. Strong emergence
-   * (unpredictable collective behavior) requires additional verification
-   * beyond the Bedau Index calculation.
-   */
-  private analyzeEmergenceType(
+  private combineMetrics(
     divergence: number,
     complexity: number,
     entropy: number
-  ): { type: 'LINEAR' | 'WEAK_EMERGENCE' | 'POTENTIAL_STRONG_EMERGENCE', effectSize: number } {
-    // Calculate composite emergence score
-    const emergenceScore = (divergence + complexity + entropy) / 3;
-    
-    // Determine emergence type (weak emergence levels)
-    let type: 'LINEAR' | 'WEAK_EMERGENCE' | 'POTENTIAL_STRONG_EMERGENCE';
-    if (emergenceScore > 0.7) {
-      // High weak emergence - may warrant investigation for strong emergence
-      type = 'POTENTIAL_STRONG_EMERGENCE';
-    } else if (emergenceScore > this.EMERGENCE_THRESHOLD) {
-      type = 'WEAK_EMERGENCE';
+  ): number {
+    // Weighted combination of metrics
+    const weights = { divergence: 0.4, complexity: 0.3, entropy: 0.3 };
+    return (
+      divergence * weights.divergence +
+      complexity * weights.complexity +
+      entropy * weights.entropy
+    );
+  }
+
+  private classifyEmergenceType(bedau_index: number): 'LINEAR' | 'WEAK_EMERGENCE' | 'POTENTIAL_STRONG_EMERGENCE' {
+    if (bedau_index <= this.emergenceThresholds.LINEAR) {
+      return 'LINEAR';
+    } else if (bedau_index <= this.emergenceThresholds.WEAK_EMERGENCE) {
+      return 'WEAK_EMERGENCE';
     } else {
-      type = 'LINEAR';
+      return 'POTENTIAL_STRONG_EMERGENCE';
     }
-    
-    // Calculate effect size (Cohen's d)
-    const effectSize = emergenceScore / this.EMERGENCE_THRESHOLD;
-    
-    return { type, effectSize };
-  }
-  
-  /**
-   * Quantize numerical sequence to symbols for LZ analysis
-   */
-  private quantizeSequence(sequence: number[]): number[] {
-    if (sequence.length === 0) return [];
-    
-    // Use adaptive quantization based on sequence statistics
-    const min = Math.min(...sequence);
-    const max = Math.max(...sequence);
-    const range = max - min;
-    
-    if (range === 0) return sequence.map(() => 0);
-    
-    // Quantize to 8 levels for LZ analysis
-    const levels = 8;
-    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
   }
 
-  /**
-   * Bootstrap confidence intervals for robustness
-   */
-  private bootstrapConfidenceInterval(
-    semantic: SemanticIntent,
-    surface: SurfacePattern,
-    samples: number
-  ): [number, number] {
-    const bootstrapScores: number[] = [];
+  private calculateConfidenceInterval(values: number[]): [number, number] {
+    const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+    const stdError = Math.sqrt(variance / values.length);
     
-    for (let i = 0; i < samples; i++) {
-      // Resample with replacement
-      const resampledSemantic = this.resampleIntent(semantic);
-      const resampledSurface = this.resampleSurface(surface);
-      
-      // Calculate divergence for resampled data
-      const score = this.calculateSemanticSurfaceDivergence(
-        resampledSemantic,
-        resampledSurface
-      );
-      
-      bootstrapScores.push(score);
-    }
-    
-    // Calculate 95% confidence interval
-    bootstrapScores.sort((a, b) => a - b);
-    const lowerIndex = Math.floor(0.025 * samples);
-    const upperIndex = Math.floor(0.975 * samples);
-    
-    return [
-      bootstrapScores[lowerIndex],
-      bootstrapScores[upperIndex]
-    ];
-  }
-  
-  /**
-   * Quantize numerical sequence to symbols for LZ analysis
-   */
-  private quantizeSequence(sequence: number[]): number[] {
-    if (sequence.length === 0) return [];
-    
-    // Use adaptive quantization based on sequence statistics
-    const min = Math.min(...sequence);
-    const max = Math.max(...sequence);
-    const range = max - min;
-    
-    if (range === 0) return sequence.map(() => 0);
-    
-    // Quantize to 8 levels for LZ analysis
-    const levels = 8;
-    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+    // 95% confidence interval
+    const margin = 1.96 * stdError;
+    return [mean - margin, mean + margin];
   }
 
-  // Utility methods
-  
-  private cosineSimilarity(a: number[], b: number[]): number {
-    const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
-    const magnitudeA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
-    const magnitudeB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
-    
-    return magnitudeA && magnitudeB ? dotProduct / (magnitudeA * magnitudeB) : 0;
+  private calculateEffectSize(bedau_index: number): number {
+    // Cohen's d relative to random baseline
+    const baseline = 0.3; // Expected random baseline
+    const pooledStd = 0.25; // Assumed pooled standard deviation
+    return (bedau_index - baseline) / pooledStd;
   }
-  
-  /**
-   * Quantize numerical sequence to symbols for LZ analysis
-   */
+
   private quantizeSequence(sequence: number[]): number[] {
     if (sequence.length === 0) return [];
     
@@ -390,226 +260,77 @@ export class BedauIndexCalculator {
     
     if (range === 0) return sequence.map(() => 0);
     
-    // Quantize to 8 levels for LZ analysis
+    // Quantize to 8 levels
     const levels = 8;
-    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+    return sequence.map(val => Math.floor(((val - min) / range) * levels));
   }
 
   private lempelZivComplexity(sequence: number[]): number {
-    // Proper Lempel-Ziv complexity calculation using LZ76 algorithm
     if (sequence.length === 0) return 0;
     
-    // Convert to symbol sequence using quantization
-    const symbols = this.quantizeSequence(sequence);
-    const n = symbols.length;
-    
-    // LZ76 algorithm implementation
+    const vocabulary = new Set<string>();
+    let currentContext = '';
     let complexity = 0;
-    let i = 0;
     
-    while (i < n) {
-      let longestPrefix = 0;
-      let j = Math.max(1, i - 50); // Look back up to 50 positions
+    for (const symbol of sequence) {
+      const newContext = currentContext + symbol.toString();
       
-      // Find longest prefix seen before
-      for (let k = j; k < i; k++) {
-        let matchLength = 0;
-        while (i + matchLength < n && 
-               k + matchLength < i && 
-               symbols[i + matchLength] === symbols[k + matchLength]) {
-          matchLength++;
-        }
-        longestPrefix = Math.max(longestPrefix, matchLength);
-      }
-      
-      if (longestPrefix === 0) {
-        // New symbol
+      if (!vocabulary.has(newContext)) {
+        vocabulary.add(newContext);
         complexity++;
-        i++;
+        currentContext = '';
       } else {
-        // Repeated sequence
-        complexity++;
-        i += longestPrefix;
+        currentContext = newContext;
       }
     }
     
-    return complexity;
-  }
-  
-  /**
-   * Quantize numerical sequence to symbols for LZ analysis
-   */
-  private quantizeSequence(sequence: number[]): number[] {
-    if (sequence.length === 0) return [];
-    
-    // Use adaptive quantization based on sequence statistics
-    const min = Math.min(...sequence);
-    const max = Math.max(...sequence);
-    const range = max - min;
-    
-    if (range === 0) return sequence.map(() => 0);
-    
-    // Quantize to 8 levels for LZ analysis
-    const levels = 8;
-    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+    return complexity / sequence.length;
   }
 
-  private shannonEntropy(values: number[]): number {
-    // Proper Shannon entropy calculation without absolute value distortion
-    if (values.length === 0) return 0;
-    
-    // Use histogram-based approach for continuous values
-    const bins = Math.min(10, Math.ceil(Math.sqrt(values.length)));
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min;
-    
-    if (range === 0) return 0;
-    
-    // Create histogram
-    const histogram = new Array(bins).fill(0);
-    for (const value of values) {
-      const binIndex = Math.min(bins - 1, Math.floor(((value - min) / range) * bins));
-      histogram[binIndex]++;
+  private resample(data: number[]): number[] {
+    const resampled: number[] = [];
+    for (let i = 0; i < data.length; i++) {
+      const randomIndex = Math.floor(Math.random() * data.length);
+      resampled.push(data[randomIndex]);
     }
-    
-    // Convert to probabilities
-    const probabilities = histogram.map(count => count / values.length);
-    
-    // Calculate Shannon entropy
-    return -probabilities.reduce((entropy, p) => {
-      return p > 0 ? entropy + p * Math.log2(p) : entropy;
-    }, 0);
-  }
-  
-  /**
-   * Quantize numerical sequence to symbols for LZ analysis
-   */
-  private quantizeSequence(sequence: number[]): number[] {
-    if (sequence.length === 0) return [];
-    
-    // Use adaptive quantization based on sequence statistics
-    const min = Math.min(...sequence);
-    const max = Math.max(...sequence);
-    const range = max - min;
-    
-    if (range === 0) return sequence.map(() => 0);
-    
-    // Quantize to 8 levels for LZ analysis
-    const levels = 8;
-    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
+    return resampled;
   }
 
-  private resampleIntent(semantic: SemanticIntent): SemanticIntent {
-    // Bootstrap resampling of semantic intent
-    const resampledVectors = this.bootstrapSample(semantic.intent_vectors);
-    
+  private extractSemanticIntent(window: number[]): SemanticIntent {
+    // Mock extraction - in production this would use NLP
     return {
-      ...semantic,
-      intent_vectors: resampledVectors,
-      reasoning_depth: semantic.reasoning_depth + (Math.random() - 0.5) * 0.1,
-      abstraction_level: semantic.abstraction_level + (Math.random() - 0.5) * 0.1
+      intent_vectors: window,
+      reasoning_depth: Math.random(),
+      abstraction_level: Math.random(),
+      cross_domain_connections: Math.floor(Math.random() * 5)
     };
   }
-  
-  /**
-   * Quantize numerical sequence to symbols for LZ analysis
-   */
-  private quantizeSequence(sequence: number[]): number[] {
-    if (sequence.length === 0) return [];
-    
-    // Use adaptive quantization based on sequence statistics
-    const min = Math.min(...sequence);
-    const max = Math.max(...sequence);
-    const range = max - min;
-    
-    if (range === 0) return sequence.map(() => 0);
-    
-    // Quantize to 8 levels for LZ analysis
-    const levels = 8;
-    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
-  }
 
-  private resampleSurface(surface: SurfacePattern): SurfacePattern {
-    // Bootstrap resampling of surface patterns
-    const resampledVectors = this.bootstrapSample(surface.surface_vectors);
-    
+  private extractSurfacePattern(window: number[]): SurfacePattern {
+    // Mock extraction - in production this would analyze surface patterns
     return {
-      ...surface,
-      surface_vectors: resampledVectors,
-      pattern_complexity: Math.max(0, Math.min(1, 
-        surface.pattern_complexity + (Math.random() - 0.5) * 0.1
-      )),
-      repetition_score: Math.max(0, Math.min(1,
-        surface.repetition_score + (Math.random() - 0.5) * 0.1
-      )),
-      novelty_score: Math.max(0, Math.min(1,
-        surface.novelty_score + (Math.random() - 0.5) * 0.1
-      ))
+      surface_vectors: window,
+      pattern_complexity: Math.random(),
+      repetition_score: Math.random(),
+      novelty_score: Math.random()
     };
-  }
-  
-  /**
-   * Quantize numerical sequence to symbols for LZ analysis
-   */
-  private quantizeSequence(sequence: number[]): number[] {
-    if (sequence.length === 0) return [];
-    
-    // Use adaptive quantization based on sequence statistics
-    const min = Math.min(...sequence);
-    const max = Math.max(...sequence);
-    const range = max - min;
-    
-    if (range === 0) return sequence.map(() => 0);
-    
-    // Quantize to 8 levels for LZ analysis
-    const levels = 8;
-    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
-  }
-
-  private bootstrapSample(array: number[]): number[] {
-    const result: number[] = [];
-    for (let i = 0; i < array.length; i++) {
-      const randomIndex = Math.floor(Math.random() * array.length);
-      result.push(array[randomIndex]);
-    }
-    return result;
-  }
-  
-  /**
-   * Quantize numerical sequence to symbols for LZ analysis
-   */
-  private quantizeSequence(sequence: number[]): number[] {
-    if (sequence.length === 0) return [];
-    
-    // Use adaptive quantization based on sequence statistics
-    const min = Math.min(...sequence);
-    const max = Math.max(...sequence);
-    const range = max - min;
-    
-    if (range === 0) return sequence.map(() => 0);
-    
-    // Quantize to 8 levels for LZ analysis
-    const levels = 8;
-    return sequence.map(v => Math.floor(((v - min) / range) * (levels - 1)));
   }
 }
 
 /**
- * Factory function for creating Bedau Index calculators
+ * Factory function to create Bedau Index Calculator
  */
 export function createBedauIndexCalculator(): BedauIndexCalculator {
-  return new BedauIndexCalculator();
+  return new BedauIndexCalculatorImpl();
 }
 
 /**
- * Quick calculation function for common use cases
+ * Convenience function for direct calculation
  */
 export async function calculateBedauIndex(
   semanticIntent: SemanticIntent,
-  surfacePattern: SurfacePattern,
-  historicalContext?: SemanticIntent[]
+  surfacePattern: SurfacePattern
 ): Promise<BedauMetrics> {
-  const calculator = new BedauIndexCalculator();
-  return calculator.calculateBedauIndex(semanticIntent, surfacePattern, historicalContext);
+  const calculator = createBedauIndexCalculator();
+  return calculator.calculateBedauIndex(semanticIntent, surfacePattern);
 }

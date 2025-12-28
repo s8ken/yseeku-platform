@@ -17,9 +17,9 @@ import {
 } from './domain-models';
 
 // Integration interfaces (would connect to actual SYMPHONY/SYNERGY services)
-import { ResonanceEngineClient } from '../detect/src/resonance-engine-client';
-import { AgentOrchestrator } from '../lab/src/agent-bus';
-import { TrustProtocolEnhanced } from '../core/src/trust-protocol-enhanced';
+import { ResonanceEngineClient } from './detect/resonance-engine-client';
+import { AgentOrchestrator } from './lab/agent-bus';
+import { TrustProtocolEnhanced } from './core/trust-protocol-enhanced';
 
 export interface OrchestrateServiceConfig {
   symphonyEndpoint?: string;

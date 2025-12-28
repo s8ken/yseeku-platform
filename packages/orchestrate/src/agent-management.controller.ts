@@ -1,5 +1,5 @@
-import { Agent, User } from '../models/agent.model';
-import { asyncHandler } from 'express-async-handler';
+import { Agent, User } from './agent.model';
+import asyncHandler from 'express-async-handler';
 import Ajv from 'ajv';
 import { appendEvent } from '../services/ledger.service';
 import { OrchestrateService } from './orchestrate-service';

@@ -34,6 +34,8 @@
     "@sonate/orchestrate": "file:../../packages/orchestrate",
     "@sonate/persistence": "file:../../packages/persistence",
     "@tanstack/react-query": "^5.90.12",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/user-event": "^14.6.1",
     "@types/pg": "^8.16.0",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",

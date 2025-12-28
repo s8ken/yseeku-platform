@@ -14,7 +14,7 @@ export type AgentType =
   | 'researcher'
   | 'coordinator';
 
-export type AgentStatus = 'active' | 'idle' | 'busy' | 'error' | 'offline';
+export type AgentStatus = 'active' | 'idle' | 'busy' | 'error' | 'offline' | 'suspended';
 
 // Trust Protocol Types
 export interface TrustArticles {
@@ -582,6 +582,7 @@ export interface Agent {
   capabilities: AgentCapability[];
   permissions: AgentPermission[];
   did?: string;
+  credentials?: any;
   trustDeclaration?: TrustDeclaration;
   trustMetrics?: TrustMetrics;
   trustLevel?: TrustLevel;
