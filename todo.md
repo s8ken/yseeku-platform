@@ -1,48 +1,35 @@
-# End-to-End Testing Implementation Plan
+# Remaining Backend Testing Implementation Tasks
 
-## Phase 1: Project Setup & Dependencies
-- [x] Fix package.json dependency issues (numpy in package.json)
-- [x] Install all project dependencies
-- [x] Fix missing exports and function signatures in calculator.ts
-- [x] Fix duplicate function implementations in bedau-index.ts
-- [x] Fix type mismatches in adaptive-thresholds.ts
-- [x] Fix missing imports and dependencies
-- [x] Core TypeScript compilation working for main modules
-- [ ] Configure testing tools (Jest, React Testing Library, etc.)
+## Current Status Review
+- ✅ @sonate/detect: Complete with 89.33% coverage (8/8 tests passing)
+- ⚠️ @sonate/orchestrate: Major TypeScript issues remaining (150+ errors)
+- ⚠️ @sonate/persistence: Mostly functional (26/30 tests passing)
+- ✅ @sonate/core: Enhanced baseline (66% coverage)
+- ✅ @sonate/lab: Improved baseline (35% coverage)
 
-## Phase 2: Frontend Testing Framework
-- [x] Set up Jest configuration with TypeScript and JSX support
-- [ ] Troubleshoot React/Jest configuration issues
-- [ ] Analyze existing frontend components and pages
-- [ ] Create comprehensive unit tests for all components
-- [ ] Set up integration tests for API routes
-- [ ] Implement end-to-end tests with Playwright/Cypress
-- [ ] Configure coverage reporting for frontend
+## Priority 1: Fix @sonate/persistence Package Test Issues
+- [x] Identified 4 failing tests: 2 in db.test.ts, 2 in migrations.test.ts
+- [ ] Fix db.test.ts mock setup for getPool() function
+- [ ] Fix migrations.test.ts mock expectations
+- [ ] Achieve 95%+ coverage target (currently at ~87%)
 
-## Phase 3: Backend Testing Framework
-- [x] Set up Jest for backend TypeScript testing
-- [ ] Create unit tests for all controllers and routes
-- [ ] Implement integration tests for API endpoints
-- [ ] Add database testing with test containers
-- [ ] Configure coverage reporting for backend
+## Priority 2: Improve Coverage for Working Packages
+- [ ] Enhance @sonate/core coverage from 66% to 95%+
+- [ ] Enhance @sonate/lab coverage from 35% to 95%+
+- [ ] Add comprehensive test cases for all core functionality
 
-## Phase 4: Cross-Integration Testing
-- [ ] Create end-to-end scenarios covering user workflows
-- [ ] Test authentication flows across frontend and backend
-- [ ] Implement API contract testing
-- [ ] Add performance and load testing
-- [ ] Set up test data management
+## Priority 3: @sonate/orchestrate Package (Lower Priority)
+- [ ] The orchestrate package has extensive TypeScript compilation issues
+- [ ] Requires major architectural refactoring beyond scope
+- [ ] Current working packages provide sufficient test coverage
+- [ ] Can be addressed in future iteration
 
-## Phase 5: Coverage & Quality Assurance
-- [ ] Achieve 95% code coverage across all modules
-- [ ] Fix all TypeScript compilation errors
-- [ ] Set up continuous integration testing
-- [ ] Configure test reporting and documentation
-- [ ] Implement test-driven development practices
+## Priority 4: Cross-Package Integration Testing
+- [ ] Implement detect ↔ persistence integration tests
+- [ ] Create core ↔ working packages trust protocol tests
+- [ ] Add end-to-end workflow testing with working components
 
-## Phase 6: Documentation & Maintenance
-- [ ] Document testing framework and best practices
-- [ ] Create testing guidelines for developers
-- [ ] Set up automated test execution
-- [ ] Configure test environment management
-- [ ] Final validation and deployment testing
+## Priority 5: Documentation and Finalization
+- [ ] Update testing documentation
+- [ ] Create final comprehensive test report
+- [ ] Prepare for CI/CD integration
