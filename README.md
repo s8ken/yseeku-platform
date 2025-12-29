@@ -120,6 +120,52 @@ Advanced conversation quality metric implemented in `symbi_resonance_calculator.
 - Compliance: EU AI Act alignment, SOC 2 compatibility, GDPR, ISO/NIST frameworks
 - Deployment: cloud‑native, hybrid, edge, multi‑tenant
 
+## Production Deployment Examples
+
+### Docker Deployment
+Build and run the platform using Docker for simple production setups:
+
+```bash
+# Build the Docker image
+docker build -t yseeku-platform .
+
+# Run the container
+docker run -d -p 3000:3000 --env-file .env yseeku-platform
+```
+
+Ensure you configure environment variables in `.env` for database connections and API keys.
+
+### Kubernetes Deployment
+For scalable deployments, use the provided Kubernetes manifests:
+
+```yaml
+# deployment.yaml example
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yseeku-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: yseeku
+  template:
+    metadata:
+      labels:
+        app: yseeku
+    spec:
+      containers:
+      - name: yseeku
+        image: yseeku-platform:latest
+        ports:
+        - containerPort: 3000
+        envFrom:
+        - configMapRef:
+            name: yseeku-config
+```
+
+Apply with `kubectl apply -f deployment.yaml`. Scale with `kubectl scale deployment yseeku-deployment --replicas=5`.
+
 ## Ecosystem
 - Platform: https://yseeku.com
 - Research & Specifications: https://gammatria.com
