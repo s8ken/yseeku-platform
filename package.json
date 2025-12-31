@@ -28,6 +28,7 @@
     "@solana/web3.js": "^1.98.4",
     "@types/node": "^20.0.0",
     "c8": "^9.1.0",
+    "trufflehog": "^0.0.5",
     "turbo": "^1.10.0",
     "typescript": "^5.0.0",
     "vitest": "^4.0.16"
