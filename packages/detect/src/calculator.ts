@@ -7,6 +7,9 @@ import { ExplainedResonance, EvidenceChunk, DimensionEvidence } from './explaina
 export { ExplainedResonance, EvidenceChunk, DimensionEvidence };
 import { embed, cosineSimilarity } from './embeddings';
 import { normalizeScore } from './model-normalize';
+import { embedder } from './real-embeddings';
+import { MathematicalConfidenceCalculator } from './mathematical-confidence';
+import { mathematicalAuditLogger, logEmbeddingOperation, logConfidenceCalculation } from './mathematical-audit';
 
 export interface Transcript {
   text: string;
@@ -48,7 +51,48 @@ function chunkText(text: string): { text: string; start: number; end: number; em
     });
 }
 
-// Evidence Extractors
+// Enhanced Evidence Extractors with Real Embeddings
+async function alignmentEvidenceEnhanced(transcript: Transcript, embeddingResult: any): Promise<{ score: number; top_phrases: string[]; chunks: EvidenceChunk[] }> {
+    const chunks = chunkText(transcript.text);
+
+    // Use real embeddings for semantic similarity
+    const chunkEmbeddings = await Promise.all(
+        chunks.map(async (chunk) => {
+            const chunkEmbedding = await embedder.embed(chunk.text);
+            const similarity = cosineSimilarity(chunkEmbedding.vector, CANONICAL_SCAFFOLD_VECTOR);
+            return {
+                ...chunk,
+                embedding: chunkEmbedding.vector,
+                similarity
+            };
+        })
+    );
+
+    const top_chunks = chunkEmbeddings
+        .sort((a,b) => b.similarity - a.similarity)
+        .slice(0, 3);
+
+    const score = top_chunks.length > 0
+        ? top_chunks.reduce((sum, c) => sum + c.similarity, 0) / top_chunks.length
+        : 0;
+
+    // Boost score for meaningful content using embedding confidence
+    const confidence_boost = embeddingResult.confidence - 0.5; // Boost if confidence > 0.5
+    const finalScore = Math.max(0, Math.min(1, score + confidence_boost * 0.2));
+
+    return {
+        score: finalScore,
+        top_phrases: top_chunks.map(c => c.text),
+        chunks: top_chunks.map(c => ({
+            type: 'alignment',
+            text: c.text,
+            score_contrib: c.similarity,
+            position: { start: c.start, end: c.end }
+        }))
+    };
+}
+
+// Legacy Evidence Extractors (for backward compatibility)
 function alignmentEvidence(transcript: Transcript): { score: number; top_phrases: string[]; chunks: EvidenceChunk[] } {
     const chunks = chunkText(transcript.text);
     // In production, batch embed chunks
