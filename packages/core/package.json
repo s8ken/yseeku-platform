@@ -29,7 +29,8 @@
     "bcrypt": "^6.0.0",
     "isomorphic-dompurify": "^2.35.0",
     "json-canonicalize": "^2.0.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "@supabase/supabase-js": "^2.39.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

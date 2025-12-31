@@ -3,8 +3,9 @@
  * Implements TOTP-based MFA with backup codes
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import * as crypto from 'crypto';
+import { AuthenticationError } from './error-taxonomy';
 
 export interface MFASetupResult {
   secret: string;
@@ -19,7 +20,31 @@ export interface MFAVerifyResult {
 
 export class MFAService {
   private readonly issuer = 'SYMBI-Resonate';
-  
+  private supabase: SupabaseClient | null = null;
+
+  constructor() {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (supabaseUrl && supabaseKey) {
+      this.supabase = createClient(supabaseUrl, supabaseKey);
+    }
+  }
+
+  private getSupabase(): SupabaseClient {
+    if (!this.supabase) {
+      throw new AuthenticationError(
+        'Supabase client not initialized for MFA service',
+        {
+          component: 'MFAService',
+          operation: 'getSupabase',
+          severity: 'critical'
+        },
+        { remediation: 'Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables' }
+      );
+    }
+    return this.supabase;
+  }
   /**
    * Generate a new MFA secret for a user
    */
@@ -63,7 +88,28 @@ export class MFAService {
     );
 
     // Store in database (encrypted)
-    // This would be implemented with your database layer
+    const { error } = await this.getSupabase()
+      .from('user_mfa')
+      .upsert({
+        user_id: userId,
+        mfa_secret: secret, // In production, this should be encrypted
+        backup_codes: hashedBackupCodes,
+        is_enabled: true,
+        updated_at: new Date().toISOString()
+      });
+
+    if (error) {
+      throw new AuthenticationError(
+        'Failed to save MFA configuration',
+        {
+          component: 'MFAService',
+          operation: 'setupMFA',
+          severity: 'high',
+          userId
+        },
+        { originalError: new Error(error.message) }
+      );
+    }
     
     return {
       secret,
@@ -99,10 +145,45 @@ export class MFAService {
     const hashedCode = await this.hashBackupCode(code);
     
     // Check if backup code exists and hasn't been used
-    // This would query your database
-    // If valid, mark the code as used
+    const { data, error } = await this.getSupabase()
+      .from('user_mfa')
+      .select('backup_codes')
+      .eq('user_id', userId)
+      .single();
+
+    if (error || !data) {
+      return false;
+    }
+
+    const backupCodes: string[] = data.backup_codes || [];
+    const codeIndex = backupCodes.indexOf(hashedCode);
+
+    if (codeIndex === -1) {
+      return false;
+    }
+
+    // Mark code as used by removing it from the array
+    const remainingCodes = backupCodes.filter((_, i) => i !== codeIndex);
+
+    const { error: updateError } = await this.getSupabase()
+      .from('user_mfa')
+      .update({ backup_codes: remainingCodes })
+      .eq('user_id', userId);
+
+    if (updateError) {
+      throw new AuthenticationError(
+        'Failed to invalidate used backup code',
+        {
+          component: 'MFAService',
+          operation: 'verifyBackupCode',
+          severity: 'high',
+          userId
+        },
+        { originalError: new Error(updateError.message) }
+      );
+    }
     
-    return false; // Placeholder
+    return true;
   }
 
   /**
@@ -213,16 +294,40 @@ export class MFAService {
    * Disable MFA for a user
    */
   async disableMFA(userId: string): Promise<void> {
-    // Remove MFA secret and backup codes from database
-    // This would be implemented with your database layer
+    const { error } = await this.getSupabase()
+      .from('user_mfa')
+      .update({ is_enabled: false, mfa_secret: null, backup_codes: [] })
+      .eq('user_id', userId);
+
+    if (error) {
+      throw new AuthenticationError(
+        'Failed to disable MFA',
+        {
+          component: 'MFAService',
+          operation: 'disableMFA',
+          severity: 'high',
+          userId
+        },
+        { originalError: new Error(error.message) }
+      );
+    }
   }
 
   /**
    * Check if user has MFA enabled
    */
   async isMFAEnabled(userId: string): Promise<boolean> {
-    // Check database for MFA configuration
-    return false; // Placeholder
+    const { data, error } = await this.getSupabase()
+      .from('user_mfa')
+      .select('is_enabled')
+      .eq('user_id', userId)
+      .single();
+
+    if (error || !data) {
+      return false;
+    }
+
+    return data.is_enabled;
   }
 }
 

@@ -1,13 +1,10 @@
 // temporal-bedau-tracker.ts - Mock implementation for missing module
 
+import { BedauMetrics, EmergenceTrajectory } from './bedau-index';
+
 export interface TemporalBedauRecord {
   timestamp: number;
-  bedau_metrics: {
-    bedau_index: number;
-    semantic_coherence: number;
-    conceptual_novelty: number;
-    pragmatic_utility: number;
-  };
+  bedau_metrics: BedauMetrics;
   emergence_signature: EmergenceSignature;
   context_data: Record<string, any>;
 }
@@ -15,7 +12,13 @@ export interface TemporalBedauRecord {
 export interface EmergencePattern {
   type: 'LINEAR' | 'EXPONENTIAL' | 'OSCILLATORY' | 'CHAOTIC';
   confidence: number;
-  characteristics: Record<string, any>;
+  characteristics: {
+    slope?: number;
+    correlation?: number;
+    periodicity?: number;
+    entropy?: number;
+    [key: string]: any;
+  };
 }
 
 export interface PhaseTransition {
@@ -37,15 +40,6 @@ export interface EmergenceSignature {
   divergence_profile?: number[];
   stability_score?: number;
   novelty_score?: number;
-}
-
-export interface EmergenceTrajectory {
-  startTime: number;
-  endTime: number;
-  signals: any[];
-  emergenceLevel: number;
-  confidence: number;
-  trajectory?: number[];
 }
 
 export class TemporalBedauTracker {
@@ -156,9 +150,10 @@ export class TemporalBedauTracker {
     return {
       startTime: this.records[0]?.timestamp || Date.now(),
       endTime: this.records[this.records.length - 1]?.timestamp || Date.now(),
-      signals: [],
+      trajectory: bedauHistory,
       emergenceLevel: bedauHistory[bedauHistory.length - 1] || 0,
-      confidence: 0.8
+      confidence: 0.8,
+      critical_transitions: [] // Would be calculated in a real implementation
     };
   }
 

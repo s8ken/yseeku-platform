@@ -1,35 +1,43 @@
 // emergence-detection.ts - Mock implementation for missing module
 
+import { 
+  BedauIndexCalculator, 
+  createBedauIndexCalculator, 
+  BedauMetrics, 
+  SemanticIntent, 
+  SurfacePattern,
+  EmergenceTrajectory,
+  EmergenceSignal
+} from './bedau-index';
+
 export interface EmergenceDetectionResult {
   emergenceLevel: number;
   confidence: number;
   timestamp: number;
-  metrics: {
-    complexity: number;
-    novelty: number;
-    coherence: number;
-  };
+  metrics: BedauMetrics;
 }
 
 export class EmergenceDetection {
+  private bedauCalculator: BedauIndexCalculator;
+
   constructor(
     private threshold: number = 0.5,
     private windowSize: number = 100
-  ) {}
+  ) {
+    this.bedauCalculator = createBedauIndexCalculator();
+  }
 
-  detectEmergence(data: number[]): EmergenceDetectionResult {
-    const complexity = this.calculateComplexity(data);
-    const novelty = this.calculateNovelty(data);
-    const coherence = this.calculateCoherence(data);
-    
-    const emergenceLevel = (complexity + novelty + coherence) / 3;
-    const confidence = Math.min(1.0, emergenceLevel / this.threshold);
+  detectEmergence(
+    semanticIntent: SemanticIntent,
+    surfacePattern: SurfacePattern
+  ): EmergenceDetectionResult {
+    const metrics = this.bedauCalculator.calculateBedauIndex(semanticIntent, surfacePattern);
     
     return {
-      emergenceLevel,
-      confidence,
+      emergenceLevel: metrics.bedau_index,
+      confidence: metrics.effect_size > 1 ? 0.9 : 0.7, // Simple heuristic based on effect size
       timestamp: Date.now(),
-      metrics: { complexity, novelty, coherence }
+      metrics
     };
   }
 
@@ -80,44 +88,38 @@ export class EmergenceDetection {
 export function createEmergenceDetection(threshold?: number, windowSize?: number): EmergenceDetection {
   return new EmergenceDetection(threshold, windowSize);
 }
+
 // Additional exports to match index.ts requirements
-export async function detectEmergence(data: number[]): Promise<EmergenceDetectionResult> {
+export async function detectEmergence(
+  semanticIntent: SemanticIntent,
+  surfacePattern: SurfacePattern
+): Promise<EmergenceDetectionResult> {
   const detector = new EmergenceDetection();
-  return detector.detectEmergence(data);
+  return detector.detectEmergence(semanticIntent, surfacePattern);
 }
 
-export function detectEmergenceSync(data: number[]): EmergenceDetectionResult {
+export function detectEmergenceSync(
+  semanticIntent: SemanticIntent,
+  surfacePattern: SurfacePattern
+): EmergenceDetectionResult {
   const detector = new EmergenceDetection();
-  return detector.detectEmergence(data);
+  return detector.detectEmergence(semanticIntent, surfacePattern);
 }
 
-export function extractSurfacePattern(data: number[]): {
+export function extractSurfacePattern(
+  semanticIntent: SemanticIntent,
+  surfacePattern: SurfacePattern
+): {
   pattern: number[];
   frequency: number;
   amplitude: number;
 } {
   const detector = new EmergenceDetection();
-  const result = detector.detectEmergence(data);
+  const result = detector.detectEmergence(semanticIntent, surfacePattern);
   
   return {
-    pattern: data.slice(-10), // Last 10 values as pattern
-    frequency: result.metrics.novelty,
-    amplitude: result.metrics.complexity
+    pattern: surfacePattern.surface_vectors.slice(-10),
+    frequency: result.metrics.semantic_entropy,
+    amplitude: result.metrics.bedau_index
   };
-}
-
-export interface EmergenceSignal {
-  timestamp: number;
-  amplitude: number;
-  frequency: number;
-  phase: number;
-  data: number[];
-}
-
-export interface EmergenceTrajectory {
-  startTime: number;
-  endTime: number;
-  signals: EmergenceSignal[];
-  emergenceLevel: number;
-  confidence: number;
 }

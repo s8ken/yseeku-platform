@@ -50,6 +50,23 @@ export interface SurfacePattern {
   novelty_score: number;         // 0-1: Novelty of patterns
 }
 
+export interface EmergenceSignal {
+  timestamp: number;
+  amplitude: number;
+  frequency: number;
+  phase: number;
+  data: number[];
+}
+
+export interface EmergenceTrajectory {
+  startTime: number;
+  endTime: number;
+  trajectory: number[];
+  emergenceLevel: number;
+  confidence: number;
+  critical_transitions: number[];
+}
+
 export interface BedauIndexCalculator {
   calculateBedauIndex(
     semanticIntent: SemanticIntent,
@@ -58,10 +75,7 @@ export interface BedauIndexCalculator {
   
   analyzeTemporalEvolution(
     timeSeriesData: number[][]
-  ): {
-    emergence_trajectory: number[];
-    critical_transitions: number[];
-  };
+  ): EmergenceTrajectory;
   
   bootstrapConfidenceInterval(
     data: number[],
@@ -110,14 +124,24 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     // 5. Determine emergence type
     const emergence_type = this.classifyEmergenceType(bedau_index);
 
-    // 6. Calculate confidence interval
+    // 6. Detect strong emergence indicators if potential is high
+    let strong_emergence_indicators: StrongEmergenceIndicators | undefined;
+    if (emergence_type === 'POTENTIAL_STRONG_EMERGENCE') {
+      strong_emergence_indicators = this.detectStrongEmergence(
+        semanticIntent,
+        surfacePattern,
+        bedau_index
+      );
+    }
+
+    // 7. Calculate confidence interval
     const confidence_interval = this.calculateConfidenceInterval([
       semanticSurfaceDivergence,
       kolmogorovComplexity,
       semanticEntropy
     ]);
 
-    // 7. Calculate effect size
+    // 8. Calculate effect size
     const effect_size = this.calculateEffectSize(bedau_index);
 
     return {
@@ -126,19 +150,66 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
       kolmogorov_complexity: kolmogorovComplexity,
       semantic_entropy: semanticEntropy,
       confidence_interval,
-      effect_size
+      effect_size,
+      strong_emergence_indicators
+    };
+  }
+
+  /**
+   * Detect strong emergence indicators based on high-level patterns
+   */
+  private detectStrongEmergence(
+    semantic: SemanticIntent,
+    surface: SurfacePattern,
+    bedau_index: number
+  ): StrongEmergenceIndicators {
+    // These are heuristic approximations of strong emergence properties
+    
+    // 1. Irreducibility proof: High complexity + low mirroring
+    const irreducibility_proof = 
+      bedau_index > 0.85 && 
+      surface.pattern_complexity > 0.8 && 
+      surface.repetition_score < 0.2;
+
+    // 2. Downward causation: High abstraction + high novelty
+    const downward_causation = 
+      semantic.abstraction_level > 0.8 && 
+      surface.novelty_score > 0.7;
+
+    // 3. Novel causal powers: Cross-domain connections + deep reasoning
+    const novel_causal_powers = 
+      semantic.cross_domain_connections > 5 && 
+      semantic.reasoning_depth > 0.8;
+
+    // 4. Unpredictability: High divergence + low pattern repetition
+    const unpredictability_verified = 
+      (1 - this.calculateSemanticSurfaceDivergence(semantic, surface)) < 0.3 &&
+      surface.repetition_score < 0.15;
+
+    // 5. Collective behavior score: Combination of factors
+    const collective_behavior_score = (
+      (irreducibility_proof ? 1 : 0) +
+      (downward_causation ? 1 : 0) +
+      (novel_causal_powers ? 1 : 0) +
+      (unpredictability_verified ? 1 : 0)
+    ) / 4;
+
+    return {
+      irreducibility_proof,
+      downward_causation,
+      novel_causal_powers,
+      unpredictability_verified,
+      collective_behavior_score
     };
   }
 
   /**
    * Analyze temporal evolution of emergence
    */
-  analyzeTemporalEvolution(timeSeriesData: number[][]): {
-    emergence_trajectory: number[];
-    critical_transitions: number[];
-  } {
-    const emergence_trajectory: number[] = [];
+  analyzeTemporalEvolution(timeSeriesData: number[][]): EmergenceTrajectory {
+    const trajectory: number[] = [];
     const critical_transitions: number[] = [];
+    const startTime = Date.now(); // Simplified for now
 
     for (let i = 0; i < timeSeriesData.length; i++) {
       const window = timeSeriesData[i];
@@ -146,18 +217,25 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
       const surfacePattern = this.extractSurfacePattern(window);
       
       const metrics = this.calculateBedauIndex(semanticIntent, surfacePattern);
-      emergence_trajectory.push(metrics.bedau_index);
+      trajectory.push(metrics.bedau_index);
 
       // Detect critical transitions
       if (i > 0) {
-        const change = Math.abs(emergence_trajectory[i] - emergence_trajectory[i - 1]);
+        const change = Math.abs(trajectory[i] - trajectory[i - 1]);
         if (change > 0.2) {
           critical_transitions.push(i);
         }
       }
     }
 
-    return { emergence_trajectory, critical_transitions };
+    return {
+      startTime,
+      endTime: Date.now(),
+      trajectory,
+      emergenceLevel: trajectory[trajectory.length - 1] || 0,
+      confidence: 0.8, // Default confidence
+      critical_transitions
+    };
   }
 
   /**
