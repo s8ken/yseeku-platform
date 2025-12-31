@@ -16,8 +16,7 @@ describe('Resonance Stickiness', () => {
       last_rm: 0.9,
       last_scaffold_hash: 'abc',
       decay_turns: 1,
-      updated: Date.now() - 1000,
-      iap_history: []
+      updated: Date.now() - 1000
     };
     
     // Simulate next turn
@@ -36,8 +35,7 @@ describe('Resonance Stickiness', () => {
       last_rm: 0.9,
       last_scaffold_hash: 'abc',
       decay_turns: 1,
-      updated: Date.now(),
-      iap_history: []
+      updated: Date.now()
     };
     
     // Simulate 5 turns elapsed

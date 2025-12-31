@@ -4,6 +4,7 @@ export interface SocketClient {
   disconnect(): Promise<void>;
   emit(event: string, data: any): void;
   on(event: string, handler: (data: any) => void): void;
+  off(event: string, handler: (data: any) => void): void;
 }
 
 export function createSocketClient(): SocketClient {
@@ -19,6 +20,12 @@ export function createSocketClient(): SocketClient {
     },
     on(event, handler) {
       console.log(`Mock listener for ${event}`);
+    },
+    // @ts-ignore
+    off(event, handler) {
+      console.log(`Mock off for ${event}`);
     }
   };
 }
+
+export const socketManager = createSocketClient();

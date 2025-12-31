@@ -82,6 +82,53 @@ export async function ensureSchema(): Promise<void> {
       tenant_id TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS tenants (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      status TEXT DEFAULT 'active',
+      compliance_status TEXT DEFAULT 'compliant',
+      trust_score INTEGER DEFAULT 85,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      last_activity TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS agents (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT,
+      status TEXT DEFAULT 'active',
+      trust_score INTEGER DEFAULT 80,
+      symbi_dimensions JSONB,
+      last_interaction TIMESTAMPTZ DEFAULT NOW(),
+      interaction_count INTEGER DEFAULT 0,
+      tenant_id TEXT REFERENCES tenants(id),
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS experiments (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      hypothesis TEXT,
+      status TEXT DEFAULT 'pending',
+      progress INTEGER DEFAULT 0,
+      variants JSONB,
+      results JSONB,
+      started_at TIMESTAMPTZ,
+      completed_at TIMESTAMPTZ,
+      tenant_id TEXT REFERENCES tenants(id),
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS risk_events (
+      id TEXT PRIMARY KEY,
+      event_type TEXT NOT NULL,
+      severity TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      agent_id TEXT REFERENCES agents(id),
+      details JSONB,
+      resolved BOOLEAN DEFAULT false,
+      tenant_id TEXT REFERENCES tenants(id),
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
     ALTER TABLE users ADD COLUMN IF NOT EXISTS tenant_id TEXT;
     ALTER TABLE trust_receipts ADD COLUMN IF NOT EXISTS tenant_id TEXT;
     ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS tenant_id TEXT;

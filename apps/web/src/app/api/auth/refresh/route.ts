@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
 import { Env } from '@sonate/orchestrate'
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(req: Request) {
   const secret = Env.JWT_SECRET()
   const refreshSecret = process.env.REFRESH_TOKEN_SECRET || secret

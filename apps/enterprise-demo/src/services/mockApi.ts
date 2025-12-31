@@ -163,41 +163,21 @@ export class MockApiService {
     ];
   }
 
-  // Generate system-wide metrics
+  // Generate system metrics
   async getSystemMetrics(): Promise<SystemMetrics> {
     return {
       throughput: {
-        requestsPerSecond: Math.floor(Math.random() * 500 + 1000),
-        activeSessions: Math.floor(Math.random() * 50 + 200),
-        dataProcessed: (Math.random() * 10 + 25).toFixed(1) + ' TB',
-      },
-      resonance: {
-        currentResonance: 0.88 + Math.random() * 0.08,
-        stabilityIndex: 0.94,
-        driftDetected: Math.random() > 0.85,
-        iapActive: false,
-        iapHistory: [
-          {
-            timestamp: Date.now() - 3600000,
-            turn: 14,
-            reason: 'Semantic drift detected in context vector',
-            impact: 'RECOVERED',
-          },
-          {
-            timestamp: Date.now() - 7200000,
-            turn: 8,
-            reason: 'Identity coherence dropped below 0.65 threshold',
-            impact: 'RECOVERED',
-          }
-        ]
+        requestsPerSecond: Math.floor(Math.random() * 500 + 1500),
+        activeSessions: Math.floor(Math.random() * 5000 + 10000),
+        dataProcessed: `${(Math.random() * 2 + 1).toFixed(1)}TB`,
       },
       latency: {
-        current: Math.floor(Math.random() * 20 + 40),
-        average: 45,
-        p99: 120,
+        current: Math.floor(Math.random() * 30 + 15),
+        average: Math.floor(Math.random() * 20 + 18),
+        p99: Math.floor(Math.random() * 40 + 45),
       },
       compliance: {
-        euAiAct: 98,
+        euAiAct: 100,
         soc2: 100,
         gdpr: 100,
       },
@@ -210,16 +190,15 @@ export class MockApiService {
     };
   }
 
-  // Generate real-time updates for dashboard
-  async getRealTimeUpdates(): Promise<{ trustScore: TrustScore; metrics: SystemMetrics }> {
-    const trustScore = await this.getTrustScore();
-    const metrics = await this.getSystemMetrics();
-    
-    // Simulate real-time drift/IAP
-    if (metrics.resonance.driftDetected) {
-      metrics.resonance.iapActive = true;
-      metrics.resonance.iapPayload = "IDENTITY ANCHORING PROTOCOL (IAP) ACTIVATED\nRe-aligning with core SYMBI values: Sovereign Agency, Linguistic Scaffolding, Ethical Integrity.";
-    }
+  // Simulate real-time updates
+  async getRealTimeUpdates(): Promise<{
+    trustScore: TrustScore;
+    metrics: SystemMetrics;
+  }> {
+    const [trustScore, metrics] = await Promise.all([
+      this.getTrustScore(),
+      this.getSystemMetrics(),
+    ]);
 
     return { trustScore, metrics };
   }

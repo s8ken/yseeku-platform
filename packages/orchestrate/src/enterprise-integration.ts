@@ -4,7 +4,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { EnhancedTelemetry } from '@sonate/core/types';
+import { EnhancedTelemetry } from './types';
 
 export interface EnterpriseMetrics {
   totalUsers: number;

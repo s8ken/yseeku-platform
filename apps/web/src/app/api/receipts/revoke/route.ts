@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
 import { Env } from '@sonate/orchestrate'
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 function extractToken(req: Request): string | null {
   const auth = req.headers.get('authorization')
   if (auth && auth.startsWith('Bearer ')) return auth.substring(7)

@@ -3,7 +3,7 @@
  * Implements TOTP-based MFA with backup codes
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+// import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import * as crypto from 'crypto';
 import { AuthenticationError } from './error-taxonomy';
 import { tenantContext } from '../tenant-context';
@@ -21,14 +21,19 @@ export interface MFAVerifyResult {
 
 export class MFAService {
   private readonly issuer = 'SYMBI-Resonate';
-  private supabase: SupabaseClient | null = null;
+  private supabase: any = null;
 
   constructor() {
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (supabaseUrl && supabaseKey) {
-      this.supabase = createClient(supabaseUrl, supabaseKey);
+      try {
+        const { createClient } = require('@supabase/supabase-js');
+        this.supabase = createClient(supabaseUrl, supabaseKey);
+      } catch (err) {
+        console.error('Failed to load @supabase/supabase-js:', err);
+      }
     }
   }
 
@@ -40,7 +45,7 @@ export class MFAService {
     }
   }
 
-  private getSupabase(): SupabaseClient {
+  private getSupabase(): any {
     if (!this.supabase) {
       throw new AuthenticationError(
         'Supabase client not initialized for MFA service',

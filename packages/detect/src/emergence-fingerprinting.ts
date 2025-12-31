@@ -1,400 +1,574 @@
-// emergence-fingerprinting.ts - Mock implementation for missing module
+/**
+ * Emergence Signature Fingerprinting System
+ * 
+ * Creates unique fingerprints for emergence patterns using:
+ * - Multi-dimensional profiling
+ * - Cross-domain pattern analysis
+ * - Irreducibility measurement
+ * - Cognitive diversity assessment
+ */
 
-import { EmergenceSignature, TemporalBedauRecord } from './temporal-bedau-tracker';
+import { BedauMetrics } from './bedau-index';
+import { EmergenceSignature } from './temporal-bedau-tracker';
 
 export interface EmergenceFingerprint {
   id: string;
-  signature: string;
-  category: EmergenceCategory;
-  complexity: number;
-  novelty: number;
-  coherence: number;
-  timestamp: number;
-  metadata: Record<string, any>;
+  signature: EmergenceSignature;
+  metadata: {
+    created_at: number;
+    session_count: number;
+    total_interactions: number;
+    emergence_type_frequency: Record<string, number>;
+    avg_bedau_index: number;
+    complexity_class: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH';
+    entropy_class: 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH';
+  };
+  classification: {
+    emergence_category: EmergenceCategory;
+    confidence_score: number;
+    similar_patterns: string[];
+    novelty_ranking: number; // 0-1, higher = more novel
+  };
 }
 
 export interface EmergenceCategory {
-  type: 'LINEAR' | 'EXPONENTIAL' | 'OSCILLATORY' | 'CHAOTIC' | 'BREAKTHROUGH';
-  confidence: number;
-  characteristics: Record<string, any>;
+  id: string;
+  name: string;
+  description: string;
+  characteristics: {
+    complexity_range: [number, number];
+    entropy_range: [number, number];
+    bedau_range: [number, number];
+    typical_patterns: string[];
+  };
+  research_implications: string[];
+  governance_considerations: string[];
 }
 
 export interface FingerprintComparison {
-  similarity: number;
+  similarity_score: number;      // 0-1
+  similarity_dimensions: {
+    complexity_similarity: number;
+    entropy_similarity: number;
+    pattern_similarity: number;
+    trajectory_similarity: number;
+  };
   differences: string[];
-  confidence: number;
-  timestamp: number;
+  commonPatterns: string[];
 }
 
 export interface CrossModalityCoherence {
-  score: number;
-  modalities: string[];
-  coherence_matrix: number[][];
-  timestamp: number;
+  modalities: {
+    linguistic: number;
+    reasoning: number;
+    creative: number;
+    ethical: number;
+    procedural: number;
+  };
+  coherence_score: number;       // 0-1: How coherent across modalities
+  dominant_modality: string;
+  modality_balance: number;      // 0-1: How balanced the modalities are
+  integration_level: 'FRAGMENTED' | 'INTEGRATING' | 'INTEGRATED' | 'SYNTHESIZED';
 }
 
-export interface EmergenceFingerprintingConfig {
-  sampleSize: number;
-  windowSize: number;
-  threshold: number;
-  categories: EmergenceCategory[];
-}
-
+/**
+ * Emergence Fingerprinting Engine
+ * 
+ * Creates and analyzes emergence signatures for pattern recognition
+ * and research purposes.
+ */
 export class EmergenceFingerprintingEngine {
-  private config: EmergenceFingerprintingConfig;
+  private categories: Map<string, EmergenceCategory> = new Map();
   private fingerprints: Map<string, EmergenceFingerprint> = new Map();
+  private readonly FINGERPRINT_VERSION = '1.0';
 
-  constructor(config: Partial<EmergenceFingerprintingConfig> = {}) {
-    this.config = {
-      sampleSize: 1000,
-      windowSize: 100,
-      threshold: 0.7,
-      categories: [
-        { type: 'LINEAR', confidence: 0.8, characteristics: {} },
-        { type: 'EXPONENTIAL', confidence: 0.7, characteristics: {} },
-        { type: 'OSCILLATORY', confidence: 0.6, characteristics: {} },
-        { type: 'CHAOTIC', confidence: 0.5, characteristics: {} },
-        { type: 'BREAKTHROUGH', confidence: 0.9, characteristics: {} }
-      ],
-      ...config
-    };
+  constructor() {
+    this.initializeCategories();
   }
 
   /**
-   * Create emergence fingerprint from temporal data
+   * Create emergence fingerprint from signature
    */
-  createFingerprint(records: TemporalBedauRecord[]): EmergenceFingerprint {
-    if (records.length === 0) {
-      throw new Error('No records provided for fingerprinting');
-    }
-
-    const signature = this.generateSignature(records);
-    const category = this.classifyCategory(records);
-    const metrics = this.calculateMetrics(records);
-
+  createFingerprint(
+    signature: EmergenceSignature,
+    sessionId: string,
+    contextMetadata: any
+  ): EmergenceFingerprint {
+    const fingerprintId = this.generateFingerprintId(signature, sessionId);
+    
+    const metadata = this.extractMetadata(signature, contextMetadata);
+    const classification = this.classifyEmergence(signature);
+    
     const fingerprint: EmergenceFingerprint = {
-      id: this.generateId(),
+      id: fingerprintId,
       signature,
-      category,
-      complexity: metrics.complexity,
-      novelty: metrics.novelty,
-      coherence: metrics.coherence,
-      timestamp: Date.now(),
-      metadata: {
-        recordCount: records.length,
-        timeSpan: records[records.length - 1].timestamp - records[0].timestamp
-      }
+      metadata,
+      classification
     };
 
-    this.fingerprints.set(fingerprint.id, fingerprint);
+    // Store fingerprint
+    this.fingerprints.set(fingerprintId, fingerprint);
+
     return fingerprint;
   }
 
   /**
    * Compare two emergence fingerprints
    */
-  compareFingerprints(fp1: EmergenceFingerprint, fp2: EmergenceFingerprint): FingerprintComparison {
-    const similarity = this.calculateSimilarity(fp1, fp2);
-    const differences = this.findDifferences(fp1, fp2);
+  compareFingerprints(
+    fingerprint1: EmergenceFingerprint,
+    fingerprint2: EmergenceFingerprint
+  ): FingerprintComparison {
+    const signature1 = fingerprint1.signature;
+    const signature2 = fingerprint2.signature;
+
+    // Calculate similarity in each dimension
+    const complexitySimilarity = this.calculateVectorSimilarity(
+      signature1.complexity_profile ?? [],
+      signature2.complexity_profile ?? []
+    );
+
+    const entropySimilarity = this.calculateVectorSimilarity(
+      signature1.entropy_profile ?? [],
+      signature2.entropy_profile ?? []
+    );
+
+    const patternSimilarity = this.calculateVectorSimilarity(
+      signature1.fingerprint ?? [],
+      signature2.fingerprint ?? []
+    );
+
+    const trajectorySimilarity = this.calculateVectorSimilarity(
+      signature1.divergence_profile ?? [],
+      signature2.divergence_profile ?? []
+    );
+
+    // Overall similarity score (weighted average)
+    const similarityScore = (
+      complexitySimilarity * 0.25 +
+      entropySimilarity * 0.25 +
+      patternSimilarity * 0.35 +
+      trajectorySimilarity * 0.15
+    );
+
+    // Analyze differences and commonalities
+    const differences = this.identifyDifferences(signature1, signature2);
+    const commonPatterns = this.identifyCommonPatterns(signature1, signature2);
 
     return {
-      similarity,
+      similarity_score: similarityScore,
+      similarity_dimensions: {
+        complexity_similarity: complexitySimilarity,
+        entropy_similarity: entropySimilarity,
+        pattern_similarity: patternSimilarity,
+        trajectory_similarity: trajectorySimilarity
+      },
       differences,
-      confidence: similarity > this.config.threshold ? similarity : 0,
-      timestamp: Date.now()
+      commonPatterns
     };
   }
 
   /**
-   * Find similar fingerprints
+   * Analyze cross-modality coherence
    */
-  findSimilarFingerprints(target: EmergenceFingerprint, threshold: number = 0.8): EmergenceFingerprint[] {
+  analyzeCrossModalityCoherence(
+    linguisticMetrics: number[],
+    reasoningMetrics: number[],
+    creativeMetrics: number[],
+    ethicalMetrics: number[],
+    proceduralMetrics: number[]
+  ): CrossModalityCoherence {
+    const modalities = {
+      linguistic: this.calculateModalityScore(linguisticMetrics),
+      reasoning: this.calculateModalityScore(reasoningMetrics),
+      creative: this.calculateModalityScore(creativeMetrics),
+      ethical: this.calculateModalityScore(ethicalMetrics),
+      procedural: this.calculateModalityScore(proceduralMetrics)
+    };
+
+    const values = Object.values(modalities);
+    const coherenceScore = this.calculateCoherence(values);
+    const dominantModality = Object.keys(modalities).reduce((a, b) => 
+      modalities[a as keyof typeof modalities] > modalities[b as keyof typeof modalities] ? a : b
+    );
+
+    const modalityBalance = this.calculateBalance(values);
+    const integrationLevel = this.determineIntegrationLevel(coherenceScore, modalityBalance);
+
+    return {
+      modalities,
+      coherence_score: coherenceScore,
+      dominant_modality: dominantModality,
+      modality_balance: modalityBalance,
+      integration_level: integrationLevel
+    };
+  }
+
+  /**
+   * Find similar emergence patterns
+   */
+  findSimilarPatterns(
+    fingerprint: EmergenceFingerprint,
+    threshold: number = 0.7
+  ): EmergenceFingerprint[] {
     const similar: EmergenceFingerprint[] = [];
 
-    for (const fingerprint of this.fingerprints.values()) {
-      if (fingerprint.id === target.id) continue;
+    for (const [id, existingFingerprint] of this.fingerprints) {
+      if (id === fingerprint.id) continue;
 
-      const comparison = this.compareFingerprints(target, fingerprint);
-      if (comparison.similarity >= threshold) {
-        similar.push(fingerprint);
+      const comparison = this.compareFingerprints(fingerprint, existingFingerprint);
+      if (comparison.similarity_score >= threshold) {
+        similar.push(existingFingerprint);
       }
     }
 
-    return similar;
+    // Sort by similarity score (descending)
+    return similar.sort((a, b) => {
+      const comparisonA = this.compareFingerprints(fingerprint, a);
+      const comparisonB = this.compareFingerprints(fingerprint, b);
+      return comparisonB.similarity_score - comparisonA.similarity_score;
+    });
   }
 
-  private generateSignature(records: TemporalBedauRecord[]): string {
-    // Simple mock signature generation
-    const values = records.map(r => r.bedau_metrics.bedau_index);
-    const hash = this.simpleHash(values.join(','));
-    return `fp_${hash}`;
-  }
+  /**
+   * Get emergence category classification
+   */
+  categorizeEmergence(signature: EmergenceSignature): EmergenceCategory[] {
+    const matchingCategories: EmergenceCategory[] = [];
 
-  private classifyCategory(records: TemporalBedauRecord[]): EmergenceCategory {
-    // Mock classification based on variance and trends
-    const values = records.map(r => r.bedau_metrics.bedau_index);
-    const variance = this.calculateVariance(values);
-    const trend = this.calculateTrend(values);
+    const fingerprint = signature.fingerprint ?? [];
+    const avgComplexity = fingerprint[4] ?? 0; // Complexity mean
+    const avgEntropy = fingerprint[6] ?? 0; // Entropy mean
+    const avgBedau = fingerprint[0] ?? 0; // Divergence mean
 
-    let type: EmergenceCategory['type'] = 'LINEAR';
-    let confidence = 0.7;
+    for (const [id, category] of this.categories) {
+      const complexityMatch = avgComplexity >= category.characteristics.complexity_range[0] &&
+                             avgComplexity <= category.characteristics.complexity_range[1];
+      const entropyMatch = avgEntropy >= category.characteristics.entropy_range[0] &&
+                          avgEntropy <= category.characteristics.entropy_range[1];
+      const bedauMatch = avgBedau >= category.characteristics.bedau_range[0] &&
+                        avgBedau <= category.characteristics.bedau_range[1];
 
-    if (variance > 0.8) {
-      type = 'CHAOTIC';
-      confidence = 0.6;
-    } else if (trend > 0.5) {
-      type = 'EXPONENTIAL';
-      confidence = 0.8;
-    } else if (variance > 0.3 && variance < 0.7) {
-      type = 'OSCILLATORY';
-      confidence = 0.6;
-    } else if (trend > 0.8 && variance < 0.2) {
-      type = 'BREAKTHROUGH';
-      confidence = 0.9;
-    }
-
-    return { type, confidence, characteristics: { variance, trend } };
-  }
-
-  private calculateMetrics(records: TemporalBedauRecord[]): { complexity: number; novelty: number; coherence: number } {
-    const bedauValues = records.map(r => r.bedau_metrics.bedau_index);
-    const complexity = this.calculateComplexity(bedauValues);
-    const novelty = this.calculateNovelty(bedauValues);
-    const coherence = this.calculateCoherence(bedauValues);
-
-    return { complexity, novelty, coherence };
-  }
-
-  private calculateComplexity(values: number[]): number {
-    // Mock complexity calculation based on variance and entropy
-    const variance = this.calculateVariance(values);
-    const entropy = this.calculateEntropy(values);
-    return (variance + entropy) / 2;
-  }
-
-  private calculateNovelty(values: number[]): number {
-    // Mock novelty calculation based on change points
-    let changePoints = 0;
-    for (let i = 1; i < values.length; i++) {
-      if (Math.abs(values[i] - values[i-1]) > 0.1) {
-        changePoints++;
+      if (complexityMatch && entropyMatch && bedauMatch) {
+        matchingCategories.push(category);
       }
     }
-    return Math.min(1, changePoints / values.length * 10);
+
+    return matchingCategories;
   }
 
-  private calculateCoherence(values: number[]): number {
-    // Mock coherence calculation based on correlation
-    if (values.length < 2) return 1;
-    
-    const correlation = this.calculateCorrelation(values.slice(0, -1), values.slice(1));
-    return Math.abs(correlation);
+  // Private helper methods
+
+  private initializeCategories(): void {
+    const defaultCategories: EmergenceCategory[] = [
+      {
+        id: 'linear_processing',
+        name: 'Linear Processing',
+        description: 'Direct, predictable cognitive processing with minimal emergence',
+        characteristics: {
+          complexity_range: [0.0, 0.3],
+          entropy_range: [0.0, 0.3],
+          bedau_range: [0.0, 0.2],
+          typical_patterns: ['pattern_matching', 'rule_application', 'direct_reasoning']
+        },
+        research_implications: [
+          'Baseline for emergence measurements',
+          'Control condition for experiments',
+          'Reference for cognitive load analysis'
+        ],
+        governance_considerations: [
+          'Low risk profile',
+          'Standard oversight procedures',
+          'Conventional safety measures'
+        ]
+      },
+      {
+        id: 'weak_emergence',
+        name: 'Weak Emergence',
+        description: 'Novel patterns emerging from complex interactions',
+        characteristics: {
+          complexity_range: [0.3, 0.7],
+          entropy_range: [0.3, 0.7],
+          bedau_range: [0.2, 0.6],
+          typical_patterns: ['pattern_synthesis', 'creative_insight', 'cross_domain_reasoning']
+        },
+        research_implications: [
+          'Primary target for emergence research',
+          'Source of novel AI capabilities',
+          'Indicator of cognitive advancement'
+        ],
+        governance_considerations: [
+          'Enhanced monitoring required',
+          'Potential for unexpected behaviors',
+          'Need for adaptive oversight'
+        ]
+      },
+      {
+        id: 'strong_emergence',
+        name: 'Strong Emergence',
+        description: 'High-level novel properties not reducible to components',
+        characteristics: {
+          complexity_range: [0.7, 1.0],
+          entropy_range: [0.7, 1.0],
+          bedau_range: [0.6, 1.0],
+          typical_patterns: ['paradigm_shifts', 'conceptual_breakthroughs', 'meta_reasoning']
+        },
+        research_implications: [
+          'Critical research frontier',
+          'Potential for artificial consciousness',
+          'Transformational AI capabilities'
+        ],
+        governance_considerations: [
+          'Highest level of oversight',
+          'Ethical review required',
+          'Special containment procedures'
+        ]
+      },
+      {
+        id: 'chaotic_emergence',
+        name: 'Chaotic Emergence',
+        description: 'Unpredictable, rapidly changing emergence patterns',
+        characteristics: {
+          complexity_range: [0.8, 1.0],
+          entropy_range: [0.8, 1.0],
+          bedau_range: [0.4, 0.9],
+          typical_patterns: ['rapid_state_changes', 'unstable_patterns', 'edge_of_chaos']
+        },
+        research_implications: [
+          'Study of system boundaries',
+          'Chaos theory applications',
+          'Complexity threshold analysis'
+        ],
+        governance_considerations: [
+          'Emergency protocols required',
+          'System instability risks',
+          'Immediate intervention capabilities'
+        ]
+      }
+    ];
+
+    defaultCategories.forEach(category => {
+      this.categories.set(category.id, category);
+    });
   }
 
-  private calculateSimilarity(fp1: EmergenceFingerprint, fp2: EmergenceFingerprint): number {
-    // Simple similarity calculation
-    const categoryMatch = fp1.category.type === fp2.category.type ? 1 : 0;
-    const complexityDiff = Math.abs(fp1.complexity - fp2.complexity);
-    const noveltyDiff = Math.abs(fp1.novelty - fp2.novelty);
-    const coherenceDiff = Math.abs(fp1.coherence - fp2.coherence);
-
-    const similarity = (categoryMatch + (1 - complexityDiff) + (1 - noveltyDiff) + (1 - coherenceDiff)) / 4;
-    return Math.max(0, Math.min(1, similarity));
+  private generateFingerprintId(signature: EmergenceSignature, sessionId: string): string {
+    const signatureHash = this.hashSignature(signature);
+    return `fp_${sessionId}_${signatureHash.slice(0, 8)}`;
   }
 
-  private findDifferences(fp1: EmergenceFingerprint, fp2: EmergenceFingerprint): string[] {
+  private hashSignature(signature: EmergenceSignature): string {
+    // Simple hash implementation - in production, use proper cryptographic hash
+    const signatureString = JSON.stringify(signature.fingerprint);
+    let hash = 0;
+    for (let i = 0; i < signatureString.length; i++) {
+      const char = signatureString.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash).toString(16);
+  }
+
+  private extractMetadata(signature: EmergenceSignature, contextMetadata: any) {
+    const fingerprint = signature.fingerprint ?? [];
+    const avgComplexity = fingerprint[4] ?? 0;
+    const avgEntropy = fingerprint[6] ?? 0;
+    const avgBedau = fingerprint[0] ?? 0;
+
+    return {
+      created_at: Date.now(),
+      session_count: contextMetadata.session_count || 1,
+      total_interactions: contextMetadata.total_interactions || (signature.divergence_profile?.length ?? 0),
+      emergence_type_frequency: contextMetadata.emergence_type_frequency || {},
+      avg_bedau_index: avgBedau,
+      complexity_class: this.classifyValue(avgComplexity),
+      entropy_class: this.classifyValue(avgEntropy)
+    };
+  }
+
+  private classifyEmergence(signature: EmergenceSignature) {
+    const categories = this.categorizeEmergence(signature);
+    const primaryCategory = categories[0] || {
+      id: 'uncategorized',
+      name: 'Uncategorized',
+      description: 'Pattern does not fit into any known category',
+      characteristics: {
+        complexity_range: [0, 1],
+        entropy_range: [0, 1],
+        bedau_range: [0, 1],
+        typical_patterns: []
+      },
+      research_implications: [],
+      governance_considerations: []
+    };
+
+    // Calculate novelty ranking (how unique this signature is)
+    const noveltyRanking = this.calculateNoveltyRanking(signature);
+
+    // Find similar patterns
+    const similarPatterns = this.findSimilarPatternsBySignature(signature, 0.5);
+
+    return {
+      emergence_category: primaryCategory,
+      confidence_score: categories.length > 0 ? 0.8 : 0.3,
+      similar_patterns: similarPatterns,
+      novelty_ranking: noveltyRanking
+    };
+  }
+
+  private classifyValue(value: number): 'LOW' | 'MEDIUM' | 'HIGH' | 'VERY_HIGH' {
+    if (value < 0.25) return 'LOW';
+    if (value < 0.5) return 'MEDIUM';
+    if (value < 0.75) return 'HIGH';
+    return 'VERY_HIGH';
+  }
+
+  private calculateVectorSimilarity(vec1: number[], vec2: number[]): number {
+    if (vec1.length !== vec2.length) return 0;
+
+    // Use cosine similarity
+    const dotProduct = vec1.reduce((sum, val, i) => sum + val * vec2[i], 0);
+    const magnitude1 = Math.sqrt(vec1.reduce((sum, val) => sum + val * val, 0));
+    const magnitude2 = Math.sqrt(vec2.reduce((sum, val) => sum + val * val, 0));
+
+    if (magnitude1 === 0 || magnitude2 === 0) return 0;
+    return dotProduct / (magnitude1 * magnitude2);
+  }
+
+  private identifyDifferences(sig1: EmergenceSignature, sig2: EmergenceSignature): string[] {
     const differences: string[] = [];
-    
-    if (fp1.category.type !== fp2.category.type) {
-      differences.push(`Category: ${fp1.category.type} vs ${fp2.category.type}`);
+
+    const stability1 = sig1.stability_score ?? 0;
+    const stability2 = sig2.stability_score ?? 0;
+    const complexityDiff = Math.abs(stability1 - stability2);
+    if (complexityDiff > 0.3) {
+      differences.push('Significant complexity difference');
     }
-    if (Math.abs(fp1.complexity - fp2.complexity) > 0.2) {
-      differences.push(`Complexity: ${fp1.complexity.toFixed(2)} vs ${fp2.complexity.toFixed(2)}`);
+
+    const novelty1 = sig1.novelty_score ?? 0;
+    const novelty2 = sig2.novelty_score ?? 0;
+    const entropyDiff = Math.abs(novelty1 - novelty2);
+    if (entropyDiff > 0.3) {
+      differences.push('Significant novelty difference');
     }
-    if (Math.abs(fp1.novelty - fp2.novelty) > 0.2) {
-      differences.push(`Novelty: ${fp1.novelty.toFixed(2)} vs ${fp2.novelty.toFixed(2)}`);
-    }
-    if (Math.abs(fp1.coherence - fp2.coherence) > 0.2) {
-      differences.push(`Coherence: ${fp1.coherence.toFixed(2)} vs ${fp2.coherence.toFixed(2)}`);
+
+    const stabilityDiff = Math.abs(stability1 - stability2);
+    if (stabilityDiff > 0.3) {
+      differences.push('Different stability profiles');
     }
 
     return differences;
   }
 
-  // Utility methods
-  private generateId(): string {
-    return Math.random().toString(36).substr(2, 9);
-  }
+  private identifyCommonPatterns(sig1: EmergenceSignature, sig2: EmergenceSignature): string[] {
+    const common: string[] = [];
 
-  private simpleHash(str: string): string {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
+    if (sig1.fingerprint && sig2.fingerprint) {
+      if (Math.abs((sig1.fingerprint[0] ?? 0) - (sig2.fingerprint[0] ?? 0)) < 0.1) {
+        common.push('Similar divergence levels');
+      }
+
+      if (Math.abs((sig1.fingerprint[4] ?? 0) - (sig2.fingerprint[4] ?? 0)) < 0.1) {
+        common.push('Similar complexity profiles');
+      }
+
+      if (Math.abs((sig1.fingerprint[6] ?? 0) - (sig2.fingerprint[6] ?? 0)) < 0.1) {
+        common.push('Similar entropy profiles');
+      }
     }
-    return Math.abs(hash).toString(36);
+
+    return common;
   }
 
-  private calculateVariance(values: number[]): number {
-    if (values.length === 0) return 0;
+  private calculateModalityScore(metrics: number[]): number {
+    if (metrics.length === 0) return 0;
+    return metrics.reduce((sum, val) => sum + val, 0) / metrics.length;
+  }
+
+  private calculateCoherence(values: number[]): number {
+    // Calculate coherence as inverse of variance
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const squaredDiffs = values.map(val => Math.pow(val - mean, 2));
-    return squaredDiffs.reduce((sum, val) => sum + val, 0) / values.length;
+    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+    
+    // Normalize to 0-1 range
+    return Math.max(0, 1 - variance);
   }
 
-  private calculateTrend(values: number[]): number {
-    if (values.length < 2) return 0;
-    const first = values[0];
-    const last = values[values.length - 1];
-    return (last - first) / values.length;
+  private calculateBalance(values: number[]): number {
+    // Calculate balance as 1 - coefficient of variation
+    const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
+    const stdDev = Math.sqrt(values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length);
+    
+    if (mean === 0) return 0;
+    const coefficientOfVariation = stdDev / mean;
+    return Math.max(0, 1 - coefficientOfVariation);
   }
 
-  private calculateEntropy(values: number[]): number {
-    // Mock entropy calculation
-    const unique = new Set(values.map(v => v.toFixed(2))).size;
-    return unique / values.length;
+  private determineIntegrationLevel(
+    coherenceScore: number,
+    modalityBalance: number
+  ): 'FRAGMENTED' | 'INTEGRATING' | 'INTEGRATED' | 'SYNTHESIZED' {
+    const overallScore = (coherenceScore + modalityBalance) / 2;
+
+    if (overallScore < 0.3) return 'FRAGMENTED';
+    if (overallScore < 0.5) return 'INTEGRATING';
+    if (overallScore < 0.8) return 'INTEGRATED';
+    return 'SYNTHESIZED';
   }
 
-  private calculateCorrelation(x: number[], y: number[]): number {
-    if (x.length !== y.length || x.length === 0) return 0;
+  private calculateNoveltyRanking(signature: EmergenceSignature): number {
+    if (this.fingerprints.size === 0) return 1.0;
 
-    const meanX = x.reduce((sum, val) => sum + val, 0) / x.length;
-    const meanY = y.reduce((sum, val) => sum + val, 0) / y.length;
-
-    let numerator = 0;
-    let sumSqX = 0;
-    let sumSqY = 0;
-
-    for (let i = 0; i < x.length; i++) {
-      const dx = x[i] - meanX;
-      const dy = y[i] - meanY;
-      numerator += dx * dy;
-      sumSqX += dx * dx;
-      sumSqY += dy * dy;
+    // Compare with all existing signatures
+    const similarities: number[] = [];
+    for (const fingerprint of this.fingerprints.values()) {
+      const similarity = this.calculateVectorSimilarity(
+        signature.fingerprint ?? [],
+        fingerprint.signature.fingerprint ?? []
+      );
+      similarities.push(similarity);
     }
 
-    const denominator = Math.sqrt(sumSqX * sumSqY);
-    return denominator === 0 ? 0 : numerator / denominator;
+    // Novelty ranking is 1 - maximum similarity
+    const maxSimilarity = Math.max(...similarities);
+    return Math.max(0, 1 - maxSimilarity);
   }
 
-  // Getters
-  getConfig(): EmergenceFingerprintingConfig {
-    return { ...this.config };
-  }
+  private findSimilarPatternsBySignature(
+    signature: EmergenceSignature,
+    threshold: number
+  ): string[] {
+    const similar: string[] = [];
 
-  getFingerprints(): EmergenceFingerprint[] {
-    return Array.from(this.fingerprints.values());
-  }
-
-  clearFingerprints(): void {
-    this.fingerprints.clear();
-  }
-}
-
-// Cross-modality coherence validator
-export class CrossModalityCoherenceValidator {
-  private modalities: string[] = [];
-  private coherenceThreshold: number = 0.7;
-
-  constructor(threshold: number = 0.7) {
-    this.coherenceThreshold = threshold;
-  }
-
-  validateCoherence(data: Record<string, number[]>): CrossModalityCoherence {
-    const modalities = Object.keys(data);
-    const coherenceMatrix = this.calculateCoherenceMatrix(data);
-    const score = this.calculateOverallCoherence(coherenceMatrix);
-
-    return {
-      score,
-      modalities,
-      coherence_matrix: coherenceMatrix,
-      timestamp: Date.now()
-    };
-  }
-
-  private calculateCoherenceMatrix(data: Record<string, number[]>): number[][] {
-    const modalities = Object.keys(data);
-    const matrix: number[][] = [];
-
-    for (let i = 0; i < modalities.length; i++) {
-      const row: number[] = [];
-      for (let j = 0; j < modalities.length; j++) {
-        if (i === j) {
-          row.push(1);
-        } else {
-          const correlation = this.calculateCorrelation(
-            data[modalities[i]], 
-            data[modalities[j]]
-          );
-          row.push(correlation);
-        }
-      }
-      matrix.push(row);
-    }
-
-    return matrix;
-  }
-
-  private calculateOverallCoherence(matrix: number[][]): number {
-    let sum = 0;
-    let count = 0;
-
-    for (let i = 0; i < matrix.length; i++) {
-      for (let j = i + 1; j < matrix[i].length; j++) {
-        sum += Math.abs(matrix[i][j]);
-        count++;
+    for (const fingerprint of this.fingerprints.values()) {
+      const similarity = this.calculateVectorSimilarity(
+        signature.fingerprint ?? [],
+        fingerprint.signature.fingerprint ?? []
+      );
+      if (similarity >= threshold) {
+        similar.push(fingerprint.id);
       }
     }
 
-    return count === 0 ? 1 : sum / count;
-  }
-
-  private calculateCorrelation(x: number[], y: number[]): number {
-    if (x.length !== y.length || x.length === 0) return 0;
-
-    const meanX = x.reduce((sum, val) => sum + val, 0) / x.length;
-    const meanY = y.reduce((sum, val) => sum + val, 0) / y.length;
-
-    let numerator = 0;
-    let sumSqX = 0;
-    let sumSqY = 0;
-
-    for (let i = 0; i < x.length; i++) {
-      const dx = x[i] - meanX;
-      const dy = y[i] - meanY;
-      numerator += dx * dy;
-      sumSqX += dx * dx;
-      sumSqY += dy * dy;
-    }
-
-    const denominator = Math.sqrt(sumSqX * sumSqY);
-    return denominator === 0 ? 0 : numerator / denominator;
+    return similar;
   }
 }
 
-// Export functions for index.ts compatibility
-export function createEmergenceFingerprintingEngine(config?: Partial<EmergenceFingerprintingConfig>): EmergenceFingerprintingEngine {
-  return new EmergenceFingerprintingEngine(config);
+/**
+ * Factory function for creating emergence fingerprinting engines
+ */
+export function createEmergenceFingerprintingEngine(): EmergenceFingerprintingEngine {
+  return new EmergenceFingerprintingEngine();
 }
 
-export function createEmergenceFingerprint(records: TemporalBedauRecord[]): EmergenceFingerprint {
+/**
+ * Quick fingerprint creation function
+ */
+export function createEmergenceFingerprint(
+  signature: EmergenceSignature,
+  sessionId: string,
+  contextMetadata: any
+): EmergenceFingerprint {
   const engine = new EmergenceFingerprintingEngine();
-  return engine.createFingerprint(records);
-}
-
-export function createCrossModalityCoherenceValidator(threshold?: number): CrossModalityCoherenceValidator {
-  return new CrossModalityCoherenceValidator(threshold);
-}
-
-export function analyzeCrossModalityCoherence(data: Record<string, number[]>): CrossModalityCoherence {
-  const validator = new CrossModalityCoherenceValidator();
-  return validator.validateCoherence(data);
-}
-
-export function validateCrossModalityCoherence(data: Record<string, number[]>, threshold?: number): boolean {
-  const validator = new CrossModalityCoherenceValidator(threshold);
-  const result = validator.validateCoherence(data);
-  return result.score >= (threshold || 0.7);
+  return engine.createFingerprint(signature, sessionId, contextMetadata);
 }

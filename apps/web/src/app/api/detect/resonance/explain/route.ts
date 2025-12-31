@@ -53,15 +53,6 @@ export async function POST(req: Request) {
         }
 
         const sessionId = session_id || 'demo-session';
-
-        // Validate sessionId format if not the default demo session
-        if (sessionId !== 'demo-session') {
-            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId) && 
-                !/^[0-9a-f]{32}$/i.test(sessionId)) {
-                return NextResponse.json({ error: "Invalid session_id format" }, { status: 400 });
-            }
-        }
-
         const sessionState = await mockKV.get<SessionState>(`symbi:${sessionId}`);
 
         // Calculate Resonance with Explainability & Stickiness
@@ -84,12 +75,7 @@ export async function POST(req: Request) {
                 },
                 adversarial: result.adversarial,
                 componentBreakdown: result.breakdown,
-                audit_trail: result.audit_trail,
-                bedau_index: result.bedau_index || (result.breakdown?.s_alignment?.score * 0.7), // Fallback if missing
-                identity_coherence: result.identity_coherence || 0.85,
-                drift_detected: result.drift_detected || false,
-                iap_payload: result.iap_payload || null,
-                iap_history: result.iap_history || []
+                audit_trail: result.audit_trail
             }
         };
 

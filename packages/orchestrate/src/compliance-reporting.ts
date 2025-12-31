@@ -559,8 +559,8 @@ export class ComplianceReporting extends EventEmitter {
     const total = requirements.length;
     const overallScore = Math.round((compliant / total) * 100);
 
-    const findings = requirements.flatMap(r => 
-      r.evidence.filter(e => !e.data.compliance).length
+    const findingsCount = requirements.reduce((acc, r) => 
+      acc + r.evidence.filter(e => !e.data.compliance).length, 0
     );
 
     return {
@@ -568,9 +568,9 @@ export class ComplianceReporting extends EventEmitter {
       compliantRequirements: compliant,
       totalRequirements: total,
       criticalFindings: 0,
-      highFindings: Math.floor(findings * 0.3),
-      mediumFindings: Math.floor(findings * 0.5),
-      lowFindings: Math.floor(findings * 0.2)
+      highFindings: Math.floor(findingsCount * 0.3),
+      mediumFindings: Math.floor(findingsCount * 0.5),
+      lowFindings: Math.floor(findingsCount * 0.2)
     };
   }
 
@@ -639,8 +639,8 @@ export class ComplianceReporting extends EventEmitter {
 
   private calculateTrends(): void {
     // Mock trend calculation
-    const monthlyData = [];
-    const quarterlyData = [];
+    const monthlyData: Array<{ month: string; score: number }> = [];
+    const quarterlyData: Array<{ quarter: string; score: number }> = [];
 
     for (let i = 5; i >= 0; i--) {
       const date = new Date();

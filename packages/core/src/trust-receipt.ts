@@ -12,7 +12,6 @@
 
 import { createHash } from 'crypto';
 import * as ed25519 from '@noble/ed25519';
-import DOMPurify from 'isomorphic-dompurify';
 import { CIQMetrics } from './index';
 
 export interface SymbiTrustReceipt {
@@ -45,8 +44,6 @@ export interface TrustReceiptData {
   session_id: string;
   timestamp: number;
   mode: 'constitutional' | 'directive';
-  directive?: string;
-  outcome?: { text: string };
   ciq_metrics: CIQMetrics;
   symbi_trust_receipt?: SymbiTrustReceipt; // Optional SymbiTrustReceipt data
   previous_hash?: string; // For hash chaining
@@ -58,8 +55,6 @@ export class TrustReceipt {
   session_id: string;
   timestamp: number;
   mode: 'constitutional' | 'directive';
-  directive?: string;
-  outcome?: { text: string };
   ciq_metrics: CIQMetrics;
   symbi_trust_receipt?: SymbiTrustReceipt;
   previous_hash?: string;
@@ -72,17 +67,6 @@ export class TrustReceipt {
     this.session_id = data.session_id;
     this.timestamp = data.timestamp;
     this.mode = data.mode;
-    
-    // Sanitize and limit length for XSS prevention
-    if (data.directive) {
-      this.directive = DOMPurify.sanitize(data.directive).slice(0, 1000);
-    }
-    if (data.outcome) {
-      this.outcome = {
-        text: DOMPurify.sanitize(data.outcome.text).slice(0, 5000)
-      };
-    }
-
     this.ciq_metrics = data.ciq_metrics;
     this.symbi_trust_receipt = data.symbi_trust_receipt;
     this.previous_hash = data.previous_hash;
@@ -105,8 +89,6 @@ export class TrustReceipt {
       session_id: this.session_id,
       timestamp: this.timestamp,
       mode: this.mode,
-      directive: this.directive || null,
-      outcome: this.outcome || null,
       ciq_metrics: this.ciq_metrics,
       symbi_trust_receipt: this.symbi_trust_receipt || null,
       previous_hash: this.previous_hash || null,

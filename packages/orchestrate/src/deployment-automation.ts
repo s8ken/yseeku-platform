@@ -641,7 +641,7 @@ export class DeploymentAutomation extends EventEmitter {
       deployment.completedAt = new Date();
       
       console.error(`❌ Deployment failed: ${deployment.id}`, error);
-      this.emit('deploymentFailed', { deployment, error: error.message });
+      this.emit('deploymentFailed', { deployment, error: (error as Error).message });
 
       // Auto-rollback if enabled
       if (deployment.config.rollback.enabled && 
@@ -701,10 +701,10 @@ export class DeploymentAutomation extends EventEmitter {
     } catch (error) {
       step.status = 'failed';
       step.completedAt = new Date();
-      step.error = error.message;
+      step.error = (error as Error).message;
       step.exitCode = 1;
 
-      this.addDeploymentLog(deployment, 'error', `Step failed: ${step.name} - ${error.message}`, phase.name, step.name);
+      this.addDeploymentLog(deployment, 'error', `Step failed: ${step.name} - ${(error as Error).message}`, phase.name, step.name);
 
       // Retry if configured
       if (step.retries < step.maxRetries) {

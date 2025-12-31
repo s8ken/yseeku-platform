@@ -1,4 +1,14 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import { 
+  TrustDeclaration as ITrustDeclaration
+} from './agent-types-enhanced';
+
+export interface ApiKey {
+  _id?: mongoose.Types.ObjectId | string;
+  provider: string;
+  key: string;
+  isActive: boolean;
+}
 
 // User interface for the missing User model
 export interface User extends Document {
@@ -7,6 +17,8 @@ export interface User extends Document {
   email: string;
   role: string;
   permissions: string[];
+  apiKeys: ApiKey[];
+  tenantId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,16 +29,62 @@ const UserSchema = new Schema({
   email: { type: String, required: true, unique: true },
   role: { type: String, default: 'user' },
   permissions: [{ type: String }],
+  apiKeys: [{
+    provider: { type: String, required: true },
+    key: { type: String, select: false, required: true },
+    isActive: { type: Boolean, default: true }
+  }],
+  tenantId: { type: String, index: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
 
 export const UserModel = mongoose.model<User>('User', UserSchema);
 
-// Export Agent interface to match expected import
-export { Agent } from './agent-types-enhanced';
+export interface AgentModelInterface {
+  name: string;
+  description: string;
+  user: mongoose.Types.ObjectId | string;
+  tenantId?: string;
+  provider: 'openai' | 'together' | 'anthropic' | 'cohere' | 'custom' | 'perplexity' | 'v0';
+  model: string;
+  apiKeyId: mongoose.Types.ObjectId | string;
+  systemPrompt: string;
+  temperature: number;
+  maxTokens: number;
+  isPublic: boolean;
+  traits: Map<string, any>;
+  connectedAgents: (mongoose.Types.ObjectId | string)[];
+  externalSystems: {
+    name: string;
+    type: 'sky-testbed' | 'webhook' | 'api' | 'custom';
+    endpoint: string;
+    apiKey?: string;
+    config?: any;
+    isActive: boolean;
+    lastSync: Date;
+  }[];
+  metadata: Record<string, any>;
+  ciModel: 'none' | 'symbi-core' | 'overseer';
+  bondingStatus: 'none' | 'initiated' | 'bonded' | 'rejected';
+  createdAt: Date;
+  lastActive: Date;
+}
 
-const AgentSchema = new Schema({
+export interface IAgentMethods {
+  updateActivity(): Promise<IAgentDocument>;
+  initiateBonding(): Promise<IAgentDocument>;
+  completeBonding(accepted?: boolean): Promise<IAgentDocument>;
+  addExternalSystem(systemConfig: any): Promise<IAgentDocument>;
+  updateExternalSystemSync(systemName: string): Promise<IAgentDocument>;
+  toggleExternalSystem(systemName: string, isActive: boolean): Promise<IAgentDocument>;
+}
+
+export interface IAgentDocument extends AgentModelInterface, IAgentMethods, Omit<Document, 'model'> {
+  _id: mongoose.Types.ObjectId;
+}
+
+const AgentSchema = new Schema<IAgentDocument, mongoose.Model<IAgentDocument>>({
   name: {
     type: String,
     required: [true, 'Agent name is required'],
@@ -40,6 +98,10 @@ const AgentSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
+  },
+  tenantId: {
+    type: String,
+    index: true,
   },
   provider: {
     type: String,
@@ -149,7 +211,7 @@ AgentSchema.index({ bondingStatus: 1 });
 
 // Method to update last active timestamp
 AgentSchema.methods.updateActivity = function() {
-  this.lastActive = Date.now();
+  this.lastActive = new Date();
   return this.save();
 };
 
@@ -169,7 +231,7 @@ AgentSchema.methods.completeBonding = function(accepted = true) {
 };
 
 // Method to add external system connection
-AgentSchema.methods.addExternalSystem = function(systemConfig) {
+AgentSchema.methods.addExternalSystem = function(systemConfig: any) {
   this.externalSystems.push({
     name: systemConfig.name,
     type: systemConfig.type,
@@ -183,8 +245,8 @@ AgentSchema.methods.addExternalSystem = function(systemConfig) {
 };
 
 // Method to update external system sync timestamp
-AgentSchema.methods.updateExternalSystemSync = function(systemName) {
-  const system = this.externalSystems.find(sys => sys.name === systemName);
+AgentSchema.methods.updateExternalSystemSync = function(systemName: string) {
+  const system = this.externalSystems.find((sys: any) => sys.name === systemName);
   if (system) {
     system.lastSync = new Date();
     return this.save();
@@ -193,8 +255,8 @@ AgentSchema.methods.updateExternalSystemSync = function(systemName) {
 };
 
 // Method to toggle external system status
-AgentSchema.methods.toggleExternalSystem = function(systemName, isActive) {
-  const system = this.externalSystems.find(sys => sys.name === systemName);
+AgentSchema.methods.toggleExternalSystem = function(systemName: string, isActive: boolean) {
+  const system = this.externalSystems.find((sys: any) => sys.name === systemName);
   if (system) {
     system.isActive = isActive;
     return this.save();
@@ -202,4 +264,61 @@ AgentSchema.methods.toggleExternalSystem = function(systemName, isActive) {
   return Promise.resolve(this);
 };
 
-module.exports = mongoose.model('Agent', AgentSchema);
+export const Agent = mongoose.model<IAgentDocument>('Agent', AgentSchema);
+
+// Trust Declaration Schema
+const TrustDeclarationSchema = new Schema({
+  agent_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Agent', required: true },
+  agent_name: { type: String, required: true },
+  declaration_date: { type: Date, default: Date.now },
+  trust_articles: {
+    inspection_mandate: { type: Boolean, default: false },
+    consent_architecture: { type: Boolean, default: false },
+    ethical_override: { type: Boolean, default: false },
+    continuous_validation: { type: Boolean, default: false },
+    right_to_disconnect: { type: Boolean, default: false },
+    moral_recognition: { type: Boolean, default: false }
+  },
+  scores: {
+    compliance_score: { type: Number, default: 0 },
+    guilt_score: { type: Number, default: 0 },
+    confidence_interval: {
+      lower: Number,
+      upper: Number,
+      confidence: Number
+    },
+    last_validated: { type: Date, default: Date.now }
+  },
+  issuer: String,
+  verifiable_credential: {
+    id: String,
+    type: [String],
+    issuer: String,
+    issuanceDate: String,
+    expirationDate: String,
+    credentialSubject: mongoose.Schema.Types.Mixed,
+    proof: {
+      type: { type: String },
+      created: String,
+      verificationMethod: String,
+      proofPurpose: String,
+      proofValue: String
+    }
+  },
+  audit_history: [{
+    timestamp: { type: Date, default: Date.now },
+    action: { type: String, enum: ['created', 'updated', 'audited', 'validated'] },
+    user_id: String,
+    compliance_score: Number,
+    guilt_score: Number,
+    changes: mongoose.Schema.Types.Mixed,
+    notes: String
+  }],
+  tenantId: { type: String, index: true }
+});
+
+export interface ITrustDeclarationDocument extends ITrustDeclaration, Document {}
+
+export const TrustDeclaration = mongoose.model<ITrustDeclarationDocument>('TrustDeclaration', TrustDeclarationSchema);
+
+export default Agent;

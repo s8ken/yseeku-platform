@@ -17,10 +17,6 @@ export { HashChain, type HashChainLink, type HashChainConfig, type ChainVerifica
 import { EnhancedSecurityError, AuthenticationError, AuthorizationError, SecurityError, CryptographicError, DataIntegrityError, ValidationError, NetworkSecurityError, SystemSecurityError, BusinessLogicSecurityError, SecurityErrorHandler, type ErrorContext, type ErrorDetails, type SecurityErrorReport } from './error-taxonomy';
 export { EnhancedSecurityError, AuthenticationError, AuthorizationError, SecurityError, CryptographicError, DataIntegrityError, ValidationError, NetworkSecurityError, SystemSecurityError, BusinessLogicSecurityError, SecurityErrorHandler, type ErrorContext, type ErrorDetails, type SecurityErrorReport } from './error-taxonomy';
 
-// Export Auth and MFA
-export { SecureAuthService } from './auth-service';
-export { MFAService } from './mfa-system';
-
 // Security Constants
 export const SECURITY_CONSTANTS = {
   // Cryptographic constants
@@ -185,8 +181,42 @@ export class SecurityUtils {
   }
 }
 
+/*
+// Security Manager - Main entry point for security operations
+export class SecurityManager {
+  private cryptoManager: any;
+  private auditSystem: any;
+  private initialized: boolean = false;
+
+  constructor() {
+    // These are disabled for now as they depend on excluded enhanced files
+    this.cryptoManager = null;
+    this.auditSystem = null;
+  }
+
+  async initialize(keyPair?: any): Promise<void> {
+    this.initialized = true;
+  }
+
+  getCryptoManager(): any {
+    return this.cryptoManager;
+  }
+
+  getAuditSystem(): any {
+    return this.auditSystem;
+  }
+
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+}
+*/
+
 // Default export
 const SecurityModule = {
+  // Managers
+  // SecurityManager,
+  
   // Core classes
   HashChain,
   
@@ -194,7 +224,6 @@ const SecurityModule = {
   EnhancedSecurityError,
   AuthenticationError,
   AuthorizationError,
-  SecurityError,
   CryptographicError,
   DataIntegrityError,
   ValidationError,

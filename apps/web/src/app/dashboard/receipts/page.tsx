@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +15,9 @@ import {
   Search,
   Download,
   ExternalLink,
-  Copy
+  Copy,
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 
@@ -230,14 +233,53 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
 
 export default function TrustReceiptsPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [tenant, setTenant] = useState('default');
+  
+  useEffect(() => {
+    try {
+      const t = typeof window !== 'undefined' ? localStorage.getItem('tenant') : null;
+      setTenant(t || 'default');
+    } catch {
+      setTenant('default');
+    }
+  }, []);
 
-  const filteredReceipts = mockReceipts.filter(r => 
+  const { data: receiptsData, isLoading } = useQuery({
+    queryKey: ['trust-receipts', tenant],
+    queryFn: async () => {
+      const response = await fetch(`/api/trust-receipts?tenant=${tenant}&limit=50`);
+      if (!response.ok) throw new Error('Failed to fetch receipts');
+      return response.json() as Promise<{ 
+        success: boolean; 
+        data: TrustReceipt[]; 
+        stats: { total: number; verified: number; invalid: number; chainLength: number };
+        source: string;
+      }>;
+    },
+    staleTime: 30000,
+  });
+
+  const receipts = receiptsData?.data?.length ? receiptsData.data : mockReceipts;
+  const stats = receiptsData?.stats || { total: mockReceipts.length, verified: mockReceipts.filter(r => r.verified).length, invalid: mockReceipts.filter(r => !r.verified).length, chainLength: mockReceipts.length };
+  const dataSource = receiptsData?.source === 'database' && receiptsData.data.length > 0 ? 'live' : 'demo';
+
+  const filteredReceipts = receipts.filter(r => 
     r.agentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     r.hash.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <div className="space-y-6">
+      {dataSource === 'demo' && (
+        <div className="demo-notice mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-amber-800 dark:text-amber-200">Demo Data</strong>
+            <p className="text-sm text-amber-700 dark:text-amber-300">Trust receipts shown are demonstration examples. Real receipts will appear once agents are connected.</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -249,7 +291,16 @@ export default function TrustReceiptsPage() {
             <InfoTooltip term="Hash Chain" />
           </p>
         </div>
-        <span className="module-badge badge-orchestrate">ORCHESTRATE</span>
+        <div className="flex items-center gap-2">
+          <span className={`data-source-badge px-2 py-1 text-xs rounded-full ${
+            dataSource === 'live' 
+              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+              : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+          }`}>
+            {dataSource === 'live' ? 'Live Data' : 'Demo Data'}
+          </span>
+          <span className="module-badge badge-orchestrate">ORCHESTRATE</span>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -261,7 +312,7 @@ export default function TrustReceiptsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">15,847</div>
+            <div className="text-3xl font-bold">{isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.total.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground mt-1">All time</p>
           </CardContent>
         </Card>
@@ -271,8 +322,8 @@ export default function TrustReceiptsPage() {
             <CardTitle className="text-sm font-medium">Verified</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-emerald-500">15,845</div>
-            <p className="text-xs text-muted-foreground mt-1">99.99% valid</p>
+            <div className="text-3xl font-bold text-emerald-500">{isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.verified.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground mt-1">{stats.total > 0 ? ((stats.verified / stats.total) * 100).toFixed(2) : 0}% valid</p>
           </CardContent>
         </Card>
         
@@ -281,7 +332,7 @@ export default function TrustReceiptsPage() {
             <CardTitle className="text-sm font-medium">Invalid</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-red-500">2</div>
+            <div className="text-3xl font-bold text-red-500">{isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.invalid}</div>
             <p className="text-xs text-muted-foreground mt-1">Signature failures</p>
           </CardContent>
         </Card>
@@ -291,7 +342,7 @@ export default function TrustReceiptsPage() {
             <CardTitle className="text-sm font-medium">Chain Length</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">15,847</div>
+            <div className="text-3xl font-bold">{isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.chainLength.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground mt-1">Blocks</p>
           </CardContent>
         </Card>

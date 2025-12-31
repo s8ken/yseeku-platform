@@ -1,3 +1,5 @@
+export const VERSION = '1.4.0';
+
 /**
  * @sonate/detect - Real-time AI Detection & Scoring
  * 
@@ -8,7 +10,6 @@
  */
 
 import { TrustProtocol } from '@sonate/core';
-import { BedauMetrics } from './bedau-index';
 
 // Core detector
 export { SymbiFrameworkDetector } from './framework-detector';
@@ -33,7 +34,6 @@ export interface DetectionResult {
   ethical_alignment: number;       // 1-5
   resonance_quality: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
   canvas_parity: number;           // 0-100
-  bedau_metrics?: BedauMetrics;    // Optional Bedau Index metrics
   timestamp: number;
   receipt_hash: string;
 }
@@ -61,14 +61,14 @@ export {
   calculateBedauIndex,
   type BedauMetrics,
   type SemanticIntent,
-  type SurfacePattern,
-  type EmergenceSignal,
-  type EmergenceTrajectory
+  type SurfacePattern
 } from './bedau-index';
 export { 
   detectEmergence, 
   detectEmergenceSync, 
-  extractSurfacePattern
+  extractSurfacePattern,
+  type EmergenceSignal,
+  type EmergenceTrajectory
 } from './emergence-detection';
 
 // Emergence Research Framework (PHASE 2)

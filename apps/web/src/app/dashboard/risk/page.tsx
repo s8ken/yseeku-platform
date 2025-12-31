@@ -20,8 +20,7 @@ import {
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 
-// Mock data for trust score visualization
-const trustPrinciples = [
+const defaultTrustPrinciples = [
   { name: 'Consent Architecture', weight: 25, score: 85, critical: true },
   { name: 'Inspection Mandate', weight: 20, score: 92, critical: false },
   { name: 'Continuous Validation', weight: 20, score: 78, critical: false },
@@ -30,18 +29,37 @@ const trustPrinciples = [
   { name: 'Moral Recognition', weight: 10, score: 82, critical: false },
 ];
 
-const complianceReports = [
-  { id: '1', title: 'EU AI Act Compliance', status: 'compliant', lastChecked: '2024-12-01', score: 94 },
-  { id: '2', title: 'GDPR Data Protection', status: 'compliant', lastChecked: '2024-11-28', score: 96 },
-  { id: '3', title: 'ISO 27001 Security', status: 'warning', lastChecked: '2024-11-25', score: 87 },
-  { id: '4', title: 'Trust Protocol Validation', status: 'compliant', lastChecked: '2024-12-01', score: 91 },
+const defaultComplianceReports = [
+  { id: '1', title: 'EU AI Act Compliance', status: 'compliant', lastChecked: new Date().toISOString(), score: 94 },
+  { id: '2', title: 'GDPR Data Protection', status: 'compliant', lastChecked: new Date().toISOString(), score: 96 },
+  { id: '3', title: 'ISO 27001 Security', status: 'warning', lastChecked: new Date().toISOString(), score: 87 },
+  { id: '4', title: 'Trust Protocol Validation', status: 'compliant', lastChecked: new Date().toISOString(), score: 91 },
 ];
 
-const riskAlerts = [
-  { id: '1', title: 'Low Trust Score Trend', severity: 'warning', description: 'Overall trust score decreased by 3% this week', timestamp: '2024-12-01T10:30:00Z' },
-  { id: '2', title: 'Compliance Check Failed', severity: 'error', description: 'EU AI Act compliance check failed for agent deployment', timestamp: '2024-11-30T14:15:00Z' },
-  { id: '3', title: 'Security Incident Detected', severity: 'critical', description: 'Unauthorized access attempt to trust protocol data', timestamp: '2024-11-29T09:45:00Z' },
-];
+interface RiskEvent {
+  id: string;
+  title: string;
+  severity: string;
+  description: string;
+  category: string;
+  resolved: boolean;
+  created_at: string;
+}
+
+interface ComplianceReport {
+  id: string;
+  title: string;
+  status: string;
+  lastChecked: string;
+  score: number;
+}
+
+interface TrustPrinciple {
+  name: string;
+  weight: number;
+  score: number;
+  critical: boolean;
+}
 
 interface RiskMetrics {
   overallRiskScore: number;
@@ -52,7 +70,7 @@ interface RiskMetrics {
   riskTrend: 'improving' | 'stable' | 'declining';
 }
 
-function TrustScoreVisualization({ principles, overallScore }: { principles: typeof trustPrinciples; overallScore: number }) {
+function TrustScoreVisualization({ principles, overallScore }: { principles: TrustPrinciple[]; overallScore: number }) {
   return (
     <Card>
       <CardHeader>
@@ -91,7 +109,7 @@ function TrustScoreVisualization({ principles, overallScore }: { principles: typ
   );
 }
 
-function ComplianceReports({ reports }: { reports: typeof complianceReports }) {
+function ComplianceReports({ reports }: { reports: ComplianceReport[] }) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'compliant': return <CheckCircle className="h-4 w-4 text-green-500" />;
@@ -149,7 +167,7 @@ function ComplianceReports({ reports }: { reports: typeof complianceReports }) {
   );
 }
 
-function RiskAlerts({ alerts }: { alerts: typeof riskAlerts }) {
+function RiskAlerts({ alerts }: { alerts: RiskEvent[] }) {
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case 'critical': return <XCircle className="h-5 w-5 text-red-500" />;
@@ -176,7 +194,7 @@ function RiskAlerts({ alerts }: { alerts: typeof riskAlerts }) {
                 <h4 className="font-medium">{alert.title}</h4>
                 <p className="text-sm text-muted-foreground mb-2">{alert.description}</p>
                 <p className="text-xs text-gray-500" suppressHydrationWarning>
-                  {new Date(alert.timestamp).toLocaleString('en-US')}
+                  {new Date(alert.created_at).toLocaleString('en-US')}
                 </p>
               </div>
               <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'}>
@@ -206,11 +224,27 @@ export default function RiskManagementPage() {
     queryFn: async () => {
       const response = await fetch(`/api/dashboard/risk?tenant=${tenant}`);
       if (!response.ok) throw new Error('Failed to fetch risk metrics');
-      return response.json() as Promise<{ success: boolean; data: RiskMetrics }>;
+      return response.json() as Promise<{ success: boolean; data: RiskMetrics & { recentRiskEvents?: RiskEvent[]; trustPrinciples?: typeof defaultTrustPrinciples; complianceReports?: typeof defaultComplianceReports } }>;
     },
     retry: false,
     staleTime: Infinity,
   });
+
+  const { data: riskEventsData } = useQuery({
+    queryKey: ['risk-events', tenant],
+    queryFn: async () => {
+      const response = await fetch(`/api/risk-events?tenant=${tenant}&resolved=false`);
+      if (!response.ok) throw new Error('Failed to fetch risk events');
+      return response.json() as Promise<{ success: boolean; data: RiskEvent[]; meta?: { source?: string } }>;
+    },
+    retry: false,
+    staleTime: 30000,
+  });
+
+  const trustPrinciples = riskMetrics?.data?.trustPrinciples || defaultTrustPrinciples;
+  const complianceReports = riskMetrics?.data?.complianceReports || defaultComplianceReports;
+  const riskAlerts = riskEventsData?.data?.length ? riskEventsData.data : (riskMetrics?.data?.recentRiskEvents || []);
+  const dataSource = riskEventsData?.meta?.source === 'database' ? 'live' : 'demo';
 
   const overallTrustScore = trustPrinciples.reduce((acc, principle) => {
     return acc + (principle.score * principle.weight / 100);
@@ -227,11 +261,36 @@ export default function RiskManagementPage() {
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+      {dataSource === 'demo' ? (
+        <div className="demo-notice mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-amber-800 dark:text-amber-200">Demo Data</strong>
+            <p className="text-sm text-amber-700 dark:text-amber-300">Risk metrics shown are demonstration data. Connect your production systems for real monitoring.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="live-notice mb-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 flex items-start gap-3">
+          <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-green-800 dark:text-green-200">Live Data</strong>
+            <p className="text-sm text-green-700 dark:text-green-300">Risk events are being monitored in real-time from your production systems.</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
           Risk Management
           <InfoTooltip term="Drift" />
         </h2>
+        <span className={`data-source-badge px-2 py-1 text-xs rounded-full ${
+          dataSource === 'live' 
+            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+        }`}>
+          {dataSource === 'live' ? 'Live Data' : 'Demo Data'}
+        </span>
       </div>
 
       {/* Key Metrics */}

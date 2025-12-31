@@ -30,33 +30,8 @@ export async function POST(req: Request) {
         const body = await req.json();
         const { transcript, session_id } = body;
 
-        // FIX: Add more detailed validation
-        if (!transcript) {
-            return NextResponse.json({ 
-                success: false, 
-                error: "Missing transcript" 
-            }, { status: 400 });
-        }
-        
-        if (!session_id) {
-            return NextResponse.json({ 
-                success: false, 
-                error: "Missing session_id" 
-            }, { status: 400 });
-        }
-        
-        // FIX: Validate transcript has text or turns
-        if (!transcript.text && !transcript.turns) {
-            return NextResponse.json({ 
-                success: false, 
-                error: "Transcript must have either 'text' or 'turns' field" 
-            }, { status: 400 });
-        }
-
-        // Validate session_id format (UUID v4 or hex string) to prevent injection
-        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(session_id) && 
-            !/^[0-9a-f]{32}$/i.test(session_id)) {
-            return NextResponse.json({ error: "Invalid session_id format" }, { status: 400 });
+        if (!transcript || !session_id) {
+            return NextResponse.json({ error: "Missing transcript or session_id" }, { status: 400 });
         }
 
         // Load session state
@@ -108,18 +83,9 @@ export async function POST(req: Request) {
             await mockKV.set(`symbi:${session_id}`, signed_receipt.session_state, { ex: 86400 * 30 });
         }
 
-        // FIX: Wrap response in success structure for consistency
-        return NextResponse.json({
-            success: true,
-            data: signed_receipt,
-            source: 'trust_protocol'
-        });
+        return NextResponse.json(signed_receipt);
     } catch (e: any) {
-        console.error('Receipt generation error:', e);
-        // FIX: Return error in consistent format
-        return NextResponse.json({ 
-            success: false, 
-            error: e.message || 'Internal server error' 
-        }, { status: 500 });
+        console.error(e);
+        return NextResponse.json({ error: e.message }, { status: 500 });
     }
 }

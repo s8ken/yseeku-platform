@@ -8,7 +8,8 @@
  * - Alert management
  */
 
-import { Agent, Workflow, TacticalDashboard, Alert } from './index';
+import { Workflow, TacticalDashboard, Alert } from './types';
+import { Agent } from './agent-types-enhanced';
 import { TrustProtocol } from '@sonate/core';
 
 export class TacticalCommand {

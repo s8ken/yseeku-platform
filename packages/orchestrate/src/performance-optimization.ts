@@ -813,10 +813,10 @@ export class PerformanceOptimization extends EventEmitter {
     } catch (error) {
       optimization.status = 'failed';
       optimization.completedAt = new Date();
-      optimization.details.errors.push(error.message);
+      optimization.details.errors.push((error as Error).message);
       
       console.error(`❌ Optimization failed: ${optimization.ruleName}`, error);
-      this.emit('optimizationFailed', { optimization, error: error.message });
+      this.emit('optimizationFailed', { optimization, error: (error as Error).message });
     }
   }
 

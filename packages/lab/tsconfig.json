@@ -20,6 +20,19 @@
     "src/intra-velocity-test.ts",
     "src/resonate-validation.ts",
     "src/test-runner.ts",
-    "src/thread3-velocity-test.ts"
+    "src/thread3-velocity-test.ts",
+    "src/adversarial-emergence-testing.ts",
+    "src/adversarial-testing-suite.ts",
+    "src/consciousness-markers.ts",
+    "src/cross-modal-coherence.ts",
+    "src/emergence-hypothesis-testing.ts",
+    "src/enhanced-experiment-orchestrator.ts",
+    "src/experiment-orchestrator-complete.ts",
+    "src/third-mind-protocol.ts",
+    "src/third-mind-research.ts",
+    "src/agent-bus.ts",
+    "src/statistics-engine.ts",
+    "src/lvs-experiment.ts",
+    "src/full-archive-review.ts"
   ]
 }

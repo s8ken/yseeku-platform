@@ -1,5 +1,5 @@
-import crypto from "crypto"
-import { createHash } from "crypto"
+import * as crypto from 'crypto';
+const { createHash } = crypto;
 
 export interface ZKProof {
   proof: string
@@ -46,7 +46,7 @@ export class AdvancedTrustProtocol {
    */
   async generateZKProof(secret: string, publicInputs: any[]): Promise<ZKProof> {
     const witness = {
-      secret: BigInt(createHash("sha256").update(secret).digest("hex"), 16),
+      secret: BigInt("0x" + createHash("sha256").update(secret).digest("hex")),
       publicInputs: publicInputs.map((input) => BigInt(input)),
     }
 

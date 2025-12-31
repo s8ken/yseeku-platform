@@ -11,16 +11,7 @@
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "composite": true,
-    "incremental": true,
-    "baseUrl": ".",
-    "paths": {
-      "@sonate/core": ["packages/core/src"],
-      "@sonate/core/*": ["packages/core/src/*"],
-      "@sonate/detect": ["packages/detect/src"],
-      "@sonate/detect/*": ["packages/detect/src/*"],
-      "@sonate/persistence": ["packages/persistence/src"],
-      "@sonate/persistence/*": ["packages/persistence/src/*"]
-    }
+    "incremental": true
   },
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }

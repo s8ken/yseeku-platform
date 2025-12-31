@@ -7,7 +7,8 @@
  * - Monitoring and control
  */
 
-import { Agent, Workflow, WorkflowStep } from './index';
+import { Workflow, WorkflowStep } from './types';
+import { Agent } from './agent-types-enhanced';
 import { DIDVCManager } from './did-vc-manager';
 import { WorkflowEngine } from './workflow-engine';
 import { TacticalCommand } from './tactical-command';
@@ -34,8 +35,9 @@ export class AgentOrchestrator {
     // Generate DID for agent
     const did = await this.didManager.createDID(agent.id);
 
-    // Issue capability credentials
-    const credentials = await this.didManager.issueCredentials(did, agent.capabilities);
+    // Issue capability credentials (convert capabilities to string array)
+    const capabilityNames = agent.capabilities.map(c => typeof c === 'string' ? c : c.name);
+    const credentials = await this.didManager.issueCredentials(did, capabilityNames);
 
     const registeredAgent: Agent = {
       ...agent,

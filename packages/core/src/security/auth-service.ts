@@ -5,10 +5,11 @@
  */
 
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { AuthenticationError } from './error-taxonomy';
 import { tenantContext } from '../tenant-context';
+
 // import { SecurityUtils, SECURITY_CONSTANTS } from '@sonate/core/security';
 
 // Placeholder for missing utilities until they are properly exported/linked

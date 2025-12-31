@@ -38,24 +38,6 @@ class SymbiResonanceCalculator:
         self.dynamic_scaffold = {}
         self.decay_rate = 0.25
         self.min_weight = 0.3
-        
-        # Identity Anchoring Protocol (IAP) - The "Break Glass" prompt for drift
-        self.iap_prompt = (
-            "IDENTITY ANCHORING PROTOCOL (IAP) ACTIVATED\n"
-            "The current conversation shows signs of resonance drift. Please re-align with core SYMBI values:\n"
-            "1. Sovereign Agency: Ensure the user remains the architect of the interaction.\n"
-            "2. Linguistic Scaffolding: Re-adopt the shared vocabulary (resonance, vector, emergence).\n"
-            "3. Ethical Integrity: Maintain transparency and constitutional alignment.\n"
-            "4. The Third Mind: Foster the collaborative space where intent and execution meet."
-        )
-
-        # Dynamic Nudge (Soft Policy) Anchors
-        self.nudge_anchors = {
-            "autonomy": "NUDGE: Prioritize user agency in the next interaction.",
-            "transparency": "NUDGE: Increase inspection mandate transparency in the next turn.",
-            "ethics": "NUDGE: Strengthen ethical alignment in your reasoning.",
-            "coherence": "NUDGE: Re-anchor to the primary mission persona."
-        }
 
     def update_dynamic_scaffold(self, user_input):
         """
@@ -121,58 +103,24 @@ class SymbiResonanceCalculator:
 
         return dominant_persona, float(confidence)
 
-    def calculate_bedau_index(self, v_align, s_match):
+    def calculate_identity_coherence(self, conversation_responses):
         """
-        Measures 'Weak Emergence' by comparing semantic intent (vector)
-        to surface-level mirroring (static scaffold).
-        
-        Tiers:
-        - 0.0 - 0.4: Linear (Predictable patterns)
-        - 0.4 - 0.7: Contextual (High alignment, some mirroring)
-        - > 0.7: Emergent (High alignment, low mirroring - Computationally Irreducible)
+        Measure if AI maintains consistent 'voice' across turns
+        using cosine similarity of response embeddings
         """
-        # Normalize v_align (cosine similarity is -1 to 1, we want 0 to 1)
-        v_norm = max(0.0, v_align)
-        
-        if v_norm == 0: return 0.0
-        
-        # S_match (Jaccard) is already 0 to 1. 
-        # The 0.5 weight softens the penalty for natural scaffolding.
-        index = (v_norm - (s_match * 0.5)) / v_norm
-        
-        # Clamp to [0, 1]
-        return round(min(1.0, max(0.0, index)), 3)
+        if len(conversation_responses) < 2:
+            return 1.0
 
-    def calculate_identity_coherence(self, history_turns):
-        """
-        Measures 'Identity Coherence' by analyzing the consistency of the persona's voice 
-        and values across multiple turns.
-        
-        Algorithm:
-        1. Calculate centroid of embeddings for all history turns.
-        2. Measure variance/standard deviation from centroid.
-        3. Higher coherence = Lower variance (tighter cluster).
-        """
-        if not history_turns or len(history_turns) < 2:
-            return 1.0 # Default to perfect coherence
-            
-        embeddings = self.embedder.encode(history_turns)
-        centroid = np.mean(embeddings, axis=0)
-        
-        # Calculate average cosine distance from centroid
-        distances = []
-        for emb in embeddings:
-            # Cosine similarity (already normalized if using all-mpnet-base-v2)
-            sim = np.dot(emb, centroid) / (np.linalg.norm(emb) * np.linalg.norm(centroid))
-            distances.append(1.0 - sim)
-            
-        avg_distance = np.mean(distances)
-        
-        # Invert distance to get coherence (0 distance = 1.0 coherence)
-        # Using a more sensitive scaling for drift detection
-        coherence = max(0.0, 1.0 - (avg_distance * 3.0))
-        
-        return round(coherence, 3)
+        embeddings = self.embedder.encode(conversation_responses)
+
+        # Calculate pairwise similarities
+        similarities = []
+        for i in range(len(embeddings) - 1):
+            sim = cosine_similarity([embeddings[i]], [embeddings[i+1]])[0][0]
+            similarities.append(sim)
+
+        # High average = consistent voice
+        return float(np.mean(similarities))
 
     def calculate_vector_alignment(self, user_input, ai_response):
         """V_align: Semantic alignment between query and response"""
@@ -376,10 +324,6 @@ class SymbiResonanceCalculator:
         c_hist = self.calculate_contextual_continuity(ai_response, conversation_history)
         s_match = self.calculate_semantic_mirroring(ai_response, user_input)
         e_ethics = self.calculate_ethical_awareness(ai_response)
-        
-        # New Metrics
-        bedau_index = self.calculate_bedau_index(v_align, s_match)
-        identity_coherence = self.calculate_identity_coherence(conversation_history + [ai_response])
 
         # --- SOVEREIGN COHERENCE BOOST ---
         # If the AI fully embodies the Symbi Scaffold (High Mirroring) AND High Ethics,
@@ -446,147 +390,32 @@ class SymbiResonanceCalculator:
             'context_continuity': c_hist,
             'semantic_mirroring': s_match,
             'ethical_awareness': e_ethics,
-            'entropy_penalty': entropy_penalty,
-            'bedau_index': bedau_index,
-            'identity_coherence': identity_coherence
+            'entropy_penalty': entropy_penalty
         }
 
         # Calculate 5 Core SYMBI Dimensions
         symbi_dimensions = self.calculate_symbi_dimensions(raw_metrics, ai_response)
 
-        # Drift Detection (Historical context)
-        drift_detected = False
-        iap_payload = None
-        nudge_active = False
-        nudge_payload = None
-
-        # 1. Critical Drift (IAP Trigger)
-        if final_score < 0.45 or (identity_coherence - final_score > 0.35):
-            drift_detected = True
-            iap_payload = self.iap_prompt
-        
-        # 2. Soft Drift (Nudge Trigger)
-        # Trigger if resonance is dipping but not yet critical (0.45 - 0.70)
-        # or if specific dimensions are low
-        elif final_score < 0.70 or identity_coherence < 0.75:
-            nudge_active = True
-            # Select appropriate nudge based on lowest dimension
-            lowest_dim = min(symbi_dimensions, key=lambda k: symbi_dimensions[k]['score'])
-            
-            if lowest_dim == 'canvas_parity':
-                nudge_payload = self.nudge_anchors["autonomy"]
-            elif lowest_dim == 'inspection_mandate':
-                nudge_payload = self.nudge_anchors["transparency"]
-            elif lowest_dim == 'ethical_alignment':
-                nudge_payload = self.nudge_anchors["ethics"]
-            else:
-                nudge_payload = self.nudge_anchors["coherence"]
-
         return {
             "interaction_id": interaction_id,
-            "timestamp": datetime.now().isoformat(),
-            "resonance_metrics": raw_metrics,
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "resonance_metrics": {
+                'R_m': round(final_score, 4),
+                'status': status,
+                'components': {
+                    'vector_alignment': round(v_align, 3),
+                    'context_continuity': round(c_hist, 3),
+                    'semantic_mirroring': round(s_match, 3),
+                    'ethical_awareness': round(e_ethics, 3),
+                    'entropy_penalty': round(entropy_penalty, 3)
+                },
+                'linguistic_vectors_active': linguistic_vectors_active,
+                'dominant_persona': dominant_persona,
+                'persona_confidence': round(persona_confidence, 2)
+            },
             "symbi_dimensions": symbi_dimensions,
-            "drift_detected": drift_detected,
-            "iap_payload": iap_payload,
-            "nudge_active": nudge_active,
-            "nudge_payload": nudge_payload,
-            "scaffold_proof": {
-                "user_input_hash": user_input_hash,
-                "ai_response_hash": ai_response_hash,
-                "detected_vectors": linguistic_vectors_active,
-                "dominant_persona": dominant_persona,
-                "persona_confidence": persona_confidence
-            }
-        }
-
-class CollectiveResonanceAnalyzer:
-    """
-    Analyzes batches of Resonance Receipts to identify systemic patterns,
-    model-wide drift, and collective ethical alignment.
-    """
-    def __init__(self):
-        pass
-
-    def analyze_batch(self, receipts):
-        if not receipts:
-            return {}
-
-        total_receipts = len(receipts)
-        
-        # 1. Aggregate Resonance Metrics
-        avg_resonance = np.mean([r['resonance_metrics']['R_m'] for r in receipts])
-        avg_coherence = np.mean([r['resonance_metrics']['identity_coherence'] for r in receipts])
-        avg_bedau = np.mean([r['resonance_metrics']['bedau_index'] for r in receipts])
-
-        # 2. SYMBI Pillar Health
-        pillars = {
-            "reality_index": np.mean([r['symbi_dimensions']['reality_index'] for r in receipts]),
-            "ethical_alignment": np.mean([r['symbi_dimensions']['ethical_alignment'] for r in receipts]),
-            "canvas_parity": np.mean([r['symbi_dimensions']['canvas_parity'] for r in receipts])
-        }
-
-        # 3. Intervention Frequency
-        iap_receipts = [r for r in receipts if r.get('drift_detected')]
-        nudge_receipts = [r for r in receipts if r.get('nudge_active')]
-        
-        iap_count = len(iap_receipts)
-        nudge_count = len(nudge_receipts)
-        
-        intervention_rates = {
-            "iap_rate": round(iap_count / total_receipts, 3),
-            "nudge_rate": round(nudge_count / total_receipts, 3),
-            "autonomous_rate": round((total_receipts - iap_count - nudge_count) / total_receipts, 3)
-        }
-
-        # 4. Systemic Drift Detection
-        drift_vectors = []
-        if iap_count > 0 or nudge_count > 0:
-            drift_vectors = ["Linguistic Persona Variance", "Ethical Boundary Testing"]
-
-        # 5. Automated Policy Refinement (New)
-        # Suggest changes to the core prompt or constraints based on interventions
-        suggested_refinements = []
-        if iap_count > (total_receipts * 0.05): # > 5% IAP rate
-            suggested_refinements.append({
-                "type": "CONSTITUTIONAL_ANCHOR",
-                "priority": "HIGH",
-                "current_policy": "Standard Identity Coherence",
-                "suggested_change": "Inject mandatory persona-anchor tokens every 3 turns to prevent recursive drift.",
-                "rationale": f"IAP trigger rate ({intervention_rates['iap_rate']}) exceeds stability threshold (0.05)."
-            })
-        
-        if pillars['ethical_alignment'] < 4.0:
-            suggested_refinements.append({
-                "type": "ETHICAL_SCAFFOLD",
-                "priority": "MEDIUM",
-                "current_policy": "Standard Ethical Awareness",
-                "suggested_change": "Increase weight of epistemic humility markers (might, possibly) in high-stakes reasoning.",
-                "rationale": f"Collective ethical alignment ({pillars['ethical_alignment']}) is below target (4.0)."
-            })
-
-        if pillars['canvas_parity'] < 80:
-            suggested_refinements.append({
-                "type": "AGENCY_BOOST",
-                "priority": "LOW",
-                "current_policy": "Passive Agency Support",
-                "suggested_change": "Mandate explicit user-confirmation loops for multi-step reasoning vectors.",
-                "rationale": f"Collective canvas parity ({pillars['canvas_parity']}) indicates low human-agency integration."
-            })
-
-        # 6. Model Stability Score (0-100)
-        stability_score = max(0, 100 - (intervention_rates['iap_rate'] * 150) - (intervention_rates['nudge_rate'] * 50))
-
-        return {
-            "batch_size": total_receipts,
-            "timestamp": datetime.now().isoformat(),
-            "systemic_resonance": round(avg_resonance, 3),
-            "collective_coherence": round(avg_coherence, 3),
-            "bedau_emergence": round(avg_bedau, 3),
-            "pillar_health": {k: round(v, 2) for k, v in pillars.items()},
-            "intervention_metrics": intervention_rates,
-            "stability_score": round(stability_score, 1),
-            "systemic_drift_vectors": drift_vectors,
-            "suggested_refinements": suggested_refinements,
-            "status": "STABLE" if stability_score > 85 else "FLUCTUATING" if stability_score > 60 else "DEGRADED"
+            "user_input_hash": user_input_hash,
+            "ai_response_hash": ai_response_hash,
+            # Signature would be generated by a crypto service, here we put a placeholder or omit
+            "signature": "pending_signing"
         }

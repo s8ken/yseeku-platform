@@ -53,7 +53,7 @@ const mockApiKeys: ApiKey[] = [
   {
     id: 'key-001',
     name: 'Production API Key',
-    key: 'snt_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+    key: 'sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
     createdAt: '2025-01-15T10:00:00Z',
     lastUsed: '2025-12-25T08:30:00Z',
     requests24h: 15420,
@@ -63,7 +63,7 @@ const mockApiKeys: ApiKey[] = [
   {
     id: 'key-002',
     name: 'Development Key',
-    key: 'snt_test_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy',
+    key: 'sk_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy',
     createdAt: '2025-02-20T14:00:00Z',
     lastUsed: '2025-12-24T16:45:00Z',
     requests24h: 3240,
@@ -73,7 +73,7 @@ const mockApiKeys: ApiKey[] = [
   {
     id: 'key-003',
     name: 'Legacy Integration',
-    key: 'snt_live_zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz',
+    key: 'sk_zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz',
     createdAt: '2024-06-10T09:00:00Z',
     lastUsed: '2025-11-01T12:00:00Z',
     requests24h: 0,

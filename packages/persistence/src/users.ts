@@ -1,4 +1,4 @@
-import { getPool, resolveTenantId } from './db';
+import { getPool } from './db';
 import bcrypt from 'bcrypt';
 
 export interface UserRecord {
@@ -6,33 +6,26 @@ export interface UserRecord {
   email?: string;
   name?: string;
   passwordHash?: string;
-  tenantId?: string;
 }
 
 export async function upsertUser(user: UserRecord): Promise<boolean> {
   const pool = getPool();
   if (!pool) return false;
-  
-  const tid = resolveTenantId(user.tenantId);
-  
   await pool.query(
-    `INSERT INTO users(id, email, name, password_hash, tenant_id)
-     VALUES($1,$2,$3,$4,$5)
-     ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name, password_hash = EXCLUDED.password_hash, tenant_id = EXCLUDED.tenant_id`,
-    [user.id, user.email || null, user.name || null, user.passwordHash || null, tid]
+    `INSERT INTO users(id, email, name, password_hash)
+     VALUES($1,$2,$3,$4)
+     ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name, password_hash = EXCLUDED.password_hash`,
+    [user.id, user.email || null, user.name || null, user.passwordHash || null]
   );
   return true;
 }
 
-export async function getUserByUsername(username: string, tenantId?: string): Promise<UserRecord | null> {
+export async function getUserByUsername(username: string): Promise<UserRecord | null> {
   const pool = getPool();
   if (!pool) return null;
-  
-  const tid = resolveTenantId(tenantId);
-  
   const result = await pool.query(
-    'SELECT id, email, name, password_hash, tenant_id FROM users WHERE id = $1 AND (tenant_id = $2 OR $2 IS NULL)',
-    [username, tid]
+    'SELECT id, email, name, password_hash FROM users WHERE id = $1',
+    [username]
   );
   if (result.rows.length === 0) return null;
   const row = result.rows[0];

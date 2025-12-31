@@ -136,9 +136,9 @@ export interface WorkflowDefinition {
   name: string;
   description: string;
   agents: AgentRole[];
-  tasks: WorkflowTask[];
+  tasks: FlowTask[];
   dependencies: TaskDependency[];
-  triggers: WorkflowTrigger[];
+  triggers: FlowTrigger[];
   timeout?: number;
 }
 
@@ -422,6 +422,16 @@ export interface ControlSnapshot {
   
   issues: ComplianceIssue[];
   remediation: RemediationTask[];
+}
+
+export interface ArticleSnapshot {
+  articleId: string;
+  title: string;
+  status: 'active' | 'pending' | 'breached' | 'waived';
+  compliance: number;
+  guilt: number;
+  lastValidated: Date;
+  evidenceCount: number;
 }
 
 export interface ImplementationStatus {

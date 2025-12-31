@@ -21,100 +21,42 @@ export default function ResonanceDemoPage() {
     setLoading(true);
     setReceipt(null);
     try {
-      // FIX: Validate inputs before sending
-      if (!userInput.trim() || !aiResponse.trim()) {
-        alert('Please provide both user input and AI response');
-        return;
-      }
-      
-      // FIX: Parse and validate JSON history
       let history = [];
-      try { 
-        history = JSON.parse(historyStr);
-        if (!Array.isArray(history)) {
-          throw new Error('History must be an array');
-        }
-      } catch (e) {
-        console.warn('Invalid history JSON, using empty array:', e);
-        history = [];
-      }
+      try { history = JSON.parse(historyStr); } catch (e) {}
 
-      // FIX: Updated endpoint to match actual route
-      const res = await fetch('/api/resonance/analyze', {
+      const res = await fetch('/api/detect/resonance/explain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          user_input: userInput, 
-          ai_response: aiResponse, 
-          history, 
-          metadata: { model: 'demo-model' }
-        })
+        body: JSON.stringify({ userInput, aiResponse, history, session_id: 'demo-session-' + Date.now() })
       });
-      
-      // FIX: Add error handling for response
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${res.status}: ${res.statusText}`);
-      }
-      
       const data = await res.json();
-      
-      // FIX: Handle response structure (data is wrapped in { success, data, source })
-      if (data.success && data.data) {
-        setResult(data.data);
-      } else {
-        throw new Error('Invalid response structure from server');
-      }
+      setResult(data);
     } catch (err) {
-      console.error('Analysis failed:', err);
-      alert(`Failed to analyze: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      setResult(null);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleMintReceipt = async () => {
-    if (!result) {
-      alert('Please analyze resonance first');
-      return;
-    }
-    
+    if (!result) return;
     try {
-      const receiptData = {
-        transcript: { 
-          text: aiResponse, 
-          metadata: { model: 'demo-model' },
-          turns: [{ role: 'user', content: userInput }, { role: 'assistant', content: aiResponse }] 
-        },
-        session_id: 'demo-receipt-' + Date.now(),
-        resonance_result: result
-      };
-      
-      // FIX: Updated endpoint to match actual route
       const res = await fetch('/api/trust/receipt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(receiptData)
+        body: JSON.stringify({ 
+            transcript: { 
+                text: aiResponse, 
+                metadata: { model: 'demo-model' },
+                turns: [{ role: 'user', content: userInput }, { role: 'assistant', content: aiResponse }] 
+            }, 
+            session_id: 'demo-receipt-' + Date.now() 
+        })
       });
-      
-      // FIX: Add error handling for response
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${res.status}: ${res.statusText}`);
-      }
-      
       const data = await res.json();
-      
-      // FIX: Handle response structure
-      if (data.success && data.data) {
-        setReceipt(data.data);
-      } else {
-        throw new Error('Invalid response structure from server');
-      }
+      setReceipt(data);
     } catch (err) {
-      console.error('Receipt minting failed:', err);
-      alert(`Failed to mint receipt: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error(err);
     }
   };
 

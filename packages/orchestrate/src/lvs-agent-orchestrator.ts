@@ -3,7 +3,7 @@
  * Extends agent orchestration with Linguistic Vector Steering capabilities
  */
 
-import { LVSConfig, LVSScaffolding, DEFAULT_LVS_SCAFFOLDING } from './core/types';
+import { LVSConfig, LVSScaffolding, DEFAULT_LVS_SCAFFOLDING } from '@sonate/core';
 
 export interface LVSAgent {
   id: string;

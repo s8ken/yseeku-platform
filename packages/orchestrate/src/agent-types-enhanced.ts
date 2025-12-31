@@ -60,13 +60,14 @@ export interface TrustAuditEntry {
 }
 
 export interface VerifiableCredential {
-  '@context': string[];
+  id?: string;
+  '@context'?: string[];
   type: string[];
   issuer: string;
   issuanceDate: string;
   expirationDate?: string;
   credentialSubject: any;
-  proof: CredentialProof;
+  proof?: CredentialProof;
 }
 
 export interface CredentialProof {
@@ -582,12 +583,12 @@ export interface Agent {
   capabilities: AgentCapability[];
   permissions: AgentPermission[];
   did?: string;
-  credentials?: any;
   trustDeclaration?: TrustDeclaration;
   trustMetrics?: TrustMetrics;
   trustLevel?: TrustLevel;
   currentTask?: AgentTask;
   metadata: Record<string, any>;
+  credentials?: VerifiableCredential[];
   createdAt: Date;
   updatedAt: Date;
   lastActivity: Date;

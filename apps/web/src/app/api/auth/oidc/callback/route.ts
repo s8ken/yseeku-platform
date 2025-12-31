@@ -4,6 +4,9 @@ import jwt from 'jsonwebtoken'
 import { Env } from '@sonate/orchestrate'
 import { getOidcConfig } from '../../../../../lib/oidc-providers'
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(req: Request) {
   const url = new URL(req.url)
   const code = url.searchParams.get('code')

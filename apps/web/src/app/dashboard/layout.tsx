@@ -34,7 +34,8 @@ import {
   Bell,
   Search,
   LogOut,
-  Book
+  Book,
+  ExternalLink
 } from 'lucide-react';
 
 type ModuleType = 'detect' | 'lab' | 'orchestrate';
@@ -293,6 +294,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <a
+              href="https://yseeku.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" size="sm" className="gap-2">
+                <ExternalLink className="h-4 w-4" />
+                <span className="hidden sm:inline">yseeku.com</span>
+              </Button>
+            </a>
 
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />

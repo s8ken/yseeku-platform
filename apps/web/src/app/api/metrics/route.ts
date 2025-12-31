@@ -1,29 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getMetrics } from '@sonate/orchestrate/src/observability/metrics';
-import { AuthMiddleware } from '@/middleware/auth-middleware';
 
-const auth = new AuthMiddleware();
-
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    // Authenticate and authorize
-    const authenticatedReq = await auth.authenticate(req);
-    auth.requirePermission('read:metrics')(authenticatedReq);
-
     const metrics = await getMetrics();
     return new NextResponse(metrics, {
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
       },
     });
-  } catch (error: any) {
-    if (error.code === 'MISSING_TOKEN' || error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED') {
-      return NextResponse.json({ error: 'Unauthorized', message: error.message }, { status: 401 });
-    }
-    if (error.code === 'INSUFFICIENT_PERMISSION') {
-      return NextResponse.json({ error: 'Forbidden', message: error.message }, { status: 403 });
-    }
-
+  } catch (error) {
     console.error('Error collecting metrics:', error);
     return NextResponse.json(
       { error: 'Failed to collect metrics' },

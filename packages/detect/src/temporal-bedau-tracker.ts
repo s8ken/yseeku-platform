@@ -7,6 +7,10 @@ export interface TemporalBedauRecord {
   bedau_metrics: BedauMetrics;
   emergence_signature: EmergenceSignature;
   context_data: Record<string, any>;
+  semantic_intent?: any;
+  surface_pattern?: any;
+  session_id?: string;
+  context_tags?: string[];
 }
 
 export interface EmergencePattern {
@@ -36,7 +40,7 @@ export interface EmergenceSignature {
   timestamp: number;
   complexity_profile?: number[];
   entropy_profile?: number[];
-  fingerprint?: string;
+  fingerprint?: number[];
   divergence_profile?: number[];
   stability_score?: number;
   novelty_score?: number;

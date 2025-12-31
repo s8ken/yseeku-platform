@@ -156,21 +156,6 @@ npm run test:coverage    # Generate coverage report
 npm run test:e2e         # End-to-end tests
 ```
 
-## Getting Started (Target: 15 Minutes)
-
-1. Clone repo (2 min)
-2. pnpm install (3 min)
-3. npm run proof:directive (5 min)
-4. Edit examples/proof-toggle/run.js (3 min)
-5. pnpm test:ciq (2 min)
-
-**Success**: First test passes in <15 minutes ✅
-
-Track: Time to first contribution
-Baseline 2025: 12 min average (survey 3 contributors)
-Goal 2026: <10 min
-Investor impact: "Developers onboard in 15min" = scalable team.
-
 ## Coding Standards
 
 ### TypeScript Guidelines

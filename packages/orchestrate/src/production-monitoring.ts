@@ -85,7 +85,7 @@ export interface ProductionAlert {
 export interface ProductionDashboard {
   id: string;
   name: string;
-  widgets: DashboardWidget[];
+  widgets: ProductionDashboardWidget[];
   refreshInterval: number;
   autoRefresh: boolean;
   filters: Record<string, any>;
@@ -94,9 +94,9 @@ export interface ProductionDashboard {
   createdBy: string;
 }
 
-export interface DashboardWidget {
+export interface ProductionDashboardWidget {
   id: string;
-  type: 'metric' | 'chart' | 'table' | 'alert' | 'status';
+  type: 'metric' | 'chart' | 'table' | 'alert' | 'status' | 'gauge';
   title: string;
   position: {
     x: number;
@@ -121,55 +121,6 @@ export interface HealthCheck {
   lastCheck: Date;
   details: Record<string, any>;
   dependencies: string[];
-}
-
-export interface ProductionMetrics {
-  system: {
-    uptime: number;
-    cpu: {
-      usage: number;
-      load: number[];
-      cores: number;
-    };
-    memory: {
-      total: number;
-      used: number;
-      free: number;
-      usage: number;
-    };
-    disk: {
-      total: number;
-      used: number;
-      free: number;
-      usage: number;
-    };
-    network: {
-      inbound: number;
-      outbound: number;
-      connections: number;
-    };
-  };
-  application: {
-    responseTime: number;
-    throughput: number;
-    errorRate: number;
-    activeConnections: number;
-    queueSize: number;
-    cacheHitRate: number;
-  };
-  business: {
-    activeUsers: number;
-    requestsPerMinute: number;
-    conversionRate: number;
-    revenue: number;
-    retention: number;
-  };
-  compliance: {
-    auditCoverage: number;
-    securityScore: number;
-    complianceScore: number;
-    dataResidency: boolean;
-  };
 }
 
 export class ProductionMonitoring extends EventEmitter {
@@ -709,13 +660,12 @@ export class ProductionMonitoring extends EventEmitter {
     }
   }
 
-  private createAlert(alertData: Omit<ProductionAlert, 'id' | 'timestamp' | 'acknowledged' | 'resolved' | 'actions'>): void {
+  private createAlert(alertData: Omit<ProductionAlert, 'id' | 'timestamp' | 'acknowledged' | 'resolved'> & { actions: string[] }): void {
     const alert: ProductionAlert = {
       id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date(),
       acknowledged: false,
       resolved: false,
-      actions: alertData.actions,
       ...alertData
     };
 

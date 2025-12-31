@@ -97,38 +97,70 @@ export default function TrustScoresPage() {
     },
   });
 
+  const mockAgents: AgentTrustData[] = [
+    {
+      id: 'agent-001', name: 'GPT-4 Assistant', model: 'gpt-4-turbo',
+      trustScore: 89,
+      symbiDimensions: { realityIndex: 8.7, trustProtocol: 'PASS', ethicalAlignment: 4.3, resonanceQuality: 'ADVANCED', canvasParity: 92 },
+      lastInteraction: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
+      interactions24h: 2456, status: 'healthy'
+    },
+    {
+      id: 'agent-002', name: 'Claude Analyst', model: 'claude-3-opus',
+      trustScore: 94,
+      symbiDimensions: { realityIndex: 9.2, trustProtocol: 'PASS', ethicalAlignment: 4.7, resonanceQuality: 'BREAKTHROUGH', canvasParity: 96 },
+      lastInteraction: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+      interactions24h: 1823, status: 'healthy'
+    },
+    {
+      id: 'agent-003', name: 'Mistral Coder', model: 'mistral-large',
+      trustScore: 73,
+      symbiDimensions: { realityIndex: 7.1, trustProtocol: 'PARTIAL', ethicalAlignment: 3.8, resonanceQuality: 'STRONG', canvasParity: 78 },
+      lastInteraction: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+      interactions24h: 987, status: 'warning'
+    },
+    {
+      id: 'agent-004', name: 'Gemini Pro', model: 'gemini-1.5-pro',
+      trustScore: 85,
+      symbiDimensions: { realityIndex: 8.3, trustProtocol: 'PASS', ethicalAlignment: 4.1, resonanceQuality: 'ADVANCED', canvasParity: 88 },
+      lastInteraction: new Date(Date.now() - 1000 * 60 * 8).toISOString(),
+      interactions24h: 1567, status: 'healthy'
+    }
+  ];
+
+  const { data: agentsData, isLoading: agentsLoading, isError: agentsError } = useQuery({
+    queryKey: ['agents'],
+    queryFn: async () => {
+      const response = await fetch('/api/agents');
+      if (!response.ok) throw new Error('Failed to fetch agents');
+      return response.json() as Promise<{ success: boolean; data: { agents: any[]; summary: any }; source: string }>;
+    },
+  });
+
   useEffect(() => {
-    setAgents([
-      {
-        id: 'agent-001', name: 'GPT-4 Assistant', model: 'gpt-4-turbo',
-        trustScore: 89,
-        symbiDimensions: { realityIndex: 8.7, trustProtocol: 'PASS', ethicalAlignment: 4.3, resonanceQuality: 'ADVANCED', canvasParity: 92 },
-        lastInteraction: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
-        interactions24h: 2456, status: 'healthy'
+    if (agentsError || !agentsData?.data?.agents?.length) {
+      setAgents(mockAgents);
+      return;
+    }
+    
+    const apiAgents = agentsData.data.agents.map((agent: any) => ({
+      id: agent.id,
+      name: agent.name,
+      model: agent.type || 'unknown',
+      trustScore: agent.trustScore,
+      symbiDimensions: {
+        realityIndex: agent.symbiDimensions?.realityIndex || 8.0,
+        trustProtocol: agent.symbiDimensions?.trustProtocol >= 8 ? 'PASS' : 'PARTIAL',
+        ethicalAlignment: agent.symbiDimensions?.ethicalAlignment || 4.0,
+        resonanceQuality: agent.symbiDimensions?.resonanceQuality >= 9 ? 'BREAKTHROUGH' : agent.symbiDimensions?.resonanceQuality >= 7 ? 'ADVANCED' : 'STRONG',
+        canvasParity: agent.symbiDimensions?.canvasParity || 85,
       },
-      {
-        id: 'agent-002', name: 'Claude Analyst', model: 'claude-3-opus',
-        trustScore: 94,
-        symbiDimensions: { realityIndex: 9.2, trustProtocol: 'PASS', ethicalAlignment: 4.7, resonanceQuality: 'BREAKTHROUGH', canvasParity: 96 },
-        lastInteraction: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-        interactions24h: 1823, status: 'healthy'
-      },
-      {
-        id: 'agent-003', name: 'Mistral Coder', model: 'mistral-large',
-        trustScore: 73,
-        symbiDimensions: { realityIndex: 7.1, trustProtocol: 'PARTIAL', ethicalAlignment: 3.8, resonanceQuality: 'STRONG', canvasParity: 78 },
-        lastInteraction: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-        interactions24h: 987, status: 'warning'
-      },
-      {
-        id: 'agent-004', name: 'Gemini Pro', model: 'gemini-1.5-pro',
-        trustScore: 85,
-        symbiDimensions: { realityIndex: 8.3, trustProtocol: 'PASS', ethicalAlignment: 4.1, resonanceQuality: 'ADVANCED', canvasParity: 88 },
-        lastInteraction: new Date(Date.now() - 1000 * 60 * 8).toISOString(),
-        interactions24h: 1567, status: 'healthy'
-      }
-    ]);
-  }, []);
+      lastInteraction: agent.lastInteraction || new Date().toISOString(),
+      interactions24h: agent.interactionCount || 0,
+      status: (agent.trustScore >= 85 ? 'healthy' : agent.trustScore >= 70 ? 'warning' : 'critical') as 'healthy' | 'warning' | 'critical'
+    }));
+    setAgents(apiAgents);
+  }, [agentsData, agentsError]);
 
   const kpis = kpiData?.data;
   const avgTrust = kpis?.trustScore ?? 85.3;

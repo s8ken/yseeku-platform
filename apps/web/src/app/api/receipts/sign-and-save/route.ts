@@ -5,6 +5,9 @@ import { getDefaultSigner, bindingMessage } from '@sonate/orchestrate/src/securi
 import { TrustReceipt } from '@sonate/core'
 import { saveTrustReceipt } from '@sonate/persistence'
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 function extractToken(req: Request): string | null {
   const auth = req.headers.get('authorization')
   if (auth && auth.startsWith('Bearer ')) return auth.substring(7)

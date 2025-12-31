@@ -60,52 +60,22 @@ The core calculation uses a multi-factor approach:
 ```typescript
 interface BedauMetrics {
   bedau_index: number;           // 0-1: Weak emergence strength
-  emergence_type: 'LINEAR' | 'WEAK_EMERGENCE' | 'POTENTIAL_STRONG_EMERGENCE';
+  emergence_type: 'LINEAR' | 'WEAK_EMERGENCE';
   kolmogorov_complexity: number; // Irreducibility measurement
   semantic_entropy: number;      // Cognitive diversity
   confidence_interval: [number, number];
   effect_size: number;          // Statistical significance
-  strong_emergence_indicators?: StrongEmergenceIndicators; // Future implementation
-}
-
-interface StrongEmergenceIndicators {
-  irreducibility_proof: boolean;      // Cannot be predicted from components
-  downward_causation: boolean;        // Higher level affects lower level
-  novel_causal_powers: boolean;       // New causal capabilities emerge
-  unpredictability_verified: boolean; // Verified through testing
-  collective_behavior_score: number;  // 0-1: Degree of collective behavior
 }
 ```
 
-**Classification Logic:**
-
-- **LINEAR (0.0 - 0.3)**: Predictable, reducible behavior.
-- **WEAK_EMERGENCE (0.3 - 0.7)**: Novel patterns emerging from micro-interactions.
-- **POTENTIAL_STRONG_EMERGENCE (0.7 - 1.0)**: High-confidence weak emergence approaching the boundary of strong emergence. Requires additional indicators for true strong emergence classification.
+**Key Algorithms:**
 
 - **Cosine Similarity**: Measures semantic-surface vector divergence
 - **Lempel-Ziv Complexity**: Approximates Kolmogorov complexity
 - **Shannon Entropy**: Calculates cognitive diversity
 - **Bootstrap Resampling**: Provides statistical confidence intervals
-- **Strong Emergence Heuristics**: Multi-factor analysis for true strong emergence detection
 
-### 2. Strong Emergence Detection
-
-While the Bedau Index primarily measures weak emergence, the platform now includes heuristic detection for potential strong emergence:
-
-```typescript
-interface StrongEmergenceIndicators {
-  irreducibility_proof: boolean;      // High complexity + low mirroring
-  downward_causation: boolean;        // High abstraction + high novelty
-  novel_causal_powers: boolean;       // Cross-domain connections + deep reasoning
-  unpredictability_verified: boolean; // High divergence + low pattern repetition
-  collective_behavior_score: number;  // Combined score of above factors
-}
-```
-
-These indicators are evaluated when the Bedau Index exceeds the `WEAK_EMERGENCE` threshold (0.7), providing a scientifically grounded bridge from weak to strong emergence analysis.
-
-### 3. Temporal Tracking
+### 2. Temporal Tracking
 
 Temporal analysis enables understanding emergence evolution:
 

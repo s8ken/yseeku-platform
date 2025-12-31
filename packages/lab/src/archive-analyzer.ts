@@ -41,8 +41,8 @@ export interface ParsedConversationTurn {
 export class ArchiveAnalyzer {
   private archivesPath: string;
 
-  constructor(archivesPath?: string) {
-    this.archivesPath = archivesPath || process.env.ARCHIVES_PATH || path.join(process.cwd(), 'Archives');
+  constructor(archivesPath: string = 'c:\\Users\\Stephen\\yseeku-platform\\Archives') {
+    this.archivesPath = archivesPath;
   }
 
   /**

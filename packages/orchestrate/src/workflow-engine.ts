@@ -7,7 +7,7 @@
  * - Error handling and retries
  */
 
-import { Workflow, WorkflowStep } from './index';
+import { Workflow, WorkflowStep } from './types';
 
 export class WorkflowEngine {
   private activeWorkflows: Map<string, Workflow> = new Map();

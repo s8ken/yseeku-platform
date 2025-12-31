@@ -1,28 +1,17 @@
-# Yseeku Platform (SONATE) v1.5.0 — Enterprise AI Governance
+# Yseeku Platform (SONATE) v1.4.0 — Enterprise Symphony
 ![SYMBI](apps/resonate-dashboard/public/symbi-logo.svg)
-![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg) [![CI](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml) [![CodeQL](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml) ![Dependabot](https://img.shields.io/badge/Dependabot-enabled-brightgreen) ![AI Trust](https://img.shields.io/badge/AI%20Trust-SYMBI-blueviolet.svg) ![Enterprise Ready](https://img.shields.io/badge/Enterprise-Ready-green.svg) ![Version: 1.5.0](https://img.shields.io/badge/version-1.5.0-blue.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg) [![CI](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml) [![CodeQL](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml) ![Dependabot](https://img.shields.io/badge/Dependabot-enabled-brightgreen) ![AI Trust](https://img.shields.io/badge/AI%20Trust-SYMBI-blueviolet.svg) ![Enterprise Ready](https://img.shields.io/badge/Enterprise-Ready-green.svg) ![Version: 1.4.0](https://img.shields.io/badge/version-1.4.0-blue.svg)
 
 ## Executive Summary
 Yseeku’s SONATE platform is a comprehensive enterprise AI governance framework that provides constitutional AI with real-time trust monitoring, research validation, and production orchestration. Built on the SYMBI constitutional framework, SONATE offers enterprises a complete solution for deploying AI systems with provable trust, compliance, and operational control.
 
-## 🚀 Quick Start
+## 📚 Quick Start
 
-### 🎯 Platform Demos
-🚀 **[Live Demo](https://demo.yseeku.com/demos/)** - Interactive platform demonstration  
-🔬 **[Advanced Demo](https://demo.yseeku.com/demos/advanced.html)** - Expert diagnostics & compliance  
-
-### 📦 Quick Install
-
-```bash
-git clone https://github.com/s8ken/yseeku-platform.git
-cd yseeku-platform
-npm install
-npm run build
-npm run dev
-```
+### Enterprise Deployment Guide
+🚀 **[Enterprise Guide v1.4.0](docs/ENTERPRISE_GUIDE_v1.4.0.md)** - Complete enterprise deployment and operations guide
 
 ### Latest Release
-✅ **[v1.5.0 Release](https://github.com/s8ken/yseeku-platform/releases/tag/v1.5.0)** - Enterprise AI governance with real-time orchestration
+✅ **[v1.4.0 "Enterprise Symphony"](https://github.com/s8ken/yseeku-platform/releases/tag/v1.4.0)** - Production-ready enterprise platform
 
 ## 📚 Documentation & Guides
 
@@ -119,52 +108,6 @@ Advanced conversation quality metric implemented in `symbi_resonance_calculator.
 - Security: W3C DID/VC, zero‑trust, comprehensive audit logging, RBAC
 - Compliance: EU AI Act alignment, SOC 2 compatibility, GDPR, ISO/NIST frameworks
 - Deployment: cloud‑native, hybrid, edge, multi‑tenant
-
-## Production Deployment Examples
-
-### Docker Deployment
-Build and run the platform using Docker for simple production setups:
-
-```bash
-# Build the Docker image
-docker build -t yseeku-platform .
-
-# Run the container
-docker run -d -p 3000:3000 --env-file .env yseeku-platform
-```
-
-Ensure you configure environment variables in `.env` for database connections and API keys.
-
-### Kubernetes Deployment
-For scalable deployments, use the provided Kubernetes manifests:
-
-```yaml
-# deployment.yaml example
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: yseeku-deployment
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: yseeku
-  template:
-    metadata:
-      labels:
-        app: yseeku
-    spec:
-      containers:
-      - name: yseeku
-        image: yseeku-platform:latest
-        ports:
-        - containerPort: 3000
-        envFrom:
-        - configMapRef:
-            name: yseeku-config
-```
-
-Apply with `kubectl apply -f deployment.yaml`. Scale with `kubectl scale deployment yseeku-deployment --replicas=5`.
 
 ## Ecosystem
 - Platform: https://yseeku.com
@@ -449,4 +392,3 @@ MIT
 - SONATE’s trust protocol is defined across 6 SYMBI principles; references to other article counts are historical and will be harmonized to these 6 principles throughout documentation.
 
 **SONATE v1.2.0** by YSEEKU - The Definitive SYMBI Framework Platform
-<!-- GitHub Pages build trigger - Sat Dec 27 10:31:42 UTC 2025 -->

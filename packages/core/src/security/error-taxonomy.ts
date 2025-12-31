@@ -90,6 +90,9 @@ export class EnhancedSecurityError extends Error {
     };
   }
 
+  /**
+   * Get security report for this error
+   */
   getSecurityReport(): SecurityErrorReport {
     return {
       error: this,
@@ -99,70 +102,143 @@ export class EnhancedSecurityError extends Error {
     };
   }
 
-  private isAuditRequired(): boolean {
-    return this.context.severity === 'high' || this.context.severity === 'critical';
+  /**
+   * Determine if this error requires audit logging
+   */
+  protected isAuditRequired(): boolean {
+    return ['authentication', 'authorization', 'cryptographic', 'data_integrity'].includes(this.context.category);
   }
 
-  private determineAlertLevel(): 'info' | 'warning' | 'critical' {
+  /**
+   * Determine alert level for this error
+   */
+  protected determineAlertLevel(): 'info' | 'warning' | 'critical' {
     if (this.context.severity === 'critical') return 'critical';
     if (this.context.severity === 'high') return 'warning';
     return 'info';
   }
 
-  private getRecommendedActions(): string[] {
+  /**
+   * Get recommended actions for this error
+   */
+  protected getRecommendedActions(): string[] {
     const actions: string[] = [];
-    if (this.remediation) actions.push(this.remediation);
-    if (this.documentationUrl) actions.push(`See documentation at: ${this.documentationUrl}`);
+    
+    if (this.isAuditRequired()) {
+      actions.push('Log this error to security audit trail');
+    }
+    
+    if (this.context.severity === 'critical') {
+      actions.push('Immediately review security controls');
+      actions.push('Consider temporary access restrictions');
+    }
+    
+    if (this.remediation) {
+      actions.push(this.remediation);
+    }
+
     return actions;
   }
 }
 
 /**
- * Authentication related errors
+ * Authentication-related errors
  */
 export class AuthenticationError extends EnhancedSecurityError {
   constructor(
     message: string,
-    context: Partial<ErrorContext>,
-    options?: { originalError?: Error; metadata?: Record<string, any>; remediation?: string }
+    contextOrCode: Omit<ErrorContext, 'category' | 'timestamp'> | string,
+    optionsOrMetadata?: {
+      originalError?: Error;
+      metadata?: Record<string, any>;
+      remediation?: string;
+    } | Record<string, any>
   ) {
+    if (typeof contextOrCode === 'string') {
+      const metadata = (optionsOrMetadata as Record<string, any>) || {};
+      const component = 'auth-middleware';
+      const operation = metadata.method || 'authenticate';
+      const severity: ErrorContext['severity'] = 'high';
+      super({
+        code: contextOrCode,
+        message,
+        context: {
+          component,
+          operation,
+          severity,
+          userId: metadata.userId,
+          tenantId: metadata.tenant,
+          requestId: metadata.requestId,
+          sessionId: metadata.sessionId,
+          ipAddress: metadata.ipAddress,
+          userAgent: metadata.userAgent,
+          category: 'authentication',
+          timestamp: Date.now()
+        },
+        originalError: metadata.originalError instanceof Error ? metadata.originalError : undefined,
+        metadata,
+        remediation: 'Verify authentication credentials and try again',
+        documentationUrl: '/docs/security/authentication'
+      });
+      return;
+    }
+
+    const context = contextOrCode as Omit<ErrorContext, 'category' | 'timestamp'>;
+    const options = optionsOrMetadata as {
+      originalError?: Error;
+      metadata?: Record<string, any>;
+      remediation?: string;
+    } | undefined;
+
     super({
       code: 'AUTH_ERROR',
       message,
       context: {
-        component: 'UnknownComponent',
-        operation: 'UnknownOperation',
-        timestamp: Date.now(),
-        severity: 'medium',
+        ...context,
         category: 'authentication',
-        ...context
+        timestamp: Date.now()
       },
-      ...options
+      originalError: options?.originalError,
+      metadata: options?.metadata,
+      remediation: options?.remediation || 'Verify authentication credentials and try again',
+      documentationUrl: '/docs/security/authentication'
     });
   }
 }
 
 /**
- * Authorization related errors
+ * Authorization/permission errors
  */
 export class AuthorizationError extends EnhancedSecurityError {
   constructor(
     message: string,
-    context: Partial<ErrorContext>,
-    options?: { originalError?: Error; metadata?: Record<string, any>; remediation?: string }
+    context: Omit<ErrorContext, 'category' | 'timestamp'>,
+    options?: {
+      requiredPermissions?: string[];
+      userPermissions?: string[];
+      originalError?: Error;
+      metadata?: Record<string, any>;
+      remediation?: string;
+    }
   ) {
+    const metadata = {
+      ...options?.metadata,
+      requiredPermissions: options?.requiredPermissions,
+      userPermissions: options?.userPermissions
+    };
+
     super({
       code: 'AUTHZ_ERROR',
       message,
       context: {
-        component: 'UnknownComponent',
-        operation: 'UnknownOperation',
-        timestamp: Date.now(),
-        severity: 'high',
+        ...context,
         category: 'authorization',
-        ...context
+        timestamp: Date.now()
       },
-      ...options
+      originalError: options?.originalError,
+      metadata,
+      remediation: options?.remediation || 'Contact administrator for appropriate permissions',
+      documentationUrl: '/docs/security/authorization'
     });
   }
 }
@@ -306,26 +382,40 @@ export class DataIntegrityError extends EnhancedSecurityError {
 }
 
 /**
- * Validation related errors
+ * Input validation errors
  */
 export class ValidationError extends EnhancedSecurityError {
   constructor(
     message: string,
-    context: Partial<ErrorContext>,
-    options?: { originalError?: Error; metadata?: Record<string, any>; remediation?: string }
+    context: Omit<ErrorContext, 'category' | 'timestamp'>,
+    options?: {
+      field?: string;
+      value?: any;
+      constraints?: string[];
+      originalError?: Error;
+      metadata?: Record<string, any>;
+      remediation?: string;
+    }
   ) {
+    const metadata = {
+      ...options?.metadata,
+      field: options?.field,
+      value: options?.value,
+      constraints: options?.constraints
+    };
+
     super({
-      code: 'VAL_ERROR',
+      code: 'VALIDATION_ERROR',
       message,
       context: {
-        component: 'UnknownComponent',
-        operation: 'UnknownOperation',
-        timestamp: Date.now(),
-        severity: 'low',
+        ...context,
         category: 'validation',
-        ...context
+        timestamp: Date.now()
       },
-      ...options
+      originalError: options?.originalError,
+      metadata,
+      remediation: options?.remediation || 'Correct input data according to validation constraints',
+      documentationUrl: '/docs/api/validation'
     });
   }
 }

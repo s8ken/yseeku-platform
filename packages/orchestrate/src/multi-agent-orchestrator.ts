@@ -1,5 +1,5 @@
 import { EventEmitter } from "events"
-import { socketManager } from "@/lib/socket-client"
+import { socketManager } from "./lib/socket-client"
 
 export interface WorkflowDefinition {
   id: string
@@ -110,12 +110,12 @@ export class AgentOrchestrator extends EventEmitter {
       execution.status = "completed"
       execution.endTime = new Date()
       this.emit("workflow_completed", execution)
-    } catch (error) {
+    } catch (error: any) {
       execution.status = "failed"
       execution.endTime = new Date()
       execution.errors.push({
         taskId: execution.currentTask || "unknown",
-        error: error.message,
+        error: error.message || String(error),
         timestamp: new Date(),
         retryAttempt: 0,
       })
@@ -312,12 +312,11 @@ export class AgentOrchestrator extends EventEmitter {
 
     return readyTaskIds
       .map((id) =>
-        this.workflows
-          .values()
-          .next()
-          .value?.tasks.find((t: WorkflowTask) => t.id === id),
+        Array.from(this.workflows.values())
+          .flatMap(w => w.tasks)
+          .find((t: WorkflowTask) => t.id === id),
       )
-      .filter(Boolean)
+      .filter((t): t is WorkflowTask => !!t)
   }
 
   /**

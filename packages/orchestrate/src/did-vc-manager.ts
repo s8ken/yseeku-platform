@@ -8,7 +8,7 @@
  * This ensures cryptographic proof of agent capabilities.
  */
 
-import { VerifiableCredential, Proof } from './index';
+import { VerifiableCredential, CredentialProof as Proof } from './agent-types-enhanced';
 
 export class DIDVCManager {
   /**

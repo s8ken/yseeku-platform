@@ -4,6 +4,15 @@ export { SymbiScorer } from './symbi-scorer';
 export { hashChain, genesisHash } from './utils/hash-chain';
 export { signPayload, verifySignature, generateKeyPair } from './utils/signatures';
 export * from './utils/crypto-advanced';
+export * from './canonicalize';
+export * from './resonance-metric';
+export * from './linguistic-vector-steering';
+export * from './trust-protocol-enhanced';
+export * from './tenant-context';
+
+export { SecureAuthService } from './security/auth-service';
+export { MFAService } from './security/mfa-system';
+export { EnhancedSecurityError } from './security/error-taxonomy';
 
 export const TRUST_PRINCIPLES: {
   readonly CONSENT_ARCHITECTURE: { readonly weight: number; readonly critical: boolean; readonly description: string };

@@ -14,6 +14,12 @@ export function getPool(): Pool | null {
   try {
     pool = new Pool({ connectionString: url });
     console.log('PostgreSQL pool initialized');
+    
+    // Provison admin after pool is initialized
+    import('./auth').then(({ ensureDefaultAdmin }) => {
+      ensureDefaultAdmin().catch(err => console.error('Failed to ensure default admin:', err));
+    });
+
     return pool;
   } catch (err) {
     console.error('Failed to initialize PostgreSQL pool:', err);
@@ -54,7 +60,73 @@ export async function ensureSchema(): Promise<void> {
         email TEXT,
         name TEXT,
         password_hash TEXT,
+        role TEXT DEFAULT 'viewer',
         tenant_id TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS trust_receipts (
+        self_hash TEXT PRIMARY KEY,
+        session_id TEXT,
+        version TEXT,
+        timestamp BIGINT,
+        mode TEXT,
+        ciq JSONB,
+        previous_hash TEXT,
+        signature TEXT,
+        session_nonce TEXT,
+        tenant_id TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS risk_events (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        severity TEXT DEFAULT 'warning',
+        description TEXT,
+        category TEXT DEFAULT 'operational',
+        resolved BOOLEAN DEFAULT false,
+        resolved_at TIMESTAMPTZ,
+        tenant_id TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS experiments (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        status TEXT DEFAULT 'draft',
+        type TEXT DEFAULT 'a_b_test',
+        variant_a JSONB,
+        variant_b JSONB,
+        sample_size INTEGER DEFAULT 1000,
+        current_sample INTEGER DEFAULT 0,
+        statistical_power NUMERIC(5,2) DEFAULT 0.80,
+        p_value NUMERIC(10,8),
+        winner TEXT,
+        tenant_id TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        started_at TIMESTAMPTZ,
+        completed_at TIMESTAMPTZ
+      );
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id TEXT PRIMARY KEY,
+        action TEXT,
+        event TEXT,
+        resource_type TEXT,
+        resource_id TEXT,
+        user_id TEXT,
+        user_email TEXT,
+        status TEXT,
+        details JSONB,
+        ip_address TEXT,
+        tenant_id TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT REFERENCES users(id),
+        token TEXT NOT NULL UNIQUE,
+        expires_at TIMESTAMPTZ NOT NULL,
+        ip_address TEXT,
+        user_agent TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
     `);

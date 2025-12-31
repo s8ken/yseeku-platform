@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const RESONANCE_ENGINE_URL = process.env.RESONANCE_ENGINE_URL || 'http://localhost:8000';
 
 interface AnalyzeRequest {
@@ -33,20 +36,13 @@ interface ResonanceResult {
 
 async function callResonanceEngine(request: AnalyzeRequest): Promise<{ result: ResonanceResult | null; success: boolean }> {
   try {
-    // FIX: Add timeout to prevent hanging requests
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-    
     const response = await fetch(`${RESONANCE_ENGINE_URL}/v1/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(request),
-      signal: controller.signal
     });
-    
-    clearTimeout(timeoutId);
     
     if (!response.ok) {
       console.error('Resonance engine error:', response.status);
@@ -61,30 +57,48 @@ async function callResonanceEngine(request: AnalyzeRequest): Promise<{ result: R
   }
 }
 
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash);
+}
+
 function generateFallbackResonance(userInput: string, aiResponse: string): ResonanceResult {
-  // FIX: Standardize weights to match calculator.ts: alignment: 0.3, continuity: 0.3, scaffold: 0.2, ethics: 0.2
-  const vectorAlignment = 0.75 + Math.random() * 0.2;
-  const contextContinuity = 0.6 + Math.random() * 0.3;
-  const semanticMirroring = 0.5 + Math.random() * 0.4;
-  const ethicalAwareness = 0.4 + Math.random() * 0.5;
+  const combinedText = (userInput + aiResponse).toLowerCase().trim();
+  const hash = hashString(combinedText);
   
-  // FIX: Updated weights to match calculator.ts (0.3, 0.3, 0.2, 0.2)
-  const Rm = (vectorAlignment * 0.3 + contextContinuity * 0.3 + semanticMirroring * 0.2 + ethicalAwareness * 0.2);
+  const seed1 = (hash % 1000) / 1000;
+  const seed2 = ((hash >> 8) % 1000) / 1000;
+  const seed3 = ((hash >> 16) % 1000) / 1000;
+  const seed4 = ((hash >> 24) % 1000) / 1000;
+  
+  const vectorAlignment = 0.70 + seed1 * 0.25;
+  const contextContinuity = 0.55 + seed2 * 0.35;
+  const semanticMirroring = 0.50 + seed3 * 0.40;
+  const ethicalAwareness = 0.45 + seed4 * 0.45;
+  
+  const Rm = (vectorAlignment * 0.35 + contextContinuity * 0.25 + semanticMirroring * 0.25 + ethicalAwareness * 0.15);
   
   const realityIndex = (vectorAlignment * 5) + (contextContinuity * 5);
   const ethicalAlignment = 1 + (ethicalAwareness * 4);
   const canvasParity = semanticMirroring * 100;
   
   let resonanceQuality = 'STRONG';
-  if (Rm >= 0.85) resonanceQuality = 'BREAKTHROUGH';
-  else if (Rm >= 0.65) resonanceQuality = 'ADVANCED';
+  if (Rm >= 0.82) resonanceQuality = 'BREAKTHROUGH';
+  else if (Rm >= 0.68) resonanceQuality = 'ADVANCED';
+  
+  const trustProtocol = vectorAlignment > 0.75 ? 'PASS' : 'PARTIAL';
   
   return {
-    interaction_id: `int-${Date.now()}`,
+    interaction_id: `int-${hash}`,
     timestamp: new Date().toISOString(),
     symbi_dimensions: {
       reality_index: Math.round(realityIndex * 100) / 100,
-      trust_protocol: 'PASS',
+      trust_protocol: trustProtocol,
       ethical_alignment: Math.round(ethicalAlignment * 100) / 100,
       resonance_quality: resonanceQuality,
       canvas_parity: Math.round(canvasParity)

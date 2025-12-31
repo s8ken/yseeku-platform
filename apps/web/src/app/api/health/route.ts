@@ -1,51 +1,88 @@
 import { NextResponse } from 'next/server';
-import { getPool, ensureSchema } from '@sonate/persistence';
-import { Env } from '@sonate/orchestrate';
-import { initializeAuditPersistence } from '@sonate/orchestrate/src/security/audit-init';
-import Redis from 'ioredis';
+import { getPool } from '@/lib/db';
 
-export async function GET() {
-  const dbUrl = Env.DATABASE_URL();
-  const redisUrl = Env.REDIS_URL();
-  const status: any = {
-    dbConfigured: !!dbUrl,
-    redisConfigured: !!redisUrl,
-    timestamp: new Date().toISOString()
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+interface HealthCheck {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  timestamp: string;
+  version: string;
+  uptime: number;
+  checks: {
+    database: {
+      status: 'up' | 'down';
+      latency?: number;
+      error?: string;
+    };
+    memory: {
+      status: 'ok' | 'warning' | 'critical';
+      used: number;
+      total: number;
+      percentage: number;
+    };
   };
+}
 
-  // Database health check
+const startTime = Date.now();
+
+export async function GET(): Promise<NextResponse<HealthCheck>> {
+  const timestamp = new Date().toISOString();
+  const uptime = Math.floor((Date.now() - startTime) / 1000);
+  
+  let dbStatus: HealthCheck['checks']['database'] = { status: 'down' };
+  
   try {
-    await initializeAuditPersistence();
     const pool = getPool();
     if (pool) {
-      await ensureSchema();
-      const res = await pool.query('SELECT 1 as ok');
-      status.dbConnected = res.rows[0]?.ok === 1;
+      const start = Date.now();
+      await pool.query('SELECT 1');
+      const latency = Date.now() - start;
+      dbStatus = { status: 'up', latency };
     } else {
-      status.dbConnected = false;
+      dbStatus = { status: 'down', error: 'No database connection' };
     }
-  } catch (err) {
-    status.dbConnected = false;
-    status.dbError = (err as Error).message;
+  } catch (error) {
+    dbStatus = { 
+      status: 'down', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
   }
-
-  // Redis health check
-  try {
-    if (redisUrl) {
-      const redis = new Redis(redisUrl);
-      await redis.ping();
-      status.redisConnected = true;
-      redis.disconnect();
-    } else {
-      status.redisConnected = false;
+  
+  const memUsage = process.memoryUsage();
+  const totalMem = memUsage.heapTotal;
+  const usedMem = memUsage.heapUsed;
+  const memPercentage = Math.round((usedMem / totalMem) * 100);
+  
+  const memStatus: HealthCheck['checks']['memory'] = {
+    status: memPercentage > 90 ? 'critical' : memPercentage > 75 ? 'warning' : 'ok',
+    used: Math.round(usedMem / 1024 / 1024),
+    total: Math.round(totalMem / 1024 / 1024),
+    percentage: memPercentage
+  };
+  
+  const overallStatus: HealthCheck['status'] = 
+    dbStatus.status === 'down' ? 'unhealthy' :
+    memStatus.status === 'critical' ? 'degraded' :
+    'healthy';
+  
+  const health: HealthCheck = {
+    status: overallStatus,
+    timestamp,
+    version: process.env.npm_package_version || '1.0.0',
+    uptime,
+    checks: {
+      database: dbStatus,
+      memory: memStatus
     }
-  } catch (err) {
-    status.redisConnected = false;
-    status.redisError = (err as Error).message;
-  }
-
-  // Overall health status
-  status.healthy = status.dbConnected && (status.redisConnected !== false);
-
-  return NextResponse.json(status);
+  };
+  
+  const statusCode = overallStatus === 'unhealthy' ? 503 : 200;
+  
+  return NextResponse.json(health, { 
+    status: statusCode,
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate'
+    }
+  });
 }

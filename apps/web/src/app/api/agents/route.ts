@@ -181,24 +181,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, type, tenantId } = body;
     
-    // Validate inputs
-    if (!name || typeof name !== 'string' || name.length > 100) {
+    if (!name) {
       return NextResponse.json(
-        { success: false, error: 'Valid name is required (max 100 characters)' },
-        { status: 400 }
-      );
-    }
-
-    if (type && (typeof type !== 'string' || type.length > 50)) {
-      return NextResponse.json(
-        { success: false, error: 'Type must be a string (max 50 characters)' },
-        { status: 400 }
-      );
-    }
-
-    if (tenantId && (typeof tenantId !== 'string' || tenantId.length > 100)) {
-      return NextResponse.json(
-        { success: false, error: 'TenantId must be a string (max 100 characters)' },
+        { success: false, error: 'Name is required' },
         { status: 400 }
       );
     }

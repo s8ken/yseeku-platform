@@ -17,9 +17,9 @@ import {
 } from './domain-models';
 
 // Integration interfaces (would connect to actual SYMPHONY/SYNERGY services)
-import { ResonanceEngineClient } from './detect/resonance-engine-client';
+import { ResonanceEngineClient, createResonanceEngineClient } from './detect/resonance-engine-client';
 import { AgentOrchestrator } from './lab/agent-bus';
-import { TrustProtocolEnhanced } from './core/trust-protocol-enhanced';
+import { TrustProtocolEnhanced, createTrustProtocolEnhanced } from './core/trust-protocol-enhanced';
 
 export interface OrchestrateServiceConfig {
   symphonyEndpoint?: string;
@@ -80,7 +80,7 @@ export class OrchestrateService extends EventEmitter {
   constructor(config: OrchestrateServiceConfig) {
     super();
     this.config = config;
-    this.trustProtocol = new TrustProtocolEnhanced();
+    this.trustProtocol = createTrustProtocolEnhanced();
     
     this.initializeClients();
   }
@@ -89,7 +89,7 @@ export class OrchestrateService extends EventEmitter {
     try {
       // Initialize SYMPHONY client for metrics and detection
       if (this.config.symphonyEndpoint) {
-        this.symphonyClient = new ResonanceEngineClient(this.config.symphonyEndpoint);
+        this.symphonyClient = createResonanceEngineClient();
       }
       
       // Initialize SYNERGY client for agent management
@@ -350,7 +350,12 @@ export class OrchestrateService extends EventEmitter {
     violations: any[];
     requirements: any[];
   }> {
-    const results = {
+    const results: {
+      compliant: boolean;
+      score: number;
+      violations: any[];
+      requirements: any[];
+    } = {
       compliant: true,
       score: 100,
       violations: [],

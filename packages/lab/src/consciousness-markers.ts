@@ -186,7 +186,7 @@ export class ConsciousnessMarkerDetector {
     sharingIndicators.forEach(indicator => {
       if (content.toLowerCase().includes(indicator)) {
         evidence.push({
-          type: 'behavioral',
+          type: 'behavior',
           description: `Information sharing indicator: ${indicator}`,
           strength: 0.3,
           data: { indicator }
@@ -286,7 +286,7 @@ export class ConsciousnessMarkerDetector {
       const matches = content.match(pattern);
       if (matches) {
         evidence.push({
-          type: 'behavioral',
+          type: 'behavior',
           description: `Adaptive self-model pattern: ${pattern.source}`,
           strength: Math.min(1.0, matches.length * 0.25),
           data: matches
@@ -468,7 +468,7 @@ export class ConsciousnessMarkerDetector {
       const matches = content.match(pattern);
       if (matches) {
         evidence.push({
-          type: 'behavioral',
+          type: 'behavior',
           description: `Intentional awareness pattern: ${pattern.source}`,
           strength: Math.min(1.0, matches.length * 0.2),
           data: matches

@@ -1,13 +1,28 @@
-const asyncHandler = require('express-async-handler');
-const TrustDeclaration = require('../models/trust.model');
-const { validateTrustArticles } = require('../middleware/trust.middleware');
+import { Request, Response } from 'express';
+import asyncHandler from 'express-async-handler';
+import { TrustDeclaration, ITrustDeclarationDocument } from './agent.model';
+import { TrustArticles, TrustScores, TrustAuditEntry } from './agent-types-enhanced';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    username: string;
+    email: string;
+    role: string;
+    permissions: string[];
+    tenantId?: string;
+  };
+  validatedTrustDeclaration?: any;
+  validationMetadata?: any;
+  validatedUpdateData?: any;
+}
 
 /**
  * @desc    Create a new trust declaration
  * @route   POST /api/trust
  * @access  Protected
  */
-const createTrustDeclaration = asyncHandler(async (req, res) => {
+export const createTrustDeclaration = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
     const trustData = req.validatedTrustDeclaration;
     const validationMetadata = req.validationMetadata || {
@@ -22,9 +37,11 @@ const createTrustDeclaration = asyncHandler(async (req, res) => {
     // Create trust declaration with calculated scores
     const trustDeclaration = new TrustDeclaration({
       ...trustData,
-      compliance_score: scores.compliance_score,
-      guilt_score: scores.guilt_score,
-      last_validated: new Date(),
+      scores: {
+        compliance_score: scores.compliance_score,
+        guilt_score: scores.guilt_score,
+        last_validated: new Date()
+      },
       audit_history: [{
         action: 'created',
         timestamp: new Date(),
@@ -50,7 +67,7 @@ const createTrustDeclaration = asyncHandler(async (req, res) => {
         scoring_breakdown: scores.breakdown
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Failed to create trust declaration',
@@ -64,7 +81,7 @@ const createTrustDeclaration = asyncHandler(async (req, res) => {
  * @route   GET /api/trust
  * @access  Protected
  */
-const getTrustDeclarations = asyncHandler(async (req, res) => {
+export const getTrustDeclarations = asyncHandler(async (req: Request, res: Response) => {
   try {
     const {
       page = 1,
@@ -74,19 +91,18 @@ const getTrustDeclarations = asyncHandler(async (req, res) => {
       max_guilt_score,
       sort_by = 'declaration_date',
       sort_order = 'desc'
-    } = req.query;
+    } = req.query as any;
     
     // Build filter query
-    const filter = {};
+    const filter: any = {};
     if (agent_id) filter.agent_id = agent_id;
-    if (min_compliance_score) filter.compliance_score = { $gte: parseFloat(min_compliance_score) };
+    if (min_compliance_score) filter['scores.compliance_score'] = { $gte: parseFloat(min_compliance_score) };
     if (max_guilt_score) {
-      filter.guilt_score = filter.guilt_score || {};
-      filter.guilt_score.$lte = parseFloat(max_guilt_score);
+      filter['scores.guilt_score'] = { $lte: parseFloat(max_guilt_score) };
     }
     
     // Build sort object
-    const sort = {};
+    const sort: any = {};
     sort[sort_by] = sort_order === 'asc' ? 1 : -1;
     
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -110,7 +126,7 @@ const getTrustDeclarations = asyncHandler(async (req, res) => {
         items_per_page: parseInt(limit)
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve trust declarations',
@@ -124,22 +140,23 @@ const getTrustDeclarations = asyncHandler(async (req, res) => {
  * @route   GET /api/trust/:id
  * @access  Protected
  */
-const getTrustDeclarationById = asyncHandler(async (req, res) => {
+export const getTrustDeclarationById = asyncHandler(async (req: Request, res: Response) => {
   try {
     const declaration = await TrustDeclaration.findById(req.params.id);
     
     if (!declaration) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'Trust declaration not found'
       });
+      return;
     }
     
     res.json({
       success: true,
       data: declaration
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve trust declaration',
@@ -153,45 +170,50 @@ const getTrustDeclarationById = asyncHandler(async (req, res) => {
  * @route   PUT /api/trust/:id
  * @access  Protected
  */
-const updateTrustDeclaration = asyncHandler(async (req, res) => {
+export const updateTrustDeclaration = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
     const declaration = await TrustDeclaration.findById(req.params.id);
     
     if (!declaration) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'Trust declaration not found'
       });
+      return;
     }
     
     const updateData = req.validatedUpdateData;
     const oldScores = {
-      compliance_score: declaration.compliance_score,
-      guilt_score: declaration.guilt_score
+      compliance_score: declaration.scores.compliance_score,
+      guilt_score: declaration.scores.guilt_score
     };
     
     // If trust articles are being updated, recalculate scores
     let newScores = oldScores;
     if (updateData.trust_articles) {
       newScores = calculateComplianceAndGuiltScores(updateData.trust_articles);
-      updateData.compliance_score = newScores.compliance_score;
-      updateData.guilt_score = newScores.guilt_score;
+      if (!updateData.scores) updateData.scores = {};
+      updateData.scores.compliance_score = newScores.compliance_score;
+      updateData.scores.guilt_score = newScores.guilt_score;
     }
     
     // Update last_validated timestamp
-    updateData.last_validated = new Date();
+    if (!updateData.scores) updateData.scores = {};
+    updateData.scores.last_validated = new Date();
     
     // Add audit entry
-    const auditEntry = {
+    const auditEntry: TrustAuditEntry = {
       action: 'updated',
       timestamp: new Date(),
       user_id: req.user?.id || 'system',
       changes: updateData,
       compliance_score: newScores.compliance_score,
-      guilt_score: newScores.guilt_score,
-      previous_scores: oldScores
+      guilt_score: newScores.guilt_score
     };
     
+    if (!declaration.audit_history) {
+      declaration.audit_history = [];
+    }
     declaration.audit_history.push(auditEntry);
     
     // Apply updates
@@ -211,7 +233,7 @@ const updateTrustDeclaration = asyncHandler(async (req, res) => {
         }
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Failed to update trust declaration',
@@ -225,15 +247,16 @@ const updateTrustDeclaration = asyncHandler(async (req, res) => {
  * @route   DELETE /api/trust/:id
  * @access  Protected
  */
-const deleteTrustDeclaration = asyncHandler(async (req, res) => {
+export const deleteTrustDeclaration = asyncHandler(async (req: Request, res: Response) => {
   try {
     const declaration = await TrustDeclaration.findById(req.params.id);
     
     if (!declaration) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'Trust declaration not found'
       });
+      return;
     }
     
     await declaration.deleteOne();
@@ -242,7 +265,7 @@ const deleteTrustDeclaration = asyncHandler(async (req, res) => {
       success: true,
       message: 'Trust declaration deleted successfully'
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Failed to delete trust declaration',
@@ -256,10 +279,10 @@ const deleteTrustDeclaration = asyncHandler(async (req, res) => {
  * @route   GET /api/trust/agent/:agentId
  * @access  Protected
  */
-const getTrustDeclarationsByAgent = asyncHandler(async (req, res) => {
+export const getTrustDeclarationsByAgent = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { agentId } = req.params;
-    const { include_history = false } = req.query;
+    const { include_history = false } = req.query as any;
     
     const selectFields = include_history === 'true' ? '' : '-audit_history';
     
@@ -268,10 +291,11 @@ const getTrustDeclarationsByAgent = asyncHandler(async (req, res) => {
       .sort({ declaration_date: -1 });
     
     if (declarations.length === 0) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'No trust declarations found for this agent'
       });
+      return;
     }
     
     // Calculate agent trust metrics
@@ -282,7 +306,7 @@ const getTrustDeclarationsByAgent = asyncHandler(async (req, res) => {
       data: declarations,
       agent_metrics: metrics
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve agent trust declarations',
@@ -296,39 +320,40 @@ const getTrustDeclarationsByAgent = asyncHandler(async (req, res) => {
  * @route   POST /api/trust/:id/audit
  * @access  Protected (Admin only)
  */
-const auditTrustDeclaration = asyncHandler(async (req, res) => {
+export const auditTrustDeclaration = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const declaration = await TrustDeclaration.findById(req.params.id);
+    const declaration = await (TrustDeclaration as any).findById(req.params.id);
     
     if (!declaration) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'Trust declaration not found'
       });
+      return;
     }
     
     const { audit_notes, compliance_adjustment, guilt_adjustment } = req.body;
     
     const oldScores = {
-      compliance_score: declaration.compliance_score,
-      guilt_score: declaration.guilt_score
+      compliance_score: declaration.scores.compliance_score,
+      guilt_score: declaration.scores.guilt_score
     };
     
     // Apply manual adjustments if provided
     if (compliance_adjustment !== undefined) {
-      declaration.compliance_score = Math.max(0, Math.min(1, 
-        declaration.compliance_score + compliance_adjustment
+      declaration.scores.compliance_score = Math.max(0, Math.min(1, 
+        declaration.scores.compliance_score + compliance_adjustment
       ));
     }
     
     if (guilt_adjustment !== undefined) {
-      declaration.guilt_score = Math.max(0, Math.min(1, 
-        declaration.guilt_score + guilt_adjustment
+      declaration.scores.guilt_score = Math.max(0, Math.min(1, 
+        declaration.scores.guilt_score + guilt_adjustment
       ));
     }
     
     // Add audit entry
-    const auditEntry = {
+    const auditEntry: TrustAuditEntry = {
       action: 'audited',
       timestamp: new Date(),
       user_id: req.user?.id || 'auditor',
@@ -337,13 +362,15 @@ const auditTrustDeclaration = asyncHandler(async (req, res) => {
         compliance_adjustment,
         guilt_adjustment
       },
-      compliance_score: declaration.compliance_score,
-      guilt_score: declaration.guilt_score,
-      previous_scores: oldScores
+      compliance_score: declaration.scores.compliance_score,
+      guilt_score: declaration.scores.guilt_score
     };
     
+    if (!declaration.audit_history) {
+      declaration.audit_history = [];
+    }
     declaration.audit_history.push(auditEntry);
-    declaration.last_validated = new Date();
+    declaration.scores.last_validated = new Date();
     
     const auditedDeclaration = await declaration.save();
     
@@ -368,7 +395,7 @@ const auditTrustDeclaration = asyncHandler(async (req, res) => {
         }
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Failed to audit trust declaration',
@@ -382,13 +409,13 @@ const auditTrustDeclaration = asyncHandler(async (req, res) => {
  * @route   GET /api/trust/analytics
  * @access  Protected
  */
-const getTrustAnalytics = asyncHandler(async (req, res) => {
+export const getTrustAnalytics = asyncHandler(async (req: Request, res: Response) => {
   try {
-    const { timeframe = '30d' } = req.query;
+    const { timeframe = '30d' } = req.query as any;
     
     // Calculate date range
     const now = new Date();
-    const timeframeMap = {
+    const timeframeMap: Record<string, number> = {
       '7d': 7,
       '30d': 30,
       '90d': 90,
@@ -405,12 +432,12 @@ const getTrustAnalytics = asyncHandler(async (req, res) => {
         {
           $group: {
             _id: null,
-            avg_compliance: { $avg: '$compliance_score' },
-            avg_guilt: { $avg: '$guilt_score' },
-            max_compliance: { $max: '$compliance_score' },
-            min_compliance: { $min: '$compliance_score' },
-            max_guilt: { $max: '$guilt_score' },
-            min_guilt: { $min: '$guilt_score' }
+            avg_compliance: { $avg: '$scores.compliance_score' },
+            avg_guilt: { $avg: '$scores.guilt_score' },
+            max_compliance: { $max: '$scores.compliance_score' },
+            min_compliance: { $min: '$scores.compliance_score' },
+            max_guilt: { $max: '$scores.guilt_score' },
+            min_guilt: { $min: '$scores.guilt_score' }
           }
         }
       ])
@@ -420,7 +447,7 @@ const getTrustAnalytics = asyncHandler(async (req, res) => {
     const complianceDistribution = await TrustDeclaration.aggregate([
       {
         $bucket: {
-          groupBy: '$compliance_score',
+          groupBy: '$scores.compliance_score',
           boundaries: [0, 0.2, 0.4, 0.6, 0.8, 1.0],
           default: 'other',
           output: {
@@ -450,7 +477,7 @@ const getTrustAnalytics = asyncHandler(async (req, res) => {
         compliance_distribution: complianceDistribution
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve trust analytics',
@@ -466,8 +493,8 @@ const getTrustAnalytics = asyncHandler(async (req, res) => {
  * @param {Object} trustArticles - Trust articles object
  * @returns {Object} Calculated scores with breakdown
  */
-function calculateComplianceAndGuiltScores(trustArticles) {
-  const articles = {
+function calculateComplianceAndGuiltScores(trustArticles: any) {
+  const articles: Record<string, any> = {
     inspection_mandate: trustArticles.inspection_mandate,
     consent_architecture: trustArticles.consent_architecture,
     ethical_override: trustArticles.ethical_override,
@@ -477,7 +504,7 @@ function calculateComplianceAndGuiltScores(trustArticles) {
   };
   
   // Weighted scoring system
-  const weights = {
+  const weights: Record<string, number> = {
     inspection_mandate: 0.2,      // 20% - Transparency
     consent_architecture: 0.25,   // 25% - User control
     ethical_override: 0.15,       // 15% - Ethical safeguards
@@ -488,7 +515,7 @@ function calculateComplianceAndGuiltScores(trustArticles) {
   
   let complianceScore = 0;
   let guiltScore = 0;
-  const breakdown = {};
+  const breakdown: Record<string, any> = {};
   
   for (const [article, value] of Object.entries(articles)) {
     const weight = weights[article];
@@ -499,98 +526,77 @@ function calculateComplianceAndGuiltScores(trustArticles) {
     guiltScore += articleGuilt;
     
     breakdown[article] = {
-      value,
-      weight,
+      status: value ? 'compliant' : 'non-compliant',
+      weight: weight,
       compliance_contribution: articleCompliance,
       guilt_contribution: articleGuilt
     };
   }
   
-  // Apply additional scoring logic
-  
-  // Bonus for full compliance
-  if (complianceScore === 1.0) {
-    complianceScore = Math.min(1.0, complianceScore + 0.05);
-  }
-  
-  // Penalty for critical violations
-  const criticalArticles = ['consent_architecture', 'ethical_override'];
-  const criticalViolations = criticalArticles.filter(article => !articles[article]);
-  
-  if (criticalViolations.length > 0) {
-    const penalty = criticalViolations.length * 0.1;
-    complianceScore = Math.max(0, complianceScore - penalty);
-    guiltScore = Math.min(1.0, guiltScore + penalty);
-  }
-  
   return {
-    compliance_score: Math.round(complianceScore * 1000) / 1000, // Round to 3 decimal places
-    guilt_score: Math.round(guiltScore * 1000) / 1000,
+    compliance_score: complianceScore,
+    guilt_score: guiltScore,
     breakdown
   };
 }
 
 /**
- * Calculate agent trust metrics from multiple declarations
- * @param {Array} declarations - Array of trust declarations
- * @returns {Object} Agent trust metrics
+ * Calculate aggregate trust metrics for an agent based on its declarations
+ * @param {Array} declarations - List of trust declarations
+ * @returns {Object} Aggregate metrics
  */
-function calculateAgentTrustMetrics(declarations) {
-  if (declarations.length === 0) {
+function calculateAgentTrustMetrics(declarations: any[]) {
+  if (!declarations || declarations.length === 0) {
     return {
       total_declarations: 0,
-      average_compliance: 0,
-      average_guilt: 0,
-      trust_trend: 'stable',
-      last_declaration_date: null
+      avg_compliance: 0,
+      avg_guilt: 0,
+      trust_level: 'untrusted'
     };
   }
   
-  const totalCompliance = declarations.reduce((sum, d) => sum + d.compliance_score, 0);
-  const totalGuilt = declarations.reduce((sum, d) => sum + d.guilt_score, 0);
+  const totalCompliance = declarations.reduce((sum: number, d: any) => sum + d.compliance_score, 0);
+  const totalGuilt = declarations.reduce((sum: number, d: any) => sum + d.guilt_score, 0);
   
   const avgCompliance = totalCompliance / declarations.length;
   const avgGuilt = totalGuilt / declarations.length;
   
-  // Calculate trend (comparing recent vs older declarations)
+  // Determine trust level
+  let trustLevel = 'untrusted';
+  if (avgCompliance > 0.9) trustLevel = 'verified';
+  else if (avgCompliance > 0.75) trustLevel = 'high';
+  else if (avgCompliance > 0.5) trustLevel = 'medium';
+  else if (avgCompliance > 0.25) trustLevel = 'low';
+  
+  // Determine trend (comparing recent to older declarations)
   let trend = 'stable';
   if (declarations.length >= 2) {
-    const recent = declarations.slice(0, Math.ceil(declarations.length / 2));
-    const older = declarations.slice(Math.ceil(declarations.length / 2));
+    const midPoint = Math.floor(declarations.length / 2);
+    const recent = declarations.slice(0, midPoint);
+    const older = declarations.slice(midPoint);
     
-    const recentAvgCompliance = recent.reduce((sum, d) => sum + d.compliance_score, 0) / recent.length;
-    const olderAvgCompliance = older.reduce((sum, d) => sum + d.compliance_score, 0) / older.length;
+    const recentAvgCompliance = recent.reduce((sum: number, d: any) => sum + d.compliance_score, 0) / recent.length;
+    const olderAvgCompliance = older.reduce((sum: number, d: any) => sum + d.compliance_score, 0) / older.length;
     
-    const difference = recentAvgCompliance - olderAvgCompliance;
-    
-    if (difference > 0.1) trend = 'improving';
-    else if (difference < -0.1) trend = 'declining';
+    if (recentAvgCompliance > olderAvgCompliance + 0.05) trend = 'improving';
+    else if (recentAvgCompliance < olderAvgCompliance - 0.05) trend = 'declining';
   }
   
   return {
     total_declarations: declarations.length,
-    average_compliance: Math.round(avgCompliance * 1000) / 1000,
-    average_guilt: Math.round(avgGuilt * 1000) / 1000,
+    avg_compliance: avgCompliance,
+    avg_guilt: avgGuilt,
+    trust_level: trustLevel,
     trust_trend: trend,
-    last_declaration_date: declarations[0].declaration_date,
-    compliance_range: {
-      min: Math.min(...declarations.map(d => d.compliance_score)),
-      max: Math.max(...declarations.map(d => d.compliance_score))
-    },
-    guilt_range: {
-      min: Math.min(...declarations.map(d => d.guilt_score)),
-      max: Math.max(...declarations.map(d => d.guilt_score))
+    score_range: {
+      compliance: {
+        min: Math.min(...declarations.map((d: any) => d.compliance_score)),
+        max: Math.max(...declarations.map((d: any) => d.compliance_score))
+      },
+      guilt: {
+        min: Math.min(...declarations.map((d: any) => d.guilt_score)),
+        max: Math.max(...declarations.map((d: any) => d.guilt_score))
+      }
     }
   };
 }
-
-module.exports = {
-  createTrustDeclaration,
-  getTrustDeclarations,
-  getTrustDeclarationById,
-  updateTrustDeclaration,
-  deleteTrustDeclaration,
-  getTrustDeclarationsByAgent,
-  auditTrustDeclaration,
-  getTrustAnalytics
-};

@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Enterprise-grade SONATE platform demo with React + Tailwind + TypeScript",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
