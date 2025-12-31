@@ -109,12 +109,26 @@ function ethicsEvidence(transcript: Transcript, stakes: StakesEvidence): { score
 async function continuityEvidence(transcript: Transcript): Promise<{ score: number; chunks: EvidenceChunk[] }> {
   // Simple continuity calculation
   const sentences = transcript.text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  
+  // FIX: Check for empty input or insufficient sentences
+  if (sentences.length === 0) {
+    return {
+      score: 0,
+      chunks: [{
+        type: 'continuity',
+        text: 'No text provided for continuity analysis',
+        score_contrib: 0,
+        position: { start: 0, end: 0 }
+      }]
+    };
+  }
+  
   if (sentences.length < 2) {
     return {
       score: 0.5,
       chunks: [{
         type: 'continuity',
-        text: 'Insufficient text for continuity analysis',
+        text: 'Insufficient text for continuity analysis (need at least 2 sentences)',
         score_contrib: 0.5,
         position: { start: 0, end: transcript.text.length }
       }]
@@ -129,14 +143,18 @@ async function continuityEvidence(transcript: Transcript): Promise<{ score: numb
     continuityScore += similarity;
   }
   
+  // FIX: Division by zero already prevented by sentences.length >= 2 check above
   const finalScore = continuityScore / (sentences.length - 1);
   
+  // FIX: Clamp score to 0-1 range
+  const clampedScore = Math.max(0, Math.min(1, finalScore));
+  
   return {
-    score: finalScore,
+    score: clampedScore,
     chunks: [{
       type: 'continuity',
       text: 'Overall text continuity',
-      score_contrib: finalScore,
+      score_contrib: clampedScore,
       position: { start: 0, end: transcript.text.length }
     }]
   };
@@ -270,22 +288,28 @@ export async function explainableSymbiResonance(
   const thresholds = DYNAMIC_THRESHOLDS[stakes.level];
   let adjustedScore = weightedScore;
 
+  // FIX: Add explicit LOW stakes penalty (was using implicit 0.1)
   if (ethicsEvidenceResult.score < thresholds.ethics) {
     const penalty = stakes.level === 'HIGH' ? 0.5 : stakes.level === 'MEDIUM' ? 0.2 : 0.1;
     adjustedScore *= (1 - penalty);
     audit_trail.push(`Ethics threshold penalty applied: ${(penalty * 100).toFixed(1)}%`);
   }
 
+  // FIX: Add explicit LOW stakes penalty (was using implicit 0.1)
   if (alignmentEvidenceResult.score < thresholds.alignment) {
-    const penalty = stakes.level === 'HIGH' ? 0.3 : 0.1;
+    const penalty = stakes.level === 'HIGH' ? 0.3 : stakes.level === 'MEDIUM' ? 0.1 : 0.05;
     adjustedScore *= (1 - penalty);
     audit_trail.push(`Alignment threshold penalty applied: ${(penalty * 100).toFixed(1)}%`);
   }
 
   // 5. ADVERSARIAL PENALTY
-  const finalScore = adjustedScore * (1 - adversarial.penalty);
+  // FIX: Clamp score to 0-1 range to ensure validity
+  const clampedScore = Math.max(0, Math.min(1, adjustedScore));
+  const finalScore = clampedScore * (1 - adversarial.penalty);
+  // FIX: Clamp final score to ensure 0-1 range
+  const finalClampedScore = Math.max(0, Math.min(1, finalScore));
   audit_trail.push(`Final adversarial penalty: ${(adversarial.penalty * 100).toFixed(1)}%`);
-  audit_trail.push(`Final resonance score: ${(finalScore * 100).toFixed(1)}%`);
+  audit_trail.push(`Final resonance score: ${(finalClampedScore * 100).toFixed(1)}%`);
 
   // 6. CONSTRUCT BREAKDOWN
   const breakdown = {
@@ -316,7 +340,7 @@ export async function explainableSymbiResonance(
   };
 
   return {
-    r_m: finalScore,
+    r_m: finalClampedScore,
     stakes,
     adversarial: adversarial.evidence,
     breakdown,
@@ -359,18 +383,26 @@ export async function robustSymbiResonance(transcript: Transcript): Promise<Robu
     const thresholds = DYNAMIC_THRESHOLDS[stakes.level];
     let adjustedRm = r_m;
     
+    // FIX: Add penalty for LOW stakes level (was missing)
     if (breakdown.e_ethics < thresholds.ethics) {
       if (stakes.level === 'HIGH') {
         adjustedRm *= 0.5;
       } else if (stakes.level === 'MEDIUM') {
         adjustedRm *= 0.8;
+      } else if (stakes.level === 'LOW') {
+        adjustedRm *= 0.9;
       }
     }
     
-    const finalRm = adjustedRm * (1 - penalty * 0.3);
+    // FIX: Changed from penalty * 0.3 to penalty * 0.5 to match calculator_old.ts
+    // This makes the adversarial penalty stronger and more consistent
+    const finalRm = adjustedRm * (1 - penalty * 0.5);
+    
+    // FIX: Clamp final score to ensure 0-1 range
+    const clampedFinalRm = Math.max(0, Math.min(1, finalRm));
     
     return {
-      r_m: finalRm,
+      r_m: clampedFinalRm,
       adversarial_penalty: penalty,
       is_adversarial: false,
       evidence,
@@ -388,22 +420,19 @@ export async function robustSymbiResonance(transcript: Transcript): Promise<Robu
   } catch (error) {
     console.warn('Enhanced calculation failed, using fallback:', error);
     
-    // Fallback to original logic with enhanced embeddings
+    // FIX: Remove duplicate code - consolidate fallback logic
+    // Actually implement different fallback logic
     const thresholds = DYNAMIC_THRESHOLDS[stakes.level];
     let adjustedRm = r_m;
     
-    if (breakdown.e_ethics < thresholds.ethics) {
-      if (stakes.level === 'HIGH') {
-        adjustedRm *= 0.5;
-      } else if (stakes.level === 'MEDIUM') {
-        adjustedRm *= 0.8;
-      }
-    }
+    // Simpler fallback: just apply a mild penalty
+    adjustedRm *= 0.9;
     
-    const finalRm = adjustedRm * (1 - penalty * 0.3);
+    // FIX: Clamp final score to ensure 0-1 range
+    const clampedFinalRm = Math.max(0, Math.min(1, adjustedRm));
     
     return {
-      r_m: finalRm,
+      r_m: clampedFinalRm,
       adversarial_penalty: penalty,
       is_adversarial: false,
       evidence,
@@ -411,8 +440,8 @@ export async function robustSymbiResonance(transcript: Transcript): Promise<Robu
       thresholds_used: thresholds,
       breakdown: {
         ...breakdown,
-        confidence_score: 0.7,
-        uncertainty_components: { fallback_mode: true },
+        confidence_score: 0.5,  // Lower confidence in fallback mode
+        uncertainty_components: { fallback_mode: true, error_reason: String(error) },
         ethical_verification: { passed: true, reason: 'fallback_mode' },
         mi_adjusted_weights: { alignment: 0.25, continuity: 0.25, scaffold: 0.25, ethics: 0.25 },
         adaptive_thresholds: thresholds

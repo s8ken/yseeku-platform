@@ -30,8 +30,27 @@ export async function POST(req: Request) {
         const body = await req.json();
         const { transcript, session_id } = body;
 
-        if (!transcript || !session_id) {
-            return NextResponse.json({ error: "Missing transcript or session_id" }, { status: 400 });
+        // FIX: Add more detailed validation
+        if (!transcript) {
+            return NextResponse.json({ 
+                success: false, 
+                error: "Missing transcript" 
+            }, { status: 400 });
+        }
+        
+        if (!session_id) {
+            return NextResponse.json({ 
+                success: false, 
+                error: "Missing session_id" 
+            }, { status: 400 });
+        }
+        
+        // FIX: Validate transcript has text or turns
+        if (!transcript.text && !transcript.turns) {
+            return NextResponse.json({ 
+                success: false, 
+                error: "Transcript must have either 'text' or 'turns' field" 
+            }, { status: 400 });
         }
 
         // Load session state
@@ -83,9 +102,18 @@ export async function POST(req: Request) {
             await mockKV.set(`symbi:${session_id}`, signed_receipt.session_state, { ex: 86400 * 30 });
         }
 
-        return NextResponse.json(signed_receipt);
+        // FIX: Wrap response in success structure for consistency
+        return NextResponse.json({
+            success: true,
+            data: signed_receipt,
+            source: 'trust_protocol'
+        });
     } catch (e: any) {
-        console.error(e);
-        return NextResponse.json({ error: e.message }, { status: 500 });
+        console.error('Receipt generation error:', e);
+        // FIX: Return error in consistent format
+        return NextResponse.json({ 
+            success: false, 
+            error: e.message || 'Internal server error' 
+        }, { status: 500 });
     }
 }

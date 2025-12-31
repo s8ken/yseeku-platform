@@ -21,42 +21,100 @@ export default function ResonanceDemoPage() {
     setLoading(true);
     setReceipt(null);
     try {
+      // FIX: Validate inputs before sending
+      if (!userInput.trim() || !aiResponse.trim()) {
+        alert('Please provide both user input and AI response');
+        return;
+      }
+      
+      // FIX: Parse and validate JSON history
       let history = [];
-      try { history = JSON.parse(historyStr); } catch (e) {}
+      try { 
+        history = JSON.parse(historyStr);
+        if (!Array.isArray(history)) {
+          throw new Error('History must be an array');
+        }
+      } catch (e) {
+        console.warn('Invalid history JSON, using empty array:', e);
+        history = [];
+      }
 
-      const res = await fetch('/api/detect/resonance/explain', {
+      // FIX: Updated endpoint to match actual route
+      const res = await fetch('/api/resonance/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userInput, aiResponse, history, session_id: 'demo-session-' + Date.now() })
+        body: JSON.stringify({ 
+          user_input: userInput, 
+          ai_response: aiResponse, 
+          history, 
+          metadata: { model: 'demo-model' }
+        })
       });
+      
+      // FIX: Add error handling for response
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
       const data = await res.json();
-      setResult(data);
+      
+      // FIX: Handle response structure (data is wrapped in { success, data, source })
+      if (data.success && data.data) {
+        setResult(data.data);
+      } else {
+        throw new Error('Invalid response structure from server');
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Analysis failed:', err);
+      alert(`Failed to analyze: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setResult(null);
     } finally {
       setLoading(false);
     }
   };
 
   const handleMintReceipt = async () => {
-    if (!result) return;
+    if (!result) {
+      alert('Please analyze resonance first');
+      return;
+    }
+    
     try {
+      const receiptData = {
+        transcript: { 
+          text: aiResponse, 
+          metadata: { model: 'demo-model' },
+          turns: [{ role: 'user', content: userInput }, { role: 'assistant', content: aiResponse }] 
+        },
+        session_id: 'demo-receipt-' + Date.now(),
+        resonance_result: result
+      };
+      
+      // FIX: Updated endpoint to match actual route
       const res = await fetch('/api/trust/receipt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            transcript: { 
-                text: aiResponse, 
-                metadata: { model: 'demo-model' },
-                turns: [{ role: 'user', content: userInput }, { role: 'assistant', content: aiResponse }] 
-            }, 
-            session_id: 'demo-receipt-' + Date.now() 
-        })
+        body: JSON.stringify(receiptData)
       });
+      
+      // FIX: Add error handling for response
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      
       const data = await res.json();
-      setReceipt(data);
+      
+      // FIX: Handle response structure
+      if (data.success && data.data) {
+        setReceipt(data.data);
+      } else {
+        throw new Error('Invalid response structure from server');
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Receipt minting failed:', err);
+      alert(`Failed to mint receipt: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 

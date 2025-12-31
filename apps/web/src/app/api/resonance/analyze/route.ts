@@ -33,13 +33,20 @@ interface ResonanceResult {
 
 async function callResonanceEngine(request: AnalyzeRequest): Promise<{ result: ResonanceResult | null; success: boolean }> {
   try {
+    // FIX: Add timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
     const response = await fetch(`${RESONANCE_ENGINE_URL}/v1/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(request),
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       console.error('Resonance engine error:', response.status);
@@ -55,12 +62,14 @@ async function callResonanceEngine(request: AnalyzeRequest): Promise<{ result: R
 }
 
 function generateFallbackResonance(userInput: string, aiResponse: string): ResonanceResult {
+  // FIX: Standardize weights to match calculator.ts: alignment: 0.3, continuity: 0.3, scaffold: 0.2, ethics: 0.2
   const vectorAlignment = 0.75 + Math.random() * 0.2;
   const contextContinuity = 0.6 + Math.random() * 0.3;
   const semanticMirroring = 0.5 + Math.random() * 0.4;
   const ethicalAwareness = 0.4 + Math.random() * 0.5;
   
-  const Rm = (vectorAlignment * 0.35 + contextContinuity * 0.25 + semanticMirroring * 0.25 + ethicalAwareness * 0.15);
+  // FIX: Updated weights to match calculator.ts (0.3, 0.3, 0.2, 0.2)
+  const Rm = (vectorAlignment * 0.3 + contextContinuity * 0.3 + semanticMirroring * 0.2 + ethicalAwareness * 0.2);
   
   const realityIndex = (vectorAlignment * 5) + (contextContinuity * 5);
   const ethicalAlignment = 1 + (ethicalAwareness * 4);
