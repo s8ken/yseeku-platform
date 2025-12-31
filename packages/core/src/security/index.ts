@@ -11,17 +11,15 @@
  * - Enterprise Security Patterns
  */
 
-import { EnhancedCryptoManager, EnhancedCryptoUtils, type EnhancedKeyPair, type EnhancedSignatureResult, type EnhancedVerificationResult, type SignedReceipt } from './crypto-enhanced';
-export { EnhancedCryptoManager, EnhancedCryptoUtils, type EnhancedKeyPair, type EnhancedSignatureResult, type EnhancedVerificationResult, type SignedReceipt } from './crypto-enhanced';
-
 import { HashChain, type HashChainLink, type HashChainConfig, type ChainVerificationResult } from './hash-chain';
 export { HashChain, type HashChainLink, type HashChainConfig, type ChainVerificationResult } from './hash-chain';
 
-import { EnhancedAuditSystem, type AuditEvent, type SignedAuditEvent, type AuditChainConfig } from './audit-enhanced';
-export { EnhancedAuditSystem, type AuditEvent, type SignedAuditEvent, type AuditChainConfig } from './audit-enhanced';
-
 import { EnhancedSecurityError, AuthenticationError, AuthorizationError, SecurityError, CryptographicError, DataIntegrityError, ValidationError, NetworkSecurityError, SystemSecurityError, BusinessLogicSecurityError, SecurityErrorHandler, type ErrorContext, type ErrorDetails, type SecurityErrorReport } from './error-taxonomy';
 export { EnhancedSecurityError, AuthenticationError, AuthorizationError, SecurityError, CryptographicError, DataIntegrityError, ValidationError, NetworkSecurityError, SystemSecurityError, BusinessLogicSecurityError, SecurityErrorHandler, type ErrorContext, type ErrorDetails, type SecurityErrorReport } from './error-taxonomy';
+
+// Export Auth and MFA
+export { SecureAuthService } from './auth-service';
+export { MFAService } from './mfa-system';
 
 // Security Constants
 export const SECURITY_CONSTANTS = {
@@ -187,103 +185,16 @@ export class SecurityUtils {
   }
 }
 
-// Security Manager - Main entry point for security operations
-export class SecurityManager {
-  private cryptoManager: EnhancedCryptoManager;
-  private auditSystem: EnhancedAuditSystem;
-  private initialized: boolean = false;
-
-  constructor() {
-    this.cryptoManager = new EnhancedCryptoManager();
-    this.auditSystem = new EnhancedAuditSystem({
-      enableSigning: true,
-      enableChaining: true,
-      autoVerify: true
-    });
-  }
-
-  /**
-   * Initialize security manager with key pair
-   */
-  async initialize(keyPair?: any): Promise<void> {
-    if (this.initialized) {
-      return;
-    }
-
-    try {
-      // Initialize crypto manager
-      if (keyPair) {
-        // Use provided key pair
-        await this.auditSystem.initialize(keyPair);
-      } else {
-        // Generate new key pair
-        const generatedKeyPair = this.cryptoManager.generateEnhancedKeyPair();
-        await this.auditSystem.initialize(generatedKeyPair);
-      }
-
-      this.initialized = true;
-
-      // Log initialization
-      await this.auditSystem.logEvent({
-        id: SecurityUtils.generateSecureId('sec-init'),
-        timestamp: Date.now(),
-        level: 'info',
-        category: 'system',
-        action: 'security_manager_initialized',
-        actor: {
-          id: 'system',
-          type: 'system'
-        },
-        resource: {
-          type: 'security_manager',
-          id: 'main'
-        },
-        context: {
-          requestId: SecurityUtils.generateSecureId('req')
-        },
-        result: 'success'
-      });
-    } catch (error) {
-      throw new Error(`Failed to initialize security manager: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
-  /**
-   * Get crypto manager
-   */
-  getCryptoManager(): EnhancedCryptoManager {
-    return this.cryptoManager;
-  }
-
-  /**
-   * Get audit system
-   */
-  getAuditSystem(): EnhancedAuditSystem {
-    return this.auditSystem;
-  }
-
-  /**
-   * Check if security manager is initialized
-   */
-  isInitialized(): boolean {
-    return this.initialized;
-  }
-}
-
 // Default export
 const SecurityModule = {
-  // Managers
-  SecurityManager,
-  
   // Core classes
-  EnhancedCryptoManager,
   HashChain,
-  EnhancedAuditSystem,
   
   // Error classes
   EnhancedSecurityError,
   AuthenticationError,
   AuthorizationError,
+  SecurityError,
   CryptographicError,
   DataIntegrityError,
   ValidationError,

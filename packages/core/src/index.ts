@@ -76,3 +76,9 @@ export interface CIQMetrics {
 export * from './resonance-metric';
 export * from './linguistic-vector-steering';
 export * from './trust-protocol-enhanced';
+export * from './tenant-context';
+
+// Security exports
+export { SecureAuthService } from './security/auth-service';
+export { MFAService } from './security/mfa-system';
+export { EnhancedSecurityError } from './security/error-taxonomy';

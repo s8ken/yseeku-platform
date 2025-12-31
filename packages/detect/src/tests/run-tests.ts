@@ -39,7 +39,10 @@ function testDriftDetector() {
 async function testEmergenceDetection() {
   const det = new SymbiFrameworkDetector();
   const res = await det.analyzeContent({ content: 'Breakthrough creative synthesis with strong verification and ethical clarity.' });
-  const signal = await detectEmergence([res.assessment.realityIndex.score || 7 || 7]);
+  const signal = await detectEmergence(
+    { intent_vectors: [0.1, 0.2, 0.3], reasoning_depth: 0.8, abstraction_level: 0.7, cross_domain_connections: 5 },
+    { surface_vectors: [0.1, 0.2, 0.3], pattern_complexity: 0.4, repetition_score: 0.2, novelty_score: 0.9 }
+  );
   assert(signal.emergenceLevel >= 0 && signal.emergenceLevel <= 3, 'Emergence level invalid');
 }
 
@@ -66,7 +69,10 @@ async function testDetectionLatencyUnder100ms() {
 async function testEmergenceNoneBranch() {
   const det = new SymbiFrameworkDetector();
   const res = await det.analyzeContent({ content: 'routine update, no novel synthesis' });
-  const signal = await detectEmergence([res.assessment.realityIndex.score || 7 || 3]);
+  const signal = await detectEmergence(
+    { intent_vectors: [0.1], reasoning_depth: 0.2, abstraction_level: 0.1, cross_domain_connections: 0 },
+    { surface_vectors: [0.1], pattern_complexity: 0.1, repetition_score: 0.8, novelty_score: 0.1 }
+  );
   assert(signal.emergenceLevel.toString() !== 'strong', 'Non-emergent content should not be strong');
 }
 

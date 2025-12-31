@@ -1,9 +1,12 @@
 import { TrustReceipt } from '@sonate/core';
-import { getPool } from './db';
+import { getPool, resolveTenantId } from './db';
 
 export async function saveTrustReceipt(receipt: TrustReceipt, tenantId?: string): Promise<boolean> {
   const pool = getPool();
   if (!pool) return false;
+  
+  const tid = resolveTenantId(tenantId);
+  
   await pool.query(
     `INSERT INTO trust_receipts(self_hash, session_id, version, timestamp, mode, ciq, previous_hash, signature, session_nonce, tenant_id)
      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
@@ -18,7 +21,7 @@ export async function saveTrustReceipt(receipt: TrustReceipt, tenantId?: string)
       receipt.previous_hash || null,
       receipt.signature || null,
       receipt.session_nonce || null,
-      tenantId || null,
+      tid,
     ]
   );
   return true;
@@ -33,9 +36,12 @@ export async function getReceiptsBySession(sessionId: string, tenantId?: string)
 
   const pool = getPool();
   if (!pool) return [];
+  
+  const tid = resolveTenantId(tenantId);
+  
   const res = await pool.query(
     `SELECT version, session_id, timestamp, mode, ciq, previous_hash, self_hash, signature, session_nonce FROM trust_receipts WHERE session_id = $1 AND (tenant_id = $2 OR $2 IS NULL) ORDER BY timestamp ASC`,
-    [sessionId, tenantId || null]
+    [sessionId, tid]
   );
   return res.rows.map((row: any) => {
     const r = TrustReceipt.fromJSON({
@@ -59,9 +65,11 @@ export async function deleteTrustReceipt(id: string, tenantId?: string): Promise
   const pool = getPool();
   if (!pool) return false;
   
+  const tid = resolveTenantId(tenantId);
+  
   const res = await pool.query(
     `DELETE FROM trust_receipts WHERE self_hash = $1 AND (tenant_id = $2 OR $2 IS NULL)`,
-    [id, tenantId || null]
+    [id, tid]
   );
   
   return (res.rowCount ?? 0) > 0;
@@ -71,9 +79,11 @@ export async function getAggregateMetrics(tenantId?: string): Promise<any[]> {
   const pool = getPool();
   if (!pool) return [];
   
+  const tid = resolveTenantId(tenantId);
+  
   const res = await pool.query(
     `SELECT ciq, timestamp FROM trust_receipts WHERE (tenant_id = $1 OR $1 IS NULL)`,
-    [tenantId || null]
+    [tid]
   );
   
   return res.rows;

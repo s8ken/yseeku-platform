@@ -19,6 +19,7 @@
     "node_modules",
     "dist",
     "**/*.test.ts",
-    "src/security/**"
+    "src/security/*-enhanced.ts",
+    "src/security/enhanced-audit-logger.ts"
   ]
 }

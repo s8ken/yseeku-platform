@@ -6,6 +6,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import * as crypto from 'crypto';
 import { AuthenticationError } from './error-taxonomy';
+import { tenantContext } from '../tenant-context';
 
 export interface MFASetupResult {
   secret: string;
@@ -28,6 +29,14 @@ export class MFAService {
 
     if (supabaseUrl && supabaseKey) {
       this.supabase = createClient(supabaseUrl, supabaseKey);
+    }
+  }
+
+  private getTenantId(): string | null {
+    try {
+      return tenantContext.getTenantId(false) || null;
+    } catch {
+      return null;
     }
   }
 
@@ -92,6 +101,7 @@ export class MFAService {
       .from('user_mfa')
       .upsert({
         user_id: userId,
+        tenant_id: this.getTenantId(),
         mfa_secret: secret, // In production, this should be encrypted
         backup_codes: hashedBackupCodes,
         is_enabled: true,
@@ -145,11 +155,17 @@ export class MFAService {
     const hashedCode = await this.hashBackupCode(code);
     
     // Check if backup code exists and hasn't been used
-    const { data, error } = await this.getSupabase()
+    const tid = this.getTenantId();
+    let query = this.getSupabase()
       .from('user_mfa')
       .select('backup_codes')
-      .eq('user_id', userId)
-      .single();
+      .eq('user_id', userId);
+    
+    if (tid) {
+      query = query.eq('tenant_id', tid);
+    }
+
+    const { data, error } = await query.single();
 
     if (error || !data) {
       return false;
@@ -165,10 +181,16 @@ export class MFAService {
     // Mark code as used by removing it from the array
     const remainingCodes = backupCodes.filter((_, i) => i !== codeIndex);
 
-    const { error: updateError } = await this.getSupabase()
+    let updateQuery = this.getSupabase()
       .from('user_mfa')
       .update({ backup_codes: remainingCodes })
       .eq('user_id', userId);
+    
+    if (tid) {
+      updateQuery = updateQuery.eq('tenant_id', tid);
+    }
+
+    const { error: updateError } = await updateQuery;
 
     if (updateError) {
       throw new AuthenticationError(
@@ -294,10 +316,17 @@ export class MFAService {
    * Disable MFA for a user
    */
   async disableMFA(userId: string): Promise<void> {
-    const { error } = await this.getSupabase()
+    const tid = this.getTenantId();
+    let query = this.getSupabase()
       .from('user_mfa')
       .update({ is_enabled: false, mfa_secret: null, backup_codes: [] })
       .eq('user_id', userId);
+
+    if (tid) {
+      query = query.eq('tenant_id', tid);
+    }
+
+    const { error } = await query;
 
     if (error) {
       throw new AuthenticationError(
@@ -317,11 +346,17 @@ export class MFAService {
    * Check if user has MFA enabled
    */
   async isMFAEnabled(userId: string): Promise<boolean> {
-    const { data, error } = await this.getSupabase()
+    const tid = this.getTenantId();
+    let query = this.getSupabase()
       .from('user_mfa')
       .select('is_enabled')
-      .eq('user_id', userId)
-      .single();
+      .eq('user_id', userId);
+
+    if (tid) {
+      query = query.eq('tenant_id', tid);
+    }
+
+    const { data, error } = await query.single();
 
     if (error || !data) {
       return false;

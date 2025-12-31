@@ -1,3 +1,5 @@
+import { tenantContext } from '@sonate/core';
+
 // Simple logger implementation to avoid circular dependencies
 function getLogger(component: string) {
   return {
@@ -6,6 +8,18 @@ function getLogger(component: string) {
     warn: (message: string, data?: any) => console.warn(`[${component}] ${message}`, data || ''),
     debug: (message: string, data?: any) => console.debug(`[${component}] ${message}`, data || ''),
   };
+}
+
+/**
+ * Helper to get the current tenant ID from context or provided value
+ */
+export function resolveTenantId(providedId?: string): string | null {
+  if (providedId) return providedId;
+  try {
+    return tenantContext.getTenantId(false) || null;
+  } catch {
+    return null;
+  }
 }
 
 let pool: any | null = null;

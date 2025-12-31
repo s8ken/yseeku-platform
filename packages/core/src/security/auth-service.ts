@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { AuthenticationError } from './error-taxonomy';
+import { tenantContext } from '../tenant-context';
 // import { SecurityUtils, SECURITY_CONSTANTS } from '@sonate/core/security';
 
 // Placeholder for missing utilities until they are properly exported/linked
@@ -88,6 +89,18 @@ export class SecureAuthService {
     this.saltRounds = config.saltRounds || 12;
     this.maxLoginAttempts = config.maxLoginAttempts || 5;
     this.lockoutDuration = config.lockoutDuration || 15 * 60 * 1000; // 15 minutes
+  }
+
+  /**
+   * Run a function within a tenant context derived from a JWT token
+   */
+  async runWithTenant<T>(token: string, fn: () => Promise<T>): Promise<T> {
+    const payload = this.verifyToken(token);
+    return tenantContext.run({
+      tenantId: payload.tenant,
+      userId: payload.userId,
+      roles: payload.roles
+    }, fn);
   }
 
   /**
@@ -173,7 +186,7 @@ export class SecureAuthService {
         {
           algorithm: 'HS256',
           issuer: SECURITY_CONSTANTS.JWT_ISSUER,
-          expiresIn: SECURITY_CONSTANTS.JWT_REFRESH_EXPIRATION_TIME
+          expiresIn: SECURITY_CONSTANTS.JWT_REFRESH_EXPIRATION_TIME as any
         }
       );
 
