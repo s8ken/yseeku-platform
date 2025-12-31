@@ -34,6 +34,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Missing transcript or session_id" }, { status: 400 });
         }
 
+        // Validate session_id format (UUID v4 or hex string) to prevent injection
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(session_id) && 
+            !/^[0-9a-f]{32}$/i.test(session_id)) {
+            return NextResponse.json({ error: "Invalid session_id format" }, { status: 400 });
+        }
+
         // Load session state
         const session_state = await mockKV.get<SessionState>(`symbi:${session_id}`);
 

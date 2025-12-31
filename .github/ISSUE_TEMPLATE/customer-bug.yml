@@ -1,0 +1,44 @@
+name: Customer-Reported Bug
+description: Issue reported by enterprise pilot
+labels: ["customer-reported", "triage"]
+
+body:
+  - type: input
+    id: customer
+    label: Customer Name
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    label: Severity
+    options:
+      - Critical (Security/Data loss)
+      - High (Feature broken)
+      - Medium (Degradation)
+      - Low (Cosmetic)
+    validations:
+      required: true
+  - type: input
+    id: mttd_target
+    label: Target MTTD (auto-filled)
+    placeholder: "Calculated based on severity per SLA"
+    disabled: true
+  - type: textarea
+    id: description
+    label: Bug Description
+    description: Provide a clear and concise description of the issue.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    label: Steps to Reproduce
+    description: List the steps to reproduce the behavior.
+    placeholder: |
+      1. Go to '...'
+      2. Click on '....'
+      3. Scroll down to '....'
+      4. See error
+  - type: input
+    id: environment
+    label: Environment
+    description: e.g. Production, Staging, Local

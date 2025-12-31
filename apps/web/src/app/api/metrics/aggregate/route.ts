@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getMetrics } from '@sonate/orchestrate/src/observability/metrics';
+import { getAggregateMetrics } from '@sonate/persistence';
 import { AuthMiddleware } from '@/middleware/auth-middleware';
 
 const auth = new AuthMiddleware();
@@ -10,12 +10,11 @@ export async function GET(req: NextRequest) {
     const authenticatedReq = await auth.authenticate(req);
     auth.requirePermission('read:metrics')(authenticatedReq);
 
-    const metrics = await getMetrics();
-    return new NextResponse(metrics, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-      },
-    });
+    // Use user's tenant ID for security
+    const tenant = authenticatedReq.user?.tenant;
+
+    const metrics = await getAggregateMetrics(tenant);
+    return NextResponse.json({ metrics });
   } catch (error: any) {
     if (error.code === 'MISSING_TOKEN' || error.code === 'INVALID_TOKEN' || error.code === 'TOKEN_EXPIRED') {
       return NextResponse.json({ error: 'Unauthorized', message: error.message }, { status: 401 });
@@ -24,9 +23,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden', message: error.message }, { status: 403 });
     }
 
-    console.error('Error collecting metrics:', error);
+    console.error('Error collecting aggregate metrics:', error);
     return NextResponse.json(
-      { error: 'Failed to collect metrics' },
+      { error: 'Failed to collect aggregate metrics' },
       { status: 500 }
     );
   }

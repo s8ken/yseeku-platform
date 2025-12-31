@@ -25,6 +25,12 @@ export async function saveTrustReceipt(receipt: TrustReceipt, tenantId?: string)
 }
 
 export async function getReceiptsBySession(sessionId: string, tenantId?: string): Promise<TrustReceipt[]> {
+  // Validate sessionId format (UUID v4) to prevent injection/malformed queries
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId) && 
+      !/^[0-9a-f]{32}$/i.test(sessionId)) {
+    throw new Error('Invalid session_id format');
+  }
+
   const pool = getPool();
   if (!pool) return [];
   const res = await pool.query(
@@ -47,4 +53,28 @@ export async function getReceiptsBySession(sessionId: string, tenantId?: string)
     r.self_hash = row.self_hash;
     return r;
   });
+}
+
+export async function deleteTrustReceipt(id: string, tenantId?: string): Promise<boolean> {
+  const pool = getPool();
+  if (!pool) return false;
+  
+  const res = await pool.query(
+    `DELETE FROM trust_receipts WHERE self_hash = $1 AND (tenant_id = $2 OR $2 IS NULL)`,
+    [id, tenantId || null]
+  );
+  
+  return (res.rowCount ?? 0) > 0;
+}
+
+export async function getAggregateMetrics(tenantId?: string): Promise<any[]> {
+  const pool = getPool();
+  if (!pool) return [];
+  
+  const res = await pool.query(
+    `SELECT ciq, timestamp FROM trust_receipts WHERE (tenant_id = $1 OR $1 IS NULL)`,
+    [tenantId || null]
+  );
+  
+  return res.rows;
 }
