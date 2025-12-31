@@ -27,6 +27,7 @@
     "@noble/hashes": "^2.0.1",
     "@noble/secp256k1": "^2.3.0",
     "bcrypt": "^6.0.0",
+    "isomorphic-dompurify": "^2.35.0",
     "json-canonicalize": "^2.0.0",
     "jsonwebtoken": "^9.0.2"
   },
