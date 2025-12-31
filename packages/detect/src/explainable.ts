@@ -28,4 +28,9 @@ export interface ExplainedResonance {
   }; 
   top_evidence: EvidenceChunk[];  // Human-readable ranked proof 
   audit_trail: string[];          // Step-by-step computation log 
+  drift_detected?: boolean;
+    iap_payload?: string;
+    iap_history?: { timestamp: number; turn: number; reason: string }[];
+    bedau_index?: number;
+  identity_coherence?: number;
 } 

@@ -75,7 +75,12 @@ export async function POST(req: Request) {
                 },
                 adversarial: result.adversarial,
                 componentBreakdown: result.breakdown,
-                audit_trail: result.audit_trail
+                audit_trail: result.audit_trail,
+                bedau_index: result.bedau_index || (result.breakdown?.s_alignment?.score * 0.7), // Fallback if missing
+                identity_coherence: result.identity_coherence || 0.85,
+                drift_detected: result.drift_detected || false,
+                iap_payload: result.iap_payload || null,
+                iap_history: result.iap_history || []
             }
         };
 

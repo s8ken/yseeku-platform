@@ -16,13 +16,21 @@
     "lint": "turbo run lint",
     "clean": "turbo run clean && rm -rf node_modules",
     "demo:ledger": "npm run build --workspace @sonate/collaboration-ledger && node examples/ledger-demo/index.js",
-    "demo:interactive": "npm run dev --workspace @sonate/new-demo"
+    "demo:interactive": "npm run dev --workspace @sonate/new-demo",
+    "test:ciq": "vitest packages/metrics/ciq.test.ts",
+    "proof:directive": "node examples/proof-toggle/run.js --mode=directive",
+    "proof:symbi": "node examples/proof-toggle/run.js --mode=symbi",
+    "uplift": "node examples/proof-toggle/calculate-uplift.js",
+    "anchor:receipt": "node scripts/anchor_receipt.mjs"
   },
   "devDependencies": {
+    "@solana/spl-memo": "^0.2.5",
+    "@solana/web3.js": "^1.98.4",
     "@types/node": "^20.0.0",
     "c8": "^9.1.0",
     "turbo": "^1.10.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.16"
   },
   "overrides": {
     "react": "18.2.0",

@@ -20,6 +20,10 @@ export interface RobustResonanceResult {
   evidence: AdversarialEvidence;
   stakes?: StakesEvidence;
   thresholds_used?: { ethics: number; alignment: number };
+  drift_detected?: boolean;
+  iap_payload?: string;
+  bedau_index?: number;
+  identity_coherence?: number;
   breakdown: {
     s_alignment: number;
     s_continuity: number;

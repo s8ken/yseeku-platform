@@ -53,12 +53,27 @@ export interface Experiment {
   significance?: number; // p-value
 }
 
+export interface ResonanceGovernance {
+  currentResonance: number;
+  stabilityIndex: number;
+  driftDetected: boolean;
+  iapActive: boolean;
+  iapPayload?: string;
+  iapHistory: {
+    timestamp: number;
+    turn: number;
+    reason: string;
+    impact: 'RECOVERED' | 'MITIGATED' | 'CRITICAL';
+  }[];
+}
+
 export interface SystemMetrics {
   throughput: {
     requestsPerSecond: number;
     activeSessions: number;
     dataProcessed: string;
   };
+  resonance: ResonanceGovernance;
   latency: {
     current: number;
     average: number;
