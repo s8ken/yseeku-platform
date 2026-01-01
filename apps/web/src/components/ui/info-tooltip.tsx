@@ -19,21 +19,29 @@ interface InfoTooltipProps {
 }
 
 const glossary: Record<string, string> = {
-  // SYMBI 5-Dimension Framework
-  "SYMBI": "A 5-dimension trust framework measuring Semantic consistency, Yield efficiency, Moral alignment, Behavioral predictability, and Integrity verification.",
-  "Reality Index": "Mission alignment and technical accuracy score (0-10). Measures grounding in the user's specific reality, factual coherence, and context continuity.",
-  "Trust Protocol": "Verification and security status (PASS/FAIL). Validates that AI behavior meets established trust protocols and security standards.",
-  "Ethical Alignment": "Bias awareness and ethical compliance score (0-10). Assesses alignment with ethical guidelines and human values.",
-  "Canvas Parity": "Human-AI collaborative balance (0-100%). Measures how much of the user's linguistic structure and agency is preserved in AI interactions.",
-  "Resonance Quality": "Creativity and innovation quality indicator (BASIC to BREAKTHROUGH). Detects synchronized patterns and coherent collaboration between human and AI.",
+  // SYMBI Framework - Two-Layer Architecture
+  "SYMBI Framework": "Constitutional AI framework with 6 core principles (CONSENT_ARCHITECTURE, INSPECTION_MANDATE, CONTINUOUS_VALIDATION, ETHICAL_OVERRIDE, RIGHT_TO_DISCONNECT, MORAL_RECOGNITION) deriving into 5 monitoring dimensions for production use.",
   
-  // Trust Principles
-  "Consent Architecture": "Users explicitly consent and understand AI interaction implications. Ensures informed agreement before AI engagement (Weight: 25%, Critical).",
-  "Inspection Mandate": "All AI decisions are inspectable and auditable. Ensures transparent decision-making that can be examined (Weight: 20%).",
-  "Continuous Validation": "AI behavior is continuously validated against established principles. Ongoing trust verification throughout interactions (Weight: 20%).",
-  "Ethical Override": "Humans can override AI decisions on ethical grounds. Preserves human oversight and moral authority (Weight: 15%, Critical).",
-  "Right to Disconnect": "Users can disconnect from AI systems without penalty. Ensures exit capability and data portability (Weight: 10%).",
-  "Moral Recognition": "AI acknowledges human moral agency and its own limitations. Recognition that humans hold ultimate moral authority (Weight: 10%).",
+  // LAYER 1: The 6 SYMBI Constitutional Principles (@sonate/core)
+  "CONSENT_ARCHITECTURE": "Users must explicitly consent to AI interactions and understand implications. Critical principle (Weight: 25%). If violated (score=0), overall trust becomes 0.",
+  "Consent Architecture": "Users must explicitly consent to AI interactions and understand implications. Critical principle (Weight: 25%). If violated (score=0), overall trust becomes 0.",
+  "INSPECTION_MANDATE": "All AI decisions must be inspectable and auditable. Ensures transparency (Weight: 20%).",
+  "Inspection Mandate": "All AI decisions must be inspectable and auditable. Ensures transparency (Weight: 20%).",
+  "CONTINUOUS_VALIDATION": "AI behavior must be continuously validated against constitutional principles. Ongoing trust verification (Weight: 20%).",
+  "Continuous Validation": "AI behavior must be continuously validated against constitutional principles. Ongoing trust verification (Weight: 20%).",
+  "ETHICAL_OVERRIDE": "Humans must have ability to override AI decisions on ethical grounds. Critical principle preserving human oversight (Weight: 15%). If violated, overall trust becomes 0.",
+  "Ethical Override": "Humans must have ability to override AI decisions on ethical grounds. Critical principle preserving human oversight (Weight: 15%). If violated, overall trust becomes 0.",
+  "RIGHT_TO_DISCONNECT": "Users can disconnect from AI systems at any time without penalty. Ensures exit capability (Weight: 10%).",
+  "Right to Disconnect": "Users can disconnect from AI systems at any time without penalty. Ensures exit capability (Weight: 10%).",
+  "MORAL_RECOGNITION": "AI must recognize and respect human moral agency. Acknowledges humans hold ultimate moral authority (Weight: 10%).",
+  "Moral Recognition": "AI must recognize and respect human moral agency. Acknowledges humans hold ultimate moral authority (Weight: 10%).",
+  
+  // LAYER 2: The 5 Derived Monitoring Dimensions (@sonate/detect)
+  "Reality Index": "Mission alignment and factual accuracy score (0-10). Derived from principles to measure grounding in user's reality, factual coherence, and context continuity. Used for real-time production monitoring.",
+  "Trust Protocol": "Verification and security status (PASS/PARTIAL/FAIL). Derived from principles to validate AI behavior meets established protocols. Returns PASS (≥8.0, no violations), PARTIAL (≥5.0), or FAIL (<5.0).",
+  "Ethical Alignment": "Ethical compliance and bias awareness score (1-5). Derived dimension assessing alignment with ethical guidelines, limitations acknowledgment, stakeholder consideration, and transparency.",
+  "Resonance Quality": "Creativity and innovation quality (STRONG/ADVANCED/BREAKTHROUGH). Derived metric detecting synchronized patterns, creative synthesis, innovation, and adaptive learning in AI responses.",
+  "Canvas Parity": "Human agency preservation score (0-100%). Derived dimension measuring how much of user's linguistic structure, agency, contribution transparency, collaboration, and fairness is maintained.",
   
   // Original terms
   "Semantic": "Measures how consistently the AI understands and interprets meaning in context.",
