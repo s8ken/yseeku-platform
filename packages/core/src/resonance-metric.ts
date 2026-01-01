@@ -2,7 +2,7 @@
  * Resonance Metric (R_m) Implementation
  * Quantifies alignment between user intent and AI response
  * 
- * Formula: R_m = (1 + δ_entropy) / ((V_align × w1) + (C_hist × w2) + (S_match × w3))
+ * Formula: R_m = ((V_align × w1) + (C_hist × w2) + (S_match × w3)) / (1 + δ_entropy)
  * 
  * Where:
  * - V_align: Vector alignment between user input and AI response
@@ -56,9 +56,9 @@ export const DEFAULT_RESONANCE_WEIGHTS: ResonanceWeights = {
  * Alert thresholds for resonance monitoring
  */
 export const RESONANCE_THRESHOLDS = {
-  GREEN: 1.3,    // Excellent resonance
-  YELLOW: 1.0,   // Good resonance
-  RED: 0.7,      // Poor resonance
+  GREEN: 0.85,   // Excellent resonance
+  YELLOW: 0.7,   // Good resonance
+  RED: 0.55,     // Poor resonance
   CRITICAL: 0.0  // Critical misalignment
 };
 
@@ -204,14 +204,12 @@ export function calculateResonanceMetrics(
   const semanticMirroring = calculateSemanticMirroring(context.userInput, context.aiResponse);
   const entropyDelta = calculateEntropyDelta(context.aiResponse);
   
-  // Calculate R_m using the formula
-  const denominator = 
+  const weightedSum = 
     (vectorAlignment * weights.vectorAlignment) +
     (contextualContinuity * weights.contextualContinuity) +
     (semanticMirroring * weights.semanticMirroring);
   
-  // Prevent division by zero
-  const R_m = denominator > 0 ? (1 + entropyDelta) / denominator : 0;
+  const R_m = Math.max(0, Math.min(1, weightedSum / (1 + entropyDelta)));
   
   // Determine alert level
   let alertLevel: ResonanceMetrics['alertLevel'];

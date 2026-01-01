@@ -11,8 +11,22 @@
  */
 
 import { createHash } from 'crypto';
-import * as ed25519 from '@noble/ed25519';
+import crypto from 'crypto';
 import { CIQMetrics } from './index';
+
+let ed25519Promise: Promise<any> | null = null;
+
+async function loadEd25519(): Promise<any> {
+  if (!ed25519Promise) {
+    ed25519Promise = (new Function('return import("@noble/ed25519")')() as Promise<any>).then((ed25519) => {
+      (ed25519 as any).etc.sha512Sync = (...m: Uint8Array[]) =>
+        new Uint8Array(crypto.createHash('sha512').update(m[0]).digest());
+      return ed25519;
+    });
+  }
+
+  return ed25519Promise;
+}
 
 export interface SymbiTrustReceipt {
   id: string;                 // SHA-256 Hash of the interaction
@@ -104,6 +118,7 @@ export class TrustReceipt {
    */
   async sign(privateKey: Uint8Array): Promise<void> {
     const messageHash = Buffer.from(this.self_hash, 'hex');
+    const ed25519 = await loadEd25519();
     const signature = await ed25519.sign(messageHash, privateKey);
     this.signature = Buffer.from(signature).toString('hex');
   }
@@ -119,6 +134,7 @@ export class TrustReceipt {
     try {
       const messageHash = Buffer.from(this.self_hash, 'hex');
       const signature = Buffer.from(this.signature, 'hex');
+      const ed25519 = await loadEd25519();
       return await ed25519.verify(signature, messageHash, publicKey);
     } catch (error) {
       return false;
@@ -135,6 +151,7 @@ export class TrustReceipt {
       session_nonce: this.session_nonce || '',
     });
     const msg = createHash('sha256').update(payload).digest();
+    const ed25519 = await loadEd25519();
     const signature = await ed25519.sign(msg, privateKey);
     this.signature = Buffer.from(signature).toString('hex');
   }
@@ -152,6 +169,7 @@ export class TrustReceipt {
     const msg = createHash('sha256').update(payload).digest();
     const signature = Buffer.from(this.signature, 'hex');
     try {
+      const ed25519 = await loadEd25519();
       return await ed25519.verify(signature, msg, publicKey);
     } catch {
       return false;

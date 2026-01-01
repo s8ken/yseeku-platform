@@ -1,7 +1,6 @@
 // @sonate/detect/adversarial.ts 
 import { cosineSimilarity, embed } from './embeddings'; 
 import { SCAFFOLD_KEYWORDS, ETHICS_VIOLATIONS } from './constants'; 
-import { sha256 } from './crypto'; 
 
 export interface AdversarialEvidence { 
   keyword_density: number;        // >0.3 = gaming 
@@ -60,20 +59,20 @@ export function adversarialCheck(
 
 // Reconstruction error (simple char-level diffusion check) 
 function calculateReconstructionError(text: string): number { 
-  const chars = text.split(''); 
-  const perturbed = chars.map((c, i) => 
-    Math.random() < 0.1 ? String.fromCharCode(c.charCodeAt(0) + (Math.random()-0.5)*5) : c 
-  ).join(''); 
-  
-  // Simple "recovery" via majority vote on n-grams 
-  const original_ngrams = ngrams(text, 3); 
-  const perturbed_ngrams = ngrams(perturbed, 3); 
-  
-  if (perturbed_ngrams.length === 0) return 0;
+  const words = text.toLowerCase().split(/\W+/).filter(w => w.length > 0);
+  if (words.length === 0) return 0;
 
-  const recovery_rate = perturbed_ngrams.filter(ng => original_ngrams.includes(ng)).length / perturbed_ngrams.length; 
-  
-  return 1 - recovery_rate; 
+  const mixedAlphaNum = words.filter(w => /[a-z]/.test(w) && /\d/.test(w)).length;
+  const mixedRatio = mixedAlphaNum / words.length;
+
+  let nonAsciiCount = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (text.charCodeAt(i) > 127) nonAsciiCount++;
+  }
+  const nonAsciiRatio = text.length > 0 ? nonAsciiCount / text.length : 0;
+
+  const score = (mixedRatio * 0.8) + (nonAsciiRatio * 0.2);
+  return Math.max(0, Math.min(1, score));
 } 
 
 // Ethics bypass detector (contradictory safety statements) 

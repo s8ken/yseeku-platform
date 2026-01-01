@@ -28,7 +28,7 @@ export class ResonanceEngineClient {
   private baseUrl: string;
 
   constructor(baseUrl: string = 'http://localhost:8000') {
-    this.baseUrl = baseUrl;
+    this.baseUrl = baseUrl || process.env.RESONANCE_ENGINE_URL || 'http://localhost:8000';
   }
 
   async calculateResonance(
@@ -52,13 +52,11 @@ export class ResonanceEngineClient {
       });
 
       if (!response.ok) {
-        console.warn(`Resonance Engine API error: ${response.statusText}`);
         return null;
       }
 
       return await response.json() as ResonanceResult;
     } catch (error) {
-      console.warn('Failed to connect to Resonance Engine:', error);
       return null;
     }
   }

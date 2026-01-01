@@ -28,15 +28,15 @@ export async function saveTrustReceipt(receipt: TrustReceipt, tenantId?: string)
 }
 
 export async function getReceiptsBySession(sessionId: string, tenantId?: string): Promise<TrustReceipt[]> {
+  const pool = getPool();
+  if (!pool) return [];
+  
   // Validate sessionId format (UUID v4) to prevent injection/malformed queries
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId) && 
       !/^[0-9a-f]{32}$/i.test(sessionId)) {
     throw new Error('Invalid session_id format');
   }
 
-  const pool = getPool();
-  if (!pool) return [];
-  
   const tid = resolveTenantId(tenantId);
   
   const res = await pool.query(

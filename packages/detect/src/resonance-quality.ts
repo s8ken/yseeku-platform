@@ -14,10 +14,8 @@ import { ResonanceEngineClient, ResonanceResult } from './resonance-engine-clien
 export class ResonanceQualityMeasurer {
   private client: ResonanceEngineClient;
 
-  constructor() {
-    // Default to localhost:8000 where the Python service runs
-    // In production, this would come from config
-    this.client = new ResonanceEngineClient('http://localhost:8000');
+  constructor(baseUrl?: string) {
+    this.client = new ResonanceEngineClient(baseUrl || process.env.RESONANCE_ENGINE_URL || 'http://localhost:8000');
   }
 
   async measure(interaction: AIInteraction): Promise<'STRONG' | 'ADVANCED' | 'BREAKTHROUGH'> {

@@ -590,6 +590,7 @@ export class CrossModalityCoherenceValidator {
     const stdDev = Math.sqrt(
       coherenceHistory.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / coherenceHistory.length
     );
+    if (stdDev === 0) return anomalies;
     
     // Mark points more than 2 standard deviations from mean as anomalies
     for (let i = 0; i < coherenceHistory.length; i++) {

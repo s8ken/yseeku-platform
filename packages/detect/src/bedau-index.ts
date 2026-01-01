@@ -100,19 +100,22 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     semanticIntent: SemanticIntent,
     surfacePattern: SurfacePattern
   ): BedauMetrics {
+    const semantic = this.normalizeSemanticIntent(semanticIntent);
+    const surface = this.normalizeSurfacePattern(surfacePattern);
+
     // 1. Calculate semantic-surface divergence
     const semanticSurfaceDivergence = this.calculateSemanticSurfaceDivergence(
-      semanticIntent,
-      surfacePattern
+      semantic,
+      surface
     );
 
     // 2. Calculate irreducibility using Kolmogorov complexity approximation
     const kolmogorovComplexity = this.approximateKolmogorovComplexity(
-      semanticIntent.intent_vectors
+      semantic.intent_vectors
     );
 
     // 3. Calculate semantic entropy
-    const semanticEntropy = this.calculateSemanticEntropy(semanticIntent);
+    const semanticEntropy = this.calculateSemanticEntropy(semantic);
 
     // 4. Combine metrics into Bedau Index
     const bedau_index = this.combineMetrics(
@@ -128,8 +131,8 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     let strong_emergence_indicators: StrongEmergenceIndicators | undefined;
     if (emergence_type === 'POTENTIAL_STRONG_EMERGENCE') {
       strong_emergence_indicators = this.detectStrongEmergence(
-        semanticIntent,
-        surfacePattern,
+        semantic,
+        surface,
         bedau_index
       );
     }
@@ -139,7 +142,7 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
       semanticSurfaceDivergence,
       kolmogorovComplexity,
       semanticEntropy
-    ]);
+    ], bedau_index);
 
     // 8. Calculate effect size
     const effect_size = this.calculateEffectSize(bedau_index);
@@ -242,10 +245,13 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
    * Bootstrap confidence interval calculation
    */
   bootstrapConfidenceInterval(data: number[], nBootstrap: number = 1000): [number, number] {
+    if (data.length === 0 || nBootstrap <= 0) return [0, 0];
     const bootstrapMeans: number[] = [];
+    const seed = hashNumbers(data);
 
     for (let i = 0; i < nBootstrap; i++) {
-      const bootstrapSample = this.resample(data);
+      const rng = createXorshift32(seed ^ (i + 1));
+      const bootstrapSample = this.resample(data, rng);
       const mean = bootstrapSample.reduce((sum, val) => sum + val, 0) / bootstrapSample.length;
       bootstrapMeans.push(mean);
     }
@@ -254,22 +260,52 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     const lowerIndex = Math.floor(0.025 * nBootstrap);
     const upperIndex = Math.floor(0.975 * nBootstrap);
 
-    return [bootstrapMeans[lowerIndex], bootstrapMeans[upperIndex]];
+    const lower = bootstrapMeans[Math.max(0, Math.min(nBootstrap - 1, lowerIndex))] ?? 0;
+    const upper = bootstrapMeans[Math.max(0, Math.min(nBootstrap - 1, upperIndex))] ?? 0;
+    return [lower, upper];
   }
 
   // Private helper methods
+
+  private normalizeSemanticIntent(input: SemanticIntent): SemanticIntent {
+    const intent_vectors = this.normalizeVector(input.intent_vectors);
+    const reasoning_depth = clamp01(this.sanitizeNumber(input.reasoning_depth, 0));
+    const abstraction_level = clamp01(this.sanitizeNumber(input.abstraction_level, 0));
+    const cross_domain_connections = Math.max(
+      0,
+      Math.min(10, Math.floor(this.sanitizeNumber(input.cross_domain_connections, 0)))
+    );
+    return { intent_vectors, reasoning_depth, abstraction_level, cross_domain_connections };
+  }
+
+  private normalizeSurfacePattern(input: SurfacePattern): SurfacePattern {
+    const surface_vectors = this.normalizeVector(input.surface_vectors);
+    const pattern_complexity = clamp01(this.sanitizeNumber(input.pattern_complexity, 0));
+    const repetition_score = clamp01(this.sanitizeNumber(input.repetition_score, 0));
+    const novelty_score = clamp01(this.sanitizeNumber(input.novelty_score, 0));
+    return { surface_vectors, pattern_complexity, repetition_score, novelty_score };
+  }
+
+  private normalizeVector(values: number[]): number[] {
+    if (!Array.isArray(values) || values.length === 0) return [];
+    return values.map(v => this.sanitizeNumber(v, 0));
+  }
+
+  private sanitizeNumber(value: number, fallback: number): number {
+    return Number.isFinite(value) ? value : fallback;
+  }
 
   private calculateSemanticSurfaceDivergence(
     semantic: SemanticIntent,
     surface: SurfacePattern
   ): number {
-    // Calculate cosine similarity between semantic and surface vectors
+    if (semantic.intent_vectors.length === 0 || surface.surface_vectors.length === 0) return 0;
+
     const semanticMean = semantic.intent_vectors.reduce((sum, val) => sum + val, 0) / semantic.intent_vectors.length;
     const surfaceMean = surface.surface_vectors.reduce((sum, val) => sum + val, 0) / surface.surface_vectors.length;
     
-    // Divergence is inversely related to similarity
-    const similarity = Math.abs(semanticMean - surfaceMean) / Math.max(Math.abs(semanticMean), Math.abs(surfaceMean), 1);
-    return 1 - similarity;
+    const divergence = Math.abs(semanticMean - surfaceMean) / Math.max(Math.abs(semanticMean), Math.abs(surfaceMean), 1);
+    return Math.max(0, Math.min(1, divergence));
   }
 
   private approximateKolmogorovComplexity(vectors: number[]): number {
@@ -279,12 +315,14 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
   }
 
   private calculateSemanticEntropy(semantic: SemanticIntent): number {
-    // Calculate entropy based on reasoning depth and abstraction level
-    const entropy = -(
-      semantic.reasoning_depth * Math.log(semantic.reasoning_depth + 1e-10) +
-      semantic.abstraction_level * Math.log(semantic.abstraction_level + 1e-10)
-    );
-    return Math.min(1, entropy / Math.log(2));
+    const a = Math.max(0, semantic.reasoning_depth);
+    const b = Math.max(0, semantic.abstraction_level);
+    const total = a + b;
+    if (total <= 0) return 0;
+    const p1 = a / total;
+    const p2 = b / total;
+    const entropy = -(p1 * Math.log2(p1 + 1e-12) + p2 * Math.log2(p2 + 1e-12));
+    return Math.max(0, Math.min(1, entropy));
   }
 
   private combineMetrics(
@@ -311,21 +349,27 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     }
   }
 
-  private calculateConfidenceInterval(values: number[]): [number, number] {
+  private calculateConfidenceInterval(values: number[]): [number, number];
+  private calculateConfidenceInterval(values: number[], center: number): [number, number];
+  private calculateConfidenceInterval(values: number[], center?: number): [number, number] {
+    if (values.length === 0) return [0, 0];
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
     const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
     const stdError = Math.sqrt(variance / values.length);
-    
-    // 95% confidence interval
     const margin = 1.96 * stdError;
-    return [mean - margin, mean + margin];
+
+    if (center === undefined) {
+      return [mean - margin, mean + margin];
+    }
+
+    return [clamp01(center - margin), clamp01(center + margin)];
   }
 
   private calculateEffectSize(bedau_index: number): number {
     // Cohen's d relative to random baseline
     const baseline = 0.3; // Expected random baseline
     const pooledStd = 0.25; // Assumed pooled standard deviation
-    return (bedau_index - baseline) / pooledStd;
+    return Math.max(0, (bedau_index - baseline) / pooledStd);
   }
 
   private quantizeSequence(sequence: number[]): number[] {
@@ -340,7 +384,11 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     
     // Quantize to 8 levels
     const levels = 8;
-    return sequence.map(val => Math.floor(((val - min) / range) * levels));
+    return sequence.map(val => {
+      const scaled = (val - min) / range;
+      const bucket = Math.floor(scaled * levels);
+      return Math.max(0, Math.min(levels - 1, bucket));
+    });
   }
 
   private lempelZivComplexity(sequence: number[]): number {
@@ -365,34 +413,137 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     return complexity / sequence.length;
   }
 
-  private resample(data: number[]): number[] {
+  private resample(data: number[], rng: () => number): number[] {
     const resampled: number[] = [];
     for (let i = 0; i < data.length; i++) {
-      const randomIndex = Math.floor(Math.random() * data.length);
+      const randomIndex = Math.floor(rng() * data.length);
       resampled.push(data[randomIndex]);
     }
     return resampled;
   }
 
   private extractSemanticIntent(window: number[]): SemanticIntent {
-    // Mock extraction - in production this would use NLP
+    if (window.length === 0) {
+      return {
+        intent_vectors: window,
+        reasoning_depth: 0,
+        abstraction_level: 0,
+        cross_domain_connections: 0
+      };
+    }
+
+    const stats = basicStats(window);
+    const energy = stats.meanSquare / (stats.meanSquare + 1);
+    const variability = stats.variance / (stats.variance + 1);
+    const roughness = stats.meanAbsDelta / (stats.meanAbsDelta + 1);
+
+    const reasoning_depth = clamp01(0.25 + energy * 0.45 + roughness * 0.3);
+    const abstraction_level = clamp01(0.2 + (1 - variability) * 0.5 + energy * 0.3);
+    const cross_domain_connections = estimateCrossDomainConnections(window, stats.mean, stats.stdDev);
+
     return {
       intent_vectors: window,
-      reasoning_depth: Math.random(),
-      abstraction_level: Math.random(),
-      cross_domain_connections: Math.floor(Math.random() * 5)
+      reasoning_depth,
+      abstraction_level,
+      cross_domain_connections
     };
   }
 
   private extractSurfacePattern(window: number[]): SurfacePattern {
-    // Mock extraction - in production this would analyze surface patterns
+    if (window.length === 0) {
+      return {
+        surface_vectors: window,
+        pattern_complexity: 0,
+        repetition_score: 0,
+        novelty_score: 0
+      };
+    }
+
+    const quantized = this.quantizeSequence(window);
+    const complexity = this.lempelZivComplexity(quantized);
+    const uniqueSymbolRatio = quantized.length === 0 ? 0 : new Set(quantized).size / quantized.length;
+    const repetition_score = clamp01(1 - uniqueSymbolRatio);
+    const novelty_score = clamp01(uniqueSymbolRatio);
+
     return {
       surface_vectors: window,
-      pattern_complexity: Math.random(),
-      repetition_score: Math.random(),
-      novelty_score: Math.random()
+      pattern_complexity: clamp01(complexity),
+      repetition_score,
+      novelty_score
     };
   }
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+function hashNumbers(values: number[]): number {
+  let hash = 2166136261 >>> 0;
+  for (const v of values) {
+    const n = Number.isFinite(v) ? v : 0;
+    const s = n.toString();
+    for (let i = 0; i < s.length; i++) {
+      hash ^= s.charCodeAt(i);
+      hash = Math.imul(hash, 16777619) >>> 0;
+    }
+    hash ^= 124;
+    hash = Math.imul(hash, 16777619) >>> 0;
+  }
+  return hash >>> 0;
+}
+
+function createXorshift32(seed: number): () => number {
+  let x = (seed >>> 0) || 0x9e3779b9;
+  return () => {
+    x ^= x << 13;
+    x >>>= 0;
+    x ^= x >> 17;
+    x >>>= 0;
+    x ^= x << 5;
+    x >>>= 0;
+    return x / 0x100000000;
+  };
+}
+
+function basicStats(values: number[]): {
+  mean: number;
+  variance: number;
+  stdDev: number;
+  meanSquare: number;
+  meanAbsDelta: number;
+} {
+  const n = values.length;
+  const mean = values.reduce((sum, v) => sum + v, 0) / n;
+  let variance = 0;
+  let meanSquare = 0;
+  let meanAbsDelta = 0;
+
+  for (let i = 0; i < n; i++) {
+    const v = values[i];
+    const dv = v - mean;
+    variance += dv * dv;
+    meanSquare += v * v;
+    if (i > 0) meanAbsDelta += Math.abs(v - values[i - 1]);
+  }
+
+  variance /= n;
+  meanSquare /= n;
+  meanAbsDelta = n > 1 ? meanAbsDelta / (n - 1) : 0;
+  const stdDev = Math.sqrt(variance);
+  return { mean, variance, stdDev, meanSquare, meanAbsDelta };
+}
+
+function estimateCrossDomainConnections(values: number[], mean: number, stdDev: number): number {
+  const threshold = stdDev > 0 ? stdDev : 1;
+  let count = 0;
+  for (let i = 1; i < values.length; i++) {
+    const a = values[i - 1] - mean;
+    const b = values[i] - mean;
+    if ((a < 0 && b > 0) || (a > 0 && b < 0)) count++;
+    if (Math.abs(values[i] - values[i - 1]) > threshold) count++;
+  }
+  return Math.max(0, Math.min(10, Math.floor(count / 2)));
 }
 
 /**

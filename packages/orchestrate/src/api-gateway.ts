@@ -4,9 +4,11 @@
  */
 
 import { EventEmitter } from 'events';
+import { randomUUID } from 'crypto';
 import { EnterpriseIntegration } from './enterprise-integration';
 import { tenantContext, SecureAuthService } from '@sonate/core';
 import { getLogger } from './observability/logger';
+import { getAPIKeyManager } from './security/api-keys';
 
 const logger = getLogger('APIGateway');
 
@@ -171,7 +173,7 @@ export class APIGateway extends EventEmitter {
   }
 
   async handleRequest(request: Partial<APIRequest>): Promise<APIResponse> {
-    const requestId = request.metadata?.requestId || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const requestId = request.metadata?.requestId || `req_${randomUUID()}`;
     const req: APIRequest = {
       id: requestId,
       path: request.path || '/',
@@ -241,7 +243,7 @@ export class APIGateway extends EventEmitter {
 
       } catch (error: any) {
         this.metrics.activeConnections--;
-        logger.error(`❌ Middleware execution error:`, error);
+        logger.error('❌ Middleware execution error', { error: String(error) });
         return this.createErrorResponse(500, 'Internal server error', req.id);
       }
     });
@@ -295,18 +297,15 @@ export class APIGateway extends EventEmitter {
           permissions: (payload as any).permissions || []
         };
       } else if (apiKey) {
-        // API Key authentication (to be implemented with real key store)
-        // For now, mock if it starts with 'sk_'
-        if (apiKey.startsWith('sk_')) {
-          req.user = {
-            id: 'api_user_123',
-            tenantId: 'tenant_api_456',
-            roles: ['api'],
-            permissions: ['read', 'write']
-          };
-        } else {
-          return false;
-        }
+        const keyResult = await getAPIKeyManager().validateKey(apiKey);
+        if (!keyResult.valid || !keyResult.key) return false;
+        const tenantId = (keyResult.key.metadata?.tenantId ?? keyResult.key.metadata?.tenant ?? 'tenant_api') as string;
+        req.user = {
+          id: keyResult.key.userId,
+          tenantId,
+          roles: ['api_user'],
+          permissions: keyResult.key.scopes || []
+        };
       }
 
       // Check role requirements
@@ -325,7 +324,7 @@ export class APIGateway extends EventEmitter {
 
       return true;
     } catch (error) {
-      logger.error('Auth failure:', error);
+      logger.error('Auth failure', { error: String(error) });
       return false;
     }
   }

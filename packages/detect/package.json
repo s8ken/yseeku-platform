@@ -5,9 +5,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "npm run clean && tsc",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "test": "npm run build && c8 --check-coverage --branches 40 --functions 40 --lines 40 --statements 40 node dist/tests/run-tests.js",
     "test:adversarial": "jest",
     "test:stakes": "jest src/__tests__/stakes.spec.ts",

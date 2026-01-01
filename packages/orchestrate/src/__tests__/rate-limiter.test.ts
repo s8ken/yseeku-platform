@@ -1,4 +1,4 @@
-import { InMemoryRateLimitStore, RateLimiter } from '../security/rate-limiter';
+import { createRateLimiter, InMemoryRateLimitStore } from '../security/rate-limiter';
 
 describe('RateLimiter', () => {
   test('should enforce rate limits', async () => {

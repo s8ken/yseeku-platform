@@ -29,7 +29,7 @@ export class ResonanceClient {
   private engineUrl: string;
 
   constructor(engineUrl: string = 'http://localhost:8000') {
-    this.engineUrl = engineUrl;
+    this.engineUrl = engineUrl || process.env.RESONANCE_ENGINE_URL || 'http://localhost:8000';
   }
 
   /**
@@ -45,8 +45,6 @@ export class ResonanceClient {
 
       return response.data;
     } catch (error) {
-      console.error('❌ Failed to connect to Resonance Engine:', error);
-      // Fallback logic could go here (e.g. return a "Pending" receipt)
       throw new Error('Resonance Engine unavailable');
     }
   }

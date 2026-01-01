@@ -3,6 +3,7 @@
  * Tracks all security-relevant events and user actions
  */
 
+import { randomUUID } from 'crypto';
 import { Logger, getLogger } from '../observability/logger';
 
 export enum AuditEventType {
@@ -285,15 +286,45 @@ export class DatabaseAuditStorage implements AuditStorage {
   }
 
   async count(query: AuditQuery): Promise<number> {
-    // Similar to query but with COUNT(*)
     const conditions: string[] = [];
     const params: any[] = [];
     let paramIndex = 1;
 
-    // ... (same filter building as query method)
+    if (query.startDate) {
+      conditions.push(`timestamp >= $${paramIndex++}`);
+      params.push(query.startDate);
+    }
+    if (query.endDate) {
+      conditions.push(`timestamp <= $${paramIndex++}`);
+      params.push(query.endDate);
+    }
+    if (query.eventTypes && query.eventTypes.length > 0) {
+      conditions.push(`event_type = ANY($${paramIndex++})`);
+      params.push(query.eventTypes);
+    }
+    if (query.userId) {
+      conditions.push(`user_id = $${paramIndex++}`);
+      params.push(query.userId);
+    }
+    if (query.resourceType) {
+      conditions.push(`resource_type = $${paramIndex++}`);
+      params.push(query.resourceType);
+    }
+    if (query.resourceId) {
+      conditions.push(`resource_id = $${paramIndex++}`);
+      params.push(query.resourceId);
+    }
+    if (query.severity) {
+      conditions.push(`severity = $${paramIndex++}`);
+      params.push(query.severity);
+    }
+    if (query.outcome) {
+      conditions.push(`outcome = $${paramIndex++}`);
+      params.push(query.outcome);
+    }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-    const sql = `SELECT COUNT(*) FROM audit_logs ${whereClause}`;
+    const sql = `SELECT COUNT(*) as count FROM audit_logs ${whereClause}`;
 
     const result = await this.db.query(sql, params);
     return parseInt(result.rows[0].count);
@@ -400,7 +431,7 @@ export class AuditLogger {
   }
 
   private generateId(): string {
-    return `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `audit_${Date.now()}_${randomUUID()}`;
   }
 
   private determineSeverity(eventType: AuditEventType, outcome: 'success' | 'failure'): AuditSeverity {

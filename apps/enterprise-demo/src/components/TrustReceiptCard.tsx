@@ -40,7 +40,8 @@ export const TrustReceiptCard: React.FC<TrustReceiptCardProps> = ({
     return 'bg-gray-100';
   };
 
-  const getEmergenceTypeColor = (type: 'LINEAR' | 'WEAK_EMERGENCE') => {
+  const getEmergenceTypeColor = (type: BedauMetrics['emergence_type']) => {
+    if (type === 'POTENTIAL_STRONG_EMERGENCE') return 'text-red-600 font-bold';
     return type === 'WEAK_EMERGENCE' ? 'text-purple-600 font-bold' : 'text-gray-600';
   };
 

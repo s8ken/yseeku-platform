@@ -2,6 +2,7 @@ import { writeAuditLog, queryAuditLogs } from '../audit';
 
 jest.mock('../db', () => ({
   getPool: jest.fn(),
+  resolveTenantId: jest.fn((tenantId?: string) => tenantId ?? null),
 }));
 
 const mockPool = {

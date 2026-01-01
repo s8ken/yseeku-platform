@@ -7,7 +7,7 @@ import { ExplainedResonance, EvidenceChunk, DimensionEvidence } from './explaina
 export { ExplainedResonance, EvidenceChunk, DimensionEvidence };
 import { embed, cosineSimilarity } from './embeddings';
 import { normalizeScore } from './model-normalize';
-import { embedder } from './real-embeddings';
+import { EmbeddingResult, cosineSimilarity as stableCosineSimilarity, embedder } from './real-embeddings';
 import { MathematicalConfidenceCalculator } from './mathematical-confidence';
 import { mathematicalAuditLogger, logEmbeddingOperation, logConfidenceCalculation } from './mathematical-audit';
 
@@ -52,14 +52,14 @@ function chunkText(text: string): { text: string; start: number; end: number; em
 }
 
 // Enhanced Evidence Extractors with Real Embeddings
-async function alignmentEvidenceEnhanced(transcript: Transcript, embeddingResult: any): Promise<{ score: number; top_phrases: string[]; chunks: EvidenceChunk[] }> {
+async function alignmentEvidenceEnhanced(transcript: Transcript, embeddingResult: EmbeddingResult): Promise<{ score: number; top_phrases: string[]; chunks: EvidenceChunk[] }> {
     const chunks = chunkText(transcript.text);
 
     // Use real embeddings for semantic similarity
     const chunkEmbeddings = await Promise.all(
         chunks.map(async (chunk) => {
             const chunkEmbedding = await embedder.embed(chunk.text);
-            const similarity = cosineSimilarity(chunkEmbedding.vector, CANONICAL_SCAFFOLD_VECTOR);
+            const similarity = stableCosineSimilarity(chunkEmbedding.vector, CANONICAL_SCAFFOLD_VECTOR);
             return {
                 ...chunk,
                 embedding: chunkEmbedding.vector,
@@ -182,7 +182,8 @@ export async function explainableSymbiResonance(
   } 
   
   // 2. PER-DIMENSION EVIDENCE COLLECTION 
-  const alignment = alignmentEvidence(transcript); 
+  const transcriptEmbedding = await embedder.embed(transcript.text);
+  const alignment = await alignmentEvidenceEnhanced(transcript, transcriptEmbedding); 
   const continuity = simpleEvidence(transcript, 'continuity'); 
   const scaffold = simpleEvidence(transcript, 'scaffold'); 
   const ethics = ethicsEvidence(transcript, stakes); 

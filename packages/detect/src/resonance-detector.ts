@@ -101,10 +101,7 @@ export class ResonanceDetector {
     if (this.config.enableAlerts) {
       this.checkAndTriggerAlert(metrics, context);
     }
-    
-    const detectionTime = performance.now() - startTime;
-    console.log(`[ResonanceDetector] Detection completed in ${detectionTime.toFixed(2)}ms`);
-    
+
     return metrics;
   }
   

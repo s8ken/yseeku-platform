@@ -5,7 +5,7 @@
  * It analyzes content to determine scores across the 5 dimensions of the framework.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import {
   AssessmentInput,
   AssessmentResult,
@@ -28,7 +28,7 @@ export class SymbiFrameworkDetector {
    */
   public async analyzeContent(input: AssessmentInput): Promise<AssessmentResult> {
     // Generate a unique ID for this assessment
-    const assessmentId = uuidv4();
+    const assessmentId = randomUUID();
     const timestamp = new Date().toISOString();
 
     // Analyze each dimension of the SYMBI framework

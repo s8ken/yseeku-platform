@@ -89,6 +89,11 @@ export class PerformanceBenchmarkingEngine {
   private readonly TARGET_MEMORY_USAGE = 100;  // MB
   private readonly TARGET_LATENCY_P95 = 100;  // ms
   private historicalResults: Map<string, BenchmarkResult[]> = new Map();
+  private readonly random = createXorshift32(0x5eeda11);
+
+  private nextRandom(): number {
+    return this.random();
+  }
 
   /**
    * Run comprehensive performance benchmark suite
@@ -588,8 +593,7 @@ export class PerformanceBenchmarkingEngine {
   }
 
   private getCpuUsage(): number {
-    // Simplified CPU usage estimation
-    return Math.random() * 20; // Mock CPU usage
+    return 0;
   }
 
   private detectOutliers(samples: number[]): number[] {
@@ -920,32 +924,33 @@ export class PerformanceBenchmarkingEngine {
   // Helper data creation methods
   private createSemanticIntent(size: number): SemanticIntent {
     return {
-      intent_vectors: Array.from({ length: size }, () => Math.random()),
-      reasoning_depth: Math.random(),
-      abstraction_level: Math.random(),
-      cross_domain_connections: Math.floor(Math.random() * 10)
+      intent_vectors: Array.from({ length: size }, () => this.nextRandom()),
+      reasoning_depth: this.nextRandom(),
+      abstraction_level: this.nextRandom(),
+      cross_domain_connections: Math.floor(this.nextRandom() * 10)
     };
   }
 
   private createSurfacePattern(size: number): SurfacePattern {
     return {
-      surface_vectors: Array.from({ length: size }, () => Math.random()),
-      pattern_complexity: Math.random(),
-      repetition_score: Math.random(),
-      novelty_score: Math.random()
+      surface_vectors: Array.from({ length: size }, () => this.nextRandom()),
+      pattern_complexity: this.nextRandom(),
+      repetition_score: this.nextRandom(),
+      novelty_score: this.nextRandom()
     };
   }
 
-  private createTemporalRecord(bedauIndex: number = Math.random()): TemporalBedauRecord {
+  private createTemporalRecord(bedauIndex?: number): TemporalBedauRecord {
+    const bedau = bedauIndex ?? this.nextRandom();
     return {
       timestamp: Date.now(),
       bedau_metrics: {
-        bedau_index: bedauIndex,
-        emergence_type: bedauIndex > 0.3 ? 'WEAK_EMERGENCE' : 'LINEAR',
-        kolmogorov_complexity: Math.random(),
-        semantic_entropy: Math.random(),
+        bedau_index: bedau,
+        emergence_type: bedau > 0.3 ? 'WEAK_EMERGENCE' : 'LINEAR',
+        kolmogorov_complexity: this.nextRandom(),
+        semantic_entropy: this.nextRandom(),
         confidence_interval: [0, 1],
-        effect_size: Math.random()
+        effect_size: this.nextRandom()
       },
       emergence_signature: this.createEmergenceSignature(),
       context_data: {},
@@ -958,46 +963,46 @@ export class PerformanceBenchmarkingEngine {
 
   private createEmergenceSignature() {
     return {
-      complexity: Math.random(),
-      novelty: Math.random(),
-      coherence: Math.random(),
-      stability: Math.random(),
+      complexity: this.nextRandom(),
+      novelty: this.nextRandom(),
+      coherence: this.nextRandom(),
+      stability: this.nextRandom(),
       timestamp: Date.now(),
-      fingerprint: Array.from({ length: 10 }, () => Math.random()),
-      complexity_profile: Array.from({ length: 50 }, () => Math.random()),
-      entropy_profile: Array.from({ length: 50 }, () => Math.random()),
-      divergence_profile: Array.from({ length: 50 }, () => Math.random()),
-      stability_score: Math.random(),
-      novelty_score: Math.random()
+      fingerprint: Array.from({ length: 10 }, () => this.nextRandom()),
+      complexity_profile: Array.from({ length: 50 }, () => this.nextRandom()),
+      entropy_profile: Array.from({ length: 50 }, () => this.nextRandom()),
+      divergence_profile: Array.from({ length: 50 }, () => this.nextRandom()),
+      stability_score: this.nextRandom(),
+      novelty_score: this.nextRandom()
     };
   }
 
   private createModalityMetrics(): ModalityMetrics {
     return {
       linguistic: {
-        coherence: Math.random(),
-        complexity: Math.random(),
-        consistency: Math.random()
+        coherence: this.nextRandom(),
+        complexity: this.nextRandom(),
+        consistency: this.nextRandom()
       },
       reasoning: {
-        logical_validity: Math.random(),
-        inference_quality: Math.random(),
-        argument_structure: Math.random()
+        logical_validity: this.nextRandom(),
+        inference_quality: this.nextRandom(),
+        argument_structure: this.nextRandom()
       },
       creative: {
-        originality: Math.random(),
-        synthesis_quality: Math.random(),
-        aesthetic_coherence: Math.random()
+        originality: this.nextRandom(),
+        synthesis_quality: this.nextRandom(),
+        aesthetic_coherence: this.nextRandom()
       },
       ethical: {
-        value_alignment: Math.random(),
-        consistency: Math.random(),
-        reasoning_quality: Math.random()
+        value_alignment: this.nextRandom(),
+        consistency: this.nextRandom(),
+        reasoning_quality: this.nextRandom()
       },
       procedural: {
-        execution_accuracy: Math.random(),
-        efficiency: Math.random(),
-        robustness: Math.random()
+        execution_accuracy: this.nextRandom(),
+        efficiency: this.nextRandom(),
+        robustness: this.nextRandom()
       }
     };
   }
@@ -1029,4 +1034,17 @@ export async function runQuickPerformanceBenchmark(): Promise<BenchmarkSummary> 
   const engine = new PerformanceBenchmarkingEngine();
   const results = await engine.runBenchmarkSuite();
   return results.summary;
+}
+
+function createXorshift32(seed: number): () => number {
+  let x = (seed >>> 0) || 0x9e3779b9;
+  return () => {
+    x ^= x << 13;
+    x >>>= 0;
+    x ^= x >> 17;
+    x >>>= 0;
+    x ^= x << 5;
+    x >>>= 0;
+    return x / 0x100000000;
+  };
 }

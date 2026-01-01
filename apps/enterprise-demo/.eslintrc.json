@@ -2,9 +2,9 @@
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:react-hooks/recommended",
-    "plugin:react-refresh/recommended"
+    "plugin:react-hooks/recommended"
   ],
+  "plugins": ["react-refresh"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2020,

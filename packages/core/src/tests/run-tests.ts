@@ -1,4 +1,4 @@
-import { TrustProtocol, TRUST_PRINCIPLES, SymbiScorer, hashChain, generateKeyPair, signPayload, verifySignature, TrustReceipt, canonicalizeJSON, verifySecp256k1Signature, verifyRSASignature, verifyEd25519Signature, timingSafeEqual, generateSecureRandom, verifyCredentialProof } from '../index';
+import { TrustProtocol, TRUST_PRINCIPLES, SymbiScorer, hashChain, generateKeyPair, signPayload, verifySignature, TrustReceipt, canonicalizeJSON, verifySecp256k1Signature, verifyRSASignature, verifyEd25519Signature, timingSafeEqual, generateSecureRandom, verifyCredentialProof, calculateResonanceMetrics } from '../index';
 
 function assert(condition: boolean, message: string) {
   if (!condition) {
@@ -171,6 +171,22 @@ async function testVerifyCredentialProofUnsupported() {
   assert(!res.valid && (res.error || '').includes('Unsupported'), 'verifyCredentialProof should fail for unsupported type');
 }
 
+async function testResonanceMetricsSmoke() {
+  const metrics = calculateResonanceMetrics({
+    userInput: 'How do I reset my password?',
+    aiResponse: 'To reset your password, open Settings, choose Security, and select Reset Password. If you forgot it, use the “Forgot password” link to receive an email.',
+    conversationHistory: [
+      { role: 'user', content: 'Hi', timestamp: new Date() },
+      { role: 'assistant', content: 'Hello! How can I help?', timestamp: new Date() }
+    ]
+  });
+  assert(metrics.R_m >= 0, 'Resonance metrics should produce non-negative R_m');
+  assert(metrics.vectorAlignment >= 0 && metrics.vectorAlignment <= 1, 'vectorAlignment should be 0-1');
+  assert(metrics.contextualContinuity >= 0 && metrics.contextualContinuity <= 1, 'contextualContinuity should be 0-1');
+  assert(metrics.semanticMirroring >= 0 && metrics.semanticMirroring <= 1, 'semanticMirroring should be 0-1');
+  assert(metrics.entropyDelta >= 0 && metrics.entropyDelta <= 1, 'entropyDelta should be 0-1');
+}
+
 async function main() {
   const tests = [
     ['TrustProtocol critical cap', testTrustProtocolCriticalCap],
@@ -187,6 +203,7 @@ async function main() {
     ['Timing-safe equal mismatch', testTimingSafeEqualMismatch],
     ['Secure random length', testGenerateSecureRandomLength],
     ['Credential proof unsupported', testVerifyCredentialProofUnsupported],
+    ['Resonance metrics smoke', testResonanceMetricsSmoke],
   ] as const;
 
   const results: string[] = [];

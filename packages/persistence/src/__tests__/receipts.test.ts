@@ -2,6 +2,7 @@ import { saveTrustReceipt, getReceiptsBySession } from '../receipts';
 
 jest.mock('../db', () => ({
   getPool: jest.fn(),
+  resolveTenantId: jest.fn((tenantId?: string) => tenantId ?? null),
 }));
 
 jest.mock('@sonate/core', () => ({
@@ -18,6 +19,8 @@ const mockGetPool = require('../db').getPool;
 const mockTrustReceipt = require('@sonate/core').TrustReceipt;
 
 describe('Receipts', () => {
+  const sessionId = '123e4567-e89b-12d3-a456-426614174000';
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetPool.mockReturnValue(mockPool);
@@ -57,7 +60,7 @@ describe('Receipts', () => {
   describe('getReceiptsBySession', () => {
     it('should return empty array if no pool', async () => {
       mockGetPool.mockReturnValue(null);
-      const result = await getReceiptsBySession('session');
+      const result = await getReceiptsBySession(sessionId);
       expect(result).toEqual([]);
     });
 
@@ -67,7 +70,7 @@ describe('Receipts', () => {
       mockPool.query.mockResolvedValue({
         rows: [{
           version: '1.0',
-          session_id: 'session',
+          session_id: sessionId,
           timestamp: '123456',
           mode: 'test',
           ciq: { clarity: 0.8 },
@@ -77,11 +80,11 @@ describe('Receipts', () => {
           session_nonce: 'nonce',
         }],
       });
-      const result = await getReceiptsBySession('session', 'tenant');
+      const result = await getReceiptsBySession(sessionId, 'tenant');
       expect(result).toEqual([mockReceipt]);
       expect(mockTrustReceipt.fromJSON).toHaveBeenCalledWith({
         version: '1.0',
-        session_id: 'session',
+        session_id: sessionId,
         timestamp: 123456,
         mode: 'test',
         ciq_metrics: { clarity: 0.8 },
@@ -92,7 +95,7 @@ describe('Receipts', () => {
       });
       expect(mockPool.query).toHaveBeenCalledWith(
         `SELECT version, session_id, timestamp, mode, ciq, previous_hash, self_hash, signature, session_nonce FROM trust_receipts WHERE session_id = $1 AND (tenant_id = $2 OR $2 IS NULL) ORDER BY timestamp ASC`,
-        ['session', 'tenant']
+        [sessionId, 'tenant']
       );
     });
   });

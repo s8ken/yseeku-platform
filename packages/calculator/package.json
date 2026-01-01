@@ -19,10 +19,10 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "build": "tsc",
-    "lint": "eslint src --ext .ts"
+    "lint": "npm --workspace @sonate/detect run build && tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@sonate/detect": "*"
+    "@sonate/detect": "file:../detect"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",

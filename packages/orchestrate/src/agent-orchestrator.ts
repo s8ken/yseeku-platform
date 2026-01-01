@@ -7,11 +7,23 @@
  * - Monitoring and control
  */
 
-import { Workflow, WorkflowStep } from './types';
-import { Agent } from './agent-types-enhanced';
+import { randomUUID } from 'crypto';
+import { Workflow } from './types';
+import { Agent, AgentCapability, AgentConfig, AgentPermission, AgentType } from './agent-types-enhanced';
 import { DIDVCManager } from './did-vc-manager';
 import { WorkflowEngine } from './workflow-engine';
 import { TacticalCommand } from './tactical-command';
+import { AuditEventType, getAuditLogger } from './security/audit';
+
+type RegisterAgentInput = {
+  id: string;
+  name: string;
+  capabilities: string[];
+  metadata?: Record<string, any>;
+  type?: AgentType;
+  apiKey?: string;
+  permissions?: AgentPermission[];
+};
 
 export class AgentOrchestrator {
   private didManager: DIDVCManager;
@@ -31,22 +43,73 @@ export class AgentOrchestrator {
    * @param agent - Agent configuration
    * @returns Registered agent with DID
    */
-  async registerAgent(agent: Omit<Agent, 'did' | 'credentials' | 'status'>): Promise<Agent> {
-    // Generate DID for agent
-    const did = await this.didManager.createDID(agent.id);
+  async registerAgent(agent: RegisterAgentInput | Omit<Agent, 'did' | 'credentials' | 'status'>): Promise<Agent> {
+    const now = new Date();
+    const agentType: AgentType = ('type' in agent && agent.type) ? agent.type : 'coordinator';
 
-    // Issue capability credentials (convert capabilities to string array)
-    const capabilityNames = agent.capabilities.map(c => typeof c === 'string' ? c : c.name);
-    const credentials = await this.didManager.issueCredentials(did, capabilityNames);
+    const rawCapabilities = (agent as any).capabilities ?? [];
+    const capabilities: AgentCapability[] = rawCapabilities.map((cap: any) => {
+      if (typeof cap === 'string') {
+        return { name: cap, version: '1.0.0' };
+      }
+
+      return { ...cap, version: cap.version ?? '1.0.0' };
+    });
+
+    const permissions: AgentPermission[] = ('permissions' in agent && Array.isArray(agent.permissions)) ? agent.permissions : [];
+    const metadata: Record<string, any> = ('metadata' in agent && agent.metadata) ? agent.metadata : {};
+
+    const baseConfig = ('config' in agent && agent.config) ? agent.config : undefined;
+    const apiKey =
+      ('apiKey' in agent && agent.apiKey) ? agent.apiKey :
+      (baseConfig?.apiKey ?? randomUUID());
+
+    const config: AgentConfig = {
+      id: agent.id,
+      name: agent.name,
+      type: agentType,
+      apiKey,
+      baseUrl: baseConfig?.baseUrl,
+      webhookUrl: baseConfig?.webhookUrl,
+      capabilities,
+      permissions,
+      metadata,
+    };
+
+    const did = await this.didManager.createDID(agent.id);
+    const credentials = await this.didManager.issueCredentials(did, capabilities.map(c => c.name));
 
     const registeredAgent: Agent = {
-      ...agent,
+      id: agent.id,
+      name: agent.name,
+      type: agentType,
+      status: 'active',
+      config,
+      capabilities,
+      permissions,
       did,
       credentials,
-      status: 'active',
+      metadata,
+      createdAt: ('createdAt' in agent && agent.createdAt) ? agent.createdAt : now,
+      updatedAt: ('updatedAt' in agent && agent.updatedAt) ? agent.updatedAt : now,
+      lastActivity: ('lastActivity' in agent && agent.lastActivity) ? agent.lastActivity : now,
+      trustDeclaration: ('trustDeclaration' in agent && agent.trustDeclaration) ? agent.trustDeclaration : undefined,
+      trustMetrics: ('trustMetrics' in agent && agent.trustMetrics) ? agent.trustMetrics : undefined,
+      trustLevel: ('trustLevel' in agent && agent.trustLevel) ? agent.trustLevel : undefined,
+      currentTask: ('currentTask' in agent && agent.currentTask) ? agent.currentTask : undefined,
     };
 
     this.agents.set(agent.id, registeredAgent);
+    await getAuditLogger().log(
+      AuditEventType.AGENT_CREATED,
+      'agent.register',
+      'success',
+      {
+        resourceType: 'agent',
+        resourceId: agent.id,
+        details: { agentType, capabilityCount: capabilities.length },
+      }
+    );
     console.log(`[Orchestrator] Registered agent: ${agent.name} (${did})`);
 
     return registeredAgent;
@@ -103,6 +166,16 @@ export class AgentOrchestrator {
     agent.status = 'suspended';
     await this.workflowEngine.stopAgentWorkflows(agentId);
 
+    await getAuditLogger().log(
+      AuditEventType.AGENT_UPDATED,
+      'agent.suspend',
+      'success',
+      {
+        resourceType: 'agent',
+        resourceId: agentId,
+        details: { status: 'suspended' },
+      }
+    );
     console.log(`[Orchestrator] Suspended agent: ${agentId}`);
   }
 

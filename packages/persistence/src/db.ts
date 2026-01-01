@@ -29,11 +29,12 @@ export function getDatabaseUrl(): string | undefined {
 }
 
 export function getPool(): any | null {
-  if (pool) return pool;
   const url = getDatabaseUrl();
   if (!url) {
+    pool = null;
     return null;
   }
+  if (pool) return pool;
   const logger = getLogger('Persistence');
   try {
     // Use dynamic require to avoid TS type dependency

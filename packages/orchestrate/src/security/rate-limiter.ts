@@ -3,23 +3,7 @@
  * Implements token bucket algorithm for API rate limiting
  */
 
-// Simple logger implementation to avoid missing dependencies
-const auditLogger = {
-  logEvent: (eventType: string, severity: string, message: string, details?: any) => {
-    console.log(`[${severity.toUpperCase()}] ${eventType}: ${message}`, details || '');
-  }
-};
-
-const AuditEventType = {
-  RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
-  RATE_LIMIT_WARNING: 'RATE_LIMIT_WARNING'
-};
-
-const AuditSeverity = {
-  WARNING: 'WARNING',
-  ERROR: 'ERROR',
-  INFO: 'INFO'
-};
+import { AuditEventType, AuditSeverity, getAuditLogger } from './audit';
 
 export interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
@@ -32,6 +16,7 @@ export interface RateLimitConfig {
   keyGenerator?: () => string;
   skip?: (req: any) => boolean;
   onLimitReached?: (req: any, res: any) => void;
+  failOpen?: boolean;
 }
 
 export interface RateLimitResult {
@@ -45,48 +30,30 @@ export interface RateLimitStore {
   increment(key: string): Promise<number>;
   reset(key: string): Promise<void>;
   cleanup(): Promise<number>;
-}
-
-// Mock implementation for build compatibility
-class MockRateLimitStore implements RateLimitStore {
-  private counts = new Map<string, number>();
-
-  async increment(key: string): Promise<number> {
-    const current = this.counts.get(key) || 0;
-    const newCount = current + 1;
-    this.counts.set(key, newCount);
-    return newCount;
-  }
-
-  async reset(key: string): Promise<void> {
-    this.counts.delete(key);
-  }
-
-  async cleanup(): Promise<number> {
-    const size = this.counts.size;
-    this.counts.clear();
-    return size;
-  }
+  resetMatching?(prefix: string): Promise<number>;
+  getCount?(key: string): Promise<number | null>;
 }
 
 export class RateLimiter {
   private store: RateLimitStore;
 
   constructor(store?: RateLimitStore) {
-    this.store = store || new MockRateLimitStore();
+    this.store = store || new InMemoryRateLimitStore();
   }
 
   async checkLimit(config: RateLimitConfig): Promise<RateLimitResult> {
-    const now = new Date();
-    const windowStart = new Date(now.getTime() - config.windowMs);
-    const windowEnd = new Date(now.getTime() + config.windowMs);
+    const nowMs = Date.now();
+    const windowStartMs = Math.floor(nowMs / config.windowMs) * config.windowMs;
+    const windowEndMs = windowStartMs + config.windowMs;
+    const windowEnd = new Date(windowEndMs);
 
     try {
-      const key = `${config.identifier}:${config.identifierType}${config.endpoint ? ':' + config.endpoint : ''}`;
+      const endpoint = config.endpoint ?? '';
+      const key = `${config.identifierType}|${config.identifier}|${endpoint}|${windowEndMs}`;
       const currentCount = await this.store.increment(key);
 
       if (currentCount > config.maxRequests) {
-        const retryAfter = Math.ceil(config.windowMs / 1000);
+        const retryAfter = Math.max(1, Math.ceil((windowEndMs - nowMs) / 1000));
         await this.logRateLimitExceeded(config, retryAfter);
         
         return {
@@ -104,26 +71,51 @@ export class RateLimiter {
       };
 
     } catch (error) {
-      console.error('Error checking rate limit:', error);
-      // Fail open - allow request if we can't check limits
+      const failOpen = config.failOpen ?? process.env.RATE_LIMIT_FAIL_OPEN === 'true';
+      const retryAfter = Math.max(1, Math.ceil((windowEndMs - nowMs) / 1000));
+      await getAuditLogger().log(
+        AuditEventType.SYSTEM_ERROR,
+        'rate_limit.check',
+        'failure',
+        {
+          severity: AuditSeverity.ERROR,
+          resourceType: 'rate_limit',
+          resourceId: config.identifier,
+          details: { identifierType: config.identifierType, endpoint: config.endpoint, error: String(error) }
+        }
+      );
+      if (failOpen) {
+        return {
+          allowed: true,
+          remaining: config.maxRequests,
+          resetAt: windowEnd
+        };
+      }
       return {
-        allowed: true,
-        remaining: config.maxRequests,
-        resetAt: windowEnd
+        allowed: false,
+        remaining: 0,
+        resetAt: windowEnd,
+        retryAfter
       };
     }
   }
 
   private async logRateLimitExceeded(config: RateLimitConfig, retryAfter: number): Promise<void> {
-    auditLogger.logEvent(
-      AuditEventType.RATE_LIMIT_EXCEEDED,
-      AuditSeverity.WARNING,
-      `Rate limit exceeded for ${config.identifierType}: ${config.identifier}`,
+    await getAuditLogger().log(
+      AuditEventType.SECURITY_RATE_LIMIT_EXCEEDED,
+      'rate_limit.exceeded',
+      'failure',
       {
-        retryAfter,
-        maxRequests: config.maxRequests,
-        windowMs: config.windowMs,
-        endpoint: config.endpoint
+        severity: AuditSeverity.WARNING,
+        resourceType: 'rate_limit',
+        resourceId: config.identifier,
+        details: {
+          identifierType: config.identifierType,
+          endpoint: config.endpoint,
+          retryAfter,
+          maxRequests: config.maxRequests,
+          windowMs: config.windowMs
+        }
       }
     );
   }
@@ -133,8 +125,14 @@ export class RateLimiter {
     identifierType: 'user' | 'ip' | 'api_key',
     endpoint?: string
   ): Promise<void> {
-    const key = `${identifier}:${identifierType}${endpoint ? ':' + endpoint : ''}`;
-    await this.store.reset(key);
+    const ep = endpoint ?? '';
+    const prefix = `${identifierType}|${identifier}|${ep}|`;
+    if (this.store.resetMatching) {
+      await this.store.resetMatching(prefix);
+      return;
+    }
+    const fallbackKey = `${identifierType}|${identifier}|${ep}|${Date.now()}`;
+    await this.store.reset(fallbackKey);
   }
 
   async getLimitStatus(
@@ -147,12 +145,7 @@ export class RateLimiter {
     windowEnd: Date;
     blockedUntil?: Date;
   } | null> {
-    // Mock implementation for build compatibility
-    return {
-      requestCount: 0,
-      windowStart: new Date(),
-      windowEnd: new Date()
-    };
+    return null;
   }
 
   /**
@@ -171,7 +164,7 @@ export function createRateLimiter(store?: RateLimitStore): RateLimiter {
 export function createEndpointRateLimiters(configs: Record<string, RateLimitConfig>): Record<string, RateLimiter> {
   const limiters: Record<string, RateLimiter> = {};
   
-  for (const [endpoint, config] of Object.entries(configs)) {
+  for (const endpoint of Object.keys(configs)) {
     limiters[endpoint] = createRateLimiter();
   }
   
@@ -179,20 +172,21 @@ export function createEndpointRateLimiters(configs: Record<string, RateLimitConf
 }
 
 export class InMemoryRateLimitStore implements RateLimitStore {
-  private windows = new Map<string, { count: number; resetTime: number }>();
+  private windows = new Map<string, { count: number; expiresAt: number }>();
   
   async increment(key: string): Promise<number> {
     const now = Date.now();
+    const parts = key.split('|');
+    const windowEndMs = Number(parts[parts.length - 1]);
+    const expiresAt = Number.isFinite(windowEndMs) ? windowEndMs : now;
+
     const existing = this.windows.get(key);
-    
-    if (existing && now < existing.resetTime) {
+    if (existing && now < existing.expiresAt) {
       existing.count++;
       return existing.count;
     }
-    
-    // Create new window
-    const resetTime = now + 60000; // 1 minute window
-    this.windows.set(key, { count: 1, resetTime });
+
+    this.windows.set(key, { count: 1, expiresAt });
     return 1;
   }
   
@@ -205,13 +199,34 @@ export class InMemoryRateLimitStore implements RateLimitStore {
     let cleaned = 0;
     
     for (const [key, window] of this.windows.entries()) {
-      if (now >= window.resetTime) {
+      if (now >= window.expiresAt) {
         this.windows.delete(key);
         cleaned++;
       }
     }
     
     return cleaned;
+  }
+
+  async resetMatching(prefix: string): Promise<number> {
+    let removed = 0;
+    for (const key of this.windows.keys()) {
+      if (key.startsWith(prefix)) {
+        this.windows.delete(key);
+        removed++;
+      }
+    }
+    return removed;
+  }
+
+  async getCount(key: string): Promise<number | null> {
+    const entry = this.windows.get(key);
+    if (!entry) return null;
+    if (Date.now() >= entry.expiresAt) {
+      this.windows.delete(key);
+      return null;
+    }
+    return entry.count;
   }
 }
 
@@ -223,17 +238,42 @@ export class RedisRateLimitStore implements RateLimitStore {
   }
   
   async increment(key: string): Promise<number> {
-    // Mock implementation for build compatibility
-    return 1;
+    const parts = key.split('|');
+    const windowEndMs = Number(parts[parts.length - 1]);
+    const count = await this.redis.incr(key);
+    if (Number.isFinite(windowEndMs) && windowEndMs > 0) {
+      if (count === 1) {
+        await this.redis.pexpireat(key, windowEndMs);
+      } else {
+        const ttl = await this.redis.pttl(key);
+        if (ttl < 0) {
+          await this.redis.pexpireat(key, windowEndMs);
+        }
+      }
+    }
+    return Number(count);
   }
   
   async reset(key: string): Promise<void> {
-    // Mock implementation for build compatibility
+    await this.redis.del(key);
   }
   
   async cleanup(): Promise<number> {
-    // Mock implementation for build compatibility
     return 0;
+  }
+
+  async resetMatching(prefix: string): Promise<number> {
+    const keys = await this.redis.keys(`${prefix}*`);
+    if (!Array.isArray(keys) || keys.length === 0) return 0;
+    await this.redis.del(...keys);
+    return keys.length;
+  }
+
+  async getCount(key: string): Promise<number | null> {
+    const val = await this.redis.get(key);
+    if (val == null) return null;
+    const n = Number(val);
+    return Number.isFinite(n) ? n : null;
   }
 }
 

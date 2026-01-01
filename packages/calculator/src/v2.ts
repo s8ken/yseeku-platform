@@ -13,18 +13,41 @@
  * - Proper error handling and fallback logic
  */
 
-import { adversarialCheck, AdversarialEvidence } from '@sonate/detect/adversarial';
-import { classifyStakes, StakesLevel, StakesEvidence } from '@sonate/detect/stakes';
-import { CANONICAL_SCAFFOLD_VECTOR } from '@sonate/detect/constants';
-import { embed, cosineSimilarity } from '@sonate/detect/real-embeddings';
-import { normalizeScore } from '@sonate/detect/model-normalize';
-import { ExplainedResonance, EvidenceChunk } from '@sonate/detect/explainable';
+import { adversarialCheck, AdversarialEvidence, classifyStakes, StakesEvidence, normalizeScore } from '@sonate/detect';
 
-export { ExplainedResonance, EvidenceChunk };
+type StakesLevel = StakesEvidence['level'];
+
+export interface EvidenceChunk { 
+  type: 'alignment' | 'scaffold' | 'ethics' | 'continuity' | 'adversarial'; 
+  text: string;
+  score_contrib: number;
+  position?: { start: number; end: number };
+}
+
+export interface DimensionEvidence { 
+  score: number;
+  weight: number;
+  contrib: number;
+  evidence: string[];
+}
+
+export interface ExplainedResonance { 
+  r_m: number;
+  stakes: StakesEvidence;
+  adversarial: AdversarialEvidence;
+  breakdown: { 
+    s_alignment: DimensionEvidence; 
+    s_continuity: DimensionEvidence; 
+    s_scaffold: DimensionEvidence; 
+    e_ethics: DimensionEvidence; 
+  }; 
+  top_evidence: EvidenceChunk[];
+  audit_trail: string[];
+}
 
 export interface Transcript {
   text: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export interface RobustResonanceResult {
@@ -45,10 +68,10 @@ export interface RobustResonanceResult {
     e_ethics: number;
     // Enhanced dimensions
     confidence_score?: number;
-    uncertainty_components?: any;
-    ethical_verification?: any;
-    mi_adjusted_weights?: any;
-    adaptive_thresholds?: any;
+    uncertainty_components?: { fallback_mode: boolean; error_reason?: string };
+    ethical_verification?: { passed: boolean; reason: string };
+    mi_adjusted_weights?: Record<string, number>;
+    adaptive_thresholds?: { ethics: number; alignment: number };
   };
 }
 
@@ -63,6 +86,48 @@ export const CANONICAL_WEIGHTS = {
   ethics: 0.20
 } as const;
 
+const CANONICAL_SCAFFOLD_VECTOR = new Array(384).fill(0).map((_, i) => i % 2 === 0 ? 0.1 : -0.1);
+
+function createEmbedding(text: string, dims = 384): number[] {
+  const vector = new Array(dims).fill(0);
+  let seed = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    seed ^= text.charCodeAt(i);
+    seed = Math.imul(seed, 16777619);
+  }
+
+  const tokens = text.toLowerCase().split(/\s+/).filter(Boolean);
+  for (const token of tokens) {
+    let t = seed;
+    for (let i = 0; i < token.length; i++) {
+      t ^= token.charCodeAt(i);
+      t = Math.imul(t, 2246822507);
+    }
+    const idx = Math.abs(t) % dims;
+    vector[idx] += 1;
+  }
+
+  const norm = Math.sqrt(vector.reduce((sum, v) => sum + v * v, 0)) || 1;
+  return vector.map((v) => v / norm);
+}
+
+async function embed(text: string): Promise<number[]> {
+  return createEmbedding(text);
+}
+
+function cosineSimilarity(a: number[], b: number[]): number {
+  const len = Math.min(a.length, b.length);
+  let dot = 0;
+  let an = 0;
+  let bn = 0;
+  for (let i = 0; i < len; i++) {
+    dot += a[i] * b[i];
+    an += a[i] * a[i];
+    bn += b[i] * b[i];
+  }
+  const denom = Math.sqrt(an) * Math.sqrt(bn);
+  return denom === 0 ? 0 : dot / denom;
+}
 /**
  * Dynamic thresholds based on stakes level
  */

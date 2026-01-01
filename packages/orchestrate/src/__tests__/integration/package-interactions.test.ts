@@ -4,9 +4,15 @@ import { SymbiFrameworkDetector, AIInteraction } from '@sonate/detect';
 import { saveTrustReceipt } from '@sonate/persistence';
 import { TrustReceipt } from '@sonate/core';
 
+jest.mock('@sonate/persistence', () => ({
+  saveTrustReceipt: jest.fn(async () => true),
+}));
+
 describe('Package Integration Tests', () => {
   let orchestrator: AgentOrchestrator;
   let detector: SymbiFrameworkDetector;
+  const sessionId1 = '550e8400-e29b-41d4-a716-446655440000';
+  const sessionId2 = '550e8400-e29b-41d4-a716-446655440001';
 
   beforeEach(() => {
     orchestrator = new AgentOrchestrator();
@@ -29,7 +35,7 @@ describe('Package Integration Tests', () => {
     const interaction: AIInteraction = {
       content: 'Test AI interaction content',
       context: 'integration test',
-      metadata: { session_id: 'test-session', agent_id: agent.id },
+      metadata: { session_id: sessionId1, agent_id: agent.id },
     };
 
     const detectionResult = await detector.detect(interaction);
@@ -38,7 +44,7 @@ describe('Package Integration Tests', () => {
     // Create and store receipt using persistence
     const receipt = new TrustReceipt({
       version: '1.0.0',
-      session_id: 'test-session',
+      session_id: sessionId1,
       timestamp: Date.now(),
       mode: 'constitutional',
       ciq_metrics: {
@@ -73,7 +79,7 @@ describe('Package Integration Tests', () => {
       content: 'This is a test interaction for end-to-end workflow validation',
       context: 'e2e-test-workflow',
       metadata: {
-        session_id: 'e2e-session',
+        session_id: sessionId2,
         agent_id: agent.id,
         workflow: 'e2e-test'
       },
@@ -86,7 +92,7 @@ describe('Package Integration Tests', () => {
     // Step 3: Create and store receipt
     const receipt = new TrustReceipt({
       version: '1.0.0',
-      session_id: 'e2e-session',
+      session_id: sessionId2,
       timestamp: Date.now(),
       mode: 'constitutional',
       ciq_metrics: {

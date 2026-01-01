@@ -176,6 +176,13 @@ export class MathematicalAuditLogger {
     const operations = this.getSessionOperations(sessionId);
     const violations: string[] = [];
     const recommendations: string[] = [];
+    if (operations.length === 0) {
+      return {
+        isConsistent: true,
+        violations,
+        recommendations: ['No operations found for session']
+      };
+    }
 
     // Check for confidence score anomalies
     const confidenceScores = operations
@@ -287,7 +294,8 @@ export class MathematicalAuditLogger {
   // Private methods
 
   private generateOperationId(): string {
-    return `math_op_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const crypto = require('crypto');
+    return `math_op_${Date.now()}_${crypto.randomUUID()}`;
   }
 
   private updateHashChain(operation: MathematicalOperation): void {

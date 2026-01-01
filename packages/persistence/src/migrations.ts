@@ -24,7 +24,7 @@ export async function runMigrations(): Promise<void> {
   const files = fs.readdirSync(MIGRATIONS_DIR).filter(f => f.endsWith('.sql')).sort();
 
   for (const file of files) {
-    const version = path.basename(file, '.sql');
+    const version = path.basename(file, '.sql').split('_')[0];
     if (appliedVersions.has(version)) continue;
 
     const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8');

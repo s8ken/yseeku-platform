@@ -51,7 +51,8 @@ export async function detectEmergence(
 
       // Add Bedau-specific reasoning
       if (bedauMetrics.bedau_index > 0.3) {
-        reasons.push(`Weak emergence detected (Bedau: ${bedauMetrics.bedau_index.toFixed(3)})`);
+        reasons.push('Weak emergence detected');
+        reasons.push(`Bedau index ${bedauMetrics.bedau_index.toFixed(3)}`);
       }
       
       if (bedauMetrics.emergence_type === 'WEAK_EMERGENCE') {
@@ -79,7 +80,6 @@ export async function detectEmergence(
       }
 
     } catch (error) {
-      console.warn('Bedau Index calculation failed:', error);
       reasons.push('Bedau analysis unavailable');
     }
   }

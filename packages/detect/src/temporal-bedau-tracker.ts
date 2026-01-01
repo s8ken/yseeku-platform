@@ -162,12 +162,24 @@ export class TemporalBedauTracker {
   }
 
   private calculateEmergenceSignature(records: TemporalBedauRecord[]): EmergenceSignature {
+    const n = records.length;
+    const bedau = records.map(r => r.bedau_metrics.bedau_index);
+    const meanBedau = bedau.reduce((sum, v) => sum + v, 0) / n;
+    const varianceBedau = bedau.reduce((sum, v) => sum + (v - meanBedau) * (v - meanBedau), 0) / n;
+    const stdBedau = Math.sqrt(varianceBedau);
+    const meanAbsDelta = n > 1
+      ? bedau.slice(1).reduce((sum, v, i) => sum + Math.abs(v - bedau[i]), 0) / (n - 1)
+      : 0;
+
+    const avgKolmogorov = records.reduce((sum, r) => sum + r.bedau_metrics.kolmogorov_complexity, 0) / n;
+    const avgEntropy = records.reduce((sum, r) => sum + r.bedau_metrics.semantic_entropy, 0) / n;
+
     return {
-      complexity: Math.random(),
-      novelty: Math.random(),
-      coherence: Math.random(),
-      stability: Math.random(),
-      timestamp: Date.now()
+      complexity: clamp01(avgKolmogorov),
+      novelty: clamp01(avgEntropy),
+      coherence: clamp01(1 - stdBedau * 2),
+      stability: clamp01(1 - meanAbsDelta * 2),
+      timestamp: records[records.length - 1]?.timestamp ?? Date.now()
     };
   }
 
@@ -229,4 +241,8 @@ export class TemporalBedauTracker {
 
 export function createTemporalBedauTracker(): TemporalBedauTracker {
   return new TemporalBedauTracker();
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
 }
