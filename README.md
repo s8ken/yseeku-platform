@@ -65,14 +65,32 @@ flowchart LR
 
 ## Core Product Features
 
-### 1. SYMBI Framework — 6 Principles (Core) and 5 Dimensions (Detect)
-Core (`@sonate/core`) encodes the 6 SYMBI principles and canonical weighted trust algorithm.
-Detect (`@sonate/detect`) derives 5 production monitoring dimensions from the core principles:
-- Reality Index (0–10): mission alignment, accuracy, context, authenticity
-- Trust Protocol (PASS/PARTIAL/FAIL): verification, boundaries, security derived from core principles
-- Ethical Alignment (1–5): limitations, stakeholder consideration, reasoning transparency, compliance
-- Resonance Quality (STRONG/ADVANCED/BREAKTHROUGH): creative synthesis, innovation, adaptive learning
-- Canvas Parity (0–100): human agency, contribution transparency, collaboration, fairness
+### 1. SYMBI Framework — 6 Constitutional Principles + 5 Derived Dimensions
+
+**Important:** SONATE has a two-layer architecture:
+
+#### Layer 1: Constitutional Foundation (6 SYMBI Principles)
+Core (`@sonate/core`) implements the **6 SYMBI Constitutional Principles** with weighted scoring:
+
+1. **CONSENT_ARCHITECTURE** (0.25, critical) - Users must explicitly consent to AI interactions
+2. **INSPECTION_MANDATE** (0.20) - All AI decisions must be inspectable and auditable
+3. **CONTINUOUS_VALIDATION** (0.20) - AI behavior continuously validated against principles
+4. **ETHICAL_OVERRIDE** (0.15, critical) - Humans can override AI decisions on ethical grounds
+5. **RIGHT_TO_DISCONNECT** (0.10) - Users can disconnect without penalty
+6. **MORAL_RECOGNITION** (0.10) - AI recognizes and respects human moral agency
+
+These form the constitutional foundation. Trust receipts are signed based on these principles.
+
+#### Layer 2: Production Monitoring (5 Derived Dimensions)
+Detect (`@sonate/detect`) derives **5 real-time monitoring dimensions** from the 6 principles:
+
+1. **Reality Index** (0–10): mission alignment, accuracy, context, authenticity
+2. **Trust Protocol** (PASS/PARTIAL/FAIL): verification, boundaries, security
+3. **Ethical Alignment** (1–5): limitations, stakeholder consideration, transparency, compliance
+4. **Resonance Quality** (STRONG/ADVANCED/BREAKTHROUGH): creative synthesis, innovation, learning
+5. **Canvas Parity** (0–100): human agency, contribution transparency, collaboration, fairness
+
+**Note:** Some demos use simplified names for user-friendliness. Production code uses the formal principle names above.
 
 ### 2. Real‑time Production Monitoring (`@sonate/detect`)
 - Sub‑100ms latency; 1000+ detections/sec; Kubernetes‑ready
