@@ -41,9 +41,11 @@
     "esbuild": "^0.27.2",
     "jsdom": "^27.4.0",
     "lightningcss": "^1.30.2",
-    "lightningcss-darwin-arm64": "^1.30.2",
     "parse-duration": "^2.1.5",
     "vite": "^7.3.0",
     "vitest": "^4.0.16"
+  },
+  "optionalDependencies": {
+    "lightningcss-darwin-arm64": "^1.30.2"
   }
 }
