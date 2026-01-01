@@ -13,8 +13,9 @@
   "author": "YSEEKU",
   "license": "MIT",
   "dependencies": {
-    "@lit-protocol/lit-node-client": "^7.3.1",
-    "vite": "7.3.0"
+    "@lit-protocol/lit-node-client": "^7.2.3",
+    "vite": "7.3.0",
+    "vitest": "4.0.16"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

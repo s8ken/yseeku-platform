@@ -3,6 +3,8 @@
  * Supports multiple embedding models and provides enterprise-grade semantic analysis
  */
 
+import { hybridCache } from './redis-cache';
+
 export interface EmbeddingResult {
   vector: number[];
   confidence: number;
@@ -34,7 +36,6 @@ export interface EmbeddingCacheEntry {
 
 export class SemanticEmbedder {
   private config: EmbeddingConfig;
-  private cache: Map<string, EmbeddingCacheEntry>;
   private model: any = null; // Would hold actual model in production
   private performanceStats: {
     total_inferences: number;
@@ -42,6 +43,7 @@ export class SemanticEmbedder {
     cache_hit_rate: number;
     model_load_time_ms: number;
   };
+  private cacheInitialized: boolean = false;
 
   constructor(config: Partial<EmbeddingConfig> = {}) {
     this.config = {
@@ -54,7 +56,6 @@ export class SemanticEmbedder {
       ...config
     };
 
-    this.cache = new Map();
     this.performanceStats = {
       total_inferences: 0,
       avg_inference_time_ms: 0,
@@ -64,23 +65,37 @@ export class SemanticEmbedder {
   }
 
   /**
+   * Initialize the embedder and cache
+   */
+  async initialize(): Promise<void> {
+    if (!this.cacheInitialized) {
+      await hybridCache.initialize();
+      this.cacheInitialized = true;
+    }
+  }
+
+  /**
    * Generate semantic embedding for text
    */
   async embed(text: string): Promise<EmbeddingResult> {
+    // Ensure cache is initialized
+    if (!this.cacheInitialized) {
+      await this.initialize();
+    }
+
     const startTime = performance.now();
     this.performanceStats.total_inferences++;
 
     // Check cache first
     const cacheKey = this.generateCacheKey(text);
-    const cached = this.cache.get(cacheKey);
+    const cached = await hybridCache.get(cacheKey);
 
-    if (cached) {
-      cached.access_count++;
+    if (cached && cached.vector) {
       const inferenceTime = performance.now() - startTime;
 
       return {
         vector: cached.vector,
-        confidence: cached.confidence,
+        confidence: cached.confidence || 0.95,
         model_used: this.config.model,
         inference_time_ms: inferenceTime,
         cache_hit: true,
@@ -96,7 +111,11 @@ export class SemanticEmbedder {
     this.updatePerformanceStats(inferenceTime);
 
     // Cache result
-    this.cacheResult(cacheKey, embedding, 0.95); // Default high confidence
+    await hybridCache.set(cacheKey, {
+      vector: embedding.vector,
+      confidence: embedding.confidence,
+      timestamp: Date.now()
+    }, this.config.cache_size > 0 ? 3600 : 300); // TTL based on cache size
 
     return {
       vector: embedding.vector,
@@ -112,20 +131,24 @@ export class SemanticEmbedder {
    * Batch embedding for efficiency
    */
   async embedBatch(texts: string[]): Promise<EmbeddingResult[]> {
+    // Ensure cache is initialized
+    if (!this.cacheInitialized) {
+      await this.initialize();
+    }
     const results: EmbeddingResult[] = [];
     const uncachedTexts: string[] = [];
     const uncachedIndices: number[] = [];
 
-    // Check cache for all texts
-    texts.forEach((text, index) => {
+    // Check cache for all texts (simplified - in production would batch cache checks)
+    for (let index = 0; index < texts.length; index++) {
+      const text = texts[index];
       const cacheKey = this.generateCacheKey(text);
-      const cached = this.cache.get(cacheKey);
+      const cached = await hybridCache.get(cacheKey);
 
-      if (cached) {
-        cached.access_count++;
+      if (cached && cached.vector) {
         results[index] = {
           vector: cached.vector,
-          confidence: cached.confidence,
+          confidence: cached.confidence || 0.95,
           model_used: this.config.model,
           inference_time_ms: 0, // Cached
           cache_hit: true,
@@ -136,7 +159,7 @@ export class SemanticEmbedder {
         uncachedIndices.push(index);
         results[index] = {} as EmbeddingResult; // Placeholder
       }
-    });
+    }
 
     // Generate embeddings for uncached texts
     if (uncachedTexts.length > 0) {
@@ -158,9 +181,13 @@ export class SemanticEmbedder {
           metadata: embedding.metadata
         };
 
-        // Cache result
+        // Cache result (fire and forget for performance)
         const cacheKey = this.generateCacheKey(uncachedTexts[batchIndex]);
-        this.cacheResult(cacheKey, embedding, embedding.confidence);
+        hybridCache.set(cacheKey, {
+          vector: embedding.vector,
+          confidence: embedding.confidence,
+          timestamp: Date.now()
+        }, 3600).catch(err => console.warn('Cache write failed:', err));
       });
 
       this.updatePerformanceStats(batchTime);
@@ -173,14 +200,20 @@ export class SemanticEmbedder {
    * Get performance statistics
    */
   getPerformanceStats() {
-    const cacheHits = Array.from(this.cache.values())
-      .reduce((sum, entry) => sum + entry.access_count, 0);
+    const cacheStats = hybridCache.getStats();
     const totalAccesses = this.performanceStats.total_inferences;
+
+    // Handle different cache stats formats
+    const hitRate = 'hitRate' in cacheStats ? cacheStats.hitRate : 0;
+    const cacheSize = 'memoryCacheSize' in cacheStats ? cacheStats.memoryCacheSize :
+                     'totalKeys' in cacheStats ? cacheStats.totalKeys : 0;
+    const connected = cacheStats.connected;
 
     return {
       ...this.performanceStats,
-      cache_hit_rate: totalAccesses > 0 ? cacheHits / totalAccesses : 0,
-      cache_size: this.cache.size,
+      cache_hit_rate: hitRate,
+      cache_size: cacheSize,
+      redis_connected: connected,
       model_loaded: this.model !== null
     };
   }
@@ -188,8 +221,11 @@ export class SemanticEmbedder {
   /**
    * Clear cache
    */
-  clearCache(): void {
-    this.cache.clear();
+  async clearCache(): Promise<void> {
+    // Note: Hybrid cache clearing would need implementation in HybridCache class
+    // For now, we'll reinitialize
+    this.cacheInitialized = false;
+    await this.initialize();
   }
 
   // Private methods
@@ -354,23 +390,7 @@ export class SemanticEmbedder {
     }
   }
 
-  private cacheResult(key: string, embedding: any, confidence: number): void {
-    // Evict old entries if cache is full (LRU-style)
-    if (this.cache.size >= this.config.cache_size) {
-      const entries = Array.from(this.cache.entries());
-      entries.sort((a, b) => a[1].access_count - b[1].access_count);
-      const toEvict = entries.slice(0, Math.floor(this.config.cache_size * 0.1));
-
-      toEvict.forEach(([key]) => this.cache.delete(key));
-    }
-
-    this.cache.set(key, {
-      vector: embedding.vector,
-      timestamp: Date.now(),
-      access_count: 1,
-      confidence
-    });
-  }
+  // Caching is now handled directly through hybridCache in the embed method
 
   private updatePerformanceStats(inferenceTime: number): void {
     const alpha = 0.1; // Exponential moving average
@@ -426,6 +446,9 @@ export function cosineSimilarity(a: number[], b: number[]): number {
 
 // Export default embedder instance
 export const embedder = new SemanticEmbedder();
+
+// Initialize embedder on module load
+embedder.initialize().catch(console.error);
 
 // Legacy function for backward compatibility
 export async function embed(text: string): Promise<number[]> {

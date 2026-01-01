@@ -80,7 +80,7 @@ classification: 'nominal' | 'weak' | 'moderate_weak' | 'high_weak' | 'investigat
 // packages/detect/src/bedau-index.ts
 export interface BedauMetrics {
   bedau_index: number;           // 0-1: Weak emergence strength
-  emergence_type: 'LINEAR' | 'WEAK_EMERGENCE' | 'POTENTIAL_STRONG_EMERGENCE';
+  emergence_type: 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE';
   strong_emergence_indicators?: StrongEmergenceIndicators;
   // ... rest
 }

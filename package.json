@@ -37,13 +37,13 @@
   "dependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@vitest/ui": "^4.0.16",
-    "axios": "^1.7.9",
-    "esbuild": "^0.25.12",
+    "axios": "^1.13.2",
+    "esbuild": "^0.27.2",
     "jsdom": "^27.4.0",
     "lightningcss": "^1.30.2",
     "lightningcss-darwin-arm64": "^1.30.2",
     "parse-duration": "^2.1.5",
-    "vite": "^6.4.1",
+    "vite": "^7.3.0",
     "vitest": "^4.0.16"
   }
 }

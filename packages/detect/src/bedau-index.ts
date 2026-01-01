@@ -12,7 +12,7 @@
 
 export interface BedauMetrics {
   bedau_index: number;           // 0-1: Weak emergence strength
-  emergence_type: 'LINEAR' | 'WEAK_EMERGENCE' | 'POTENTIAL_STRONG_EMERGENCE';
+  emergence_type: 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE';
   kolmogorov_complexity: number; // Approximation of irreducibility
   semantic_entropy: number;      // Cognitive diversity measure
   confidence_interval: [number, number]; // Bootstrap CI
@@ -21,12 +21,16 @@ export interface BedauMetrics {
 }
 
 /**
- * Strong Emergence Indicators
+ * Strong Emergence Indicators (Experimental)
  * 
  * Strong emergence is characterized by unpredictable collective behavior
  * that cannot be reduced to component interactions, even with complete
  * knowledge of the system. This is distinct from weak emergence measured
  * by the Bedau Index.
+ * 
+ * IMPORTANT: The Bedau Index measures WEAK emergence only. Strong emergence
+ * detection is experimental and requires additional validation beyond
+ * the Bedau Index methodology.
  */
 export interface StrongEmergenceIndicators {
   irreducibility_proof: boolean;      // Cannot be predicted from components
@@ -90,7 +94,7 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
   private readonly emergenceThresholds = {
     LINEAR: 0.3,
     WEAK_EMERGENCE: 0.7,
-    STRONG_EMERGENCE: 0.9
+    HIGH_WEAK_EMERGENCE: 0.9
   };
 
   /**
@@ -129,7 +133,7 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
 
     // 6. Detect strong emergence indicators if potential is high
     let strong_emergence_indicators: StrongEmergenceIndicators | undefined;
-    if (emergence_type === 'POTENTIAL_STRONG_EMERGENCE') {
+    if (emergence_type === 'HIGH_WEAK_EMERGENCE') {
       strong_emergence_indicators = this.detectStrongEmergence(
         semantic,
         surface,
@@ -339,13 +343,13 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     );
   }
 
-  private classifyEmergenceType(bedau_index: number): 'LINEAR' | 'WEAK_EMERGENCE' | 'POTENTIAL_STRONG_EMERGENCE' {
+  private classifyEmergenceType(bedau_index: number): 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE' {
     if (bedau_index <= this.emergenceThresholds.LINEAR) {
       return 'LINEAR';
     } else if (bedau_index <= this.emergenceThresholds.WEAK_EMERGENCE) {
       return 'WEAK_EMERGENCE';
     } else {
-      return 'POTENTIAL_STRONG_EMERGENCE';
+      return 'HIGH_WEAK_EMERGENCE';
     }
   }
 

@@ -34,7 +34,7 @@ interface BedauMetric {
     irreducibility: number;
     downwardCausation: number;
   };
-  classification: 'nominal' | 'weak' | 'strong' | 'critical';
+  classification: 'nominal' | 'weak' | 'high_weak' | 'investigating_strong';
 }
 
 interface HistoricalDataPoint {
@@ -63,7 +63,7 @@ const mockMetrics: BedauMetric[] = [
     bedauIndex: 0.68,
     trend: 'increasing',
     components: { novelty: 0.72, unpredictability: 0.65, irreducibility: 0.58, downwardCausation: 0.77 },
-    classification: 'strong'
+    classification: 'high_weak'
   },
   {
     id: 'metric-003',
@@ -83,7 +83,7 @@ const mockMetrics: BedauMetric[] = [
     bedauIndex: 0.84,
     trend: 'increasing',
     components: { novelty: 0.89, unpredictability: 0.81, irreducibility: 0.78, downwardCausation: 0.88 },
-    classification: 'critical'
+    classification: 'investigating_strong'
   }
 ];
 
@@ -170,8 +170,8 @@ function MetricCard({ metric }: { metric: BedauMetric }) {
   };
 
   return (
-    <Card className={metric.classification === 'critical' ? 'border-l-4 border-l-red-500' : 
-                     metric.classification === 'strong' ? 'border-l-4 border-l-amber-500' : ''}>
+    <Card className={metric.classification === 'investigating_strong' ? 'border-l-4 border-l-red-500' : 
+                     metric.classification === 'high_weak' ? 'border-l-4 border-l-amber-500' : ''}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div>
@@ -252,8 +252,8 @@ export default function BedauIndexPage() {
 
   const avgBedau = mockMetrics.reduce((acc, m) => acc + m.bedauIndex, 0) / mockMetrics.length;
   const maxBedau = Math.max(...mockMetrics.map(m => m.bedauIndex));
-  const criticalCount = mockMetrics.filter(m => m.classification === 'critical').length;
-  const strongCount = mockMetrics.filter(m => m.classification === 'strong').length;
+  const investigatingStrongCount = mockMetrics.filter(m => m.classification === 'investigating_strong').length;
+  const highWeakCount = mockMetrics.filter(m => m.classification === 'high_weak').length;
 
   return (
     <div className="space-y-6">
@@ -320,7 +320,7 @@ export default function BedauIndexPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-500">{strongCount + criticalCount}</div>
+            <div className="text-2xl font-bold text-amber-500">{highWeakCount + investigatingStrongCount}</div>
             <p className="text-xs text-muted-foreground mt-1">Agents flagged</p>
           </CardContent>
         </Card>

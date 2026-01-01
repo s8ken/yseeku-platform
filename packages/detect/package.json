@@ -25,6 +25,7 @@
   "dependencies": {
     "@sonate/core": "file:../core",
     "axios": "^1.6.0",
+    "ioredis": "^5.8.2",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
