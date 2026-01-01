@@ -1,5 +1,5 @@
 import { KMSClient, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
-import Vault from 'node-vault';
+import Vault from 'hashi-vault-js';
 import { getLogger } from '../observability/logger';
 
 const logger = getLogger('SecretsManager');
@@ -63,23 +63,29 @@ export class AWSKMSSecretsManager implements SecretsManager {
 }
 
 export class HashiCorpVaultSecretsManager implements SecretsManager {
-  private vaultClient: Vault.client;
+  private vaultClient: Vault;
   private mountPath: string;
+  private token: string;
 
   constructor(endpoint: string, token: string, mountPath: string = 'secret') {
     this.mountPath = mountPath;
-    this.vaultClient = Vault({
-      endpoint,
-      token,
+    this.token = token;
+    this.vaultClient = new Vault({
+      baseUrl: endpoint,
+      rootPath: 'v1',
+      https: endpoint.startsWith('https'),
     });
   }
 
   async encrypt(data: string, keyId?: string): Promise<string> {
     try {
       const path = keyId || 'data/encryption-key';
-      await this.vaultClient.write(`${this.mountPath}/${path}`, {
-        data: { value: data }
-      });
+      await this.vaultClient.createKVSecret(
+        this.token,
+        path,
+        { value: data },
+        this.mountPath
+      );
       return path; // Return the path as encrypted data reference
     } catch (error) {
       logger.error('Vault encryption failed', { error: (error as Error).message });
@@ -89,8 +95,13 @@ export class HashiCorpVaultSecretsManager implements SecretsManager {
 
   async decrypt(encryptedData: string): Promise<string> {
     try {
-      const result = await this.vaultClient.read(`${this.mountPath}/${encryptedData}`);
-      return result.data.data.value;
+      const result = await this.vaultClient.readKVSecret(
+        this.token,
+        encryptedData,
+        undefined, // version (undefined for latest)
+        this.mountPath
+      ) as any; // Type assertion to handle library TypeScript definitions
+      return result.data.value;
     } catch (error) {
       logger.error('Vault decryption failed', { error: (error as Error).message });
       throw error;
@@ -99,7 +110,8 @@ export class HashiCorpVaultSecretsManager implements SecretsManager {
 
   async healthCheck(): Promise<boolean> {
     try {
-      const health = await this.vaultClient.health();
+      const health = await this.vaultClient.healthCheck() as any; // Type assertion to handle library TypeScript definitions
+      // The healthCheck method returns an object with initialized and sealed properties
       return health.initialized && !health.sealed;
     } catch (error) {
       logger.error('Vault health check failed', { error: (error as Error).message });
