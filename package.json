@@ -10,7 +10,7 @@
   "scripts": {
     "build": "turbo run build --filter=web",
     "dev": "turbo run dev --parallel",
-    "test": "turbo run test --filter=@sonate/core --filter=@sonate/detect --filter=@sonate/orchestrate --filter=@sonate/lab --filter=@sonate/persistence",
+    "test": "turbo run test --filter=@sonate/core --filter=@sonate/detect --filter=@sonate/orchestrate --filter=@sonate/lab --filter=@sonate/persistence --filter=@sonate/monitoring",
     "test:integration": "turbo run test --filter=integration-tests",
     "test:e2e": "turbo run e2e --filter=web",
     "lint": "turbo run lint",
