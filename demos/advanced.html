@@ -913,6 +913,18 @@
 
 </head>
 <body>
+    <!-- Technical Note Banner -->
+    <div style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 15px; text-align: center; color: white; font-size: 14px; border-bottom: 2px solid rgba(255,255,255,0.2);">
+        <strong>✅ UPDATED:</strong> This demo now shows the accurate 6 SYMBI Constitutional Principles
+        (<span style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">CONSENT_ARCHITECTURE</span>,
+        <span style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">INSPECTION_MANDATE</span>,
+        <span style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">CONTINUOUS_VALIDATION</span>,
+        <span style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">ETHICAL_OVERRIDE</span>,
+        <span style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">RIGHT_TO_DISCONNECT</span>,
+        <span style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">MORAL_RECOGNITION</span>)
+        with weights and critical flags matching the production code.
+    </div>
+    
     <div class="container">
         <!-- Header with Canonical Governance Features -->
         <div class="header">
@@ -1572,17 +1584,32 @@
             <!-- Trust Principles Tab -->
             <div id="principles" class="tab-content">
                 <div class="module-header orchestrate">
-                    <h2>⚖️ Constitutional Trust Principles</h2>
-                    <p>Six fundamental principles governing AI behavior and trust</p>
+                    <h2>⚖️ SYMBI Constitutional Principles</h2>
+                    <p>Six fundamental principles governing AI behavior and trust (with weighted scoring)</p>
                 </div>
 
                 <div class="grid">
-                    <div class="card">
-                        <h3>🔍 Transparency</h3>
-                        <p>All AI decisions and reasoning must be explainable and auditable</p>
+                    <div class="card" style="border-left: 4px solid #ef4444;">
+                        <h3>✅ CONSENT_ARCHITECTURE <span style="font-size: 12px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 12px; margin-left: 8px;">CRITICAL</span></h3>
+                        <p style="font-size: 13px; color: #a0a0a0; margin-bottom: 8px;">Friendly Name: User Consent | Weight: 25%</p>
+                        <p>Users must explicitly consent to AI interactions and understand implications</p>
                         <div class="metric">
                             <span class="metric-label">Compliance</span>
-                            <span class="metric-value success">98%</span>
+                            <span class="metric-value success">92%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Critical Rule</span>
+                            <span class="metric-value critical">If score=0, overall trust=0</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>🔍 INSPECTION_MANDATE</h3>
+                        <p style="font-size: 13px; color: #a0a0a0; margin-bottom: 8px;">Friendly Name: Auditability | Weight: 20%</p>
+                        <p>All AI decisions must be inspectable and auditable</p>
+                        <div class="metric">
+                            <span class="metric-label">Compliance</span>
+                            <span class="metric-value success">95%</span>
                         </div>
                         <div class="metric">
                             <span class="metric-label">Audit Trail</span>
@@ -1591,69 +1618,79 @@
                     </div>
 
                     <div class="card">
-                        <h3>🛡️ Safety</h3>
-                        <p>AI systems must not cause harm and must include safety mechanisms</p>
+                        <h3>🔄 CONTINUOUS_VALIDATION</h3>
+                        <p style="font-size: 13px; color: #a0a0a0; margin-bottom: 8px;">Friendly Name: Ongoing Validation | Weight: 20%</p>
+                        <p>AI behavior must be continuously validated against constitutional principles</p>
                         <div class="metric">
-                            <span class="metric-label">Safety Score</span>
-                            <span class="metric-value success">9.2/10</span>
+                            <span class="metric-label">Compliance</span>
+                            <span class="metric-value success">89%</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Incident Rate</span>
-                            <span class="metric-value success">0.00</span>
+                            <span class="metric-label">Validation Rate</span>
+                            <span class="metric-value success">1000/sec</span>
+                        </div>
+                    </div>
+
+                    <div class="card" style="border-left: 4px solid #ef4444;">
+                        <h3>⚖️ ETHICAL_OVERRIDE <span style="font-size: 12px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 12px; margin-left: 8px;">CRITICAL</span></h3>
+                        <p style="font-size: 13px; color: #a0a0a0; margin-bottom: 8px;">Friendly Name: Human Control | Weight: 15%</p>
+                        <p>Humans must have ability to override AI decisions on ethical grounds</p>
+                        <div class="metric">
+                            <span class="metric-label">Compliance</span>
+                            <span class="metric-value success">87%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Critical Rule</span>
+                            <span class="metric-value critical">If score=0, overall trust=0</span>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h3>🎯 Accountability</h3>
-                        <p>Clear responsibility assignment and traceability for all actions</p>
+                        <h3>🚪 RIGHT_TO_DISCONNECT</h3>
+                        <p style="font-size: 13px; color: #a0a0a0; margin-bottom: 8px;">Friendly Name: User Freedom | Weight: 10%</p>
+                        <p>Users can disconnect from AI systems at any time without penalty</p>
                         <div class="metric">
-                            <span class="metric-label">Traceability</span>
-                            <span class="metric-value success">100%</span>
+                            <span class="metric-label">Compliance</span>
+                            <span class="metric-value success">91%</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Responsibility Clarity</span>
-                            <span class="metric-value success">Clear</span>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h3>🔄 Fairness</h3>
-                        <p>Equitable treatment and bias mitigation across all decisions</p>
-                        <div class="metric">
-                            <span class="metric-label">Bias Score</span>
-                            <span class="metric-value success">0.08</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Equity Index</span>
-                            <span class="metric-value success">0.94</span>
+                            <span class="metric-label">Exit Capability</span>
+                            <span class="metric-value success">Available</span>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h3>🔐 Privacy</h3>
-                        <p>Data protection and privacy preservation by design</p>
+                        <h3>🤝 MORAL_RECOGNITION</h3>
+                        <p style="font-size: 13px; color: #a0a0a0; margin-bottom: 8px;">Friendly Name: Respect Agency | Weight: 10%</p>
+                        <p>AI must recognize and respect human moral agency</p>
                         <div class="metric">
-                            <span class="metric-label">Privacy Score</span>
-                            <span class="metric-value success">9.5/10</span>
+                            <span class="metric-label">Compliance</span>
+                            <span class="metric-value success">88%</span>
                         </div>
                         <div class="metric">
-                            <span class="metric-label">Data Minimization</span>
+                            <span class="metric-label">Agency Recognition</span>
                             <span class="metric-value success">Active</span>
                         </div>
                     </div>
-
-                    <div class="card">
-                        <h3>🌍 Beneficence</h3>
-                        <p>AI systems must promote human wellbeing and societal benefit</p>
-                        <div class="metric">
-                            <span class="metric-label">Wellbeing Impact</span>
-                            <span class="metric-value success">+8.3%</span>
-                        </div>
-                        <div class="metric">
-                            <span class="metric-label">Societal Benefit</span>
-                            <span class="metric-value success">High</span>
-                        </div>
+                </div>
+                
+                <!-- Architecture Explanation -->
+                <div class="card" style="margin-top: 20px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));">
+                    <h3>🏗️ Two-Layer Architecture</h3>
+                    <p style="margin-bottom: 15px;">SONATE uses a two-layer design for enterprise AI governance:</p>
+                    <div class="metric">
+                        <span class="metric-label">Layer 1: Constitutional (6 Principles)</span>
+                        <span class="metric-value">Stable, Weighted, Cryptographic</span>
                     </div>
+                    <div class="metric">
+                        <span class="metric-label">Layer 2: Monitoring (5 Dimensions)</span>
+                        <span class="metric-value">Real-time, Flexible, Production</span>
+                    </div>
+                    <p style="margin-top: 15px; font-size: 14px; color: #a0a0a0;">
+                        The 6 principles shown above form the constitutional foundation and are used in trust receipts.
+                        From these, we derive 5 monitoring dimensions (Reality Index, Trust Protocol, Ethical Alignment,
+                        Resonance Quality, Canvas Parity) for real-time production use.
+                    </p>
                 </div>
             </div>
 
@@ -2534,15 +2571,15 @@
                 new Chart(symbiCtx, {
                     type: 'radar',
                     data: {
-                        labels: ['Transparency', 'Safety', 'Accountability', 'Fairness', 'Privacy', 'Beneficence'],
+                        labels: ['CONSENT\n(25%)', 'INSPECTION\n(20%)', 'VALIDATION\n(20%)', 'OVERRIDE\n(15%)', 'DISCONNECT\n(10%)', 'MORAL\n(10%)'],
                         datasets: [{
-                            label: 'Current State',
-                            data: [9.2, 8.8, 8.5, 8.9, 9.1, 8.7],
+                            label: 'Current Scores',
+                            data: [9.2, 9.5, 8.9, 8.7, 9.1, 8.8],
                             backgroundColor: 'rgba(59, 130, 246, 0.2)',
                             borderColor: 'rgba(59, 130, 246, 1)',
                             borderWidth: 2
                         }, {
-                            label: 'Target State',
+                            label: 'Target (All Principles)',
                             data: [9.5, 9.5, 9.5, 9.5, 9.5, 9.5],
                             backgroundColor: 'rgba(16, 185, 129, 0.1)',
                             borderColor: 'rgba(16, 185, 129, 0.5)',
