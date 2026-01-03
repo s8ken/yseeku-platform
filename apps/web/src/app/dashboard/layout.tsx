@@ -323,12 +323,42 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Button>
             </a>
 
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center">
-                3
-              </span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center">
+                    3
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <div className="px-4 py-2 font-bold border-b">Notifications</div>
+                <div className="max-h-[300px] overflow-y-auto">
+                  <div className="p-4 border-b hover:bg-muted/50 cursor-pointer">
+                    <p className="text-sm font-medium">New Trust Receipt Generated</p>
+                    <p className="text-xs text-muted-foreground">Agent 'Customer Support' generated a new receipt with 98% resonance.</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">2 minutes ago</p>
+                  </div>
+                  <div className="p-4 border-b hover:bg-muted/50 cursor-pointer">
+                    <p className="text-sm font-medium text-amber-600">Low Resonance Warning</p>
+                    <p className="text-xs text-muted-foreground">Agent 'Sales Assistant' dropped below 70% resonance in recent interaction.</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">15 minutes ago</p>
+                  </div>
+                  <div className="p-4 hover:bg-muted/50 cursor-pointer">
+                    <p className="text-sm font-medium">Compliance Report Ready</p>
+                    <p className="text-xs text-muted-foreground">Your weekly EU AI Act compliance report is ready for download.</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">1 hour ago</p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator />
+                <Link href="/dashboard/alerts">
+                  <DropdownMenuItem className="justify-center text-sm text-primary cursor-pointer">
+                    View all alerts
+                  </DropdownMenuItem>
+                </Link>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -347,19 +377,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <p className="text-xs text-muted-foreground">{mockUser.email}</p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
-                  <KeyRound className="mr-2 h-4 w-4" />
-                  API Keys
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
+                <Link href="/dashboard/api">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <KeyRound className="mr-2 h-4 w-4" />
+                    API Keys
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/dashboard/settings">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign out
-                </DropdownMenuItem>
+                <Link href="/login">
+                  <DropdownMenuItem className="cursor-pointer text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </Link>
               </DropdownMenuContent>
             </DropdownMenu>
           </header>
