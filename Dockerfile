@@ -4,12 +4,12 @@ WORKDIR /app
 
 # Copy root workspace files
 COPY package.json package-lock.json ./
-COPY packages ./packages
-COPY apps/web ./apps/web
+COPY packages/ ./packages/
+COPY apps/ ./apps/
 
 # Install dependencies and build the web app
-RUN npm ci
-RUN npm run build --workspace web
+RUN npm ci --legacy-peer-deps
+RUN npm run build
 
 FROM node:20-alpine AS runner
 RUN apk add --no-cache libc6-compat
