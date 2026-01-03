@@ -35,8 +35,12 @@ import {
   Search,
   LogOut,
   Book,
-  ExternalLink
+  ExternalLink,
+  HelpCircle
 } from 'lucide-react';
+import { useTutorialStore } from '@/store/useTutorialStore';
+import { dashboardTutorialSteps } from '@/components/tutorial/steps';
+import { TutorialTour } from '@/components/tutorial/TutorialTour';
 
 type ModuleType = 'detect' | 'lab' | 'orchestrate';
 
@@ -115,6 +119,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedModules, setExpandedModules] = useState<ModuleType[]>(['detect', 'lab', 'orchestrate']);
   const pathname = usePathname();
+  const startTutorial = useTutorialStore(state => state.startTutorial);
 
   const toggleModule = (moduleId: ModuleType) => {
     setExpandedModules(prev => 
@@ -195,6 +200,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <Link
                           key={item.href}
                           href={item.href}
+                          id={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
                           className={cn(
                             "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all",
                             "text-muted-foreground hover:text-foreground",
@@ -220,8 +226,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
       </div>
       
-      <div className="border-t p-4">
-        <div className="flex items-center gap-3 px-2">
+      <div className="border-t p-4 space-y-2">
+        <Button 
+          variant="outline" 
+          className="w-full justify-start gap-3 border-emerald-500/20 hover:bg-emerald-50 text-emerald-700" 
+          size="sm"
+          onClick={() => startTutorial(dashboardTutorialSteps)}
+        >
+          <HelpCircle className="h-4 w-4" />
+          <span>Platform Tutorial</span>
+        </Button>
+
+        <div className="flex items-center gap-3 px-2 pt-2">
           <Avatar className="h-8 w-8">
             <AvatarImage src="/avatar.jpg" alt={mockUser.name} />
             <AvatarFallback className="bg-primary/10 text-primary text-xs">
@@ -239,6 +255,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <Providers>
+      <TutorialTour />
       <div className="grid min-h-screen w-full md:grid-cols-[260px_1fr] lg:grid-cols-[280px_1fr]">
         <a
           href="#main-content"

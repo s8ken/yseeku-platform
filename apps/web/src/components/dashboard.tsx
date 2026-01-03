@@ -109,7 +109,7 @@ export function Dashboard() {
         {/* KPIs Section */}
         {kpis && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
+            <Card id="dashboard-trust-score">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Trust Score</CardTitle>
               </CardHeader>
@@ -119,7 +119,7 @@ export function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card id="dashboard-active-agents">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
               </CardHeader>
@@ -129,7 +129,7 @@ export function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card id="dashboard-compliance-rate">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Compliance Rate</CardTitle>
               </CardHeader>
@@ -139,7 +139,7 @@ export function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card id="dashboard-experiments">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Experiments</CardTitle>
               </CardHeader>
