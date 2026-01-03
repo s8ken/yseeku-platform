@@ -3,7 +3,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy root workspace files
-COPY package.json package-lock.json turbo.json ./
+COPY package.json package-lock.json turbo.json tsconfig.json ./
 COPY packages/ ./packages/
 COPY apps/ ./apps/
 
