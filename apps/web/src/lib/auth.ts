@@ -48,10 +48,18 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  if (!hash || hash.length < 20) return false;
+  if (!hash || hash.length < 20) {
+    console.log('verifyPassword: Hash is missing or too short');
+    return false;
+  }
   try {
-    return await bcrypt.compare(password, hash);
-  } catch {
+    const isMatch = await bcrypt.compare(password, hash);
+    if (!isMatch) {
+      console.log('verifyPassword: Password does not match hash');
+    }
+    return isMatch;
+  } catch (error) {
+    console.error('verifyPassword error:', error);
     return false;
   }
 }
@@ -171,22 +179,23 @@ export async function ensureDefaultAdmin(): Promise<void> {
     const result = await pool.query('SELECT id, password_hash FROM users WHERE email = $1', [adminEmail]);
     
     if (result.rows.length === 0) {
-      const id = generateId('user');
+      const id = 'admin'; // Fixed ID for easier lookup
       const passwordHash = await hashPassword(adminPassword);
       
       await pool.query(
         `INSERT INTO users (id, email, name, password_hash, role, tenant_id) 
          VALUES ($1, $2, $3, $4, $5, $6)`,
-        [id, adminEmail, 'Admin User', passwordHash, 'admin', 'default']
+        [id, adminEmail, 'Admin', passwordHash, 'admin', 'default']
       );
-      console.log('Admin user created from environment variables');
-    } else if (!result.rows[0].password_hash || result.rows[0].password_hash.length < 20) {
+      console.log(`Admin user created with ID 'admin' and email: ${adminEmail}`);
+    } else {
+      // Force update password to match environment variable
       const passwordHash = await hashPassword(adminPassword);
       await pool.query(
-        `UPDATE users SET password_hash = $1 WHERE email = $2`,
-        [passwordHash, adminEmail]
+        `UPDATE users SET password_hash = $1, name = $2, role = $3 WHERE email = $4`,
+        [passwordHash, 'Admin', 'admin', adminEmail]
       );
-      console.log('Admin password hash upgraded to bcrypt');
+      console.log(`Admin user password updated/synchronized for: ${adminEmail}`);
     }
   } catch (error) {
     console.error('Error ensuring admin:', error);

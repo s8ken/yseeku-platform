@@ -47,6 +47,7 @@ const handler = async (req: NextRequest) => {
     }
     
     await ensureDefaultAdmin();
+    console.log('Post-ensureDefaultAdmin check...');
     
     const body = await req.json();
     const { username, password, tenant_id = 'default' } = body || {};
@@ -57,19 +58,31 @@ const handler = async (req: NextRequest) => {
       return NextResponse.json({ error: 'Missing credentials' }, { status: 400, headers: getSecurityHeaders() });
     }
 
+    console.log(`Login attempt for username: ${username} on tenant: ${tenant}`);
     const userRecord = await getUserByUsername(username);
     
-    if (!userRecord || !userRecord.passwordHash) {
+    if (!userRecord) {
+      console.log(`User not found in database for identifier: ${username}`);
       await auditLog('anonymous', 'login_failed', 'failure', { username, reason: 'user_not_found' }, tenant);
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401, headers: getSecurityHeaders() });
     }
-    
-    const isValidCredentials = await verifyPassword(password, userRecord.passwordHash);
-    
-    if (!isValidCredentials) {
-      await auditLog('anonymous', 'login_failed', 'failure', { username, reason: 'invalid_password' }, tenant);
+
+    console.log(`User found: ${userRecord.id} (${userRecord.email}), role: ${userRecord.role}`);
+
+    if (!userRecord.passwordHash) {
+      console.log(`User found but has no password hash: ${username}`);
+      await auditLog('anonymous', 'login_failed', 'failure', { username, reason: 'missing_password_hash' }, tenant);
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401, headers: getSecurityHeaders() });
     }
+
+    const isPasswordValid = await verifyPassword(password, userRecord.passwordHash);
+    if (!isPasswordValid) {
+      console.log(`Invalid password for user: ${username}`);
+      await auditLog(userRecord.id, 'login_failed', 'failure', { username, reason: 'invalid_password' }, tenant);
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401, headers: getSecurityHeaders() });
+    }
+
+    console.log(`Login successful for user: ${username}`);
 
     const secret = getJwtSecret();
     const refreshSecret = process.env.REFRESH_TOKEN_SECRET || secret;

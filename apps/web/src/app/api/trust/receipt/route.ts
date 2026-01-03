@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { resonanceWithStickiness, SessionState, Transcript } from '@sonate/detect';
 import { canonicalTranscript, sha256Hex } from '@sonate/core';
+import { getPool, ensureSchema } from '@/lib/db';
 
 // Mock KV Store (In-memory for demo)
 // In production, use @vercel/kv or Redis
@@ -28,7 +29,7 @@ const kmsSign = async (buf: Buffer) => "MOCK_SIG_BASE64_" + sha256Hex(buf).slice
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { transcript, session_id } = body;
+        const { transcript, session_id, tenant_id } = body;
 
         if (!transcript || !session_id) {
             return NextResponse.json({ error: "Missing transcript or session_id" }, { status: 400 });
@@ -40,8 +41,6 @@ export async function POST(req: Request) {
         const receipt = await resonanceWithStickiness(transcript as Transcript, session_state || undefined);
 
         // Canonicalize + sign
-        // Need to convert to CanonicalTranscript format. 
-        // Assuming input transcript has 'turns' array. If not, we wrap it.
         const canonicalInput = {
             session_id,
             created_ms: Date.now(),
@@ -58,7 +57,6 @@ export async function POST(req: Request) {
             }))
         };
         
-        // If transcript.turns is missing (simple text input), create a single turn
         if (canonicalInput.turns.length === 0) {
              canonicalInput.turns.push({
                  role: 'user',
@@ -69,16 +67,50 @@ export async function POST(req: Request) {
         }
 
         const canonical = canonicalTranscript(canonicalInput);
+        const selfHash = sha256Hex(canonical);
+        const signature = await kmsSign(canonical);
 
         const signed_receipt = {
             ...receipt,
-            receipt_id: sha256Hex(canonical),
-            signature: await kmsSign(canonical),
+            receipt_id: selfHash,
+            signature,
             session_state: receipt.session_state // For next call
         };
 
+        // Persist to Database for Dashboard Visibility
+        await ensureSchema();
+        const pool = getPool();
+        if (pool) {
+            const ciq = {
+                trust_score: Math.round(receipt.r_m * 100),
+                symbi_dimensions: {
+                    realityIndex: receipt.r_m * 10,
+                    trustProtocol: receipt.r_m >= 0.7 ? 'PASS' : 'FAIL',
+                    ethicalAlignment: receipt.r_m * 5,
+                    resonanceQuality: receipt.r_m >= 0.9 ? 'BREAKTHROUGH' : receipt.r_m >= 0.8 ? 'ADVANCED' : 'STRONG',
+                    canvasParity: Math.round(receipt.r_m * 100)
+                }
+            };
+
+            await pool.query(
+                `INSERT INTO trust_receipts (self_hash, session_id, version, timestamp, mode, ciq, signature, tenant_id)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                 ON CONFLICT (self_hash) DO NOTHING`,
+                [
+                    selfHash, 
+                    session_id, 
+                    '1.0', 
+                    Date.now(), 
+                    'demo', 
+                    JSON.stringify(ciq), 
+                    signature, 
+                    tenant_id || 'default'
+                ]
+            );
+            console.log(`✅ Saved trust receipt ${selfHash} to database.`);
+        }
+
         // Store updated state with FIX: 30 days TTL (86400 * 30)
-        // Original issue was TTL too short (3600s)
         if (signed_receipt.session_state) {
             await mockKV.set(`symbi:${session_id}`, signed_receipt.session_state, { ex: 86400 * 30 });
         }

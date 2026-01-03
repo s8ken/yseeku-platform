@@ -10,15 +10,113 @@ export function getPool(): Pool | null {
     console.warn('No database URL configured');
     return null;
   }
+
+  // Handle Railway's potentially incorrect URL interpolation if it starts with "base"
+  let connectionString = url;
+  if (url.startsWith('postgresql://base')) {
+    console.warn('Detected potentially malformed DATABASE_URL starting with "base". Attempting to fix...');
+    connectionString = url.replace('postgresql://base', 'postgresql://postgres');
+  }
   
   try {
-    pool = new Pool({ connectionString: url });
+    pool = new Pool({ connectionString });
     console.log('PostgreSQL pool initialized');
     
-    // Provison admin after pool is initialized
-    import('./auth').then(({ ensureDefaultAdmin }) => {
-      ensureDefaultAdmin().catch(err => console.error('Failed to ensure default admin:', err));
-    });
+    // Provision schema and admin after pool is initialized
+    (async () => {
+      try {
+        console.log('Starting database initialization process...');
+        // Execute schema creation directly to ensure it happens before auth check
+        const client = await pool!.connect();
+        try {
+          console.log('Connected to database for schema creation');
+          await client.query(`
+            CREATE TABLE IF NOT EXISTS tenants (
+              id TEXT PRIMARY KEY,
+              name TEXT NOT NULL,
+              description TEXT,
+              status TEXT DEFAULT 'active',
+              compliance_status TEXT DEFAULT 'compliant',
+              trust_score INTEGER DEFAULT 85,
+              created_at TIMESTAMPTZ DEFAULT NOW(),
+              last_activity TIMESTAMPTZ DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS agents (
+              id TEXT PRIMARY KEY,
+              name TEXT NOT NULL,
+              type TEXT,
+              status TEXT DEFAULT 'active',
+              trust_score INTEGER DEFAULT 80,
+              symbi_dimensions JSONB,
+              last_interaction TIMESTAMPTZ DEFAULT NOW(),
+              interaction_count INTEGER DEFAULT 0,
+              tenant_id TEXT,
+              created_at TIMESTAMPTZ DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS users (
+              id TEXT PRIMARY KEY,
+              email TEXT,
+              name TEXT,
+              password_hash TEXT,
+              role TEXT DEFAULT 'viewer',
+              tenant_id TEXT,
+              created_at TIMESTAMPTZ DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS sessions (
+              id TEXT PRIMARY KEY,
+              user_id TEXT REFERENCES users(id),
+              token TEXT UNIQUE NOT NULL,
+              expires_at TIMESTAMPTZ NOT NULL,
+              created_at TIMESTAMPTZ DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS trust_receipts (
+              self_hash TEXT PRIMARY KEY,
+              session_id TEXT,
+              version TEXT,
+              timestamp BIGINT,
+              mode TEXT,
+              ciq JSONB,
+              previous_hash TEXT,
+              signature TEXT,
+              session_nonce TEXT,
+              tenant_id TEXT,
+              created_at TIMESTAMPTZ DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS risk_events (
+              id TEXT PRIMARY KEY,
+              title TEXT NOT NULL,
+              severity TEXT DEFAULT 'warning',
+              description TEXT,
+              category TEXT DEFAULT 'operational',
+              resolved BOOLEAN DEFAULT false,
+              resolved_at TIMESTAMPTZ,
+              tenant_id TEXT,
+              created_at TIMESTAMPTZ DEFAULT NOW()
+            );
+            CREATE TABLE IF NOT EXISTS audit_logs (
+              id TEXT PRIMARY KEY,
+              user_id TEXT,
+              event TEXT NOT NULL,
+              status TEXT NOT NULL,
+              details JSONB,
+              tenant_id TEXT,
+              created_at TIMESTAMPTZ DEFAULT NOW()
+            );
+          `);
+          console.log('Database schema verified/created successfully');
+        } finally {
+          client.release();
+        }
+
+        console.log('Importing auth module for admin provisioning...');
+        const { ensureDefaultAdmin } = await import('./auth');
+        console.log('Calling ensureDefaultAdmin...');
+        await ensureDefaultAdmin();
+        console.log('Database initialization process complete');
+      } catch (err) {
+        console.error('CRITICAL: Failed to initialize database:', err);
+      }
+    })();
 
     return pool;
   } catch (err) {
