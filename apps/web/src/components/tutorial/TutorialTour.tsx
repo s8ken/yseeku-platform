@@ -146,7 +146,7 @@ export const TutorialTour: React.FC = () => {
 
       <Card 
         ref={cardRef}
-        className="w-[320px] shadow-2xl pointer-events-auto border-emerald-500/30"
+        className="w-[320px] shadow-2xl pointer-events-auto border-emerald-500/30 bg-white"
         style={getCardStyle()}
       >
         <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
