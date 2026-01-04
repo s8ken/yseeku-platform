@@ -23,6 +23,11 @@ export * from './canonicalize';
 // Logging infrastructure
 export { logger, log, createLogger, securityLogger, performanceLogger, apiLogger, LogLevel } from './logger';
 
+// Monitoring infrastructure
+export * from './monitoring/metrics';
+export * from './monitoring/performance';
+export * from './monitoring/health';
+
 // Constants - The 6 Trust Principles from Master Context
 export const TRUST_PRINCIPLES = {
   CONSENT_ARCHITECTURE: { 
