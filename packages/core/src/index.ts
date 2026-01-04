@@ -20,6 +20,9 @@ export * from './utils/crypto-advanced';
 
 export * from './canonicalize';
 
+// Logging infrastructure
+export { logger, log, createLogger, securityLogger, performanceLogger, apiLogger, LogLevel } from './logger';
+
 // Constants - The 6 Trust Principles from Master Context
 export const TRUST_PRINCIPLES = {
   CONSENT_ARCHITECTURE: { 

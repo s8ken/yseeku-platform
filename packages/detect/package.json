@@ -1,6 +1,6 @@
 {
   "name": "@sonate/detect",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "description": "Real-time AI detection and scoring for SONATE platform",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
