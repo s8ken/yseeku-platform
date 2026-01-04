@@ -1,5 +1,5 @@
 import { KMSClient, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
-import Vault from 'node-vault';
+// import { Vault } from 'hashi-vault-js'; // TODO: Fix Vault API integration
 import { getLogger } from '../observability/logger';
 
 const logger = getLogger('SecretsManager');
@@ -63,48 +63,22 @@ export class AWSKMSSecretsManager implements SecretsManager {
 }
 
 export class HashiCorpVaultSecretsManager implements SecretsManager {
-  private vaultClient: Vault.client;
-  private mountPath: string;
-
+  // TODO: Implement Vault integration with correct API
+  // The hashi-vault-js library API needs to be verified
   constructor(endpoint: string, token: string, mountPath: string = 'secret') {
-    this.mountPath = mountPath;
-    this.vaultClient = Vault({
-      endpoint,
-      token,
-    });
+    throw new Error('HashiCorpVaultSecretsManager not yet implemented - use AWS KMS or Local provider');
   }
 
   async encrypt(data: string, keyId?: string): Promise<string> {
-    try {
-      const path = keyId || 'data/encryption-key';
-      await this.vaultClient.write(`${this.mountPath}/${path}`, {
-        data: { value: data }
-      });
-      return path; // Return the path as encrypted data reference
-    } catch (error) {
-      logger.error('Vault encryption failed', { error: (error as Error).message });
-      throw error;
-    }
+    throw new Error('Not implemented');
   }
 
   async decrypt(encryptedData: string): Promise<string> {
-    try {
-      const result = await this.vaultClient.read(`${this.mountPath}/${encryptedData}`);
-      return result.data.data.value;
-    } catch (error) {
-      logger.error('Vault decryption failed', { error: (error as Error).message });
-      throw error;
-    }
+    throw new Error('Not implemented');
   }
 
   async healthCheck(): Promise<boolean> {
-    try {
-      const health = await this.vaultClient.health();
-      return health.initialized && !health.sealed;
-    } catch (error) {
-      logger.error('Vault health check failed', { error: (error as Error).message });
-      return false;
-    }
+    return false;
   }
 }
 
