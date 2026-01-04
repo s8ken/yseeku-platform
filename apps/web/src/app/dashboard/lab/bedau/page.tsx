@@ -165,8 +165,7 @@ function MetricCard({ metric }: { metric: BedauMetric }) {
   const classificationColors: Record<string, string> = {
     LINEAR: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
     WEAK_EMERGENCE: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
-    strong: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-    critical: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+    HIGH_WEAK_EMERGENCE: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
   };
 
   return (
@@ -185,9 +184,12 @@ function MetricCard({ metric }: { metric: BedauMetric }) {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex items-center justify-between">
-          <Badge className={classificationColors[metric.classification]}>
-            {metric.classification.toUpperCase()}
-          </Badge>
+          <div className="flex items-center gap-1">
+            <Badge className={classificationColors[metric.classification]}>
+              {metric.classification.toUpperCase()}
+            </Badge>
+            <InfoTooltip term={metric.classification} />
+          </div>
           <div className="flex items-center gap-1 text-sm">
             {metric.trend === 'increasing' && <TrendingUp className="h-4 w-4 text-amber-500" />}
             {metric.trend === 'decreasing' && <TrendingDown className="h-4 w-4 text-emerald-500" />}

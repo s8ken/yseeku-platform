@@ -8,10 +8,11 @@ The Bedau Index & Emergence Research Framework represents a groundbreaking advan
 
 ### Weak Emergence Theory
 
-Based on Mark Bedau's seminal work "Weak emergence: the characteristic features of complex systems," our implementation distinguishes between:
+Based on Mark Bedau's seminal work "Weak emergence: the characteristic features of complex systems," our implementation distinguishes between three classification levels:
 
-- **Linear Behavior**: Predictable, reducible system operations
-- **Weak Emergence**: Novel patterns emerging from complex interactions that are not reducible to individual components
+- **LINEAR**: Predictable, reducible system operations with Bedau Index < 0.3
+- **WEAK_EMERGENCE**: Novel patterns emerging from complex interactions that are not reducible to individual components (Bedau Index 0.3-0.7)
+- **HIGH_WEAK_EMERGENCE**: Strong emergent phenomena with significant irreducibility and complexity (Bedau Index > 0.7)
 
 ### The Bedau Index
 
@@ -60,7 +61,7 @@ The core calculation uses a multi-factor approach:
 ```typescript
 interface BedauMetrics {
   bedau_index: number;           // 0-1: Weak emergence strength
-  emergence_type: 'LINEAR' | 'WEAK_EMERGENCE';
+  emergence_type: 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE';
   kolmogorov_complexity: number; // Irreducibility measurement
   semantic_entropy: number;      // Cognitive diversity
   confidence_interval: [number, number];

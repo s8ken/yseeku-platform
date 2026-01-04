@@ -43,7 +43,7 @@ export const dashboardTutorialSteps: TutorialStep[] = [
   {
     id: 'bedau-index',
     title: 'Bedau Index (Emergence)',
-    content: 'The Bedau Index measures "Emergence"—which is just a fancy word for when an AI starts doing things it wasn\'t specifically trained to do. \n\nHigh emergence can mean your AI is getting smarter, but it also means it might be becoming less predictable.',
+    content: 'The Bedau Index measures "Emergence"—when AI systems start showing behaviors they weren\'t specifically trained for. \n\n• LINEAR (<0.3): Predictable, explainable behavior \n• WEAK_EMERGENCE (0.3-0.7): New patterns from complex interactions \n• HIGH_WEAK_EMERGENCE (>0.7): Strong emergent phenomena with new system properties',
     targetId: 'nav-bedau-index',
     position: 'right',
     path: '/dashboard/lab/bedau'
