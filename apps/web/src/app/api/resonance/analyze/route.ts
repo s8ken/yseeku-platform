@@ -88,10 +88,10 @@ function generateFallbackResonance(userInput: string, aiResponse: string): Reson
   const canvasParity = semanticMirroring * 100;
   
   let resonanceQuality = 'STRONG';
-  if (Rm >= 0.82) resonanceQuality = 'BREAKTHROUGH';
-  else if (Rm >= 0.68) resonanceQuality = 'ADVANCED';
+  if (Rm >= 0.85) resonanceQuality = 'BREAKTHROUGH';
+  else if (Rm >= 0.65) resonanceQuality = 'ADVANCED';
   
-  const trustProtocol = vectorAlignment > 0.75 ? 'PASS' : 'PARTIAL';
+  const trustProtocol = Rm >= 0.7 ? 'PASS' : Rm >= 0.5 ? 'PARTIAL' : 'FAIL';
   
   return {
     interaction_id: `int-${hash}`,

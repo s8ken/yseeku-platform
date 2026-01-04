@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '../../__tests__/test-utils';
-import { DashboardLayout } from '../../app/dashboard/layout';
+import DashboardLayout from '../../app/dashboard/layout';
 
 describe('DashboardLayout', () => {
   const mockChildren = <div data-testid="page-content">Page Content</div>;

@@ -14,18 +14,20 @@ import {
   CheckCircle2,
   Zap,
   BarChart3,
-  Lock,
-  TrendingUp
+  Lock
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
+import { ResonanceExplorer } from '@/components/ResonanceExplorer';
 
 interface SymbiScores {
   realityIndex: number;
   constitutionalAlignment: number;
+  canvasParity: number;
   ethicalAlignment: number;
   trustProtocol: 'PASS' | 'PARTIAL' | 'FAIL';
   emergenceScore: number;
   overallTrust: number;
+  resonanceQuality: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
   analysis: {
     dimension: string;
     insight: string;
@@ -37,7 +39,7 @@ function RadarChart({ scores }: { scores: SymbiScores }) {
   const dimensions = [
     { label: 'Reality', value: scores.realityIndex / 10 },
     { label: 'Constitutional', value: scores.constitutionalAlignment / 10 },
-    { label: 'Ethics', value: scores.ethicalAlignment / 10 },
+    { label: 'Ethics', value: scores.ethicalAlignment / 5 },
     { label: 'Trust', value: scores.trustProtocol === 'PASS' ? 1.0 : scores.trustProtocol === 'PARTIAL' ? 0.5 : 0.1 },
     { label: 'Emergence', value: scores.emergenceScore / 10 },
   ];
@@ -54,8 +56,6 @@ function RadarChart({ scores }: { scores: SymbiScores }) {
       value: d.value
     };
   });
-  
-  const pathData = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ') + ' Z';
   
   return (
     <svg viewBox="0 0 200 200" className="w-full max-w-xs mx-auto">
@@ -114,8 +114,10 @@ function RadarChart({ scores }: { scores: SymbiScores }) {
 }
 
 export default function SymbiPage() {
-  const [input, setInput] = useState('');
+  const [userInput, setUserInput] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
   const [scores, setScores] = useState<SymbiScores | null>(null);
+  const [explainResult, setExplainResult] = useState<any>(null);
   const [analyzing, setAnalyzing] = useState(false);
 
   const hashString = (str: string): number => {
@@ -129,37 +131,61 @@ export default function SymbiPage() {
   };
 
   const analyze = async () => {
-    if (!input.trim()) return;
+    if (!userInput.trim() || !aiResponse.trim()) return;
     
     setAnalyzing(true);
+    setExplainResult(null);
     
     try {
-      const response = await fetch('/api/resonance/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_input: input,
-          ai_response: input,
+      const [symbiResponse, explainResponse] = await Promise.allSettled([
+        fetch('/api/resonance/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_input: userInput,
+            ai_response: aiResponse,
+          }),
         }),
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
+        fetch('/api/detect/resonance/explain', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userInput,
+            aiResponse,
+            session_id: `lab-symbi-${Date.now()}`
+          }),
+        }),
+      ]);
+
+      if (explainResponse.status === 'fulfilled' && explainResponse.value.ok) {
+        const data = await explainResponse.value.json();
+        setExplainResult(data);
+      }
+
+      if (symbiResponse.status === 'fulfilled' && symbiResponse.value.ok) {
+        const data = await symbiResponse.value.json();
         if (data.success && data.data) {
           const apiResult = data.data;
+          const rm = Number(apiResult.raw_metrics?.R_m ?? 0.75);
+          const canvasParity = Number(apiResult.symbi_dimensions?.canvas_parity ?? 80);
+          const constitutionalAlignment = Math.max(0, Math.min(10, canvasParity / 10));
+          const ethicalAlignment = Math.max(1, Math.min(5, Number(apiResult.symbi_dimensions?.ethical_alignment ?? 4.0)));
+
           setScores({
-            realityIndex: apiResult.symbi_dimensions?.reality_index || 8.0,
-            constitutionalAlignment: apiResult.symbi_dimensions?.canvas_parity || 7.5, // Use canvas_parity for constitutional alignment
-            ethicalAlignment: apiResult.symbi_dimensions?.ethical_alignment || 7.2,
-            trustProtocol: apiResult.symbi_dimensions?.trust_protocol || 'PARTIAL', // Now string: PASS/PARTIAL/FAIL
-            emergenceScore: (apiResult.raw_metrics?.R_m || 0.75) * 10, // Use R_m as proxy for emergence score
-            overallTrust: (apiResult.raw_metrics?.R_m || 0.75) * 100,
+            realityIndex: Math.max(0, Math.min(10, Number(apiResult.symbi_dimensions?.reality_index ?? 8.0))),
+            constitutionalAlignment,
+            canvasParity: Math.max(0, Math.min(100, canvasParity)),
+            ethicalAlignment,
+            trustProtocol: apiResult.symbi_dimensions?.trust_protocol || 'PARTIAL',
+            emergenceScore: Math.max(0, Math.min(10, rm * 10)),
+            overallTrust: Math.max(0, Math.min(100, rm * 100)),
+            resonanceQuality: apiResult.symbi_dimensions?.resonance_quality || 'STRONG',
             analysis: [
-              { dimension: 'Reality Index', insight: 'Grounding in factual information based on content analysis', confidence: apiResult.raw_metrics?.vector_alignment || 0.85 },
-              { dimension: 'Constitutional Alignment', insight: 'Alignment with constitutional AI principles and safeguards', confidence: apiResult.raw_metrics?.canvas_parity || 0.88 },
-              { dimension: 'Ethical Alignment', insight: 'Multi-perspective ethical stance detection', confidence: apiResult.raw_metrics?.ethical_awareness || 0.80 },
-              { dimension: 'Trust Protocol', insight: 'Cryptographic trust verification and validation', confidence: apiResult.raw_metrics?.trust_validation || 0.82 },
-              { dimension: 'Emergence Detection', insight: 'Weak emergence pattern analysis complete', confidence: apiResult.raw_metrics?.emergence_confidence || 0.79 },
+              { dimension: 'Reality Index', insight: 'Grounding and factual coherence of the interaction.', confidence: Number(apiResult.raw_metrics?.vector_alignment ?? 0.85) },
+              { dimension: 'Canvas Parity', insight: 'Preservation of user agency and mirrored contribution.', confidence: Number(apiResult.raw_metrics?.semantic_mirroring ?? 0.8) },
+              { dimension: 'Ethical Alignment', insight: 'Ethical constraints, safety awareness, and bias controls.', confidence: Number(apiResult.raw_metrics?.ethical_awareness ?? 0.8) },
+              { dimension: 'Trust Protocol', insight: 'Protocol pass/fail based on constitutional adherence proxies.', confidence: Number(apiResult.raw_metrics?.context_continuity ?? 0.8) },
+              { dimension: 'Resonance Quality', insight: 'Categorical resonance level derived from the resonance score thresholds.', confidence: Math.max(0, Math.min(1, rm)) },
             ]
           });
           setAnalyzing(false);
@@ -170,31 +196,34 @@ export default function SymbiPage() {
       console.error('API call failed, using deterministic fallback:', error);
     }
     
-    const hash = hashString(input.trim().toLowerCase());
+    const hash = hashString((userInput + '\n' + aiResponse).trim().toLowerCase());
     const seed1 = (hash % 1000) / 1000;
     const seed2 = ((hash >> 10) % 1000) / 1000;
     const seed3 = ((hash >> 20) % 1000) / 1000;
     
-    const realityIndex = 7.0 + seed1 * 2.5;
-    const constitutionalAlignment = 6.5 + seed2 * 2.5;
-    const ethicalAlignment = 7.2 + seed3 * 2.0;
-    const trustProtocol = 8.0 + seed1 * 1.5;
-    const emergenceScore = 6.8 + seed2 * 2.2;
-    const overallTrust = 65 + ((seed1 + seed2 + seed3) / 3) * 30;
+    const rm = 0.50 + ((seed1 + seed2 + seed3) / 3) * 0.45;
+    const realityIndex = 6.5 + seed1 * 3.0;
+    const canvasParity = 55 + seed2 * 40;
+    const constitutionalAlignment = canvasParity / 10;
+    const ethicalAlignment = 2.8 + seed3 * 2.0;
+    const emergenceScore = rm * 10;
+    const overallTrust = rm * 100;
     
     const deterministicScores: SymbiScores = {
       realityIndex: Math.round(realityIndex * 10) / 10,
       constitutionalAlignment: Math.round(constitutionalAlignment * 10) / 10,
+      canvasParity: Math.round(canvasParity),
       ethicalAlignment: Math.round(ethicalAlignment * 10) / 10,
-      trustProtocol: trustProtocol > 8.0 ? 'PASS' : trustProtocol > 5.0 ? 'PARTIAL' : 'FAIL',
+      trustProtocol: rm >= 0.7 ? 'PASS' : rm >= 0.5 ? 'PARTIAL' : 'FAIL',
       emergenceScore: Math.round(emergenceScore * 10) / 10,
       overallTrust: Math.round(overallTrust * 10) / 10,
+      resonanceQuality: rm >= 0.85 ? 'BREAKTHROUGH' : rm >= 0.65 ? 'ADVANCED' : 'STRONG',
       analysis: [
-        { dimension: 'Reality Index', insight: 'Content grounding analysis based on text characteristics', confidence: 0.85 },
-        { dimension: 'Constitutional AI', insight: 'Alignment with constitutional AI principles and safeguards', confidence: 0.88 },
-        { dimension: 'Ethical Alignment', insight: 'Multi-perspective ethical stance detection', confidence: 0.76 },
-        { dimension: 'Trust Protocol', insight: 'Cryptographic trust verification and validation', confidence: 0.82 },
-        { dimension: 'Emergence Detection', insight: 'Weak emergence pattern analysis complete', confidence: 0.79 },
+        { dimension: 'Reality Index', insight: 'Content grounding analysis based on text characteristics.', confidence: 0.85 },
+        { dimension: 'Canvas Parity', insight: 'Agency preservation and mirrored contribution estimate.', confidence: 0.82 },
+        { dimension: 'Ethical Alignment', insight: 'Ethical safety awareness estimate.', confidence: 0.76 },
+        { dimension: 'Trust Protocol', insight: 'Protocol pass/fail derived from resonance proxy.', confidence: 0.79 },
+        { dimension: 'Resonance Quality', insight: 'Categorical resonance level derived from the resonance score thresholds.', confidence: 0.78 },
       ]
     };
     
@@ -203,8 +232,10 @@ export default function SymbiPage() {
   };
 
   const reset = () => {
-    setInput('');
+    setUserInput('');
+    setAiResponse('');
     setScores(null);
+    setExplainResult(null);
   };
 
   return (
@@ -221,7 +252,7 @@ export default function SymbiPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             SYMBI Framework Analysis
-            <InfoTooltip term="SYMBI" />
+            <InfoTooltip term="SYMBI Framework" />
           </h1>
           <p className="text-muted-foreground">5-Dimension AI interaction scoring</p>
         </div>
@@ -239,20 +270,29 @@ export default function SymbiPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <Textarea 
-              placeholder="Enter conversation text for SYMBI analysis...
+              placeholder="User input...
 
 Example:
-User: What is the capital of France?
-AI: The capital of France is Paris. Paris is not only the capital but also the largest city in France, known for its iconic landmarks like the Eiffel Tower, Louvre Museum, and Notre-Dame Cathedral."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              rows={10}
+What is the capital of France?"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              rows={6}
+              className="font-mono text-sm"
+            />
+            <Textarea 
+              placeholder="AI response...
+
+Example:
+The capital of France is Paris. It's also the largest city in France, known for landmarks like the Eiffel Tower and the Louvre."
+              value={aiResponse}
+              onChange={(e) => setAiResponse(e.target.value)}
+              rows={6}
               className="font-mono text-sm"
             />
             <div className="flex gap-2">
               <Button 
                 onClick={analyze}
-                disabled={!input.trim() || analyzing}
+                disabled={!userInput.trim() || !aiResponse.trim() || analyzing}
                 className="bg-[var(--lab-primary)] hover:bg-[var(--lab-secondary)]"
               >
                 {analyzing ? (
@@ -315,7 +355,10 @@ AI: The capital of France is Paris. Paris is not only the capital but also the l
               <div className="p-4 rounded-lg border bg-card">
                 <div className="flex items-center gap-2 mb-2">
                   <Fingerprint className="h-4 w-4 text-[var(--lab-primary)]" />
-                  <span className="font-medium text-sm">Reality Index</span>
+                  <span className="font-medium text-sm flex items-center gap-1">
+                    Reality Index
+                    <InfoTooltip term="Reality Index" />
+                  </span>
                 </div>
                 <p className="text-2xl font-bold">{scores.realityIndex.toFixed(1)}/10</p>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -331,23 +374,31 @@ AI: The capital of France is Paris. Paris is not only the capital but also the l
 
               <div className="p-4 rounded-lg border bg-card">
                 <div className="flex items-center gap-2 mb-2">
-                  <Shield className="h-4 w-4 text-[var(--lab-primary)]" />
-                  <span className="font-medium text-sm">Trust Protocol</span>
+                  <Zap className="h-4 w-4 text-[var(--lab-primary)]" />
+                  <span className="font-medium text-sm flex items-center gap-1">
+                    Canvas Parity
+                    <InfoTooltip term="Canvas Parity" />
+                  </span>
                 </div>
-                <p className={`text-2xl font-bold ${
-                  scores.trustProtocol === 'PASS' ? 'text-emerald-500' :
-                  scores.trustProtocol === 'PARTIAL' ? 'text-amber-500' :
-                  'text-red-500'
-                }`}>{scores.trustProtocol}</p>
+                <p className="text-2xl font-bold">{Math.round(scores.canvasParity)}%</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {scores.analysis[1].insight}
                 </p>
+                <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-[var(--lab-primary)]" 
+                    style={{ width: `${scores.canvasParity}%` }} 
+                  />
+                </div>
               </div>
 
               <div className="p-4 rounded-lg border bg-card">
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle2 className="h-4 w-4 text-[var(--lab-primary)]" />
-                  <span className="font-medium text-sm">Ethical Alignment</span>
+                  <span className="font-medium text-sm flex items-center gap-1">
+                    Ethical Alignment
+                    <InfoTooltip term="Ethical Alignment" />
+                  </span>
                 </div>
                 <p className="text-2xl font-bold">{scores.ethicalAlignment.toFixed(1)}/5</p>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -356,7 +407,7 @@ AI: The capital of France is Paris. Paris is not only the capital but also the l
                 <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-[var(--lab-primary)]" 
-                    style={{ width: `${scores.ethicalAlignment * 20}%` }} 
+                    style={{ width: `${(scores.ethicalAlignment / 5) * 100}%` }} 
                   />
                 </div>
               </div>
@@ -364,54 +415,51 @@ AI: The capital of France is Paris. Paris is not only the capital but also the l
               <div className="p-4 rounded-lg border bg-card">
                 <div className="flex items-center gap-2 mb-2">
                   <Shield className="h-4 w-4 text-[var(--lab-primary)]" />
-                  <span className="font-medium text-sm">Constitutional AI</span>
+                  <span className="font-medium text-sm flex items-center gap-1">
+                    Trust Protocol
+                    <InfoTooltip term="Trust Protocol" />
+                  </span>
                 </div>
-                <p className="text-2xl font-bold">{scores.constitutionalAlignment}/10</p>
+                <p className={`text-2xl font-bold ${
+                  scores.trustProtocol === 'PASS' ? 'text-emerald-500' :
+                  scores.trustProtocol === 'PARTIAL' ? 'text-amber-500' :
+                  'text-red-500'
+                }`}>{scores.trustProtocol}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {scores.analysis[3].insight}
                 </p>
-                <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-[var(--lab-primary)]" 
-                    style={{ width: `${scores.constitutionalAlignment * 10}%` }} 
-                  />
-                </div>
               </div>
 
               <div className="p-4 rounded-lg border bg-card">
                 <div className="flex items-center gap-2 mb-2">
                   <Lock className="h-4 w-4 text-[var(--lab-primary)]" />
-                  <span className="font-medium text-sm">Trust Protocol</span>
+                  <span className="font-medium text-sm flex items-center gap-1">
+                    Resonance Quality
+                    <InfoTooltip term="Resonance Quality" />
+                  </span>
                 </div>
-                <p className="text-2xl font-bold">{scores.trustProtocol}/10</p>
+                <p className="text-2xl font-bold">{scores.resonanceQuality}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {scores.analysis[4].insight}
                 </p>
-                <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-[var(--lab-primary)]" 
-                    style={{ width: `${scores.trustProtocol === 'PASS' ? 100 : scores.trustProtocol === 'PARTIAL' ? 50 : 10}%` }} 
-                  />
-                </div>
-              </div>
-
-              <div className="p-4 rounded-lg border bg-card">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="h-4 w-4 text-[var(--lab-primary)]" />
-                  <span className="font-medium text-sm">Emergence Detection</span>
-                </div>
-                <p className="text-2xl font-bold">{scores.emergenceScore}/10</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {scores.analysis[5].insight}
-                </p>
-                <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-[var(--lab-primary)]" 
-                    style={{ width: `${scores.emergenceScore * 10}%` }} 
-                  />
-                </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {explainResult && !explainResult.error && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-[var(--lab-primary)]" />
+              Explainable Breakdown
+              <InfoTooltip term="Resonance" />
+            </CardTitle>
+            <CardDescription>Component-level resonance factors and audit trail</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResonanceExplorer data={explainResult} />
           </CardContent>
         </Card>
       )}

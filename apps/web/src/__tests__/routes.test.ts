@@ -25,8 +25,7 @@ describe('API Route Handlers', () => {
   describe('Health Endpoint', () => {
     it('should return health status', async () => {
       const { GET } = await import('../app/api/health/route');
-      const request = new NextRequest('http://localhost:5000/api/health');
-      const response = await GET(request);
+      const response = await GET();
       const json = await response.json();
 
       expect(response.status).toBe(200);
@@ -114,8 +113,7 @@ describe('API Route Handlers', () => {
 describe('CSRF Token Generation', () => {
   it('should generate CSRF token with valid structure', async () => {
     const { GET } = await import('../app/api/csrf/route');
-    const request = new NextRequest('http://localhost:5000/api/csrf');
-    const response = await GET(request);
+    const response = await GET();
     const json = await response.json();
 
     expect(response.status).toBe(200);
@@ -127,8 +125,7 @@ describe('CSRF Token Generation', () => {
 
   it('should set CSRF cookie', async () => {
     const { GET } = await import('../app/api/csrf/route');
-    const request = new NextRequest('http://localhost:5000/api/csrf');
-    const response = await GET(request);
+    const response = await GET();
 
     const setCookie = response.headers.get('set-cookie');
     expect(setCookie).toContain('csrf_token');

@@ -149,11 +149,11 @@ export default function TrustScoresPage() {
       model: agent.type || 'unknown',
       trustScore: agent.trustScore,
       symbiDimensions: {
-        realityIndex: agent.symbiDimensions?.realityIndex || 8.0,
-        trustProtocol: agent.symbiDimensions?.trustProtocol >= 8 ? 'PASS' : 'PARTIAL',
-        ethicalAlignment: agent.symbiDimensions?.ethicalAlignment || 4.0,
-        resonanceQuality: agent.symbiDimensions?.resonanceQuality >= 9 ? 'BREAKTHROUGH' : agent.symbiDimensions?.resonanceQuality >= 7 ? 'ADVANCED' : 'STRONG',
-        canvasParity: agent.symbiDimensions?.canvasParity || 85,
+        realityIndex: Number(agent.symbiDimensions?.realityIndex) || 8.0,
+        trustProtocol: agent.symbiDimensions?.trustProtocol || 'PARTIAL',
+        ethicalAlignment: Number(agent.symbiDimensions?.ethicalAlignment) || 4.0,
+        resonanceQuality: agent.symbiDimensions?.resonanceQuality || 'STRONG',
+        canvasParity: Number(agent.symbiDimensions?.canvasParity) || 85,
       },
       lastInteraction: agent.lastInteraction || new Date().toISOString(),
       interactions24h: agent.interactionCount || 0,
@@ -167,6 +167,7 @@ export default function TrustScoresPage() {
   const healthyCount = agents.filter(a => a.status === 'healthy').length;
   const totalInteractions = agents.reduce((sum, a) => sum + a.interactions24h, 0);
   const passRate = Math.round((agents.filter(a => a.symbiDimensions.trustProtocol === 'PASS').length / agents.length) * 100) || 75;
+  const dataSource = agentsData?.source === 'database' ? 'live' : 'demo';
 
   return (
     <div className="space-y-6">
@@ -181,10 +182,14 @@ export default function TrustScoresPage() {
             Agent trust monitoring across all deployments
           </p>
         </div>
-        <div className="data-source-badge data-source-live">
+        <span className={`data-source-badge px-2 py-1 text-xs rounded-full flex items-center gap-2 ${
+          dataSource === 'live' 
+            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+        }`}>
           <span className="h-1.5 w-1.5 rounded-full bg-current" />
-          Production Data
-        </div>
+          {dataSource === 'live' ? 'Production Data' : 'Demo Data'}
+        </span>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">

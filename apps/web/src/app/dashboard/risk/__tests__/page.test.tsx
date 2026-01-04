@@ -404,7 +404,7 @@ describe('RiskManagementPage', () => {
         // Progress bars should have proper aria-labels
         const progressBars = screen.getAllByRole('progressbar');
         expect(progressBars.length).toBeGreaterThan(0);
-        progressBars.forEach(bar => {
+        progressBars.forEach((bar: HTMLElement) => {
           expect(bar).toHaveAttribute('aria-label');
         });
       });
@@ -433,7 +433,7 @@ describe('RiskManagementPage', () => {
       await waitFor(() => {
         // Check for progress bars with aria-labels
         const progressBars = screen.getAllByRole('progressbar');
-        progressBars.forEach(bar => {
+        progressBars.forEach((bar: HTMLElement) => {
           expect(bar).toHaveAttribute('aria-label');
           expect(bar.getAttribute('aria-label')).toMatch(/score:/i);
         });

@@ -36,7 +36,6 @@ export async function POST(req: Request) {
         try {
             const isEngineOnline = await resonanceClient.healthCheck();
             if (isEngineOnline) {
-                console.log("🔮 Using Python Resonance Engine for analysis...");
                 pythonReceipt = await resonanceClient.generateReceipt({
                     user_input: userInput,
                     ai_response: aiResponse,
@@ -44,7 +43,7 @@ export async function POST(req: Request) {
                 });
             }
         } catch (err) {
-            console.warn("⚠️ Python Engine call failed, falling back to TS library:", err);
+            pythonReceipt = null;
         }
 
         // 2. Construct Transcript for TS Library (Stickiness & Explainability)
@@ -77,7 +76,7 @@ export async function POST(req: Request) {
         if (pythonReceipt) {
             // Adjust R_m based on Python engine's more sophisticated semantic analysis
             // We use a weighted average or replace if Python is considered "Ground Truth"
-            const pythonRm = pythonReceipt.raw_metrics?.R_m || pythonReceipt.symbi_dimensions.reality_index / 10;
+            const pythonRm = Math.max(0, Math.min(1, pythonReceipt.symbi_dimensions.reality_index / 10));
             result.r_m = (result.r_m * 0.4) + (pythonRm * 0.6); // 60% weight to Python Engine
             result.audit_trail.push(`Python Resonance Engine Validation: ${pythonRm.toFixed(3)} (Weighted 60%)`);
         }

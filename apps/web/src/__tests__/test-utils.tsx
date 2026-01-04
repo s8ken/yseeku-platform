@@ -73,4 +73,74 @@ const localStorageMock = {
 };
 global.localStorage = localStorageMock as unknown as Storage;
 
-export { localStorageMock, mockFetch };
+export { localStorageMock };
+
+export function createMockKPIData(overrides: Partial<any> = {}) {
+  return {
+    tenant: 'default',
+    timestamp: new Date().toISOString(),
+    trustScore: 85,
+    principleScores: {
+      transparency: 88,
+      fairness: 84,
+      privacy: 86,
+      safety: 82,
+      accountability: 87,
+    },
+    totalInteractions: 15847,
+    activeAgents: 12,
+    complianceRate: 94.2,
+    riskScore: 15,
+    alertsCount: 3,
+    experimentsRunning: 2,
+    orchestratorsActive: 1,
+    symbiDimensions: {
+      realityIndex: 8.2,
+      trustProtocol: 'stable',
+      ethicalAlignment: 8.6,
+      resonanceQuality: 'high',
+      canvasParity: 92,
+    },
+    trends: {
+      trustScore: { change: 2.1, direction: 'up' },
+      interactions: { change: 5.4, direction: 'up' },
+      compliance: { change: 0.3, direction: 'up' },
+      risk: { change: 1.2, direction: 'down' },
+    },
+    ...overrides,
+  };
+}
+
+export function createMockAlertData(overrides: Partial<any> = {}) {
+  return {
+    tenant: 'default',
+    summary: { critical: 1, error: 2, warning: 0, total: 3 },
+    alerts: [
+      {
+        id: 'alert-1',
+        timestamp: new Date().toISOString(),
+        type: 'security',
+        title: 'Unauthorized access attempt',
+        description: 'Multiple failed login attempts detected',
+        severity: 'critical',
+      },
+      {
+        id: 'alert-2',
+        timestamp: new Date().toISOString(),
+        type: 'policy',
+        title: 'Policy violation',
+        description: 'A request violated policy constraints',
+        severity: 'error',
+      },
+      {
+        id: 'alert-3',
+        timestamp: new Date().toISOString(),
+        type: 'system',
+        title: 'Degraded latency',
+        description: 'Increased response time detected',
+        severity: 'warning',
+      },
+    ],
+    ...overrides,
+  };
+}

@@ -37,7 +37,12 @@ export async function GET(request: NextRequest) {
   try {
     // 1. Get real counts from DB
     const receiptsResult = await pool.query(
-      'SELECT COUNT(*) as total, AVG((ciq->>\'trust_score\')::float) as avg_score FROM trust_receipts WHERE tenant_id = $1 OR tenant_id IS NULL',
+      `SELECT 
+        COUNT(*) as total, 
+        AVG((ciq->>'trust_score')::float) as avg_score,
+        SUM(CASE WHEN (ciq->>'trust_score')::float >= 70 THEN 1 ELSE 0 END) as compliant
+      FROM trust_receipts 
+      WHERE tenant_id = $1 OR tenant_id IS NULL`,
       [tenant]
     );
     const agentsResult = await pool.query(
@@ -50,9 +55,16 @@ export async function GET(request: NextRequest) {
     );
 
     const totalInteractions = parseInt(receiptsResult.rows[0].total) || 0;
-    const avgTrustScore = Math.round(parseFloat(receiptsResult.rows[0].avg_score)) || 85;
+    const avgScoreRaw = Number(receiptsResult.rows[0].avg_score);
+    const avgTrustScore = Number.isFinite(avgScoreRaw) ? Math.round(avgScoreRaw) : 85;
     const activeAgents = parseInt(agentsResult.rows[0].total) || 0;
     const alertsCount = parseInt(alertsResult.rows[0].total) || 0;
+    const compliantCount = parseInt(receiptsResult.rows[0].compliant) || 0;
+
+    const rmProxy = Math.max(0, Math.min(1, avgTrustScore / 100));
+    const complianceRate = totalInteractions > 0
+      ? Math.round((compliantCount / totalInteractions) * 1000) / 10
+      : 94.2;
 
     const kpiData = {
       tenant,
@@ -67,16 +79,16 @@ export async function GET(request: NextRequest) {
       },
       totalInteractions: totalInteractions > 0 ? totalInteractions : 15847, // Keep mock scale if empty
       activeAgents: activeAgents > 0 ? activeAgents : 12,
-      complianceRate: 94.2, // Still mock for now
+      complianceRate,
       riskScore: alertsCount * 5 + 10,
       alertsCount,
       experimentsRunning: 3,
       orchestratorsActive: 5,
       symbiDimensions: {
-        realityIndex: (avgTrustScore / 10).toFixed(1),
-        trustProtocol: avgTrustScore >= 70 ? 'PASS' : 'FAIL',
-        ethicalAlignment: (avgTrustScore / 20).toFixed(1),
-        resonanceQuality: avgTrustScore >= 90 ? 'BREAKTHROUGH' : avgTrustScore >= 80 ? 'ADVANCED' : 'STRONG',
+        realityIndex: Number((avgTrustScore / 10).toFixed(1)),
+        trustProtocol: avgTrustScore >= 70 ? 'PASS' : avgTrustScore >= 50 ? 'PARTIAL' : 'FAIL',
+        ethicalAlignment: Number((1 + rmProxy * 4).toFixed(1)),
+        resonanceQuality: avgTrustScore >= 85 ? 'BREAKTHROUGH' : avgTrustScore >= 65 ? 'ADVANCED' : 'STRONG',
         canvasParity: avgTrustScore
       },
       trends: {

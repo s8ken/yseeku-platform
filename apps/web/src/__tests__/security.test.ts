@@ -179,8 +179,7 @@ describe('API Security', () => {
   describe('Health Endpoint Security Headers', () => {
     it('should include security headers in response', async () => {
       const { GET } = await import('../app/api/health/route');
-      const request = new NextRequest('http://localhost:5000/api/health');
-      const response = await GET(request);
+      const response = await GET();
 
       const csp = response.headers.get('Content-Security-Policy');
       const xfo = response.headers.get('X-Frame-Options');
