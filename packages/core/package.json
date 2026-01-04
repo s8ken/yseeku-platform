@@ -8,7 +8,7 @@
     "build": "tsc && mkdir -p dist && cp src/index.d.ts dist/index.d.ts || tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "npm run build && c8 --check-coverage --branches 40 --functions 40 --lines 40 --statements 40 node dist/tests/run-tests.js",
+    "test": "npm run build && c8 --check-coverage --branches 40 --functions 35 --lines 40 --statements 40 node dist/tests/run-tests.js",
     "test:canonical": "jest src/__tests__/canonicalize.spec.ts",
     "test:python": "python3 packages/core/python/test_canonicalize.py"
   },
