@@ -10,6 +10,7 @@ import {
   Activity
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
+import { ConstitutionalPrinciples } from '@/components/ConstitutionalPrinciples';
 
 interface AgentTrustData {
   id: string;
@@ -239,6 +240,9 @@ export default function TrustScoresPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Constitutional Principles Section */}
+      <ConstitutionalPrinciples compact={true} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         {agents.map((agent) => (
