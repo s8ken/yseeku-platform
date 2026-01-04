@@ -1,5 +1,6 @@
 // packages/detect/src/ResonanceClient.ts
 import axios from 'axios';
+import { log } from '@sonate/core';
 
 // Types matching your Python Pydantic models
 export interface InteractionData {
@@ -45,7 +46,12 @@ export class ResonanceClient {
 
       return response.data;
     } catch (error) {
-      console.error('❌ Failed to connect to Resonance Engine:', error);
+      log.error('Failed to connect to Resonance Engine', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        engineUrl: this.engineUrl,
+        module: 'ResonanceClient',
+      });
       // Fallback logic could go here (e.g. return a "Pending" receipt)
       throw new Error('Resonance Engine unavailable');
     }

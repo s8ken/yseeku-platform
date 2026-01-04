@@ -11,6 +11,7 @@ import { Agent, Workflow, WorkflowStep } from './index';
 import { DIDVCManager } from './did-vc-manager';
 import { WorkflowEngine } from './workflow-engine';
 import { TacticalCommand } from './tactical-command';
+import { log } from '@sonate/core';
 
 export class AgentOrchestrator {
   private didManager: DIDVCManager;
@@ -45,7 +46,13 @@ export class AgentOrchestrator {
     };
 
     this.agents.set(agent.id, registeredAgent);
-    console.log(`[Orchestrator] Registered agent: ${agent.name} (${did})`);
+    log.info('Agent registered', {
+      agentId: agent.id,
+      agentName: agent.name,
+      did,
+      capabilities: agent.capabilities,
+      module: 'AgentOrchestrator',
+    });
 
     return registeredAgent;
   }
@@ -57,7 +64,12 @@ export class AgentOrchestrator {
    * @returns Workflow execution result
    */
   async executeWorkflow(workflow: Workflow): Promise<Workflow> {
-    console.log(`[Orchestrator] Executing workflow: ${workflow.name}`);
+    log.info('Executing workflow', {
+      workflowId: workflow.id,
+      workflowName: workflow.name,
+      stepCount: workflow.steps.length,
+      module: 'AgentOrchestrator',
+    });
 
     // Validate agents exist
     for (const step of workflow.steps) {
@@ -101,7 +113,11 @@ export class AgentOrchestrator {
     agent.status = 'suspended';
     await this.workflowEngine.stopAgentWorkflows(agentId);
 
-    console.log(`[Orchestrator] Suspended agent: ${agentId}`);
+    log.warn('Agent suspended', {
+      agentId,
+      agentName: agent.name,
+      module: 'AgentOrchestrator',
+    });
   }
 
   /**

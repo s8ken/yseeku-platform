@@ -9,7 +9,7 @@
  */
 
 import { Agent, Workflow, TacticalDashboard, Alert } from './index';
-import { TrustProtocol } from '@sonate/core';
+import { TrustProtocol, log, securityLogger } from '@sonate/core';
 
 export class TacticalCommand {
   private alerts: Alert[] = [];
@@ -57,7 +57,25 @@ export class TacticalCommand {
     };
 
     this.alerts.push(fullAlert);
-    console.log(`[TacticalCommand] ALERT [${alert.severity}]: ${alert.message}`);
+
+    // Use security logger for critical and high severity alerts
+    if (alert.severity === 'critical' || alert.severity === 'high') {
+      securityLogger.error('Security alert created', {
+        alertId: fullAlert.id,
+        severity: alert.severity,
+        message: alert.message,
+        agentId: alert.agent_id,
+        module: 'TacticalCommand',
+      });
+    } else {
+      log.warn('Alert created', {
+        alertId: fullAlert.id,
+        severity: alert.severity,
+        message: alert.message,
+        agentId: alert.agent_id,
+        module: 'TacticalCommand',
+      });
+    }
 
     // Keep only last 100 alerts
     if (this.alerts.length > 100) {

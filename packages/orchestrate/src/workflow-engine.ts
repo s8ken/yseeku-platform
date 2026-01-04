@@ -1,6 +1,6 @@
 /**
  * WorkflowEngine - Multi-agent workflow execution
- * 
+ *
  * Orchestrates complex workflows across multiple agents:
  * - Sequential execution
  * - Parallel execution
@@ -8,6 +8,7 @@
  */
 
 import { Workflow, WorkflowStep } from './index';
+import { log } from '@sonate/core';
 
 export class WorkflowEngine {
   private activeWorkflows: Map<string, Workflow> = new Map();
@@ -29,10 +30,19 @@ export class WorkflowEngine {
       }
 
       workflow.status = 'completed';
-      console.log(`[WorkflowEngine] Completed workflow: ${workflow.id}`);
+      log.info('Workflow completed', {
+        workflowId: workflow.id,
+        stepCount: workflow.steps.length,
+        module: 'WorkflowEngine',
+      });
     } catch (error) {
       workflow.status = 'failed';
-      console.error(`[WorkflowEngine] Failed workflow: ${workflow.id}`, error);
+      log.error('Workflow failed', {
+        workflowId: workflow.id,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        module: 'WorkflowEngine',
+      });
       throw error;
     } finally {
       this.activeWorkflows.delete(workflow.id);
@@ -46,7 +56,12 @@ export class WorkflowEngine {
    */
   private async executeStep(step: WorkflowStep): Promise<void> {
     step.status = 'running';
-    console.log(`[WorkflowEngine] Executing step: ${step.id} (Agent: ${step.agent_id})`);
+    log.debug('Executing workflow step', {
+      stepId: step.id,
+      agentId: step.agent_id,
+      action: step.action,
+      module: 'WorkflowEngine',
+    });
 
     try {
       // Simulate step execution (in production, call actual agent API)
@@ -88,7 +103,11 @@ export class WorkflowEngine {
       if (hasAgent) {
         workflow.status = 'failed';
         this.activeWorkflows.delete(workflowId);
-        console.log(`[WorkflowEngine] Stopped workflow ${workflowId} due to agent ${agentId} suspension`);
+        log.warn('Workflow stopped due to agent suspension', {
+          workflowId,
+          agentId,
+          module: 'WorkflowEngine',
+        });
       }
     }
   }

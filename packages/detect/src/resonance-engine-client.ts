@@ -1,4 +1,5 @@
 import { ResonanceLevel, ResonanceQuality } from './symbi-types';
+import { log } from '@sonate/core';
 
 export interface ResonanceMetrics {
   R_m: number;
@@ -52,13 +53,20 @@ export class ResonanceEngineClient {
       });
 
       if (!response.ok) {
-        console.warn(`Resonance Engine API error: ${response.statusText}`);
+        log.warn('Resonance Engine API error', {
+          statusText: response.statusText,
+          status: response.status,
+          module: 'ResonanceEngineClient',
+        });
         return null;
       }
 
       return await response.json() as ResonanceResult;
     } catch (error) {
-      console.warn('Failed to connect to Resonance Engine:', error);
+      log.warn('Failed to connect to Resonance Engine', {
+        error: error instanceof Error ? error.message : String(error),
+        module: 'ResonanceEngineClient',
+      });
       return null;
     }
   }
