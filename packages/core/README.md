@@ -1,18 +1,18 @@
 # @sonate/core
 
-Core trust protocol implementation for the SONATE platform.
+**Foundation layer for the SONATE Platform** - Trust protocol, monitoring, and core infrastructure.
 
 ## Overview
 
-This package provides the foundational trust infrastructure that all SONATE modules depend on. It implements the SYMBI constitutional framework as specified at [GAMMATRIA.COM](https://gammatria.com).
+This package provides the foundational components for building production-grade AI trust systems:
 
-## Key Features
-
-- **Trust Protocol**: 6-principle scoring system with weighted calculations
-- **Trust Receipts**: Cryptographically signed interaction records with hash chaining
+- **Trust Protocol**: W3C DID/VC-compliant trust receipt generation and verification
+- **Trust Receipts**: Cryptographically signed interaction records with hash chaining (SHA-256 + Ed25519)
 - **CIQ Metrics**: Clarity, Integrity, Quality measurement framework
-- **Ed25519 Signatures**: High-performance digital signatures
-- **Hash Chaining**: Immutable audit trails
+- **Structured Logging**: Winston-based logging with JSON output for production
+- **Prometheus Metrics**: 24+ production metrics for monitoring
+- **Health Checks**: Kubernetes-compatible health endpoints
+- **Performance Tracking**: Timer utilities and decorators for profiling
 
 ## Installation
 
@@ -20,83 +20,128 @@ This package provides the foundational trust infrastructure that all SONATE modu
 npm install @sonate/core
 ```
 
-## Usage
+## Quick Start
 
-### Calculate Trust Score
-
-```typescript
-import { TrustProtocol, SymbiScorer } from '@sonate/core';
-
-const scorer = new SymbiScorer();
-const score = scorer.scoreInteraction({
-  user_consent: true,
-  ai_explanation_provided: true,
-  decision_auditability: true,
-  human_override_available: true,
-  disconnect_option_available: true,
-  moral_agency_respected: true,
-  reasoning_transparency: 8,
-  ethical_considerations: ['privacy', 'fairness'],
-});
-
-console.log(score.overall); // e.g., 9.2
-console.log(score.violations); // []
-```
-
-### Generate Trust Receipt
+### Trust Receipt Generation
 
 ```typescript
-import { TrustReceipt } from '@sonate/core';
-import { generateKeyPair } from '@sonate/core';
+import { TrustProtocol } from '@sonate/core';
 
-const { privateKey, publicKey } = await generateKeyPair();
+const trustProtocol = new TrustProtocol();
 
-const receipt = new TrustReceipt({
-  version: '1.0.0',
-  session_id: 'uuid-here',
-  timestamp: Date.now(),
-  mode: 'constitutional',
-  ciq_metrics: {
-    clarity: 0.85,
-    integrity: 0.92,
-    quality: 0.88,
+const receipt = await trustProtocol.generateReceipt({
+  session_id: 'session_001',
+  mode: 'production',
+  ciq: {
+    clarity: 0.92,
+    integrity: 0.88,
+    quality: 0.90,
   },
+  previous_hash: '0000000000000000000000000000000000000000000000000000000000000000',
 });
 
-await receipt.sign(privateKey);
-console.log(receipt.toJSON());
-
-// Verify later
-const isValid = await receipt.verify(publicKey);
+// Verify receipt
+const isValid = await trustProtocol.verifyReceipt(receipt);
+console.log('Receipt valid:', isValid);
 ```
 
-### Hash Chaining
+### Structured Logging
 
 ```typescript
-import { TrustReceipt, genesisHash } from '@sonate/core';
+import { log, securityLogger, performanceLogger } from '@sonate/core';
 
-// First receipt
-const receipt1 = new TrustReceipt({
-  version: '1.0.0',
-  session_id: 'session-123',
-  timestamp: Date.now(),
-  mode: 'constitutional',
-  ciq_metrics: { clarity: 0.8, integrity: 0.9, quality: 0.85 },
-  previous_hash: genesisHash('session-123'),
+// Standard logging
+log.info('User action completed', {
+  userId: 'user-123',
+  action: 'login',
+  module: 'AuthService',
 });
 
-// Second receipt (chained)
-const receipt2 = new TrustReceipt({
-  version: '1.0.0',
-  session_id: 'session-123',
-  timestamp: Date.now(),
-  mode: 'constitutional',
-  ciq_metrics: { clarity: 0.82, integrity: 0.91, quality: 0.86 },
-  previous_hash: receipt1.self_hash, // Links to previous
+// Security events
+securityLogger.warn('Suspicious activity detected', {
+  ip: '192.168.1.1',
+  attempts: 5,
+  module: 'SecurityMonitor',
 });
 
-// Verify chain
-console.log(receipt2.verifyChain(receipt1)); // true
+// Performance tracking
+performanceLogger.info('API request completed', {
+  endpoint: '/api/users',
+  duration_ms: 45,
+  status_code: 200,
+});
+```
+
+### Prometheus Metrics
+
+```typescript
+import {
+  workflowDurationHistogram,
+  activeWorkflowsGauge,
+  getMetrics,
+} from '@sonate/core';
+
+// Record workflow duration
+workflowDurationHistogram.observe(
+  { workflow_name: 'data-processing', status: 'success' },
+  2.5 // seconds
+);
+
+// Track active workflows
+activeWorkflowsGauge.inc({ workflow_type: 'analysis' });
+// ... do work ...
+activeWorkflowsGauge.dec({ workflow_type: 'analysis' });
+
+// Export metrics (Prometheus format)
+const metrics = await getMetrics();
+console.log(metrics);
+```
+
+### Performance Monitoring
+
+```typescript
+import { PerformanceTimer } from '@sonate/core';
+
+async function processData() {
+  const timer = new PerformanceTimer('data_processing', {
+    dataset: 'users',
+    operation: 'transform',
+  });
+
+  // Do work...
+  await heavyComputation();
+
+  const duration = timer.end(); // Logs automatically
+  console.log(`Processing took ${duration} seconds`);
+}
+```
+
+### Health Checks
+
+```typescript
+import { healthCheckManager } from '@sonate/core';
+
+// Register custom health check
+healthCheckManager.registerCheck('database', async () => {
+  try {
+    await db.query('SELECT 1');
+    return {
+      status: 'healthy',
+      message: 'Database connection OK',
+    };
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      message: 'Database connection failed',
+      error: error.message,
+    };
+  }
+});
+
+// Check system health
+const health = await healthCheckManager.check();
+console.log('System status:', health.status);
+console.log('Components:', health.components);
 ```
 
 ## The 6 Trust Principles
@@ -117,30 +162,112 @@ This implementation follows the specifications at:
 
 ## API Reference
 
-### Classes
+### Trust Protocol
 
-- `TrustProtocol`: Calculate and validate trust scores
-- `TrustReceipt`: Create and verify cryptographic receipts
-- `SymbiScorer`: Score interactions against 6 principles
+#### `TrustProtocol`
 
-### Functions
+Main class for generating and verifying trust receipts.
 
-- `hashChain()`: Create hash chain links
-- `signPayload()`: Sign data with Ed25519
-- `verifySignature()`: Verify Ed25519 signatures
-- `generateKeyPair()`: Generate Ed25519 key pairs
+```typescript
+class TrustProtocol {
+  generateReceipt(data: TrustReceiptData): Promise<TrustReceipt>;
+  verifyReceipt(receipt: TrustReceipt): Promise<boolean>;
+  createDID(): Promise<DIDDocument>;
+}
+```
 
-### Constants
+### Logging
 
-- `TRUST_PRINCIPLES`: The 6 principles with weights and criticality
+#### Loggers
+
+- `log`: Main application logger
+- `securityLogger`: Security events and alerts
+- `performanceLogger`: Performance metrics
+- `apiLogger`: API request/response logging
+
+#### `createLogger(defaultMeta)`
+
+Create a child logger with default metadata.
+
+```typescript
+const moduleLogger = createLogger({ module: 'MyModule' });
+moduleLogger.info('Event occurred'); // Automatically includes module
+```
+
+### Metrics
+
+#### Counters
+- `trustReceiptsTotal`: Total trust receipts generated
+- `workflowFailuresTotal`: Failed workflow executions
+- `apiRequestsTotal`: Total HTTP requests
+
+#### Histograms
+- `workflowDurationHistogram`: Workflow execution time
+- `trustReceiptGenerationDuration`: Receipt generation time
+- `apiRequestDuration`: HTTP request latency
+
+#### Gauges
+- `activeWorkflowsGauge`: Currently active workflows
+- `activeAgentsGauge`: Currently registered agents
+
+#### Functions
+- `getMetrics()`: Export Prometheus metrics
+- `resetMetrics()`: Reset all metrics
+
+### Performance
+
+#### `PerformanceTimer`
+
+```typescript
+class PerformanceTimer {
+  constructor(operation: string, labels?: Record<string, string>);
+  end(): number; // Returns duration in seconds
+  endWithMetric(metric: Histogram): void;
+}
+```
+
+### Health Checks
+
+#### `HealthCheckManager`
+
+```typescript
+class HealthCheckManager {
+  registerCheck(name: string, checkFn: HealthCheckFunction): void;
+  check(): Promise<SystemHealth>;
+  readiness(): Promise<SystemHealth>;
+  liveness(): Promise<SystemHealth>;
+}
+```
+
+## Configuration
+
+Environment variables:
+
+```bash
+# Logging
+LOG_LEVEL=info          # error | warn | info | debug
+NODE_ENV=production     # production | development
+
+# Metrics
+PROMETHEUS_PORT=9090
+METRICS_ENABLED=true
+
+# Trust Protocol
+TRUST_MODE=production
+```
+
+## Examples
+
+See [docs/examples/quickstart.ts](../../docs/examples/quickstart.ts) for a complete working example.
+
+## Testing
+
+```bash
+npm test                # Run tests
+npm run test:coverage   # With coverage
+npm run test:watch      # Watch mode
+```
 
 ## License
 
-MIT
-### Boundary Summary
-
-- Allowed: Protocol logic (6-principle trust algorithm, trust receipts, hashing, signatures, CIQ metrics)
-- Not Allowed: UI components, production monitoring logic, orchestration workflows, experiments
-- Import Example: `import { TrustProtocol, hashChain } from '@sonate/core'`
-
-All SONATE trust scores MUST use `TrustProtocol` with 0–10 inputs and weights from `TRUST_PRINCIPLES`.
+Proprietary - SONATE Platform

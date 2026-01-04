@@ -5,9 +5,17 @@
  */
 
 import { Registry, Counter, Histogram, Gauge, collectDefaultMetrics } from 'prom-client';
+import { register as globalRegister } from 'prom-client';
 
-// Create a Registry to register the metrics
-export const register = new Registry();
+// Use global registry to avoid duplicate registration during Next.js SSG
+export const register = globalRegister;
+
+// Clear existing metrics to allow re-registration (useful for Next.js dev/SSG)
+try {
+  register.clear();
+} catch (error) {
+  // Ignore if already clear
+}
 
 // Collect default metrics (CPU, memory, etc.)
 collectDefaultMetrics({ register });

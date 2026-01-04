@@ -1,0 +1,31 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "packages/core/src/index.ts",
+    "packages/orchestrate/src/index.ts",
+    "packages/detect/src/index.ts"
+  ],
+  "out": "docs/api",
+  "name": "SONATE Platform API Documentation",
+  "theme": "default",
+  "readme": "README.md",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": true,
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Core",
+    "Trust Protocol",
+    "Monitoring",
+    "Orchestration",
+    "Detection",
+    "*"
+  ],
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": true
+  },
+  "plugin": [],
+  "sort": ["source-order"]
+}
