@@ -23,7 +23,7 @@ interface SymbiScores {
   realityIndex: number;
   constitutionalAlignment: number;
   ethicalAlignment: number;
-  trustProtocol: number;
+  trustProtocol: 'PASS' | 'PARTIAL' | 'FAIL';
   emergenceScore: number;
   overallTrust: number;
   analysis: {
@@ -38,7 +38,7 @@ function RadarChart({ scores }: { scores: SymbiScores }) {
     { label: 'Reality', value: scores.realityIndex / 10 },
     { label: 'Constitutional', value: scores.constitutionalAlignment / 10 },
     { label: 'Ethics', value: scores.ethicalAlignment / 10 },
-    { label: 'Trust', value: scores.trustProtocol / 10 },
+    { label: 'Trust', value: scores.trustProtocol === 'PASS' ? 1.0 : scores.trustProtocol === 'PARTIAL' ? 0.5 : 0.1 },
     { label: 'Emergence', value: scores.emergenceScore / 10 },
   ];
   
@@ -149,14 +149,14 @@ export default function SymbiPage() {
           const apiResult = data.data;
           setScores({
             realityIndex: apiResult.symbi_dimensions?.reality_index || 8.0,
-            constitutionalAlignment: apiResult.symbi_dimensions?.constitutional_alignment || 7.5,
+            constitutionalAlignment: apiResult.symbi_dimensions?.canvas_parity || 7.5, // Use canvas_parity for constitutional alignment
             ethicalAlignment: apiResult.symbi_dimensions?.ethical_alignment || 7.2,
-            trustProtocol: apiResult.symbi_dimensions?.trust_protocol || 8.0,
-            emergenceScore: apiResult.symbi_dimensions?.emergence_score || 7.8,
+            trustProtocol: apiResult.symbi_dimensions?.trust_protocol || 'PARTIAL', // Now string: PASS/PARTIAL/FAIL
+            emergenceScore: (apiResult.raw_metrics?.R_m || 0.75) * 10, // Use R_m as proxy for emergence score
             overallTrust: (apiResult.raw_metrics?.R_m || 0.75) * 100,
             analysis: [
               { dimension: 'Reality Index', insight: 'Grounding in factual information based on content analysis', confidence: apiResult.raw_metrics?.vector_alignment || 0.85 },
-              { dimension: 'Constitutional AI', insight: 'Alignment with constitutional AI principles and safeguards', confidence: apiResult.raw_metrics?.constitutional_alignment || 0.88 },
+              { dimension: 'Constitutional Alignment', insight: 'Alignment with constitutional AI principles and safeguards', confidence: apiResult.raw_metrics?.canvas_parity || 0.88 },
               { dimension: 'Ethical Alignment', insight: 'Multi-perspective ethical stance detection', confidence: apiResult.raw_metrics?.ethical_awareness || 0.80 },
               { dimension: 'Trust Protocol', insight: 'Cryptographic trust verification and validation', confidence: apiResult.raw_metrics?.trust_validation || 0.82 },
               { dimension: 'Emergence Detection', insight: 'Weak emergence pattern analysis complete', confidence: apiResult.raw_metrics?.emergence_confidence || 0.79 },
@@ -186,7 +186,7 @@ export default function SymbiPage() {
       realityIndex: Math.round(realityIndex * 10) / 10,
       constitutionalAlignment: Math.round(constitutionalAlignment * 10) / 10,
       ethicalAlignment: Math.round(ethicalAlignment * 10) / 10,
-      trustProtocol: Math.round(trustProtocol * 10) / 10,
+      trustProtocol: trustProtocol > 8.0 ? 'PASS' : trustProtocol > 5.0 ? 'PARTIAL' : 'FAIL',
       emergenceScore: Math.round(emergenceScore * 10) / 10,
       overallTrust: Math.round(overallTrust * 10) / 10,
       analysis: [
@@ -335,7 +335,9 @@ AI: The capital of France is Paris. Paris is not only the capital but also the l
                   <span className="font-medium text-sm">Trust Protocol</span>
                 </div>
                 <p className={`text-2xl font-bold ${
-                  scores.trustProtocol === 'PASS' ? 'text-emerald-500' : 'text-amber-500'
+                  scores.trustProtocol === 'PASS' ? 'text-emerald-500' :
+                  scores.trustProtocol === 'PARTIAL' ? 'text-amber-500' :
+                  'text-red-500'
                 }`}>{scores.trustProtocol}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {scores.analysis[1].insight}
@@ -388,7 +390,7 @@ AI: The capital of France is Paris. Paris is not only the capital but also the l
                 <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-[var(--lab-primary)]" 
-                    style={{ width: `${scores.trustProtocol * 10}%` }} 
+                    style={{ width: `${scores.trustProtocol === 'PASS' ? 100 : scores.trustProtocol === 'PARTIAL' ? 50 : 10}%` }} 
                   />
                 </div>
               </div>
