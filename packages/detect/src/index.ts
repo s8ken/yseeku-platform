@@ -64,11 +64,8 @@ export {
   type SurfacePattern
 } from './bedau-index';
 export { 
-  detectEmergence, 
-  detectEmergenceSync, 
-  extractSurfacePattern,
-  type EmergenceSignal,
-  type EmergenceTrajectory
+  detectEmergence,
+  type EmergenceSignal
 } from './emergence-detection';
 
 // Emergence Research Framework (PHASE 2)

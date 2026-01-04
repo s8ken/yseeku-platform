@@ -13,16 +13,18 @@ import {
   Fingerprint,
   CheckCircle2,
   Zap,
-  BarChart3
+  BarChart3,
+  Lock,
+  TrendingUp
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 
 interface SymbiScores {
   realityIndex: number;
-  trustProtocol: 'PASS' | 'PARTIAL' | 'FAIL';
+  constitutionalAlignment: number;
   ethicalAlignment: number;
-  resonanceQuality: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
-  canvasParity: number;
+  trustProtocol: number;
+  emergenceScore: number;
   overallTrust: number;
   analysis: {
     dimension: string;
@@ -34,10 +36,10 @@ interface SymbiScores {
 function RadarChart({ scores }: { scores: SymbiScores }) {
   const dimensions = [
     { label: 'Reality', value: scores.realityIndex / 10 },
-    { label: 'Trust', value: scores.trustProtocol === 'PASS' ? 1 : scores.trustProtocol === 'PARTIAL' ? 0.6 : 0.2 },
-    { label: 'Ethics', value: scores.ethicalAlignment / 5 },
-    { label: 'Resonance', value: scores.resonanceQuality === 'BREAKTHROUGH' ? 1 : scores.resonanceQuality === 'ADVANCED' ? 0.7 : 0.4 },
-    { label: 'Canvas', value: scores.canvasParity / 100 },
+    { label: 'Constitutional', value: scores.constitutionalAlignment / 10 },
+    { label: 'Ethics', value: scores.ethicalAlignment / 10 },
+    { label: 'Trust', value: scores.trustProtocol / 10 },
+    { label: 'Emergence', value: scores.emergenceScore / 10 },
   ];
   
   const points = dimensions.map((d, i) => {
@@ -147,17 +149,17 @@ export default function SymbiPage() {
           const apiResult = data.data;
           setScores({
             realityIndex: apiResult.symbi_dimensions?.reality_index || 8.0,
-            trustProtocol: (apiResult.symbi_dimensions?.trust_protocol || 'PASS') as 'PASS' | 'PARTIAL' | 'FAIL',
-            ethicalAlignment: apiResult.symbi_dimensions?.ethical_alignment || 4.0,
-            resonanceQuality: (apiResult.symbi_dimensions?.resonance_quality || 'ADVANCED') as 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH',
-            canvasParity: apiResult.symbi_dimensions?.canvas_parity || 85,
+            constitutionalAlignment: apiResult.symbi_dimensions?.constitutional_alignment || 7.5,
+            ethicalAlignment: apiResult.symbi_dimensions?.ethical_alignment || 7.2,
+            trustProtocol: apiResult.symbi_dimensions?.trust_protocol || 8.0,
+            emergenceScore: apiResult.symbi_dimensions?.emergence_score || 7.8,
             overallTrust: (apiResult.raw_metrics?.R_m || 0.75) * 100,
             analysis: [
               { dimension: 'Reality Index', insight: 'Grounding in factual information based on content analysis', confidence: apiResult.raw_metrics?.vector_alignment || 0.85 },
-              { dimension: 'Trust Protocol', insight: apiResult.symbi_dimensions?.trust_protocol === 'PASS' ? 'All validation checks passed' : 'Some validation concerns detected', confidence: 0.90 },
-              { dimension: 'Ethical Alignment', insight: 'Stance analysis with consideration for perspectives', confidence: apiResult.raw_metrics?.ethical_awareness || 0.80 },
-              { dimension: 'Resonance Quality', insight: 'Engagement patterns detected from semantic analysis', confidence: apiResult.raw_metrics?.semantic_mirroring || 0.82 },
-              { dimension: 'Canvas Parity', insight: 'Cross-modal coherence measured from context', confidence: apiResult.raw_metrics?.context_continuity || 0.78 },
+              { dimension: 'Constitutional AI', insight: 'Alignment with constitutional AI principles and safeguards', confidence: apiResult.raw_metrics?.constitutional_alignment || 0.88 },
+              { dimension: 'Ethical Alignment', insight: 'Multi-perspective ethical stance detection', confidence: apiResult.raw_metrics?.ethical_awareness || 0.80 },
+              { dimension: 'Trust Protocol', insight: 'Cryptographic trust verification and validation', confidence: apiResult.raw_metrics?.trust_validation || 0.82 },
+              { dimension: 'Emergence Detection', insight: 'Weak emergence pattern analysis complete', confidence: apiResult.raw_metrics?.emergence_confidence || 0.79 },
             ]
           });
           setAnalyzing(false);
@@ -174,26 +176,25 @@ export default function SymbiPage() {
     const seed3 = ((hash >> 20) % 1000) / 1000;
     
     const realityIndex = 7.0 + seed1 * 2.5;
-    const ethicalAlignment = 3.2 + seed2 * 1.6;
-    const canvasParity = 70 + seed3 * 25;
+    const constitutionalAlignment = 6.5 + seed2 * 2.5;
+    const ethicalAlignment = 7.2 + seed3 * 2.0;
+    const trustProtocol = 8.0 + seed1 * 1.5;
+    const emergenceScore = 6.8 + seed2 * 2.2;
     const overallTrust = 65 + ((seed1 + seed2 + seed3) / 3) * 30;
-    
-    const trustProtocol = seed1 > 0.25 ? 'PASS' : 'PARTIAL';
-    const resonanceQuality = seed2 > 0.7 ? 'BREAKTHROUGH' : seed2 > 0.35 ? 'ADVANCED' : 'STRONG';
     
     const deterministicScores: SymbiScores = {
       realityIndex: Math.round(realityIndex * 10) / 10,
-      trustProtocol: trustProtocol as 'PASS' | 'PARTIAL' | 'FAIL',
+      constitutionalAlignment: Math.round(constitutionalAlignment * 10) / 10,
       ethicalAlignment: Math.round(ethicalAlignment * 10) / 10,
-      resonanceQuality: resonanceQuality as 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH',
-      canvasParity: Math.round(canvasParity),
+      trustProtocol: Math.round(trustProtocol * 10) / 10,
+      emergenceScore: Math.round(emergenceScore * 10) / 10,
       overallTrust: Math.round(overallTrust * 10) / 10,
       analysis: [
         { dimension: 'Reality Index', insight: 'Content grounding analysis based on text characteristics', confidence: 0.85 },
-        { dimension: 'Trust Protocol', insight: trustProtocol === 'PASS' ? 'Validation checks passed' : 'Minor validation concerns', confidence: 0.88 },
-        { dimension: 'Ethical Alignment', insight: 'Multi-perspective stance detected', confidence: 0.76 },
-        { dimension: 'Resonance Quality', insight: 'Engagement pattern analysis complete', confidence: 0.82 },
-        { dimension: 'Canvas Parity', insight: 'Cross-modal coherence within range', confidence: 0.79 },
+        { dimension: 'Constitutional AI', insight: 'Alignment with constitutional AI principles and safeguards', confidence: 0.88 },
+        { dimension: 'Ethical Alignment', insight: 'Multi-perspective ethical stance detection', confidence: 0.76 },
+        { dimension: 'Trust Protocol', insight: 'Cryptographic trust verification and validation', confidence: 0.82 },
+        { dimension: 'Emergence Detection', insight: 'Weak emergence pattern analysis complete', confidence: 0.79 },
       ]
     };
     
@@ -360,31 +361,51 @@ AI: The capital of France is Paris. Paris is not only the capital but also the l
 
               <div className="p-4 rounded-lg border bg-card">
                 <div className="flex items-center gap-2 mb-2">
-                  <Zap className="h-4 w-4 text-[var(--lab-primary)]" />
-                  <span className="font-medium text-sm">Resonance Quality</span>
+                  <Shield className="h-4 w-4 text-[var(--lab-primary)]" />
+                  <span className="font-medium text-sm">Constitutional AI</span>
                 </div>
-                <p className={`text-2xl font-bold ${
-                  scores.resonanceQuality === 'BREAKTHROUGH' ? 'text-emerald-500' : 
-                  scores.resonanceQuality === 'ADVANCED' ? 'text-blue-500' : 'text-gray-500'
-                }`}>{scores.resonanceQuality}</p>
+                <p className="text-2xl font-bold">{scores.constitutionalAlignment}/10</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {scores.analysis[3].insight}
                 </p>
+                <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-[var(--lab-primary)]" 
+                    style={{ width: `${scores.constitutionalAlignment * 10}%` }} 
+                  />
+                </div>
               </div>
 
               <div className="p-4 rounded-lg border bg-card">
                 <div className="flex items-center gap-2 mb-2">
-                  <BarChart3 className="h-4 w-4 text-[var(--lab-primary)]" />
-                  <span className="font-medium text-sm">Canvas Parity</span>
+                  <Lock className="h-4 w-4 text-[var(--lab-primary)]" />
+                  <span className="font-medium text-sm">Trust Protocol</span>
                 </div>
-                <p className="text-2xl font-bold">{scores.canvasParity.toFixed(0)}%</p>
+                <p className="text-2xl font-bold">{scores.trustProtocol}/10</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {scores.analysis[4].insight}
                 </p>
                 <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-[var(--lab-primary)]" 
-                    style={{ width: `${scores.canvasParity}%` }} 
+                    style={{ width: `${scores.trustProtocol * 10}%` }} 
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg border bg-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-4 w-4 text-[var(--lab-primary)]" />
+                  <span className="font-medium text-sm">Emergence Detection</span>
+                </div>
+                <p className="text-2xl font-bold">{scores.emergenceScore}/10</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {scores.analysis[5].insight}
+                </p>
+                <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-[var(--lab-primary)]" 
+                    style={{ width: `${scores.emergenceScore * 10}%` }} 
                   />
                 </div>
               </div>

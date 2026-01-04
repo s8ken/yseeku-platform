@@ -5,24 +5,9 @@
  */
 
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import { AuthenticationError } from './error-taxonomy';
-import { tenantContext } from '../tenant-context';
-
-// import { SecurityUtils, SECURITY_CONSTANTS } from '@sonate/core/security';
-
-// Placeholder for missing utilities until they are properly exported/linked
-const SECURITY_CONSTANTS = {
-  JWT_ISSUER: 'YSEEKU-SONATE',
-  JWT_REFRESH_EXPIRATION_TIME: '7d'
-};
-
-class SecurityUtils {
-  static generateSecureId(prefix: string): string {
-    return `${prefix}_${crypto.randomBytes(16).toString('hex')}`;
-  }
-}
+import { AuthenticationError, SecurityUtils, SECURITY_CONSTANTS } from './index';
 
 export interface UserCredentials {
   username: string;
@@ -93,18 +78,6 @@ export class SecureAuthService {
   }
 
   /**
-   * Run a function within a tenant context derived from a JWT token
-   */
-  async runWithTenant<T>(token: string, fn: () => Promise<T>): Promise<T> {
-    const payload = this.verifyToken(token);
-    return tenantContext.run({
-      tenantId: payload.tenant,
-      userId: payload.userId,
-      roles: payload.roles
-    }, fn);
-  }
-
-  /**
    * Generate cryptographically secure secret
    */
   private generateSecureSecret(): string {
@@ -123,7 +96,9 @@ export class SecureAuthService {
         {
           component: 'SecureAuthService',
           operation: 'hashPassword',
-          severity: 'high'
+          severity: 'high',
+          userId: undefined,
+          tenantId: undefined
         },
         {
           originalError: error instanceof Error ? error : new Error(String(error)),
@@ -145,7 +120,9 @@ export class SecureAuthService {
         {
           component: 'SecureAuthService',
           operation: 'verifyPassword',
-          severity: 'high'
+          severity: 'high',
+          userId: undefined,
+          tenantId: undefined
         },
         {
           originalError: error instanceof Error ? error : new Error(String(error)),
@@ -187,7 +164,7 @@ export class SecureAuthService {
         {
           algorithm: 'HS256',
           issuer: SECURITY_CONSTANTS.JWT_ISSUER,
-          expiresIn: SECURITY_CONSTANTS.JWT_REFRESH_EXPIRATION_TIME as any
+          expiresIn: SECURITY_CONSTANTS.JWT_REFRESH_EXPIRATION_TIME
         }
       );
 

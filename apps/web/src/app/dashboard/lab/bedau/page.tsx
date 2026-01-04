@@ -34,7 +34,7 @@ interface BedauMetric {
     irreducibility: number;
     downwardCausation: number;
   };
-  classification: 'nominal' | 'weak' | 'high_weak' | 'investigating_strong';
+  classification: 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE';
 }
 
 interface HistoricalDataPoint {
@@ -53,7 +53,7 @@ const mockMetrics: BedauMetric[] = [
     bedauIndex: 0.42,
     trend: 'stable',
     components: { novelty: 0.55, unpredictability: 0.38, irreducibility: 0.31, downwardCausation: 0.44 },
-    classification: 'weak'
+    classification: 'WEAK_EMERGENCE'
   },
   {
     id: 'metric-002',
@@ -63,7 +63,7 @@ const mockMetrics: BedauMetric[] = [
     bedauIndex: 0.68,
     trend: 'increasing',
     components: { novelty: 0.72, unpredictability: 0.65, irreducibility: 0.58, downwardCausation: 0.77 },
-    classification: 'high_weak'
+    classification: 'HIGH_WEAK_EMERGENCE'
   },
   {
     id: 'metric-003',
@@ -73,7 +73,7 @@ const mockMetrics: BedauMetric[] = [
     bedauIndex: 0.31,
     trend: 'decreasing',
     components: { novelty: 0.41, unpredictability: 0.28, irreducibility: 0.22, downwardCausation: 0.33 },
-    classification: 'nominal'
+    classification: 'LINEAR'
   },
   {
     id: 'metric-004',
@@ -83,7 +83,7 @@ const mockMetrics: BedauMetric[] = [
     bedauIndex: 0.84,
     trend: 'increasing',
     components: { novelty: 0.89, unpredictability: 0.81, irreducibility: 0.78, downwardCausation: 0.88 },
-    classification: 'investigating_strong'
+    classification: 'HIGH_WEAK_EMERGENCE'
   }
 ];
 
@@ -163,15 +163,14 @@ function ComponentBar({ label, value }: { label: string; value: number }) {
 
 function MetricCard({ metric }: { metric: BedauMetric }) {
   const classificationColors: Record<string, string> = {
-    nominal: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
-    weak: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+    LINEAR: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
+    WEAK_EMERGENCE: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
     strong: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
     critical: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
   };
 
   return (
-    <Card className={metric.classification === 'investigating_strong' ? 'border-l-4 border-l-red-500' : 
-                     metric.classification === 'high_weak' ? 'border-l-4 border-l-amber-500' : ''}>
+    <Card className={metric.classification === 'HIGH_WEAK_EMERGENCE' ? 'border-l-4 border-l-amber-500' : ''}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div>
@@ -252,8 +251,7 @@ export default function BedauIndexPage() {
 
   const avgBedau = mockMetrics.reduce((acc, m) => acc + m.bedauIndex, 0) / mockMetrics.length;
   const maxBedau = Math.max(...mockMetrics.map(m => m.bedauIndex));
-  const investigatingStrongCount = mockMetrics.filter(m => m.classification === 'investigating_strong').length;
-  const highWeakCount = mockMetrics.filter(m => m.classification === 'high_weak').length;
+  const highWeakEmergenceCount = mockMetrics.filter(m => m.classification === 'HIGH_WEAK_EMERGENCE').length;
 
   return (
     <div className="space-y-6">
@@ -320,7 +318,7 @@ export default function BedauIndexPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-500">{highWeakCount + investigatingStrongCount}</div>
+            <div className="text-2xl font-bold text-amber-500">{highWeakEmergenceCount}</div>
             <p className="text-xs text-muted-foreground mt-1">Agents flagged</p>
           </CardContent>
         </Card>
