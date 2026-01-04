@@ -16,7 +16,8 @@
     "lint": "turbo run lint",
     "clean": "turbo run clean && rm -rf node_modules",
     "demo:ledger": "npm run build --workspace @sonate/collaboration-ledger && node examples/ledger-demo/index.js",
-    "demo:interactive": "npm run dev --workspace @sonate/new-demo"
+    "demo:interactive": "npm run dev --workspace @sonate/new-demo",
+    "prepare": "husky"
   },
   "devDependencies": {
     "turbo": "^1.10.0",
