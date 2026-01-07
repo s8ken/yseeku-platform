@@ -19,9 +19,10 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
 
   // Ensure endpoint starts with /
   const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const fullUrl = `${API_BASE}${path}`;
   
   try {
-    const response = await fetch(`${API_BASE}${path}`, {
+    const response = await fetch(fullUrl, {
       ...options,
       headers,
     });
