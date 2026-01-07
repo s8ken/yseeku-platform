@@ -10,7 +10,11 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
   let token = getAuthToken();
   
   // Auto-login as guest if no token exists and we aren't already trying to authenticate
-  if (!token && typeof window !== 'undefined' && !endpoint.includes('/auth/')) {
+  const isAuthInitEndpoint = endpoint.includes('/auth/login') || 
+                             endpoint.includes('/auth/register') || 
+                             endpoint.includes('/auth/guest');
+
+  if (!token && typeof window !== 'undefined' && !isAuthInitEndpoint) {
     try {
       console.log('No token found, attempting guest login...');
       // Use direct fetch to avoid infinite recursion
