@@ -88,6 +88,15 @@ export default function TenantSettingsPage() {
 
   const [testingKey, setTestingKey] = useState<string | null>(null);
 
+  const handleDebug = async () => {
+    try {
+      const res = await api.debugAuth();
+      alert(`Debug Success: ${JSON.stringify(res, null, 2)}`);
+    } catch (error: any) {
+      alert(`Debug Failed: ${error.message}\n${JSON.stringify(error, null, 2)}`);
+    }
+  };
+
   const handleAddKey = async (provider: string, key: string, name: string) => {
     try {
       const res = await api.addApiKey(provider, key, name);
@@ -517,9 +526,9 @@ export default function TenantSettingsPage() {
                   <Button variant="outline" size="sm">View</Button>
                 </div>
               </div>
-              <Button className="w-full" variant="outline">
-                <Key className="mr-2 h-4 w-4" />
-                Generate New API Key
+              <Button className="w-full" variant="outline" onClick={() => handleDebug()}>
+                 <Shield className="mr-2 h-4 w-4" />
+                 Debug Auth Connection
               </Button>
             </div>
           </CardContent>

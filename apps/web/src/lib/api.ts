@@ -440,6 +440,12 @@ export const api = {
     });
   },
 
+  async debugAuth(): Promise<any> {
+    return fetchAPI<any>('/api/auth/debug', {
+      method: 'GET',
+    });
+  },
+
   async getTrustAnalytics(conversationId?: string, days = 7, limit = 1000): Promise<TrustAnalyticsResponse> {
     const params = new URLSearchParams();
     if (conversationId) params.set('conversationId', conversationId);

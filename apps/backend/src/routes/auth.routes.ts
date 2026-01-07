@@ -14,6 +14,23 @@ router.get('/ping', (req: Request, res: Response) => {
   res.json({ success: true, message: 'Auth service is reachable' });
 });
 
+router.get('/debug', protect, (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: 'Debug info',
+    user: {
+      id: req.user?._id,
+      email: req.user?.email,
+      name: req.user?.name,
+      apiKeysCount: req.user?.apiKeys?.length
+    },
+    token: {
+      // Don't log full token for security, just presence
+      present: true
+    }
+  });
+});
+
 /**
  * @route   POST /api/auth/register
  * @desc    Register new user
