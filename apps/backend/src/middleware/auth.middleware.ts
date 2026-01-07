@@ -4,6 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
 import { SecureAuthService } from '@sonate/core';
 import { User, IUser } from '../models/user.model';
 
@@ -61,8 +62,11 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     }
 
     // Get user from database (exclude password)
-    // First try by ID
-    let user = await User.findById(userId).select('-password');
+    // First try by ID (if it's a valid MongoDB ObjectId)
+    let user;
+    if (mongoose.Types.ObjectId.isValid(userId)) {
+      user = await User.findById(userId).select('-password');
+    }
 
     // If not found by ID, try by email (handle users coming from Next.js/Postgres)
     if (!user && email) {
@@ -102,11 +106,12 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
 
     next();
   } catch (error: any) {
-    console.error('Token verification error:', error.message);
-    res.status(401).json({
+    console.error('Auth middleware error:', error);
+    res.status(500).json({
       success: false,
-      message: 'Not authorized, token failed',
-      error: error.message
+      message: 'Authentication error',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }

@@ -326,14 +326,14 @@ router.post('/api-keys', protect, async (req: Request, res: Response): Promise<v
       return;
     }
 
-    const user = await User.findById(req.userId);
+    const user = req.user;
     if (!user) {
       res.status(404).json({ success: false, message: 'User not found' });
       return;
     }
 
     // Check if provider already exists
-    const existingKeyIndex = user.apiKeys.findIndex((k) => k.provider === provider);
+    const existingKeyIndex = user.apiKeys.findIndex((k: any) => k.provider === provider);
 
     if (existingKeyIndex > -1) {
       // Update existing
@@ -384,13 +384,13 @@ router.delete('/api-keys/:provider', protect, async (req: Request, res: Response
   try {
     const { provider } = req.params;
 
-    const user = await User.findById(req.userId);
+    const user = req.user;
     if (!user) {
       res.status(404).json({ success: false, message: 'User not found' });
       return;
     }
 
-    user.apiKeys = user.apiKeys.filter((k) => k.provider !== provider);
+    user.apiKeys = user.apiKeys.filter((k: any) => k.provider !== provider);
     await user.save();
 
     res.json({

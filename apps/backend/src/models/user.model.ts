@@ -8,7 +8,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 
 export interface IApiKey {
-  provider: 'openai' | 'together' | 'anthropic' | 'cohere' | 'custom';
+  provider: 'openai' | 'together' | 'anthropic' | 'cohere' | 'perplexity' | 'v0' | 'custom';
   key: string;
   name: string;
   isActive: boolean;
@@ -38,7 +38,7 @@ const ApiKeySchema = new Schema<IApiKey>({
   provider: {
     type: String,
     required: [true, 'Provider name is required'],
-    enum: ['openai', 'together', 'anthropic', 'cohere', 'custom'],
+    enum: ['openai', 'together', 'anthropic', 'cohere', 'perplexity', 'v0', 'custom'],
   },
   key: {
     type: String,

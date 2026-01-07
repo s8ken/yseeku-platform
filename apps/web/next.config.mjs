@@ -16,23 +16,23 @@ const nextConfig = {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
       console.log('Configuring rewrites with backendUrl:', backendUrl);
       return [
-      {
-        source: '/api/auth/api-keys/:path*',
-        destination: `${backendUrl}/api/auth/api-keys/:path*`,
-      },
-      {
-        source: '/api/auth/api-keys',
-        destination: `${backendUrl}/api/auth/api-keys`,
-      },
-      {
-        source: '/api/auth/me',
-        destination: `${backendUrl}/api/auth/me`,
-      },
-      {
-        source: '/api/auth/profile',
-        destination: `${backendUrl}/api/auth/profile`,
-      },
-    ];
+        {
+          source: '/api/auth/api-keys/:path*',
+          destination: `${backendUrl}/api/auth/api-keys/:path*`,
+        },
+        {
+          source: '/api/auth/api-keys',
+          destination: `${backendUrl}/api/auth/api-keys`,
+        },
+        {
+          source: '/api/auth/me',
+          destination: `${backendUrl}/api/auth/me`,
+        },
+        {
+          source: '/api/auth/profile',
+          destination: `${backendUrl}/api/auth/profile`,
+        },
+      ];
   },
   transpilePackages: [
     '@sonate/core',

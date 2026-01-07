@@ -114,7 +114,10 @@ const handler = async (req: NextRequest) => {
       tenant_id: tenant, 
       type: 'access',
       session_id: dbSession?.id
-    }, secret, { expiresIn: '24h' });
+    }, secret, { 
+      expiresIn: '24h',
+      issuer: 'yseeku-platform'
+    });
     
     const refresh = jwt.sign({ 
       sub: user.id, 

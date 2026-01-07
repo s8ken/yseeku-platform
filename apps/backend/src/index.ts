@@ -3,6 +3,10 @@
  * Integrated with MongoDB, SecureAuthService, and Trust Protocol
  */
 
+import dotenv from 'dotenv';
+// Load environment variables before any other imports
+dotenv.config();
+
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
@@ -24,8 +28,12 @@ const PORT = process.env.PORT || 3001;
 app.use(helmet());
 
 // CORS configuration
+const corsOrigin = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',') 
+  : 'http://localhost:5000';
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: corsOrigin,
   credentials: true,
 }));
 
