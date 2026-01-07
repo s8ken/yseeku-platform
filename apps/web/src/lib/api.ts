@@ -449,6 +449,13 @@ export const api = {
     });
   },
 
+  async generateLLMResponse(provider: string, model: string, messages: any[], options: any = {}): Promise<any> {
+    return fetchAPI<any>('/api/llm/generate', {
+      method: 'POST',
+      body: JSON.stringify({ provider, model, messages, ...options }),
+    });
+  },
+
   async getTrustReceipts(conversationId?: string, sessionId?: string, limit = 50, offset = 0): Promise<any> {
     const params = new URLSearchParams();
     if (conversationId) params.set('conversationId', conversationId);

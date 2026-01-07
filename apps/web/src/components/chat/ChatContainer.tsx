@@ -73,20 +73,30 @@ export const ChatContainer: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // 1. Evaluate trust for user message (optional, but good for protocol)
-      // 2. Get AI response and evaluate it
-      const response = await api.evaluateTrust(input);
+      // 1. Generate AI response
+      const llmResponse = await api.generateLLMResponse('anthropic', 'claude-3-haiku-20240307', [
+        ...messages.map(m => ({ role: m.role, content: m.content })),
+        { role: 'user', content: input }
+      ]);
+      
+      const aiContent = llmResponse.data.response;
+
+      // 2. Evaluate trust for the AI response
+      const response = await api.evaluateTrust(aiContent);
       
       const assistantMessage: ChatMessageProps = {
         role: 'assistant',
-        content: "I've analyzed your input through the SYMBI Trust Protocol v1.8.0. Here are the constitutional alignment results and the cryptographic receipt for this interaction.",
-        evaluation: response,
+        content: aiContent,
+        evaluation: response.data.evaluation,
         timestamp: Date.now(),
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to get trust evaluation:', error);
+      toast.error('Session Error', {
+        description: error.message || 'Failed to get AI response. Please check your API keys.',
+      });
     } finally {
       setIsLoading(false);
     }

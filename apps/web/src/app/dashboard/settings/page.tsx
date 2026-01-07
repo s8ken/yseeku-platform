@@ -21,7 +21,9 @@ import {
   Bot,
   Sparkles,
   Zap,
-  RefreshCw
+  RefreshCw,
+  Check,
+  Trash2
 } from 'lucide-react';
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -84,6 +86,8 @@ export default function TenantSettingsPage() {
     fetchKeys();
   }, []);
 
+  const [testingKey, setTestingKey] = useState<string | null>(null);
+
   const handleAddKey = async (provider: string, key: string, name: string) => {
     try {
       const res = await api.addApiKey(provider, key, name);
@@ -92,7 +96,47 @@ export default function TenantSettingsPage() {
         toast.success(`${provider} key updated successfully`);
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update key');
+      console.error('Failed to update key:', error);
+      toast.error('Failed to update key', {
+        description: error.message || 'An unexpected error occurred',
+      });
+    }
+  };
+
+  const handleTestKey = async (provider: string) => {
+    setTestingKey(provider);
+    try {
+      const res = await api.generateLLMResponse(provider, provider === 'anthropic' ? 'claude-3-haiku-20240307' : 'mistralai/mistral-7b-instruct-v0.1', [
+        { role: 'user', content: 'Test connection. Reply with "OK".' }
+      ]);
+      if (res.success) {
+        toast.success(`${provider} connection successful!`, {
+          description: `AI Response: ${res.data.response.substring(0, 50)}...`
+        });
+      }
+    } catch (error: any) {
+      console.error(`Test ${provider} failed:`, error);
+      toast.error(`${provider} connection failed`, {
+        description: error.message || 'Check your API key and try again.'
+      });
+    } finally {
+      setTestingKey(null);
+    }
+  };
+
+  const handleDeleteKey = async (provider: string) => {
+    if (!confirm(`Are you sure you want to remove the ${provider} API key?`)) return;
+    
+    try {
+      const res = await api.deleteApiKey(provider);
+      if (res.success) {
+        setLlmKeys(res.data.apiKeys);
+        toast.success(`${provider} key removed`);
+      }
+    } catch (error: any) {
+      toast.error('Failed to remove key', {
+        description: error.message
+      });
     }
   };
 
@@ -564,6 +608,30 @@ export default function TenantSettingsPage() {
                       >
                         {existingKey ? 'Update' : 'Connect'}
                       </Button>
+                      {existingKey && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleTestKey(provider.id)}
+                          disabled={testingKey === provider.id}
+                        >
+                          {testingKey === provider.id ? (
+                            <RefreshCw className="h-4 w-4 animate-spin" />
+                          ) : (
+                            'Test'
+                          )}
+                        </Button>
+                      )}
+                      {existingKey && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeleteKey(provider.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );
