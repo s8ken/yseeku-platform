@@ -56,6 +56,7 @@ const healthCheck = (req: express.Request, res: express.Response) => {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     database: 'connected', // Will be updated after DB connection
+      deployment: 'railway'
   });
 };
 
