@@ -17,20 +17,8 @@ const nextConfig = {
       console.log('Configuring rewrites with backendUrl:', backendUrl);
       return [
         {
-          source: '/api/auth/api-keys/:path*',
-          destination: `${backendUrl}/api/auth/api-keys/:path*`,
-        },
-        {
-          source: '/api/auth/api-keys',
-          destination: `${backendUrl}/api/auth/api-keys`,
-        },
-        {
-          source: '/api/auth/me',
-          destination: `${backendUrl}/api/auth/me`,
-        },
-        {
-          source: '/api/auth/profile',
-          destination: `${backendUrl}/api/auth/profile`,
+          source: '/api/auth/:path*',
+          destination: `${backendUrl}/api/auth/:path*`,
         },
         {
           source: '/api/agents/:path*',
