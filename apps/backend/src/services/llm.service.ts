@@ -202,16 +202,16 @@ export class LLMService {
   /**
    * Get API key for user from database
    */
-  private async getUserApiKey(userId: string, provider: string): Promise<string | null> {
+  private async getUserApiKey(userId: string, provider: string): Promise<string | undefined> {
     const user = await User.findById(userId);
     if (!user) {
-      return null;
+      return undefined;
     }
 
     const apiKey = user.apiKeys.find(
       key => key.provider === provider && key.isActive
     );
-    return apiKey?.key || null;
+    return apiKey?.key || undefined;
   }
 
   /**
@@ -254,7 +254,7 @@ export class LLMService {
     messages: ChatMessage[],
     temperature: number,
     maxTokens: number,
-    apiKey?: string | null
+    apiKey?: string
   ): Promise<LLMResponse> {
     // Use provided API key or system client
     const client = apiKey
@@ -297,7 +297,7 @@ export class LLMService {
     messages: ChatMessage[],
     temperature: number,
     maxTokens: number,
-    apiKey?: string | null
+    apiKey?: string
   ): Promise<LLMResponse> {
     // Use provided API key or system client
     const client = apiKey
@@ -352,7 +352,7 @@ export class LLMService {
     messages: ChatMessage[],
     temperature: number,
     maxTokens: number,
-    apiKey?: string | null
+    apiKey?: string
   ): Promise<LLMResponse> {
     if (!apiKey && !process.env.TOGETHER_API_KEY) {
       throw new Error('Together AI API key not configured. Please add your API key in settings.');
@@ -396,7 +396,7 @@ export class LLMService {
     messages: ChatMessage[],
     temperature: number,
     maxTokens: number,
-    apiKey?: string | null
+    apiKey?: string
   ): Promise<LLMResponse> {
     if (!apiKey && !process.env.COHERE_API_KEY) {
       throw new Error('Cohere API key not configured. Please add your API key in settings.');

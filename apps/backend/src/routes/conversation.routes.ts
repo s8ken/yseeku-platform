@@ -9,6 +9,7 @@ import { protect } from '../middleware/auth.middleware';
 import { Conversation, IMessage } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
 import { llmService } from '../services/llm.service';
+import { trustService } from '../services/trust.service';
 
 const router = Router();
 
@@ -324,13 +325,39 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
     const userMessage: IMessage = {
       sender: 'user',
       content,
-      metadata: {},
+      metadata: {
+        messageId: `msg-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+      },
       ciModel: 'none',
       trustScore: 5,
       timestamp: new Date(),
     };
 
     conversation.messages.push(userMessage);
+
+    // Evaluate trust for user message
+    try {
+      const userTrustEval = await trustService.evaluateMessage(userMessage, {
+        conversationId: conversation._id.toString(),
+        sessionId: conversation._id.toString(),
+        previousMessages: conversation.messages.slice(-11, -1), // Last 10 messages before this one
+      });
+
+      // Store trust evaluation in message metadata
+      userMessage.metadata.trustEvaluation = {
+        trustScore: userTrustEval.trustScore,
+        status: userTrustEval.status,
+        detection: userTrustEval.detection,
+        receipt: userTrustEval.receipt,
+        receiptHash: userTrustEval.receiptHash,
+      };
+
+      // Update message trust score (convert 0-10 to 0-5 scale)
+      userMessage.trustScore = Math.round((userTrustEval.trustScore.overall / 10) * 5 * 10) / 10;
+    } catch (trustError: any) {
+      console.error('Trust evaluation error for user message:', trustError);
+      // Continue even if trust evaluation fails
+    }
 
     // Generate AI response if requested
     if (generateResponse) {
@@ -387,16 +414,52 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
           content: llmResponse.content,
           agentId: agent._id,
           metadata: {
+            messageId: `msg-${Date.now()}-${Math.random().toString(36).substring(7)}`,
             model: agent.model,
             provider: agent.provider,
             usage: llmResponse.usage,
           },
           ciModel: agent.ciModel,
-          trustScore: 5, // Would be calculated by trust protocol
+          trustScore: 5,
           timestamp: new Date(),
         };
 
         conversation.messages.push(aiMessage);
+
+        // Evaluate trust for AI response
+        try {
+          const aiTrustEval = await trustService.evaluateMessage(aiMessage, {
+            conversationId: conversation._id.toString(),
+            sessionId: conversation._id.toString(),
+            previousMessages: conversation.messages.slice(-11, -1), // Last 10 messages before this one
+          });
+
+          // Store trust evaluation in message metadata
+          aiMessage.metadata.trustEvaluation = {
+            trustScore: aiTrustEval.trustScore,
+            status: aiTrustEval.status,
+            detection: aiTrustEval.detection,
+            receipt: aiTrustEval.receipt,
+            receiptHash: aiTrustEval.receiptHash,
+          };
+
+          // Update message trust score (convert 0-10 to 0-5 scale)
+          aiMessage.trustScore = Math.round((aiTrustEval.trustScore.overall / 10) * 5 * 10) / 10;
+
+          // Log trust violations for AI responses
+          if (aiTrustEval.status === 'FAIL' || aiTrustEval.status === 'PARTIAL') {
+            console.warn(`Trust violation in AI response:`, {
+              conversationId: conversation._id,
+              agentId: agent._id,
+              status: aiTrustEval.status,
+              violations: aiTrustEval.trustScore.violations,
+              trustScore: aiTrustEval.trustScore.overall,
+            });
+          }
+        } catch (trustError: any) {
+          console.error('Trust evaluation error for AI message:', trustError);
+          // Continue even if trust evaluation fails
+        }
       } catch (llmError: any) {
         console.error('LLM generation error:', llmError);
         // Save user message even if AI response fails

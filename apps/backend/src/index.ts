@@ -13,7 +13,7 @@ import authRoutes from './routes/auth.routes';
 import agentRoutes from './routes/agent.routes';
 import llmRoutes from './routes/llm.routes';
 import conversationRoutes from './routes/conversation.routes';
-import resonanceRoutes from './routes';
+import trustRoutes from './routes/trust.routes';
 import { initializeSocket } from './socket';
 
 const app = express();
@@ -56,7 +56,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/llm', llmRoutes);
 app.use('/api/conversations', conversationRoutes);
-app.use('/api/trust', resonanceRoutes); // Legacy resonance route
+app.use('/api/trust', trustRoutes);
 
 // 404 handler
 app.use((req, res) => {

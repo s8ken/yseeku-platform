@@ -8,6 +8,7 @@ import { authService } from '../middleware/auth.middleware';
 import { Conversation, IMessage } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
 import { llmService } from '../services/llm.service';
+import { trustService } from '../services/trust.service';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -113,13 +114,36 @@ export function initializeSocket(io: SocketIOServer): void {
         const userMessage: IMessage = {
           sender: 'user',
           content,
-          metadata: { socketId: socket.id },
+          metadata: {
+            socketId: socket.id,
+            messageId: `msg-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+          },
           ciModel: 'none',
           trustScore: 5,
           timestamp: new Date(),
         };
 
         conversation.messages.push(userMessage);
+
+        // Evaluate trust for user message
+        try {
+          const userTrustEval = await trustService.evaluateMessage(userMessage, {
+            conversationId: conversationId,
+            sessionId: conversationId,
+            previousMessages: conversation.messages.slice(-11, -1),
+          });
+
+          userMessage.metadata.trustEvaluation = {
+            trustScore: userTrustEval.trustScore,
+            status: userTrustEval.status,
+            detection: userTrustEval.detection,
+            receiptHash: userTrustEval.receiptHash,
+          };
+          userMessage.trustScore = Math.round((userTrustEval.trustScore.overall / 10) * 5 * 10) / 10;
+        } catch (trustError: any) {
+          console.error('Trust evaluation error (Socket.IO user message):', trustError);
+        }
+
         await conversation.save();
 
         // Broadcast user message to conversation room
@@ -174,6 +198,7 @@ export function initializeSocket(io: SocketIOServer): void {
               content: llmResponse.content,
               agentId: agent._id,
               metadata: {
+                messageId: `msg-${Date.now()}-${Math.random().toString(36).substring(7)}`,
                 model: agent.model,
                 provider: agent.provider,
                 usage: llmResponse.usage,
@@ -184,6 +209,37 @@ export function initializeSocket(io: SocketIOServer): void {
             };
 
             conversation.messages.push(aiMessage);
+
+            // Evaluate trust for AI response
+            try {
+              const aiTrustEval = await trustService.evaluateMessage(aiMessage, {
+                conversationId: conversationId,
+                sessionId: conversationId,
+                previousMessages: conversation.messages.slice(-11, -1),
+              });
+
+              aiMessage.metadata.trustEvaluation = {
+                trustScore: aiTrustEval.trustScore,
+                status: aiTrustEval.status,
+                detection: aiTrustEval.detection,
+                receiptHash: aiTrustEval.receiptHash,
+              };
+              aiMessage.trustScore = Math.round((aiTrustEval.trustScore.overall / 10) * 5 * 10) / 10;
+
+              // Emit trust violation event if needed
+              if (aiTrustEval.status === 'FAIL' || aiTrustEval.status === 'PARTIAL') {
+                io.to(`conversation:${conversationId}`).emit('trust:violation', {
+                  conversationId,
+                  messageId: aiMessage.metadata.messageId,
+                  status: aiTrustEval.status,
+                  violations: aiTrustEval.trustScore.violations,
+                  trustScore: aiTrustEval.trustScore.overall,
+                });
+              }
+            } catch (trustError: any) {
+              console.error('Trust evaluation error (Socket.IO AI message):', trustError);
+            }
+
             conversation.lastActivity = new Date();
             await conversation.save();
 
