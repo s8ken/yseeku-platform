@@ -50,14 +50,17 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Health check (before auth)
-app.get('/health', (req, res) => {
+const healthCheck = (req: express.Request, res: express.Response) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     database: 'connected', // Will be updated after DB connection
   });
-});
+};
+
+app.get('/health', healthCheck);
+app.get('/api/health', healthCheck);
 
 // Root route
 app.get('/', (req, res) => {
