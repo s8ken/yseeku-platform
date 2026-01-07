@@ -264,6 +264,21 @@ router.put('/profile', protect, async (req: Request, res: Response): Promise<voi
 
     const { name, email, password, preferences } = req.body;
 
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Not authenticated' });
+      return;
+    }
+
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Not authenticated' });
+      return;
+    }
+
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Not authenticated' });
+      return;
+    }
+
     const user = await User.findById(req.user._id);
 
     if (!user) {
@@ -326,11 +341,18 @@ router.post('/api-keys', protect, async (req: Request, res: Response): Promise<v
       return;
     }
 
-    const user = req.user;
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Not authenticated' });
+      return;
+    }
+
+    const user = await User.findById(req.user._id);
     if (!user) {
       res.status(404).json({ success: false, message: 'User not found' });
       return;
     }
+
+    console.log(`Updating API keys for user ${user.email}, provider: ${provider}`);
 
     // Check if provider already exists
     const existingKeyIndex = user.apiKeys.findIndex((k: any) => k.provider === provider);
@@ -343,7 +365,7 @@ router.post('/api-keys', protect, async (req: Request, res: Response): Promise<v
     } else {
       // Add new
       user.apiKeys.push({
-        provider,
+        provider: provider as any,
         key,
         name,
         isActive: true,
@@ -351,7 +373,9 @@ router.post('/api-keys', protect, async (req: Request, res: Response): Promise<v
       });
     }
 
+    console.log('Saving user with updated API keys...');
     await user.save();
+    console.log('User saved successfully');
 
     res.json({
       success: true,
@@ -370,7 +394,8 @@ router.post('/api-keys', protect, async (req: Request, res: Response): Promise<v
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to update API key',
-      details: error.stack, // Include stack trace in dev/debug
+      error: error.toString(),
+      stack: error.stack,
     });
   }
 });
@@ -382,14 +407,18 @@ router.post('/api-keys', protect, async (req: Request, res: Response): Promise<v
  */
 router.delete('/api-keys/:provider', protect, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { provider } = req.params;
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Not authenticated' });
+      return;
+    }
 
-    const user = req.user;
+    const user = await User.findById(req.user._id);
     if (!user) {
       res.status(404).json({ success: false, message: 'User not found' });
       return;
     }
 
+    const { provider } = req.params;
     user.apiKeys = user.apiKeys.filter((k: any) => k.provider !== provider);
     await user.save();
 
