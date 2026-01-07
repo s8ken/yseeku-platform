@@ -154,8 +154,8 @@ export class SecureAuthService {
       };
 
       const accessToken = jwt.sign(payload, this.jwtSecret, {
-        algorithm: 'HS256',
-        issuer: SECURITY_CONSTANTS.JWT_ISSUER
+        algorithm: 'HS256'
+        // issuer is already in payload, so we don't specify it in options to avoid conflict
       });
 
       const refreshToken = jwt.sign(
