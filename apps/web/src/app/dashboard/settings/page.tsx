@@ -140,18 +140,6 @@ export default function TenantSettingsPage() {
     }
   };
 
-  const handleDeleteKey = async (provider: string) => {
-    try {
-      const res = await api.deleteApiKey(provider);
-      if (res.success) {
-        setLlmKeys(res.data.apiKeys);
-        toast.success(`${provider} key removed successfully`);
-      }
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to delete key');
-    }
-  };
-
   const queryClient = useQueryClient();
 
   const { data: currentSettings, isLoading } = useQuery({
