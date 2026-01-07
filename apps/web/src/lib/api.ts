@@ -380,6 +380,32 @@ export const api = {
     return { token: res.token, user: res.data.user };
   },
 
+  async getMe(): Promise<any> {
+    const res = await fetchAPI<{ success: boolean; data: { user: any } }>('/api/auth/me');
+    return res.data.user;
+  },
+
+  async updateProfile(data: any): Promise<any> {
+    const res = await fetchAPI<{ success: boolean; data: { user: any } }>('/api/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    return res.data.user;
+  },
+
+  async addApiKey(provider: string, key: string, name: string): Promise<any> {
+    return fetchAPI<any>('/api/auth/api-keys', {
+      method: 'POST',
+      body: JSON.stringify({ provider, key, name }),
+    });
+  },
+
+  async deleteApiKey(provider: string): Promise<any> {
+    return fetchAPI<any>(`/api/auth/api-keys/${provider}`, {
+      method: 'DELETE',
+    });
+  },
+
   async getTrustAnalytics(conversationId?: string, days = 7, limit = 1000): Promise<TrustAnalyticsResponse> {
     const params = new URLSearchParams();
     if (conversationId) params.set('conversationId', conversationId);

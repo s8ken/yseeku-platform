@@ -11,7 +11,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Save, Users, Shield, Database, Key } from 'lucide-react';
+import { 
+  Settings, 
+  Save, 
+  Users, 
+  Shield, 
+  Database, 
+  Key,
+  Bot,
+  Sparkles,
+  Zap,
+  RefreshCw
+} from 'lucide-react';
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 interface TenantSettings {
   name: string;
@@ -54,6 +67,48 @@ const defaultSettings: TenantSettings = {
 export default function TenantSettingsPage() {
   const [settings, setSettings] = useState<TenantSettings>(defaultSettings);
   const [hasChanges, setHasChanges] = useState(false);
+  const [llmKeys, setLlmKeys] = useState<{ provider: string; name: string; isActive: boolean; createdAt: string }[]>([]);
+  const [loadingKeys, setLoadingKeys] = useState(true);
+
+  useEffect(() => {
+    const fetchKeys = async () => {
+      try {
+        const user = await api.getMe();
+        if (user && user.apiKeys) {
+          setLlmKeys(user.apiKeys);
+        }
+      } catch (error) {
+        console.error('Failed to fetch API keys:', error);
+      } finally {
+        setLoadingKeys(false);
+      }
+    };
+    fetchKeys();
+  }, []);
+
+  const handleAddKey = async (provider: string, key: string, name: string) => {
+    try {
+      const res = await api.addApiKey(provider, key, name);
+      if (res.success) {
+        setLlmKeys(res.data.apiKeys);
+        toast.success(`${provider} key updated successfully`);
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update key');
+    }
+  };
+
+  const handleDeleteKey = async (provider: string) => {
+    try {
+      const res = await api.deleteApiKey(provider);
+      if (res.success) {
+        setLlmKeys(res.data.apiKeys);
+        toast.success(`${provider} key removed successfully`);
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete key');
+    }
+  };
 
   const queryClient = useQueryClient();
 
@@ -436,6 +491,85 @@ export default function TenantSettingsPage() {
                 <Key className="mr-2 h-4 w-4" />
                 Generate New API Key
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Model Providers Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5" />
+              AI Model Providers
+            </CardTitle>
+            <CardDescription>
+              Configure API keys for LLM providers (Claude, Together AI, etc.)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {[
+                { id: 'anthropic', name: 'Anthropic (Claude)', icon: Sparkles },
+                { id: 'together', name: 'Together AI', icon: Zap },
+                { id: 'openai', name: 'OpenAI', icon: Bot },
+                { id: 'cohere', name: 'Cohere', icon: RefreshCw },
+              ].map((provider) => {
+                const existingKey = llmKeys.find(k => k.provider === provider.id);
+                return (
+                  <div key={provider.id} className="flex flex-col space-y-2 p-4 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <provider.icon className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{provider.name}</p>
+                          {existingKey ? (
+                            <p className="text-xs text-green-600 flex items-center gap-1">
+                              <Check className="h-3 w-3" /> Connected
+                            </p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">Not configured</p>
+                          )}
+                        </div>
+                      </div>
+                      {existingKey && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-600"
+                          onClick={() => handleDeleteKey(provider.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2 mt-2">
+                      <Input 
+                        type="password" 
+                        placeholder={existingKey ? "••••••••••••••••" : `Enter your ${provider.name} API key`}
+                        className="flex-1"
+                        id={`key-${provider.id}`}
+                      />
+                      <Button 
+                        size="sm"
+                        onClick={() => {
+                          const input = document.getElementById(`key-${provider.id}`) as HTMLInputElement;
+                          if (input.value) {
+                            handleAddKey(provider.id, input.value, `${provider.name} Key`);
+                            input.value = '';
+                          } else {
+                            toast.error('Please enter an API key');
+                          }
+                        }}
+                      >
+                        {existingKey ? 'Update' : 'Connect'}
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

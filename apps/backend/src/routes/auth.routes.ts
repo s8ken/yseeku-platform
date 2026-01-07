@@ -310,6 +310,112 @@ router.put('/profile', protect, async (req: Request, res: Response): Promise<voi
 });
 
 /**
+ * @route   POST /api/auth/api-keys
+ * @desc    Add or update LLM provider API key
+ * @access  Private
+ */
+router.post('/api-keys', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { provider, key, name } = req.body;
+
+    if (!provider || !key || !name) {
+      res.status(400).json({
+        success: false,
+        message: 'Please provide provider, key, and name',
+      });
+      return;
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    // Check if provider already exists
+    const existingKeyIndex = user.apiKeys.findIndex((k) => k.provider === provider);
+
+    if (existingKeyIndex > -1) {
+      // Update existing
+      user.apiKeys[existingKeyIndex].key = key;
+      user.apiKeys[existingKeyIndex].name = name;
+      user.apiKeys[existingKeyIndex].isActive = true;
+    } else {
+      // Add new
+      user.apiKeys.push({
+        provider,
+        key,
+        name,
+        isActive: true,
+        createdAt: new Date(),
+      });
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: `${provider} API key updated successfully`,
+      data: {
+        apiKeys: user.apiKeys.map(k => ({
+          provider: k.provider,
+          name: k.name,
+          isActive: k.isActive,
+          createdAt: k.createdAt,
+        })),
+      },
+    });
+  } catch (error: any) {
+    console.error('Update API key error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update API key',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/auth/api-keys/:provider
+ * @desc    Delete LLM provider API key
+ * @access  Private
+ */
+router.delete('/api-keys/:provider', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { provider } = req.params;
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    user.apiKeys = user.apiKeys.filter((k) => k.provider !== provider);
+    await user.save();
+
+    res.json({
+      success: true,
+      message: `${provider} API key removed successfully`,
+      data: {
+        apiKeys: user.apiKeys.map(k => ({
+          provider: k.provider,
+          name: k.name,
+          isActive: k.isActive,
+          createdAt: k.createdAt,
+        })),
+      },
+    });
+  } catch (error: any) {
+    console.error('Delete API key error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete API key',
+      error: error.message,
+    });
+  }
+});
+
+/**
  * @route   POST /api/auth/logout
  * @desc    Logout user (revoke session)
  * @access  Private
