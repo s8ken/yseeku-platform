@@ -15,7 +15,7 @@ export interface IExternalSystem {
   lastSync: Date;
 }
 
-export interface IAgent extends Document {
+export interface IAgent extends Omit<Document, 'model'> {
   name: string;
   description: string;
   user: Types.ObjectId;
@@ -36,12 +36,12 @@ export interface IAgent extends Document {
   lastActive: Date;
 
   // Methods
-  updateActivity(): Promise<IAgent>;
-  initiateBonding(): Promise<IAgent>;
-  completeBonding(accepted?: boolean): Promise<IAgent>;
-  addExternalSystem(systemConfig: Partial<IExternalSystem>): Promise<IAgent>;
-  updateExternalSystemSync(systemName: string): Promise<IAgent>;
-  toggleExternalSystem(systemName: string, isActive: boolean): Promise<IAgent>;
+  updateActivity(): Promise<any>;
+  initiateBonding(): Promise<any>;
+  completeBonding(accepted?: boolean): Promise<any>;
+  addExternalSystem(systemConfig: Partial<IExternalSystem>): Promise<any>;
+  updateExternalSystemSync(systemName: string): Promise<any>;
+  toggleExternalSystem(systemName: string, isActive: boolean): Promise<any>;
 }
 
 const ExternalSystemSchema = new Schema<IExternalSystem>({
@@ -174,7 +174,7 @@ AgentSchema.methods.updateActivity = function (): Promise<IAgent> {
 };
 
 // Method to initiate bonding ritual
-AgentSchema.methods.initiateBonding = function (): Promise<IAgent> {
+AgentSchema.methods.initiateBonding = function (): Promise<any> {
   if (this.bondingStatus === 'none') {
     this.bondingStatus = 'initiated';
     return this.save();
@@ -183,13 +183,13 @@ AgentSchema.methods.initiateBonding = function (): Promise<IAgent> {
 };
 
 // Method to complete bonding ritual
-AgentSchema.methods.completeBonding = function (accepted: boolean = true): Promise<IAgent> {
+AgentSchema.methods.completeBonding = function (accepted: boolean = true): Promise<any> {
   this.bondingStatus = accepted ? 'bonded' : 'rejected';
   return this.save();
 };
 
 // Method to add external system connection
-AgentSchema.methods.addExternalSystem = function (systemConfig: Partial<IExternalSystem>): Promise<IAgent> {
+AgentSchema.methods.addExternalSystem = function (systemConfig: Partial<IExternalSystem>): Promise<any> {
   this.externalSystems.push({
     name: systemConfig.name!,
     type: systemConfig.type!,
@@ -203,7 +203,7 @@ AgentSchema.methods.addExternalSystem = function (systemConfig: Partial<IExterna
 };
 
 // Method to update external system sync timestamp
-AgentSchema.methods.updateExternalSystemSync = function (systemName: string): Promise<IAgent> {
+AgentSchema.methods.updateExternalSystemSync = function (systemName: string): Promise<any> {
   const system = this.externalSystems.find((sys: IExternalSystem) => sys.name === systemName);
   if (system) {
     system.lastSync = new Date();
@@ -213,7 +213,7 @@ AgentSchema.methods.updateExternalSystemSync = function (systemName: string): Pr
 };
 
 // Method to toggle external system status
-AgentSchema.methods.toggleExternalSystem = function (systemName: string, isActive: boolean): Promise<IAgent> {
+AgentSchema.methods.toggleExternalSystem = function (systemName: string, isActive: boolean): Promise<any> {
   const system = this.externalSystems.find((sys: IExternalSystem) => sys.name === systemName);
   if (system) {
     system.isActive = isActive;

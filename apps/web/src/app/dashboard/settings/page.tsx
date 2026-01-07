@@ -73,10 +73,8 @@ export default function TenantSettingsPage() {
   useEffect(() => {
     const fetchKeys = async () => {
       try {
-        const user = await api.getMe();
-        if (user && user.apiKeys) {
-          setLlmKeys(user.apiKeys);
-        }
+        const keys = await api.getLLMKeys();
+        setLlmKeys(keys);
       } catch (error) {
         console.error('Failed to fetch API keys:', error);
       } finally {

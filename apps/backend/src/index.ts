@@ -51,6 +51,17 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'YSEEKU Platform Backend API is running',
+    version: '1.0.0',
+    documentation: '/api/docs', // if you have docs
+    health: '/health'
+  });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/agents', agentRoutes);

@@ -211,22 +211,24 @@ export class SecureAuthService {
         algorithms: ['HS256']
       }) as JWTPayload;
 
-      // Check if session is still valid
-      const session = this.sessionStore.get(payload.sessionId);
-      if (!session || session.expiresAt < Date.now()) {
-        throw new AuthenticationError(
-          'Session expired or invalid',
-          {
-            component: 'SecureAuthService',
-            operation: 'verifyToken',
-            severity: 'medium',
-            userId: payload.userId,
-            tenantId: payload.tenant
-          },
-          {
-            remediation: 'User must re-authenticate'
-          }
-        );
+      // Check if session is still valid (only if sessionId is provided and exists)
+      if (payload.sessionId) {
+        const session = this.sessionStore.get(payload.sessionId);
+        // We don't strictly require the session to be in our memory store 
+        // because the token might have been issued by another service (like Next.js)
+        // that shares the same secret but has its own session store.
+        if (session && session.expiresAt < Date.now()) {
+          throw new AuthenticationError(
+            'Session expired',
+            {
+              component: 'SecureAuthService',
+              operation: 'verifyToken',
+              severity: 'medium',
+              userId: payload.userId,
+              tenantId: payload.tenant
+            }
+          );
+        }
       }
 
       return payload;

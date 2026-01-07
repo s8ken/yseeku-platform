@@ -1,4 +1,5 @@
 const API_BASE = '';
+const BACKEND_API_BASE = 'http://localhost:3001';
 
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -16,7 +17,10 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
+  // Ensure endpoint starts with /
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  
+  const response = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers,
   });
@@ -383,6 +387,16 @@ export const api = {
   async getMe(): Promise<any> {
     const res = await fetchAPI<{ success: boolean; data: { user: any } }>('/api/auth/me');
     return res.data.user;
+  },
+
+  async getLLMKeys(): Promise<any[]> {
+    try {
+      const res = await fetchAPI<{ success: boolean; data: { user: { apiKeys: any[] } } }>('/api/auth/me');
+      return res.data?.user?.apiKeys || [];
+    } catch (err) {
+      console.error('Failed to fetch LLM keys:', err);
+      return [];
+    }
   },
 
   async updateProfile(data: any): Promise<any> {

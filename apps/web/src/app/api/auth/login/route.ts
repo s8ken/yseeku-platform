@@ -107,6 +107,7 @@ const handler = async (req: NextRequest) => {
     const token = jwt.sign({ 
       sub: user.id, 
       username, 
+      email: user.email,
       role: userRole,
       roles: [userRole],
       permissions,
@@ -118,6 +119,7 @@ const handler = async (req: NextRequest) => {
     const refresh = jwt.sign({ 
       sub: user.id, 
       username, 
+      email: user.email,
       tenant_id: tenant, 
       type: 'refresh' 
     }, refreshSecret, { expiresIn: '7d' });
@@ -126,6 +128,7 @@ const handler = async (req: NextRequest) => {
     
     const res = NextResponse.json({ 
       success: true, 
+      token, // Return token for localStorage support
       data: { user, tenant }
     }, { headers: getSecurityHeaders() });
     

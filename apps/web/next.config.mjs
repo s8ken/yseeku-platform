@@ -12,6 +12,26 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/auth/api-keys/:path*',
+        destination: 'http://localhost:3001/api/auth/api-keys/:path*',
+      },
+      {
+        source: '/api/auth/api-keys',
+        destination: 'http://localhost:3001/api/auth/api-keys',
+      },
+      {
+        source: '/api/auth/me',
+        destination: 'http://localhost:3001/api/auth/me',
+      },
+      {
+        source: '/api/auth/profile',
+        destination: 'http://localhost:3001/api/auth/profile',
+      },
+    ];
+  },
   transpilePackages: [
     '@sonate/core',
     '@sonate/detect',

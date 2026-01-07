@@ -48,23 +48,50 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     }
 
     // Verify token using SecureAuthService
-    const payload = authService.verifyToken(token);
+    const payload = authService.verifyToken(token) as any;
+    const userId = payload.userId || payload.sub;
+    const email = payload.email;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid token payload: missing user identifier'
+      });
+      return;
+    }
 
     // Get user from database (exclude password)
-    const user = await User.findById(payload.userId).select('-password');
+    // First try by ID
+    let user = await User.findById(userId).select('-password');
+
+    // If not found by ID, try by email (handle users coming from Next.js/Postgres)
+    if (!user && email) {
+      user = await User.findOne({ email }).select('-password');
+      
+      // If still not found, create a shadow user in MongoDB so they can store API keys
+      if (!user) {
+        console.log(`Creating shadow MongoDB user for ${email} (${userId})`);
+        user = await User.create({
+          name: payload.username || payload.name || email.split('@')[0],
+          email: email,
+          password: 'external-auth-no-password-' + Math.random().toString(36),
+          apiKeys: [],
+        });
+      }
+    }
 
     if (!user) {
       res.status(401).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found and could not be provisioned'
       });
       return;
     }
 
     // Attach user to request
     req.user = user;
-    req.userId = payload.userId;
-    req.tenant = payload.tenant;
+    req.userId = user._id.toString();
+    req.tenant = payload.tenant || payload.tenant_id || 'default';
 
     next();
   } catch (error: any) {
