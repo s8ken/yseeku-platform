@@ -1,0 +1,340 @@
+/**
+ * Authentication Routes
+ * Integrates SecureAuthService from @sonate/core with MongoDB User model
+ * Ported and enhanced from YCQ-Sonate/backend/routes/auth.routes.js
+ */
+
+import { Router, Request, Response } from 'express';
+import { authService, protect } from '../middleware/auth.middleware';
+import { User, IUser } from '../models/user.model';
+
+const router = Router();
+
+/**
+ * @route   POST /api/auth/register
+ * @desc    Register new user
+ * @access  Public
+ */
+router.post('/register', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Validation
+    if (!name || !email || !password) {
+      res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields: name, email, password'
+      });
+      return;
+    }
+
+    // Check if user exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      res.status(400).json({
+        success: false,
+        message: 'User already exists with this email'
+      });
+      return;
+    }
+
+    // Password strength validation
+    if (password.length < 8) {
+      res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long'
+      });
+      return;
+    }
+
+    // Create user (password will be hashed by the model's pre-save hook)
+    const user = await User.create({
+      name,
+      email,
+      password,
+    });
+
+    // Generate tokens using SecureAuthService
+    const tokens = authService.generateTokens({
+      id: user._id.toString(),
+      username: user.name,
+      email: user.email,
+      roles: ['user'],
+      tenant: 'default',
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          createdAt: user.createdAt,
+        },
+        tokens,
+      },
+    });
+  } catch (error: any) {
+    console.error('Registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Registration failed',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @route   POST /api/auth/login
+ * @desc    Authenticate user and return tokens
+ * @access  Public
+ */
+router.post('/login', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, password, username } = req.body;
+
+    // Support both email and username login
+    const loginIdentifier = email || username;
+
+    if (!loginIdentifier || !password) {
+      res.status(400).json({
+        success: false,
+        message: 'Please provide email/username and password'
+      });
+      return;
+    }
+
+    // Find user (need to explicitly select password field)
+    const user = await User.findOne({
+      $or: [
+        { email: loginIdentifier },
+        { name: loginIdentifier }
+      ]
+    }).select('+password');
+
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+      return;
+    }
+
+    // Verify password using User model method
+    const isPasswordValid = await user.matchPassword(password);
+
+    if (!isPasswordValid) {
+      res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+      return;
+    }
+
+    // Generate tokens using SecureAuthService
+    const tokens = authService.generateTokens({
+      id: user._id.toString(),
+      username: user.name,
+      email: user.email,
+      roles: ['user'],
+      tenant: 'default',
+    });
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        },
+        tokens,
+      },
+      // Legacy support: also return token at root level
+      token: tokens.accessToken,
+    });
+  } catch (error: any) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Login failed',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @route   POST /api/auth/refresh
+ * @desc    Refresh access token using refresh token
+ * @access  Public
+ */
+router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      res.status(400).json({
+        success: false,
+        message: 'Refresh token is required'
+      });
+      return;
+    }
+
+    // Use SecureAuthService to refresh token
+    const newTokens = await authService.refreshToken(refreshToken);
+
+    res.json({
+      success: true,
+      message: 'Token refreshed successfully',
+      data: {
+        tokens: newTokens,
+      },
+    });
+  } catch (error: any) {
+    console.error('Token refresh error:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Failed to refresh token',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @route   GET /api/auth/me
+ * @desc    Get current user profile
+ * @access  Private
+ */
+router.get('/me', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: req.user._id,
+          name: req.user.name,
+          email: req.user.email,
+          preferences: req.user.preferences,
+          apiKeys: req.user.apiKeys.map(key => ({
+            provider: key.provider,
+            name: key.name,
+            isActive: key.isActive,
+            createdAt: key.createdAt,
+            // Don't expose actual API key
+          })),
+          createdAt: req.user.createdAt,
+        },
+      },
+    });
+  } catch (error: any) {
+    console.error('Get profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get user profile',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/auth/profile
+ * @desc    Update user profile
+ * @access  Private
+ */
+router.put('/profile', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+      return;
+    }
+
+    const { name, email, password, preferences } = req.body;
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+      return;
+    }
+
+    // Update fields
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (password) user.password = password; // Will be hashed by pre-save hook
+    if (preferences) {
+      user.preferences = {
+        ...user.preferences,
+        ...preferences,
+      };
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        user: {
+          id: updatedUser._id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          preferences: updatedUser.preferences,
+        },
+      },
+    });
+  } catch (error: any) {
+    console.error('Update profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @route   POST /api/auth/logout
+ * @desc    Logout user (revoke session)
+ * @access  Private
+ */
+router.post('/logout', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Extract session ID from token
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token) {
+      const payload = authService.verifyToken(token);
+      authService.revokeSession(payload.sessionId);
+    }
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  } catch (error: any) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Logout failed',
+      error: error.message,
+    });
+  }
+});
+
+export default router;
