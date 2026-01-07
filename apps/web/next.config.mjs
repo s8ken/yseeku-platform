@@ -32,6 +32,22 @@ const nextConfig = {
           source: '/api/auth/profile',
           destination: `${backendUrl}/api/auth/profile`,
         },
+        {
+          source: '/api/agents/:path*',
+          destination: `${backendUrl}/api/agents/:path*`,
+        },
+        {
+          source: '/api/agents',
+          destination: `${backendUrl}/api/agents`,
+        },
+        {
+          source: '/api/llm/:path*',
+          destination: `${backendUrl}/api/llm/:path*`,
+        },
+        {
+          source: '/api/trust/:path*',
+          destination: `${backendUrl}/api/trust/:path*`,
+        },
       ];
   },
   transpilePackages: [

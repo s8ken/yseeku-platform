@@ -20,26 +20,31 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
   // Ensure endpoint starts with /
   const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+    });
 
-  if (!response.ok) {
-    let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
-    try {
-      const error = await response.json();
-      errorMessage = error.error || error.message || error.details || errorMessage;
-    } catch (e) {
+    if (!response.ok) {
+      let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
       try {
-        const text = await response.text();
-        if (text) errorMessage = text;
-      } catch (e2) {}
+        const error = await response.json();
+        errorMessage = error.error || error.message || error.details || errorMessage;
+      } catch (e) {
+        try {
+          const text = await response.text();
+          if (text) errorMessage = text;
+        } catch (e2) {}
+      }
+      throw new Error(errorMessage);
     }
-    throw new Error(errorMessage);
-  }
 
-  return response.json();
+    return response.json();
+  } catch (err: any) {
+    console.error(`Fetch error for ${path}:`, err);
+    throw new Error(err.message || 'Fetch failed');
+  }
 }
 
 export interface KPIData {
