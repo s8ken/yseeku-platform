@@ -71,12 +71,19 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
       // If still not found, create a shadow user in MongoDB so they can store API keys
       if (!user) {
         console.log(`Creating shadow MongoDB user for ${email} (${userId})`);
-        user = await User.create({
-          name: payload.username || payload.name || email.split('@')[0],
-          email: email,
-          password: 'external-auth-no-password-' + Math.random().toString(36),
-          apiKeys: [],
-        });
+        try {
+          user = await User.create({
+            name: payload.username || payload.name || email.split('@')[0],
+            email: email,
+            password: 'external-auth-no-password-' + Math.random().toString(36),
+            apiKeys: [],
+          });
+        } catch (createError: any) {
+          console.error('Failed to create shadow user:', createError);
+          // Check if user was created by another concurrent request
+          user = await User.findOne({ email }).select('-password');
+          if (!user) throw createError;
+        }
       }
     }
 

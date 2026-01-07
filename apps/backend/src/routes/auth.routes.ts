@@ -369,8 +369,8 @@ router.post('/api-keys', protect, async (req: Request, res: Response): Promise<v
     console.error('Update API key error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update API key',
-      error: error.message,
+      message: error.message || 'Failed to update API key',
+      details: error.stack, // Include stack trace in dev/debug
     });
   }
 });
