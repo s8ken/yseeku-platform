@@ -28,22 +28,36 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
 
     if (!response.ok) {
       let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
+      let errorBody = '';
       try {
-        const error = await response.json();
-        // Prefer more specific error messages if available
-        errorMessage = error.message || error.error || error.details || errorMessage;
-        
-        // If there are details or a stack trace, we can append them for debugging
-        if (error.details) {
-          console.error('Detailed API Error:', error.details);
+        const text = await response.text();
+        errorBody = text; // Store for debugging
+        try {
+            const error = JSON.parse(text);
+            // Prefer more specific error messages if available
+            errorMessage = error.message || error.error || error.details || errorMessage;
+            
+            // If there are details or a stack trace, we can append them for debugging
+            if (error.details) {
+              console.error('Detailed API Error:', error.details);
+            }
+        } catch (jsonError) {
+            // Failed to parse JSON, append raw text if short enough
+            if (text.length < 500) {
+                errorMessage += ` - Response: ${text}`;
+            } else {
+                errorMessage += ` - Response (truncated): ${text.substring(0, 500)}...`;
+            }
         }
       } catch (e) {
-        try {
-          const text = await response.text();
-          if (text) errorMessage = text;
-        } catch (e2) {}
+        // Failed to read text
       }
-      throw new Error(errorMessage);
+      
+      // Enhance error object
+      const errorObj = new Error(errorMessage);
+      (errorObj as any).status = response.status;
+      (errorObj as any).body = errorBody;
+      throw errorObj;
     }
 
     return response.json();

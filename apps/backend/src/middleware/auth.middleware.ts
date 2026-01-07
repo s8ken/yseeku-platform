@@ -36,6 +36,9 @@ const authService = new SecureAuthService({
  * Protect routes - verify JWT token
  */
 export async function protect(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const requestId = Math.random().toString(36).substring(7);
+  console.log(`[Auth:${requestId}] Processing request to ${req.path}`);
+
   try {
     let token: string | undefined;
 
@@ -45,6 +48,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     }
 
     if (!token) {
+      console.log(`[Auth:${requestId}] No token provided`);
       res.status(401).json({
         success: false,
         message: 'Not authorized, no token provided'
@@ -53,11 +57,25 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     }
 
     // Verify token using SecureAuthService
-    const payload = authService.verifyToken(token) as any;
+    let payload: any;
+    try {
+      payload = authService.verifyToken(token);
+      console.log(`[Auth:${requestId}] Token verified for user: ${payload.username || 'unknown'}`);
+    } catch (verifyError: any) {
+      console.error(`[Auth:${requestId}] Token verification failed:`, verifyError.message);
+      res.status(401).json({
+        success: false,
+        message: `Token verification failed: ${verifyError.message}`,
+        code: 'INVALID_TOKEN'
+      });
+      return;
+    }
+
     const userId = payload.userId || payload.sub;
     const email = payload.email;
 
     if (!userId) {
+      console.error(`[Auth:${requestId}] Invalid payload: missing userId`);
       res.status(401).json({
         success: false,
         message: 'Invalid token payload: missing user identifier'
@@ -69,16 +87,26 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     // First try by ID (if it's a valid MongoDB ObjectId)
     let user;
     if (mongoose.Types.ObjectId.isValid(userId)) {
-      user = await User.findById(userId).select('-password');
+      try {
+        user = await User.findById(userId).select('-password');
+      } catch (dbError: any) {
+        console.error(`[Auth:${requestId}] DB Error finding user by ID:`, dbError);
+        // Don't fail yet, try by email
+      }
     }
 
     // If not found by ID, try by email (handle users coming from Next.js/Postgres)
     if (!user && email) {
-      user = await User.findOne({ email }).select('-password');
+      console.log(`[Auth:${requestId}] User not found by ID, trying email: ${email}`);
+      try {
+        user = await User.findOne({ email }).select('-password');
+      } catch (dbError: any) {
+        console.error(`[Auth:${requestId}] DB Error finding user by email:`, dbError);
+      }
       
       // If still not found, create a shadow user in MongoDB so they can store API keys
       if (!user) {
-        console.log(`Creating shadow MongoDB user for ${email} (${userId})`);
+        console.log(`[Auth:${requestId}] Creating shadow MongoDB user for ${email} (${userId})`);
         try {
           user = await User.create({
             name: payload.username || payload.name || email.split('@')[0],
@@ -86,16 +114,31 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
             password: 'external-auth-no-password-' + Math.random().toString(36),
             apiKeys: [],
           });
+          console.log(`[Auth:${requestId}] Shadow user created: ${user._id}`);
         } catch (createError: any) {
-          console.error('Failed to create shadow user:', createError);
+          console.error(`[Auth:${requestId}] Failed to create shadow user:`, createError);
           // Check if user was created by another concurrent request
-          user = await User.findOne({ email }).select('-password');
-          if (!user) throw createError;
+          try {
+            user = await User.findOne({ email }).select('-password');
+          } catch (retryError) {
+             console.error(`[Auth:${requestId}] Retry find failed:`, retryError);
+          }
+          
+          if (!user) {
+             // Return 500 here but with JSON
+             res.status(500).json({
+               success: false,
+               message: 'Failed to provision user account',
+               details: createError.message
+             });
+             return;
+          }
         }
       }
     }
 
     if (!user) {
+      console.error(`[Auth:${requestId}] User not found and could not be provisioned`);
       res.status(401).json({
         success: false,
         message: 'User not found and could not be provisioned'
@@ -108,27 +151,25 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     req.userId = user._id.toString();
     req.tenant = payload.tenant || payload.tenant_id || 'default';
 
+    console.log(`[Auth:${requestId}] Auth successful for ${user.email}`);
     next();
   } catch (error: any) {
-    console.error('Auth middleware error details:', {
+    console.error(`[Auth:${requestId}] CRITICAL AUTH ERROR:`, {
       message: error.message,
       stack: error.stack,
-      name: error.name,
-      code: error.code
+      name: error.name
     });
 
-    // Determine status code based on error type
-    const statusCode = (error.name === 'AuthenticationError' || error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') 
-      ? 401 
-      : 500;
-
-    res.status(statusCode).json({
-      success: false,
-      message: statusCode === 401 ? `Authentication failed: ${error.message}` : `Authentication middleware error: ${error.message}`,
-      error: error.message,
-      details: error.stack,
-      type: error.name
-    });
+    // Ensure we always return JSON even for 500s
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: `Authentication middleware error: ${error.message}`,
+        error: error.message,
+        details: error.stack,
+        requestId
+      });
+    }
   }
 }
 
