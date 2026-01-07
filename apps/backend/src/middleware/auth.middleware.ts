@@ -19,7 +19,11 @@ declare global {
   }
 }
 
-// Initialize SecureAuthService (in production, inject via dependency injection)
+// Initialize SecureAuthService
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️  JWT_SECRET is not set. A random secret will be generated, which may cause session invalidation on restart.');
+}
+
 const authService = new SecureAuthService({
   jwtSecret: process.env.JWT_SECRET,
   refreshTokenSecret: process.env.JWT_REFRESH_SECRET,
@@ -112,9 +116,15 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
       name: error.name,
       code: error.code
     });
-    res.status(500).json({
+
+    // Determine status code based on error type
+    const statusCode = (error.name === 'AuthenticationError' || error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') 
+      ? 401 
+      : 500;
+
+    res.status(statusCode).json({
       success: false,
-      message: `Authentication middleware error: ${error.message}`,
+      message: statusCode === 401 ? `Authentication failed: ${error.message}` : `Authentication middleware error: ${error.message}`,
       error: error.message,
       details: error.stack,
       type: error.name

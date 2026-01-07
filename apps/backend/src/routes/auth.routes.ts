@@ -59,6 +59,9 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     });
 
     // Generate tokens using SecureAuthService
+    if (!process.env.JWT_SECRET) {
+      console.warn('⚠️  JWT_SECRET is missing during registration token generation');
+    }
     const tokens = authService.generateTokens({
       id: user._id.toString(),
       username: user.name,
@@ -138,6 +141,9 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     }
 
     // Generate tokens using SecureAuthService
+    if (!process.env.JWT_SECRET) {
+      console.warn('⚠️  JWT_SECRET is missing during login token generation');
+    }
     const tokens = authService.generateTokens({
       id: user._id.toString(),
       username: user.name,
