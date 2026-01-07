@@ -26,8 +26,18 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(error.error || error.message || 'API request failed');
+    let errorMessage = 'API request failed';
+    try {
+      const error = await response.json();
+      errorMessage = error.error || error.message || error.details || errorMessage;
+    } catch (e) {
+      // If not JSON, try text
+      try {
+        const text = await response.text();
+        if (text) errorMessage = text;
+      } catch (e2) {}
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();

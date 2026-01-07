@@ -13,22 +13,23 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   async rewrites() {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
     return [
       {
         source: '/api/auth/api-keys/:path*',
-        destination: 'http://localhost:3001/api/auth/api-keys/:path*',
+        destination: `${backendUrl}/api/auth/api-keys/:path*`,
       },
       {
         source: '/api/auth/api-keys',
-        destination: 'http://localhost:3001/api/auth/api-keys',
+        destination: `${backendUrl}/api/auth/api-keys`,
       },
       {
         source: '/api/auth/me',
-        destination: 'http://localhost:3001/api/auth/me',
+        destination: `${backendUrl}/api/auth/me`,
       },
       {
         source: '/api/auth/profile',
-        destination: 'http://localhost:3001/api/auth/profile',
+        destination: `${backendUrl}/api/auth/profile`,
       },
     ];
   },
