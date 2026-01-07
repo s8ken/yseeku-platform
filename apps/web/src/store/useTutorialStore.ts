@@ -145,7 +145,7 @@ Use this to track system performance and troubleshoot issues.`,
   },
   {
     id: 'complete',
-    title: 'You're Ready!',
+    title: "You're Ready!",
     content: `Congratulations! You now understand:
 
 ✓ The 6 SYMBI Constitutional Principles
