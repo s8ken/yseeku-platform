@@ -26,12 +26,11 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
   });
 
   if (!response.ok) {
-    let errorMessage = 'API request failed';
+    let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
     try {
       const error = await response.json();
       errorMessage = error.error || error.message || error.details || errorMessage;
     } catch (e) {
-      // If not JSON, try text
       try {
         const text = await response.text();
         if (text) errorMessage = text;

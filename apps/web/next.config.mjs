@@ -13,8 +13,9 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
-    return [
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      console.log('Configuring rewrites with backendUrl:', backendUrl);
+      return [
       {
         source: '/api/auth/api-keys/:path*',
         destination: `${backendUrl}/api/auth/api-keys/:path*`,
