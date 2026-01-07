@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 // import { Inter, JetBrains_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 /*
@@ -30,6 +31,7 @@ export default function RootLayout({
         className="antialiased"
       >
         {children}
+        <Toaster position="top-right" expand={true} richColors />
       </body>
     </html>
   );

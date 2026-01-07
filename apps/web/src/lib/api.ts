@@ -233,6 +233,83 @@ export interface Receipt {
   created_at: string;
 }
 
+export interface TrustEvaluation {
+  trustScore: {
+    overall: number;
+    principles: Record<string, number>;
+    violations: string[];
+    timestamp: number;
+  };
+  status: 'PASS' | 'PARTIAL' | 'FAIL';
+  detection: {
+    reality_index: number;
+    trust_protocol: string;
+    ethical_alignment: number;
+    resonance_quality: string;
+    canvas_parity: number;
+  };
+  receipt?: any;
+  receiptHash?: string;
+  timestamp: number;
+  messageId?: string;
+  conversationId?: string;
+}
+
+export interface TrustAnalyticsResponse {
+  success: boolean;
+  data: {
+    analytics: {
+      overallScore: number;
+      complianceRate: number;
+      principleAverages: Record<string, number>;
+      violationCounts: Record<string, number>;
+      statusDistribution: Record<string, number>;
+      trend: Array<{ date: string; score: number }>;
+    };
+    timeRange: {
+      start: string;
+      end: string;
+      days: number;
+    };
+    conversationsAnalyzed: number;
+    evaluationsCount: number;
+  };
+}
+
+export interface TrustHealthResponse {
+  success: boolean;
+  data: {
+    overallHealth: {
+      averageEthicalScore: number;
+      totalConversations: number;
+      recentActivity: {
+        last7Days: number;
+        percentage: number;
+      };
+    };
+    trustDistribution: {
+      low: { count: number; percentage: number; threshold: string };
+      medium: { count: number; percentage: number; threshold: string };
+      high: { count: number; percentage: number; threshold: string };
+    };
+    recommendations: string[];
+  };
+}
+
+export interface TrustPrinciplesResponse {
+  success: boolean;
+  data: {
+    principles: Record<string, {
+      name: string;
+      description: string;
+      weight: number;
+      critical: boolean;
+    }>;
+    description: string;
+    totalWeight: number;
+  };
+}
+
 export const api = {
   async getKPIs(tenant?: string): Promise<KPIData> {
     const params = tenant ? `?tenant=${tenant}` : '';
@@ -301,6 +378,45 @@ export const api = {
       localStorage.setItem('token', res.token);
     }
     return { token: res.token, user: res.data.user };
+  },
+
+  async getTrustAnalytics(conversationId?: string, days = 7, limit = 1000): Promise<TrustAnalyticsResponse> {
+    const params = new URLSearchParams();
+    if (conversationId) params.set('conversationId', conversationId);
+    params.set('days', days.toString());
+    params.set('limit', limit.toString());
+    return fetchAPI<TrustAnalyticsResponse>(`/api/trust/analytics?${params.toString()}`);
+  },
+
+  async evaluateTrust(content: string, conversationId?: string, previousMessages: any[] = [], sessionId?: string): Promise<any> {
+    return fetchAPI<any>('/api/trust/evaluate', {
+      method: 'POST',
+      body: JSON.stringify({ content, conversationId, previousMessages, sessionId }),
+    });
+  },
+
+  async getTrustReceipts(conversationId?: string, sessionId?: string, limit = 50, offset = 0): Promise<any> {
+    const params = new URLSearchParams();
+    if (conversationId) params.set('conversationId', conversationId);
+    if (sessionId) params.set('sessionId', sessionId);
+    params.set('limit', limit.toString());
+    params.set('offset', offset.toString());
+    return fetchAPI<any>(`/api/trust/receipts?${params.toString()}`);
+  },
+
+  async verifyTrustReceipt(receiptHash: string, receipt: any): Promise<any> {
+    return fetchAPI<any>(`/api/trust/receipts/${receiptHash}/verify`, {
+      method: 'POST',
+      body: JSON.stringify({ receipt }),
+    });
+  },
+
+  async getTrustPrinciples(): Promise<TrustPrinciplesResponse> {
+    return fetchAPI<TrustPrinciplesResponse>('/api/trust/principles');
+  },
+
+  async getTrustHealth(): Promise<TrustHealthResponse> {
+    return fetchAPI<TrustHealthResponse>('/api/trust/health');
   },
 
   logout() {

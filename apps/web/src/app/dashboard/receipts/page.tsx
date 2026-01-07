@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,9 +18,12 @@ import {
   ExternalLink,
   Copy,
   AlertTriangle,
-  Loader2
+  Loader2,
+  ShieldCheck,
+  ShieldAlert
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
+import { api } from '@/lib/api';
 
 interface TrustReceipt {
   id: string;
@@ -38,6 +42,7 @@ interface TrustReceipt {
   verified: boolean;
   chainPosition: number;
   previousHash: string;
+  receiptData?: any;
 }
 
 const mockReceipts: TrustReceipt[] = [
@@ -57,7 +62,8 @@ const mockReceipts: TrustReceipt[] = [
     },
     verified: true,
     chainPosition: 15847,
-    previousHash: '0x6a4e8b..."'
+    previousHash: '0x6a4e8b..."',
+    receiptData: { signature: '0x...', payload: { score: 8.9 } }
   },
   {
     id: 'receipt-002',
@@ -75,53 +81,35 @@ const mockReceipts: TrustReceipt[] = [
     },
     verified: true,
     chainPosition: 15846,
-    previousHash: '0x3c2a7d...'
+    previousHash: '0x3c2a7d...',
+    receiptData: { signature: '0x...', payload: { score: 9.4 } }
   },
-  {
-    id: 'receipt-003',
-    hash: '0x4e454e532042595445530a1a0000000d49484452000000c0000000c008060000',
-    agentId: 'agent-003',
-    agentName: 'Mistral Coder',
-    timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-    trustScore: 73,
-    symbiDimensions: {
-      realityIndex: 7.1,
-      trustProtocol: 'PARTIAL',
-      ethicalAlignment: 3.8,
-      resonanceQuality: 'STRONG',
-      canvasParity: 78
-    },
-    verified: true,
-    chainPosition: 15845,
-    previousHash: '0x9f8e7c...'
-  },
-  {
-    id: 'receipt-004',
-    hash: '0xc3fcd3d76192e4007dfb496cca67e13b2f5b7c1d3e9a8b7c6d5e4f3a2b1c0d9e',
-    agentId: 'agent-001',
-    agentName: 'GPT-4 Assistant',
-    timestamp: new Date(Date.now() - 1000 * 60 * 22).toISOString(),
-    trustScore: 86,
-    symbiDimensions: {
-      realityIndex: 8.5,
-      trustProtocol: 'PASS',
-      ethicalAlignment: 4.2,
-      resonanceQuality: 'ADVANCED',
-      canvasParity: 89
-    },
-    verified: false,
-    chainPosition: 15844,
-    previousHash: '0x2b3c4d...'
-  }
 ];
 
 function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
   const [copied, setCopied] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<'success' | 'fail' | null>(null);
   const [formattedTime, setFormattedTime] = useState('');
 
   useEffect(() => {
     setFormattedTime(new Date(receipt.timestamp).toLocaleString());
   }, [receipt.timestamp]);
+
+  const verifyReceipt = async () => {
+    setIsVerifying(true);
+    setVerificationResult(null);
+    try {
+      // Use the real API to verify the receipt
+      const result = await api.verifyTrustReceipt(receipt.hash, receipt.receiptData || {});
+      setVerificationResult(result.valid ? 'success' : 'fail');
+    } catch (err) {
+      console.error('Verification failed', err);
+      setVerificationResult('fail');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   const copyHash = async () => {
     try {
@@ -136,16 +124,20 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
   };
 
   return (
-    <Card className={!receipt.verified ? 'border-l-4 border-l-red-500' : ''}>
+    <Card className={cn(
+      "transition-all duration-300",
+      !receipt.verified || verificationResult === 'fail' ? 'border-l-4 border-l-red-500' : 
+      verificationResult === 'success' ? 'border-l-4 border-l-emerald-500' : ''
+    )}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-              receipt.verified 
+              receipt.verified && verificationResult !== 'fail'
                 ? 'bg-emerald-100 dark:bg-emerald-900/30' 
                 : 'bg-red-100 dark:bg-red-900/30'
             }`}>
-              {receipt.verified 
+              {receipt.verified && verificationResult !== 'fail'
                 ? <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 : <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
               }
@@ -158,19 +150,22 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
               </CardDescription>
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-right flex flex-col items-end gap-2">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Hash className="h-3 w-3" />
               Block #{receipt.chainPosition}
             </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className={`text-xs px-1.5 py-0.5 rounded ${
-                receipt.verified 
-                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                  : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-              }`}>
-                {receipt.verified ? 'VERIFIED' : 'INVALID'}
-              </span>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-7 text-[10px] uppercase font-bold tracking-wider"
+                onClick={verifyReceipt}
+                disabled={isVerifying}
+              >
+                {isVerifying ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <ShieldCheck className="h-3 w-3 mr-1" />}
+                {verificationResult === 'success' ? 'Verified' : verificationResult === 'fail' ? 'Invalid' : 'Verify Proof'}
+              </Button>
             </div>
           </div>
         </div>

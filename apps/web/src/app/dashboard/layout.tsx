@@ -68,6 +68,7 @@ const moduleSections: ModuleSection[] = [
     badge: 'LIVE',
     items: [
       { title: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'user', 'viewer'], module: 'detect' },
+      { title: 'Trust Session', href: '/dashboard/chat', icon: Sparkles, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Agent Trust', href: '/dashboard/overview', icon: Shield, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Risk Monitor', href: '/dashboard/risk', icon: Waves, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Alerts', href: '/dashboard/alerts', icon: AlertTriangle, roles: ['admin', 'user'], module: 'detect' },
