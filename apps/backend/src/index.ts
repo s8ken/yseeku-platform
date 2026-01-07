@@ -127,7 +127,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(err.status || 500).json({
     success: false,
     message: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
+    details: err.stack,
+    error: JSON.stringify(err, Object.getOwnPropertyNames(err))
   });
 });
 

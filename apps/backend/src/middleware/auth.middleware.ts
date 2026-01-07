@@ -106,12 +106,18 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
 
     next();
   } catch (error: any) {
-    console.error('Auth middleware error:', error);
+    console.error('Auth middleware error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
     res.status(500).json({
       success: false,
-      message: 'Authentication error',
+      message: `Authentication middleware error: ${error.message}`,
       error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      details: error.stack,
+      type: error.name
     });
   }
 }

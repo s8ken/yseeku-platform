@@ -10,6 +10,10 @@ import { User, IUser } from '../models/user.model';
 
 const router = Router();
 
+router.get('/ping', (req: Request, res: Response) => {
+  res.json({ success: true, message: 'Auth service is reachable' });
+});
+
 /**
  * @route   POST /api/auth/register
  * @desc    Register new user
