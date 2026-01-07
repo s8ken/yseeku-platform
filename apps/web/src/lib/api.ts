@@ -30,7 +30,13 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
       let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
       try {
         const error = await response.json();
-        errorMessage = error.error || error.message || error.details || errorMessage;
+        // Prefer more specific error messages if available
+        errorMessage = error.message || error.error || error.details || errorMessage;
+        
+        // If there are details or a stack trace, we can append them for debugging
+        if (error.details) {
+          console.error('Detailed API Error:', error.details);
+        }
       } catch (e) {
         try {
           const text = await response.text();
