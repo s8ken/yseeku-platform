@@ -115,6 +115,55 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
  * @desc    Authenticate user and return tokens
  * @access  Public
  */
+/**
+ * @route   POST /api/auth/guest
+ * @desc    Create a guest user and return a token
+ * @access  Public
+ */
+router.post('/guest', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const guestId = `guest_${Math.random().toString(36).substring(2, 10)}`;
+    const email = `${guestId}@temp.local`;
+    const password = `guest_${Math.random().toString(36)}`;
+
+    // Create a temporary guest user
+    const user = await User.create({
+      name: 'Guest User',
+      email,
+      password,
+    });
+
+    // Generate tokens
+    const tokens = authService.generateTokens({
+      id: user._id.toString(),
+      username: user.name,
+      email: user.email,
+      roles: ['guest'],
+      tenant: 'default',
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Guest access granted',
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        },
+        tokens,
+      },
+    });
+  } catch (error: any) {
+    console.error('Guest login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during guest login',
+      error: error.message,
+    });
+  }
+});
+
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, username } = req.body;

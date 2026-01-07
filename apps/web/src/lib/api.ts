@@ -7,7 +7,37 @@ function getAuthToken(): string | null {
 }
 
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const token = getAuthToken();
+  let token = getAuthToken();
+  
+  // Auto-login as guest if no token exists and we aren't already trying to authenticate
+  if (!token && typeof window !== 'undefined' && !endpoint.includes('/auth/')) {
+    try {
+      console.log('No token found, attempting guest login...');
+      // Use direct fetch to avoid infinite recursion
+      const guestRes = await fetch(`${API_BASE}/api/auth/guest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (guestRes.ok) {
+        const data = await guestRes.json();
+        if (data.success && data.data?.tokens?.accessToken) {
+          token = data.data.tokens.accessToken;
+          localStorage.setItem('token', token!);
+          console.log('Guest login successful, token stored');
+          
+          if (data.data.tokens.refreshToken) {
+            localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
+          }
+        }
+      } else {
+        console.warn('Guest login failed:', await guestRes.text());
+      }
+    } catch (e) {
+      console.warn('Failed to auto-provision guest user:', e);
+    }
+  }
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options?.headers as Record<string, string>),
