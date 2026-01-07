@@ -123,7 +123,8 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 router.post('/guest', async (req: Request, res: Response): Promise<void> => {
   try {
     const guestId = `guest_${Math.random().toString(36).substring(2, 10)}`;
-    const email = `${guestId}@temp.local`;
+    // Use .com to pass email regex validation (requires 2-3 char TLD)
+    const email = `${guestId}@guest.yseeku.com`;
     const password = `guest_${Math.random().toString(36)}`;
 
     // Create a temporary guest user
