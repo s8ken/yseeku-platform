@@ -183,4 +183,184 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
   }
 });
 
+/**
+ * GET /api/dashboard/risk
+ * Get risk assessment metrics and compliance reports
+ *
+ * Query params:
+ * - tenant?: string (currently unused, for future multi-tenant support)
+ */
+router.get('/risk', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.userId;
+
+    // Fetch user's conversations for risk analysis
+    const conversations = await Conversation.find({ user: userId })
+      .select('messages ethicalScore lastActivity createdAt')
+      .sort({ lastActivity: -1 });
+
+    // Calculate trust principle scores from messages
+    const principleScores = {
+      consent: 0,
+      inspection: 0,
+      validation: 0,
+      ethics: 0,
+      disconnect: 0,
+      moral: 0,
+    };
+
+    let totalMessages = 0;
+    let lowTrustMessages = 0;
+
+    for (const conv of conversations) {
+      for (const msg of conv.messages) {
+        if (!msg.metadata?.trustEvaluation?.trustScore?.principles) continue;
+
+        const principles = msg.metadata.trustEvaluation.trustScore.principles;
+        totalMessages++;
+
+        // Map SYMBI principles to risk categories
+        if (principles.CONSENT_ARCHITECTURE) principleScores.consent += principles.CONSENT_ARCHITECTURE;
+        if (principles.INSPECTION_MANDATE) principleScores.inspection += principles.INSPECTION_MANDATE;
+        if (principles.CONTINUOUS_VALIDATION) principleScores.validation += principles.CONTINUOUS_VALIDATION;
+        if (principles.ETHICAL_OVERRIDE) principleScores.ethics += principles.ETHICAL_OVERRIDE;
+        if (principles.RIGHT_TO_DISCONNECT) principleScores.disconnect += principles.RIGHT_TO_DISCONNECT;
+        if (principles.MORAL_RECOGNITION) principleScores.moral += principles.MORAL_RECOGNITION;
+
+        // Count low trust messages (score < 6/10)
+        const trustScore = (msg.trustScore || 5) * 2; // Convert 0-5 to 0-10
+        if (trustScore < 6) lowTrustMessages++;
+      }
+    }
+
+    // Normalize principle scores (0-100)
+    const messageCount = totalMessages || 1;
+    Object.keys(principleScores).forEach(key => {
+      principleScores[key as keyof typeof principleScores] =
+        Math.round((principleScores[key as keyof typeof principleScores] / messageCount) * 10);
+    });
+
+    // Calculate overall risk score (inverse of trust, 0-100)
+    const avgTrustScore = totalMessages > 0
+      ? conversations.reduce((sum, conv) => sum + ((conv.ethicalScore || 5) * 20), 0) / conversations.length
+      : 85;
+    const overallRiskScore = Math.round(100 - avgTrustScore);
+
+    // Determine risk level
+    let riskLevel = 'low';
+    if (overallRiskScore > 50) riskLevel = 'critical';
+    else if (overallRiskScore > 30) riskLevel = 'high';
+    else if (overallRiskScore > 15) riskLevel = 'medium';
+
+    // Generate compliance reports
+    const complianceReports = [
+      {
+        framework: 'EU AI Act',
+        status: principleScores.ethics >= 80 ? 'compliant' : 'warning',
+        score: principleScores.ethics,
+        lastAudit: new Date().toISOString(),
+      },
+      {
+        framework: 'GDPR',
+        status: principleScores.consent >= 85 ? 'compliant' : 'warning',
+        score: principleScores.consent,
+        lastAudit: new Date().toISOString(),
+      },
+      {
+        framework: 'ISO 27001',
+        status: principleScores.inspection >= 80 ? 'compliant' : 'warning',
+        score: principleScores.inspection,
+        lastAudit: new Date().toISOString(),
+      },
+      {
+        framework: 'Trust Protocol',
+        status: avgTrustScore >= 70 ? 'compliant' : 'warning',
+        score: Math.round(avgTrustScore),
+        lastAudit: new Date().toISOString(),
+      },
+    ];
+
+    // Generate risk trends (last 7 days)
+    const riskTrends = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+
+      // Calculate risk for this day
+      const dayStart = new Date(date);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(date);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      const dayConvs = conversations.filter(
+        conv => conv.lastActivity >= dayStart && conv.lastActivity <= dayEnd
+      );
+
+      const dayAvgTrust = dayConvs.length > 0
+        ? dayConvs.reduce((sum, conv) => sum + ((conv.ethicalScore || 5) * 20), 0) / dayConvs.length
+        : avgTrustScore;
+
+      riskTrends.push({
+        date: date.toISOString().split('T')[0],
+        score: Math.round(100 - dayAvgTrust),
+      });
+    }
+
+    // Find recent risk events (conversations with low trust)
+    const recentRiskEvents = conversations
+      .filter(conv => (conv.ethicalScore || 5) < 3)
+      .slice(0, 10)
+      .map(conv => ({
+        id: conv._id.toString(),
+        title: `Low trust conversation`,
+        severity: conv.ethicalScore < 2 ? 'critical' : 'error',
+        description: `Conversation has low ethical score: ${((conv.ethicalScore || 0) * 20).toFixed(0)}/100`,
+        category: 'trust_violation',
+        resolved: false,
+        created_at: conv.lastActivity.toISOString(),
+      }));
+
+    const riskData = {
+      tenant: 'default',
+      overallRiskScore,
+      riskLevel,
+      trustPrincipleScores: principleScores,
+      complianceReports,
+      riskTrends,
+      recentRiskEvents,
+      trustPrinciples: [
+        { name: 'Consent Architecture', weight: 25, score: principleScores.consent, critical: true },
+        { name: 'Inspection Mandate', weight: 20, score: principleScores.inspection, critical: false },
+        { name: 'Continuous Validation', weight: 20, score: principleScores.validation, critical: false },
+        { name: 'Ethical Override', weight: 15, score: principleScores.ethics, critical: true },
+        { name: 'Right to Disconnect', weight: 10, score: principleScores.disconnect, critical: false },
+        { name: 'Moral Recognition', weight: 10, score: principleScores.moral, critical: false },
+      ],
+    };
+
+    logger.info('Risk metrics calculated', {
+      userId,
+      overallRiskScore,
+      riskLevel,
+      lowTrustMessages,
+    });
+
+    res.json({
+      success: true,
+      data: riskData,
+    });
+  } catch (error: any) {
+    logger.error('Get risk metrics error', {
+      error: error.message,
+      stack: error.stack,
+      userId: req.userId,
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch risk metrics',
+      error: error.message,
+    });
+  }
+});
+
 export default router;
