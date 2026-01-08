@@ -1,6 +1,6 @@
 {
   "name": "yseeku-platform",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "description": "SONATE Platform - Enterprise AI Trust Framework",
   "private": true,
   "workspaces": [

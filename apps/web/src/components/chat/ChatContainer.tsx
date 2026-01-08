@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, ChatMessageProps } from './ChatMessage';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Send, Loader2, ShieldCheck, AlertTriangle, Download, FileJson, FileText } from 'lucide-react';
+import { Send, Loader2, ShieldCheck, AlertTriangle, Download, FileJson, FileText, Filter, Share2, TrendingUp, TrendingDown, Minus, BarChart2 } from 'lucide-react';
 import { api, TrustEvaluation } from '@/lib/api';
 import { socketService, TrustViolationData } from '@/lib/socket';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,8 @@ export const ChatContainer: React.FC = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<'all' | 'PASS' | 'PARTIAL' | 'FAIL'>('all');
+  const [showStats, setShowStats] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -115,7 +117,7 @@ export const ChatContainer: React.FC = () => {
       })),
       metadata: {
         platform: 'SONATE',
-        version: '1.10.0',
+        version: '1.11.0',
         protocol: 'SYMBI Trust Protocol',
       }
     };
@@ -139,7 +141,7 @@ export const ChatContainer: React.FC = () => {
     let markdown = `# SONATE Trust Session Export\n\n`;
     markdown += `**Exported:** ${new Date().toISOString()}\n`;
     markdown += `**Total Messages:** ${messages.length}\n`;
-    markdown += `**Protocol Version:** 1.10.0\n\n`;
+    markdown += `**Protocol Version:** 1.11.0\n\n`;
     markdown += `---\n\n`;
 
     messages.forEach((msg, idx) => {
@@ -182,6 +184,54 @@ export const ChatContainer: React.FC = () => {
     });
   };
 
+  const handleShare = () => {
+    const shareData = {
+      sessionId: Date.now().toString(),
+      timestamp: new Date().toISOString(),
+      messageCount: messages.length,
+      avgTrustScore: messages
+        .filter(m => m.evaluation)
+        .reduce((sum, m) => sum + (m.evaluation?.trustScore.overall || 0), 0) /
+        messages.filter(m => m.evaluation).length || 0,
+    };
+
+    const shareUrl = `${window.location.origin}/verify?session=${shareData.sessionId}`;
+    navigator.clipboard.writeText(shareUrl);
+
+    toast.success('Share Link Copied', {
+      description: 'Verification link copied to clipboard. Recipients can verify trust receipts.',
+    });
+  };
+
+  const filteredMessages = messages.filter(msg => {
+    if (filterStatus === 'all') return true;
+    return msg.evaluation?.status === filterStatus;
+  });
+
+  const getTrustTrend = () => {
+    const evaluatedMessages = messages.filter(m => m.evaluation);
+    if (evaluatedMessages.length < 2) return { direction: 'neutral', change: 0 };
+
+    const recentScores = evaluatedMessages.slice(-5).map(m => m.evaluation!.trustScore.overall);
+    const firstScore = recentScores[0];
+    const lastScore = recentScores[recentScores.length - 1];
+    const change = lastScore - firstScore;
+
+    return {
+      direction: change > 0.5 ? 'up' : change < -0.5 ? 'down' : 'neutral',
+      change: change.toFixed(1),
+    };
+  };
+
+  const getStatusCounts = () => {
+    const evaluated = messages.filter(m => m.evaluation);
+    return {
+      pass: evaluated.filter(m => m.evaluation?.status === 'PASS').length,
+      partial: evaluated.filter(m => m.evaluation?.status === 'PARTIAL').length,
+      fail: evaluated.filter(m => m.evaluation?.status === 'FAIL').length,
+    };
+  };
+
   return (
     <div className="flex flex-col h-[600px] w-full max-w-4xl mx-auto border rounded-xl overflow-hidden bg-white dark:bg-slate-950 shadow-xl">
       {/* Header */}
@@ -192,6 +242,26 @@ export const ChatContainer: React.FC = () => {
             <h2 className="font-semibold text-sm tracking-tight uppercase">SYMBI Trust-Aware Session</h2>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowStats(!showStats)}
+              disabled={messages.length === 0}
+              className="h-7 text-xs gap-1"
+            >
+              <BarChart2 className="h-3 w-3" />
+              Stats
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShare}
+              disabled={messages.length === 0}
+              className="h-7 text-xs gap-1"
+            >
+              <Share2 className="h-3 w-3" />
+              Share
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -215,26 +285,127 @@ export const ChatContainer: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-6 text-[10px] font-mono text-slate-500">
-          <div className="flex items-center gap-1">
-            <ShieldCheck size={12} className="text-emerald-500" />
-            PROTOCOL V1.10.0
-          </div>
-          <div className="flex items-center gap-1">
-            <AlertTriangle size={12} className="text-amber-500" />
-            REAL-TIME AUDIT ACTIVE
-          </div>
-          {messages.length > 0 && (
-            <div className="flex items-center gap-3 ml-auto">
-              <div className="text-[9px] text-slate-400">
-                AVG TRUST: {(messages
+        {/* Statistics Panel */}
+        {showStats && messages.length > 0 && (
+          <div className="mb-3 p-3 bg-white dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800">
+            <div className="grid grid-cols-4 gap-4 text-center">
+              <div>
+                <div className="text-xs text-slate-500 mb-1">Pass Rate</div>
+                <div className="text-lg font-bold text-green-600">
+                  {((getStatusCounts().pass / messages.filter(m => m.evaluation).length) * 100).toFixed(0)}%
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500 mb-1">Partial</div>
+                <div className="text-lg font-bold text-amber-600">{getStatusCounts().partial}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500 mb-1">Failures</div>
+                <div className="text-lg font-bold text-red-600">{getStatusCounts().fail}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500 mb-1">Trend</div>
+                <div className="text-lg font-bold flex items-center justify-center gap-1">
+                  {getTrustTrend().direction === 'up' && <TrendingUp className="h-4 w-4 text-green-600" />}
+                  {getTrustTrend().direction === 'down' && <TrendingDown className="h-4 w-4 text-red-600" />}
+                  {getTrustTrend().direction === 'neutral' && <Minus className="h-4 w-4 text-slate-400" />}
+                  <span className={cn(
+                    getTrustTrend().direction === 'up' && 'text-green-600',
+                    getTrustTrend().direction === 'down' && 'text-red-600',
+                    getTrustTrend().direction === 'neutral' && 'text-slate-400'
+                  )}>
+                    {getTrustTrend().change}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Mini Trust Score History */}
+            <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <div className="text-xs text-slate-500 mb-2">Trust Score History (Last 10)</div>
+              <div className="flex items-end gap-1 h-12">
+                {messages
                   .filter(m => m.evaluation)
-                  .reduce((sum, m) => sum + (m.evaluation?.trustScore.overall || 0), 0) /
-                  messages.filter(m => m.evaluation).length || 0).toFixed(1)}/10
+                  .slice(-10)
+                  .map((msg, idx) => {
+                    const score = msg.evaluation!.trustScore.overall;
+                    const height = (score / 10) * 100;
+                    const color = score >= 8 ? 'bg-green-500' : score >= 6 ? 'bg-amber-500' : 'bg-red-500';
+                    return (
+                      <div
+                        key={idx}
+                        className={cn('flex-1 rounded-t transition-all', color)}
+                        style={{ height: `${height}%` }}
+                        title={`Score: ${score}/10`}
+                      />
+                    );
+                  })}
               </div>
-              <div className="text-[9px] text-slate-400">
-                MESSAGES: {messages.length}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6 text-[10px] font-mono text-slate-500">
+            <div className="flex items-center gap-1">
+              <ShieldCheck size={12} className="text-emerald-500" />
+              PROTOCOL V1.11.0
+            </div>
+            <div className="flex items-center gap-1">
+              <AlertTriangle size={12} className="text-amber-500" />
+              REAL-TIME AUDIT ACTIVE
+            </div>
+            {messages.length > 0 && (
+              <div className="flex items-center gap-3">
+                <div className="text-[9px] text-slate-400">
+                  AVG TRUST: {(messages
+                    .filter(m => m.evaluation)
+                    .reduce((sum, m) => sum + (m.evaluation?.trustScore.overall || 0), 0) /
+                    messages.filter(m => m.evaluation).length || 0).toFixed(1)}/10
+                </div>
+                <div className="text-[9px] text-slate-400">
+                  MESSAGES: {messages.length}
+                </div>
               </div>
+            )}
+          </div>
+
+          {/* Filter Buttons */}
+          {messages.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Filter className="h-3 w-3 text-slate-400" />
+              <Button
+                variant={filterStatus === 'all' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setFilterStatus('all')}
+                className="h-6 px-2 text-[10px]"
+              >
+                All
+              </Button>
+              <Button
+                variant={filterStatus === 'PASS' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setFilterStatus('PASS')}
+                className="h-6 px-2 text-[10px] text-green-600 hover:text-green-600"
+              >
+                Pass
+              </Button>
+              <Button
+                variant={filterStatus === 'PARTIAL' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setFilterStatus('PARTIAL')}
+                className="h-6 px-2 text-[10px] text-amber-600 hover:text-amber-600"
+              >
+                Partial
+              </Button>
+              <Button
+                variant={filterStatus === 'FAIL' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setFilterStatus('FAIL')}
+                className="h-6 px-2 text-[10px] text-red-600 hover:text-red-600"
+              >
+                Fail
+              </Button>
             </div>
           )}
         </div>
@@ -256,9 +427,25 @@ export const ChatContainer: React.FC = () => {
             </div>
           </div>
         ) : (
-          messages.map((msg, i) => (
-            <ChatMessage key={i} {...msg} />
-          ))
+          <>
+            {filteredMessages.length === 0 && filterStatus !== 'all' ? (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4 p-8 text-center">
+                <Filter className="h-10 w-10 opacity-20" />
+                <div>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                    No {filterStatus} messages
+                  </p>
+                  <p className="text-xs max-w-[240px] mt-1">
+                    No messages match the selected filter. Try a different filter.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              filteredMessages.map((msg, i) => (
+                <ChatMessage key={i} {...msg} />
+              ))
+            )}
+          </>
         )}
         {isLoading && (
           <div className="p-4 flex items-center gap-3 text-slate-500">
