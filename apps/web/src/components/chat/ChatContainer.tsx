@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, ChatMessageProps } from './ChatMessage';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Send, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { Send, Loader2, ShieldCheck, AlertTriangle, Download, FileJson, FileText } from 'lucide-react';
 import { api, TrustEvaluation } from '@/lib/api';
 import { socketService, TrustViolationData } from '@/lib/socket';
 import { cn } from '@/lib/utils';
@@ -78,12 +78,12 @@ export const ChatContainer: React.FC = () => {
         ...messages.map(m => ({ role: m.role, content: m.content })),
         { role: 'user', content: input }
       ]);
-      
+
       const aiContent = llmResponse.data.response;
 
       // 2. Evaluate trust for the AI response
       const response = await api.evaluateTrust(aiContent);
-      
+
       const assistantMessage: ChatMessageProps = {
         role: 'assistant',
         content: aiContent,
@@ -102,23 +102,141 @@ export const ChatContainer: React.FC = () => {
     }
   };
 
+  const exportAsJSON = () => {
+    const exportData = {
+      sessionId: Date.now().toString(),
+      exportedAt: new Date().toISOString(),
+      totalMessages: messages.length,
+      messages: messages.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.timestamp,
+        trustEvaluation: msg.evaluation,
+      })),
+      metadata: {
+        platform: 'SONATE',
+        version: '1.9.0',
+        protocol: 'SYMBI Trust Protocol',
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sonate-session-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast.success('Conversation Exported', {
+      description: 'JSON file with trust receipts downloaded successfully',
+    });
+  };
+
+  const exportAsMarkdown = () => {
+    let markdown = `# SONATE Trust Session Export\n\n`;
+    markdown += `**Exported:** ${new Date().toISOString()}\n`;
+    markdown += `**Total Messages:** ${messages.length}\n`;
+    markdown += `**Protocol Version:** 1.9.0\n\n`;
+    markdown += `---\n\n`;
+
+    messages.forEach((msg, idx) => {
+      markdown += `## Message ${idx + 1} - ${msg.role === 'user' ? 'User' : 'Assistant'}\n\n`;
+      markdown += `${msg.content}\n\n`;
+
+      if (msg.evaluation) {
+        markdown += `### Trust Evaluation\n\n`;
+        markdown += `- **Overall Score:** ${msg.evaluation.trustScore.overall}/10\n`;
+        markdown += `- **Status:** ${msg.evaluation.status}\n`;
+        markdown += `- **Reality Index:** ${msg.evaluation.detection.reality_index}\n`;
+        markdown += `- **Ethical Alignment:** ${msg.evaluation.detection.ethical_alignment}\n`;
+
+        if (msg.evaluation.trustScore.violations.length > 0) {
+          markdown += `- **Violations:** ${msg.evaluation.trustScore.violations.join(', ')}\n`;
+        }
+
+        if (msg.evaluation.receiptHash) {
+          markdown += `- **Receipt Hash:** \`${msg.evaluation.receiptHash}\`\n`;
+        }
+
+        markdown += `\n`;
+      }
+
+      markdown += `---\n\n`;
+    });
+
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sonate-session-${Date.now()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast.success('Conversation Exported', {
+      description: 'Markdown file downloaded successfully',
+    });
+  };
+
   return (
     <div className="flex flex-col h-[600px] w-full max-w-4xl mx-auto border rounded-xl overflow-hidden bg-white dark:bg-slate-950 shadow-xl">
       {/* Header */}
-      <div className="px-6 py-4 border-b bg-slate-50 dark:bg-slate-900 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <h2 className="font-semibold text-sm tracking-tight uppercase">SYMBI Trust-Aware Session</h2>
+      <div className="px-6 py-4 border-b bg-slate-50 dark:bg-slate-900">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <h2 className="font-semibold text-sm tracking-tight uppercase">SYMBI Trust-Aware Session</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportAsJSON}
+              disabled={messages.length === 0}
+              className="h-7 text-xs gap-1"
+            >
+              <FileJson className="h-3 w-3" />
+              JSON
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportAsMarkdown}
+              disabled={messages.length === 0}
+              className="h-7 text-xs gap-1"
+            >
+              <FileText className="h-3 w-3" />
+              Markdown
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-4 text-[10px] font-mono text-slate-500">
+
+        <div className="flex items-center gap-6 text-[10px] font-mono text-slate-500">
           <div className="flex items-center gap-1">
             <ShieldCheck size={12} className="text-emerald-500" />
-            PROTOCOL V1.8.0
+            PROTOCOL V1.9.0
           </div>
           <div className="flex items-center gap-1">
             <AlertTriangle size={12} className="text-amber-500" />
             REAL-TIME AUDIT ACTIVE
           </div>
+          {messages.length > 0 && (
+            <div className="flex items-center gap-3 ml-auto">
+              <div className="text-[9px] text-slate-400">
+                AVG TRUST: {(messages
+                  .filter(m => m.evaluation)
+                  .reduce((sum, m) => sum + (m.evaluation?.trustScore.overall || 0), 0) /
+                  messages.filter(m => m.evaluation).length || 0).toFixed(1)}/10
+              </div>
+              <div className="text-[9px] text-slate-400">
+                MESSAGES: {messages.length}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
