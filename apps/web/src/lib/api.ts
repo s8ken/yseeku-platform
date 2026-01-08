@@ -403,6 +403,44 @@ export const api = {
     return fetchAPI<AgentsResponse>(`/api/agents${query}`);
   },
 
+  async getAgent(id: string): Promise<Agent> {
+    const res = await fetchAPI<{ success: boolean; data: { agent: Agent } }>(`/api/agents/${id}`);
+    return res.data.agent;
+  },
+
+  async createAgent(data: {
+    name: string;
+    description: string;
+    provider: string;
+    model: string;
+    systemPrompt: string;
+    temperature?: number;
+    maxTokens?: number;
+    isPublic?: boolean;
+    traits?: Record<string, any>;
+    ciModel?: string;
+  }): Promise<Agent> {
+    const res = await fetchAPI<{ success: boolean; data: { agent: Agent } }>('/api/agents', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return res.data.agent;
+  },
+
+  async updateAgent(id: string, data: Partial<Agent>): Promise<Agent> {
+    const res = await fetchAPI<{ success: boolean; data: { agent: Agent } }>(`/api/agents/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    return res.data.agent;
+  },
+
+  async deleteAgent(id: string): Promise<void> {
+    await fetchAPI<{ success: boolean }>(`/api/agents/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
   async getTenants(limit = 50, offset = 0): Promise<TenantsResponse> {
     return fetchAPI<TenantsResponse>(`/api/tenants?limit=${limit}&offset=${offset}`);
   },

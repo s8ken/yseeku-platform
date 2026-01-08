@@ -18,6 +18,8 @@ import agentRoutes from './routes/agent.routes';
 import llmRoutes from './routes/llm.routes';
 import conversationRoutes from './routes/conversation.routes';
 import trustRoutes from './routes/trust.routes';
+import monitoringRoutes from './routes/monitoring.routes';
+import alertsRoutes from './routes/alerts.routes';
 import { initializeSocket } from './socket';
 
 const app = express();
@@ -49,28 +51,24 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// Health check (before auth)
-const healthCheck = (req: express.Request, res: express.Response) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    database: 'connected', // Will be updated after DB connection
-      deployment: 'railway'
-  });
-};
-
-app.get('/health', healthCheck);
-app.get('/api/health', healthCheck);
-
 // Root route
 app.get('/', (req, res) => {
   res.json({
     success: true,
     message: 'YSEEKU Platform Backend API is running',
-    version: '1.0.0',
-    documentation: '/api/docs', // if you have docs
-    health: '/health'
+    version: '1.11.1',
+    documentation: '/api/docs',
+    health: '/api/health',
+    metrics: '/api/metrics'
+  });
+});
+
+// Basic health check (simple version)
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 
@@ -80,6 +78,8 @@ app.use('/api/agents', agentRoutes);
 app.use('/api/llm', llmRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/trust', trustRoutes);
+app.use('/api/dashboard/alerts', alertsRoutes);
+app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
 
 // 404 handler
 app.use((req, res) => {

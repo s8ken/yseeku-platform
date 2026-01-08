@@ -21,7 +21,9 @@ import {
   Info,
   Clock,
   User,
-  MessageSquare
+  MessageSquare,
+  Download,
+  FileText
 } from 'lucide-react';
 
 interface VerificationResult {
@@ -41,6 +43,7 @@ export default function VerifyPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -191,6 +194,86 @@ export default function VerifyPage() {
     }
   };
 
+  const exportToJSON = async () => {
+    setIsExporting(true);
+    try {
+      // Fetch all receipts from the backend
+      const receipts = await api.getTrustReceipts();
+
+      const jsonString = JSON.stringify(receipts, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `trust-receipts-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Export Complete', {
+        description: `Downloaded ${receipts.length} receipts as JSON`,
+      });
+    } catch (error: any) {
+      toast.error('Export Failed', {
+        description: error.message || 'Failed to export receipts',
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const exportToCSV = async () => {
+    setIsExporting(true);
+    try {
+      // Fetch all receipts from the backend
+      const receipts = await api.getTrustReceipts();
+
+      if (receipts.length === 0) {
+        toast.error('No Data', {
+          description: 'No receipts available to export',
+        });
+        return;
+      }
+
+      // Convert to CSV
+      const headers = ['Receipt Hash', 'Trust Score', 'Status', 'Timestamp', 'Session ID', 'Agent ID'];
+      const rows = receipts.map((r: any) => [
+        r.hash || r.receiptHash || '',
+        r.trust_score || r.trustScore?.overall || '',
+        r.status || '',
+        r.created_at || r.timestamp || '',
+        r.session_id || '',
+        r.agent_id || '',
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map((row: any[]) => row.map((cell) => `"${cell}"`).join(',')),
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `trust-receipts-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Export Complete', {
+        description: `Downloaded ${receipts.length} receipts as CSV`,
+      });
+    } catch (error: any) {
+      toast.error('Export Failed', {
+        description: error.message || 'Failed to export receipts',
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const renderVerificationResult = () => {
     if (!verificationResult) return null;
 
@@ -318,9 +401,51 @@ export default function VerifyPage() {
     <div className="container max-w-4xl mx-auto py-8 space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-3 mb-2">
-          <Shield className="h-8 w-8 text-purple-500" />
-          <h1 className="text-3xl font-bold">Receipt Verification</h1>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <Shield className="h-8 w-8 text-purple-500" />
+            <h1 className="text-3xl font-bold">Receipt Verification</h1>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportToJSON}
+              disabled={isExporting}
+              className="gap-2"
+            >
+              {isExporting ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <FileJson className="h-4 w-4" />
+                  Export JSON
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportToCSV}
+              disabled={isExporting}
+              className="gap-2"
+            >
+              {isExporting ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <FileText className="h-4 w-4" />
+                  Export CSV
+                </>
+              )}
+            </Button>
+          </div>
         </div>
         <p className="text-muted-foreground">
           Verify the authenticity and integrity of SONATE trust receipts using cryptographic signatures.
