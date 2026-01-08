@@ -13,6 +13,32 @@ import logger from '../utils/logger';
 const router = Router();
 
 /**
+ * GET /api/lab/bedau-metrics
+ * Get real-time Bedau Index metrics for weak emergence detection
+ */
+router.get('/bedau-metrics', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userTenant = req.userTenant || 'default';
+    const metrics = await bedauService.getMetrics(userTenant);
+    
+    res.json({
+      success: true,
+      data: metrics
+    });
+  } catch (error: any) {
+    logger.error('Get Bedau metrics error', {
+      error: error.message,
+      userId: req.userId,
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to calculate Bedau metrics',
+      error: error.message,
+    });
+  }
+});
+
+/**
  * GET /api/lab/experiments
  * Get all experiments for the user's tenant
  *

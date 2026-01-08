@@ -497,6 +497,11 @@ export const api = {
     return fetchAPI<ExperimentsResponse>('/api/lab/experiments');
   },
 
+  async getBedauMetrics(): Promise<any> {
+    const res = await fetchAPI<{ success: boolean; data: any }>('/api/lab/bedau-metrics');
+    return res.data;
+  },
+
   async createExperiment(data: {
     name: string;
     hypothesis: string;
