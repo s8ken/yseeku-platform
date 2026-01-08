@@ -88,6 +88,7 @@ app.use('/api/audit', auditRoutes); // Audit trails and logs
 app.use('/api/lab', labRoutes); // Lab experiments and A/B testing
 app.use('/api/tenants', tenantRoutes); // Tenant management
 app.use('/api/gateway', apiGatewayRoutes); // API Gateway and Platform Keys
+app.use('/api/orchestrate', orchestrateRoutes); // Multi-Agent Orchestration
 app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
 
 // 404 handler
