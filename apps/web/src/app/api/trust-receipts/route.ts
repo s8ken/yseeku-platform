@@ -8,7 +8,12 @@ function generateHash(data: object): string {
 
 export async function GET(request: NextRequest) {
   const tenant = request.nextUrl.searchParams.get('tenant') || 'default';
+  const hash = request.nextUrl.searchParams.get('hash');
   const limit = parseInt(request.nextUrl.searchParams.get('limit') || '50');
+  const offset = parseInt(request.nextUrl.searchParams.get('offset') || '0');
+  const conversationId = request.nextUrl.searchParams.get('conversationId');
+  const sessionId = request.nextUrl.searchParams.get('sessionId');
+  const sessionFilter = sessionId || conversationId;
   
   await ensureSchema();
   const pool = getPool();
@@ -23,22 +28,90 @@ export async function GET(request: NextRequest) {
   }
   
   try {
-    const result = await pool.query(`
+    if (hash) {
+      const result = await pool.query(
+        `
+        SELECT self_hash, session_id, version, timestamp, mode, ciq, previous_hash, signature, session_nonce, tenant_id
+        FROM trust_receipts
+        WHERE self_hash = $1
+        LIMIT 1
+        `,
+        [hash]
+      );
+
+      if (result.rows.length === 0) {
+        return NextResponse.json({ success: false, error: 'Receipt not found' }, { status: 404 });
+      }
+
+      const row = result.rows[0];
+      let timestamp: string;
+      try {
+        const ts = typeof row.timestamp === 'bigint' ? Number(row.timestamp) : row.timestamp;
+        timestamp = ts ? new Date(ts).toISOString() : new Date().toISOString();
+      } catch {
+        timestamp = new Date().toISOString();
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          id: row.self_hash?.substring(0, 20) || `receipt-0`,
+          hash: row.self_hash || '',
+          previousHash: row.previous_hash || '',
+          agentId: row.session_id || '',
+          agentName: `Session ${row.session_id?.substring(0, 8) || 'Unknown'}`,
+          timestamp,
+          trustScore: row.ciq?.trust_score || 85,
+          symbiDimensions: row.ciq?.symbi_dimensions || {
+            realityIndex: 8.0,
+            trustProtocol: 'PASS',
+            ethicalAlignment: 4.0,
+            resonanceQuality: 'STRONG',
+            canvasParity: 85
+          },
+          verified: !!(row.signature && row.signature.length > 0),
+          chainPosition: 1
+        },
+        source: 'database'
+      });
+    }
+
+    const whereConditions: string[] = ['(tenant_id = $1 OR tenant_id IS NULL)'];
+    const values: any[] = [tenant];
+
+    if (sessionFilter) {
+      values.push(sessionFilter);
+      whereConditions.push(`session_id = $${values.length}`);
+    }
+
+    values.push(limit);
+    const limitParam = `$${values.length}`;
+    values.push(offset);
+    const offsetParam = `$${values.length}`;
+
+    const result = await pool.query(
+      `
       SELECT self_hash, session_id, version, timestamp, mode, ciq, previous_hash, signature, session_nonce, tenant_id
-      FROM trust_receipts 
-      WHERE (tenant_id = $1 OR tenant_id IS NULL)
-      ORDER BY timestamp DESC 
-      LIMIT $2
-    `, [tenant, limit]);
+      FROM trust_receipts
+      WHERE ${whereConditions.join(' AND ')}
+      ORDER BY timestamp DESC
+      LIMIT ${limitParam}
+      OFFSET ${offsetParam}
+      `,
+      values
+    );
     
+    const statsWhereConditions = [...whereConditions];
+    const statsValues = values.slice(0, 1 + (sessionFilter ? 1 : 0));
+
     const statsResult = await pool.query(`
       SELECT 
         COUNT(*) as total,
         COUNT(*) FILTER (WHERE signature IS NOT NULL AND signature != '') as verified,
         COUNT(*) FILTER (WHERE signature IS NULL OR signature = '') as invalid
       FROM trust_receipts 
-      WHERE tenant_id = $1 OR tenant_id IS NULL
-    `, [tenant]);
+      WHERE ${statsWhereConditions.join(' AND ')}
+    `, statsValues);
     
     const stats = statsResult.rows[0] || { total: 0, verified: 0, invalid: 0 };
     

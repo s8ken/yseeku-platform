@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
-import { Env } from '@sonate/orchestrate'
+import { Env } from '@sonate/orchestrate/src/security/env-config'
 import { getDefaultSigner, bindingMessage } from '@sonate/orchestrate/src/security/signer'
 import { TrustReceipt } from '@sonate/core'
 import { saveTrustReceipt } from '@sonate/persistence'
@@ -75,4 +75,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid payload', message: (err as Error).message }, { status: 400 })
   }
 }
-

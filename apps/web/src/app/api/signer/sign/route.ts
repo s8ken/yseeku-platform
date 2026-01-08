@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getDefaultSigner, bindingMessage } from '@sonate/orchestrate/src/security/signer'
-import { Env } from '@sonate/orchestrate'
+import { Env } from '@sonate/orchestrate/src/security/env-config'
 import jwt from 'jsonwebtoken'
 
 export const dynamic = 'force-dynamic';
@@ -73,4 +73,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Sign error', message: (err as Error).message }, { status: 400 })
   }
 }
-

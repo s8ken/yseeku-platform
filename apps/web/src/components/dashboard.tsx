@@ -36,6 +36,13 @@ export function Dashboard() {
   const kpis = kpiData;
   const alerts = alertData;
   const trust = trustAnalytics?.data;
+  const distribution = trust?.analytics
+    ? [
+        { status: 'PASS', count: Math.round((trust.analytics.totalInteractions * trust.analytics.passRate) / 100) },
+        { status: 'PARTIAL', count: Math.round((trust.analytics.totalInteractions * trust.analytics.partialRate) / 100) },
+        { status: 'FAIL', count: Math.round((trust.analytics.totalInteractions * trust.analytics.failRate) / 100) },
+      ]
+    : [];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950 p-6">
@@ -57,16 +64,16 @@ export function Dashboard() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex justify-between">
                 Overall Trust Score
-                {trust?.analytics.trend && (
-                  trust.analytics.trend[trust.analytics.trend.length - 1].score >= trust.analytics.trend[0].score ? 
+                {trust?.analytics.recentTrends && trust.analytics.recentTrends.length >= 2 && (
+                  trust.analytics.recentTrends[trust.analytics.recentTrends.length - 1].avgTrustScore >= trust.analytics.recentTrends[0].avgTrustScore ? 
                   <TrendingUp className="text-emerald-500 h-4 w-4" /> : 
                   <TrendingDown className="text-red-500 h-4 w-4" />
                 )}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{(trust?.analytics.overallScore || 0).toFixed(1)}/10</div>
-              <Progress value={(trust?.analytics.overallScore || 0) * 10} className="h-1.5 mt-2" />
+              <div className="text-3xl font-bold">{(trust?.analytics.averageTrustScore || 0).toFixed(1)}/10</div>
+              <Progress value={(trust?.analytics.averageTrustScore || 0) * 10} className="h-1.5 mt-2" />
               <p className="text-xs text-gray-500 mt-2">Weighted constitutional average</p>
             </CardContent>
           </Card>
@@ -79,8 +86,8 @@ export function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{(trust?.analytics.complianceRate || 0).toFixed(1)}%</div>
-              <Progress value={trust?.analytics.complianceRate || 0} className="h-1.5 mt-2" />
+              <div className="text-3xl font-bold">{(trust?.analytics.passRate || 0).toFixed(1)}%</div>
+              <Progress value={trust?.analytics.passRate || 0} className="h-1.5 mt-2" />
               <p className="text-xs text-gray-500 mt-2">Principles pass rate</p>
             </CardContent>
           </Card>
@@ -107,7 +114,7 @@ export function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {Object.values(trust?.analytics.violationCounts || {}).reduce((a, b) => a + b, 0)}
+                {trust?.analytics.commonViolations?.reduce((sum, v) => sum + v.count, 0) || 0}
               </div>
               <p className="text-xs text-gray-500 mt-2">Critical principle failures</p>
             </CardContent>
@@ -117,7 +124,7 @@ export function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content: Principles */}
           <div className="lg:col-span-2 space-y-6">
-            <ConstitutionalPrinciples principleScores={trust?.analytics.principleAverages} />
+            <ConstitutionalPrinciples />
             
             <Card>
               <CardHeader>
@@ -125,14 +132,14 @@ export function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="h-[200px] w-full flex items-end gap-2 pb-4">
-                  {trust?.analytics.trend.map((day, i) => (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                  {trust?.analytics.recentTrends.map((day, i) => (
+                    <div key={day.date || i} className="flex-1 flex flex-col items-center gap-2">
                       <div 
                         className="w-full bg-purple-500/20 hover:bg-purple-500/40 rounded-t transition-all duration-300 relative group"
-                        style={{ height: `${day.score * 10}%` }}
+                        style={{ height: `${day.avgTrustScore * 10}%` }}
                       >
                         <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                          {day.score.toFixed(1)}
+                          {day.avgTrustScore.toFixed(1)}
                         </div>
                       </div>
                       <span className="text-[10px] text-gray-500 rotate-45 mt-2 origin-left whitespace-nowrap">
@@ -152,14 +159,14 @@ export function Dashboard() {
                 <CardTitle className="text-lg">Trust Distribution</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {Object.entries(trust?.analytics.statusDistribution || {}).map(([status, count]) => (
+                {distribution.map(({ status, count }) => (
                   <div key={status} className="space-y-1">
                     <div className="flex justify-between text-xs">
                       <span className="font-medium">{status}</span>
                       <span className="text-gray-500">{count} evaluations</span>
                     </div>
                     <Progress 
-                      value={(count / (trust?.evaluationsCount || 1)) * 100} 
+                      value={(count / (trust?.analytics.totalInteractions || 1)) * 100} 
                       className={`h-2 ${
                         status === 'PASS' ? 'bg-emerald-500/20' : 
                         status === 'PARTIAL' ? 'bg-amber-500/20' : 'bg-red-500/20'

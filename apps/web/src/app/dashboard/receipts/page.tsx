@@ -242,8 +242,7 @@ export default function TrustReceiptsPage() {
   const { data: receiptsData, isLoading } = useQuery({
     queryKey: ['trust-receipts', tenant],
     queryFn: async () => {
-      // Use the correct backend endpoint that matches trust.routes.ts
-      const response = await fetch(`/api/trust/receipts?sessionId=${tenant}&limit=50`);
+      const response = await fetch(`/api/trust-receipts?tenant=${encodeURIComponent(tenant)}&limit=50`);
       if (!response.ok) throw new Error('Failed to fetch receipts');
       return response.json() as Promise<{
         success: boolean;

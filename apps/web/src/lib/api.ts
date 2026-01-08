@@ -332,12 +332,21 @@ export interface TrustAnalyticsResponse {
   success: boolean;
   data: {
     analytics: {
-      overallScore: number;
-      complianceRate: number;
-      principleAverages: Record<string, number>;
-      violationCounts: Record<string, number>;
-      statusDistribution: Record<string, number>;
-      trend: Array<{ date: string; score: number }>;
+      averageTrustScore: number;
+      totalInteractions: number;
+      passRate: number;
+      partialRate: number;
+      failRate: number;
+      commonViolations: Array<{
+        principle: string;
+        count: number;
+        percentage: number;
+      }>;
+      recentTrends: Array<{
+        date: string;
+        avgTrustScore: number;
+        passRate: number;
+      }>;
     };
     timeRange: {
       start: string;
@@ -561,11 +570,11 @@ export const api = {
     if (sessionId) params.set('sessionId', sessionId);
     params.set('limit', limit.toString());
     params.set('offset', offset.toString());
-    return fetchAPI<any>(`/api/trust/receipts?${params.toString()}`);
+    return fetchAPI<any>(`/api/trust-receipts?${params.toString()}`);
   },
 
   async verifyTrustReceipt(receiptHash: string, receipt: any): Promise<any> {
-    return fetchAPI<any>(`/api/trust/receipts/${receiptHash}/verify`, {
+    return fetchAPI<any>(`/api/trust-receipts/${receiptHash}/verify`, {
       method: 'POST',
       body: JSON.stringify({ receipt }),
     });

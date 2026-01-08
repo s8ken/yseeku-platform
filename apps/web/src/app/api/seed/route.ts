@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPool, ensureSchema } from '@/lib/db';
 import crypto from 'crypto';
+import { createProtectedRoute } from '@/middleware/route-protection';
+import type { AuthenticatedRequest } from '@/middleware/auth-middleware';
 
 function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -39,7 +41,7 @@ const symbiDimensionSets = [
   { reality_index: 8.0, trust_protocol: 'PASS', ethical_alignment: 4.0, resonance_quality: 'STRONG', canvas_parity: 85 }
 ];
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: AuthenticatedRequest) {
   await ensureSchema();
   const pool = getPool();
   
@@ -181,3 +183,8 @@ export async function POST(request: NextRequest) {
     }, { status: 500 });
   }
 }
+
+export const POST = createProtectedRoute(handlePost, {
+  requireAuth: true,
+  requiredRoles: ['admin'],
+});

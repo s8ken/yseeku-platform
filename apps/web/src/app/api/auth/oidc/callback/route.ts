@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { hasState, delState } from '../../../../../lib/oidc-state'
 import jwt from 'jsonwebtoken'
-import { Env } from '@sonate/orchestrate'
+import { Env } from '@sonate/orchestrate/src/security/env-config'
 import { getOidcConfig } from '../../../../../lib/oidc-providers'
 
 export const dynamic = 'force-dynamic';
@@ -13,6 +13,7 @@ export async function GET(req: Request) {
   const state = url.searchParams.get('state')
   const cfg = getOidcConfig()
   const secret = Env.JWT_SECRET()
+  const isProduction = process.env.NODE_ENV === 'production'
   if (!code || !state) return NextResponse.json({ error: 'Invalid OIDC response' }, { status: 400 })
   if (!hasState(state)) return NextResponse.json({ error: 'Invalid state' }, { status: 400 })
   if (!cfg || !secret) {
@@ -29,11 +30,15 @@ export async function GET(req: Request) {
     if (!res.ok) return NextResponse.json({ error: 'Token exchange failed' }, { status: 400 })
     const tok = await res.json() as any
     const id = tok.id_token || ''
-    const user = { id: `oidc_${Date.now()}`, username: 'oidc', roles: ['viewer'], tenant_id: 'default' }
-    const appToken = jwt.sign({ sub: user.id, username: user.username, roles: user.roles, tenant_id: user.tenant_id }, secret, { expiresIn: '1h' })
+    const user = { id: `oidc_${Date.now()}`, username: 'oidc', roles: ['viewer'], permissions: ['read'], tenant_id: 'default' }
+    const appToken = jwt.sign(
+      { sub: user.id, username: user.username, roles: user.roles, permissions: user.permissions, tenant_id: user.tenant_id, type: 'access' },
+      secret,
+      { expiresIn: '1h', issuer: 'yseeku-platform', audience: 'yseeku-api' }
+    )
     delState(state)
     const response = NextResponse.json({ token: appToken, user })
-    response.cookies.set('session_token', appToken, { httpOnly: true, sameSite: 'lax', secure: false, maxAge: 3600 })
+    response.cookies.set('session_token', appToken, { httpOnly: true, sameSite: 'lax', secure: isProduction, maxAge: 3600, path: '/' })
     return response
   } catch (e) {
     return NextResponse.json({ error: 'OIDC error' }, { status: 400 })

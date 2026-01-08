@@ -80,29 +80,29 @@ export default function VerifyPage() {
     setVerificationResult(null);
 
     try {
-      // Use real backend verification endpoint
-      const response = await api.verifyTrustReceipt(receiptHash, {});
+      const response = await fetch(`/api/trust-receipts?hash=${encodeURIComponent(receiptHash)}`);
+      if (!response.ok) throw new Error('Receipt not found');
+      const json = await response.json();
+      const record = json?.data;
 
       const result: VerificationResult = {
-        verified: response.data?.valid || false,
-        receiptHash: receiptHash,
-        trustScore: response.data?.receipt?.ciq_metrics?.overall_trust_score || 0,
-        status: response.data?.receipt?.ciq_metrics?.status || 'UNKNOWN',
-        timestamp: response.data?.receipt?.timestamp || new Date().toISOString(),
-        violations: response.data?.receipt?.ciq_metrics?.violations || [],
+        verified: !!record?.verified,
+        receiptHash,
+        trustScore: record?.trustScore || 0,
+        status: record?.symbiDimensions?.trustProtocol || 'UNKNOWN',
+        timestamp: record?.timestamp || new Date().toISOString(),
+        violations: [],
       };
 
       setVerificationResult(result);
 
       if (result.verified) {
         toast.success('Receipt Verified', {
-          description: response.data?.foundInDatabase
-            ? 'Cryptographic signature is valid and found in database.'
-            : 'Cryptographic signature is valid.',
+          description: 'Receipt hash found and signature is present in database.',
         });
       } else {
         toast.error('Verification Failed', {
-          description: 'Receipt hash not found or signature is invalid.',
+          description: 'Receipt hash not found or signature is missing.',
         });
       }
     } catch (error: any) {
@@ -200,10 +200,12 @@ export default function VerifyPage() {
   const exportToJSON = async () => {
     setIsExporting(true);
     try {
-      // Fetch all receipts from the backend
-      const receipts = await api.getTrustReceipts();
+      const tenant = (typeof window !== 'undefined' ? localStorage.getItem('tenant') : null) || 'default';
+      const response = await fetch(`/api/trust-receipts?tenant=${encodeURIComponent(tenant)}&limit=1000`);
+      if (!response.ok) throw new Error('Failed to export receipts');
+      const receiptsResponse = await response.json();
 
-      const jsonString = JSON.stringify(receipts, null, 2);
+      const jsonString = JSON.stringify(receiptsResponse?.data || [], null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -215,7 +217,7 @@ export default function VerifyPage() {
       URL.revokeObjectURL(url);
 
       toast.success('Export Complete', {
-        description: `Downloaded ${receipts.length} receipts as JSON`,
+        description: `Downloaded ${(receiptsResponse?.data || []).length} receipts as JSON`,
       });
     } catch (error: any) {
       toast.error('Export Failed', {
@@ -229,8 +231,11 @@ export default function VerifyPage() {
   const exportToCSV = async () => {
     setIsExporting(true);
     try {
-      // Fetch all receipts from the backend
-      const receipts = await api.getTrustReceipts();
+      const tenant = (typeof window !== 'undefined' ? localStorage.getItem('tenant') : null) || 'default';
+      const response = await fetch(`/api/trust-receipts?tenant=${encodeURIComponent(tenant)}&limit=1000`);
+      if (!response.ok) throw new Error('Failed to export receipts');
+      const receiptsResponse = await response.json();
+      const receipts = receiptsResponse?.data || [];
 
       if (receipts.length === 0) {
         toast.error('No Data', {
@@ -243,11 +248,11 @@ export default function VerifyPage() {
       const headers = ['Receipt Hash', 'Trust Score', 'Status', 'Timestamp', 'Session ID', 'Agent ID'];
       const rows = receipts.map((r: any) => [
         r.hash || r.receiptHash || '',
-        r.trust_score || r.trustScore?.overall || '',
-        r.status || '',
-        r.created_at || r.timestamp || '',
-        r.session_id || '',
-        r.agent_id || '',
+        r.trustScore || r.trust_score || '',
+        r.symbiDimensions?.trustProtocol || r.status || '',
+        r.timestamp || r.created_at || '',
+        r.agentId || r.session_id || '',
+        r.agentId || r.agent_id || '',
       ]);
 
       const csvContent = [

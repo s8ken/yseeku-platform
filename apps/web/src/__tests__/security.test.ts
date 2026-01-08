@@ -1,5 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
+
+beforeAll(() => {
+  process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret';
+  process.env.CSRF_SECRET = process.env.CSRF_SECRET || 'test-csrf-secret';
+});
 
 vi.mock('../lib/db', () => ({
   getPool: vi.fn(() => ({

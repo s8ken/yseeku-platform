@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { Env } from '@sonate/orchestrate'
 import { getOidcConfig } from '../../../../../lib/oidc-providers'
 import crypto from 'crypto'
 import { putState } from '../../../../../lib/oidc-state'

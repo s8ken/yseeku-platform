@@ -54,12 +54,16 @@ export async function GET(request: NextRequest) {
       [tenant]
     );
 
-    const totalInteractions = parseInt(receiptsResult.rows[0].total) || 0;
-    const avgScoreRaw = Number(receiptsResult.rows[0].avg_score);
+    const receiptsRow = receiptsResult.rows?.[0] || {};
+    const agentsRow = agentsResult.rows?.[0] || {};
+    const alertsRow = alertsResult.rows?.[0] || {};
+
+    const totalInteractions = parseInt((receiptsRow as any).total) || 0;
+    const avgScoreRaw = Number((receiptsRow as any).avg_score);
     const avgTrustScore = Number.isFinite(avgScoreRaw) ? Math.round(avgScoreRaw) : 85;
-    const activeAgents = parseInt(agentsResult.rows[0].total) || 0;
-    const alertsCount = parseInt(alertsResult.rows[0].total) || 0;
-    const compliantCount = parseInt(receiptsResult.rows[0].compliant) || 0;
+    const activeAgents = parseInt((agentsRow as any).total) || 0;
+    const alertsCount = parseInt((alertsRow as any).total) || 0;
+    const compliantCount = parseInt((receiptsRow as any).compliant) || 0;
 
     const rmProxy = Math.max(0, Math.min(1, avgTrustScore / 100));
     const complianceRate = totalInteractions > 0

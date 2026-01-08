@@ -116,16 +116,20 @@ const handler = async (req: NextRequest) => {
       session_id: dbSession?.id
     }, secret, { 
       expiresIn: '24h',
-      issuer: 'yseeku-platform'
+      issuer: 'yseeku-platform',
+      audience: 'yseeku-api'
     });
     
     const refresh = jwt.sign({ 
       sub: user.id, 
       username, 
       email: user.email,
+      roles: [userRole],
+      permissions,
       tenant_id: tenant, 
-      type: 'refresh' 
-    }, refreshSecret, { expiresIn: '7d' });
+      type: 'refresh',
+      session_id: dbSession?.id
+    }, refreshSecret, { expiresIn: '7d', issuer: 'yseeku-platform', audience: 'yseeku-api' });
     
     await auditLog(user.id, 'login_success', 'success', { username, role: userRole }, tenant);
     
@@ -135,8 +139,8 @@ const handler = async (req: NextRequest) => {
       data: { user, tenant }
     }, { headers: getSecurityHeaders() });
     
-    res.cookies.set('session_token', token, { httpOnly: true, sameSite: 'lax', secure: true, maxAge: 24 * 3600, path: '/' });
-    res.cookies.set('refresh_token', refresh, { httpOnly: true, sameSite: 'lax', secure: true, maxAge: 7 * 24 * 3600, path: '/' });
+    res.cookies.set('session_token', token, { httpOnly: true, sameSite: 'lax', secure: isProduction, maxAge: 24 * 3600, path: '/' });
+    res.cookies.set('refresh_token', refresh, { httpOnly: true, sameSite: 'lax', secure: isProduction, maxAge: 7 * 24 * 3600, path: '/' });
     
     return res;
   } catch (err) {

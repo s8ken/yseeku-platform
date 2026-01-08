@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTenantById, updateTenant, deleteTenant, getTenantUserCount, ensureSchema } from '@/lib/db';
+import { createProtectedRoute } from '@/middleware/route-protection';
+import type { AuthenticatedRequest } from '@/middleware/auth-middleware';
 
 export async function GET(
   request: NextRequest,
@@ -37,8 +39,8 @@ export async function GET(
   );
 }
 
-export async function PATCH(
-  request: NextRequest,
+async function handlePatch(
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -86,8 +88,19 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
+export async function PATCH(request: NextRequest, context: { params: { id: string } }) {
+  const protectedHandler = createProtectedRoute(
+    (req: AuthenticatedRequest) => handlePatch(req, context),
+    {
+      requireAuth: true,
+      requiredPermissions: ['manage_tenants'],
+    }
+  );
+  return protectedHandler(request);
+}
+
+async function handleDelete(
+  request: AuthenticatedRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -113,4 +126,15 @@ export async function DELETE(
       { status: 500 }
     );
   }
+}
+
+export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
+  const protectedHandler = createProtectedRoute(
+    (req: AuthenticatedRequest) => handleDelete(req, context),
+    {
+      requireAuth: true,
+      requiredPermissions: ['manage_tenants'],
+    }
+  );
+  return protectedHandler(request);
 }

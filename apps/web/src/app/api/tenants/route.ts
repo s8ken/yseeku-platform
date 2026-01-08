@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createTenant, getTenants, getTenantUserCount, ensureSchema, Tenant } from '@/lib/db';
+import { createProtectedRoute } from '@/middleware/route-protection';
+import type { AuthenticatedRequest } from '@/middleware/auth-middleware';
 
 const fallbackTenants = [
   {
@@ -96,7 +98,7 @@ export async function GET(request: NextRequest) {
   });
 }
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: AuthenticatedRequest) {
   try {
     const body = await request.json();
     const { name, description } = body;
@@ -154,3 +156,8 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = createProtectedRoute(handlePost, {
+  requireAuth: true,
+  requiredPermissions: ['manage_tenants'],
+});

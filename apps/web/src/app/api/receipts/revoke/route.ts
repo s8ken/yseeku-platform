@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
-import { Env } from '@sonate/orchestrate'
+import { Env } from '@sonate/orchestrate/src/security/env-config'
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -52,4 +52,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid payload', message: (err as Error).message }, { status: 400 })
   }
 }
-

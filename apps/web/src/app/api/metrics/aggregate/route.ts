@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   try {
     // Authenticate and authorize
     const authenticatedReq = await auth.authenticate(req);
-    auth.requirePermission('read:metrics')(authenticatedReq);
+    auth.requirePermission('read')(authenticatedReq);
 
     // Use user's tenant ID for security
     const tenant = authenticatedReq.user?.tenant;

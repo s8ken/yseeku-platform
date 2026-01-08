@@ -69,10 +69,10 @@ export class AuthMiddleware {
       authenticatedRequest.user = {
         id: decoded.sub || '',
         username: decoded.username || '',
-        tenant: decoded.tenant || '',
+        tenant: decoded.tenant || decoded.tenant_id || '',
         roles: decoded.roles || [],
         permissions: decoded.permissions || [],
-        sessionId: decoded.sessionId || ''
+        sessionId: decoded.sessionId || decoded.session_id || ''
       };
 
       // Log successful authentication for audit trail
@@ -243,7 +243,7 @@ export class AuthMiddleware {
           return [name, rest.join('=')];
         })
       );
-      return cookies.auth_token || null;
+      return cookies.session_token || cookies.auth_token || null;
     }
 
     return null;
