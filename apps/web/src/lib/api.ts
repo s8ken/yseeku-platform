@@ -62,6 +62,20 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
     });
 
     if (!response.ok) {
+      // Handle 401 Unauthorized (Invalid Token)
+      if (response.status === 401) {
+        console.warn('Token expired or invalid, clearing session...');
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        
+        // If this wasn't already a guest login attempt, try to recover
+        if (!isAuthInitEndpoint) {
+           console.log('Attempting to recover session...');
+           // Recursively retry - this will trigger the guest login flow since token is now null
+           return fetchAPI<T>(endpoint, options);
+        }
+      }
+
       let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
       let errorBody = '';
       try {
