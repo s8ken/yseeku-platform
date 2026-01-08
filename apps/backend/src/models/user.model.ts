@@ -19,6 +19,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
+  role: 'admin' | 'editor' | 'viewer';
   apiKeys: IApiKey[];
   preferences: {
     defaultModel: string;
@@ -77,6 +78,11 @@ const UserSchema = new Schema<IUser>({
     required: [true, 'Password is required'],
     minlength: 8,
     select: false,
+  },
+  role: {
+    type: String,
+    enum: ['admin', 'editor', 'viewer'],
+    default: 'viewer',
   },
   apiKeys: [ApiKeySchema],
   preferences: {

@@ -191,9 +191,8 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
     return;
   }
 
-  // Check if user has admin role (you'll need to add roles to User model)
-  // For now, check if email ends with @yseeku.com (temporary solution)
-  const isAdmin = req.user.email.endsWith('@yseeku.com');
+  // Check if user has admin role
+  const isAdmin = req.user.role === 'admin' || req.user.email.endsWith('@yseeku.com');
 
   if (!isAdmin) {
     res.status(403).json({

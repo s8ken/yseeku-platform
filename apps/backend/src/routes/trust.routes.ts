@@ -6,10 +6,54 @@
 import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import { trustService, TrustEvaluation } from '../services/trust.service';
+import { TrustReceiptModel } from '../models/trust-receipt.model';
 import { Conversation } from '../models/conversation.model';
 import { TrustReceipt } from '@sonate/core';
 
 const router = Router();
+
+/**
+ * POST /api/trust/receipts
+ * Save a trust receipt
+ */
+router.post('/receipts', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const receiptData = req.body;
+
+    if (!receiptData || !receiptData.self_hash) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid receipt data',
+      });
+      return;
+    }
+
+    // Check if exists
+    const existing = await TrustReceiptModel.findOne({ self_hash: receiptData.self_hash });
+    if (existing) {
+      res.json({ success: true, saved: true, message: 'Receipt already exists' });
+      return;
+    }
+
+    const receipt = await TrustReceiptModel.create({
+      ...receiptData,
+      tenant_id: req.tenant || 'default',
+    });
+
+    res.status(201).json({
+      success: true,
+      saved: true,
+      data: receipt,
+    });
+  } catch (error: any) {
+    console.error('Save receipt error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save receipt',
+      message: error.message,
+    });
+  }
+});
 
 /**
  * GET /api/trust/analytics

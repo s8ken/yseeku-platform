@@ -1,5 +1,5 @@
-const API_BASE = '';
-const BACKEND_API_BASE = 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const BACKEND_API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -570,13 +570,20 @@ export const api = {
     if (sessionId) params.set('sessionId', sessionId);
     params.set('limit', limit.toString());
     params.set('offset', offset.toString());
-    return fetchAPI<any>(`/api/trust-receipts?${params.toString()}`);
+    return fetchAPI<any>(`/api/trust/receipts?${params.toString()}`);
   },
 
   async verifyTrustReceipt(receiptHash: string, receipt: any): Promise<any> {
-    return fetchAPI<any>(`/api/trust-receipts/${receiptHash}/verify`, {
+    return fetchAPI<any>(`/api/trust/receipts/${receiptHash}/verify`, {
       method: 'POST',
       body: JSON.stringify({ receipt }),
+    });
+  },
+
+  async saveTrustReceipt(receipt: any): Promise<any> {
+    return fetchAPI<any>('/api/trust/receipts', {
+      method: 'POST',
+      body: JSON.stringify(receipt),
     });
   },
 
