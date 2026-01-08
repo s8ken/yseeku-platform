@@ -16,6 +16,7 @@ export type AuditAction =
   | 'token_refresh'
   | 'api_key_create'
   | 'api_key_delete'
+  | 'api_key_revoke'
   // Agent operations
   | 'agent_create'
   | 'agent_update'
@@ -67,6 +68,7 @@ export type ResourceType =
   | 'risk-event'
   | 'alert'
   | 'api-key'
+  | 'platform-key'
   | 'system'
   | 'experiment';
 

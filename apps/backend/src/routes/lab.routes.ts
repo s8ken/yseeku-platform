@@ -7,6 +7,7 @@ import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import { Experiment, IExperiment, IVariant } from '../models/experiment.model';
 import { twoSampleTTest, stdDev, mean } from '../utils/statistics';
+import { bedauService } from '../services/bedau.service';
 import { logSuccess, logFailure } from '../utils/audit-logger';
 import logger from '../utils/logger';
 

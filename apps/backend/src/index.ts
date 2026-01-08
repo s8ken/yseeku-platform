@@ -26,6 +26,7 @@ import auditRoutes from './routes/audit.routes';
 import labRoutes from './routes/lab.routes';
 import tenantRoutes from './routes/tenant.routes';
 import apiGatewayRoutes from './routes/api-gateway.routes';
+import orchestrateRoutes from './routes/orchestrate.routes';
 import { initializeSocket } from './socket';
 import logger from './utils/logger';
 import { requestLogger, errorLogger } from './middleware/request-logger';

@@ -4,6 +4,7 @@ import { Agent, IAgent } from '../models/agent.model';
 import { llmService } from './llm.service';
 import { trustService } from './trust.service';
 import logger from '../utils/logger';
+import { Types } from 'mongoose';
 
 export class OrchestrationService {
   
@@ -181,7 +182,7 @@ export class OrchestrationService {
         if (!agent) throw new Error('Agent not found');
 
         // Call LLM Service
-        const response = await llmService.generateResponse({
+        const response = await llmService.generate({
           provider: agent.provider,
           model: agent.model,
           messages: [
@@ -206,7 +207,7 @@ export class OrchestrationService {
           timestamp: new Date()
         }, { conversationId: 'workflow-exec' });
         
-        trustScore = trustEval.trustScore;
+        trustScore = trustEval.trustScore.overall;
 
         // If this is a VALIDATOR agent, the output might be the validation result itself
         // But for now, we just execute the LLM.
