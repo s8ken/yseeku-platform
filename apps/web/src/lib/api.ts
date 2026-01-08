@@ -630,6 +630,26 @@ export const api = {
     return fetchAPI<TrustHealthResponse>('/api/trust/health');
   },
 
+  // Platform API Keys (Gateway)
+  async getPlatformApiKeys(): Promise<any[]> {
+    const res = await fetchAPI<{ success: boolean; data: { keys: any[] } }>('/api/gateway/keys');
+    return res.data.keys || [];
+  },
+
+  async createPlatformApiKey(name: string, scopes: string[] = ['read:all']): Promise<any> {
+    const res = await fetchAPI<{ success: boolean; data: { key: any } }>('/api/gateway/keys', {
+      method: 'POST',
+      body: JSON.stringify({ name, scopes }),
+    });
+    return res.data.key;
+  },
+
+  async revokePlatformApiKey(id: string): Promise<void> {
+    await fetchAPI<{ success: boolean }>(`/api/gateway/keys/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
   logout() {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
