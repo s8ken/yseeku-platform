@@ -195,7 +195,7 @@ export const ChatContainer: React.FC = () => {
         messages.filter(m => m.evaluation).length || 0,
     };
 
-    const shareUrl = `${window.location.origin}/verify?session=${shareData.sessionId}`;
+    const shareUrl = `${window.location.origin}/dashboard/verify?session=${shareData.sessionId}`;
     navigator.clipboard.writeText(shareUrl);
 
     toast.success('Share Link Copied', {
@@ -290,21 +290,21 @@ export const ChatContainer: React.FC = () => {
           <div className="mb-3 p-3 bg-white dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800">
             <div className="grid grid-cols-4 gap-4 text-center">
               <div>
-                <div className="text-xs text-slate-500 mb-1">Pass Rate</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Pass Rate</div>
                 <div className="text-lg font-bold text-green-600">
                   {((getStatusCounts().pass / messages.filter(m => m.evaluation).length) * 100).toFixed(0)}%
                 </div>
               </div>
               <div>
-                <div className="text-xs text-slate-500 mb-1">Partial</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Partial</div>
                 <div className="text-lg font-bold text-amber-600">{getStatusCounts().partial}</div>
               </div>
               <div>
-                <div className="text-xs text-slate-500 mb-1">Failures</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Failures</div>
                 <div className="text-lg font-bold text-red-600">{getStatusCounts().fail}</div>
               </div>
               <div>
-                <div className="text-xs text-slate-500 mb-1">Trend</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Trend</div>
                 <div className="text-lg font-bold flex items-center justify-center gap-1">
                   {getTrustTrend().direction === 'up' && <TrendingUp className="h-4 w-4 text-green-600" />}
                   {getTrustTrend().direction === 'down' && <TrendingDown className="h-4 w-4 text-red-600" />}
@@ -322,7 +322,7 @@ export const ChatContainer: React.FC = () => {
 
             {/* Mini Trust Score History */}
             <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-              <div className="text-xs text-slate-500 mb-2">Trust Score History (Last 10)</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 mb-2">Trust Score History (Last 10)</div>
               <div className="flex items-end gap-1 h-12">
                 {messages
                   .filter(m => m.evaluation)
@@ -386,7 +386,12 @@ export const ChatContainer: React.FC = () => {
                 variant={filterStatus === 'PASS' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setFilterStatus('PASS')}
-                className="h-6 px-2 text-[10px] text-green-600 hover:text-green-600"
+                className={cn(
+                  "h-6 px-2 text-[10px]",
+                  filterStatus === 'PASS'
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'text-green-600 dark:text-green-400 hover:text-green-600 dark:hover:text-green-300'
+                )}
               >
                 Pass
               </Button>
@@ -394,7 +399,12 @@ export const ChatContainer: React.FC = () => {
                 variant={filterStatus === 'PARTIAL' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setFilterStatus('PARTIAL')}
-                className="h-6 px-2 text-[10px] text-amber-600 hover:text-amber-600"
+                className={cn(
+                  "h-6 px-2 text-[10px]",
+                  filterStatus === 'PARTIAL'
+                    ? 'bg-amber-600 text-white hover:bg-amber-700'
+                    : 'text-amber-600 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300'
+                )}
               >
                 Partial
               </Button>
@@ -402,7 +412,12 @@ export const ChatContainer: React.FC = () => {
                 variant={filterStatus === 'FAIL' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setFilterStatus('FAIL')}
-                className="h-6 px-2 text-[10px] text-red-600 hover:text-red-600"
+                className={cn(
+                  "h-6 px-2 text-[10px]",
+                  filterStatus === 'FAIL'
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'text-red-600 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300'
+                )}
               >
                 Fail
               </Button>

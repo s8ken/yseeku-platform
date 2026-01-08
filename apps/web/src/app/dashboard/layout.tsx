@@ -72,7 +72,7 @@ const moduleSections: ModuleSection[] = [
       { title: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Trust Session', href: '/dashboard/chat', icon: Sparkles, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Trust Analytics', href: '/dashboard/trust', icon: BarChart3, roles: ['admin', 'user', 'viewer'], module: 'detect' },
-      { title: 'Verify Receipts', href: '/verify', icon: ShieldCheck, roles: ['admin', 'user', 'viewer'], module: 'detect' },
+      { title: 'Verify Receipts', href: '/dashboard/verify', icon: ShieldCheck, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Agent Trust', href: '/dashboard/overview', icon: Shield, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Risk Monitor', href: '/dashboard/risk', icon: Waves, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Alerts', href: '/dashboard/alerts', icon: AlertTriangle, roles: ['admin', 'user'], module: 'detect' },
@@ -307,7 +307,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <ChevronDown className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-white">
+              <DropdownMenuContent align="end" className="w-48 dark:bg-slate-900">
                 {tenants.map((tenant) => (
                   <DropdownMenuItem key={tenant.id} className="cursor-pointer">
                     <Building2 className="mr-2 h-4 w-4" />
@@ -339,7 +339,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80 bg-white">
+              <DropdownMenuContent align="end" className="w-80 dark:bg-slate-900">
                 <div className="px-4 py-2 font-bold border-b">Notifications</div>
                 <div className="max-h-[300px] overflow-y-auto">
                   <div className="p-4 border-b hover:bg-muted/50 cursor-pointer">
@@ -378,7 +378,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-white">
+              <DropdownMenuContent align="end" className="w-56 dark:bg-slate-900">
                 <div className="px-2 py-1.5">
                   <p className="text-sm font-medium">{mockUser.name}</p>
                   <p className="text-xs text-muted-foreground">{mockUser.email}</p>
