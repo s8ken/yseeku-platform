@@ -63,10 +63,11 @@ export default function TrustAnalyticsPage() {
   const loadAnalytics = async () => {
     setLoading(true);
     try {
+      // Use getTrustAnalytics from API client
       const response = await api.getTrustAnalytics(undefined, 7, 1000);
       setAnalytics(response.data.analytics);
       setTimeRange(response.data.timeRange);
-      toast.success('Analytics loaded successfully');
+      toast.success('Analytics refreshed');
     } catch (error: any) {
       console.error('Failed to load analytics:', error);
       toast.error('Failed to load analytics', {
