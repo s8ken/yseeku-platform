@@ -69,9 +69,10 @@ export default function AuditTrailsPage() {
         if (value) params.append(key, value);
       });
 
-      const response = await fetch(`/api/audit/logs?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch audit logs');
-      return response.json() as Promise<AuditResponse>;
+      // Use the API client instead of raw fetch if possible, or keep fetch but handle auth
+      // For now, we'll use the api helper which handles auth headers automatically
+      const response = await api.getAuditLogs(params);
+      return response;
     },
   });
 

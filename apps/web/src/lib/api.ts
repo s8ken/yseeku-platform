@@ -655,6 +655,10 @@ export const api = {
     });
   },
 
+  async getAuditLogs(params: URLSearchParams): Promise<any> {
+    return fetchAPI<any>(`/api/audit/logs?${params.toString()}`);
+  },
+
   logout() {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
