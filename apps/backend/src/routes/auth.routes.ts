@@ -7,6 +7,7 @@
 import { Router, Request, Response } from 'express';
 import { authService, protect } from '../middleware/auth.middleware';
 import { User, IUser } from '../models/user.model';
+import { logSuccess, logFailure } from '../utils/audit-logger';
 
 const router = Router();
 
@@ -200,6 +201,15 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     const isPasswordValid = await user.matchPassword(password);
 
     if (!isPasswordValid) {
+      // Log failed login attempt
+      await logFailure(
+        req,
+        'login',
+        'user',
+        user._id.toString(),
+        'Invalid password',
+        'warning'
+      );
       res.status(401).json({
         success: false,
         message: 'Invalid credentials'
@@ -217,6 +227,12 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       email: user.email,
       roles: ['user'],
       tenant: 'default',
+    });
+
+    // Log successful login
+    await logSuccess(req, 'login', 'user', user._id.toString(), {
+      email: user.email,
+      loginMethod: 'password',
     });
 
     res.json({
@@ -454,6 +470,13 @@ router.post('/api-keys', protect, async (req: Request, res: Response): Promise<v
     await user.save();
     console.log('User saved successfully');
 
+    // Log API key operation
+    await logSuccess(req, 'api_key_create', 'api-key', `${user._id.toString()}-${provider}`, {
+      provider,
+      name,
+      action: existingKeyIndex > -1 ? 'updated' : 'created',
+    });
+
     res.json({
       success: true,
       message: `${provider} API key updated successfully`,
@@ -498,6 +521,11 @@ router.delete('/api-keys/:provider', protect, async (req: Request, res: Response
     const { provider } = req.params;
     user.apiKeys = user.apiKeys.filter((k: any) => k.provider !== provider);
     await user.save();
+
+    // Log API key deletion
+    await logSuccess(req, 'api_key_delete', 'api-key', `${user._id.toString()}-${provider}`, {
+      provider,
+    });
 
     res.json({
       success: true,

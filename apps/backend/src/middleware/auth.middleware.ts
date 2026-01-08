@@ -15,6 +15,9 @@ declare global {
       user?: IUser;
       userId?: string;
       tenant?: string;
+      userTenant?: string;
+      userEmail?: string;
+      sessionId?: string;
     }
   }
 }
@@ -150,6 +153,9 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     req.user = user;
     req.userId = user._id.toString();
     req.tenant = payload.tenant || payload.tenant_id || 'default';
+    req.userTenant = req.tenant; // Alias for compatibility
+    req.userEmail = user.email;
+    req.sessionId = payload.session_id || payload.sessionId;
 
     console.log(`[Auth:${requestId}] Auth successful for ${user.email}`);
     next();
