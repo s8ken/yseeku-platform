@@ -115,7 +115,7 @@ export const ChatContainer: React.FC = () => {
       })),
       metadata: {
         platform: 'SONATE',
-        version: '1.9.0',
+        version: '1.10.0',
         protocol: 'SYMBI Trust Protocol',
       }
     };
@@ -139,7 +139,7 @@ export const ChatContainer: React.FC = () => {
     let markdown = `# SONATE Trust Session Export\n\n`;
     markdown += `**Exported:** ${new Date().toISOString()}\n`;
     markdown += `**Total Messages:** ${messages.length}\n`;
-    markdown += `**Protocol Version:** 1.9.0\n\n`;
+    markdown += `**Protocol Version:** 1.10.0\n\n`;
     markdown += `---\n\n`;
 
     messages.forEach((msg, idx) => {
@@ -218,7 +218,7 @@ export const ChatContainer: React.FC = () => {
         <div className="flex items-center gap-6 text-[10px] font-mono text-slate-500">
           <div className="flex items-center gap-1">
             <ShieldCheck size={12} className="text-emerald-500" />
-            PROTOCOL V1.9.0
+            PROTOCOL V1.10.0
           </div>
           <div className="flex items-center gap-1">
             <AlertTriangle size={12} className="text-amber-500" />

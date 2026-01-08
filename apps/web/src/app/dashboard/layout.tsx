@@ -36,7 +36,8 @@ import {
   LogOut,
   Book,
   ExternalLink,
-  HelpCircle
+  HelpCircle,
+  ShieldCheck
 } from 'lucide-react';
 import { useTutorialStore } from '@/store/useTutorialStore';
 import { dashboardTutorialSteps } from '@/components/tutorial/steps';
@@ -71,6 +72,7 @@ const moduleSections: ModuleSection[] = [
       { title: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Trust Session', href: '/dashboard/chat', icon: Sparkles, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Trust Analytics', href: '/dashboard/trust', icon: BarChart3, roles: ['admin', 'user', 'viewer'], module: 'detect' },
+      { title: 'Verify Receipts', href: '/verify', icon: ShieldCheck, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Agent Trust', href: '/dashboard/overview', icon: Shield, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Risk Monitor', href: '/dashboard/risk', icon: Waves, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Alerts', href: '/dashboard/alerts', icon: AlertTriangle, roles: ['admin', 'user'], module: 'detect' },
