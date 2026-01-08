@@ -80,27 +80,25 @@ export default function VerifyPage() {
     setVerificationResult(null);
 
     try {
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await api.verifyTrustReceipt(receiptHash, null);
+      // Use real backend verification endpoint
+      const response = await api.verifyTrustReceipt(receiptHash, {});
 
-      // Mock verification for now
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Simulate verification result
-      const mockResult: VerificationResult = {
-        verified: Math.random() > 0.3, // 70% success rate for demo
+      const result: VerificationResult = {
+        verified: response.data?.valid || false,
         receiptHash: receiptHash,
-        trustScore: 8.5,
-        status: 'PASS',
-        timestamp: new Date().toISOString(),
-        violations: [],
+        trustScore: response.data?.receipt?.ciq_metrics?.overall_trust_score || 0,
+        status: response.data?.receipt?.ciq_metrics?.status || 'UNKNOWN',
+        timestamp: response.data?.receipt?.timestamp || new Date().toISOString(),
+        violations: response.data?.receipt?.ciq_metrics?.violations || [],
       };
 
-      setVerificationResult(mockResult);
+      setVerificationResult(result);
 
-      if (mockResult.verified) {
+      if (result.verified) {
         toast.success('Receipt Verified', {
-          description: 'Cryptographic signature is valid and matches blockchain record.',
+          description: response.data?.foundInDatabase
+            ? 'Cryptographic signature is valid and found in database.'
+            : 'Cryptographic signature is valid.',
         });
       } else {
         toast.error('Verification Failed', {
@@ -138,9 +136,9 @@ export default function VerifyPage() {
       return;
     }
 
-    if (!receipt.receiptHash && !receipt.hash) {
+    if (!receipt.self_hash && !receipt.receiptHash && !receipt.hash) {
       toast.error('Invalid Receipt', {
-        description: 'Receipt must contain a hash field for verification.',
+        description: 'Receipt must contain a hash field (self_hash, receiptHash, or hash) for verification.',
       });
       return;
     }
@@ -149,29 +147,34 @@ export default function VerifyPage() {
     setVerificationResult(null);
 
     try {
-      const hashToVerify = receipt.receiptHash || receipt.hash;
+      const hashToVerify = receipt.self_hash || receipt.receiptHash || receipt.hash;
 
-      // TODO: Replace with actual API call
-      // const response = await api.verifyTrustReceipt(hashToVerify, receipt);
+      // Use real backend verification endpoint
+      const response = await api.verifyTrustReceipt(hashToVerify, receipt);
 
-      // Mock verification
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      const mockResult: VerificationResult = {
-        verified: true,
+      const result: VerificationResult = {
+        verified: response.data?.valid || false,
         receipt: receipt,
         receiptHash: hashToVerify,
-        trustScore: receipt.trustScore?.overall || receipt.trustScore || 0,
-        status: receipt.status || 'UNKNOWN',
-        timestamp: receipt.timestamp || receipt.createdAt,
-        violations: receipt.trustScore?.violations || [],
+        trustScore: receipt.ciq_metrics?.overall_trust_score || receipt.trustScore?.overall || receipt.trustScore || 0,
+        status: receipt.ciq_metrics?.status || receipt.status || 'UNKNOWN',
+        timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
+        violations: receipt.ciq_metrics?.violations || receipt.trustScore?.violations || [],
       };
 
-      setVerificationResult(mockResult);
+      setVerificationResult(result);
 
-      toast.success('Receipt Verified', {
-        description: 'JSON receipt is valid and cryptographically signed.',
-      });
+      if (result.verified) {
+        toast.success('Receipt Verified', {
+          description: response.data?.foundInDatabase
+            ? 'JSON receipt is valid, cryptographically signed, and found in database.'
+            : 'JSON receipt is valid and cryptographically signed.',
+        });
+      } else {
+        toast.error('Verification Failed', {
+          description: 'Receipt verification failed. Signature may be invalid or tampered.',
+        });
+      }
     } catch (error: any) {
       toast.error('Verification Error', {
         description: error.message || 'Failed to verify receipt. Please try again.',
