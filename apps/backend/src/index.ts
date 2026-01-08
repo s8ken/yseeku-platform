@@ -20,6 +20,7 @@ import conversationRoutes from './routes/conversation.routes';
 import trustRoutes from './routes/trust.routes';
 import monitoringRoutes from './routes/monitoring.routes';
 import alertsRoutes from './routes/alerts.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 import { initializeSocket } from './socket';
 import logger from './utils/logger';
 import { requestLogger, errorLogger } from './middleware/request-logger';
@@ -75,6 +76,7 @@ app.use('/api/agents', agentRoutes);
 app.use('/api/llm', llmRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/trust', trustRoutes);
+app.use('/api/dashboard', dashboardRoutes); // Dashboard KPIs
 app.use('/api/dashboard/alerts', alertsRoutes);
 app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
 

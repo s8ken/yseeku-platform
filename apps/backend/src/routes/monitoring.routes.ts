@@ -155,7 +155,7 @@ router.get('/health', async (req: Request, res: Response): Promise<void> => {
 
     const dbStartTime = Date.now();
     try {
-      if (mongoose.connection.readyState === 1) {
+      if (mongoose.connection.readyState === 1 && mongoose.connection.db) {
         await mongoose.connection.db.admin().ping();
         databaseStatus = 'up';
         databaseLatency = Date.now() - dbStartTime;

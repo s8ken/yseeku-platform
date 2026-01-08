@@ -203,7 +203,7 @@ router.post('/:id/acknowledge', protect, async (req: Request, res: Response): Pr
 
     // Update alert status
     alert.status = 'acknowledged';
-    alert.acknowledgedBy = req.userEmail || 'admin@sonate.io';
+    alert.acknowledgedBy = (req as any).userEmail || 'admin@sonate.io';
     alert.acknowledgedAt = new Date().toISOString();
 
     res.json({
@@ -253,7 +253,7 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
 
     // Update alert status
     alert.status = 'resolved';
-    alert.resolvedBy = req.userEmail || 'admin@sonate.io';
+    alert.resolvedBy = (req as any).userEmail || 'admin@sonate.io';
     alert.resolvedAt = new Date().toISOString();
 
     res.json({
@@ -306,8 +306,9 @@ router.post('/:id/suppress', protect, async (req: Request, res: Response): Promi
     // Update alert status
     alert.status = 'suppressed';
     if (!alert.details) alert.details = {};
-    alert.details.suppressedUntil = new Date(Date.now() + duration * 60 * 60 * 1000).toISOString();
-    alert.details.suppressedBy = req.userEmail || 'admin@sonate.io';
+    const durationHours = duration as number;
+    alert.details.suppressedUntil = new Date(Date.now() + durationHours * 60 * 60 * 1000).toISOString();
+    alert.details.suppressedBy = (req as any).userEmail || 'admin@sonate.io';
 
     res.json({
       success: true,
@@ -317,7 +318,7 @@ router.post('/:id/suppress', protect, async (req: Request, res: Response): Promi
   } catch (error: any) {
     securityLogger.error('Suppress alert error', {
       alertId: req.params.id,
-      duration,
+      duration: req.body.duration,
       error: error.message,
       stack: error.stack,
     });
