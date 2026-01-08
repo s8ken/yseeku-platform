@@ -23,6 +23,7 @@ import alertsRoutes from './routes/alerts.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import riskEventsRoutes from './routes/risk-events.routes';
 import auditRoutes from './routes/audit.routes';
+import labRoutes from './routes/lab.routes';
 import { initializeSocket } from './socket';
 import logger from './utils/logger';
 import { requestLogger, errorLogger } from './middleware/request-logger';
@@ -82,6 +83,7 @@ app.use('/api/dashboard', dashboardRoutes); // Dashboard KPIs and risk
 app.use('/api/dashboard/alerts', alertsRoutes);
 app.use('/api/risk-events', riskEventsRoutes); // Risk events management
 app.use('/api/audit', auditRoutes); // Audit trails and logs
+app.use('/api/lab', labRoutes); // Lab experiments and A/B testing
 app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
 
 // 404 handler

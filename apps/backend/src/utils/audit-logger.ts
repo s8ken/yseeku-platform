@@ -47,7 +47,14 @@ export type AuditAction =
   | 'system_health_check'
   | 'metrics_export'
   | 'database_backup'
-  | 'config_update';
+  | 'config_update'
+  // Experiment operations
+  | 'experiment_create'
+  | 'experiment_update'
+  | 'experiment_delete'
+  | 'experiment_start'
+  | 'experiment_pause'
+  | 'experiment_complete';
 
 export type ResourceType =
   | 'user'
