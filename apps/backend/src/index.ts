@@ -21,6 +21,8 @@ import trustRoutes from './routes/trust.routes';
 import monitoringRoutes from './routes/monitoring.routes';
 import alertsRoutes from './routes/alerts.routes';
 import { initializeSocket } from './socket';
+import logger from './utils/logger';
+import { requestLogger, errorLogger } from './middleware/request-logger';
 
 const app = express();
 const server = http.createServer(app);
@@ -43,13 +45,8 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging middleware (development only)
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
-    next();
-  });
-}
+// Request logging middleware (all environments)
+app.use(requestLogger);
 
 // Root route
 app.get('/', (req, res) => {
@@ -90,9 +87,17 @@ app.use((req, res) => {
   });
 });
 
+// Error logging middleware
+app.use(errorLogger);
+
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Error:', err);
+  logger.error('Unhandled error', {
+    error: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+  });
 
   // Handle Mongoose validation errors
   if (err.name === 'ValidationError') {
@@ -141,7 +146,10 @@ async function startServer() {
   try {
     // Connect to database
     await connectDatabase();
-    console.log('✅ Database connected successfully');
+    logger.info('Database connected successfully', {
+      host: 'MongoDB',
+      status: 'connected',
+    });
 
     // Initialize Socket.IO
     const io = new SocketIOServer(server, {
@@ -151,11 +159,25 @@ async function startServer() {
       },
     });
     initializeSocket(io);
-    console.log('✅ Socket.IO server initialized');
+    logger.info('Socket.IO server initialized', {
+      realtime: 'enabled',
+    });
 
     // Start listening
     server.listen(PORT, () => {
-      console.log(`
+      logger.info('YSEEKU Platform Backend Server started', {
+        port: PORT,
+        environment: process.env.NODE_ENV || 'development',
+        database: 'MongoDB Connected',
+        security: 'SecureAuthService Enabled',
+        trust: 'SYMBI Protocol Active',
+        realtime: 'Socket.IO Enabled',
+        version: '1.12.0',
+      });
+
+      // Pretty console output for development
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`
 ╔═══════════════════════════════════════════════════╗
 ║                                                   ║
 ║   🚀 YSEEKU Platform Backend Server               ║
@@ -166,12 +188,17 @@ async function startServer() {
 ║   Security:    SecureAuthService Enabled          ║
 ║   Trust:       SYMBI Protocol Active              ║
 ║   Real-time:   Socket.IO Enabled                  ║
+║   Logging:     Winston Structured Logging         ║
 ║                                                   ║
 ╚═══════════════════════════════════════════════════╝
-      `);
+        `);
+      }
     });
-  } catch (error) {
-    console.error('❌ Failed to start server:', error);
+  } catch (error: any) {
+    logger.error('Failed to start server', {
+      error: error.message,
+      stack: error.stack,
+    });
     process.exit(1);
   }
 }

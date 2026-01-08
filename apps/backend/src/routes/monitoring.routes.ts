@@ -5,6 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -129,7 +130,10 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     res.set('Content-Type', 'text/plain; version=0.0.4');
     res.send(output);
   } catch (error: any) {
-    console.error('Metrics error:', error);
+    logger.error('Metrics generation error', {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).send('# Error generating metrics\n');
   }
 });
@@ -198,7 +202,10 @@ router.get('/health', async (req: Request, res: Response): Promise<void> => {
       },
     });
   } catch (error: any) {
-    console.error('Health check error:', error);
+    logger.error('Health check error', {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),

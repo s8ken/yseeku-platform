@@ -5,6 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
+import logger, { securityLogger } from '../utils/logger';
 
 const router = Router();
 
@@ -162,7 +163,10 @@ router.get('/management', protect, async (req: Request, res: Response): Promise<
       },
     });
   } catch (error: any) {
-    console.error('Get alerts error:', error);
+    logger.error('Get alerts error', {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch alerts',
@@ -208,7 +212,11 @@ router.post('/:id/acknowledge', protect, async (req: Request, res: Response): Pr
       data: { alert },
     });
   } catch (error: any) {
-    console.error('Acknowledge alert error:', error);
+    securityLogger.error('Acknowledge alert error', {
+      alertId: req.params.id,
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: 'Failed to acknowledge alert',
@@ -254,7 +262,11 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
       data: { alert },
     });
   } catch (error: any) {
-    console.error('Resolve alert error:', error);
+    securityLogger.error('Resolve alert error', {
+      alertId: req.params.id,
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: 'Failed to resolve alert',
@@ -303,7 +315,12 @@ router.post('/:id/suppress', protect, async (req: Request, res: Response): Promi
       data: { alert },
     });
   } catch (error: any) {
-    console.error('Suppress alert error:', error);
+    securityLogger.error('Suppress alert error', {
+      alertId: req.params.id,
+      duration,
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: 'Failed to suppress alert',
@@ -345,7 +362,10 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
       })),
     });
   } catch (error: any) {
-    console.error('Get alerts summary error:', error);
+    logger.error('Get alerts summary error', {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch alerts summary',
