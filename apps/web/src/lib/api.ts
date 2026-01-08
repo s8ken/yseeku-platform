@@ -1,5 +1,5 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-const BACKEND_API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const BACKEND_API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
