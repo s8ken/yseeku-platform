@@ -30,7 +30,7 @@ export interface IAgent extends Omit<Document, 'model'> {
   connectedAgents: Types.ObjectId[];
   externalSystems: IExternalSystem[];
   metadata: Record<string, any>;
-  ciModel: 'none' | 'symbi-core' | 'overseer';
+  ciModel: 'none' | 'symbi-core' | 'overseer' | 'system-brain';
   bondingStatus: 'none' | 'initiated' | 'bonded' | 'rejected';
   createdAt: Date;
   lastActive: Date;

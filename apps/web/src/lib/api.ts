@@ -659,6 +659,18 @@ export const api = {
     return fetchAPI<any>(`/api/audit/logs?${params.toString()}`);
   },
 
+  // Overseer / System Brain
+  async getOverseerStatus(): Promise<any> {
+    const res = await fetchAPI<{ success: boolean; data: any }>('/api/overseer/status');
+    return res.data;
+  },
+
+  async triggerOverseerThink(): Promise<void> {
+    await fetchAPI<{ success: boolean }>('/api/overseer/think', {
+      method: 'POST'
+    });
+  },
+
   logout() {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');

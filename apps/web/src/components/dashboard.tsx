@@ -3,9 +3,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { api } from '@/lib/api';
-import { Shield, Activity, AlertCircle, Zap, TrendingUp, TrendingDown } from 'lucide-react';
+import { Shield, Activity, AlertCircle, Zap, TrendingUp, TrendingDown, Brain } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { ConstitutionalPrinciples } from './ConstitutionalPrinciples';
+import { Button } from './ui/button';
 
 export function Dashboard() {
   const tenant = typeof window !== 'undefined' ? localStorage.getItem('tenant') || 'default' : 'default';
@@ -23,6 +24,12 @@ export function Dashboard() {
   const { data: trustAnalytics, isLoading: trustLoading } = useQuery({
     queryKey: ['trust-analytics'],
     queryFn: () => api.getTrustAnalytics(),
+  });
+
+  const { data: overseerStatus } = useQuery({
+    queryKey: ['overseer-status'],
+    queryFn: () => api.getOverseerStatus(),
+    refetchInterval: 30000
   });
 
   if (kpiLoading || alertLoading || trustLoading) {
@@ -52,11 +59,49 @@ export function Dashboard() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">SONATE Dashboard</h1>
             <p className="text-gray-500 dark:text-slate-400">SYMBI Trust Protocol v1.8.0 Monitoring</p>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm font-bold">
-            <Shield size={16} />
-            SYSTEM SECURE
+          <div className="flex gap-3">
+             {overseerStatus && (
+               <div className="flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full text-sm font-bold border border-purple-200 dark:border-purple-800">
+                 <Brain size={16} className="animate-pulse" />
+                 OVERSEER: {overseerStatus.status.toUpperCase()}
+               </div>
+             )}
+             <div className="flex items-center gap-2 px-4 py-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm font-bold">
+               <Shield size={16} />
+               SYSTEM SECURE
+             </div>
           </div>
         </div>
+
+        {/* Overseer Banner */}
+        {overseerStatus && overseerStatus.message && (
+          <Card className="bg-gradient-to-r from-slate-900 to-slate-800 border-none text-white overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <Brain size={120} />
+            </div>
+            <CardContent className="flex items-center justify-between p-6 relative z-10">
+              <div>
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <Brain size={20} className="text-purple-400" />
+                  System Brain Active
+                </h3>
+                <p className="text-slate-300 mt-1 max-w-2xl">
+                  "{overseerStatus.message}"
+                </p>
+                <div className="text-xs text-slate-500 mt-2">
+                  Last thought: {new Date(overseerStatus.lastThought).toLocaleTimeString()}
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                className="bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                onClick={() => api.triggerOverseerThink()}
+              >
+                Force Thinking Cycle
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Top Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
