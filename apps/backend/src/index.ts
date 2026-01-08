@@ -24,6 +24,7 @@ import dashboardRoutes from './routes/dashboard.routes';
 import riskEventsRoutes from './routes/risk-events.routes';
 import auditRoutes from './routes/audit.routes';
 import labRoutes from './routes/lab.routes';
+import tenantRoutes from './routes/tenant.routes';
 import { initializeSocket } from './socket';
 import logger from './utils/logger';
 import { requestLogger, errorLogger } from './middleware/request-logger';
