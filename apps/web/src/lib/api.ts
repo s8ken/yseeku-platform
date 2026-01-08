@@ -497,6 +497,27 @@ export const api = {
     return fetchAPI<ExperimentsResponse>('/api/lab/experiments');
   },
 
+  async createExperiment(data: {
+    name: string;
+    hypothesis: string;
+    description?: string;
+    variants: Array<{ name: string; description?: string }>;
+  }): Promise<Experiment> {
+    const res = await fetchAPI<{ success: boolean; data: { experiment: Experiment } }>('/api/lab/experiments', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return res.data.experiment;
+  },
+
+  async updateExperiment(id: string, data: { action?: 'start' | 'pause' | 'resume' | 'complete' | 'archive' }): Promise<Experiment> {
+    const res = await fetchAPI<{ success: boolean; data: { experiment: Experiment } }>(`/api/lab/experiments/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+    return res.data.experiment;
+  },
+
   async getReceipts(sessionId?: string): Promise<Receipt[]> {
     const params = sessionId ? `?session_id=${sessionId}` : '';
     const res = await fetchAPI<{ success: boolean; data: Receipt[] }>(`/api/receipts${params}`);

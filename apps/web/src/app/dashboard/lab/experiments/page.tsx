@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { api } from '@/lib/api';
 import { 
   FlaskConical, 
   Beaker, 
@@ -85,6 +87,53 @@ const mockExperiments: Experiment[] = [
 export default function LabPage() {
   const [showNewExperiment, setShowNewExperiment] = useState(false);
   const [newHypothesis, setNewHypothesis] = useState('');
+  const [newName, setNewName] = useState('');
+  const queryClient = useQueryClient();
+
+  const { data: experimentsResponse, isLoading } = useQuery({
+    queryKey: ['experiments'],
+    queryFn: () => api.getExperiments(),
+  });
+
+  const experiments = experimentsResponse?.data?.experiments || [];
+  
+  // Combine real and mock experiments for demo purposes if needed, 
+  // but let's prefer real ones if available
+  const displayExperiments = experiments.length > 0 ? experiments : mockExperiments;
+
+  const createExperimentMutation = useMutation({
+    mutationFn: async (data: { name: string; hypothesis: string; variants: any[] }) => {
+      return api.createExperiment(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['experiments'] });
+      toast.success('Experiment started successfully');
+      setShowNewExperiment(false);
+      setNewName('');
+      setNewHypothesis('');
+    },
+    onError: (error: any) => {
+      toast.error('Failed to start experiment', {
+        description: error.message
+      });
+    },
+  });
+
+  const handleCreateExperiment = () => {
+    if (!newName || !newHypothesis) {
+      toast.error('Please provide both a name and hypothesis');
+      return;
+    }
+
+    createExperimentMutation.mutate({
+      name: newName,
+      hypothesis: newHypothesis,
+      variants: [
+        { name: 'Control', description: 'Current baseline configuration' },
+        { name: 'Treatment', description: 'Proposed experimental configuration' }
+      ]
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -182,7 +231,12 @@ export default function LabPage() {
           <CardContent className="space-y-4">
             <div>
               <label className="text-sm font-medium">Experiment Name</label>
-              <Input placeholder="e.g., Canvas Parity Threshold Study" className="mt-1" />
+              <Input 
+                placeholder="e.g., Canvas Parity Threshold Study" 
+                className="mt-1"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+              />
             </div>
             <div>
               <label className="text-sm font-medium">Hypothesis</label>
@@ -210,14 +264,14 @@ export default function LabPage() {
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Active Experiments</h2>
         
-        {mockExperiments.map((exp) => (
+        {displayExperiments.map((exp: any) => (
           <Card key={exp.id} className={exp.status === 'completed' ? 'opacity-75' : ''}>
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     {exp.name}
-                    {exp.stats.significant && (
+                    {exp.metrics?.significant && (
                       <span className="text-xs px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                         SIGNIFICANT
                       </span>
@@ -244,25 +298,25 @@ export default function LabPage() {
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm text-muted-foreground">Progress</span>
-                  <span className="text-sm font-medium">{exp.progress}%</span>
+                  <span className="text-sm font-medium">{exp.progress || 0}%</span>
                 </div>
                 <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-[var(--lab-primary)] transition-all" 
-                    style={{ width: `${exp.progress}%` }} 
+                    style={{ width: `${exp.progress || 0}%` }} 
                   />
                 </div>
               </div>
 
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {exp.variants.map((variant, idx) => (
+                {exp.variants?.map((variant: any, idx: number) => (
                   <div key={idx} className="p-3 rounded-lg border bg-card">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium text-sm">{variant.name}</span>
-                      <span className="text-lg font-bold">{variant.avgScore.toFixed(1)}</span>
+                      <span className="text-lg font-bold">{variant.avgScore?.toFixed(1) || '0.0'}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      n = {variant.sampleSize.toLocaleString()}
+                      n = {(variant.sampleSize || 0).toLocaleString()}
                     </p>
                   </div>
                 ))}
@@ -272,16 +326,16 @@ export default function LabPage() {
                 <div className="flex gap-4 text-xs">
                   <span className="flex items-center gap-1">
                     <BarChart3 className="h-3 w-3 text-muted-foreground" />
-                    p-value: <strong>{exp.stats.pValue.toFixed(4)}</strong>
+                    p-value: <strong>{exp.metrics?.pValue?.toFixed(4) || 'N/A'}</strong>
                   </span>
                   <span className="flex items-center gap-1">
                     <TrendingUp className="h-3 w-3 text-muted-foreground" />
-                    Effect: <strong>{exp.stats.effectSize.toFixed(2)}</strong>
+                    Effect: <strong>{exp.metrics?.effectSize?.toFixed(2) || 'N/A'}</strong>
                   </span>
                 </div>
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" />
-                  Started: <span suppressHydrationWarning>{new Date(exp.startedAt).toLocaleDateString('en-US')}</span>
+                  Started: <span suppressHydrationWarning>{exp.startedAt ? new Date(exp.startedAt).toLocaleDateString('en-US') : 'Pending'}</span>
                 </span>
               </div>
             </CardContent>
