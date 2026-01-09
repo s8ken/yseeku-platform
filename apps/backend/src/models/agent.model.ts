@@ -143,7 +143,7 @@ const AgentSchema = new Schema<IAgent>({
   },
   ciModel: {
     type: String,
-    enum: ['none', 'symbi-core', 'overseer'],
+    enum: ['none', 'symbi-core', 'overseer', 'system-brain'],
     default: 'none',
   },
   bondingStatus: {

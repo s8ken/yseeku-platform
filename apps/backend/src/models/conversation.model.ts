@@ -12,7 +12,7 @@ export interface IMessage {
   encryptedContent?: string;
   agentId?: Types.ObjectId;
   metadata: Record<string, any>;
-  ciModel: 'none' | 'symbi-core' | 'overseer';
+  ciModel: 'none' | 'symbi-core' | 'overseer' | 'system-brain';
   trustScore: number; // 0-5 (maps to SYMBI 0-10 scale by doubling)
   timestamp: Date;
 }
@@ -58,7 +58,7 @@ const MessageSchema = new Schema<IMessage>({
   },
   ciModel: {
     type: String,
-    enum: ['none', 'symbi-core', 'overseer'],
+    enum: ['none', 'symbi-core', 'overseer', 'system-brain'],
     default: 'none',
   },
   trustScore: {
