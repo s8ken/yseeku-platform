@@ -184,6 +184,32 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
 });
 
 /**
+ * GET /api/dashboard/policy-status
+ * Get simple policy compliance status
+ */
+router.get('/policy-status', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.userId;
+    
+    // Quick check on recent conversations for any critical violations
+    const recentViolations = await Conversation.find({
+      user: userId,
+      ethicalScore: { $lt: 2 } // Very low score
+    }).limit(5).select('title ethicalScore');
+
+    const overallPass = recentViolations.length === 0;
+    
+    res.json({
+      overallPass,
+      violations: recentViolations.map(v => v.title)
+    });
+  } catch (error: any) {
+    logger.error('Get policy status error', { error: error.message });
+    res.status(500).json({ overallPass: false, violations: ['Error checking policy'] });
+  }
+});
+
+/**
  * GET /api/dashboard/risk
  * Get risk assessment metrics and compliance reports
  *
