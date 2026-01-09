@@ -6,7 +6,7 @@ function getAuthToken(): string | null {
   return localStorage.getItem('token') || null;
 }
 
-async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
+async function fetchAPI<T>(endpoint: string, options?: RequestInit, retryCount = 0): Promise<T> {
   let token = getAuthToken();
   
   // Auto-login as guest if no token exists and we aren't already trying to authenticate
@@ -69,10 +69,11 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> 
         localStorage.removeItem('refreshToken');
         
         // If this wasn't already a guest login attempt, try to recover
-        if (!isAuthInitEndpoint) {
+        // Prevent infinite recursion by limiting retries
+        if (!isAuthInitEndpoint && retryCount < 1) {
            console.log('Attempting to recover session...');
            // Recursively retry - this will trigger the guest login flow since token is now null
-           return fetchAPI<T>(endpoint, options);
+           return fetchAPI<T>(endpoint, options, retryCount + 1);
         }
       }
 
