@@ -36,6 +36,18 @@ const nextConfig = {
           source: '/api/trust/:path*',
           destination: `${backendUrl}/api/trust/:path*`,
         },
+        {
+          source: '/api/dashboard/:path*',
+          destination: `${backendUrl}/api/dashboard/:path*`,
+        },
+        {
+          source: '/api/overseer/:path*',
+          destination: `${backendUrl}/api/overseer/:path*`,
+        },
+        {
+          source: '/api/lab/:path*',
+          destination: `${backendUrl}/api/lab/:path*`,
+        },
       ];
   },
   transpilePackages: [
