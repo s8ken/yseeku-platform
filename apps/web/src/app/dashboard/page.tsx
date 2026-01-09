@@ -185,8 +185,8 @@ export default function DashboardPage() {
   });
 
   const kpis = kpiData;
-  const alerts = alertData?.data;
-  const experiments = experimentData?.data;
+  const alerts = (alertData as any)?.data || alertData;
+  const experiments = (experimentData as any)?.data || experimentData;
 
   if (kpiLoading) {
     return (
