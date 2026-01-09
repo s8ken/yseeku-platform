@@ -220,11 +220,15 @@ export default function DashboardPage() {
             Real-time AI trust monitoring
           </p>
         </div>
-        <div className="data-source-badge data-source-live">
-          <span className="h-1.5 w-1.5 rounded-full bg-current" />
-          Production Data
+        <div className="flex items-center gap-4">
+          <div className="data-source-badge data-source-live">
+            <span className="h-1.5 w-1.5 rounded-full bg-current" />
+            Production Data
+          </div>
         </div>
       </div>
+
+      <OverseerWidget />
 
       {kpis && (
         <>
