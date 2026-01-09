@@ -19,6 +19,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
+import { OverseerWidget } from '@/components/overseer-widget';
 
 interface KPIData {
   tenant: string;
@@ -244,7 +245,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-xs text-muted-foreground">Overall platform trust</p>
-                  <TrendIndicator {...kpis.trends.trustScore} />
+                  {kpis.trends?.trustScore && <TrendIndicator {...kpis.trends.trustScore} />}
                 </div>
                 <div className="mt-3 h-2 w-full bg-muted rounded-full overflow-hidden">
                   <div 
@@ -268,7 +269,7 @@ export default function DashboardPage() {
                   {kpis.totalInteractions.toLocaleString()} total interactions
                 </p>
                 <div className="flex items-center justify-between mt-2">
-                  <TrendIndicator {...kpis.trends.interactions} />
+                  {kpis.trends?.interactions && <TrendIndicator {...kpis.trends.interactions} />}
                 </div>
               </CardContent>
             </Card>

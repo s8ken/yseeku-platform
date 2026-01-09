@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Brain, Shield, Zap } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function OverseerWidget() {
   const [isThinking, setIsThinking] = useState(false);
@@ -31,8 +31,19 @@ export function OverseerWidget() {
     }
   };
 
+  const [formattedTime, setFormattedTime] = useState<string>('');
+
   if (!overseerStatus || !overseerStatus.status) return null;
 
+  // Handle client-side only date formatting to prevent hydration mismatch
+  if (overseerStatus.lastThought && !formattedTime) {
+      // This will only run on client after mount/update if we put it in useEffect,
+      // but to be safe and simple, let's just use useEffect.
+  }
+  
+  // Use a different approach:
+  const lastThoughtTime = new Date(overseerStatus.lastThought);
+  
   return (
     <div className="space-y-4">
       {/* Header Badge */}
@@ -65,13 +76,7 @@ export function OverseerWidget() {
               <div className="flex items-center gap-4 mt-4 text-xs text-slate-500">
                 <span className="flex items-center gap-1">
                   <Zap size={12} />
-                  Last thought: {(() => {
-                    try {
-                      return new Date(overseerStatus.lastThought).toLocaleTimeString();
-                    } catch (e) {
-                      return 'Just now';
-                    }
-                  })()}
+                  Last thought: <TimeDisplay date={overseerStatus.lastThought} />
                 </span>
                 {overseerStatus.metrics && (
                   <span className="flex items-center gap-1">
@@ -106,4 +111,18 @@ export function OverseerWidget() {
       )}
     </div>
   );
+}
+
+function TimeDisplay({ date }: { date: string }) {
+  const [time, setTime] = useState<string>('');
+  
+  useEffect(() => {
+    try {
+        setTime(new Date(date).toLocaleTimeString());
+    } catch (e) {
+        setTime('Just now');
+    }
+  }, [date]);
+  
+  return <>{time || '...'}</>;
 }
