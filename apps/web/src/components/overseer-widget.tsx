@@ -37,7 +37,14 @@ export function OverseerWidget() {
   }, [overseerStatus, error]);
 
   if (isLoading) return <div className="h-24 w-full bg-muted/50 animate-pulse rounded-lg mb-6" />;
-  if (error) return <div className="text-red-500 text-sm mb-6">System Brain Connection Failed</div>;
+  if (error) {
+    return (
+      <div className="p-4 mb-6 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+        <div className="font-bold mb-1">System Brain Connection Failed</div>
+        <div className="font-mono text-xs opacity-75">{error instanceof Error ? error.message : String(error)}</div>
+      </div>
+    );
+  }
   // If no data, render a placeholder instead of null to debug visibility
   if (!overseerStatus) {
       return (
