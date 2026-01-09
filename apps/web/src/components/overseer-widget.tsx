@@ -8,13 +8,13 @@ import { Brain, Shield, Zap } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export function OverseerWidget() {
-  const [isThinking, setIsThinking] = useState(false);
-
-  const { data: overseerStatus, refetch } = useQuery({
+  const { data: overseerStatus, isLoading, error, refetch } = useQuery({
     queryKey: ['overseer-status'],
     queryFn: () => api.getOverseerStatus(),
     refetchInterval: 30000
   });
+
+  const [isThinking, setIsThinking] = useState(false);
 
   const handleThink = async () => {
     try {
@@ -30,19 +30,15 @@ export function OverseerWidget() {
       setIsThinking(false);
     }
   };
-
-  const [formattedTime, setFormattedTime] = useState<string>('');
-
-  if (!overseerStatus || !overseerStatus.status) return null;
-
-  // Handle client-side only date formatting to prevent hydration mismatch
-  if (overseerStatus.lastThought && !formattedTime) {
-      // This will only run on client after mount/update if we put it in useEffect,
-      // but to be safe and simple, let's just use useEffect.
-  }
   
-  // Use a different approach:
-  const lastThoughtTime = new Date(overseerStatus.lastThought);
+  useEffect(() => {
+    if (error) console.error('Overseer Widget Error:', error);
+    if (overseerStatus) console.log('Overseer Status:', overseerStatus);
+  }, [overseerStatus, error]);
+
+  if (isLoading) return <div className="h-24 w-full bg-muted/50 animate-pulse rounded-lg mb-6" />;
+  if (error) return <div className="text-red-500 text-sm mb-6">System Brain Connection Failed</div>;
+  if (!overseerStatus || !overseerStatus.status) return null;
   
   return (
     <div className="space-y-4">
