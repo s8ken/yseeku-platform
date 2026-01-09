@@ -266,7 +266,7 @@ export default function DashboardPage() {
                   <span className="text-3xl font-bold">{kpis.activeAgents}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {kpis.totalInteractions.toLocaleString()} total interactions
+                  {kpis.totalInteractions?.toLocaleString() || 0} total interactions
                 </p>
                 <div className="flex items-center justify-between mt-2">
                   {kpis.trends?.interactions && <TrendIndicator {...kpis.trends.interactions} />}
