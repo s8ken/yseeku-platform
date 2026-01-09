@@ -140,6 +140,10 @@ function SymbiDimensionCard({
   );
 }
 
+import { api } from '@/lib/api';
+
+// ... (imports)
+
 export default function DashboardPage() {
   const [tenant, setTenant] = useState('default');
   
@@ -154,17 +158,17 @@ export default function DashboardPage() {
 
   const { data: kpiData, isLoading: kpiLoading } = useQuery({
     queryKey: ['kpis', tenant],
-    queryFn: async () => {
-      const response = await fetch(`/api/dashboard/kpis?tenant=${tenant}`);
-      if (!response.ok) throw new Error('Failed to fetch KPIs');
-      return response.json() as Promise<{ success: boolean; data: KPIData }>;
-    },
+    queryFn: () => api.getKPIs(tenant),
   });
 
   const { data: policyStatus } = useQuery({
     queryKey: ['policy-status'],
     queryFn: async () => {
-      const response = await fetch(`/api/dashboard/policy-status`);
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      
+      const response = await fetch(`/api/dashboard/policy-status`, { headers });
       if (!response.ok) throw new Error('Failed to fetch policy status');
       return response.json() as Promise<{ overallPass: boolean; violations: string[] }>;
     },
@@ -172,20 +176,12 @@ export default function DashboardPage() {
 
   const { data: alertData, isLoading: alertLoading } = useQuery({
     queryKey: ['alerts', tenant],
-    queryFn: async () => {
-      const response = await fetch(`/api/dashboard/alerts?tenant=${tenant}`);
-      if (!response.ok) throw new Error('Failed to fetch alerts');
-      return response.json() as Promise<{ success: boolean; data: AlertData }>;
-    },
+    queryFn: () => api.getAlerts(tenant),
   });
 
   const { data: experimentData, isLoading: experimentLoading } = useQuery({
     queryKey: ['experiments', tenant],
-    queryFn: async () => {
-      const response = await fetch(`/api/lab/experiments?tenant=${tenant}`);
-      if (!response.ok) throw new Error('Failed to fetch experiments');
-      return response.json() as Promise<{ success: boolean; data: ExperimentData }>;
-    },
+    queryFn: () => api.getExperiments(),
   });
 
   const kpis = kpiData?.data;
