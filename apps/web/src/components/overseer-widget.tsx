@@ -65,7 +65,13 @@ export function OverseerWidget() {
               <div className="flex items-center gap-4 mt-4 text-xs text-slate-500">
                 <span className="flex items-center gap-1">
                   <Zap size={12} />
-                  Last thought: {new Date(overseerStatus.lastThought).toLocaleTimeString()}
+                  Last thought: {(() => {
+                    try {
+                      return new Date(overseerStatus.lastThought).toLocaleTimeString();
+                    } catch (e) {
+                      return 'Just now';
+                    }
+                  })()}
                 </span>
                 {overseerStatus.metrics && (
                   <span className="flex items-center gap-1">
