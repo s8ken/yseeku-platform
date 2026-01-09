@@ -375,7 +375,7 @@ export default function DashboardPage() {
                     <Zap className="h-5 w-5 text-[var(--detect-primary)]" />
                     <div>
                       <p className="text-xs text-muted-foreground flex items-center gap-1">Resonance Quality <InfoTooltip term="Resonance" /></p>
-                      <p className="font-semibold">{kpis.symbiDimensions.resonanceQuality}</p>
+                      <p className="font-semibold">{kpis.symbiDimensions?.resonanceQuality ?? 'UNKNOWN'}</p>
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -383,7 +383,7 @@ export default function DashboardPage() {
                       <div 
                         key={level}
                         className={`h-2 w-8 rounded-full ${
-                          ['STRONG', 'ADVANCED', 'BREAKTHROUGH'].indexOf(kpis.symbiDimensions.resonanceQuality) >= i
+                          ['STRONG', 'ADVANCED', 'BREAKTHROUGH'].indexOf(kpis.symbiDimensions?.resonanceQuality || '') >= i
                             ? 'bg-[var(--detect-primary)]'
                             : 'bg-muted'
                         }`}
