@@ -31,7 +31,7 @@ export function OverseerWidget() {
     }
   };
 
-  if (!overseerStatus) return null;
+  if (!overseerStatus || !overseerStatus.status) return null;
 
   return (
     <div className="space-y-4">

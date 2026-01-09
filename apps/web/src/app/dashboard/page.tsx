@@ -184,7 +184,7 @@ export default function DashboardPage() {
     queryFn: () => api.getExperiments(),
   });
 
-  const kpis = kpiData?.data;
+  const kpis = kpiData;
   const alerts = alertData?.data;
   const experiments = experimentData?.data;
 
