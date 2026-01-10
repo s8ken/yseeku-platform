@@ -7,6 +7,7 @@ export * from './rbac';
 export * from './audit';
 export * from './rate-limiter';
 export * from './api-keys';
+export * from './secrets-manager';
 
 // Re-export commonly used types and functions
 export {

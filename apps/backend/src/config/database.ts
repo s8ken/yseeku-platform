@@ -4,6 +4,7 @@
  */
 
 import mongoose from 'mongoose';
+import { recordDbQuery } from '../observability/metrics';
 
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/yseeku-platform';
 const MAX_RETRIES = 5;
@@ -31,6 +32,20 @@ export async function connectDatabase(): Promise<void> {
       setTimeout(reconnect, RETRY_INTERVAL);
     });
 
+    // Instrument query execution durations globally
+    const originalExec = (mongoose.Query.prototype as any).exec;
+    (mongoose.Query.prototype as any).exec = async function (...args: any[]) {
+      const start = process.hrtime.bigint();
+      try {
+        return await originalExec.apply(this, args);
+      } finally {
+        const end = process.hrtime.bigint();
+        const durationSec = Number(end - start) / 1e9;
+        const op: string = (this as any).op || 'query';
+        const coll: string = (this as any).model?.collection?.name || 'unknown';
+        recordDbQuery(op, coll, durationSec);
+      }
+    };
   } catch (error) {
     console.error(`❌ MongoDB connection failed (attempt ${retryCount + 1}/${MAX_RETRIES}):`, error);
 

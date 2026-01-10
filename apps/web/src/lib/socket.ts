@@ -25,6 +25,9 @@ class SocketService {
       transports: ['websocket'],
       autoConnect: true,
       reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 500,
+      reconnectionDelayMax: 5000,
     });
 
     this.socket.on('connect', () => {
@@ -33,6 +36,14 @@ class SocketService {
 
     this.socket.on('disconnect', () => {
       console.log('🔌 Disconnected from Trust Protocol Socket');
+    });
+
+    this.socket.io.on('reconnect_attempt', (attempt) => {
+      console.log('🔌 Reconnect attempt', attempt);
+    });
+
+    this.socket.io.on('reconnect_failed', () => {
+      console.error('🔌 Reconnect failed');
     });
 
     this.socket.on('error', (error) => {

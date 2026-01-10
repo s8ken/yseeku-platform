@@ -6,6 +6,8 @@
 import dotenv from 'dotenv';
 // Load environment variables before any other imports
 dotenv.config();
+// Initialize telemetry before other imports when enabled
+import './observability/telemetry';
 
 import express from 'express';
 import http from 'http';
@@ -28,9 +30,14 @@ import tenantRoutes from './routes/tenant.routes';
 import apiGatewayRoutes from './routes/api-gateway.routes';
 import orchestrateRoutes from './routes/orchestrate.routes';
 import overseerRoutes from './routes/overseer.routes';
+import secretsRoutes from './routes/secrets.routes';
 import { initializeSocket } from './socket';
+import { startOverseerScheduler } from './services/brain/scheduler';
 import logger from './utils/logger';
 import { requestLogger, errorLogger } from './middleware/request-logger';
+import { rateLimiter } from './middleware/rate-limit';
+import { httpMetrics } from './middleware/http-metrics';
+import { annotateActiveSpan } from './observability/tracing';
 
 const app = express();
 const server = http.createServer(app);
@@ -55,6 +62,25 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging middleware (all environments)
 app.use(requestLogger);
+
+// Per-user/IP rate limiting
+app.use(rateLimiter);
+
+// HTTP metrics
+app.use(httpMetrics);
+
+// Annotate tracing span with user/tenant and expose trace id
+app.use((req, res, next) => {
+  annotateActiveSpan({
+    'user.id': req.userId || 'anonymous',
+    'tenant.id': req.tenant || 'default',
+    'http.client_ip': req.ip || req.socket.remoteAddress || 'unknown',
+  });
+  const span = require('@opentelemetry/api').trace.getActiveSpan();
+  const traceId = span?.spanContext().traceId;
+  if (traceId) res.setHeader('x-trace-id', traceId);
+  next();
+});
 
 // Root route
 app.get('/', (req, res) => {
@@ -93,6 +119,7 @@ app.use('/api/gateway', apiGatewayRoutes); // API Gateway and Platform Keys
 app.use('/api/orchestrate', orchestrateRoutes); // Multi-Agent Orchestration
 app.use('/api/overseer', overseerRoutes); // System Brain / Overseer
 app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
+app.use('/api/secrets', secretsRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -209,6 +236,8 @@ async function startServer() {
 ╚═══════════════════════════════════════════════════╝
         `);
       }
+
+      startOverseerScheduler().catch(() => {});
     });
   } catch (error: any) {
     logger.error('Failed to start server', {

@@ -4,6 +4,12 @@ import { llmService } from './llm.service';
 import logger from '../utils/logger';
 import { TrustReceiptModel } from '../models/trust-receipt.model';
 import { bedauService } from './bedau.service';
+import { BrainCycle } from '../models/brain-cycle.model';
+import { gatherSensors } from './brain/sensors';
+import { analyzeContext } from './brain/analyzer';
+import { planActions } from './brain/planner';
+import { executeActions } from './brain/executor';
+import { brainCyclesTotal, brainCycleDurationSeconds } from '../observability/metrics';
 
 export class SystemBrainService {
   private static instance: SystemBrainService;
@@ -22,7 +28,7 @@ export class SystemBrainService {
   /**
    * Initialize or retrieve the System Brain agent
    */
-  async initialize(tenantId: string): Promise<IAgent> {
+  async initialize(tenantId: string, userId?: string): Promise<IAgent> {
     const existingBrain = await Agent.findOne({
       'metadata.role': 'system-brain',
       ciModel: 'system-brain'
@@ -33,15 +39,17 @@ export class SystemBrainService {
       return existingBrain;
     }
 
+    // Use provided userId or fallback to a placeholder (though system should always provide one)
+    const ownerId = userId || '000000000000000000000000';
+
     // Create new Brain Agent
     const brain = await Agent.create({
       name: 'YSEEKU Overseer',
       description: 'Autonomous System Governance Agent',
-      // Assuming a system user ID exists or passing one
-      user: '000000000000000000000000', // Placeholder system user ID
+      user: ownerId, 
       provider: 'anthropic', // Anthropic is good for system logic
       model: 'claude-3-opus-20240229',
-      apiKeyId: '000000000000000000000000', // Placeholder
+      apiKeyId: ownerId, // Use user's key (LLMService will fallback to user keys if this ID matches user)
       systemPrompt: `You are the Overseer of the YSEEKU Platform.
 Your goal is to monitor system health, trust metrics, and emergence patterns.
 You have access to:
@@ -69,51 +77,51 @@ Your output should be structured JSON indicating:
   /**
    * Run a "Thinking Cycle" - The Brain reviews the system state
    */
-  async think(tenantId: string) {
+  async think(tenantId: string, mode: 'advisory' | 'enforced' = 'advisory') {
     if (this.isThinking || !this.brainAgentId) return;
     this.isThinking = true;
 
     try {
-      logger.info('🧠 System Brain: Starting thinking cycle...');
-
-      // 1. Gather Context
-      const metrics = await bedauService.getMetrics(tenantId);
-      const recentReceipts = await TrustReceiptModel.find({ tenant_id: tenantId })
-        .sort({ timestamp: -1 })
-        .limit(20)
-        .select('ciq_metrics self_hash timestamp')
-        .lean();
-
-      // 2. Formulate Prompt
-      const context = JSON.stringify({
-        bedau_index: metrics.bedau_index,
-        emergence_class: metrics.emergence_type,
-        recent_trust_scores: recentReceipts.map(r => r.ciq_metrics),
-        timestamp: new Date().toISOString()
+      const start = Date.now();
+      const sensors = await gatherSensors(tenantId);
+      const analysis = analyzeContext({ bedau: sensors.bedau, avgTrust: sensors.avgTrust, receipts: sensors.receipts });
+      const planned = planActions(analysis);
+      const cycle = await BrainCycle.create({
+        tenantId,
+        status: 'started',
+        observations: analysis.observations,
+        actions: planned.map(a => ({ type: a.type, target: a.target, reason: a.reason, status: 'planned' })),
+        inputContext: { bedau: sensors.bedau, avgTrust: sensors.avgTrust },
+        startedAt: new Date()
       });
 
       const brainAgent = await Agent.findById(this.brainAgentId);
       if (!brainAgent) throw new Error('Brain agent not found');
 
-      // 3. Query LLM
       const response = await llmService.generate({
         provider: brainAgent.provider,
         model: brainAgent.model,
         messages: [
           { role: 'system', content: brainAgent.systemPrompt },
-          { role: 'user', content: `Analyze current system state:\n${context}` }
+          { role: 'user', content: `Analyze current system state:\n${JSON.stringify({ bedau: sensors.bedau, avgTrust: sensors.avgTrust })}` }
         ],
-        temperature: brainAgent.temperature
+        temperature: brainAgent.temperature,
+        userId: brainAgent.user.toString() // Use agent owner's key
       });
-
-      // 4. Act on Output
-      logger.info('🧠 System Brain Thought:', { content: response.content });
-      
-      // In a real implementation, we would parse the JSON here and execute actions
-      // e.g. if (actions.includes('ban_agent')) ...
+      const execResults = await executeActions(tenantId, cycle._id.toString(), planned, mode);
+      const durationSeconds = (Date.now() - start) / 1000;
+      await BrainCycle.findByIdAndUpdate(cycle._id, {
+        status: 'completed',
+        llmOutput: response.content,
+        metrics: { durationMs: durationSeconds * 1000 },
+        completedAt: new Date()
+      });
+      brainCyclesTotal.inc({ status: 'completed' });
+      brainCycleDurationSeconds.observe(durationSeconds);
 
     } catch (error: any) {
       logger.error('System Brain thinking error', { error: error.message });
+      brainCyclesTotal.inc({ status: 'failed' });
     } finally {
       this.isThinking = false;
     }

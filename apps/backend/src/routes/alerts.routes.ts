@@ -6,6 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import logger, { securityLogger } from '../utils/logger';
+import { alertsService } from '../services/alerts.service';
 
 const router = Router();
 
@@ -28,7 +29,7 @@ interface Alert {
   conversationId?: string;
 }
 
-// Mock alerts data (in production, fetch from database)
+// Seed alerts (in production, use database)
 const mockAlerts: Alert[] = [
   {
     id: '1',
@@ -109,6 +110,13 @@ const mockAlerts: Alert[] = [
   },
 ];
 
+// Initialize service with seeds
+for (const a of mockAlerts) alertsService.create({
+  type: a.type, title: a.title, description: a.description, severity: a.severity,
+  details: a.details, userId: a.userId, agentId: a.agentId, conversationId: a.conversationId,
+  status: a.status
+});
+
 /**
  * @route   GET /api/dashboard/alerts/management
  * @desc    Get all alerts with filtering
@@ -118,7 +126,7 @@ router.get('/management', protect, async (req: Request, res: Response): Promise<
   try {
     const { status, severity, search } = req.query;
 
-    let filteredAlerts = [...mockAlerts];
+    let filteredAlerts = [...alertsService.list()];
 
     // Filter by status
     if (status && status !== 'all') {
@@ -142,14 +150,15 @@ router.get('/management', protect, async (req: Request, res: Response): Promise<
     }
 
     // Calculate summary
+    const all = alertsService.list();
     const summary = {
-      critical: mockAlerts.filter((a) => a.severity === 'critical').length,
-      error: mockAlerts.filter((a) => a.severity === 'error').length,
-      warning: mockAlerts.filter((a) => a.severity === 'warning').length,
-      info: mockAlerts.filter((a) => a.severity === 'info').length,
-      active: mockAlerts.filter((a) => a.status === 'active').length,
-      acknowledged: mockAlerts.filter((a) => a.status === 'acknowledged').length,
-      resolved: mockAlerts.filter((a) => a.status === 'resolved').length,
+      critical: all.filter((a) => a.severity === 'critical').length,
+      error: all.filter((a) => a.severity === 'error').length,
+      warning: all.filter((a) => a.severity === 'warning').length,
+      info: all.filter((a) => a.severity === 'info').length,
+      active: all.filter((a) => a.status === 'active').length,
+      acknowledged: all.filter((a) => a.status === 'acknowledged').length,
+      resolved: all.filter((a) => a.status === 'resolved').length,
     };
 
     res.json({
@@ -183,8 +192,7 @@ router.get('/management', protect, async (req: Request, res: Response): Promise<
 router.post('/:id/acknowledge', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const alert = mockAlerts.find((a) => a.id === id);
-
+    const alert = alertsService.acknowledge(id, (req as any).userEmail || 'admin@sonate.io');
     if (!alert) {
       res.status(404).json({
         success: false,
@@ -192,19 +200,6 @@ router.post('/:id/acknowledge', protect, async (req: Request, res: Response): Pr
       });
       return;
     }
-
-    if (alert.status !== 'active') {
-      res.status(400).json({
-        success: false,
-        message: 'Alert is not in active status',
-      });
-      return;
-    }
-
-    // Update alert status
-    alert.status = 'acknowledged';
-    alert.acknowledgedBy = (req as any).userEmail || 'admin@sonate.io';
-    alert.acknowledgedAt = new Date().toISOString();
 
     res.json({
       success: true,
@@ -233,7 +228,7 @@ router.post('/:id/acknowledge', protect, async (req: Request, res: Response): Pr
 router.post('/:id/resolve', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const alert = mockAlerts.find((a) => a.id === id);
+    const alert = alertsService.resolve(id, (req as any).userEmail || 'admin@sonate.io');
 
     if (!alert) {
       res.status(404).json({
@@ -243,18 +238,6 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
       return;
     }
 
-    if (alert.status === 'resolved') {
-      res.status(400).json({
-        success: false,
-        message: 'Alert is already resolved',
-      });
-      return;
-    }
-
-    // Update alert status
-    alert.status = 'resolved';
-    alert.resolvedBy = (req as any).userEmail || 'admin@sonate.io';
-    alert.resolvedAt = new Date().toISOString();
 
     res.json({
       success: true,
@@ -337,16 +320,17 @@ router.post('/:id/suppress', protect, async (req: Request, res: Response): Promi
  */
 router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
   try {
-    const alerts = mockAlerts
+    const alerts = alertsService.list()
       .filter((a) => a.status === 'active')
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, 10); // Top 10 recent alerts
 
+    const all = alertsService.list();
     const summary = {
-      critical: mockAlerts.filter((a) => a.severity === 'critical' && a.status === 'active').length,
-      error: mockAlerts.filter((a) => a.severity === 'error' && a.status === 'active').length,
-      warning: mockAlerts.filter((a) => a.severity === 'warning' && a.status === 'active').length,
-      total: mockAlerts.filter((a) => a.status === 'active').length,
+      critical: all.filter((a) => a.severity === 'critical' && a.status === 'active').length,
+      error: all.filter((a) => a.severity === 'error' && a.status === 'active').length,
+      warning: all.filter((a) => a.severity === 'warning' && a.status === 'active').length,
+      total: all.filter((a) => a.status === 'active').length,
     };
 
     res.json({
@@ -372,6 +356,26 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
       message: 'Failed to fetch alerts summary',
       error: error.message,
     });
+  }
+});
+
+/**
+ * @route   POST /api/dashboard/alerts
+ * @desc    Create an alert
+ * @access  Private
+ */
+router.post('/', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { type, title, description, severity, details } = req.body;
+    if (!type || !title || !severity) {
+      res.status(400).json({ success: false, message: 'type, title, severity required' });
+      return;
+    }
+    const alert = alertsService.create({ type, title, description, severity, details, userId: req.userId });
+    res.status(201).json({ success: true, data: alert });
+  } catch (error: any) {
+    logger.error('Create alert error', { error: error.message });
+    res.status(500).json({ success: false, message: 'Failed to create alert', error: error.message });
   }
 });
 

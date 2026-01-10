@@ -1,0 +1,21 @@
+{
+  "title": "Backend HTTP Overview",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "HTTP Requests Total",
+      "targets": [{"expr":"sum by(method,route) (http_requests_total)"}]
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP Request Duration (p95)",
+      "targets": [{"expr":"histogram_quantile(0.95, sum by (le,method,route) (rate(http_request_duration_seconds_bucket[5m])))"}]
+    },
+    {
+      "type": "timeseries",
+      "title": "Error Rate",
+      "targets": [{"expr":"sum(rate(http_requests_total{status_code=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m]))"}]
+    }
+  ]
+}
+

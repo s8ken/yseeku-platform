@@ -4,11 +4,16 @@
  */
 
 import { Server as SocketIOServer, Socket } from 'socket.io';
+import { createAdapter } from '@socket.io/redis-adapter';
+import Redis from 'ioredis';
 import { authService } from '../middleware/auth.middleware';
 import { Conversation, IMessage } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
 import { llmService } from '../services/llm.service';
 import { trustService } from '../services/trust.service';
+import { allow } from './rate-limit';
+import { recordSocketEvent } from '../observability/socket-metrics';
+import { tracer, withSpan } from '../observability/tracing';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -16,6 +21,12 @@ interface AuthenticatedSocket extends Socket {
 }
 
 export function initializeSocket(io: SocketIOServer): void {
+  // Optional Redis adapter for horizontal scaling
+  if (process.env.REDIS_URL) {
+    const pub = new Redis(process.env.REDIS_URL);
+    const sub = new Redis(process.env.REDIS_URL);
+    io.adapter(createAdapter(pub, sub));
+  }
   // Authentication middleware for Socket.IO
   io.use(async (socket: AuthenticatedSocket, next) => {
     try {
@@ -92,6 +103,11 @@ export function initializeSocket(io: SocketIOServer): void {
       generateResponse?: boolean;
     }) => {
       try {
+        if (socket.userId && !allow(socket.userId)) {
+          socket.emit('error', { message: 'Rate limit exceeded' });
+          recordSocketEvent('message:send','error');
+          return;
+        }
         const { conversationId, content, agentId, generateResponse = true } = data;
 
         if (!content) {
@@ -151,6 +167,7 @@ export function initializeSocket(io: SocketIOServer): void {
           conversationId,
           message: userMessage,
         });
+        recordSocketEvent('message:send','ok');
 
         // Generate AI response if requested
         if (generateResponse) {
@@ -182,14 +199,21 @@ export function initializeSocket(io: SocketIOServer): void {
               })),
             ];
 
-            // Generate response
-            const llmResponse = await llmService.generate({
-              provider: agent.provider,
-              model: agent.model,
-              messages,
-              temperature: agent.temperature,
-              maxTokens: agent.maxTokens,
-              userId: socket.userId,
+            // Generate response within trace span
+            const llmResponse = await withSpan('llm.generate', async () => {
+              return llmService.generate({
+                provider: agent.provider,
+                model: agent.model,
+                messages,
+                temperature: agent.temperature,
+                maxTokens: agent.maxTokens,
+                userId: socket.userId,
+              });
+            }, undefined, {
+              'user.id': socket.userId || 'unknown',
+              'agent.id': String(targetAgentId),
+              'llm.provider': agent.provider,
+              'llm.model': agent.model,
             });
 
             // Create AI message

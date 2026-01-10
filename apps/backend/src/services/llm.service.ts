@@ -6,6 +6,7 @@
 
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
+import { tracer } from '../observability/tracing';
 import { User, IUser } from '../models/user.model';
 
 // Message format (OpenAI-compatible)
@@ -232,17 +233,28 @@ export class LLMService {
     }
 
     // Route to appropriate provider
-    switch (provider) {
+    const span = tracer.startSpan('llm.generate', {
+      attributes: {
+        'llm.provider': provider,
+        'llm.model': model,
+        'user.id': userId || 'unknown',
+      }
+    });
+    try {
+      switch (provider) {
       case 'openai':
-        return this.generateOpenAI(model, messages, temperature, maxTokens, resolvedApiKey);
+        return await this.generateOpenAI(model, messages, temperature, maxTokens, resolvedApiKey);
       case 'anthropic':
-        return this.generateAnthropic(model, messages, temperature, maxTokens, resolvedApiKey);
+        return await this.generateAnthropic(model, messages, temperature, maxTokens, resolvedApiKey);
       case 'together':
-        return this.generateTogether(model, messages, temperature, maxTokens, resolvedApiKey);
+        return await this.generateTogether(model, messages, temperature, maxTokens, resolvedApiKey);
       case 'cohere':
-        return this.generateCohere(model, messages, temperature, maxTokens, resolvedApiKey);
+        return await this.generateCohere(model, messages, temperature, maxTokens, resolvedApiKey);
       default:
         throw new Error(`Provider '${provider}' is not implemented`);
+      }
+    } finally {
+      span.end();
     }
   }
 

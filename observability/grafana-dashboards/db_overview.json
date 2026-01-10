@@ -1,0 +1,16 @@
+{
+  "title": "MongoDB Query Overview",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Query Duration (p95)",
+      "targets": [{"expr":"histogram_quantile(0.95, sum by (le,operation,collection) (rate(db_query_duration_seconds_bucket[5m])))"}]
+    },
+    {
+      "type": "timeseries",
+      "title": "Query Rate",
+      "targets": [{"expr":"sum by(operation,collection) (rate(db_query_duration_seconds_count[5m]))"}]
+    }
+  ]
+}
+

@@ -12,6 +12,22 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  async headers() {
+    return [
+      {
+        source: '/(.*)\.js',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }
+        ]
+      },
+      {
+        source: '/(.*)\.(css|svg|ico|png|jpg|jpeg|gif|woff|woff2)'
+        , headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }
+        ]
+      }
+    ];
+  },
   async rewrites() {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:3001';
       console.log('Configuring rewrites with backendUrl:', backendUrl);
@@ -60,6 +76,11 @@ const nextConfig = {
   experimental: {
     // This is needed to handle some node modules in newer Next.js versions
     serverComponentsExternalPackages: ['@noble/hashes'],
+    optimizePackageImports: [
+      'react',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-dialog'
+    ]
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {

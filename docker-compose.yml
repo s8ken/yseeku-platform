@@ -1,0 +1,61 @@
+version: '3.9'
+services:
+  mongo:
+    image: mongo:6
+    container_name: yseeku-mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: yseeku
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: yseeku-backend
+    depends_on:
+      - mongo
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      CORS_ORIGIN: http://localhost:5000
+      MONGO_URI: mongodb://mongo:27017/yseeku
+    ports:
+      - '3001:3001'
+    volumes:
+      - ./apps/backend:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run dev
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: yseeku-web
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+    ports:
+      - '5000:5000'
+    volumes:
+      - ./apps/web:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm run dev
+
+  resonance:
+    build:
+      context: ./apps/resonance-engine
+      dockerfile: Dockerfile
+    container_name: yseeku-resonance
+    ports:
+      - '8001:8001'
+    environment:
+      PYTHONUNBUFFERED: '1'
+
+volumes:
+  mongo_data:
+

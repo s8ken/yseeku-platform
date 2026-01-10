@@ -6,6 +6,9 @@
 
 import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
+import { requireScopes } from '../middleware/rbac.middleware';
+import { llmLimiter } from '../middleware/rate-limiters';
+import { cacheGet, cacheSet } from '../services/cache.service';
 import { llmService, LLM_PROVIDERS } from '../services/llm.service';
 
 const router = Router();
@@ -15,9 +18,12 @@ const router = Router();
  * @desc    Get all available LLM providers
  * @access  Private
  */
-router.get('/providers', protect, async (req: Request, res: Response): Promise<void> => {
+router.get('/providers', protect, requireScopes(['read:all']), llmLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
-    const providers = llmService.getProviders();
+    const cacheKey = 'llm:providers';
+    const cached = await cacheGet<ReturnType<typeof llmService.getProviders>>(cacheKey);
+    const providers = cached || llmService.getProviders();
+    if (!cached) await cacheSet(cacheKey, providers, 600);
 
     res.json({
       success: true,
@@ -38,10 +44,13 @@ router.get('/providers', protect, async (req: Request, res: Response): Promise<v
  * @desc    Get models for a specific provider
  * @access  Private
  */
-router.get('/models/:provider', protect, async (req: Request, res: Response): Promise<void> => {
+router.get('/models/:provider', protect, requireScopes(['read:all']), llmLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { provider } = req.params;
-    const models = llmService.getModels(provider);
+    const cacheKey = `llm:models:${provider}`;
+    const cached = await cacheGet<ReturnType<typeof llmService.getModels>>(cacheKey);
+    const models = cached || llmService.getModels(provider);
+    if (!cached) await cacheSet(cacheKey, models, 600);
 
     res.json({
       success: true,
@@ -65,7 +74,7 @@ router.get('/models/:provider', protect, async (req: Request, res: Response): Pr
  * @access  Private
  * @body    { provider, model, messages, temperature?, maxTokens?, apiKey? }
  */
-router.post('/generate', protect, async (req: Request, res: Response): Promise<void> => {
+router.post('/generate', protect, requireScopes(['llm:generate']), llmLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { provider, model, messages, temperature, maxTokens, apiKey } = req.body;
 
@@ -125,7 +134,7 @@ router.post('/generate', protect, async (req: Request, res: Response): Promise<v
  * @access  Private
  * @body    { provider, model, messages, temperature?, maxTokens?, apiKey? }
  */
-router.post('/stream', protect, async (req: Request, res: Response): Promise<void> => {
+router.post('/stream', protect, requireScopes(['llm:generate']), llmLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { provider, model, messages, temperature, maxTokens, apiKey } = req.body;
 
@@ -197,7 +206,7 @@ router.post('/stream', protect, async (req: Request, res: Response): Promise<voi
  * @access  Private
  * @body    { code, language?, reviewType?, provider?, model?, apiKey? }
  */
-router.post('/code-review', protect, async (req: Request, res: Response): Promise<void> => {
+router.post('/code-review', protect, requireScopes(['llm:code-review']), llmLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { code, language, reviewType, provider, model, apiKey } = req.body;
 
@@ -269,7 +278,7 @@ router.post('/code-review', protect, async (req: Request, res: Response): Promis
  * @access  Private
  * @body    { message, agentId?, provider?, model?, context? }
  */
-router.post('/chat', protect, async (req: Request, res: Response): Promise<void> => {
+router.post('/chat', protect, requireScopes(['llm:generate']), llmLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { message, agentId, provider, model, context } = req.body;
 

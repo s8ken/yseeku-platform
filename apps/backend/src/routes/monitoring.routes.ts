@@ -6,6 +6,8 @@
 import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import logger from '../utils/logger';
+import { getMetrics } from '../observability/metrics';
+import { trace } from '@opentelemetry/api';
 
 const router = Router();
 
@@ -56,77 +58,7 @@ export function setMetric(name: string, value: number) {
  */
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    // Generate Prometheus text format
-    let output = '';
-
-    // Add metadata
-    output += '# HELP sonate_trust_receipts_total Total number of trust receipts generated\n';
-    output += '# TYPE sonate_trust_receipts_total counter\n';
-    output += `sonate_trust_receipts_total ${metrics.sonate_trust_receipts_total}\n\n`;
-
-    output += '# HELP sonate_trust_verifications_total Total number of trust verifications performed\n';
-    output += '# TYPE sonate_trust_verifications_total counter\n';
-    output += `sonate_trust_verifications_total ${metrics.sonate_trust_verifications_total}\n\n`;
-
-    output += '# HELP sonate_resonance_receipts_total Total number of resonance receipts generated\n';
-    output += '# TYPE sonate_resonance_receipts_total counter\n';
-    output += `sonate_resonance_receipts_total ${metrics.sonate_resonance_receipts_total}\n\n`;
-
-    output += '# HELP sonate_active_workflows Number of currently active workflows\n';
-    output += '# TYPE sonate_active_workflows gauge\n';
-    output += `sonate_active_workflows ${metrics.sonate_active_workflows}\n\n`;
-
-    output += '# HELP sonate_active_agents Number of currently active agents\n';
-    output += '# TYPE sonate_active_agents gauge\n';
-    output += `sonate_active_agents ${metrics.sonate_active_agents}\n\n`;
-
-    output += '# HELP sonate_security_alerts_total Total number of security alerts\n';
-    output += '# TYPE sonate_security_alerts_total counter\n';
-    output += `sonate_security_alerts_total ${metrics.sonate_security_alerts_total}\n\n`;
-
-    output += '# HELP sonate_http_requests_total Total number of HTTP requests\n';
-    output += '# TYPE sonate_http_requests_total counter\n';
-    output += `sonate_http_requests_total ${metrics.sonate_http_requests_total}\n\n`;
-
-    output += '# HELP sonate_workflow_failures_total Total number of workflow failures\n';
-    output += '# TYPE sonate_workflow_failures_total counter\n';
-    output += `sonate_workflow_failures_total ${metrics.sonate_workflow_failures_total}\n\n`;
-
-    output += '# HELP sonate_auth_failures_total Total number of authentication failures\n';
-    output += '# TYPE sonate_auth_failures_total counter\n';
-    output += `sonate_auth_failures_total ${metrics.sonate_auth_failures_total}\n\n`;
-
-    output += '# HELP sonate_agent_operations_total Total number of agent operations\n';
-    output += '# TYPE sonate_agent_operations_total counter\n';
-    output += `sonate_agent_operations_total ${metrics.sonate_agent_operations_total}\n\n`;
-
-    output += '# HELP sonate_cache_operations_total Total number of cache operations\n';
-    output += '# TYPE sonate_cache_operations_total counter\n';
-    output += `sonate_cache_operations_total ${metrics.sonate_cache_operations_total}\n\n`;
-
-    output += '# HELP sonate_external_api_calls_total Total number of external API calls\n';
-    output += '# TYPE sonate_external_api_calls_total counter\n';
-    output += `sonate_external_api_calls_total ${metrics.sonate_external_api_calls_total}\n\n`;
-
-    output += '# HELP sonate_rate_limit_hits_total Total number of rate limit hits\n';
-    output += '# TYPE sonate_rate_limit_hits_total counter\n';
-    output += `sonate_rate_limit_hits_total ${metrics.sonate_rate_limit_hits_total}\n\n`;
-
-    output += '# HELP sonate_trust_score Trust score histogram\n';
-    output += '# TYPE sonate_trust_score histogram\n';
-    output += `sonate_trust_score_sum 0\n`;
-    output += `sonate_trust_score_count 0\n\n`;
-
-    output += '# HELP sonate_workflow_duration_seconds Workflow duration histogram\n';
-    output += '# TYPE sonate_workflow_duration_seconds histogram\n';
-    output += `sonate_workflow_duration_seconds_sum 0\n`;
-    output += `sonate_workflow_duration_seconds_count 0\n\n`;
-
-    output += '# HELP sonate_db_query_duration_seconds Database query duration histogram\n';
-    output += '# TYPE sonate_db_query_duration_seconds histogram\n';
-    output += `sonate_db_query_duration_seconds_sum 0\n`;
-    output += `sonate_db_query_duration_seconds_count 0\n\n`;
-
+    const output = await getMetrics();
     res.set('Content-Type', 'text/plain; version=0.0.4');
     res.send(output);
   } catch (error: any) {
@@ -224,6 +156,30 @@ router.get('/health', async (req: Request, res: Response): Promise<void> => {
         },
       },
     });
+  }
+});
+
+/**
+ * @route   GET /api/observability/test-trace
+ * @desc    Generate a sanity trace to verify OTEL/Jaeger wiring
+ * @access  Public
+ */
+router.get('/observability/test-trace', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const tracer = trace.getTracer('yseeku-backend');
+    const span = tracer.startSpan('sanity_trace', {
+      attributes: {
+        component: 'backend',
+        route: '/api/observability/test-trace',
+      }
+    });
+    span.addEvent('sanity_trace_start');
+    await new Promise(resolve => setTimeout(resolve, 50));
+    span.addEvent('sanity_trace_end');
+    span.end();
+    res.json({ success: true, message: 'Trace emitted' });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: 'Failed to emit trace', error: error.message });
   }
 });
 

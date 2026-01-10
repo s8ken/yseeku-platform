@@ -21,6 +21,7 @@
     "demo:interactive": "npm run dev --workspace @sonate/new-demo"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@supabase/supabase-js": "^2.89.0",
     "@types/node": "^20.0.0",
     "c8": "^9.1.0",

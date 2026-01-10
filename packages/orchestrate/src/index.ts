@@ -34,3 +34,5 @@ export * from './audit-trails';
 
 // LVS Agent Orchestration
 export * from './lvs-agent-orchestrator';
+export * from './observability/metrics';
+export { createSecretsManager, type SecretsManager, AWSKMSSecretsManager, HashiCorpVaultSecretsManager, LocalSecretsManager } from './security/secrets-manager';

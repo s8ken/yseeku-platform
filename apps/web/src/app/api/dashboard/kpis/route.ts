@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPool, ensureSchema } from '@/lib/db';
+import { cacheGet, cacheSet } from '@/lib/cache';
 
 export async function GET(request: NextRequest) {
   const tenant = request.nextUrl.searchParams.get('tenant') || 'default';
+  const cacheKey = `kpis:${tenant}`;
+  const cached = cacheGet<any>(cacheKey);
+  if (cached) {
+    return NextResponse.json({ success: true, data: cached });
+  }
   
   await ensureSchema();
   const pool = getPool();
@@ -103,6 +109,7 @@ export async function GET(request: NextRequest) {
       }
     };
     
+    cacheSet(cacheKey, kpiData, 60);
     return NextResponse.json({ success: true, data: kpiData });
   } catch (error) {
     console.error('Error fetching dynamic KPIs:', error);

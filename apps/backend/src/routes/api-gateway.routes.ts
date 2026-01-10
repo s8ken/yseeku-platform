@@ -10,6 +10,8 @@ import { protect } from '../middleware/auth.middleware';
 import { PlatformApiKey } from '../models/platform-api-key.model';
 import { logSuccess, logFailure } from '../utils/audit-logger';
 import logger from '../utils/logger';
+import { requireScopes } from '../middleware/rbac.middleware';
+import { apiGatewayLimiter } from '../middleware/rate-limiters';
 
 const router = Router();
 
@@ -26,7 +28,7 @@ const generateApiKey = (env = 'live') => {
  * GET /api/gateway/keys
  * List all platform API keys for the current user/tenant
  */
-router.get('/keys', protect, async (req: Request, res: Response): Promise<void> => {
+router.get('/keys', protect, requireScopes(['gateway:manage']), apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const userTenant = req.userTenant || 'default';
     
@@ -66,7 +68,7 @@ router.get('/keys', protect, async (req: Request, res: Response): Promise<void> 
  * POST /api/gateway/keys
  * Create a new platform API key
  */
-router.post('/keys', protect, async (req: Request, res: Response): Promise<void> => {
+router.post('/keys', protect, requireScopes(['gateway:manage']), apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, scopes, expiresIn } = req.body;
     const userTenant = req.userTenant || 'default';
@@ -141,7 +143,7 @@ router.post('/keys', protect, async (req: Request, res: Response): Promise<void>
  * DELETE /api/gateway/keys/:id
  * Revoke (delete) an API key
  */
-router.delete('/keys/:id', protect, async (req: Request, res: Response): Promise<void> => {
+router.delete('/keys/:id', protect, requireScopes(['gateway:manage']), apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const userTenant = req.userTenant || 'default';
@@ -186,7 +188,7 @@ router.delete('/keys/:id', protect, async (req: Request, res: Response): Promise
  * PUT /api/gateway/keys/:id
  * Update API key (name, scopes, status)
  */
-router.put('/keys/:id', protect, async (req: Request, res: Response): Promise<void> => {
+router.put('/keys/:id', protect, requireScopes(['gateway:manage']), apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { name, status, scopes } = req.body;

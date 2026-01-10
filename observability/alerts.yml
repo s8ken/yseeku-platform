@@ -1,0 +1,35 @@
+groups:
+  - name: backend-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: sum(rate(http_requests_total{status_code=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High HTTP 5xx error rate
+          description: More than 5% of requests are failing with 5xx.
+      - alert: SlowHttpP95
+        expr: histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket[5m]))) > 2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: HTTP p95 latency above 2s
+          description: 95th percentile of request latency exceeds 2 seconds.
+      - alert: DBQueryLatencyHigh
+        expr: histogram_quantile(0.95, sum by (le) (rate(db_query_duration_seconds_bucket[5m]))) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: DB query p95 latency above 500ms
+          description: 95th percentile of DB query duration exceeds 0.5s.
+      - alert: SocketRpsSpike
+        expr: sum by(event) (rate(socket_events_total[1m])) > 100
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Socket.IO events RPS spike
+          description: Socket.IO event rate exceeded 100 RPS for more than 2 minutes.
