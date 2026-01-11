@@ -148,7 +148,7 @@ export const overrideService = {
     ];
 
     const [history, total] = await Promise.all([
-      OverrideDecision.aggregate(pipeline),
+      OverrideDecision.aggregate(pipeline as any[]),
       OverrideDecision.countDocuments(match)
     ]);
 

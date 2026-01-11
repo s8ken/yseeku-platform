@@ -6,7 +6,7 @@ export interface IBrainAction extends Document {
   type: string;
   target: string;
   reason?: string;
-  status: 'planned' | 'approved' | 'executed' | 'failed' | 'skipped';
+  status: 'planned' | 'approved' | 'executed' | 'failed' | 'skipped' | 'overridden';
   result?: Record<string, any>;
   approvedBy?: string;
   executedAt?: Date;
@@ -19,7 +19,7 @@ const BrainActionSchema = new Schema<IBrainAction>({
   type: { type: String, required: true },
   target: { type: String, required: true },
   reason: { type: String },
-  status: { type: String, enum: ['planned', 'approved', 'executed', 'failed', 'skipped'], default: 'planned', index: true },
+  status: { type: String, enum: ['planned', 'approved', 'executed', 'failed', 'skipped', 'overridden'], default: 'planned', index: true },
   result: { type: Schema.Types.Mixed },
   approvedBy: { type: String },
   executedAt: { type: Date },

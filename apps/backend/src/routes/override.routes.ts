@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { protect, requireTenant, requireScopes } from '../middleware/auth.middleware';
+import { protect, requireTenant } from '../middleware/auth.middleware';
+import { requireScopes } from '../middleware/rbac.middleware';
 import { bindTenantContext } from '../middleware/tenant-context.middleware';
 import { overrideService } from '../services/override.service';
 import logger from '../utils/logger';
@@ -228,7 +229,7 @@ router.post('/bulk', protect, bindTenantContext, requireTenant, requireScopes(['
           userId,
           tenantId
         });
-        results.push({ actionId, success: true, ...result });
+        results.push({ actionId, ...result, processed: true });
       } catch (error: any) {
         errors.push({ actionId, error: error.message });
       }

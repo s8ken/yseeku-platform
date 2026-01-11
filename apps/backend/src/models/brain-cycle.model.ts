@@ -4,7 +4,7 @@ export interface IBrainActionRef {
   type: string;
   target: string;
   reason?: string;
-  status: 'planned' | 'approved' | 'executed' | 'failed' | 'skipped';
+  status: 'planned' | 'approved' | 'executed' | 'failed' | 'skipped' | 'overridden';
 }
 
 export interface IBrainMetrics {
@@ -39,7 +39,7 @@ const BrainCycleSchema = new Schema<IBrainCycle>({
     type: { type: String },
     target: { type: String },
     reason: { type: String },
-    status: { type: String, enum: ['planned', 'approved', 'executed', 'failed', 'skipped'], default: 'planned' }
+    status: { type: String, enum: ['planned', 'approved', 'executed', 'failed', 'skipped', 'overridden'], default: 'planned' }
   }],
   inputContext: { type: Schema.Types.Mixed, default: {} },
   llmOutput: { type: String },
