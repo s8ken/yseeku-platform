@@ -145,7 +145,11 @@ export async function logAudit(params: AuditLogParams): Promise<void> {
 /**
  * Extract request metadata for audit logging
  */
-export function extractRequestMetadata(req: Request): {
+export function extractRequestMetadata(
+  req: Request & {
+    sessionId?: string
+  }
+): {
   ipAddress?: string;
   userAgent?: string;
   sessionId?: string;
@@ -161,7 +165,11 @@ export function extractRequestMetadata(req: Request): {
  * Helper to log audit from Express request context
  */
 export async function logAuditFromRequest(
-  req: Request,
+  req: Request & {
+    userId?: string
+    userEmail?: string
+    userTenant?: string
+  },
   action: AuditAction,
   resourceType: ResourceType,
   resourceId: string,
@@ -198,7 +206,11 @@ export async function logAuditFromRequest(
  * Helper to log successful operations
  */
 export async function logSuccess(
-  req: Request,
+  req: Request & {
+    userId?: string
+    userEmail?: string
+    userTenant?: string
+  },
   action: AuditAction,
   resourceType: ResourceType,
   resourceId: string,
@@ -215,7 +227,11 @@ export async function logSuccess(
  * Helper to log failed operations
  */
 export async function logFailure(
-  req: Request,
+  req: Request & {
+    userId?: string
+    userEmail?: string
+    userTenant?: string
+  },
   action: AuditAction,
   resourceType: ResourceType,
   resourceId: string,
@@ -239,7 +255,11 @@ export async function logFailure(
  * Helper to log warnings
  */
 export async function logWarning(
-  req: Request,
+  req: Request & {
+    userId?: string
+    userEmail?: string
+    userTenant?: string
+  },
   action: AuditAction,
   resourceType: ResourceType,
   resourceId: string,
@@ -260,7 +280,11 @@ export async function logWarning(
  * Helper to log critical security events
  */
 export async function logSecurityEvent(
-  req: Request,
+  req: Request & {
+    userId?: string
+    userEmail?: string
+    userTenant?: string
+  },
   action: AuditAction,
   resourceType: ResourceType,
   resourceId: string,
