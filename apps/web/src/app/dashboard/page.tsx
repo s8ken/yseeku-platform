@@ -299,17 +299,17 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className={kpis.alertsCount > 5 ? 'border-l-4 border-l-amber-500' : ''}>
+            <Card className={(alerts?.summary?.total || kpis.alertsCount) > 5 ? 'border-l-4 border-l-amber-500' : ''}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">Active Alerts</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{kpis.alertsCount}</span>
+                  <span className="text-3xl font-bold">{alerts?.summary?.total ?? kpis.alertsCount}</span>
                 </div>
                 <div className="flex gap-2 mt-2">
-                  {alerts && (
+                  {alerts?.summary && (
                     <>
                       <span className="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
                         {alerts.summary.critical} critical
