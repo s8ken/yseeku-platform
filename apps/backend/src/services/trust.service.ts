@@ -18,6 +18,7 @@ import {
   CanvasParityCalculator,
 } from '@sonate/detect';
 import { IMessage } from '../models/conversation.model';
+import { keysService } from './keys.service';
 
 export interface TrustEvaluation {
   // From TrustProtocol (@sonate/core)
@@ -30,6 +31,7 @@ export interface TrustEvaluation {
   // Trust Receipt
   receipt: TrustReceipt;
   receiptHash: string;
+  signature?: string;  // Ed25519 signature
 
   // Metadata
   timestamp: number;
@@ -125,12 +127,22 @@ export class TrustService {
       },
     });
 
+    // Sign the receipt with Ed25519
+    try {
+      const privateKey = await keysService.getPrivateKey();
+      await receipt.sign(privateKey);
+    } catch (error: any) {
+      console.warn('Failed to sign trust receipt:', error.message);
+      // Continue without signature - verification will handle unsigned receipts
+    }
+
     return {
       trustScore,
       status,
       detection,
       receipt,
       receiptHash: receipt.self_hash,
+      signature: receipt.signature,
       timestamp: Date.now(),
       messageId: message.metadata?.messageId,
       conversationId: context.conversationId,
@@ -287,12 +299,26 @@ export class TrustService {
   }
 
   /**
-   * Verify a trust receipt
+   * Verify a trust receipt's cryptographic signature
    */
-  verifyReceipt(receipt: TrustReceipt): boolean {
-    // TrustReceipt has built-in verification
-    // This would check cryptographic signature if implemented
-    return receipt.self_hash.length > 0;
+  async verifyReceipt(receipt: TrustReceipt): Promise<boolean> {
+    // Check if receipt has a signature
+    if (!receipt.signature) {
+      console.warn('Receipt has no signature');
+      return false;
+    }
+
+    try {
+      // Get public key for verification
+      const publicKey = await keysService.getPublicKey();
+
+      // Verify the signature
+      const isValid = await receipt.verify(publicKey);
+      return isValid;
+    } catch (error: any) {
+      console.error('Receipt verification failed:', error.message);
+      return false;
+    }
   }
 
   /**

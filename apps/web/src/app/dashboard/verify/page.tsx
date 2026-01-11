@@ -35,6 +35,10 @@ interface VerificationResult {
   timestamp?: string;
   violations?: string[];
   error?: string;
+  signatureValid?: boolean;
+  hashValid?: boolean;
+  foundInDatabase?: boolean;
+  publicKey?: string;
 }
 
 export default function VerifyPage() {
@@ -160,6 +164,10 @@ export default function VerifyPage() {
         status: receipt.ciq_metrics?.status || receipt.status || 'UNKNOWN',
         timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
         violations: receipt.ciq_metrics?.violations || receipt.trustScore?.violations || [],
+        signatureValid: response.data?.verification?.signatureValid,
+        hashValid: response.data?.verification?.hashValid,
+        foundInDatabase: response.data?.foundInDatabase,
+        publicKey: response.data?.verification?.publicKey,
       };
 
       setVerificationResult(result);
@@ -364,6 +372,45 @@ export default function VerifyPage() {
                   </p>
                 </div>
               )}
+
+              {/* Cryptographic Verification Details */}
+              <div className="space-y-2 pt-2 border-t">
+                <Label className="text-xs text-muted-foreground">Verification Details</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className={`flex items-center gap-2 p-2 rounded text-sm ${
+                    verificationResult.signatureValid
+                      ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                  }`}>
+                    {verificationResult.signatureValid ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                    <span>Signature {verificationResult.signatureValid ? 'Valid' : 'N/A'}</span>
+                  </div>
+                  <div className={`flex items-center gap-2 p-2 rounded text-sm ${
+                    verificationResult.hashValid
+                      ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                  }`}>
+                    {verificationResult.hashValid ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                    <span>Hash {verificationResult.hashValid ? 'Valid' : 'N/A'}</span>
+                  </div>
+                  <div className={`flex items-center gap-2 p-2 rounded text-sm ${
+                    verificationResult.foundInDatabase
+                      ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                  }`}>
+                    {verificationResult.foundInDatabase ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                    <span>In Database</span>
+                  </div>
+                </div>
+                {verificationResult.publicKey && (
+                  <div className="mt-2">
+                    <Label className="text-xs text-muted-foreground">Signing Public Key (Ed25519)</Label>
+                    <code className="block mt-1 text-xs bg-white dark:bg-slate-950 px-2 py-1 rounded border font-mono break-all">
+                      {verificationResult.publicKey}
+                    </code>
+                  </div>
+                )}
+              </div>
 
               {verificationResult.violations && verificationResult.violations.length > 0 && (
                 <div className="space-y-2">

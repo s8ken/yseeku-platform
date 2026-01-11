@@ -350,29 +350,51 @@ router.post('/receipts/:receiptHash/verify', protect, async (req: Request, res: 
       }
     }
 
-    // Determine validity: found in database OR has valid structure
-    let isValid = foundInDatabase;
+    // Determine validity through multiple verification methods
+    let isValid = false;
     let hashValid = false;
+    let signatureValid = false;
 
-    // Try to verify hash if receipt has proper structure
+    // Method 1: Try cryptographic signature verification if receipt has proper structure
     if (receipt.version && receipt.session_id && receipt.timestamp && receipt.mode && receipt.ciq_metrics) {
       try {
         // Normalize self_hash
         if (!receipt.self_hash && receiptHashValue) {
           receipt.self_hash = receiptHashValue;
         }
+
         const trustReceipt = new TrustReceipt(receipt);
-        // Compare recalculated hash with provided hash
+
+        // Check if hash matches (recalculate and compare)
         hashValid = trustReceipt.self_hash === receiptHashValue;
-        if (hashValid) isValid = true;
+
+        // If receipt has a signature, verify it cryptographically
+        if (receipt.signature) {
+          trustReceipt.signature = receipt.signature;
+          signatureValid = await trustService.verifyReceipt(trustReceipt);
+          if (signatureValid) isValid = true;
+        } else if (hashValid) {
+          // No signature but hash is valid - partial verification
+          isValid = true;
+        }
       } catch (e) {
-        // Structure verification failed, rely on database lookup
+        // Structure verification failed
+        console.warn('Cryptographic verification failed:', e);
       }
     }
 
-    // If found in database, consider it valid
-    if (foundInDatabase) {
+    // Method 2: Database lookup as fallback
+    if (!isValid && foundInDatabase) {
       isValid = true;
+    }
+
+    // Get public key for response (so clients can verify independently)
+    let publicKey: string | undefined;
+    try {
+      const { keysService } = require('../services/keys.service');
+      publicKey = await keysService.getPublicKeyHex();
+    } catch (e) {
+      // Keys service not available
     }
 
     res.json({
@@ -385,9 +407,11 @@ router.post('/receipts/:receiptHash/verify', protect, async (req: Request, res: 
           ...receipt,
         },
         verification: {
-          hashValid: hashValid || foundInDatabase,
+          signatureValid,
+          hashValid,
           inDatabase: foundInDatabase,
           verifiedAt: new Date().toISOString(),
+          publicKey, // Include public key for independent verification
         },
       },
     });
@@ -422,6 +446,36 @@ router.get('/principles', protect, async (req: Request, res: Response): Promise<
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve principles',
+      message: error.message,
+    });
+  }
+});
+
+/**
+ * GET /api/trust/signing-key
+ * Get the public key used for signing trust receipts
+ */
+router.get('/signing-key', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { keysService } = require('../services/keys.service');
+    await keysService.initialize();
+
+    const publicKey = await keysService.getPublicKeyHex();
+
+    res.json({
+      success: true,
+      data: {
+        publicKey,
+        algorithm: 'Ed25519',
+        usage: 'Trust receipt signature verification',
+        format: 'hex',
+      },
+    });
+  } catch (error: any) {
+    console.error('Get signing key error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve signing key',
       message: error.message,
     });
   }
