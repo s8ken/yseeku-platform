@@ -1,11 +1,14 @@
 
 import { Router, Request, Response } from 'express';
-import { protect } from '../middleware/auth.middleware';
+import { protect, requireTenant } from '../middleware/auth.middleware';
 import { requireScopes } from '../middleware/rbac.middleware';
 import { systemBrain } from '../services/system-brain.service';
 import logger from '../utils/logger';
 import { BrainCycle } from '../models/brain-cycle.model';
 import { BrainAction } from '../models/brain-action.model';
+import { Agent } from '../models/agent.model';
+import { settingsService } from '../services/settings.service';
+import { logAudit } from '../utils/audit-logger';
 
 const router = Router();
 
@@ -13,7 +16,7 @@ const router = Router();
  * POST /api/overseer/init
  * Initialize the Overseer agent if it doesn't exist
  */
-router.post('/init', protect, requireScopes(['overseer:plan']), async (req: Request, res: Response): Promise<void> => {
+router.post('/init', protect, requireTenant, requireScopes(['overseer:plan']), async (req: Request, res: Response): Promise<void> => {
   try {
     const userTenant = req.userTenant || 'default';
     const userId = req.userId;
@@ -34,7 +37,7 @@ router.post('/init', protect, requireScopes(['overseer:plan']), async (req: Requ
  * POST /api/overseer/think
  * Trigger a thinking cycle manually
  */
-router.post('/think', protect, requireScopes(['overseer:plan']), async (req: Request, res: Response): Promise<void> => {
+router.post('/think', protect, requireTenant, requireScopes(['overseer:plan']), async (req: Request, res: Response): Promise<void> => {
   try {
     const userTenant = req.userTenant || 'default';
     const mode = (req.query.mode as any) || (req.body?.mode as any) || 'advisory';
@@ -55,7 +58,7 @@ router.post('/think', protect, requireScopes(['overseer:plan']), async (req: Req
   }
 });
 
-router.get('/cycles', protect, requireScopes(['overseer:read']), async (req: Request, res: Response): Promise<void> => {
+router.get('/cycles', protect, requireTenant, requireScopes(['overseer:read']), async (req: Request, res: Response): Promise<void> => {
   try {
     const tenant = req.userTenant || 'default';
     const cycles = await BrainCycle.find({ tenantId: tenant }).sort({ startedAt: -1 }).limit(50);
@@ -66,7 +69,7 @@ router.get('/cycles', protect, requireScopes(['overseer:read']), async (req: Req
   }
 });
 
-router.get('/cycles/:id', protect, requireScopes(['overseer:read']), async (req: Request, res: Response): Promise<void> => {
+router.get('/cycles/:id', protect, requireTenant, requireScopes(['overseer:read']), async (req: Request, res: Response): Promise<void> => {
   try {
     const cycle = await BrainCycle.findById(req.params.id);
     if (!cycle) { res.status(404).json({ success: false, message: 'Not found' }); return; }
@@ -78,7 +81,7 @@ router.get('/cycles/:id', protect, requireScopes(['overseer:read']), async (req:
   }
 });
 
-router.post('/actions/:id/approve', protect, requireScopes(['overseer:act']), async (req: Request, res: Response): Promise<void> => {
+router.post('/actions/:id/approve', protect, requireTenant, requireScopes(['overseer:act']), async (req: Request, res: Response): Promise<void> => {
   try {
     const action = await BrainAction.findByIdAndUpdate(req.params.id, { status: 'approved', approvedBy: (req as any).userEmail || 'system' }, { new: true });
     if (!action) { res.status(404).json({ success: false, message: 'Not found' }); return; }
@@ -90,10 +93,77 @@ router.post('/actions/:id/approve', protect, requireScopes(['overseer:act']), as
 });
 
 /**
+ * POST /api/overseer/actions/:id/override
+ * Human override: revert or cancel effects of an executed action
+ */
+router.post('/actions/:id/override', protect, requireTenant, requireScopes(['overseer:act']), async (req: Request, res: Response): Promise<void> => {
+  try {
+    const action = await BrainAction.findById(req.params.id);
+    if (!action) { res.status(404).json({ success: false, message: 'Not found' }); return; }
+
+    const tenantId = req.userTenant || 'default';
+    const by = (req as any).userEmail || 'admin';
+
+    let reverted = false;
+    let details: Record<string, any> = {};
+
+    switch (action.type) {
+      case 'adjust_threshold': {
+        const prev = (action.result as any)?.previousValue;
+        if (prev !== undefined) {
+          await settingsService.setTrustThreshold(tenantId, prev);
+          reverted = true;
+          details = { previousValue: prev };
+        }
+        break;
+      }
+      case 'ban_agent':
+      case 'restrict_agent':
+      case 'quarantine_agent': {
+        const agent = await Agent.findById(action.target);
+        if (!agent) { throw new Error('Agent not found for override'); }
+        await agent.unban();
+        reverted = true;
+        details = { agentId: agent._id.toString(), restored: true };
+        break;
+      }
+      case 'alert': {
+        reverted = true; // informational only
+        details = { alert: 'informational' };
+        break;
+      }
+      default:
+        break;
+    }
+
+    action.status = 'executed';
+    action.result = { ...(action.result || {}), overridden: true, overriddenBy: by, details };
+    await action.save();
+
+    await logAudit({
+      action: 'config_update',
+      resourceType: 'system',
+      resourceId: action._id.toString(),
+      userId: by,
+      userEmail: by,
+      tenantId,
+      severity: reverted ? 'warning' : 'info',
+      outcome: reverted ? 'success' : 'partial',
+      details: { overrideOf: action.type, target: action.target, reverted },
+    });
+
+    res.json({ success: true, data: { overridden: true, reverted, details } });
+  } catch (error: any) {
+    logger.error('Overseer override action error', { error: error.message });
+    res.status(500).json({ success: false, message: 'Failed to override action' });
+  }
+});
+
+/**
  * GET /api/overseer/status
  * Get the latest status from the Overseer including last brain cycle
  */
-router.get('/status', protect, async (req: Request, res: Response): Promise<void> => {
+router.get('/status', protect, requireTenant, async (req: Request, res: Response): Promise<void> => {
   try {
     const tenant = req.userTenant || 'default';
 

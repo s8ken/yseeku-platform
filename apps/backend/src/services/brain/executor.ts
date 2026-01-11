@@ -7,6 +7,7 @@ import { Conversation } from '../../models/conversation.model';
 import { logAudit, AuditAction } from '../../utils/audit-logger';
 import logger from '../../utils/logger';
 import { remember } from './memory';
+import { checkKernelConstraints } from './constraints';
 
 export interface PlannedAction {
   type: string;
@@ -47,6 +48,47 @@ export async function executeActions(
 
     // Execute actions only in enforced mode
     if (mode === 'enforced') {
+      // Kernel constraints & refusal logic
+      const check = checkKernelConstraints(tenantId, mode, a)
+      if (!check.ok) {
+        doc.status = 'failed'
+        doc.result = { refused: true, rule: check.rule, reason: check.reason, details: check.details }
+        await doc.save()
+        await remember(tenantId, 'refusal:kernel', {
+          actionId: doc._id.toString(),
+          type: a.type,
+          target: a.target,
+          rule: check.rule,
+          reason: check.reason,
+          cycleId,
+          timestamp: new Date(),
+        }, ['refusal','kernel',a.type])
+        await logAudit({
+          action: 'alert_suppress',
+          resourceType: 'system',
+          resourceId: cycleId,
+          userId: 'system-brain',
+          tenantId,
+          severity: 'warning',
+          outcome: 'failure',
+          details: { refusedAction: a.type, target: a.target, rule: check.rule, reason: check.reason }
+        })
+        // Emit informational alert
+        alertsService.create({
+          type: 'system',
+          title: 'Overseer Refusal',
+          description: `Refused ${a.type}: ${check.reason}`,
+          severity: 'warning',
+          details: { tenantId, target: a.target, rule: check.rule }
+        })
+        // Update results array
+        const idx = results.findIndex(r => r.id === doc._id.toString())
+        if (idx >= 0) {
+          results[idx].status = 'failed'
+          results[idx].result = { refused: true, rule: check.rule, reason: check.reason }
+        }
+        continue
+      }
       try {
         switch (a.type) {
           case 'alert':
