@@ -5,6 +5,8 @@ import { settingsService } from '../settings.service';
 import { Agent, BanSeverity } from '../../models/agent.model';
 import { Conversation } from '../../models/conversation.model';
 import { logAudit, AuditAction } from '../../utils/audit-logger';
+import { sonateRefusalsTotal, sonateRefusalLatencySeconds } from '../../observability/metrics';
+import { v4 as uuidv4 } from 'uuid';
 import logger from '../../utils/logger';
 import { remember } from './memory';
 import { checkKernelConstraints } from './constraints';
@@ -49,6 +51,7 @@ export async function executeActions(
     // Execute actions only in enforced mode
     if (mode === 'enforced') {
       // Kernel constraints & refusal logic
+      const startMs = Date.now()
       const check = checkKernelConstraints(tenantId, mode, a)
       if (!check.ok) {
         doc.status = 'failed'
@@ -63,6 +66,10 @@ export async function executeActions(
           cycleId,
           timestamp: new Date(),
         }, ['refusal','kernel',a.type])
+        sonateRefusalsTotal.inc({ reason: String(check.rule || 'unknown'), tenant_id: tenantId })
+        sonateRefusalLatencySeconds.observe({ reason: String(check.rule || 'unknown'), tenant_id: tenantId }, (Date.now() - startMs) / 1000)
+        const correlationId = uuidv4()
+        sonateRefusalsTotal.inc({ reason: String(check.rule || 'unknown'), tenant_id: tenantId })
         await logAudit({
           action: 'alert_suppress',
           resourceType: 'system',
@@ -71,7 +78,7 @@ export async function executeActions(
           tenantId,
           severity: 'warning',
           outcome: 'failure',
-          details: { refusedAction: a.type, target: a.target, rule: check.rule, reason: check.reason }
+          details: { refusedAction: a.type, target: a.target, rule: check.rule, reason: check.reason, correlationId }
         })
         // Emit informational alert
         alertsService.create({

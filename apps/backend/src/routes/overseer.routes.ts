@@ -9,6 +9,7 @@ import { BrainAction } from '../models/brain-action.model';
 import { Agent } from '../models/agent.model';
 import { settingsService } from '../services/settings.service';
 import { logAudit } from '../utils/audit-logger';
+import { sonateOverridesTotal } from '../observability/metrics';
 
 const router = Router();
 
@@ -103,6 +104,10 @@ router.post('/actions/:id/override', protect, requireTenant, requireScopes(['ove
 
     const tenantId = req.userTenant || 'default';
     const by = (req as any).userEmail || 'admin';
+    const rawReason = String((req.body as any)?.reason || '');
+    const reason = rawReason.trim().slice(0, 1000);
+    const requireJustification = ['ban_agent','restrict_agent','quarantine_agent'].includes(action.type);
+    if (requireJustification && reason.length < 3) { res.status(400).json({ success: false, message: 'Justification required' }); return; }
 
     let reverted = false;
     let details: Record<string, any> = {};
@@ -137,7 +142,7 @@ router.post('/actions/:id/override', protect, requireTenant, requireScopes(['ove
     }
 
     action.status = 'executed';
-    action.result = { ...(action.result || {}), overridden: true, overriddenBy: by, details };
+    action.result = { ...(action.result || {}), overridden: true, overriddenBy: by, details, justification: reason };
     await action.save();
 
     await logAudit({
@@ -151,6 +156,8 @@ router.post('/actions/:id/override', protect, requireTenant, requireScopes(['ove
       outcome: reverted ? 'success' : 'partial',
       details: { overrideOf: action.type, target: action.target, reverted },
     });
+
+    sonateOverridesTotal.inc({ status: reverted ? 'approved' : 'partial', tenant_id: tenantId })
 
     res.json({ success: true, data: { overridden: true, reverted, details } });
   } catch (error: any) {

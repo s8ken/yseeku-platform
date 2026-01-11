@@ -169,6 +169,7 @@ export async function logAuditFromRequest(
     userId?: string
     userEmail?: string
     userTenant?: string
+    correlationId?: string
   },
   action: AuditAction,
   resourceType: ResourceType,
@@ -184,6 +185,7 @@ export async function logAuditFromRequest(
   const userEmail = req.userEmail;
   const tenantId = req.userTenant || 'default';
   const { ipAddress, userAgent, sessionId } = extractRequestMetadata(req);
+  const mergedDetails = { ...(options?.details || {}), correlationId: req.correlationId } as Record<string, any>;
 
   await logAudit({
     action,
@@ -194,7 +196,7 @@ export async function logAuditFromRequest(
     tenantId,
     severity: options?.severity,
     outcome: options?.outcome,
-    details: options?.details,
+    details: mergedDetails,
     ipAddress,
     userAgent,
     sessionId,

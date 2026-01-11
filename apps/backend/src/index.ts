@@ -37,6 +37,7 @@ import logger from './utils/logger';
 import { requestLogger, errorLogger } from './middleware/request-logger';
 import { rateLimiter } from './middleware/rate-limit';
 import { httpMetrics } from './middleware/http-metrics';
+import { correlationMiddleware } from './middleware/correlation.middleware';
 import { annotateActiveSpan } from './observability/tracing';
 
 const app = express();
@@ -61,6 +62,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging middleware (all environments)
+app.use(correlationMiddleware);
 app.use(requestLogger);
 
 // Per-user/IP rate limiting

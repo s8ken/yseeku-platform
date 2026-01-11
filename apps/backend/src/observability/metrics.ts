@@ -17,3 +17,6 @@ export const brainActionEffectiveness = new Gauge({ name: 'brain_action_effectiv
 export const brainMemoryOperations = new Counter({ name: 'brain_memory_operations_total', help: 'Total brain memory operations', labelNames: ['operation', 'kind'] });
 export const agentBansTotal = new Counter({ name: 'agent_bans_total', help: 'Total agent bans', labelNames: ['severity', 'reason_type'] });
 export const agentRestrictionsTotal = new Counter({ name: 'agent_restrictions_total', help: 'Total agent restrictions', labelNames: ['restriction_type'] });
+export const sonateRefusalsTotal = new Counter({ name: 'sonate_refusals_total', help: 'Total kernel refusals', labelNames: ['reason', 'tenant_id'] });
+export const sonateOverridesTotal = new Counter({ name: 'sonate_overrides_total', help: 'Total human overrides', labelNames: ['status', 'tenant_id'] });
+export const sonateRefusalLatencySeconds = new Histogram({ name: 'sonate_refusal_latency_seconds', help: 'Kernel refusal latency seconds', labelNames: ['reason','tenant_id'], buckets: [0.001,0.005,0.01,0.05,0.1,0.5,1,2,5] });
