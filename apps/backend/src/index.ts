@@ -31,6 +31,7 @@ import apiGatewayRoutes from './routes/api-gateway.routes';
 import orchestrateRoutes from './routes/orchestrate.routes';
 import overseerRoutes from './routes/overseer.routes';
 import secretsRoutes from './routes/secrets.routes';
+import overrideRoutes from './routes/override.routes';
 import { initializeSocket } from './socket';
 import { startOverseerScheduler } from './services/brain/scheduler';
 import logger from './utils/logger';
@@ -120,6 +121,7 @@ app.use('/api/tenants', tenantRoutes); // Tenant management
 app.use('/api/gateway', apiGatewayRoutes); // API Gateway and Platform Keys
 app.use('/api/orchestrate', orchestrateRoutes); // Multi-Agent Orchestration
 app.use('/api/overseer', overseerRoutes); // System Brain / Overseer
+app.use('/api/overrides', overrideRoutes); // Override management
 app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
 app.use('/api/secrets', secretsRoutes);
 

@@ -10,6 +10,7 @@ import { Agent } from '../models/agent.model';
 import { settingsService } from '../services/settings.service';
 import { logAudit } from '../utils/audit-logger';
 import { sonateOverridesTotal } from '../observability/metrics';
+import { bindTenantContext } from '../middleware/tenant-context.middleware';
 
 const router = Router();
 
@@ -97,7 +98,7 @@ router.post('/actions/:id/approve', protect, requireTenant, requireScopes(['over
  * POST /api/overseer/actions/:id/override
  * Human override: revert or cancel effects of an executed action
  */
-router.post('/actions/:id/override', protect, requireTenant, requireScopes(['overseer:act']), async (req: Request, res: Response): Promise<void> => {
+router.post('/actions/:id/override', protect, bindTenantContext, requireTenant, requireScopes(['overseer:act']), async (req: Request, res: Response): Promise<void> => {
   try {
     const action = await BrainAction.findById(req.params.id);
     if (!action) { res.status(404).json({ success: false, message: 'Not found' }); return; }

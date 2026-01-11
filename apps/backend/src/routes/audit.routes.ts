@@ -6,6 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import { AuditLog } from '../models/audit.model';
+import { bindTenantContext } from '../middleware/tenant-context.middleware';
 import logger from '../utils/logger';
 
 const router = Router();
@@ -27,7 +28,7 @@ const router = Router();
  * - endDate: ISO date string
  * - search: string (search in action, resourceType, resourceId)
  */
-router.get('/logs', protect, async (req: Request, res: Response): Promise<void> => {
+router.get('/logs', protect, bindTenantContext, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     const userTenant = req.userTenant || 'default';
@@ -176,7 +177,7 @@ router.get('/logs', protect, async (req: Request, res: Response): Promise<void> 
  *
  * Same query params as /logs
  */
-router.get('/trails', protect, async (req: Request, res: Response): Promise<void> => {
+router.get('/trails', protect, bindTenantContext, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     const userTenant = req.userTenant || 'default';
@@ -326,7 +327,7 @@ router.get('/trails', protect, async (req: Request, res: Response): Promise<void
  * GET /api/audit/summary
  * Get audit summary statistics for the current tenant
  */
-router.get('/summary', protect, async (req: Request, res: Response): Promise<void> => {
+router.get('/summary', protect, bindTenantContext, async (req: Request, res: Response): Promise<void> => {
   try {
     const userTenant = req.userTenant || 'default';
     const { tenant = userTenant, days = '7' } = req.query;

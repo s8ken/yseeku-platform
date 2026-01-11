@@ -3,7 +3,9 @@
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg) [![CI](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml) [![CodeQL](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml) ![Dependabot](https://img.shields.io/badge/Dependabot-enabled-brightgreen) ![AI Trust](https://img.shields.io/badge/AI%20Trust-SYMBI-blueviolet.svg) ![Enterprise Ready](https://img.shields.io/badge/Enterprise-Ready-green.svg) ![Version: 1.4.0](https://img.shields.io/badge/version-1.4.0-blue.svg)
 
 ## Executive Summary
-Yseeku’s SONATE platform is a comprehensive enterprise AI governance framework that provides constitutional AI with real-time trust monitoring, research validation, and production orchestration. Built on the SYMBI constitutional framework, SONATE offers enterprises a complete solution for deploying AI systems with provable trust, compliance, and operational control.
+YSEEKU SONATE implements the SYMBI Trust Framework — a constitutional governance layer for AI systems. At its core is the SYMBI Trust Kernel, which defines identity, authority, memory, and enforcement boundaries for intelligent agents operating in production. Overseer (the governance brain) operates within these boundaries to monitor trust health and emergence, plan mitigation, and, in enforced mode, execute auditable actions.
+
+See: `docs/trust-kernel.md` for the Kernel’s guarantees, refusals, and intent/action classification.
 
 ## 📚 Quick Start
 
