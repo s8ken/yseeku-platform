@@ -249,9 +249,13 @@ export default function LabPage() {
               />
             </div>
             <div className="flex gap-2">
-              <Button className="bg-[var(--lab-primary)] hover:bg-[var(--lab-secondary)]">
+              <Button
+                className="bg-[var(--lab-primary)] hover:bg-[var(--lab-secondary)]"
+                onClick={handleCreateExperiment}
+                disabled={createExperimentMutation.isPending}
+              >
                 <Play className="h-4 w-4 mr-2" />
-                Start Experiment
+                {createExperimentMutation.isPending ? 'Starting...' : 'Start Experiment'}
               </Button>
               <Button variant="outline" onClick={() => setShowNewExperiment(false)}>
                 Cancel
