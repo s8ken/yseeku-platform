@@ -204,11 +204,27 @@ export default function EmergenceTestingPage() {
   };
 
   const handleReset = (testId: string) => {
-    setTests(prev => prev.map(t => 
-      t.id === testId 
+    setTests(prev => prev.map(t =>
+      t.id === testId
         ? { ...t, status: 'idle' as const, progress: 0, iterations: 0, bedauScore: null, emergenceDetected: false, startTime: null }
         : t
     ));
+  };
+
+  const handleCreateTest = () => {
+    const newTest: EmergenceTest = {
+      id: `test-${Date.now()}`,
+      name: `Custom Test (${config.agentCount} agents)`,
+      description: `Emergence test with ${config.interactionDepth} depth, ${(config.noiseLevel * 100).toFixed(0)}% noise, ${config.temporalWindow} window`,
+      status: 'idle',
+      progress: 0,
+      iterations: 0,
+      maxIterations: config.interactionDepth * 500,
+      bedauScore: null,
+      emergenceDetected: false,
+      startTime: null
+    };
+    setTests(prev => [newTest, ...prev]);
   };
 
   const activeTests = tests.filter(t => t.status === 'running').length;
@@ -365,7 +381,7 @@ export default function EmergenceTestingPage() {
                 />
               </div>
 
-              <Button className="w-full bg-[var(--lab-primary)]">
+              <Button className="w-full bg-[var(--lab-primary)]" onClick={handleCreateTest}>
                 <Play className="h-4 w-4 mr-2" />
                 Create New Test
               </Button>
