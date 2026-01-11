@@ -2,19 +2,20 @@
 import { Agent, IAgent } from '../models/agent.model';
 import { llmService } from './llm.service';
 import logger from '../utils/logger';
-import { TrustReceiptModel } from '../models/trust-receipt.model';
-import { bedauService } from './bedau.service';
 import { BrainCycle } from '../models/brain-cycle.model';
 import { gatherSensors } from './brain/sensors';
 import { analyzeContext } from './brain/analyzer';
 import { planActions } from './brain/planner';
 import { executeActions } from './brain/executor';
 import { brainCyclesTotal, brainCycleDurationSeconds } from '../observability/metrics';
+import { measureActionImpact, getActionRecommendations, getLatestRecommendations, SystemState } from './brain/feedback';
+import { recall } from './brain/memory';
 
 export class SystemBrainService {
   private static instance: SystemBrainService;
   private brainAgentId: string | null = null;
   private isThinking: boolean = false;
+  private lastRecommendationUpdate: Date | null = null;
 
   private constructor() {}
 
@@ -46,7 +47,7 @@ export class SystemBrainService {
     const brain = await Agent.create({
       name: 'YSEEKU Overseer',
       description: 'Autonomous System Governance Agent',
-      user: ownerId, 
+      user: ownerId,
       provider: 'anthropic', // Anthropic is good for system logic
       model: 'claude-3-opus-20240229',
       apiKeyId: ownerId, // Use user's key (LLMService will fallback to user keys if this ID matches user)
@@ -56,11 +57,14 @@ You have access to:
 1. Trust Receipts (recent stream)
 2. Bedau Index (emergence status)
 3. System Logs
+4. Action Effectiveness Feedback
 
 Your output should be structured JSON indicating:
 - status: 'healthy' | 'warning' | 'critical'
 - observations: string[]
-- actions: { type: 'alert' | 'ban_agent' | 'adjust_threshold', target: string, reason: string }[]`,
+- actions: { type: 'alert' | 'ban_agent' | 'restrict_agent' | 'quarantine_agent' | 'unban_agent' | 'adjust_threshold', target: string, reason: string, severity?: string }[]
+
+Consider past action effectiveness when planning new actions.`,
       temperature: 0.1, // High precision
       ciModel: 'system-brain',
       metadata: {
@@ -83,9 +87,25 @@ Your output should be structured JSON indicating:
 
     try {
       const start = Date.now();
+
+      // 1. Gather current system state (pre-action)
       const sensors = await gatherSensors(tenantId);
-      const analysis = analyzeContext({ bedau: sensors.bedau, avgTrust: sensors.avgTrust, receipts: sensors.receipts });
+      const preActionState: SystemState = {
+        avgTrust: sensors.avgTrust,
+        emergenceLevel: sensors.bedau?.emergence_type || 'LINEAR',
+      };
+
+      // 2. Analyze context
+      const analysis = analyzeContext({
+        bedau: sensors.bedau,
+        avgTrust: sensors.avgTrust,
+        receipts: sensors.receipts
+      });
+
+      // 3. Plan actions (could be enhanced with recommendation awareness)
       const planned = planActions(analysis);
+
+      // 4. Create cycle record
       const cycle = await BrainCycle.create({
         tenantId,
         status: 'started',
@@ -95,20 +115,42 @@ Your output should be structured JSON indicating:
         startedAt: new Date()
       });
 
+      // 5. Get LLM analysis
       const brainAgent = await Agent.findById(this.brainAgentId);
       if (!brainAgent) throw new Error('Brain agent not found');
+
+      // Include recommendations in the analysis context if available
+      const recommendations = await getLatestRecommendations(tenantId);
+      const contextForLLM = {
+        bedau: sensors.bedau,
+        avgTrust: sensors.avgTrust,
+        recommendations: recommendations?.adjustments || [],
+      };
 
       const response = await llmService.generate({
         provider: brainAgent.provider,
         model: brainAgent.model,
         messages: [
           { role: 'system', content: brainAgent.systemPrompt },
-          { role: 'user', content: `Analyze current system state:\n${JSON.stringify({ bedau: sensors.bedau, avgTrust: sensors.avgTrust })}` }
+          { role: 'user', content: `Analyze current system state:\n${JSON.stringify(contextForLLM)}` }
         ],
         temperature: brainAgent.temperature,
-        userId: brainAgent.user.toString() // Use agent owner's key
+        userId: brainAgent.user.toString()
       });
+
+      // 6. Execute actions
       const execResults = await executeActions(tenantId, cycle._id.toString(), planned, mode);
+
+      // 7. Measure action impact (for enforced mode with executed actions)
+      if (mode === 'enforced' && execResults.length > 0) {
+        // Wait a brief moment for system to stabilize, then measure impact
+        await this.measureAndRecordImpact(tenantId, execResults, preActionState);
+
+        // Update recommendations periodically (every hour)
+        await this.maybeUpdateRecommendations(tenantId);
+      }
+
+      // 8. Complete the cycle
       const durationSeconds = (Date.now() - start) / 1000;
       await BrainCycle.findByIdAndUpdate(cycle._id, {
         status: 'completed',
@@ -116,8 +158,17 @@ Your output should be structured JSON indicating:
         metrics: { durationMs: durationSeconds * 1000 },
         completedAt: new Date()
       });
+
       brainCyclesTotal.inc({ status: 'completed' });
       brainCycleDurationSeconds.observe(durationSeconds);
+
+      logger.info('Brain thinking cycle completed', {
+        tenantId,
+        mode,
+        actionsPlanned: planned.length,
+        actionsExecuted: execResults.filter(r => r.status === 'executed').length,
+        durationMs: durationSeconds * 1000,
+      });
 
     } catch (error: any) {
       logger.error('System Brain thinking error', { error: error.message });
@@ -125,6 +176,71 @@ Your output should be structured JSON indicating:
     } finally {
       this.isThinking = false;
     }
+  }
+
+  /**
+   * Measure and record the impact of executed actions
+   */
+  private async measureAndRecordImpact(
+    tenantId: string,
+    execResults: Array<{ id: string; status: string }>,
+    preActionState: SystemState
+  ): Promise<void> {
+    try {
+      // Re-gather sensors to get post-action state
+      const postSensors = await gatherSensors(tenantId);
+      const postActionState: SystemState = {
+        avgTrust: postSensors.avgTrust,
+        emergenceLevel: postSensors.bedau?.emergence_type || 'LINEAR',
+      };
+
+      // Measure impact for each executed action
+      for (const result of execResults) {
+        if (result.status === 'executed') {
+          try {
+            await measureActionImpact(tenantId, result.id, preActionState, postActionState);
+          } catch (impactError: any) {
+            logger.warn('Failed to measure action impact', {
+              actionId: result.id,
+              error: impactError.message,
+            });
+          }
+        }
+      }
+    } catch (error: any) {
+      logger.warn('Failed to measure action impacts', { error: error.message });
+    }
+  }
+
+  /**
+   * Update action recommendations periodically
+   */
+  private async maybeUpdateRecommendations(tenantId: string): Promise<void> {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+    if (!this.lastRecommendationUpdate || this.lastRecommendationUpdate < oneHourAgo) {
+      try {
+        await getActionRecommendations(tenantId);
+        this.lastRecommendationUpdate = new Date();
+        logger.info('Action recommendations updated', { tenantId });
+      } catch (error: any) {
+        logger.warn('Failed to update recommendations', { error: error.message });
+      }
+    }
+  }
+
+  /**
+   * Get the current brain agent ID
+   */
+  getBrainAgentId(): string | null {
+    return this.brainAgentId;
+  }
+
+  /**
+   * Check if the brain is currently thinking
+   */
+  isCurrentlyThinking(): boolean {
+    return this.isThinking;
   }
 }
 

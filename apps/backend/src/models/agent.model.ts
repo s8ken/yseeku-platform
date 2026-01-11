@@ -15,6 +15,18 @@ export interface IExternalSystem {
   lastSync: Date;
 }
 
+export type BanSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type BanStatus = 'active' | 'banned' | 'restricted' | 'quarantined';
+
+export interface IBanDetails {
+  bannedAt: Date;
+  bannedBy: string;
+  reason: string;
+  severity: BanSeverity;
+  expiresAt?: Date;
+  restrictions?: string[];
+}
+
 export interface IAgent extends Omit<Document, 'model'> {
   name: string;
   description: string;
@@ -34,6 +46,11 @@ export interface IAgent extends Omit<Document, 'model'> {
   bondingStatus: 'none' | 'initiated' | 'bonded' | 'rejected';
   createdAt: Date;
   lastActive: Date;
+  // Ban-related fields
+  banStatus: BanStatus;
+  banReason?: string;
+  banDetails?: IBanDetails;
+  restrictedFeatures?: string[];
 
   // Methods
   updateActivity(): Promise<any>;
@@ -42,6 +59,10 @@ export interface IAgent extends Omit<Document, 'model'> {
   addExternalSystem(systemConfig: Partial<IExternalSystem>): Promise<any>;
   updateExternalSystemSync(systemName: string): Promise<any>;
   toggleExternalSystem(systemName: string, isActive: boolean): Promise<any>;
+  ban(bannedBy: string, reason: string, severity: BanSeverity, expiresAt?: Date): Promise<any>;
+  restrict(restrictions: string[], reason: string): Promise<any>;
+  quarantine(reason: string): Promise<any>;
+  unban(): Promise<any>;
 }
 
 const ExternalSystemSchema = new Schema<IExternalSystem>({
@@ -151,6 +172,29 @@ const AgentSchema = new Schema<IAgent>({
     enum: ['none', 'initiated', 'bonded', 'rejected'],
     default: 'none',
   },
+  banStatus: {
+    type: String,
+    enum: ['active', 'banned', 'restricted', 'quarantined'],
+    default: 'active',
+    index: true,
+  },
+  banReason: {
+    type: String,
+  },
+  banDetails: {
+    bannedAt: Date,
+    bannedBy: String,
+    reason: String,
+    severity: {
+      type: String,
+      enum: ['low', 'medium', 'high', 'critical'],
+    },
+    expiresAt: Date,
+    restrictions: [String],
+  },
+  restrictedFeatures: [{
+    type: String,
+  }],
   createdAt: {
     type: Date,
     default: Date.now,
@@ -220,6 +264,62 @@ AgentSchema.methods.toggleExternalSystem = function (systemName: string, isActiv
     return this.save();
   }
   return Promise.resolve(this);
+};
+
+// Method to ban an agent
+AgentSchema.methods.ban = function (
+  bannedBy: string,
+  reason: string,
+  severity: 'low' | 'medium' | 'high' | 'critical',
+  expiresAt?: Date
+): Promise<any> {
+  this.banStatus = 'banned';
+  this.banReason = reason;
+  this.banDetails = {
+    bannedAt: new Date(),
+    bannedBy,
+    reason,
+    severity,
+    expiresAt,
+  };
+  return this.save();
+};
+
+// Method to restrict an agent with specific feature limitations
+AgentSchema.methods.restrict = function (restrictions: string[], reason: string): Promise<any> {
+  this.banStatus = 'restricted';
+  this.banReason = reason;
+  this.restrictedFeatures = restrictions;
+  this.banDetails = {
+    bannedAt: new Date(),
+    bannedBy: 'system',
+    reason,
+    severity: 'medium',
+    restrictions,
+  };
+  return this.save();
+};
+
+// Method to quarantine an agent for investigation
+AgentSchema.methods.quarantine = function (reason: string): Promise<any> {
+  this.banStatus = 'quarantined';
+  this.banReason = reason;
+  this.banDetails = {
+    bannedAt: new Date(),
+    bannedBy: 'system',
+    reason,
+    severity: 'high',
+  };
+  return this.save();
+};
+
+// Method to unban/restore an agent
+AgentSchema.methods.unban = function (): Promise<any> {
+  this.banStatus = 'active';
+  this.banReason = undefined;
+  this.banDetails = undefined;
+  this.restrictedFeatures = [];
+  return this.save();
 };
 
 export const Agent: Model<IAgent> = mongoose.models.Agent || mongoose.model<IAgent>('Agent', AgentSchema);

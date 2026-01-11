@@ -40,17 +40,7 @@ export default function OrchestrationPage() {
   // Fetch workflows
   const { data: workflows = [], isLoading } = useQuery({
     queryKey: ['workflows'],
-    queryFn: async () => {
-      // We need to add getWorkflows to api.ts, for now using direct fetch
-      // Assuming we will add it to api.ts or use direct fetch here
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/orchestrate/workflows', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Failed to fetch workflows');
-      const json = await res.json();
-      return json.data || [];
-    }
+    queryFn: () => api.getWorkflows()
   });
 
   // Fetch agents for template creation (needed for CEV)

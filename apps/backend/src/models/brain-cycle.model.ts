@@ -7,14 +7,25 @@ export interface IBrainActionRef {
   status: 'planned' | 'approved' | 'executed' | 'failed' | 'skipped';
 }
 
+export interface IBrainMetrics {
+  durationMs?: number;
+  error?: string;
+  agentCount?: number;
+  avgTrust?: number;
+  alertsProcessed?: number;
+  actionsPlanned?: number;
+}
+
 export interface IBrainCycle extends Document {
   tenantId: string;
   status: 'started' | 'completed' | 'failed';
+  mode: 'advisory' | 'enforced';
   observations: string[];
   actions: IBrainActionRef[];
   inputContext: Record<string, any>;
   llmOutput?: string;
-  metrics: { durationMs?: number; error?: string };
+  thought?: string;
+  metrics: IBrainMetrics;
   startedAt: Date;
   completedAt?: Date;
 }
@@ -22,6 +33,7 @@ export interface IBrainCycle extends Document {
 const BrainCycleSchema = new Schema<IBrainCycle>({
   tenantId: { type: String, required: true, index: true },
   status: { type: String, enum: ['started', 'completed', 'failed'], default: 'started', index: true },
+  mode: { type: String, enum: ['advisory', 'enforced'], default: 'advisory' },
   observations: { type: [String], default: [] },
   actions: [{
     type: { type: String },
@@ -31,7 +43,15 @@ const BrainCycleSchema = new Schema<IBrainCycle>({
   }],
   inputContext: { type: Schema.Types.Mixed, default: {} },
   llmOutput: { type: String },
-  metrics: { type: Schema.Types.Mixed, default: {} },
+  thought: { type: String },
+  metrics: {
+    durationMs: { type: Number },
+    error: { type: String },
+    agentCount: { type: Number },
+    avgTrust: { type: Number },
+    alertsProcessed: { type: Number },
+    actionsPlanned: { type: Number },
+  },
   startedAt: { type: Date, default: Date.now },
   completedAt: { type: Date }
 }, { timestamps: false, collection: 'brain_cycles' });

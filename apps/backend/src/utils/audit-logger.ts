@@ -23,6 +23,11 @@ export type AuditAction =
   | 'agent_delete'
   | 'agent_connect'
   | 'agent_disconnect'
+  // Agent enforcement operations (System Brain)
+  | 'agent_ban'
+  | 'agent_restrict'
+  | 'agent_quarantine'
+  | 'agent_unban'
   // Conversation operations
   | 'conversation_create'
   | 'conversation_update'

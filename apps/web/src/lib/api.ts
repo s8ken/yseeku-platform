@@ -672,6 +672,28 @@ export const api = {
     });
   },
 
+  // Orchestration / Workflows
+  async getWorkflows(): Promise<any[]> {
+    const res = await fetchAPI<{ success: boolean; data: any[] }>('/api/orchestrate/workflows');
+    return res.data || [];
+  },
+
+  async createWorkflow(data: { name: string; description?: string; steps: any[] }): Promise<any> {
+    const res = await fetchAPI<{ success: boolean; data: any }>('/api/orchestrate/workflows', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return res.data;
+  },
+
+  async executeWorkflow(workflowId: string, input: string): Promise<any> {
+    const res = await fetchAPI<{ success: boolean; data: any }>(`/api/orchestrate/workflows/${workflowId}/execute`, {
+      method: 'POST',
+      body: JSON.stringify({ input }),
+    });
+    return res.data;
+  },
+
   logout() {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');

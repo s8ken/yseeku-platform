@@ -1,4 +1,4 @@
-import { register, collectDefaultMetrics, Counter, Histogram } from 'prom-client';
+import { register, collectDefaultMetrics, Counter, Histogram, Gauge } from 'prom-client';
 collectDefaultMetrics();
 export const httpRequestsTotal = new Counter({ name: 'http_requests_total', help: 'Total HTTP requests', labelNames: ['method', 'route', 'status_code'] });
 export const httpRequestDuration = new Histogram({ name: 'http_request_duration_seconds', help: 'HTTP request duration seconds', labelNames: ['method', 'route'], buckets: [0.05,0.1,0.25,0.5,1,2,5] });
@@ -10,3 +10,10 @@ export const secretsOperationsTotal = new Counter({ name: 'secrets_operations_to
 export const brainCyclesTotal = new Counter({ name: 'brain_cycles_total', help: 'Total brain cycles', labelNames: ['status'] });
 export const brainActionsTotal = new Counter({ name: 'brain_actions_total', help: 'Total brain actions', labelNames: ['type','status'] });
 export const brainCycleDurationSeconds = new Histogram({ name: 'brain_cycle_duration_seconds', help: 'Brain cycle duration seconds', buckets: [0.1,0.5,1,2,5,10,20] });
+
+// Brain feedback and effectiveness metrics
+export const brainFeedbackScore = new Histogram({ name: 'brain_feedback_score', help: 'Feedback score for brain actions', labelNames: ['action_type', 'success'], buckets: [-1, -0.5, 0, 0.5, 1] });
+export const brainActionEffectiveness = new Gauge({ name: 'brain_action_effectiveness', help: 'Effectiveness score for action types', labelNames: ['action_type', 'tenant_id'] });
+export const brainMemoryOperations = new Counter({ name: 'brain_memory_operations_total', help: 'Total brain memory operations', labelNames: ['operation', 'kind'] });
+export const agentBansTotal = new Counter({ name: 'agent_bans_total', help: 'Total agent bans', labelNames: ['severity', 'reason_type'] });
+export const agentRestrictionsTotal = new Counter({ name: 'agent_restrictions_total', help: 'Total agent restrictions', labelNames: ['restriction_type'] });

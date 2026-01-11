@@ -91,20 +91,49 @@ router.post('/actions/:id/approve', protect, requireScopes(['overseer:act']), as
 
 /**
  * GET /api/overseer/status
- * Get the latest status from the Overseer
- * (For now, we just return the agent details, in future we'd store the "Thought" result in DB)
+ * Get the latest status from the Overseer including last brain cycle
  */
 router.get('/status', protect, async (req: Request, res: Response): Promise<void> => {
   try {
-    // In a real app, we would fetch the last "System Thought" log or state
-    // For prototype, we'll return a mock status or the Agent metadata
+    const tenant = req.userTenant || 'default';
+
+    // Fetch the most recent brain cycle
+    const lastCycle = await BrainCycle.findOne({ tenantId: tenant })
+      .sort({ completedAt: -1 })
+      .lean();
+
+    // Fetch recent actions count
+    const recentActionsCount = await BrainAction.countDocuments({
+      tenantId: tenant,
+      createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+    });
+
+    // Calculate status based on last cycle
+    const isActive = lastCycle &&
+      lastCycle.completedAt &&
+      (Date.now() - new Date(lastCycle.completedAt).getTime()) < 60 * 60 * 1000; // Active if cycle within last hour
+
     res.json({
       success: true,
       data: {
-        status: 'active',
-        lastThought: new Date(),
-        health: 'nominal',
-        message: 'Systems operating within normal parameters.'
+        status: isActive ? 'active' : 'idle',
+        lastThought: lastCycle?.completedAt || new Date(),
+        health: lastCycle?.status === 'completed' ? 'nominal' : 'monitoring',
+        message: lastCycle?.thought || 'Systems operating within normal parameters. Awaiting next analysis cycle.',
+        metrics: lastCycle?.metrics ? {
+          agentCount: lastCycle.metrics.agentCount || 0,
+          systemTrustScore: lastCycle.metrics.avgTrust || 8.0,
+          alertsProcessed: lastCycle.metrics.alertsProcessed || 0,
+          actionsPlanned: lastCycle.metrics.actionsPlanned || 0,
+        } : {
+          agentCount: 0,
+          systemTrustScore: 8.0,
+          alertsProcessed: 0,
+          actionsPlanned: 0,
+        },
+        mode: lastCycle?.mode || 'advisory',
+        recentActionsCount,
+        lastCycleId: lastCycle?._id?.toString(),
       }
     });
   } catch (error: any) {
