@@ -45,6 +45,16 @@ interface TrustReceipt {
   chainPosition: number;
   previousHash: string;
   receiptData?: any;
+  // DID-related fields
+  issuer?: string;
+  subject?: string;
+  proof?: {
+    type: string;
+    created: string;
+    verificationMethod: string;
+    proofPurpose: string;
+    proofValue: string;
+  };
 }
 
 // Empty state component
@@ -194,6 +204,55 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
             <p className="font-semibold">{receipt.symbiDimensions?.canvasParity ?? 'N/A'}%</p>
           </div>
         </div>
+
+        {/* DID Information */}
+        {(receipt.issuer || receipt.subject) && (
+          <div className="mt-4 pt-3 border-t">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+              <Fingerprint className="h-3 w-3" />
+              <span>Decentralized Identifiers (W3C DID)</span>
+            </div>
+            <div className="space-y-2">
+              {receipt.issuer && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-14">Issuer:</span>
+                  <code className="text-xs bg-muted px-2 py-1 rounded font-mono flex-1 truncate" title={receipt.issuer}>
+                    {receipt.issuer}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    onClick={() => navigator.clipboard.writeText(receipt.issuer!)}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+              {receipt.subject && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-14">Subject:</span>
+                  <code className="text-xs bg-muted px-2 py-1 rounded font-mono flex-1 truncate" title={receipt.subject}>
+                    {receipt.subject}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    onClick={() => navigator.clipboard.writeText(receipt.subject!)}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+              {receipt.proof && (
+                <div className="text-xs text-muted-foreground mt-2">
+                  Signed with {receipt.proof.type} at {new Date(receipt.proof.created).toLocaleString()}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <span className="text-xs text-muted-foreground">

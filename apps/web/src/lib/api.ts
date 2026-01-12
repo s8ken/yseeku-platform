@@ -206,6 +206,9 @@ export interface Agent {
   banReason?: string;
   banDetails?: BanDetails;
   restrictedFeatures?: string[];
+  // DID (Decentralized Identifier) fields
+  did?: string;
+  didDocument?: string;
 }
 
 // System Brain types

@@ -31,10 +31,70 @@ import {
   Lock,
   Unlock,
   MoreVertical,
-  AlertTriangle
+  AlertTriangle,
+  Copy,
+  ExternalLink,
+  Fingerprint
 } from 'lucide-react';
 import { AgentCreateModal } from '@/components/agents/AgentCreateModal';
 import { AgentEditModal } from '@/components/agents/AgentEditModal';
+
+// DID display component
+function DIDDisplay({ did, didDocument }: { did?: string; didDocument?: string }) {
+  if (!did) return null;
+
+  const copyDID = async () => {
+    try {
+      await navigator.clipboard.writeText(did);
+      toast.success('DID Copied', {
+        description: 'Decentralized Identifier copied to clipboard',
+      });
+    } catch (err) {
+      toast.error('Copy Failed', {
+        description: 'Could not copy DID to clipboard',
+      });
+    }
+  };
+
+  // Truncate DID for display
+  const truncatedDID = did.length > 40
+    ? `${did.substring(0, 20)}...${did.substring(did.length - 12)}`
+    : did;
+
+  return (
+    <div className="pt-2 border-t">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+        <Fingerprint className="h-3 w-3" />
+        <span>Decentralized ID (DID)</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded font-mono truncate flex-1" title={did}>
+          {truncatedDID}
+        </code>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0"
+          onClick={copyDID}
+          title="Copy DID"
+        >
+          <Copy className="h-3 w-3" />
+        </Button>
+        {didDocument && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={() => window.open(didDocument, '_blank')}
+            title="View DID Document"
+          >
+            <ExternalLink className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // Ban status badge component
 function BanStatusBadge({ status }: { status?: string }) {
@@ -613,6 +673,9 @@ export default function AgentsPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* DID (Decentralized Identifier) */}
+                  <DIDDisplay did={agent.did} didDocument={agent.didDocument} />
 
                   {/* Quick Actions */}
                   <div className="flex gap-2 pt-2">
