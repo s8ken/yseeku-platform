@@ -343,28 +343,28 @@ export default function DashboardPage() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   <SymbiDimensionCard 
                     title="Reality Index" 
-                    value={kpis.symbiDimensions.realityIndex} 
+                    value={kpis.symbiDimensions?.realityIndex ?? 0} 
                     type="score"
                     icon={Fingerprint}
                     tooltipTerm="Reality Index"
                   />
                   <SymbiDimensionCard 
                     title="Trust Protocol" 
-                    value={kpis.symbiDimensions.trustProtocol} 
+                    value={kpis.symbiDimensions?.trustProtocol ?? 'UNKNOWN'} 
                     type="status"
                     icon={Shield}
                     tooltipTerm="Trust Protocol"
                   />
                   <SymbiDimensionCard 
                     title="Ethical Alignment" 
-                    value={kpis.symbiDimensions.ethicalAlignment} 
+                    value={kpis.symbiDimensions?.ethicalAlignment ?? 0} 
                     type="score"
                     icon={CheckCircle2}
                     tooltipTerm="Ethical Alignment"
                   />
                   <SymbiDimensionCard 
                     title="Canvas Parity" 
-                    value={kpis.symbiDimensions.canvasParity} 
+                    value={kpis.symbiDimensions?.canvasParity ?? 0} 
                     type="percent"
                     icon={BarChart3}
                     tooltipTerm="Canvas Parity"

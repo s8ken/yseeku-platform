@@ -177,27 +177,27 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Reality</p>
-            <p className="font-semibold">{receipt.symbiDimensions.realityIndex}/10</p>
+            <p className="font-semibold">{receipt.symbiDimensions?.realityIndex ?? 'N/A'}/10</p>
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Protocol</p>
             <p className={`font-semibold text-xs ${
-              receipt.symbiDimensions.trustProtocol === 'PASS' ? 'text-emerald-600' : 'text-amber-600'
-            }`}>{receipt.symbiDimensions.trustProtocol}</p>
+              receipt.symbiDimensions?.trustProtocol === 'PASS' ? 'text-emerald-600' : 'text-amber-600'
+            }`}>{receipt.symbiDimensions?.trustProtocol ?? 'N/A'}</p>
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Ethics</p>
-            <p className="font-semibold">{receipt.symbiDimensions.ethicalAlignment}/5</p>
+            <p className="font-semibold">{receipt.symbiDimensions?.ethicalAlignment ?? 'N/A'}/5</p>
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Canvas</p>
-            <p className="font-semibold">{receipt.symbiDimensions.canvasParity}%</p>
+            <p className="font-semibold">{receipt.symbiDimensions?.canvasParity ?? 'N/A'}%</p>
           </div>
         </div>
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <span className="text-xs text-muted-foreground">
-            Resonance: <strong>{receipt.symbiDimensions.resonanceQuality}</strong>
+            Resonance: <strong>{receipt.symbiDimensions?.resonanceQuality ?? 'N/A'}</strong>
           </span>
           <div className="flex gap-2">
             <Button variant="outline" size="sm">
