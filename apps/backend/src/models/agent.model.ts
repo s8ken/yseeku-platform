@@ -52,6 +52,10 @@ export interface IAgent extends Omit<Document, 'model'> {
   banDetails?: IBanDetails;
   restrictedFeatures?: string[];
 
+  // DID (Decentralized Identifier) - virtual field computed from _id
+  did?: string;
+  didDocument?: string; // URL to DID Document
+
   // Methods
   updateActivity(): Promise<any>;
   initiateBonding(): Promise<any>;
@@ -321,5 +325,20 @@ AgentSchema.methods.unban = function (): Promise<any> {
   this.restrictedFeatures = [];
   return this.save();
 };
+
+// Virtual field for DID - computed from _id
+const PLATFORM_DOMAIN = process.env.PLATFORM_DOMAIN || 'yseeku.com';
+
+AgentSchema.virtual('did').get(function() {
+  return `did:web:${PLATFORM_DOMAIN}:agents:${this._id}`;
+});
+
+AgentSchema.virtual('didDocument').get(function() {
+  return `https://${PLATFORM_DOMAIN}/.well-known/did/agents/${this._id}/did.json`;
+});
+
+// Ensure virtuals are included in JSON output
+AgentSchema.set('toJSON', { virtuals: true });
+AgentSchema.set('toObject', { virtuals: true });
 
 export const Agent: Model<IAgent> = mongoose.models.Agent || mongoose.model<IAgent>('Agent', AgentSchema);

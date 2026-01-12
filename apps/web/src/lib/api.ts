@@ -172,6 +172,18 @@ export interface AlertsResponse {
   alerts: Alert[];
 }
 
+export type BanStatus = 'active' | 'banned' | 'restricted' | 'quarantined';
+export type BanSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+export interface BanDetails {
+  bannedAt: string;
+  bannedBy: string;
+  reason: string;
+  severity: BanSeverity;
+  expiresAt?: string;
+  restrictions?: string[];
+}
+
 export interface Agent {
   id: string;
   name: string;
@@ -189,6 +201,65 @@ export interface Agent {
   interactionCount: number;
   tenantId: string;
   createdAt: string;
+  // Ban-related fields
+  banStatus?: BanStatus;
+  banReason?: string;
+  banDetails?: BanDetails;
+  restrictedFeatures?: string[];
+}
+
+// System Brain types
+export interface BrainMemory {
+  id: string;
+  tenantId: string;
+  kind: string;
+  content: string;
+  tags: string[];
+  timestamp: string;
+  metadata?: Record<string, any>;
+}
+
+export interface ActionEffectiveness {
+  actionType: string;
+  totalActions: number;
+  successCount: number;
+  failureCount: number;
+  effectivenessScore: number;
+  avgImpact: number;
+  trend: 'improving' | 'stable' | 'declining';
+}
+
+export interface BrainRecommendation {
+  id: string;
+  actionType: string;
+  target?: string;
+  reason: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  confidence: number;
+  suggestedAt: string;
+}
+
+export interface BrainCycleAction {
+  type: string;
+  target: string;
+  reason: string;
+  status: 'pending' | 'executed' | 'failed';
+  executedAt?: string;
+}
+
+export interface BrainCycle {
+  id: string;
+  timestamp: string;
+  mode: 'advisory' | 'enforced';
+  status: 'completed' | 'failed' | 'running';
+  thought: string;
+  metrics: {
+    agentCount: number;
+    avgTrust: number;
+    alertsProcessed: number;
+    actionsPlanned: number;
+  };
+  actions: BrainCycleAction[];
 }
 
 export interface AgentsResponse {
@@ -666,9 +737,86 @@ export const api = {
     return res.data;
   },
 
-  async triggerOverseerThink(): Promise<void> {
-    await fetchAPI<{ success: boolean }>('/api/overseer/think', {
-      method: 'POST'
+  async triggerOverseerThink(mode: 'advisory' | 'enforced' = 'advisory'): Promise<any> {
+    const res = await fetchAPI<{ success: boolean; data: any }>('/api/overseer/think', {
+      method: 'POST',
+      body: JSON.stringify({ mode }),
+    });
+    return res.data;
+  },
+
+  // System Brain Memory APIs
+  async getBrainMemories(tenantId: string, kind?: string, limit = 50): Promise<BrainMemory[]> {
+    const params = new URLSearchParams({ tenantId, limit: limit.toString() });
+    if (kind) params.set('kind', kind);
+    const res = await fetchAPI<{ success: boolean; data: BrainMemory[] }>(`/api/overseer/memories?${params.toString()}`);
+    return res.data || [];
+  },
+
+  async getBrainMemoriesByTags(tenantId: string, tags: string[], limit = 50): Promise<BrainMemory[]> {
+    const res = await fetchAPI<{ success: boolean; data: BrainMemory[] }>('/api/overseer/memories/search', {
+      method: 'POST',
+      body: JSON.stringify({ tenantId, tags, limit }),
+    });
+    return res.data || [];
+  },
+
+  async deleteBrainMemory(memoryId: string): Promise<void> {
+    await fetchAPI<{ success: boolean }>(`/api/overseer/memories/${memoryId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async clearBrainMemories(tenantId: string, kind?: string): Promise<void> {
+    await fetchAPI<{ success: boolean }>('/api/overseer/memories/clear', {
+      method: 'POST',
+      body: JSON.stringify({ tenantId, kind }),
+    });
+  },
+
+  // System Brain Feedback/Effectiveness APIs
+  async getActionEffectiveness(tenantId: string, actionType?: string, days = 30): Promise<ActionEffectiveness[]> {
+    const params = new URLSearchParams({ tenantId, days: days.toString() });
+    if (actionType) params.set('actionType', actionType);
+    const res = await fetchAPI<{ success: boolean; data: ActionEffectiveness[] }>(`/api/overseer/effectiveness?${params.toString()}`);
+    return res.data || [];
+  },
+
+  async getActionRecommendations(tenantId: string): Promise<BrainRecommendation[]> {
+    const res = await fetchAPI<{ success: boolean; data: BrainRecommendation[] }>(`/api/overseer/recommendations?tenantId=${tenantId}`);
+    return res.data || [];
+  },
+
+  async getBrainCycles(tenantId: string, limit = 20): Promise<BrainCycle[]> {
+    const res = await fetchAPI<{ success: boolean; data: BrainCycle[] }>(`/api/overseer/cycles?tenantId=${tenantId}&limit=${limit}`);
+    return res.data || [];
+  },
+
+  // Agent Ban/Restrict Actions
+  async banAgent(agentId: string, reason: string, severity: BanSeverity): Promise<void> {
+    await fetchAPI<{ success: boolean }>(`/api/agents/${agentId}/ban`, {
+      method: 'POST',
+      body: JSON.stringify({ reason, severity }),
+    });
+  },
+
+  async restrictAgent(agentId: string, restrictions: string[], reason: string): Promise<void> {
+    await fetchAPI<{ success: boolean }>(`/api/agents/${agentId}/restrict`, {
+      method: 'POST',
+      body: JSON.stringify({ restrictions, reason }),
+    });
+  },
+
+  async quarantineAgent(agentId: string, reason: string): Promise<void> {
+    await fetchAPI<{ success: boolean }>(`/api/agents/${agentId}/quarantine`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
+  async unbanAgent(agentId: string): Promise<void> {
+    await fetchAPI<{ success: boolean }>(`/api/agents/${agentId}/unban`, {
+      method: 'POST',
     });
   },
 
@@ -698,6 +846,51 @@ export const api = {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
     }
+  },
+
+  // Demo Mode APIs (no auth required)
+  async initDemo(): Promise<void> {
+    await fetch(`${API_BASE}/api/demo/init`, { method: 'POST' });
+  },
+
+  async getDemoKpis(): Promise<any> {
+    const res = await fetch(`${API_BASE}/api/demo/kpis`);
+    return res.json();
+  },
+
+  async getDemoAlerts(): Promise<any> {
+    const res = await fetch(`${API_BASE}/api/demo/alerts`);
+    return res.json();
+  },
+
+  async getDemoTenants(): Promise<any> {
+    const res = await fetch(`${API_BASE}/api/demo/tenants`);
+    return res.json();
+  },
+
+  async getDemoAgents(): Promise<any> {
+    const res = await fetch(`${API_BASE}/api/demo/agents`);
+    return res.json();
+  },
+
+  async getDemoExperiments(): Promise<any> {
+    const res = await fetch(`${API_BASE}/api/demo/experiments`);
+    return res.json();
+  },
+
+  async getDemoReceipts(): Promise<any> {
+    const res = await fetch(`${API_BASE}/api/demo/receipts`);
+    return res.json();
+  },
+
+  async getDemoRisk(): Promise<any> {
+    const res = await fetch(`${API_BASE}/api/demo/risk`);
+    return res.json();
+  },
+
+  async getDemoOverseer(): Promise<any> {
+    const res = await fetch(`${API_BASE}/api/demo/overseer`);
+    return res.json();
   },
 };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Switch } from '@/components/ui/switch';
 import { Providers } from '../providers';
 import {
   Home,
@@ -38,12 +39,17 @@ import {
   ExternalLink,
   HelpCircle,
   ShieldCheck,
-  Bot
+  Bot,
+  Play,
+  Brain
 } from 'lucide-react';
 import { useTutorialStore } from '@/store/useTutorialStore';
 import { dashboardTutorialSteps } from '@/components/tutorial/steps';
 import { TutorialTour } from '@/components/tutorial/TutorialTour';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useDemo } from '@/hooks/use-demo';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
 
 type ModuleType = 'detect' | 'lab' | 'orchestrate';
 
@@ -98,6 +104,7 @@ const moduleSections: ModuleSection[] = [
     subtitle: 'Enterprise Admin',
     badge: 'ADMIN',
     items: [
+      { title: 'System Brain', href: '/dashboard/brain', icon: Brain, roles: ['admin'], module: 'orchestrate' },
       { title: 'Tenants', href: '/dashboard/tenants', icon: Building2, roles: ['admin'], module: 'orchestrate' },
       { title: 'Audit Trails', href: '/dashboard/audit', icon: FileText, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'Trust Receipts', href: '/dashboard/receipts', icon: Fingerprint, roles: ['admin', 'user'], module: 'orchestrate' },
@@ -108,25 +115,59 @@ const moduleSections: ModuleSection[] = [
   }
 ];
 
-const mockUser = {
+// Demo user for showcase mode
+const demoUser = {
+  id: 'demo-user',
+  name: 'Demo User',
+  email: 'demo@sonate.io',
+  role: 'admin',
+  tenantId: 'demo-tenant'
+};
+
+// Default user for production mode (will be replaced by real auth)
+const defaultUser = {
   id: '1',
-  name: 'John Admin',
-  email: 'admin@sonate.io',
+  name: 'Platform User',
+  email: 'user@sonate.io',
   role: 'admin',
   tenantId: 'default'
 };
 
-const tenants = [
-  { id: 'default', name: 'Default Tenant' },
-  { id: 'corp1', name: 'Corporation One' },
-  { id: 'startup1', name: 'Startup Inc' }
+const demoTenants = [
+  { id: 'demo-tenant', name: 'Demo Organization' },
+  { id: 'acme-corp', name: 'Acme Corp' },
+  { id: 'techstart', name: 'TechStart Inc' }
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedModules, setExpandedModules] = useState<ModuleType[]>(['detect', 'lab', 'orchestrate']);
+  const [selectedTenantId, setSelectedTenantId] = useState('default');
   const pathname = usePathname();
   const startTutorial = useTutorialStore(state => state.startTutorial);
+  const { isDemo, isLoaded, toggleDemo, enableDemo } = useDemo();
+
+  // Fetch real tenants when not in demo mode
+  const { data: tenantsData } = useQuery({
+    queryKey: ['tenants-list'],
+    queryFn: () => api.getDemoTenants(),
+    staleTime: 60000,
+    enabled: isLoaded,
+  });
+
+  // Determine user and tenants based on mode
+  const currentUser = isDemo ? demoUser : defaultUser;
+  const tenants = isDemo ? demoTenants : (tenantsData?.data || [{ id: 'default', name: 'Default Tenant' }]);
+
+  // Initialize demo mode on first load if URL has ?demo=true
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('demo') === 'true') {
+        enableDemo();
+      }
+    }
+  }, [enableDemo]);
 
   const toggleModule = (moduleId: ModuleType) => {
     setExpandedModules(prev => 
@@ -178,7 +219,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <nav className="px-3 space-y-1" role="navigation" aria-label="Main navigation">
           {moduleSections.map((section) => {
             const isExpanded = expandedModules.includes(section.id);
-            const filteredItems = section.items.filter(item => item.roles.includes(mockUser.role));
+            const filteredItems = section.items.filter(item => item.roles.includes(currentUser.role));
             
             if (filteredItems.length === 0) return null;
             
@@ -246,14 +287,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <div className="flex items-center gap-3 px-2 pt-2">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/avatar.jpg" alt={mockUser.name} />
+            <AvatarImage src="/avatar.jpg" alt={currentUser.name} />
             <AvatarFallback className="bg-primary/10 text-primary text-xs">
-              {mockUser.name.split(' ').map(n => n[0]).join('')}
+              {currentUser.name.split(' ').map(n => n[0]).join('')}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{mockUser.name}</p>
-            <p className="text-xs text-muted-foreground truncate">{mockUser.role}</p>
+            <p className="text-sm font-medium truncate">{currentUser.name}</p>
+            <p className="text-xs text-muted-foreground truncate">{currentUser.role}</p>
           </div>
         </div>
       </div>
@@ -299,19 +340,33 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </div>
 
+            {/* Demo Mode Toggle */}
+            <Button
+              variant={isDemo ? "default" : "outline"}
+              size="sm"
+              className={cn(
+                "gap-2",
+                isDemo && "bg-amber-500 hover:bg-amber-600 text-white"
+              )}
+              onClick={toggleDemo}
+            >
+              <Play className="h-4 w-4" />
+              <span className="hidden sm:inline">{isDemo ? 'Demo Mode' : 'Live Mode'}</span>
+            </Button>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
                   <Building2 className="h-4 w-4" />
                   <span className="hidden sm:inline">
-                    {tenants.find(t => t.id === mockUser.tenantId)?.name}
+                    {tenants.find((t: any) => t.id === currentUser.tenantId || t._id === currentUser.tenantId)?.name || 'Select Tenant'}
                   </span>
                   <ChevronDown className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 dark:bg-slate-900">
-                {tenants.map((tenant) => (
-                  <DropdownMenuItem key={tenant.id} className="cursor-pointer">
+                {tenants.map((tenant: any) => (
+                  <DropdownMenuItem key={tenant.id || tenant._id} className="cursor-pointer">
                     <Building2 className="mr-2 h-4 w-4" />
                     {tenant.name}
                   </DropdownMenuItem>
@@ -373,17 +428,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/avatar.jpg" alt={mockUser.name} />
+                    <AvatarImage src="/avatar.jpg" alt={currentUser.name} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                      {mockUser.name.split(' ').map(n => n[0]).join('')}
+                      {currentUser.name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 dark:bg-slate-900">
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{mockUser.name}</p>
-                  <p className="text-xs text-muted-foreground">{mockUser.email}</p>
+                  <p className="text-sm font-medium">{currentUser.name}</p>
+                  <p className="text-xs text-muted-foreground">{currentUser.email}</p>
                 </div>
                 <DropdownMenuSeparator />
                 <Link href="/dashboard/api">

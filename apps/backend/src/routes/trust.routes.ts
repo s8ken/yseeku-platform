@@ -9,12 +9,13 @@ import { trustService, TrustEvaluation } from '../services/trust.service';
 import { TrustReceiptModel } from '../models/trust-receipt.model';
 import { Conversation } from '../models/conversation.model';
 import { TrustReceipt } from '@sonate/core';
+import { didService } from '../services/did.service';
 
 const router = Router();
 
 /**
  * POST /api/trust/receipts
- * Save a trust receipt
+ * Save a trust receipt with optional DID-based signatures
  */
 router.post('/receipts', protect, async (req: Request, res: Response): Promise<void> => {
   try {
@@ -35,9 +36,18 @@ router.post('/receipts', protect, async (req: Request, res: Response): Promise<v
       return;
     }
 
+    // Add DID fields if not present
+    const platformDID = didService.getPlatformDID();
+    const issuer = receiptData.issuer || platformDID;
+    const subject = receiptData.subject || (receiptData.agent_id
+      ? didService.getAgentDID(receiptData.agent_id)
+      : undefined);
+
     const receipt = await TrustReceiptModel.create({
       ...receiptData,
       tenant_id: req.tenant || 'default',
+      issuer,
+      subject,
     });
 
     res.status(201).json({
@@ -580,5 +590,81 @@ function generateRecommendations(
 
   return recommendations;
 }
+
+/**
+ * GET /api/trust/receipts/by-did/:did
+ * Get trust receipts for a specific DID (subject or issuer)
+ */
+router.get('/receipts/by-did/:did', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { did } = req.params;
+    const { role = 'subject', limit = 50, offset = 0 } = req.query;
+
+    // Decode the DID (might be URL encoded)
+    const decodedDID = decodeURIComponent(did);
+
+    // Build query based on role
+    const query: any = {};
+    if (role === 'issuer') {
+      query.issuer = decodedDID;
+    } else {
+      query.subject = decodedDID;
+    }
+
+    const receipts = await TrustReceiptModel.find(query)
+      .sort({ createdAt: -1 })
+      .skip(Number(offset))
+      .limit(Number(limit));
+
+    const total = await TrustReceiptModel.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: {
+        receipts,
+        did: decodedDID,
+        role,
+        total,
+        limit: Number(limit),
+        offset: Number(offset),
+      },
+    });
+  } catch (error: any) {
+    console.error('Get receipts by DID error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve receipts by DID',
+      message: error.message,
+    });
+  }
+});
+
+/**
+ * GET /api/trust/did-info
+ * Get DID information for the trust service
+ */
+router.get('/did-info', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const platformDID = didService.getPlatformDID();
+
+    res.json({
+      success: true,
+      data: {
+        platformDID,
+        domain: didService.PLATFORM_DOMAIN,
+        didDocumentUrl: `https://${didService.PLATFORM_DOMAIN}/.well-known/did.json`,
+        supportedMethods: ['did:web'],
+        description: 'Platform DID for signing trust receipts as Verifiable Credentials',
+      },
+    });
+  } catch (error: any) {
+    console.error('Get DID info error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve DID info',
+      message: error.message,
+    });
+  }
+});
 
 export default router;

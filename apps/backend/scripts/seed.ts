@@ -21,11 +21,15 @@ import { Conversation } from '../src/models/conversation.model';
 import { Experiment } from '../src/models/experiment.model';
 import { BrainCycle } from '../src/models/brain-cycle.model';
 import { BrainAction } from '../src/models/brain-action.model';
+import { Tenant } from '../src/models/tenant.model';
+import { TrustReceiptModel } from '../src/models/trust-receipt.model';
+import crypto from 'crypto';
 
 // Configuration
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/yseeku';
 const DEMO_PASSWORD = 'Demo123!';
 const TENANT_ID = 'default';
+const DEMO_TENANT_ID = 'demo-tenant';  // Special demo tenant for investor showcases
 
 // Demo Users
 const demoUsers = [
@@ -251,6 +255,87 @@ const demoExperiments = [
   },
 ];
 
+// Demo Trust Receipts - cryptographically valid-looking receipts for showcase
+function generateDemoReceipts(sessionId: string): Array<{
+  self_hash: string;
+  session_id: string;
+  version: string;
+  timestamp: number;
+  mode: string;
+  ciq_metrics: { clarity: number; integrity: number; quality: number };
+  previous_hash?: string;
+  tenant_id: string;
+}> {
+  const receipts = [];
+  let previousHash: string | undefined;
+
+  for (let i = 0; i < 10; i++) {
+    const timestamp = Date.now() - (10 - i) * 60 * 1000; // 10 minutes apart
+    const data = JSON.stringify({
+      session_id: sessionId,
+      timestamp,
+      nonce: crypto.randomBytes(8).toString('hex'),
+    });
+    const hash = crypto.createHash('sha256').update(data).digest('hex');
+
+    receipts.push({
+      self_hash: hash,
+      session_id: sessionId,
+      version: '1.0.0',
+      timestamp,
+      mode: 'constitutional',
+      ciq_metrics: {
+        clarity: 0.7 + Math.random() * 0.3,
+        integrity: 0.8 + Math.random() * 0.2,
+        quality: 0.75 + Math.random() * 0.25,
+      },
+      previous_hash: previousHash,
+      tenant_id: DEMO_TENANT_ID,
+    });
+
+    previousHash = hash;
+  }
+
+  return receipts;
+}
+
+// Demo Tenants - includes the special demo tenant
+const demoTenants = [
+  {
+    _id: DEMO_TENANT_ID,
+    name: 'Demo Organization',
+    description: 'Showcase tenant for investor demos and evaluation purposes',
+    status: 'active' as const,
+    complianceStatus: 'compliant' as const,
+    trustScore: 92,
+    lastActivity: new Date(),
+  },
+  {
+    name: 'Acme Corp',
+    description: 'Enterprise customer - financial services',
+    status: 'active' as const,
+    complianceStatus: 'compliant' as const,
+    trustScore: 88,
+    lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000),
+  },
+  {
+    name: 'TechStart Inc',
+    description: 'Startup customer - SaaS platform',
+    status: 'active' as const,
+    complianceStatus: 'warning' as const,
+    trustScore: 76,
+    lastActivity: new Date(Date.now() - 24 * 60 * 60 * 1000),
+  },
+  {
+    name: 'HealthSecure',
+    description: 'Healthcare provider - HIPAA compliant',
+    status: 'active' as const,
+    complianceStatus: 'compliant' as const,
+    trustScore: 95,
+    lastActivity: new Date(Date.now() - 6 * 60 * 60 * 1000),
+  },
+];
+
 // Sample brain cycles for overseer
 const demoBrainCycles = [
   {
@@ -302,10 +387,20 @@ async function seedDatabase() {
     await User.deleteMany({ email: { $in: demoUsers.map(u => u.email) } });
     await Agent.deleteMany({ name: { $in: demoAgents.map(a => a.name) } });
     await Conversation.deleteMany({ title: { $in: conversationTemplates.map(c => c.title) } });
-    await Experiment.deleteMany({ tenantId: TENANT_ID });
-    await BrainCycle.deleteMany({ tenantId: TENANT_ID });
-    await BrainAction.deleteMany({ tenantId: TENANT_ID });
+    await Experiment.deleteMany({ tenantId: { $in: [TENANT_ID, DEMO_TENANT_ID] } });
+    await BrainCycle.deleteMany({ tenantId: { $in: [TENANT_ID, DEMO_TENANT_ID] } });
+    await BrainAction.deleteMany({ tenantId: { $in: [TENANT_ID, DEMO_TENANT_ID] } });
+    await Tenant.deleteMany({ name: { $in: demoTenants.map(t => t.name) } });
+    await TrustReceiptModel.deleteMany({ tenant_id: DEMO_TENANT_ID });
     console.log('✅ Cleared existing demo data\n');
+
+    // Create demo tenants
+    console.log('🏢 Creating demo tenants...');
+    for (const tenantData of demoTenants) {
+      await Tenant.create(tenantData);
+      console.log(`  ✅ Created tenant: ${tenantData.name}`);
+    }
+    console.log('');
 
     // Create demo users
     console.log('👤 Creating demo users...');
@@ -435,20 +530,36 @@ async function seedDatabase() {
     }
     console.log('');
 
+    // Create demo trust receipts
+    console.log('📜 Creating demo trust receipts...');
+    const demoSessionId = `demo-session-${Date.now()}`;
+    const demoReceipts = generateDemoReceipts(demoSessionId);
+    for (const receipt of demoReceipts) {
+      await TrustReceiptModel.create(receipt);
+    }
+    console.log(`  ✅ Created ${demoReceipts.length} trust receipts for session ${demoSessionId}`);
+    console.log('');
+
     // Print summary
     console.log('═══════════════════════════════════════════════════════════');
     console.log('🎉 Database seeded successfully!\n');
     console.log('📊 Summary:');
+    console.log(`   • Tenants: ${demoTenants.length}`);
     console.log(`   • Users: ${createdUsers.length}`);
     console.log(`   • Agents: ${createdAgents.length}`);
     console.log(`   • Conversations: ${conversationTemplates.length}`);
     console.log(`   • Experiments: ${demoExperiments.length}`);
     console.log(`   • Brain Cycles: ${demoBrainCycles.length}`);
+    console.log(`   • Trust Receipts: ${demoReceipts.length}`);
     console.log('');
     console.log('🔐 Demo Credentials:');
     console.log('   Admin:  demo@yseeku.com / Demo123!');
     console.log('   Editor: user@yseeku.com / Demo123!');
     console.log('   Viewer: viewer@yseeku.com / Demo123!');
+    console.log('');
+    console.log('🎭 Demo Tenant:');
+    console.log(`   ID: ${DEMO_TENANT_ID}`);
+    console.log('   Use: /demo routes for investor showcases');
     console.log('═══════════════════════════════════════════════════════════\n');
 
   } catch (error) {
@@ -470,4 +581,4 @@ if (require.main === module) {
     });
 }
 
-export { seedDatabase };
+export { seedDatabase, DEMO_TENANT_ID };

@@ -41,49 +41,6 @@ interface Experiment {
   };
 }
 
-const mockExperiments: Experiment[] = [
-  {
-    id: 'exp-001',
-    name: 'Resonance Threshold Calibration',
-    hypothesis: 'Lowering resonance detection threshold from 0.7 to 0.5 improves early detection of trust degradation',
-    status: 'running',
-    progress: 72,
-    startedAt: new Date(Date.now() - 1000 * 60 * 60 * 36).toISOString(),
-    variants: [
-      { name: 'Control (0.7)', sampleSize: 1245, avgScore: 7.2 },
-      { name: 'Treatment (0.5)', sampleSize: 1189, avgScore: 7.8 }
-    ],
-    stats: { pValue: 0.0023, effectSize: 0.42, significant: true }
-  },
-  {
-    id: 'exp-002',
-    name: 'Bedau Index Window Size',
-    hypothesis: 'Extending the temporal window for Bedau Index calculation from 10 to 25 interactions improves emergence detection',
-    status: 'running',
-    progress: 45,
-    startedAt: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
-    variants: [
-      { name: '10 interactions', sampleSize: 678, avgScore: 6.8 },
-      { name: '25 interactions', sampleSize: 645, avgScore: 7.1 },
-      { name: '50 interactions', sampleSize: 612, avgScore: 6.5 }
-    ],
-    stats: { pValue: 0.089, effectSize: 0.18, significant: false }
-  },
-  {
-    id: 'exp-003',
-    name: 'Multi-Modal Coherence Weights',
-    hypothesis: 'Equal weighting across modalities outperforms text-heavy weighting for trust scoring',
-    status: 'completed',
-    progress: 100,
-    startedAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
-    variants: [
-      { name: 'Text-Heavy (70/30)', sampleSize: 2341, avgScore: 7.4 },
-      { name: 'Equal (50/50)', sampleSize: 2287, avgScore: 8.1 }
-    ],
-    stats: { pValue: 0.0001, effectSize: 0.67, significant: true }
-  }
-];
-
 export default function LabPage() {
   const [showNewExperiment, setShowNewExperiment] = useState(false);
   const [newHypothesis, setNewHypothesis] = useState('');
@@ -96,10 +53,7 @@ export default function LabPage() {
   });
 
   const experiments = experimentsResponse?.data?.experiments || [];
-  
-  // Combine real and mock experiments for demo purposes if needed, 
-  // but let's prefer real ones if available
-  const displayExperiments = experiments.length > 0 ? experiments : mockExperiments;
+  const summary = experimentsResponse?.data?.summary || { running: 0, completed: 0, significant: 0, total: 0 };
 
   const createExperimentMutation = useMutation({
     mutationFn: async (data: { name: string; hypothesis: string; variants: any[] }) => {
@@ -173,21 +127,21 @@ export default function LabPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">2</div>
+            <div className="text-3xl font-bold">{summary.running}</div>
             <p className="text-xs text-muted-foreground mt-1">Currently running</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Completed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">1</div>
-            <p className="text-xs text-muted-foreground mt-1">This week</p>
+            <div className="text-3xl font-bold">{summary.completed}</div>
+            <p className="text-xs text-muted-foreground mt-1">Total completed</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-1">
@@ -196,24 +150,24 @@ export default function LabPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-emerald-500">2</div>
+            <div className="text-3xl font-bold text-emerald-500">{summary.significant}</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
               p &lt; 0.05 <InfoTooltip term="p-value" />
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-1">
-              Avg Effect Size
-              <InfoTooltip term="Effect Size" />
+              Total Experiments
+              <InfoTooltip term="Total experiments in the system" />
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">0.42</div>
+            <div className="text-3xl font-bold">{summary.total}</div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              Cohen's d <InfoTooltip term="Cohen's d" />
+              All experiments
             </p>
           </CardContent>
         </Card>
@@ -266,9 +220,32 @@ export default function LabPage() {
       )}
 
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Active Experiments</h2>
-        
-        {displayExperiments.map((exp: any) => (
+        <h2 className="text-lg font-semibold">Experiments</h2>
+
+        {isLoading ? (
+          <Card>
+            <CardContent className="py-12 text-center text-muted-foreground">
+              Loading experiments...
+            </CardContent>
+          </Card>
+        ) : experiments.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <FlaskConical className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">No experiments yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Create your first experiment to start A/B testing trust protocol configurations.
+              </p>
+              <Button
+                onClick={() => setShowNewExperiment(true)}
+                className="bg-[var(--lab-primary)] hover:bg-[var(--lab-secondary)]"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create First Experiment
+              </Button>
+            </CardContent>
+          </Card>
+        ) : experiments.map((exp: any) => (
           <Card key={exp.id} className={exp.status === 'completed' ? 'opacity-75' : ''}>
             <CardHeader>
               <div className="flex items-start justify-between">

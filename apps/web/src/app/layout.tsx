@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 // import { Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Providers } from "./providers";
 import "./globals.css";
 
 /*
@@ -31,15 +32,17 @@ export default function RootLayout({
       <body
         className="antialiased"
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster position="top-right" expand={true} richColors />
-        </ThemeProvider>
+        <Providers>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster position="top-right" expand={true} richColors />
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

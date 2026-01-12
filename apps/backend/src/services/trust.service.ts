@@ -19,6 +19,7 @@ import {
 } from '@sonate/detect';
 import { IMessage } from '../models/conversation.model';
 import { keysService } from './keys.service';
+import { didService } from './did.service';
 
 export interface TrustEvaluation {
   // From TrustProtocol (@sonate/core)
@@ -33,10 +34,22 @@ export interface TrustEvaluation {
   receiptHash: string;
   signature?: string;  // Ed25519 signature
 
+  // DID-based Verifiable Credential fields
+  issuer?: string;      // Platform DID (did:web:yseeku.com)
+  subject?: string;     // Agent DID (did:web:yseeku.com:agents:{id})
+  proof?: {
+    type: string;
+    created: string;
+    verificationMethod: string;
+    proofPurpose: string;
+    proofValue: string;
+  };
+
   // Metadata
   timestamp: number;
   messageId?: string;
   conversationId?: string;
+  agentId?: string;
 }
 
 export interface TrustAnalytics {
@@ -86,6 +99,7 @@ export class TrustService {
       conversationId: string;
       sessionId?: string;
       previousMessages?: IMessage[];
+      agentId?: string;  // Agent ID for DID-based subject
     }
   ): Promise<TrustEvaluation> {
     // Build AIInteraction object for @sonate/detect
@@ -136,6 +150,24 @@ export class TrustService {
       // Continue without signature - verification will handle unsigned receipts
     }
 
+    // Create DID-based proof structure
+    const platformDID = didService.getPlatformDID();
+    let proof: TrustEvaluation['proof'] = undefined;
+
+    if (receipt.signature) {
+      try {
+        proof = await didService.createProof(
+          receipt.self_hash,
+          `${platformDID}#key-1`
+        );
+      } catch (error: any) {
+        console.warn('Failed to create DID proof:', error.message);
+      }
+    }
+
+    // Extract agent ID from context if available
+    const agentId = context.agentId || (message.metadata as any)?.agentId;
+
     return {
       trustScore,
       status,
@@ -143,9 +175,13 @@ export class TrustService {
       receipt,
       receiptHash: receipt.self_hash,
       signature: receipt.signature,
+      issuer: platformDID,
+      subject: agentId ? didService.getAgentDID(agentId) : undefined,
+      proof,
       timestamp: Date.now(),
       messageId: message.metadata?.messageId,
       conversationId: context.conversationId,
+      agentId,
     };
   }
 

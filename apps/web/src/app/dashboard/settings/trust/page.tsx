@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -76,6 +76,27 @@ export default function TrustSettingsPage() {
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('trustSettings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setSettings(prev => ({
+          ...prev,
+          ...parsed,
+          notifications: { ...prev.notifications, ...parsed.notifications },
+          display: { ...prev.display, ...parsed.display },
+          receipts: { ...prev.receipts, ...parsed.receipts },
+        }));
+      }
+    } catch (e) {
+      console.error('Failed to load trust settings:', e);
+    }
+    setIsLoaded(true);
+  }, []);
 
   const handleSave = async () => {
     setIsSaving(true);

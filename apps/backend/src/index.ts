@@ -32,6 +32,8 @@ import orchestrateRoutes from './routes/orchestrate.routes';
 import overseerRoutes from './routes/overseer.routes';
 import secretsRoutes from './routes/secrets.routes';
 import overrideRoutes from './routes/override.routes';
+import demoRoutes from './routes/demo.routes';
+import didRoutes from './routes/did.routes';
 import { initializeSocket } from './socket';
 import { startOverseerScheduler } from './services/brain/scheduler';
 import logger from './utils/logger';
@@ -124,6 +126,9 @@ app.use('/api/overseer', overseerRoutes); // System Brain / Overseer
 app.use('/api/overrides', overrideRoutes); // Override management
 app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
 app.use('/api/secrets', secretsRoutes);
+app.use('/api/demo', demoRoutes); // Demo routes for investor showcases (no auth required)
+app.use('/.well-known', didRoutes); // DID resolution at standard .well-known path (no auth required)
+app.use('/api/did', didRoutes); // DID API endpoints
 
 // 404 handler
 app.use((req, res) => {

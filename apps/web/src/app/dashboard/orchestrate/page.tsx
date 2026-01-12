@@ -145,7 +145,7 @@ export default function OrchestrationPage() {
               <div className="p-4 border rounded-lg bg-muted/50">
                 <h4 className="font-semibold mb-2">Research & Validate (CEV)</h4>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Standard pattern: Coordinator plans -> Executor acts -> Validator checks.
+                  Standard pattern: Coordinator plans → Executor acts → Validator checks.
                 </p>
                 
                 <div className="space-y-3">

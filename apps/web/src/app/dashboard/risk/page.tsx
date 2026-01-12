@@ -19,6 +19,8 @@ import {
   Download
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
+import { api } from '@/lib/api';
+import { useDemo } from '@/hooks/use-demo';
 
 const defaultTrustPrinciples = [
   { name: 'Consent Architecture', weight: 25, score: 85, critical: true },
@@ -210,6 +212,8 @@ function RiskAlerts({ alerts }: { alerts: RiskEvent[] }) {
 
 export default function RiskManagementPage() {
   const [tenant, setTenant] = useState('default');
+  const { isDemo, isLoaded } = useDemo();
+
   useEffect(() => {
     try {
       const t = typeof window !== 'undefined' ? localStorage.getItem('tenant') : null;
@@ -219,6 +223,7 @@ export default function RiskManagementPage() {
     }
   }, []);
 
+  // Fetch real risk metrics
   const { data: riskMetrics } = useQuery({
     queryKey: ['risk-metrics', tenant],
     queryFn: async () => {
@@ -228,8 +233,18 @@ export default function RiskManagementPage() {
     },
     retry: false,
     staleTime: Infinity,
+    enabled: !isDemo && isLoaded,
   });
 
+  // Fetch demo risk data when in demo mode
+  const { data: demoRiskData } = useQuery({
+    queryKey: ['demo-risk'],
+    queryFn: () => api.getDemoRisk(),
+    staleTime: 60000,
+    enabled: isDemo && isLoaded,
+  });
+
+  // Fetch real risk events
   const { data: riskEventsData } = useQuery({
     queryKey: ['risk-events', tenant],
     queryFn: async () => {
@@ -239,25 +254,49 @@ export default function RiskManagementPage() {
     },
     retry: false,
     staleTime: 30000,
+    enabled: !isDemo && isLoaded,
   });
 
-  const trustPrinciples = riskMetrics?.data?.trustPrinciples || defaultTrustPrinciples;
-  const complianceReports = riskMetrics?.data?.complianceReports || defaultComplianceReports;
-  const riskAlerts = riskEventsData?.data?.length ? riskEventsData.data : (riskMetrics?.data?.recentRiskEvents || []);
-  const dataSource = riskEventsData?.meta?.source === 'database' ? 'live' : 'demo';
+  // Use demo data when in demo mode
+  const demoData = demoRiskData?.data;
+  const trustPrinciples = isDemo
+    ? (demoData?.trustPrinciples || defaultTrustPrinciples)
+    : (riskMetrics?.data?.trustPrinciples || defaultTrustPrinciples);
+  const complianceReports = isDemo
+    ? (demoData?.complianceReports?.map((r: any) => ({
+        id: r.framework,
+        title: r.framework,
+        status: r.status,
+        lastChecked: r.lastAudit,
+        score: r.score
+      })) || defaultComplianceReports)
+    : (riskMetrics?.data?.complianceReports || defaultComplianceReports);
+  const riskAlerts = isDemo
+    ? []
+    : (riskEventsData?.data?.length ? riskEventsData.data : (riskMetrics?.data?.recentRiskEvents || []));
+  const dataSource = isDemo ? 'demo' : 'live';
 
   const overallTrustScore = trustPrinciples.reduce((acc, principle) => {
     return acc + (principle.score * principle.weight / 100);
   }, 0);
 
-  const metrics = riskMetrics?.data || {
-    overallRiskScore: 15,
-    trustScore: overallTrustScore,
-    complianceRate: 92,
-    activeAlerts: riskAlerts.length,
-    criticalViolations: 1,
-    riskTrend: 'stable' as const
-  };
+  const metrics = isDemo
+    ? {
+        overallRiskScore: demoData?.overallRiskScore ?? 12,
+        trustScore: overallTrustScore,
+        complianceRate: 98,
+        activeAlerts: 0,
+        criticalViolations: 0,
+        riskTrend: 'improving' as const
+      }
+    : (riskMetrics?.data || {
+        overallRiskScore: 15,
+        trustScore: overallTrustScore,
+        complianceRate: 92,
+        activeAlerts: riskAlerts.length,
+        criticalViolations: 1,
+        riskTrend: 'stable' as const
+      });
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">

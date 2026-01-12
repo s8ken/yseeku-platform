@@ -6,9 +6,9 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Fingerprint, 
-  CheckCircle2, 
+import {
+  Fingerprint,
+  CheckCircle2,
   XCircle,
   Clock,
   Hash,
@@ -20,10 +20,12 @@ import {
   AlertTriangle,
   Loader2,
   ShieldCheck,
-  ShieldAlert
+  ShieldAlert,
+  FileX
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { api } from '@/lib/api';
+import { useDemo } from '@/hooks/use-demo';
 
 interface TrustReceipt {
   id: string;
@@ -45,46 +47,33 @@ interface TrustReceipt {
   receiptData?: any;
 }
 
-const mockReceipts: TrustReceipt[] = [
-  {
-    id: 'receipt-001',
-    hash: '0x7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069',
-    agentId: 'agent-001',
-    agentName: 'GPT-4 Assistant',
-    timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
-    trustScore: 89,
-    symbiDimensions: {
-      realityIndex: 8.7,
-      trustProtocol: 'PASS',
-      ethicalAlignment: 4.3,
-      resonanceQuality: 'ADVANCED',
-      canvasParity: 92
-    },
-    verified: true,
-    chainPosition: 15847,
-    previousHash: '0x6a4e8b..."',
-    receiptData: { signature: '0x...', payload: { score: 8.9 } }
-  },
-  {
-    id: 'receipt-002',
-    hash: '0x8e959b75dae313da8cf4f72814fc143f8f7779c6eb9f7fa17299aeadb6889018',
-    agentId: 'agent-002',
-    agentName: 'Claude Analyst',
-    timestamp: new Date(Date.now() - 1000 * 60 * 8).toISOString(),
-    trustScore: 94,
-    symbiDimensions: {
-      realityIndex: 9.2,
-      trustProtocol: 'PASS',
-      ethicalAlignment: 4.7,
-      resonanceQuality: 'BREAKTHROUGH',
-      canvasParity: 96
-    },
-    verified: true,
-    chainPosition: 15846,
-    previousHash: '0x3c2a7d...',
-    receiptData: { signature: '0x...', payload: { score: 9.4 } }
-  },
-];
+// Empty state component
+function EmptyState() {
+  return (
+    <Card className="p-12 text-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+          <FileX className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold">No Trust Receipts Yet</h3>
+          <p className="text-muted-foreground max-w-md mx-auto mt-2">
+            Trust receipts are generated when AI agents complete interactions.
+            Connect agents to your platform to start generating verifiable receipts.
+          </p>
+        </div>
+        <div className="flex gap-2 mt-4">
+          <Button variant="outline" asChild>
+            <a href="/dashboard/agents">Configure Agents</a>
+          </Button>
+          <Button asChild>
+            <a href="/docs/trust-receipts">Learn More</a>
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
   const [copied, setCopied] = useState(false);
@@ -229,7 +218,8 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
 export default function TrustReceiptsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [tenant, setTenant] = useState('default');
-  
+  const { isDemo, isLoaded } = useDemo();
+
   useEffect(() => {
     try {
       const t = typeof window !== 'undefined' ? localStorage.getItem('tenant') : null;
@@ -239,7 +229,8 @@ export default function TrustReceiptsPage() {
     }
   }, []);
 
-  const { data: receiptsData, isLoading } = useQuery({
+  // Fetch real receipts from API
+  const { data: receiptsData, isLoading: isLoadingReal } = useQuery({
     queryKey: ['trust-receipts', tenant],
     queryFn: async () => {
       const response = await fetch(`/api/trust-receipts?tenant=${encodeURIComponent(tenant)}&limit=50`);
@@ -252,11 +243,50 @@ export default function TrustReceiptsPage() {
       }>;
     },
     staleTime: 30000,
+    enabled: !isDemo && isLoaded,
   });
 
-  const receipts = receiptsData?.data?.length ? receiptsData.data : mockReceipts;
-  const stats = receiptsData?.stats || { total: mockReceipts.length, verified: mockReceipts.filter(r => r.verified).length, invalid: mockReceipts.filter(r => !r.verified).length, chainLength: mockReceipts.length };
-  const dataSource = receiptsData?.source === 'database' && receiptsData.data.length > 0 ? 'live' : 'demo';
+  // Fetch demo receipts when in demo mode
+  const { data: demoData, isLoading: isLoadingDemo } = useQuery({
+    queryKey: ['demo-receipts'],
+    queryFn: () => api.getDemoReceipts(),
+    staleTime: 60000,
+    enabled: isDemo && isLoaded,
+  });
+
+  const isLoading = !isLoaded || (isDemo ? isLoadingDemo : isLoadingReal);
+  const hasRealData = receiptsData?.data && receiptsData.data.length > 0;
+  const hasDemoData = demoData?.data?.receipts && demoData.data.receipts.length > 0;
+
+  // Map demo receipts to match TrustReceipt interface
+  const demoReceipts: TrustReceipt[] = (demoData?.data?.receipts || []).map((r: any) => ({
+    id: r._id || r.id,
+    hash: r.hash || r.receipt_hash || '',
+    agentId: r.agent_id || '',
+    agentName: r.agent_name || 'Demo Agent',
+    timestamp: r.timestamp || new Date().toISOString(),
+    trustScore: r.trust_score || 85,
+    symbiDimensions: r.symbi_dimensions || {
+      realityIndex: 8.5,
+      trustProtocol: 'PASS',
+      ethicalAlignment: 4.2,
+      resonanceQuality: 'ADVANCED',
+      canvasParity: 90
+    },
+    verified: r.verified ?? true,
+    chainPosition: r.chain_position || 1,
+    previousHash: r.previous_hash || '',
+    receiptData: r.receipt_data || {}
+  }));
+
+  const receipts = isDemo ? demoReceipts : (receiptsData?.data || []);
+  const stats = receiptsData?.stats || {
+    total: receipts.length,
+    verified: receipts.filter(r => r.verified).length,
+    invalid: receipts.filter(r => !r.verified).length,
+    chainLength: receipts.length
+  };
+  const dataSource = isDemo ? 'demo' : 'live';
 
   const filteredReceipts = receipts.filter(r => 
     r.agentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -360,9 +390,13 @@ export default function TrustReceiptsPage() {
       </div>
 
       <div className="space-y-4">
-        {filteredReceipts.map((receipt) => (
-          <ReceiptCard key={receipt.id} receipt={receipt} />
-        ))}
+        {!isLoading && receipts.length === 0 ? (
+          <EmptyState />
+        ) : (
+          filteredReceipts.map((receipt) => (
+            <ReceiptCard key={receipt.id} receipt={receipt} />
+          ))
+        )}
       </div>
     </div>
   );
