@@ -9,6 +9,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import logger from '../utils/logger';
+import { createSecretsManager } from '@sonate/orchestrate';
 
 let ed25519Promise: Promise<any> | null = null;
 
@@ -46,6 +47,25 @@ class KeysService {
     if (this.initialized) return;
 
     try {
+      if (process.env.SECRETS_PROVIDER === 'vault' && process.env.TRUST_SIGNING_PRIVATE_KEY_REF) {
+        const sm = createSecretsManager();
+        const privRef = process.env.TRUST_SIGNING_PRIVATE_KEY_REF as string;
+        const privHex = await sm.decrypt(privRef);
+        const ed25519 = await loadEd25519();
+        const clean = (privHex as string).startsWith('0x') ? (privHex as string).slice(2) : (privHex as string);
+        const privateKeyBuf = Buffer.from(clean, 'hex');
+        const privateKey = new Uint8Array(privateKeyBuf);
+        const publicKey = await ed25519.getPublicKey(privateKey);
+        const publicKeyHex = Buffer.from(publicKey).toString('hex');
+        this.keyPair = {
+          privateKey,
+          publicKey,
+          publicKeyHex,
+        };
+        logger.info('Trust signing keys loaded from Vault');
+        this.initialized = true;
+        return;
+      }
       // First check environment variables
       if (process.env.TRUST_SIGNING_PRIVATE_KEY && process.env.TRUST_SIGNING_PUBLIC_KEY) {
         const privateKey = Buffer.from(process.env.TRUST_SIGNING_PRIVATE_KEY, 'hex');

@@ -102,6 +102,11 @@ export function getPool(): Pool | null {
               tenant_id TEXT,
               created_at TIMESTAMPTZ DEFAULT NOW()
             );
+            CREATE TABLE IF NOT EXISTS trust_settings (
+              tenant_id TEXT PRIMARY KEY,
+              settings JSONB NOT NULL,
+              updated_at TIMESTAMPTZ DEFAULT NOW()
+            );
           `);
           console.log('Database schema verified/created successfully');
         } finally {
@@ -226,6 +231,11 @@ export async function ensureSchema(): Promise<void> {
         ip_address TEXT,
         user_agent TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS trust_settings (
+        tenant_id TEXT PRIMARY KEY,
+        settings JSONB NOT NULL,
+        updated_at TIMESTAMPTZ DEFAULT NOW()
       );
     `);
   } catch (err) {

@@ -126,7 +126,10 @@ app.use('/api/overseer', overseerRoutes); // System Brain / Overseer
 app.use('/api/overrides', overrideRoutes); // Override management
 app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
 app.use('/api/secrets', secretsRoutes);
-app.use('/api/demo', demoRoutes); // Demo routes for investor showcases (no auth required)
+const enableDemo = process.env.DEMO_ROUTES_ENABLED === 'true' || (process.env.NODE_ENV !== 'production');
+if (enableDemo) {
+  app.use('/api/demo', demoRoutes);
+}
 app.use('/.well-known', didRoutes); // DID resolution at standard .well-known path (no auth required)
 app.use('/api/did', didRoutes); // DID API endpoints
 

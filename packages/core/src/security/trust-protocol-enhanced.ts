@@ -10,6 +10,7 @@ import { AIInteraction } from '@sonate/detect';
 import { AuthenticationError, SecurityError } from './errors';
 import { EnhancedAuditSystem } from './audit-enhanced';
 import { SignedTrustReceipt } from './trust-receipt-enhanced';
+import { TrustReceipt } from '../trust-receipt';
 
 export interface TrustProtocolResult {
   status: 'PASS' | 'PARTIAL' | 'FAIL';
@@ -323,29 +324,39 @@ export class EnhancedTrustProtocolValidator {
     return recommendations;
   }
 
-  /**
-   * Generate cryptographically signed trust receipt
-   */
   private async generateTrustReceipt(
     interaction: AIInteraction, 
     checks: any, 
     score: number,
     context?: { userId?: string; sessionId?: string; tenant?: string; ipAddress?: string }
   ): Promise<SignedTrustReceipt> {
-    // This would integrate with the existing trust receipt system
-    // For now, return a placeholder that can be integrated later
-    return {
+    const sessionId = context?.sessionId || interaction.id || 'unknown';
+    const ciq = {
+      clarity: score,
+      integrity: checks.cryptographic ? 0.9 : 0.5,
+      quality: score
+    };
+    const receipt = new TrustReceipt({
       version: '1.0.0',
-      session_id: context?.sessionId || 'unknown',
+      session_id: sessionId,
       timestamp: Date.now(),
       mode: 'constitutional',
-      ciq_metrics: {
-        clarity: score,
-        integrity: checks.cryptographic ? 0.9 : 0.5,
-        quality: score
-      },
-      signature: 'placeholder_signature',
-      self_hash: 'placeholder_hash'
+      ciq_metrics: ciq
+    });
+    const privHex = process.env.TRUST_ED25519_PRIVATE_KEY_HEX || '';
+    if (privHex) {
+      const clean = privHex.startsWith('0x') ? privHex.slice(2) : privHex;
+      const buf = Buffer.from(clean, 'hex');
+      await receipt.sign(buf);
+    }
+    return {
+      version: receipt.version,
+      session_id: receipt.session_id,
+      timestamp: receipt.timestamp,
+      mode: receipt.mode,
+      ciq_metrics: receipt.ciq_metrics,
+      signature: receipt.signature,
+      self_hash: receipt.self_hash
     } as SignedTrustReceipt;
   }
 

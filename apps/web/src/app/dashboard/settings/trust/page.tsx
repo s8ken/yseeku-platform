@@ -81,17 +81,36 @@ export default function TrustSettingsPage() {
   // Load settings from localStorage on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('trustSettings');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setSettings(prev => ({
-          ...prev,
-          ...parsed,
-          notifications: { ...prev.notifications, ...parsed.notifications },
-          display: { ...prev.display, ...parsed.display },
-          receipts: { ...prev.receipts, ...parsed.receipts },
-        }));
-      }
+      const load = async () => {
+        const res = await fetch('/api/trust/settings', { method: 'GET' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.data) {
+            const parsed = json.data;
+            setSettings(prev => ({
+              ...prev,
+              ...parsed,
+              notifications: { ...prev.notifications, ...parsed.notifications },
+              display: { ...prev.display, ...parsed.display },
+              receipts: { ...prev.receipts, ...parsed.receipts },
+            }));
+            localStorage.setItem('trustSettings', JSON.stringify(parsed));
+          } else {
+            const saved = localStorage.getItem('trustSettings');
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              setSettings(prev => ({
+                ...prev,
+                ...parsed,
+                notifications: { ...prev.notifications, ...parsed.notifications },
+                display: { ...prev.display, ...parsed.display },
+                receipts: { ...prev.receipts, ...parsed.receipts },
+              }));
+            }
+          }
+        }
+      };
+      load();
     } catch (e) {
       console.error('Failed to load trust settings:', e);
     }
@@ -101,8 +120,12 @@ export default function TrustSettingsPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // TODO: Call API to save settings
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const res = await fetch('/api/trust/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenant_id: 'default', settings }),
+      });
+      if (!res.ok) throw new Error('Save failed');
 
       // Save to localStorage for now
       localStorage.setItem('trustSettings', JSON.stringify(settings));

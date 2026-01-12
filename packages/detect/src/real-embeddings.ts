@@ -4,6 +4,7 @@
  */
 
 import { hybridCache } from './redis-cache';
+import axios from 'axios';
 
 export interface EmbeddingResult {
   vector: number[];
@@ -25,6 +26,8 @@ export interface EmbeddingConfig {
   max_sequence_length: number;
   normalize_vectors: boolean;
   use_gpu_if_available: boolean;
+  provider?: 'openai' | 'together' | 'huggingface' | 'local';
+  provider_model?: string;
 }
 
 export interface EmbeddingCacheEntry {
@@ -36,7 +39,7 @@ export interface EmbeddingCacheEntry {
 
 export class SemanticEmbedder {
   private config: EmbeddingConfig;
-  private model: any = null; // Would hold actual model in production
+  private model: any = null;
   private performanceStats: {
     total_inferences: number;
     avg_inference_time_ms: number;
@@ -53,6 +56,8 @@ export class SemanticEmbedder {
       max_sequence_length: 512,
       normalize_vectors: true,
       use_gpu_if_available: true,
+      provider: (process.env.DETECT_EMBEDDINGS_PROVIDER as any) || 'local',
+      provider_model: process.env.DETECT_EMBEDDINGS_MODEL || undefined,
       ...config
     };
 
@@ -103,7 +108,6 @@ export class SemanticEmbedder {
       };
     }
 
-    // Generate embedding
     const embedding = await this.generateEmbedding(text);
     const inferenceTime = performance.now() - startTime;
 
@@ -246,27 +250,33 @@ export class SemanticEmbedder {
     confidence: number;
     metadata: EmbeddingResult['metadata'];
   }> {
-    // This is where actual model inference would happen
-    // For now, we provide a sophisticated heuristic that could be replaced with real ML
+    if (this.config.provider && this.config.provider !== 'local' && this.config.provider !== 'fallback') {
+      const vectors = await this.providerEmbed([text]);
+      const vec = this.resizeVector(vectors[0], this.config.dimensions);
+      return {
+        vector: this.config.normalize_vectors ? this.normalizeReturn(vec) : vec,
+        confidence: 0.95,
+        metadata: {
+          token_count: this.tokenize(text).length,
+          language_detected: this.detectLanguage(text),
+          semantic_density: this.calculateSemanticDensity(this.tokenize(text))
+        }
+      };
+    }
 
     const tokens = this.tokenize(text);
     const baseVector = new Array(this.config.dimensions);
 
-    // Sophisticated heuristic based on linguistic features
     let semanticDensity = 0;
     let complexityScore = 0;
 
-    // Analyze linguistic features
     const features = this.extractLinguisticFeatures(text);
 
-    // Generate vector based on features (this is a placeholder for real ML)
     for (let i = 0; i < this.config.dimensions; i++) {
-      // Use different hashing/encoding for different dimensions
       const hash1 = this.hashString(text, i);
       const hash2 = this.hashString(text.substring(0, Math.floor(text.length / 2)), i);
       const hash3 = this.hashString(tokens.join(' '), i);
 
-      // Combine with linguistic features
       baseVector[i] = (
         Math.sin(hash1) * 0.4 +
         Math.cos(hash2) * 0.3 +
@@ -276,12 +286,10 @@ export class SemanticEmbedder {
       );
     }
 
-    // Normalize if requested
     if (this.config.normalize_vectors) {
       this.normalizeVector(baseVector);
     }
 
-    // Calculate confidence based on text quality
     const confidence = this.calculateEmbeddingConfidence(text, features);
 
     return {
@@ -300,13 +308,28 @@ export class SemanticEmbedder {
     confidence: number;
     metadata: EmbeddingResult['metadata'];
   }>> {
-    // Batch processing - in real implementation would use model's batch inference
+    if (this.config.provider && this.config.provider !== 'local' && this.config.provider !== 'fallback') {
+      const vectors = await this.providerEmbed(texts);
+      const results = texts.map((t, i) => {
+        const vec = this.resizeVector(vectors[i], this.config.dimensions);
+        const out = this.config.normalize_vectors ? this.normalizeReturn(vec) : vec;
+        return {
+          vector: out,
+          confidence: 0.95,
+          metadata: {
+            token_count: this.tokenize(t).length,
+            language_detected: this.detectLanguage(t),
+            semantic_density: this.calculateSemanticDensity(this.tokenize(t))
+          }
+        };
+      });
+      return results;
+    }
     const promises = texts.map(text => this.generateEmbedding(text));
     return Promise.all(promises);
   }
 
   private tokenize(text: string): string[] {
-    // Simple tokenization - in production use proper NLP tokenizer
     return text.toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
@@ -338,11 +361,9 @@ export class SemanticEmbedder {
   }
 
   private calculateSemanticDensity(tokens: string[]): number {
-    // Measure lexical diversity and semantic richness
     const uniqueTokens = new Set(tokens);
     const diversity = uniqueTokens.size / tokens.length;
 
-    // Average word length as proxy for semantic complexity
     const avgWordLength = tokens.reduce((sum, token) => sum + token.length, 0) / tokens.length;
 
     return Math.min(1, (diversity * 0.7) + (avgWordLength / 10 * 0.3));
@@ -390,8 +411,6 @@ export class SemanticEmbedder {
     }
   }
 
-  // Caching is now handled directly through hybridCache in the embed method
-
   private updatePerformanceStats(inferenceTime: number): void {
     const alpha = 0.1; // Exponential moving average
     this.performanceStats.avg_inference_time_ms =
@@ -408,6 +427,77 @@ export class SemanticEmbedder {
       language_detected: this.detectLanguage(text),
       semantic_density: features.semanticDensity
     };
+  }
+
+  private async providerEmbed(texts: string[]): Promise<number[][]> {
+    const provider = this.config.provider || 'local';
+    const model = this.config.provider_model || this.defaultProviderModel(provider);
+    if (provider === 'openai') {
+      const url = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1/embeddings';
+      const res = await axios.post(url, { model, input: texts }, {
+        headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+        timeout: 20000
+      });
+      return (res.data.data || []).map((d: any) => d.embedding as number[]);
+    }
+    if (provider === 'together') {
+      const url = process.env.TOGETHER_BASE_URL || 'https://api.together.xyz/v1/embeddings';
+      const res = await axios.post(url, { model, input: texts }, {
+        headers: { Authorization: `Bearer ${process.env.TOGETHER_API_KEY}`, 'Content-Type': 'application/json' },
+        timeout: 20000
+      });
+      return (res.data.data || []).map((d: any) => d.embedding as number[]);
+    }
+    if (provider === 'huggingface') {
+      const api = process.env.HF_API_URL || 'https://api-inference.huggingface.co/pipeline/feature-extraction';
+      const token = process.env.HF_API_TOKEN || '';
+      const vectors: number[][] = [];
+      for (const t of texts) {
+        const res = await axios.post(`${api}/${model}`, t, {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          timeout: 20000
+        });
+        const raw = res.data;
+        const vec = Array.isArray(raw[0]) ? this.avgPool(raw) : raw;
+        vectors.push(vec as number[]);
+      }
+      return vectors;
+    }
+    return await Promise.all(texts.map(async (t) => (await this.generateEmbedding(t)).vector));
+  }
+
+  private defaultProviderModel(provider: string): string {
+    if (provider === 'openai') return 'text-embedding-3-small';
+    if (provider === 'together') return 'BAAI/bge-small-en-v1.5';
+    if (provider === 'huggingface') return 'sentence-transformers/all-MiniLM-L6-v2';
+    return '';
+  }
+
+  private avgPool(nested: number[][]): number[] {
+    const len = nested.length;
+    if (len === 0) return [];
+    const dim = nested[0].length;
+    const acc = new Array(dim).fill(0);
+    for (let i = 0; i < len; i++) {
+      const row = nested[i];
+      for (let j = 0; j < dim; j++) acc[j] += row[j];
+    }
+    for (let j = 0; j < dim; j++) acc[j] /= len;
+    return acc;
+  }
+
+  private resizeVector(vec: number[], target: number): number[] {
+    if (vec.length === target) return vec;
+    if (vec.length > target) return vec.slice(0, target);
+    const out = vec.slice();
+    while (out.length < target) out.push(0);
+    return out;
+  }
+
+  private normalizeReturn(vec: number[]): number[] {
+    const v = vec.slice();
+    this.normalizeVector(v);
+    return v;
   }
 }
 
