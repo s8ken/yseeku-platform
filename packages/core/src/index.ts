@@ -86,7 +86,14 @@ export * from './linguistic-vector-steering';
 export * from './trust-protocol-enhanced';
 export * from './tenant-context';
 
-// Security exports
-export { SecureAuthService } from './security/auth-service';
-export { MFAService } from './security/mfa-system';
+// Security infrastructure
+export { SecureAuthService, MFAService } from './security/auth-enhanced';
+export { SecurityAuditor, runSecurityAudit } from './security/security-audit';
+export * from './security/crypto-enhanced';
+export * from './security/trust-protocol-enhanced';
+export * from './security/audit-enhanced';
+export * from './security/mfa-system';
+export * from './security/resonate-validation-enhanced';
+export * from './security/trust-receipt-enhanced';
+export * from './security/archive-calibration-enhanced';
 export { EnhancedSecurityError } from './security/error-taxonomy';
