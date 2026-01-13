@@ -1,6 +1,6 @@
 {
   "name": "yseeku-platform",
-  "version": "1.13.0",
+  "version": "1.4.0",
   "description": "SONATE Platform - Enterprise AI Trust Framework",
   "private": true,
   "workspaces": [
@@ -18,7 +18,10 @@
     "lint": "turbo run lint",
     "clean": "turbo run clean && rm -rf node_modules",
     "demo:ledger": "npm run build --workspace @sonate/collaboration-ledger && node examples/ledger-demo/index.js",
-    "demo:interactive": "npm run dev --workspace @sonate/new-demo"
+    "demo:interactive": "npm run dev --workspace @sonate/new-demo",
+    "version:check": "node scripts/version-sync.js",
+    "version:update": "node scripts/version-sync.js",
+    "version:sync": "node scripts/version-sync.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",

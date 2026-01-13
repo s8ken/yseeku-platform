@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "description": "Express API backend for Yseeku platform",
   "main": "dist/index.js",
   "scripts": {

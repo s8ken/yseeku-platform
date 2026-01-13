@@ -1,6 +1,6 @@
 {
   "name": "@sonate/new-demo",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "description": "Interactive SONATE Platform Demo with Advanced Features",
   "type": "module",
   "scripts": {
