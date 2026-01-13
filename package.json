@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
-    "@supabase/supabase-js": "^2.89.0",
+    "@supabase/supabase-js": "^2.90.1",
     "@types/node": "^20.0.0",
     "c8": "^9.1.0",
     "eslint": "^8.57.0",
@@ -55,14 +55,14 @@
   },
   "dependencies": {
     "@testing-library/jest-dom": "^6.9.1",
-    "@vitest/ui": "^4.0.16",
+    "@vitest/ui": "^4.0.17",
     "axios": "^1.13.2",
     "esbuild": "^0.27.2",
     "jsdom": "^27.4.0",
     "lightningcss": "^1.30.2",
     "parse-duration": "^2.1.5",
-    "vite": "^7.3.0",
-    "vitest": "^4.0.16"
+    "vite": "^7.3.1",
+    "vitest": "^4.0.17"
   },
   "optionalDependencies": {
     "lightningcss-darwin-arm64": "^1.30.2"
