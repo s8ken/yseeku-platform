@@ -83,20 +83,12 @@ export interface CIQMetrics {
 // Linguistic Vector Steering (LVS) and Resonance Metric (R_m)
 export * from './resonance-metric';
 export * from './linguistic-vector-steering';
-export * from './trust-protocol-enhanced';
 export * from './tenant-context';
 
 // Calculator (consolidated from @sonate/calculator)
 export * from './calculator/v2';
 
 // Security infrastructure
-export { SecureAuthService, MFAService } from './security/auth-enhanced';
 export { SecurityAuditor, runSecurityAudit } from './security/security-audit';
-export * from './security/crypto-enhanced';
-export * from './security/trust-protocol-enhanced';
-export * from './security/audit-enhanced';
 export * from './security/mfa-system';
-export * from './security/resonate-validation-enhanced';
-export * from './security/trust-receipt-enhanced';
-export * from './security/archive-calibration-enhanced';
 export { EnhancedSecurityError } from './security/error-taxonomy';

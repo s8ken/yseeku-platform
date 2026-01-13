@@ -296,7 +296,7 @@ export class SecurityAuditor {
         severity: 'high',
         category: 'key-management',
         title: 'Key Serialization Error',
-        description: `Error in key serialization: ${error.message}`,
+        description: `Error in key serialization: ${error instanceof Error ? error.message : String(error)}`,
         recommendation: 'Review key serialization implementation'
       });
     }

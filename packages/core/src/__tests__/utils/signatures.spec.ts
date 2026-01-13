@@ -234,7 +234,7 @@ describe('Cryptographic Signature Utilities', () => {
       );
       
       // All signatures should be different
-      expect(new Set(signatures)).toHaveSize(3);
+      expect(new Set(signatures).size).toBe(3);
       
       // Each signature should verify with its corresponding public key
       for (let i = 0; i < keyPairs.length; i++) {

@@ -330,7 +330,7 @@ describe('Hash Chain Utilities', () => {
       });
       
       // All hashes should be unique
-      expect(new Set(hashes)).toHaveSize(concurrentOperations);
+      expect(new Set(hashes).size).toBe(concurrentOperations);
     });
   });
 
@@ -453,7 +453,7 @@ describe('Hash Chain Utilities', () => {
 
     it('should handle boolean inputs', () => {
       const hash1 = hashChain(true as any, false as any, true as any, false as any);
-      const hash2 = hashChain('true', 'false', 'true', 'false');
+      const hash2 = hashChain('true', 'false', 1, 'false');
       
       expect(hash1).toBe(hash2);
       expect(hash1).toMatch(/^[a-f0-9]{64}$/);

@@ -354,7 +354,7 @@ describe('Calculator V2', () => {
       
       // Results should be different for different text types
       const scores = results.map(r => r.r_m);
-      expect(new Set(scores)).toHaveSizeGreaterThan(1);
+      expect(new Set(scores).size).toBeGreaterThan(1);
     });
   });
 

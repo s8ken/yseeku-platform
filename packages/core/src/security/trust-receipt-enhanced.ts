@@ -9,6 +9,7 @@ import { EnhancedCryptoManager, EnhancedKeyPair, SignedReceipt } from './crypto-
 import { EnhancedAuditSystem, AuditEvent } from './audit-enhanced';
 import { AuthenticationError, AuthorizationError, CryptographicError, DataIntegrityError } from './error-taxonomy';
 import { SecurityUtils } from './index';
+import { SystemSecurityError, EnhancedSecurityError } from './errors';
 
 export interface EnhancedTrustReceiptConfig {
   enableAuditTrail?: boolean;
@@ -569,4 +570,10 @@ export class EnhancedTrustReceiptManager {
       );
     }
   }
+}
+
+// Export missing types for compatibility
+export interface SignedTrustReceipt extends SignedReceipt {
+  trustReceipt: TrustReceiptData;
+  auditEvent?: AuditEvent;
 }
