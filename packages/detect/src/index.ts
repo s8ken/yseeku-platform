@@ -13,6 +13,7 @@ import { TrustProtocol } from '@sonate/core';
 
 // Core detector
 export { SymbiFrameworkDetector } from './framework-detector';
+export { OptimizedFrameworkDetector } from './optimized-framework-detector';
 export { EnhancedSymbiFrameworkDetector as EnhancedDetector } from './detector-enhanced';
 export { BalancedSymbiDetector } from './balanced-detector';
 export { CalibratedSymbiDetector } from './calibrated-detector';
@@ -113,12 +114,5 @@ export {
   type BenchmarkSummary
 } from './performance-benchmarks';
 
-// Resonance Detection (LVS & R_m Integration)
-export {
-  ResonanceDetector,
-  detectResonance,
-  checkResonanceAlert,
-  type ResonanceAlert,
-  type ResonanceMonitoringConfig,
-  type ResonanceHistory
-} from './resonance-detector';
+// Performance monitoring
+export { PerformanceProfiler } from './performance-profiler';
