@@ -86,6 +86,9 @@ export * from './linguistic-vector-steering';
 export * from './trust-protocol-enhanced';
 export * from './tenant-context';
 
+// Calculator (consolidated from @sonate/calculator)
+export * from './calculator/v2';
+
 // Security infrastructure
 export { SecureAuthService, MFAService } from './security/auth-enhanced';
 export { SecurityAuditor, runSecurityAudit } from './security/security-audit';
