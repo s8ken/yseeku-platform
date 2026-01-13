@@ -1,11 +1,21 @@
-interface Alert {
+/**
+ * Alerts Service - Database-Backed Alert Management
+ *
+ * Manages system alerts with MongoDB persistence for reliability
+ * across restarts and horizontal scaling.
+ */
+
+import { AlertModel, IAlert, AlertSeverity, AlertStatus } from '../models/alert.model';
+import logger from '../utils/logger';
+
+export interface Alert {
   id: string;
   timestamp: string;
   type: string;
   title: string;
   description: string;
-  severity: 'critical' | 'error' | 'warning' | 'info';
-  status: 'active' | 'acknowledged' | 'resolved' | 'suppressed';
+  severity: AlertSeverity;
+  status: AlertStatus;
   details?: Record<string, any>;
   acknowledgedBy?: string;
   acknowledgedAt?: string;
@@ -14,9 +24,8 @@ interface Alert {
   userId?: string;
   agentId?: string;
   conversationId?: string;
+  tenantId?: string;
 }
-
-const alerts: Alert[] = [];
 
 // Demo alerts for showcase purposes
 const demoAlerts: Omit<Alert, 'id' | 'timestamp'>[] = [
@@ -65,78 +74,295 @@ const demoAlerts: Omit<Alert, 'id' | 'timestamp'>[] = [
   },
 ];
 
+/**
+ * Convert MongoDB document to Alert interface
+ */
+function toAlert(doc: IAlert): Alert {
+  return {
+    id: doc._id.toString(),
+    timestamp: doc.timestamp.toISOString(),
+    type: doc.type,
+    title: doc.title,
+    description: doc.description,
+    severity: doc.severity,
+    status: doc.status,
+    details: doc.details,
+    acknowledgedBy: doc.acknowledgedBy,
+    acknowledgedAt: doc.acknowledgedAt?.toISOString(),
+    resolvedBy: doc.resolvedBy,
+    resolvedAt: doc.resolvedAt?.toISOString(),
+    userId: doc.userId,
+    agentId: doc.agentId,
+    conversationId: doc.conversationId,
+    tenantId: doc.tenantId,
+  };
+}
+
 export const alertsService = {
-  list(): Alert[] { return alerts; },
-  create(input: Omit<Alert,'id'|'timestamp'|'status'> & Partial<Pick<Alert,'status'>>): Alert {
-    const alert: Alert = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2,8)}`,
-      timestamp: new Date().toISOString(),
-      status: input.status || 'active',
-      type: input.type,
-      title: input.title,
-      description: input.description,
-      severity: input.severity,
-      details: input.details,
-      userId: input.userId,
-      agentId: input.agentId,
-      conversationId: input.conversationId,
-    };
-    alerts.unshift(alert);
-    return alert;
+  /**
+   * List all alerts for a tenant
+   */
+  async list(tenantId: string = 'default', options?: {
+    status?: AlertStatus;
+    severity?: AlertSeverity;
+    type?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Alert[]> {
+    try {
+      const query: any = { tenantId };
+
+      if (options?.status) query.status = options.status;
+      if (options?.severity) query.severity = options.severity;
+      if (options?.type) query.type = options.type;
+
+      const alerts = await AlertModel
+        .find(query)
+        .sort({ timestamp: -1 })
+        .skip(options?.offset || 0)
+        .limit(options?.limit || 100)
+        .lean();
+
+      return alerts.map(doc => toAlert(doc as unknown as IAlert));
+    } catch (error: any) {
+      logger.error('Failed to list alerts', { error: error.message, tenantId });
+      return [];
+    }
   },
-  acknowledge(id: string, by: string): Alert | null {
-    const a = alerts.find(x => x.id === id);
-    if (!a) return null;
-    a.status = 'acknowledged';
-    a.acknowledgedBy = by;
-    a.acknowledgedAt = new Date().toISOString();
-    return a;
+
+  /**
+   * Create a new alert
+   */
+  async create(input: Omit<Alert, 'id' | 'timestamp' | 'status'> & Partial<Pick<Alert, 'status'>>, tenantId: string = 'default'): Promise<Alert> {
+    try {
+      const alert = await AlertModel.create({
+        timestamp: new Date(),
+        status: input.status || 'active',
+        type: input.type,
+        title: input.title,
+        description: input.description,
+        severity: input.severity,
+        details: input.details,
+        userId: input.userId,
+        agentId: input.agentId,
+        conversationId: input.conversationId,
+        tenantId,
+      });
+
+      logger.info('Alert created', {
+        alertId: alert._id,
+        type: input.type,
+        severity: input.severity,
+        tenantId,
+      });
+
+      return toAlert(alert);
+    } catch (error: any) {
+      logger.error('Failed to create alert', { error: error.message, tenantId });
+      throw error;
+    }
   },
-  resolve(id: string, by: string): Alert | null {
-    const a = alerts.find(x => x.id === id);
-    if (!a) return null;
-    a.status = 'resolved';
-    a.resolvedBy = by;
-    a.resolvedAt = new Date().toISOString();
-    return a;
+
+  /**
+   * Acknowledge an alert
+   */
+  async acknowledge(id: string, by: string, tenantId: string = 'default'): Promise<Alert | null> {
+    try {
+      const alert = await AlertModel.findOneAndUpdate(
+        { _id: id, tenantId },
+        {
+          status: 'acknowledged',
+          acknowledgedBy: by,
+          acknowledgedAt: new Date(),
+        },
+        { new: true }
+      );
+
+      if (!alert) return null;
+
+      logger.info('Alert acknowledged', { alertId: id, by, tenantId });
+      return toAlert(alert);
+    } catch (error: any) {
+      logger.error('Failed to acknowledge alert', { error: error.message, id, tenantId });
+      return null;
+    }
+  },
+
+  /**
+   * Resolve an alert
+   */
+  async resolve(id: string, by: string, tenantId: string = 'default'): Promise<Alert | null> {
+    try {
+      const alert = await AlertModel.findOneAndUpdate(
+        { _id: id, tenantId },
+        {
+          status: 'resolved',
+          resolvedBy: by,
+          resolvedAt: new Date(),
+        },
+        { new: true }
+      );
+
+      if (!alert) return null;
+
+      logger.info('Alert resolved', { alertId: id, by, tenantId });
+      return toAlert(alert);
+    } catch (error: any) {
+      logger.error('Failed to resolve alert', { error: error.message, id, tenantId });
+      return null;
+    }
+  },
+
+  /**
+   * Suppress an alert
+   */
+  async suppress(id: string, by: string, tenantId: string = 'default'): Promise<Alert | null> {
+    try {
+      const alert = await AlertModel.findOneAndUpdate(
+        { _id: id, tenantId },
+        {
+          status: 'suppressed',
+          acknowledgedBy: by,
+          acknowledgedAt: new Date(),
+        },
+        { new: true }
+      );
+
+      if (!alert) return null;
+
+      logger.info('Alert suppressed', { alertId: id, by, tenantId });
+      return toAlert(alert);
+    } catch (error: any) {
+      logger.error('Failed to suppress alert', { error: error.message, id, tenantId });
+      return null;
+    }
+  },
+
+  /**
+   * Get a single alert by ID
+   */
+  async get(id: string, tenantId: string = 'default'): Promise<Alert | null> {
+    try {
+      const alert = await AlertModel.findOne({ _id: id, tenantId }).lean();
+      if (!alert) return null;
+      return toAlert(alert as unknown as IAlert);
+    } catch (error: any) {
+      logger.error('Failed to get alert', { error: error.message, id, tenantId });
+      return null;
+    }
   },
 
   /**
    * Seed demo alerts for showcase purposes
    */
-  seedDemoAlerts(): void {
-    // Clear existing alerts and add demo data
-    alerts.length = 0;
-    for (const demoAlert of demoAlerts) {
-      const alert: Alert = {
-        id: `demo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        timestamp: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString(),
+  async seedDemoAlerts(tenantId: string = 'demo'): Promise<void> {
+    try {
+      // Clear existing demo alerts for this tenant
+      await AlertModel.deleteMany({ tenantId });
+
+      // Create demo alerts
+      const alertDocs = demoAlerts.map(demoAlert => ({
+        timestamp: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000),
+        tenantId,
         ...demoAlert,
-      };
-      alerts.push(alert);
+        acknowledgedAt: demoAlert.acknowledgedAt ? new Date(demoAlert.acknowledgedAt) : undefined,
+      }));
+
+      await AlertModel.insertMany(alertDocs);
+      logger.info('Demo alerts seeded', { tenantId, count: alertDocs.length });
+    } catch (error: any) {
+      logger.error('Failed to seed demo alerts', { error: error.message, tenantId });
     }
   },
 
   /**
-   * Clear all alerts
+   * Clear all alerts for a tenant
    */
-  clear(): void {
-    alerts.length = 0;
+  async clear(tenantId: string = 'default'): Promise<void> {
+    try {
+      const result = await AlertModel.deleteMany({ tenantId });
+      logger.info('Alerts cleared', { tenantId, count: result.deletedCount });
+    } catch (error: any) {
+      logger.error('Failed to clear alerts', { error: error.message, tenantId });
+    }
   },
 
   /**
-   * Get summary stats
+   * Get summary stats for a tenant
    */
-  getSummary(): { total: number; critical: number; warning: number; info: number; active: number } {
-    const active = alerts.filter(a => a.status === 'active');
-    return {
-      total: alerts.length,
-      critical: active.filter(a => a.severity === 'critical').length,
-      warning: active.filter(a => a.severity === 'warning').length,
-      info: active.filter(a => a.severity === 'info').length,
-      active: active.length,
-    };
-  }
+  async getSummary(tenantId: string = 'default'): Promise<{
+    total: number;
+    critical: number;
+    error: number;
+    warning: number;
+    info: number;
+    active: number;
+    acknowledged: number;
+    resolved: number;
+  }> {
+    try {
+      const [stats] = await AlertModel.aggregate([
+        { $match: { tenantId } },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            critical: { $sum: { $cond: [{ $and: [{ $eq: ['$severity', 'critical'] }, { $eq: ['$status', 'active'] }] }, 1, 0] } },
+            error: { $sum: { $cond: [{ $and: [{ $eq: ['$severity', 'error'] }, { $eq: ['$status', 'active'] }] }, 1, 0] } },
+            warning: { $sum: { $cond: [{ $and: [{ $eq: ['$severity', 'warning'] }, { $eq: ['$status', 'active'] }] }, 1, 0] } },
+            info: { $sum: { $cond: [{ $and: [{ $eq: ['$severity', 'info'] }, { $eq: ['$status', 'active'] }] }, 1, 0] } },
+            active: { $sum: { $cond: [{ $eq: ['$status', 'active'] }, 1, 0] } },
+            acknowledged: { $sum: { $cond: [{ $eq: ['$status', 'acknowledged'] }, 1, 0] } },
+            resolved: { $sum: { $cond: [{ $eq: ['$status', 'resolved'] }, 1, 0] } },
+          },
+        },
+      ]);
+
+      return stats || {
+        total: 0,
+        critical: 0,
+        error: 0,
+        warning: 0,
+        info: 0,
+        active: 0,
+        acknowledged: 0,
+        resolved: 0,
+      };
+    } catch (error: any) {
+      logger.error('Failed to get alert summary', { error: error.message, tenantId });
+      return {
+        total: 0,
+        critical: 0,
+        error: 0,
+        warning: 0,
+        info: 0,
+        active: 0,
+        acknowledged: 0,
+        resolved: 0,
+      };
+    }
+  },
+
+  /**
+   * Count alerts matching criteria
+   */
+  async count(tenantId: string = 'default', options?: {
+    status?: AlertStatus;
+    severity?: AlertSeverity;
+    type?: string;
+  }): Promise<number> {
+    try {
+      const query: any = { tenantId };
+      if (options?.status) query.status = options.status;
+      if (options?.severity) query.severity = options.severity;
+      if (options?.type) query.type = options.type;
+
+      return await AlertModel.countDocuments(query);
+    } catch (error: any) {
+      logger.error('Failed to count alerts', { error: error.message, tenantId });
+      return 0;
+    }
+  },
 };
 
-export type { Alert };
+export type { AlertSeverity, AlertStatus };

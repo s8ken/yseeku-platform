@@ -4,9 +4,13 @@
  * These routes provide pre-populated showcase data for demos to investors
  * and potential customers. They use the demo tenant and don't require
  * authentication for easy access during presentations.
+ *
+ * SECURITY: Defense-in-depth guard prevents production exposure even if
+ * accidentally mounted. Routes are only active when NODE_ENV !== 'production'
+ * OR when ENABLE_DEMO_MODE=true is explicitly set.
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { alertsService } from '../services/alerts.service';
 import { Tenant } from '../models/tenant.model';
 import { Agent } from '../models/agent.model';
@@ -20,6 +24,32 @@ const router = Router();
 const DEMO_TENANT_ID = 'demo-tenant';
 
 /**
+ * Defense-in-depth middleware: Block demo routes in production
+ * unless explicitly enabled via ENABLE_DEMO_MODE environment variable.
+ */
+const demoGuard = (req: Request, res: Response, next: NextFunction): void => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const demoExplicitlyEnabled = process.env.ENABLE_DEMO_MODE === 'true';
+
+  if (isProduction && !demoExplicitlyEnabled) {
+    logger.warn('Demo route blocked in production', {
+      path: req.path,
+      method: req.method,
+      ip: req.ip,
+    });
+    res.status(404).json({
+      success: false,
+      message: 'Not found',
+    });
+    return;
+  }
+  next();
+};
+
+// Apply demo guard to all routes in this router
+router.use(demoGuard);
+
+/**
  * @route   POST /api/demo/init
  * @desc    Initialize demo mode - seeds alerts and refreshes demo data
  * @access  Public (for demo purposes)
@@ -27,7 +57,7 @@ const DEMO_TENANT_ID = 'demo-tenant';
 router.post('/init', async (req: Request, res: Response): Promise<void> => {
   try {
     // Seed demo alerts
-    alertsService.seedDemoAlerts();
+    await alertsService.seedDemoAlerts(DEMO_TENANT_ID);
 
     logger.info('Demo mode initialized');
 
@@ -73,7 +103,7 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
       activeAgents: 5,
       complianceRate: 98.2,
       riskScore: 8,
-      alertsCount: alertsService.getSummary().active,
+      alertsCount: (await alertsService.getSummary(DEMO_TENANT_ID)).active,
       experimentsRunning: 2,
       orchestratorsActive: 3,
       symbiDimensions: {
@@ -112,13 +142,13 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
  */
 router.get('/alerts', async (req: Request, res: Response): Promise<void> => {
   try {
-    const alerts = alertsService.list();
-    const summary = alertsService.getSummary();
+    const alerts = await alertsService.list(DEMO_TENANT_ID, { limit: 10 });
+    const summary = await alertsService.getSummary(DEMO_TENANT_ID);
 
     res.json({
       tenant: DEMO_TENANT_ID,
       summary,
-      alerts: alerts.slice(0, 10).map(alert => ({
+      alerts: alerts.map(alert => ({
         id: alert.id,
         timestamp: alert.timestamp,
         type: alert.type,

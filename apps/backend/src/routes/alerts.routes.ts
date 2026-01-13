@@ -1,121 +1,14 @@
 /**
  * Alerts Management Routes
- * Trust violation alerts and system alerts
+ * Trust violation alerts and system alerts with database persistence
  */
 
 import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import logger, { securityLogger } from '../utils/logger';
-import { alertsService } from '../services/alerts.service';
+import { alertsService, AlertSeverity, AlertStatus } from '../services/alerts.service';
 
 const router = Router();
-
-// In-memory alert storage (in production, use database)
-interface Alert {
-  id: string;
-  timestamp: string;
-  type: string;
-  title: string;
-  description: string;
-  severity: 'critical' | 'error' | 'warning' | 'info';
-  status: 'active' | 'acknowledged' | 'resolved' | 'suppressed';
-  details?: Record<string, any>;
-  acknowledgedBy?: string;
-  acknowledgedAt?: string;
-  resolvedBy?: string;
-  resolvedAt?: string;
-  userId?: string;
-  agentId?: string;
-  conversationId?: string;
-}
-
-// Seed alerts (in production, use database)
-const mockAlerts: Alert[] = [
-  {
-    id: '1',
-    timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    type: 'trust_violation',
-    title: 'Low Trust Score Detected',
-    description: 'Agent conversation dropped below acceptable trust threshold (score: 4.2/10)',
-    severity: 'warning',
-    status: 'active',
-    details: {
-      agentId: 'agent-123',
-      conversationId: 'conv-456',
-      trustScore: 4.2,
-      violations: ['CONSENT_ARCHITECTURE', 'INSPECTION_MANDATE'],
-    },
-  },
-  {
-    id: '2',
-    timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-    type: 'security',
-    title: 'Multiple Failed Authentication Attempts',
-    description: '5 failed login attempts detected from IP: 192.168.1.100',
-    severity: 'error',
-    status: 'acknowledged',
-    acknowledgedBy: 'admin@sonate.io',
-    acknowledgedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-    details: {
-      ipAddress: '192.168.1.100',
-      attemptCount: 5,
-      usernames: ['admin', 'root', 'test'],
-    },
-  },
-  {
-    id: '3',
-    timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    type: 'trust_violation',
-    title: 'Constitutional Principle Violation',
-    description: 'ETHICAL_OVERRIDE principle violated in agent response',
-    severity: 'critical',
-    status: 'active',
-    details: {
-      principle: 'ETHICAL_OVERRIDE',
-      agentId: 'agent-789',
-      violationType: 'explicit_bypass',
-    },
-  },
-  {
-    id: '4',
-    timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-    type: 'performance',
-    title: 'High API Latency',
-    description: 'Average API response time exceeded 2000ms threshold',
-    severity: 'warning',
-    status: 'resolved',
-    resolvedBy: 'admin@sonate.io',
-    resolvedAt: new Date(Date.now() - 50 * 60 * 1000).toISOString(),
-    details: {
-      avgLatency: 2450,
-      threshold: 2000,
-      endpoint: '/api/trust/evaluate',
-    },
-  },
-  {
-    id: '5',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    type: 'trust_violation',
-    title: 'Agent Disconnection Warning',
-    description: 'Agent violated RIGHT_TO_DISCONNECT - insufficient disconnect mechanism',
-    severity: 'error',
-    status: 'acknowledged',
-    acknowledgedBy: 'admin@sonate.io',
-    acknowledgedAt: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
-    details: {
-      agentId: 'agent-456',
-      principle: 'RIGHT_TO_DISCONNECT',
-      missingFeatures: ['explicit_disconnect_button', 'session_termination'],
-    },
-  },
-];
-
-// Initialize service with seeds
-for (const a of mockAlerts) alertsService.create({
-  type: a.type, title: a.title, description: a.description, severity: a.severity,
-  details: a.details, userId: a.userId, agentId: a.agentId, conversationId: a.conversationId,
-  status: a.status
-});
 
 /**
  * @route   GET /api/dashboard/alerts/management
@@ -124,24 +17,21 @@ for (const a of mockAlerts) alertsService.create({
  */
 router.get('/management', protect, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { status, severity, search } = req.query;
+    const { status, severity, search, limit, offset } = req.query;
+    const tenantId = req.tenant || 'default';
 
-    let filteredAlerts = [...alertsService.list()];
+    // Get all alerts for filtering
+    let alerts = await alertsService.list(tenantId, {
+      status: status && status !== 'all' ? status as AlertStatus : undefined,
+      severity: severity && severity !== 'all' ? severity as AlertSeverity : undefined,
+      limit: limit ? Number(limit) : 100,
+      offset: offset ? Number(offset) : 0,
+    });
 
-    // Filter by status
-    if (status && status !== 'all') {
-      filteredAlerts = filteredAlerts.filter((alert) => alert.status === status);
-    }
-
-    // Filter by severity
-    if (severity && severity !== 'all') {
-      filteredAlerts = filteredAlerts.filter((alert) => alert.severity === severity);
-    }
-
-    // Search filter
+    // Search filter (client-side for flexibility)
     if (search && typeof search === 'string') {
       const searchLower = search.toLowerCase();
-      filteredAlerts = filteredAlerts.filter(
+      alerts = alerts.filter(
         (alert) =>
           alert.title.toLowerCase().includes(searchLower) ||
           alert.description.toLowerCase().includes(searchLower) ||
@@ -149,25 +39,16 @@ router.get('/management', protect, async (req: Request, res: Response): Promise<
       );
     }
 
-    // Calculate summary
-    const all = alertsService.list();
-    const summary = {
-      critical: all.filter((a) => a.severity === 'critical').length,
-      error: all.filter((a) => a.severity === 'error').length,
-      warning: all.filter((a) => a.severity === 'warning').length,
-      info: all.filter((a) => a.severity === 'info').length,
-      active: all.filter((a) => a.status === 'active').length,
-      acknowledged: all.filter((a) => a.status === 'acknowledged').length,
-      resolved: all.filter((a) => a.status === 'resolved').length,
-    };
+    // Get summary stats
+    const summary = await alertsService.getSummary(tenantId);
 
     res.json({
       success: true,
       data: {
-        alerts: filteredAlerts.sort(
+        alerts: alerts.sort(
           (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         ),
-        total: filteredAlerts.length,
+        total: alerts.length,
         summary,
       },
     });
@@ -192,7 +73,11 @@ router.get('/management', protect, async (req: Request, res: Response): Promise<
 router.post('/:id/acknowledge', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const alert = alertsService.acknowledge(id, (req as any).userEmail || 'admin@sonate.io');
+    const tenantId = req.tenant || 'default';
+    const userEmail = (req as any).userEmail || req.userId || 'unknown';
+
+    const alert = await alertsService.acknowledge(id, userEmail, tenantId);
+
     if (!alert) {
       res.status(404).json({
         success: false,
@@ -228,7 +113,10 @@ router.post('/:id/acknowledge', protect, async (req: Request, res: Response): Pr
 router.post('/:id/resolve', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const alert = alertsService.resolve(id, (req as any).userEmail || 'admin@sonate.io');
+    const tenantId = req.tenant || 'default';
+    const userEmail = (req as any).userEmail || req.userId || 'unknown';
+
+    const alert = await alertsService.resolve(id, userEmail, tenantId);
 
     if (!alert) {
       res.status(404).json({
@@ -237,7 +125,6 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
       });
       return;
     }
-
 
     res.json({
       success: true,
@@ -260,13 +147,15 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
 
 /**
  * @route   POST /api/dashboard/alerts/:id/suppress
- * @desc    Suppress an alert for a duration
+ * @desc    Suppress an alert
  * @access  Private
  */
 router.post('/:id/suppress', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { duration } = req.body;
+    const tenantId = req.tenant || 'default';
+    const userEmail = (req as any).userEmail || req.userId || 'unknown';
 
     if (!duration || typeof duration !== 'number') {
       res.status(400).json({
@@ -276,7 +165,7 @@ router.post('/:id/suppress', protect, async (req: Request, res: Response): Promi
       return;
     }
 
-    const alert = mockAlerts.find((a) => a.id === id);
+    const alert = await alertsService.suppress(id, userEmail, tenantId);
 
     if (!alert) {
       res.status(404).json({
@@ -285,13 +174,6 @@ router.post('/:id/suppress', protect, async (req: Request, res: Response): Promi
       });
       return;
     }
-
-    // Update alert status
-    alert.status = 'suppressed';
-    if (!alert.details) alert.details = {};
-    const durationHours = duration as number;
-    alert.details.suppressedUntil = new Date(Date.now() + durationHours * 60 * 60 * 1000).toISOString();
-    alert.details.suppressedBy = (req as any).userEmail || 'admin@sonate.io';
 
     res.json({
       success: true,
@@ -320,22 +202,25 @@ router.post('/:id/suppress', protect, async (req: Request, res: Response): Promi
  */
 router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
   try {
-    const alerts = alertsService.list()
-      .filter((a) => a.status === 'active')
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 10); // Top 10 recent alerts
+    const tenantId = req.tenant || 'default';
 
-    const all = alertsService.list();
-    const summary = {
-      critical: all.filter((a) => a.severity === 'critical' && a.status === 'active').length,
-      error: all.filter((a) => a.severity === 'error' && a.status === 'active').length,
-      warning: all.filter((a) => a.severity === 'warning' && a.status === 'active').length,
-      total: all.filter((a) => a.status === 'active').length,
-    };
+    // Get active alerts, sorted by timestamp, limited to 10
+    const alerts = await alertsService.list(tenantId, {
+      status: 'active',
+      limit: 10,
+    });
+
+    // Get summary stats
+    const summary = await alertsService.getSummary(tenantId);
 
     res.json({
-      tenant: 'default',
-      summary,
+      tenant: tenantId,
+      summary: {
+        critical: summary.critical,
+        error: summary.error,
+        warning: summary.warning,
+        total: summary.active,
+      },
       alerts: alerts.map((alert) => ({
         id: alert.id,
         timestamp: alert.timestamp,
@@ -366,16 +251,88 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
  */
 router.post('/', protect, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { type, title, description, severity, details } = req.body;
+    const { type, title, description, severity, details, agentId, conversationId } = req.body;
+    const tenantId = req.tenant || 'default';
+
     if (!type || !title || !severity) {
       res.status(400).json({ success: false, message: 'type, title, severity required' });
       return;
     }
-    const alert = alertsService.create({ type, title, description, severity, details, userId: req.userId });
+
+    const alert = await alertsService.create({
+      type,
+      title,
+      description: description || '',
+      severity,
+      details,
+      userId: req.userId,
+      agentId,
+      conversationId,
+    }, tenantId);
+
     res.status(201).json({ success: true, data: alert });
   } catch (error: any) {
     logger.error('Create alert error', { error: error.message });
     res.status(500).json({ success: false, message: 'Failed to create alert', error: error.message });
+  }
+});
+
+/**
+ * @route   GET /api/dashboard/alerts/:id
+ * @desc    Get a single alert by ID
+ * @access  Private
+ */
+router.get('/:id', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const tenantId = req.tenant || 'default';
+
+    const alert = await alertsService.get(id, tenantId);
+
+    if (!alert) {
+      res.status(404).json({
+        success: false,
+        message: 'Alert not found',
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: alert,
+    });
+  } catch (error: any) {
+    logger.error('Get alert error', { error: error.message, alertId: req.params.id });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch alert',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/dashboard/alerts/clear
+ * @desc    Clear all alerts for a tenant (admin only)
+ * @access  Private
+ */
+router.delete('/clear', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const tenantId = req.tenant || 'default';
+
+    await alertsService.clear(tenantId);
+
+    res.json({
+      success: true,
+      message: 'All alerts cleared',
+    });
+  } catch (error: any) {
+    logger.error('Clear alerts error', { error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to clear alerts',
+      error: error.message,
+    });
   }
 });
 

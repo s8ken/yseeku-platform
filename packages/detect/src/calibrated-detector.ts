@@ -1,5 +1,5 @@
 import { AssessmentInput, AssessmentResult, SymbiFrameworkAssessment } from './symbi-types';
-import { SymbiFrameworkDetector } from './detector-enhanced';
+import { EnhancedSymbiFrameworkDetector } from './detector-enhanced';
 import { computeTextMetrics } from './metrics';
 
 /**
@@ -7,10 +7,10 @@ import { computeTextMetrics } from './metrics';
  * Applies data-driven calibration factors derived from text metrics
  */
 export class CalibratedSymbiDetector {
-  private base: SymbiFrameworkDetector;
+  private base: EnhancedSymbiFrameworkDetector;
 
   constructor() {
-    this.base = new SymbiFrameworkDetector();
+    this.base = new EnhancedSymbiFrameworkDetector();
   }
 
   async analyzeContent(input: AssessmentInput): Promise<AssessmentResult> {

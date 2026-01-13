@@ -1,4 +1,5 @@
 import { TrustProtocol, TRUST_PRINCIPLES, SymbiScorer, hashChain, generateKeyPair, signPayload, verifySignature, TrustReceipt, canonicalizeJSON, verifySecp256k1Signature, verifyRSASignature, verifyEd25519Signature, timingSafeEqual, generateSecureRandom, verifyCredentialProof, calculateResonanceMetrics } from '../index';
+import { PerformanceTimer, timeAsync, getMemoryUsage, getCPUUsage, PerformanceBenchmark } from '../monitoring/performance';
 
 function assert(condition: boolean, message: string) {
   if (!condition) {
@@ -187,6 +188,38 @@ async function testResonanceMetricsSmoke() {
   assert(metrics.entropyDelta >= 0 && metrics.entropyDelta <= 1, 'entropyDelta should be 0-1');
 }
 
+async function testPerformanceTimerAndAsync() {
+  const t = new PerformanceTimer('core_unit_test', { scope: 'core' });
+  await new Promise(res => setTimeout(res, 5));
+  const seconds = t.end();
+  assert(seconds > 0, 'PerformanceTimer should return positive seconds');
+  const value = await timeAsync('async_core', async () => {
+    await new Promise(res => setTimeout(res, 3));
+    return 7;
+  }, { scope: 'core' });
+  assert(value === 7, 'timeAsync should return inner function value');
+}
+
+async function testMemoryAndCPUUsage() {
+  const mem = getMemoryUsage();
+  assert(mem.rss > 0 && mem.heapUsed > 0, 'Memory usage should be non-zero');
+  // Burn a little CPU
+  let acc = 0;
+  for (let i = 0; i < 5000; i++) acc += Math.sqrt(i);
+  const cpu = getCPUUsage();
+  assert(cpu.user >= 0 && cpu.system >= 0, 'CPU usage should be non-negative');
+}
+
+async function testPerformanceBenchmarkStats() {
+  const bench = new PerformanceBenchmark();
+  bench.record('op', 0.1);
+  bench.record('op', 0.2);
+  bench.record('op', 0.3);
+  const stats = bench.getStats('op');
+  assert(!!stats && stats.count === 3, 'Benchmark stats should have count 3');
+  assert(!!stats && stats.min === 0.1, 'Benchmark min should be 0.1');
+}
+
 async function main() {
   const tests = [
     ['TrustProtocol critical cap', testTrustProtocolCriticalCap],
@@ -204,6 +237,9 @@ async function main() {
     ['Secure random length', testGenerateSecureRandomLength],
     ['Credential proof unsupported', testVerifyCredentialProofUnsupported],
     ['Resonance metrics smoke', testResonanceMetricsSmoke],
+    ['PerformanceTimer and timeAsync', testPerformanceTimerAndAsync],
+    ['Memory and CPU usage', testMemoryAndCPUUsage],
+    ['PerformanceBenchmark stats', testPerformanceBenchmarkStats],
   ] as const;
 
   const results: string[] = [];

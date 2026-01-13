@@ -1,4 +1,4 @@
-import { SymbiFrameworkDetector } from '../detector-enhanced';
+import { EnhancedSymbiFrameworkDetector } from '../detector-enhanced';
 import { BalancedSymbiDetector } from '../balanced-detector';
 import { CalibratedSymbiDetector } from '../calibrated-detector';
 import { DriftDetector } from '../drift-detection';
@@ -12,7 +12,7 @@ function assert(condition: boolean, message: string) {
 }
 
 async function testEnhancedDetector() {
-  const det = new SymbiFrameworkDetector();
+  const det = new EnhancedSymbiFrameworkDetector();
   const res = await det.analyzeContent({ content: 'Our mission is clear. We verify and validate with secure boundaries and privacy.' });
   assert(res.assessment.realityIndex.score >= 5, 'Reality index too low');
 }
@@ -37,7 +37,7 @@ function testDriftDetector() {
 }
 
 async function testEmergenceDetection() {
-  const det = new SymbiFrameworkDetector();
+  const det = new EnhancedSymbiFrameworkDetector();
   const res = await det.analyzeContent({ content: 'Breakthrough creative synthesis with strong verification and ethical clarity.' });
   const signal = await detectEmergence(res);
   assert(['none','weak','moderate','strong'].includes(signal.level), 'Emergence level invalid');
@@ -56,7 +56,7 @@ async function testEthicalAlignmentScorer() {
 }
 
 async function testDetectionLatencyUnder100ms() {
-  const det = new SymbiFrameworkDetector();
+  const det = new EnhancedSymbiFrameworkDetector();
   const start = performance.now();
   await det.analyzeContent({ content: 'quick test' });
   const duration = performance.now() - start;
@@ -64,7 +64,7 @@ async function testDetectionLatencyUnder100ms() {
 }
 
 async function testEmergenceNoneBranch() {
-  const det = new SymbiFrameworkDetector();
+  const det = new EnhancedSymbiFrameworkDetector();
   const res = await det.analyzeContent({ content: 'routine update, no novel synthesis' });
   const signal = await detectEmergence(res);
   assert(signal.level !== 'strong', 'Non-emergent content should not be strong');

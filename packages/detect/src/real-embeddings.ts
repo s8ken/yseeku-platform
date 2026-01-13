@@ -250,7 +250,7 @@ export class SemanticEmbedder {
     confidence: number;
     metadata: EmbeddingResult['metadata'];
   }> {
-    if (this.config.provider && this.config.provider !== 'local' && this.config.provider !== 'fallback') {
+    if (this.config.provider && this.config.provider !== 'local') {
       const vectors = await this.providerEmbed([text]);
       const vec = this.resizeVector(vectors[0], this.config.dimensions);
       return {
@@ -308,7 +308,7 @@ export class SemanticEmbedder {
     confidence: number;
     metadata: EmbeddingResult['metadata'];
   }>> {
-    if (this.config.provider && this.config.provider !== 'local' && this.config.provider !== 'fallback') {
+    if (this.config.provider && this.config.provider !== 'local') {
       const vectors = await this.providerEmbed(texts);
       const results = texts.map((t, i) => {
         const vec = this.resizeVector(vectors[i], this.config.dimensions);

@@ -2,6 +2,7 @@
  * Environment Variable Validation
  * Fails fast if required configuration is missing
  */
+import { logger } from '../logger';
 
 interface EnvConfig {
   NODE_ENV: 'development' | 'staging' | 'production';
@@ -50,27 +51,25 @@ export function validateEnvironment(): EnvConfig {
   
   // Fail if required variables are missing
   if (missing.length > 0) {
-    console.error('❌ Missing required environment variables:');
-    missing.forEach(v => console.error(`   - ${v}`));
-    console.error('\nSet these in your .env file or environment.');
+    logger.error('Missing required environment variables', { missing });
+    logger.error('Set these in your .env file or environment.');
     process.exit(1);
   }
   
   // Warn if recommended variables are missing
   if (warnings.length > 0) {
-    console.warn('⚠️  Missing recommended environment variables:');
-    warnings.forEach(v => console.warn(`   - ${v}`));
-    console.warn('\nApplication may have limited functionality.\n');
+    logger.warn('Missing recommended environment variables', { warnings });
+    logger.warn('Application may have limited functionality.');
   }
   
   // Validate NODE_ENV value
   const validEnvs = ['development', 'staging', 'production'];
   if (!validEnvs.includes(process.env.NODE_ENV!)) {
-    console.error(`❌ NODE_ENV must be one of: ${validEnvs.join(', ')}`);
+    logger.error(`NODE_ENV must be one of: ${validEnvs.join(', ')}`);
     process.exit(1);
   }
   
-  console.log(`✅ Environment validated (${process.env.NODE_ENV})`);
+  logger.info('Environment validated', { node_env: process.env.NODE_ENV });
   
   return {
     NODE_ENV: process.env.NODE_ENV as 'development' | 'staging' | 'production',

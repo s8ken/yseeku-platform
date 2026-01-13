@@ -22,7 +22,7 @@ import {
 /**
  * Main class for SYMBI framework detection and validation
  */
-export class SymbiFrameworkDetector {
+export class EnhancedSymbiFrameworkDetector {
   /**
    * Analyze content and generate a complete SYMBI framework assessment
    */

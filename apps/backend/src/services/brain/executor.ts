@@ -81,13 +81,13 @@ export async function executeActions(
           details: { refusedAction: a.type, target: a.target, rule: check.rule, reason: check.reason, correlationId }
         })
         // Emit informational alert
-        alertsService.create({
+        await alertsService.create({
           type: 'system',
           title: 'Overseer Refusal',
           description: `Refused ${a.type}: ${check.reason}`,
           severity: 'warning',
           details: { tenantId, target: a.target, rule: check.rule }
-        })
+        }, tenantId)
         // Update results array
         const idx = results.findIndex(r => r.id === doc._id.toString())
         if (idx >= 0) {
@@ -158,13 +158,13 @@ async function executeAlert(
   action: PlannedAction,
   doc: any
 ): Promise<void> {
-  alertsService.create({
+  await alertsService.create({
     type: 'system',
     title: action.reason || 'System Alert',
     description: `Overseer: ${action.reason || ''}`,
     severity: 'warning',
     details: { target: action.target, tenantId }
-  });
+  }, tenantId);
   doc.result = { routed: true, channel: 'system' };
   await doc.save();
 }
@@ -245,7 +245,7 @@ async function executeBanAgent(
   }, ['ban', 'agent', 'action', 'enforcement']);
 
   // 6. Emit alert
-  alertsService.create({
+  await alertsService.create({
     type: 'security',
     title: `Agent Banned: ${agent.name}`,
     description: `Agent ${agent.name} has been banned by System Brain. Reason: ${action.reason}`,
@@ -259,7 +259,7 @@ async function executeBanAgent(
       cycleId,
     },
     agentId: action.target,
-  });
+  }, tenantId);
 
   // 7. Update action result
   doc.result = {
@@ -327,7 +327,7 @@ async function executeRestrictAgent(
   }, ['restrict', 'agent', 'action', 'enforcement']);
 
   // Emit alert
-  alertsService.create({
+  await alertsService.create({
     type: 'security',
     title: `Agent Restricted: ${agent.name}`,
     description: `Agent ${agent.name} has been restricted. Features disabled: ${restrictions.join(', ')}`,
@@ -340,7 +340,7 @@ async function executeRestrictAgent(
       tenantId,
     },
     agentId: action.target,
-  });
+  }, tenantId);
 
   doc.result = {
     restricted: true,
@@ -407,7 +407,7 @@ async function executeQuarantineAgent(
   }, ['quarantine', 'agent', 'action', 'enforcement']);
 
   // Emit alert
-  alertsService.create({
+  await alertsService.create({
     type: 'security',
     title: `Agent Quarantined: ${agent.name}`,
     description: `Agent ${agent.name} has been quarantined for investigation. Reason: ${action.reason}`,
@@ -419,7 +419,7 @@ async function executeQuarantineAgent(
       tenantId,
     },
     agentId: action.target,
-  });
+  }, tenantId);
 
   doc.result = {
     quarantined: true,
@@ -483,7 +483,7 @@ async function executeUnbanAgent(
   }, ['unban', 'agent', 'action', 'enforcement']);
 
   // Emit info alert
-  alertsService.create({
+  await alertsService.create({
     type: 'system',
     title: `Agent Restored: ${agent.name}`,
     description: `Agent ${agent.name} has been restored to active status.`,
@@ -495,7 +495,7 @@ async function executeUnbanAgent(
       tenantId,
     },
     agentId: action.target,
-  });
+  }, tenantId);
 
   doc.result = {
     unbanned: true,

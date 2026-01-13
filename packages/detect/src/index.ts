@@ -13,7 +13,7 @@ import { TrustProtocol } from '@sonate/core';
 
 // Core detector
 export { SymbiFrameworkDetector } from './framework-detector';
-export { SymbiFrameworkDetector as EnhancedDetector } from './detector-enhanced';
+export { EnhancedSymbiFrameworkDetector as EnhancedDetector } from './detector-enhanced';
 export { BalancedSymbiDetector } from './balanced-detector';
 export { CalibratedSymbiDetector } from './calibrated-detector';
 export { DriftDetector } from './drift-detection';

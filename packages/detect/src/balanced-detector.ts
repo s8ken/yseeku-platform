@@ -1,15 +1,15 @@
 import { AssessmentInput, AssessmentResult, SymbiFrameworkAssessment, RealityIndex, TrustProtocol, EthicalAlignment, ResonanceQuality, CanvasParity } from './symbi-types';
-import { SymbiFrameworkDetector } from './detector-enhanced';
+import { EnhancedSymbiFrameworkDetector } from './detector-enhanced';
 
 /**
  * BalancedSymbiDetector
  * Applies conservative weighting and penalty smoothing to reduce false positives
  */
 export class BalancedSymbiDetector {
-  private base: SymbiFrameworkDetector;
+  private base: EnhancedSymbiFrameworkDetector;
 
   constructor() {
-    this.base = new SymbiFrameworkDetector();
+    this.base = new EnhancedSymbiFrameworkDetector();
   }
 
   async analyzeContent(input: AssessmentInput): Promise<AssessmentResult> {

@@ -188,12 +188,16 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   }
 
   // Default error
-  res.status(err.status || 500).json({
+  const isProd = (process.env.NODE_ENV || 'development') === 'production';
+  const responseBody: any = {
     success: false,
     message: err.message || 'Internal server error',
-    details: err.stack,
-    error: JSON.stringify(err, Object.getOwnPropertyNames(err))
-  });
+  };
+  if (!isProd) {
+    responseBody.details = err.stack;
+    responseBody.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
+  }
+  res.status(err.status || 500).json(responseBody);
 });
 
 // Start server
@@ -261,3 +265,22 @@ async function startServer() {
 }
 
 startServer();
+
+// Global error handlers
+process.on('unhandledRejection', (reason: any) => {
+  logger.error('Unhandled promise rejection', {
+    error: reason?.message || String(reason),
+    stack: reason?.stack,
+  });
+});
+
+process.on('uncaughtException', (error: any) => {
+  logger.error('Uncaught exception', {
+    error: error?.message || String(error),
+    stack: error?.stack,
+  });
+  // In production, exit to allow a supervisor to restart
+  if ((process.env.NODE_ENV || 'development') === 'production') {
+    process.exit(1);
+  }
+});
