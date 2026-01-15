@@ -56,7 +56,8 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "three": "^0.182.0",
-    "zustand": "^5.0.9"
+    "zustand": "^5.0.9",
+    "bcryptjs": "^3.0.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -72,6 +73,7 @@
     "tailwindcss": "^4",
     "tinyspy": "^2.2.0",
     "typescript": "^5",
-    "vitest": "^1.6.1"
+    "vitest": "^1.6.1",
+    "@types/bcryptjs": "^2.4.6"
   }
 }
