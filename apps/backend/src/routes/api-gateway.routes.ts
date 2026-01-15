@@ -5,7 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { protect } from '../middleware/auth.middleware';
 import { PlatformApiKey } from '../models/platform-api-key.model';
 import { logSuccess, logFailure } from '../utils/audit-logger';

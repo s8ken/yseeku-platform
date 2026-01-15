@@ -17,6 +17,6 @@ module.exports = {
     },
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(@noble/ed25519|@sonate/core)/)',
+    'node_modules/(?!(@noble/ed25519|@sonate/core|@sonate/detect|uuid)/)',
   ],
 };

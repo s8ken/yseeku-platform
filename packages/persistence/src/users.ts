@@ -1,5 +1,5 @@
 import { getPool } from './db';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 export interface UserRecord {
   id: string;

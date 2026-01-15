@@ -28,7 +28,7 @@
     "@sonate/core": "file:../core",
     "@sonate/persistence": "file:../persistence",
     "@types/winston": "^2.4.4",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.3",
     "express": "^4.21.2",
     "express-async-handler": "^1.2.0",
     "hashi-vault-js": "^0.5.1",
@@ -38,7 +38,7 @@
     "winston": "^3.19.0"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/express": "^4.17.23",
     "@types/jest": "^29.0.0",
     "@types/node": "^20.0.0",

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { PlatformApiKey } from '../models/platform-api-key.model';
 import { Counter } from 'prom-client';
 

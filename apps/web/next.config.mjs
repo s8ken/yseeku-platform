@@ -75,7 +75,16 @@ const nextConfig = {
   ],
   experimental: {
     // This is needed to handle some node modules in newer Next.js versions
-    serverComponentsExternalPackages: ['@noble/hashes'],
+    serverComponentsExternalPackages: [
+      '@noble/hashes',
+      '@noble/ed25519',
+      '@noble/secp256k1',
+      'bcrypt',
+      'bcryptjs',
+      'jsonwebtoken',
+      'prom-client',
+      'winston'
+    ],
     optimizePackageImports: [
       'react',
       '@radix-ui/react-dropdown-menu',

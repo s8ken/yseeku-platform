@@ -85,10 +85,10 @@ export * from './resonance-metric';
 export * from './linguistic-vector-steering';
 export * from './tenant-context';
 
-// Calculator (consolidated from @sonate/calculator)
-export * from './calculator/v2';
+// Calculator V2 is in @sonate/detect (has detect dependencies)
+// Import from @sonate/detect instead: import { explainableSymbiResonance } from '@sonate/detect';
 
 // Security infrastructure
 export { SecurityAuditor, runSecurityAudit } from './security/security-audit';
 export * from './security/mfa-system';
-export { EnhancedSecurityError } from './security/error-taxonomy';
+export { SecureAuthService } from './security/auth-service';

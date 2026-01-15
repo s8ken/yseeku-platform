@@ -11,6 +11,8 @@
     "node_modules",
     "dist",
     "**/*.test.ts",
+    "src/_archive/**/*",
+    "src/adversarial/**/*",
     "src/archive-analytics-reporter.ts",
     "src/archive-benchmark.ts",
     "src/archive-calibration-tool.ts",

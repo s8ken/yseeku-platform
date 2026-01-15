@@ -10,9 +10,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
     "moduleResolution": "node",
-    "composite": true
+    "composite": true,
+    "downlevelIteration": true,
+    "resolveJsonModule": true
   },
   "include": ["src/**/*"],
   "exclude": [
@@ -20,6 +21,7 @@
     "dist",
     "**/*.test.ts",
     "**/*.spec.ts",
+    "src/__tests__/**/*",
     "src/security/*-enhanced.ts",
     "src/security/enhanced-audit-logger.ts"
   ]

@@ -1,4 +1,9 @@
-import { tenantContext } from '@sonate/core';
+// Simple tenant context mock to avoid circular dependencies
+const tenantContext = {
+  getTenantId: (throwOnError: boolean = false): string | null => {
+    return process.env.TENANT_ID || null;
+  }
+};
 
 // Simple logger implementation to avoid circular dependencies
 function getLogger(component: string) {

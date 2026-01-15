@@ -308,7 +308,9 @@ export class OptimizedFrameworkDetector {
     // Remove oldest if cache is full
     if (this.cache.size >= this.CACHE_SIZE) {
       const oldestKey = this.cache.keys().next().value;
-      this.cache.delete(oldestKey);
+      if (oldestKey) {
+        this.cache.delete(oldestKey);
+      }
     }
     
     this.cache.set(hash, {
