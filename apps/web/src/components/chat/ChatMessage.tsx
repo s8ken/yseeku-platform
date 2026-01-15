@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { TrustEvaluation } from '@/lib/api';
-import { TrustReceiptCard } from '../trust-receipt/TrustReceiptCard';
+import { TrustReceiptCompact } from '../trust-receipt/TrustReceiptCompact';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Shield, User, Bot, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -63,7 +63,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         
         {isAssistant && evaluation && (
           <div className="mt-2 w-full max-w-lg">
-            <TrustReceiptCard evaluation={evaluation} />
+            <TrustReceiptCompact evaluation={evaluation} />
           </div>
         )}
         
