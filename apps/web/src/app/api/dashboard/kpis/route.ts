@@ -14,30 +14,74 @@ export async function GET(request: NextRequest) {
   const pool = getPool();
 
   if (!pool) {
-    // Fallback to mock data if DB is unavailable
-    return NextResponse.json({ 
-      success: true, 
-      data: {
-        tenant,
-        timestamp: new Date().toISOString(),
-        trustScore: 87,
-        principleScores: { transparency: 92, fairness: 85, privacy: 88, safety: 84, accountability: 90 },
-        totalInteractions: 15847,
-        activeAgents: 12,
-        complianceRate: 94.2,
-        riskScore: 23,
-        alertsCount: 7,
-        experimentsRunning: 3,
-        orchestratorsActive: 5,
-        symbiDimensions: { realityIndex: 8.4, trustProtocol: 'PASS', ethicalAlignment: 4.2, resonanceQuality: 'ADVANCED', canvasParity: 91 },
-        trends: {
-          trustScore: { change: 2.3, direction: 'up' },
-          interactions: { change: 12.1, direction: 'up' },
-          compliance: { change: 0.5, direction: 'up' },
-          risk: { change: -5.2, direction: 'down' }
-        }
-      } 
-    });
+    const base = process.env.NEXT_PUBLIC_API_URL || '';
+    try {
+      const guestRes = await fetch(`${base}/api/auth/guest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      let token: string | undefined;
+      if (guestRes.ok) {
+        const data = await guestRes.json();
+        token = data?.data?.tokens?.accessToken;
+      }
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const alertsRes = await fetch(`${base}/api/dashboard/alerts?tenant=${tenant}`, { headers });
+      let alertsCount = 0;
+      if (alertsRes.ok) {
+        const alertsBody = await alertsRes.json();
+        const alertData = alertsBody?.data || alertsBody;
+        alertsCount = alertData?.summary?.total || 0;
+      }
+      return NextResponse.json({ 
+        success: true, 
+        data: {
+          tenant,
+          timestamp: new Date().toISOString(),
+          trustScore: 87,
+          principleScores: { transparency: 92, fairness: 85, privacy: 88, safety: 84, accountability: 90 },
+          totalInteractions: 15847,
+          activeAgents: 12,
+          complianceRate: 94.2,
+          riskScore: alertsCount * 5 + 10,
+          alertsCount,
+          experimentsRunning: 3,
+          orchestratorsActive: 5,
+          symbiDimensions: { realityIndex: 8.4, trustProtocol: 'PASS', ethicalAlignment: 4.2, resonanceQuality: 'ADVANCED', canvasParity: 91 },
+          trends: {
+            trustScore: { change: 2.3, direction: 'up' },
+            interactions: { change: 12.1, direction: 'up' },
+            compliance: { change: 0.5, direction: 'up' },
+            risk: { change: -5.2, direction: 'down' }
+          }
+        } 
+      });
+    } catch {
+      return NextResponse.json({ 
+        success: true, 
+        data: {
+          tenant,
+          timestamp: new Date().toISOString(),
+          trustScore: 87,
+          principleScores: { transparency: 92, fairness: 85, privacy: 88, safety: 84, accountability: 90 },
+          totalInteractions: 15847,
+          activeAgents: 12,
+          complianceRate: 94.2,
+          riskScore: 10,
+          alertsCount: 0,
+          experimentsRunning: 3,
+          orchestratorsActive: 5,
+          symbiDimensions: { realityIndex: 8.4, trustProtocol: 'PASS', ethicalAlignment: 4.2, resonanceQuality: 'ADVANCED', canvasParity: 91 },
+          trends: {
+            trustScore: { change: 2.3, direction: 'up' },
+            interactions: { change: 12.1, direction: 'up' },
+            compliance: { change: 0.5, direction: 'up' },
+            risk: { change: -5.2, direction: 'down' }
+          }
+        } 
+      });
+    }
   }
 
   try {

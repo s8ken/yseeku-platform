@@ -74,15 +74,9 @@ export default function AlertsManagementPage() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['alerts-management', filterStatus, filterSeverity, searchTerm],
     queryFn: async () => {
-      const params = new URLSearchParams({
-        status: filterStatus !== 'all' ? filterStatus : '',
-        severity: filterSeverity !== 'all' ? filterSeverity : '',
-        search: searchTerm,
-      });
-
-      const response = await fetch(`/api/dashboard/alerts/management?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch alerts');
-      return response.json() as Promise<AlertResponse>;
+      const status = filterStatus !== 'all' ? filterStatus : undefined;
+      const severity = filterSeverity !== 'all' ? filterSeverity : undefined;
+      return await (await import('@/lib/api')).api.getAlertsManagement({ status, severity, search: searchTerm }) as any;
     },
   });
 

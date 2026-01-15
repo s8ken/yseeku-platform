@@ -172,6 +172,23 @@ export interface AlertsResponse {
   alerts: Alert[];
 }
 
+export interface AlertsManagementResponse {
+  success: boolean;
+  data: {
+    alerts: Array<Alert & { status: 'active' | 'acknowledged' | 'resolved' | 'suppressed' }>;
+    total: number;
+    summary: {
+      critical: number;
+      error: number;
+      warning: number;
+      info: number;
+      active: number;
+      acknowledged: number;
+      resolved: number;
+    };
+  };
+}
+
 export type BanStatus = 'active' | 'banned' | 'restricted' | 'quarantined';
 export type BanSeverity = 'low' | 'medium' | 'high' | 'critical';
 
@@ -491,6 +508,15 @@ export const api = {
   async getAlerts(tenant?: string): Promise<AlertsResponse> {
     const params = tenant ? `?tenant=${tenant}` : '';
     return fetchAPI<AlertsResponse>(`/api/dashboard/alerts${params}`);
+  },
+
+  async getAlertsManagement(filters?: { status?: string; severity?: string; search?: string }): Promise<AlertsManagementResponse> {
+    const params = new URLSearchParams();
+    if (filters?.status && filters.status !== 'all') params.set('status', filters.status);
+    if (filters?.severity && filters.severity !== 'all') params.set('severity', filters.severity);
+    if (filters?.search) params.set('search', filters.search);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return fetchAPI<AlertsManagementResponse>(`/api/dashboard/alerts/management${query}`);
   },
 
   async getAgents(tenant?: string, status?: string): Promise<AgentsResponse> {
