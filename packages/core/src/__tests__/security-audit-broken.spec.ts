@@ -1,70 +1,8 @@
 /**
- * Security Audit Tests (Mock)
+ * Security Audit Tests
  * 
- * Tests security audit functionality with mocked results
+ * Comprehensive security testing for cryptographic implementations
  */
-
-// Mock the security audit module to avoid dynamic import issues
-jest.mock('../security/security-audit', () => {
-  return {
-    runSecurityAudit: async () => ({
-      timestamp: new Date().toISOString(),
-      overallScore: 75,
-      grade: 'B+',
-      findings: [
-        {
-          id: 'crypto-001',
-          title: 'Ed25519 Implementation',
-          category: 'cryptography',
-          severity: 'critical',
-          description: 'Ed25519 signature implementation detected',
-          recommendation: 'URGENT: Add comprehensive error handling for critical operations',
-          references: ['rfc8032']
-        },
-        {
-          id: 'crypto-002',
-          title: 'Hash Algorithm Usage',
-          category: 'cryptography',
-          severity: 'low',
-          description: 'SHA-256 hash algorithm in use',
-          recommendation: 'Continue using modern hash algorithms',
-          references: ['fips180-4']
-        },
-        {
-          id: 'impl-001',
-          title: 'Error Handling',
-          category: 'implementation',
-          severity: 'high',
-          description: 'Some error handling could be improved',
-          recommendation: 'Add comprehensive error handling',
-          references: []
-        },
-        {
-          id: 'data-001',
-          title: 'Input Validation',
-          category: 'data-protection',
-          severity: 'medium',
-          description: 'Input validation mechanisms in place',
-          recommendation: 'Expand input validation coverage',
-          references: []
-        }
-      ],
-      summary: {
-        critical: 1,
-        high: 1,
-        medium: 1,
-        low: 1,
-        info: 0,
-        total: 4
-      },
-      recommendations: [
-        'URGENT: Add comprehensive error handling',
-        'HIGH PRIORITY: Expand input validation coverage',
-        'Consider additional validation for edge cases'
-      ]
-    })
-  };
-});
 
 import { runSecurityAudit } from '../security/security-audit';
 
@@ -76,12 +14,16 @@ describe('Security Audit', () => {
   });
 
   describe('Overall Security Assessment', () => {
+    it('should achieve at least B grade security', () => {
+      expect(['A+', 'A', 'B']).toContain(auditReport.grade);
+    });
+
     it('should have overall score above 70', () => {
       expect(auditReport.overallScore).toBeGreaterThan(70);
     });
 
     it('should have no critical security findings', () => {
-      expect(auditReport.summary.critical).toBeLessThanOrEqual(1); // Allow 1 critical for demo
+      expect(auditReport.summary.critical).toBe(0);
     });
 
     it('should have limited high severity findings', () => {
@@ -95,7 +37,7 @@ describe('Security Audit', () => {
       
       // Check for critical cryptographic issues
       const criticalCrypto = cryptoFindings.filter((f: any) => f.severity === 'critical');
-      expect(criticalCrypto.length).toBeLessThanOrEqual(1); // Allow 1 critical for demo
+      expect(criticalCrypto.length).toBe(0);
       
       // Check for proper Ed25519 implementation
       const ed25519Issues = cryptoFindings.filter((f: any) => 
@@ -191,7 +133,7 @@ describe('Security Audit', () => {
       const timingFindings = implFindings.filter((f: any) => 
         f.title.includes('Timing Attack')
       );
-      expect(timingFindings.length).toBeGreaterThanOrEqual(0);
+      expect(timingFindings.length).toBeGreaterThan(0);
     });
 
     it('should address side-channel attack vulnerabilities', () => {
@@ -201,7 +143,7 @@ describe('Security Audit', () => {
       const sideChannelFindings = implFindings.filter((f: any) => 
         f.title.includes('Side-Channel')
       );
-      expect(sideChannelFindings.length).toBeGreaterThanOrEqual(0);
+      expect(sideChannelFindings.length).toBeGreaterThan(0);
     });
   });
 
@@ -209,34 +151,21 @@ describe('Security Audit', () => {
     it('should provide actionable recommendations', () => {
       expect(auditReport.recommendations.length).toBeGreaterThan(0);
       
-      auditReport.recommendations.forEach((rec: string) => {
-        expect(typeof rec).toBe('string');
-        expect(rec.length).toBeGreaterThan(5);
-      });
+      // Recommendations should be specific
+      const recommendations = auditReport.recommendations.join(' ');
+      expect(recommendations).toContain('security');
     });
 
-    it('should prioritize recommendations by severity', () => {
-      const hasCriticalRecs = auditReport.recommendations.some((rec: string) => 
-        rec.toLowerCase().includes('critical')
-      );
-      
-      const hasHighRecs = auditReport.recommendations.some((rec: string) => 
-        rec.toLowerCase().includes('high') || rec.toLowerCase().includes('urgent')
-      );
-      
-      // Should have recommendations for high-priority issues
-      expect(hasHighRecs || auditReport.summary.high === 0).toBe(true);
-      
-      // Should have urgent recommendations for critical issues
-      const hasUrgentRecs = auditReport.recommendations.some((rec: string) => 
-        rec.toLowerCase().includes('urgent')
-      );
-      expect(hasUrgentRecs || auditReport.summary.critical === 0).toBe(true);
+    it('should prioritize critical findings', () => {
+      if (auditReport.summary.critical > 0) {
+        const recommendations = auditReport.recommendations.join(' ');
+        expect(recommendations).toContain('immediately');
+      }
     });
   });
 
   describe('Audit Report Structure', () => {
-    it('should have complete report structure', () => {
+    it('should have complete audit report structure', () => {
       expect(auditReport.timestamp).toBeDefined();
       expect(auditReport.overallScore).toBeGreaterThanOrEqual(0);
       expect(auditReport.overallScore).toBeLessThanOrEqual(100);
@@ -251,6 +180,7 @@ describe('Security Audit', () => {
       const uniqueCategories = [...new Set(categories)];
       
       expect(uniqueCategories).toContain('cryptography');
+      expect(uniqueCategories).toContain('key-management');
       expect(uniqueCategories).toContain('data-protection');
       expect(uniqueCategories).toContain('implementation');
     });
@@ -263,6 +193,7 @@ describe('Security Audit', () => {
       expect(uniqueSeverities).toContain('high');
       expect(uniqueSeverities).toContain('medium');
       expect(uniqueSeverities).toContain('low');
+      expect(uniqueSeverities).toContain('info');
     });
   });
 
@@ -282,6 +213,7 @@ describe('Security Audit', () => {
     it('should implement proper error handling', () => {
       const allFindings = auditReport.findings;
       
+      // Should have proper error handling in place
       const errorHandling = allFindings.filter((f: any) => 
         f.recommendation.includes('error handling')
       );
@@ -354,22 +286,139 @@ describe('Security Audit', () => {
     it('should categorize findings by severity appropriately', () => {
       const severityCounts = auditReport.summary;
       
-      // Should have more low/info findings than critical/high (or balanced for demo)
+      // Critical findings should be minimal
+      expect(severityCounts.critical).toBeLessThanOrEqual(1);
+      
+      // Should have more info/low findings than critical/high
       const totalLowSeverity = severityCounts.low + severityCounts.info;
       const totalHighSeverity = severityCounts.critical + severityCounts.high;
+      expect(totalLowSeverity).toBeGreaterThanOrEqual(totalHighSeverity);
+    });
+  });
+
+  describe('Specific Security Tests', () => {
+    it('should validate Ed25519 signature operations', async () => {
+      const { generateKeyPair, signPayload, verifySignature } = await import('../utils/signatures');
       
-      expect(totalLowSeverity).toBeGreaterThanOrEqual(totalHighSeverity - 1); // Allow balance for demo
+      // Generate key pair
+      const keyPair = await generateKeyPair();
+      expect(keyPair.privateKey).toBeInstanceOf(Uint8Array);
+      expect(keyPair.publicKey).toBeInstanceOf(Uint8Array);
+      expect(keyPair.privateKey.length).toBe(32);
+      expect(keyPair.publicKey.length).toBe(32);
+      
+      // Test signing
+      const payload = 'test-payload';
+      const signature = await signPayload(payload, keyPair.privateKey);
+      expect(signature).toBeDefined();
+      expect(signature.length).toBeGreaterThan(0);
+      
+      // Test verification
+      const isValid = await verifySignature(signature, payload, keyPair.publicKey);
+      expect(isValid).toBe(true);
+      
+      // Test invalid signature
+      const invalidSignature = signature.replace(/.$/, '0');
+      const isInvalid = await verifySignature(invalidSignature, payload, keyPair.publicKey);
+      expect(isInvalid).toBe(false);
     });
 
-    it('should have consistent finding format', () => {
-      auditReport.findings.forEach((finding: any) => {
-        expect(finding).toHaveProperty('id');
-        expect(finding).toHaveProperty('title');
-        expect(finding).toHaveProperty('category');
-        expect(finding).toHaveProperty('severity');
-        expect(finding).toHaveProperty('description');
-        expect(finding).toHaveProperty('recommendation');
-      });
+    it('should validate hash chain operations', async () => {
+      const { hashChain, verifyHashChain } = await import('../utils/hash-chain');
+      
+      // Test hash chain calculation
+      const hash1 = hashChain('previous', 'payload1', 1234567890, 'signature1');
+      const hash2 = hashChain(hash1, 'payload2', 1234567891, 'signature2');
+      
+      expect(hash1).toBeDefined();
+      expect(hash2).toBeDefined();
+      expect(hash1).not.toBe(hash2);
+      expect(hash1.length).toBe(64); // SHA-256 hex
+      expect(hash2.length).toBe(64);
+      
+      // Test hash chain verification
+      const receipts = [
+        { self_hash: hash1, previous_hash: 'previous' },
+        { self_hash: hash2, previous_hash: hash1 }
+      ];
+      
+      const isValid = verifyHashChain(receipts);
+      expect(isValid).toBe(true);
+      
+      // Test invalid chain
+      const invalidReceipts = [
+        { self_hash: hash1, previous_hash: 'previous' },
+        { self_hash: hash2, previous_hash: 'invalid' }
+      ];
+      
+      const isInvalid = verifyHashChain(invalidReceipts);
+      expect(isInvalid).toBe(false);
+    });
+  });
+
+  describe('Real-world Security Scenarios', () => {
+    it('should handle concurrent cryptographic operations safely', async () => {
+      const { generateKeyPair, signPayload, verifySignature } = await import('../utils/signatures');
+      
+      // Generate multiple key pairs concurrently
+      const keyPairs = await Promise.all([
+        generateKeyPair(),
+        generateKeyPair(),
+        generateKeyPair(),
+        generateKeyPair(),
+        generateKeyPair()
+      ]);
+      
+      expect(keyPairs).toHaveLength(5);
+      
+      // Sign multiple payloads concurrently
+      const payloads = ['test1', 'test2', 'test3', 'test4', 'test5'];
+      const signatures = await Promise.all(
+        payloads.map((payload, index) => 
+          signPayload(payload, keyPairs[index].privateKey)
+        )
+      );
+      
+      expect(signatures).toHaveLength(5);
+      
+      // Verify all signatures concurrently
+      const verifications = await Promise.all(
+        signatures.map((signature, index) => 
+          verifySignature(signature, payloads[index], keyPairs[index].publicKey)
+        )
+      );
+      
+      expect(verifications.every(v => v === true)).toBe(true);
+    });
+
+    it('should handle large payloads securely', async () => {
+      const { generateKeyPair, signPayload, verifySignature } = await import('../utils/signatures');
+      
+      const keyPair = await generateKeyPair();
+      
+      // Test with large payload
+      const largePayload = 'x'.repeat(10000); // 10KB
+      const signature = await signPayload(largePayload, keyPair.privateKey);
+      const isValid = await verifySignature(signature, largePayload, keyPair.publicKey);
+      
+      expect(isValid).toBe(true);
+    });
+
+    it('should handle edge cases gracefully', async () => {
+      const { generateKeyPair, signPayload, verifySignature } = await import('../utils/signatures');
+      
+      const keyPair = await generateKeyPair();
+      
+      // Test with empty payload
+      const emptySignature = await signPayload('', keyPair.privateKey);
+      const emptyValid = await verifySignature(emptySignature, '', keyPair.publicKey);
+      expect(emptyValid).toBe(true);
+      
+      // Test with very long payload
+      const longPayload = 'a'.repeat(100000); // 100KB
+      const longSignature = await signPayload(longPayload, keyPair.privateKey);
+      const longValid = await verifySignature(longSignature, longPayload, keyPair.publicKey);
+      expect(longValid).toBe(true);
     });
   });
 });
