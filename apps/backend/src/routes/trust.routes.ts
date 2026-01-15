@@ -10,6 +10,7 @@ import { TrustReceiptModel } from '../models/trust-receipt.model';
 import { Conversation } from '../models/conversation.model';
 import { TrustReceipt } from '@sonate/core';
 import { didService } from '../services/did.service';
+import { llmLimiter } from '../middleware/rate-limiters';
 
 const router = Router();
 
@@ -17,7 +18,7 @@ const router = Router();
  * POST /api/trust/receipts
  * Save a trust receipt with optional DID-based signatures
  */
-router.post('/receipts', protect, async (req: Request, res: Response): Promise<void> => {
+router.post('/receipts', protect, llmLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const receiptData = req.body;
 
@@ -26,6 +27,14 @@ router.post('/receipts', protect, async (req: Request, res: Response): Promise<v
         success: false,
         error: 'Invalid receipt data',
       });
+      return;
+    }
+    if (typeof receiptData.self_hash !== 'string' || receiptData.self_hash.length < 16) {
+      res.status(400).json({ success: false, error: 'Invalid self_hash format' });
+      return;
+    }
+    if (receiptData.signature && typeof receiptData.signature !== 'string') {
+      res.status(400).json({ success: false, error: 'Invalid signature format' });
       return;
     }
 
@@ -160,7 +169,7 @@ router.get('/analytics', protect, async (req: Request, res: Response): Promise<v
  *   sessionId?: string
  * }
  */
-router.post('/evaluate', protect, async (req: Request, res: Response): Promise<void> => {
+router.post('/evaluate', protect, llmLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { content, conversationId, previousMessages = [], sessionId } = req.body;
 
@@ -301,7 +310,7 @@ router.get('/receipts', protect, async (req: Request, res: Response): Promise<vo
  *   receipt: TrustReceipt object
  * }
  */
-router.post('/receipts/:receiptHash/verify', protect, async (req: Request, res: Response): Promise<void> => {
+router.post('/receipts/:receiptHash/verify', protect, llmLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { receiptHash } = req.params;
     const { receipt } = req.body;
@@ -311,6 +320,10 @@ router.post('/receipts/:receiptHash/verify', protect, async (req: Request, res: 
         success: false,
         error: 'Receipt object is required',
       });
+      return;
+    }
+    if (typeof receiptHash !== 'string' || receiptHash.length < 16) {
+      res.status(400).json({ success: false, error: 'Invalid receiptHash' });
       return;
     }
 

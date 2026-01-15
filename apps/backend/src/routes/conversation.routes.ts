@@ -9,6 +9,7 @@ import { protect } from '../middleware/auth.middleware';
 import { Conversation, IMessage } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
 import { llmService } from '../services/llm.service';
+import { TrustReceiptModel } from '../models/trust-receipt.model';
 import { trustService } from '../services/trust.service';
 
 const router = Router();
@@ -352,6 +353,33 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
         receiptHash: userTrustEval.receiptHash,
       };
 
+      // Persist receipt in TrustReceipt collection (upsert)
+      try {
+        await TrustReceiptModel.updateOne(
+          { self_hash: userTrustEval.receiptHash },
+          {
+            $set: {
+              self_hash: userTrustEval.receiptHash,
+              session_id: conversation._id.toString(),
+              version: userTrustEval.receipt.version || '1.0.0',
+              timestamp: userTrustEval.timestamp,
+              mode: userTrustEval.receipt.mode || 'constitutional',
+              ciq_metrics: userTrustEval.receipt.ciq_metrics || { clarity: 0, integrity: 0, quality: 0 },
+              previous_hash: (userTrustEval.receipt as any).previous_hash,
+              signature: userTrustEval.signature,
+              tenant_id: req.userTenant || 'default',
+              issuer: userTrustEval.issuer,
+              subject: userTrustEval.subject,
+              agent_id: userMessage.agentId,
+              proof: userTrustEval.proof,
+            },
+          },
+          { upsert: true }
+        );
+      } catch (persistErr: any) {
+        console.warn('Failed to persist user trust receipt:', persistErr?.message || persistErr);
+      }
+
       // Update message trust score (convert 0-10 to 0-5 scale)
       userMessage.trustScore = Math.round((userTrustEval.trustScore.overall / 10) * 5 * 10) / 10;
     } catch (trustError: any) {
@@ -442,6 +470,33 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             receipt: aiTrustEval.receipt,
             receiptHash: aiTrustEval.receiptHash,
           };
+
+          // Persist receipt in TrustReceipt collection (upsert)
+          try {
+            await TrustReceiptModel.updateOne(
+              { self_hash: aiTrustEval.receiptHash },
+              {
+                $set: {
+                  self_hash: aiTrustEval.receiptHash,
+                  session_id: conversation._id.toString(),
+                  version: aiTrustEval.receipt.version || '1.0.0',
+                  timestamp: aiTrustEval.timestamp,
+                  mode: aiTrustEval.receipt.mode || 'constitutional',
+                  ciq_metrics: aiTrustEval.receipt.ciq_metrics || { clarity: 0, integrity: 0, quality: 0 },
+                  previous_hash: (aiTrustEval.receipt as any).previous_hash,
+                  signature: aiTrustEval.signature,
+                  tenant_id: req.userTenant || 'default',
+                  issuer: aiTrustEval.issuer,
+                  subject: aiTrustEval.subject,
+                  agent_id: aiMessage.agentId,
+                  proof: aiTrustEval.proof,
+                },
+              },
+              { upsert: true }
+            );
+          } catch (persistErr: any) {
+            console.warn('Failed to persist AI trust receipt:', persistErr?.message || persistErr);
+          }
 
           // Update message trust score (convert 0-10 to 0-5 scale)
           aiMessage.trustScore = Math.round((aiTrustEval.trustScore.overall / 10) * 5 * 10) / 10;
