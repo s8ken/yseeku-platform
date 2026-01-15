@@ -64,8 +64,8 @@
     "lightningcss": "^1.30.2",
     "parse-duration": "^2.1.5",
     "tweetnacl": "^1.0.3",
-    "vite": "^7.3.0",
-    "vitest": "^4.0.16"
+    "vite": "^7.3.1",
+    "vitest": "^4.0.17"
   },
   "optionalDependencies": {
     "lightningcss-darwin-arm64": "^1.30.2"
