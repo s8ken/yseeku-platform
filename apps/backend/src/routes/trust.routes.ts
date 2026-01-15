@@ -10,7 +10,7 @@ import { TrustReceiptModel } from '../models/trust-receipt.model';
 import { Conversation } from '../models/conversation.model';
 import { TrustReceipt } from '@sonate/core';
 import { didService } from '../services/did.service';
-import { llmLimiter } from '../middleware/rate-limiters';
+import { llmLimiter, apiGatewayLimiter } from '../middleware/rate-limiters';
 
 const router = Router();
 
@@ -83,7 +83,7 @@ router.post('/receipts', protect, llmLimiter, async (req: Request, res: Response
  * - days?: number - Last N days (default: 7)
  * - limit?: number - Max evaluations to analyze (default: 1000)
  */
-router.get('/analytics', protect, async (req: Request, res: Response): Promise<void> => {
+router.get('/analytics', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { conversationId, days = 7, limit = 1000 } = req.query;
 
@@ -508,7 +508,7 @@ router.get('/signing-key', async (req: Request, res: Response): Promise<void> =>
  * GET /api/trust/health
  * Get overall trust health for user's conversations
  */
-router.get('/health', protect, async (req: Request, res: Response): Promise<void> => {
+router.get('/health', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const conversations = await Conversation.find({ user: req.userId })
       .select('ethicalScore messages lastActivity')
@@ -685,7 +685,7 @@ router.get('/did-info', async (req: Request, res: Response): Promise<void> => {
  * List trust receipts by tenant (current user tenant) with pagination
  * Query: limit, offset
  */
-router.get('/receipts/list', protect, async (req: Request, res: Response): Promise<void> => {
+router.get('/receipts/list', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { limit = 50, offset = 0 } = req.query;
     const tenantId = req.userTenant || req.tenant || 'default';
@@ -710,7 +710,7 @@ router.get('/receipts/list', protect, async (req: Request, res: Response): Promi
  * GET /api/trust/receipts/:receiptHash
  * Fetch a single trust receipt by hash
  */
-router.get('/receipts/:receiptHash', protect, async (req: Request, res: Response): Promise<void> => {
+router.get('/receipts/:receiptHash', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { receiptHash } = req.params;
     if (!receiptHash || receiptHash.length < 16) {
