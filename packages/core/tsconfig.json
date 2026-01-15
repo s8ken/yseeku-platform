@@ -23,6 +23,7 @@
     "**/*.spec.ts",
     "src/__tests__/**/*",
     "src/security/*-enhanced.ts",
-    "src/security/enhanced-audit-logger.ts"
+    "src/security/enhanced-audit-logger.ts",
+    "src/calculator/v2.ts"
   ]
 }

@@ -51,6 +51,7 @@ export { resonanceWithStickiness, StickyResonance, SessionState } from './sticki
 export { adversarialCheck, AdversarialEvidence } from './adversarial';
 export { classifyStakes, StakesEvidence } from './stakes';
 export { normalizeScore, normalizeEmbedding } from './model-normalize';
+export { CalculatorV2, explainableSymbiResonance as explainableSymbiResonanceV2, robustSymbiResonance as robustSymbiResonanceV2, CANONICAL_WEIGHTS as CANONICAL_WEIGHTS_V2, DYNAMIC_THRESHOLDS as DYNAMIC_THRESHOLDS_V2 } from './v2';
 
 // Resonance Engine Client
 export { ResonanceClient, InteractionData, SymbiDimensions, ResonanceReceipt } from './ResonanceClient';

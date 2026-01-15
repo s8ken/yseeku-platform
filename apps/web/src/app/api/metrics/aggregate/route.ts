@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAggregateMetrics } from '@sonate/persistence';
 import { AuthMiddleware } from '@/middleware/auth-middleware';
 
+export const dynamic = 'force-dynamic';
+
 const auth = new AuthMiddleware();
 
 export async function GET(req: NextRequest) {
