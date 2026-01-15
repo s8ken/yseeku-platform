@@ -13,11 +13,18 @@ declare global {
 
 const rbacDenials = new Counter({ name: 'security_denials_total', help: 'Total RBAC denials', labelNames: ['reason','route'] });
 
-const ROLE_SCOPES: Record<string, string[]> = {
-  admin: ['read:all','llm:generate','llm:code-review','gateway:manage','secrets:manage'],
-  editor: ['read:all','llm:generate','llm:code-review'],
-  viewer: ['read:all','llm:generate'],
-};
+function getRoleScopes(role: string): string[] {
+  const demo = process.env.DEMO_MODE === 'true';
+  const base: Record<string, string[]> = {
+    admin: ['read:all','llm:generate','llm:code-review','gateway:manage','secrets:manage'],
+    editor: ['read:all','llm:generate','llm:code-review'],
+    viewer: ['read:all'],
+  };
+  if (demo) {
+    base.viewer = ['read:all','llm:generate'];
+  }
+  return base[role] || base.viewer;
+}
 
 function hasAllScopes(available: string[], required: string[]): boolean {
   const set = new Set(available);
@@ -57,7 +64,7 @@ export function requireScopes(required: string[]) {
 
     // Fallback to user role-based scopes
     const role = (req.user && req.user.role) || 'viewer';
-    const scopes = ROLE_SCOPES[role] || ROLE_SCOPES.viewer;
+    const scopes = getRoleScopes(role);
     if (!hasAllScopes(scopes, required)) {
       rbacDenials.inc({ reason: 'role_denied', route: routeId });
       res.status(403).json({ success: false, message: 'Insufficient role permissions', required, role });
