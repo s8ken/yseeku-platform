@@ -35,7 +35,6 @@
     "@sonate/persistence": "file:../../packages/persistence",
     "@supabase/supabase-js": "^2.89.0",
     "@tanstack/react-query": "^5.90.12",
-    "@types/pg": "^8.16.0",
     "@types/react": "18.3.5",
     "@types/react-dom": "18.3.1",
     "@types/three": "^0.182.0",
@@ -56,8 +55,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "three": "^0.182.0",
-    "zustand": "^5.0.9",
-    "bcryptjs": "^3.0.3"
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -73,7 +71,6 @@
     "tailwindcss": "^4",
     "tinyspy": "^2.2.0",
     "typescript": "^5",
-    "vitest": "^1.6.1",
-    "@types/bcryptjs": "^2.4.6"
+    "vitest": "^1.6.1"
   }
 }

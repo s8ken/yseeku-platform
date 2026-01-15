@@ -114,7 +114,8 @@ describe('Brain Executor Service', () => {
           type: 'system',
           title: 'High emergence detected',
           severity: 'warning',
-        })
+        }),
+        mockTenantId
       );
     });
   });
@@ -196,7 +197,8 @@ describe('Brain Executor Service', () => {
           type: 'security',
           title: expect.stringContaining('Agent Banned'),
           severity: 'error', // high severity maps to error
-        })
+        }),
+        mockTenantId
       );
 
       // Verify memory was stored
@@ -285,7 +287,8 @@ describe('Brain Executor Service', () => {
         expect.objectContaining({
           type: 'security',
           title: expect.stringContaining('Agent Restricted'),
-        })
+        }),
+        mockTenantId
       );
     });
   });
@@ -344,7 +347,8 @@ describe('Brain Executor Service', () => {
           type: 'system',
           title: expect.stringContaining('Agent Restored'),
           severity: 'info',
-        })
+        }),
+        mockTenantId
       );
     });
   });

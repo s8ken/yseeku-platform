@@ -55,6 +55,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@noble/ed25519": "^3.0.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@vitest/ui": "^4.0.16",
     "axios": "^1.13.2",
@@ -62,6 +63,7 @@
     "jsdom": "^27.4.0",
     "lightningcss": "^1.30.2",
     "parse-duration": "^2.1.5",
+    "tweetnacl": "^1.0.3",
     "vite": "^7.3.0",
     "vitest": "^4.0.16"
   },

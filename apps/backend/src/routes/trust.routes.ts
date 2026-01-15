@@ -12,6 +12,18 @@ import { TrustReceipt } from '@sonate/core';
 import { didService } from '../services/did.service';
 import { llmLimiter, apiGatewayLimiter } from '../middleware/rate-limiters';
 
+function validateReceiptPayload(data: any) {
+  if (!data || typeof data !== 'object') return 'Payload must be an object';
+  if (!data.self_hash || typeof data.self_hash !== 'string' || data.self_hash.length < 16) return 'Invalid self_hash';
+  if (!data.session_id || typeof data.session_id !== 'string') return 'Invalid session_id';
+  if (typeof data.timestamp !== 'number') return 'Invalid timestamp';
+  if (!data.mode || typeof data.mode !== 'string') return 'Invalid mode';
+  const m = data.ciq_metrics || data.ciq || {};
+  const hasMetrics = typeof m.clarity === 'number' && typeof m.integrity === 'number' && typeof m.quality === 'number';
+  if (!hasMetrics) return 'Invalid ciq_metrics';
+  return null;
+}
+
 const router = Router();
 
 /**
@@ -36,6 +48,19 @@ router.post('/receipts', protect, llmLimiter, async (req: Request, res: Response
     if (receiptData.signature && typeof receiptData.signature !== 'string') {
       res.status(400).json({ success: false, error: 'Invalid signature format' });
       return;
+    }
+    {
+      const schemaErr = validateReceiptPayload({
+        self_hash: receiptData.self_hash,
+        session_id: receiptData.session_id,
+        timestamp: receiptData.timestamp,
+        mode: receiptData.mode,
+        ciq_metrics: receiptData.ciq_metrics || receiptData.ciq,
+      });
+      if (schemaErr) {
+        res.status(400).json({ success: false, error: schemaErr });
+        return;
+      }
     }
 
     // Check if exists
@@ -178,6 +203,14 @@ router.post('/evaluate', protect, llmLimiter, async (req: Request, res: Response
         success: false,
         error: 'Message content is required',
       });
+      return;
+    }
+    if (typeof content !== 'string' || content.length > 20000) {
+      res.status(400).json({ success: false, error: 'Invalid content format or too long' });
+      return;
+    }
+    if (!Array.isArray(previousMessages) || previousMessages.length > 50) {
+      res.status(400).json({ success: false, error: 'previousMessages must be an array of max 50 items' });
       return;
     }
 
@@ -325,6 +358,19 @@ router.post('/receipts/:receiptHash/verify', protect, llmLimiter, async (req: Re
     if (typeof receiptHash !== 'string' || receiptHash.length < 16) {
       res.status(400).json({ success: false, error: 'Invalid receiptHash' });
       return;
+    }
+    {
+      const schemaErr = validateReceiptPayload({
+        self_hash: receipt.self_hash || receipt.receiptHash || receipt.hash || receiptHash,
+        session_id: receipt.session_id,
+        timestamp: receipt.timestamp,
+        mode: receipt.mode,
+        ciq_metrics: receipt.ciq_metrics || receipt.ciq,
+      });
+      if (schemaErr) {
+        res.status(400).json({ success: false, error: schemaErr });
+        return;
+      }
     }
 
     // Verify receipt hash matches (support multiple hash field names)

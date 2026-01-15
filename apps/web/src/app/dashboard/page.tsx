@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Shield, 
-  Activity, 
   Users, 
   TrendingUp, 
   TrendingDown,
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { OverseerWidget } from '@/components/overseer-widget';
+import { api } from '@/lib/api';
 
 interface KPIData {
   tenant: string;
@@ -74,18 +74,15 @@ interface ExperimentData {
     name: string;
     status: string;
     progress: number;
-    results: {
-      variants: Array<{
-        variantName: string;
-        averageScore: number;
-        sampleSize: number;
-      }>;
-      statisticalAnalysis: {
-        significantDifference: boolean;
-        effectSize: number;
-        confidenceInterval: [number, number];
-        pValue: number;
-      };
+    variants: Array<{
+      name: string;
+      avgScore: number;
+      sampleSize: number;
+    }>;
+    metrics: {
+      significant: boolean;
+      effectSize?: number;
+      pValue?: number;
     };
   }>;
   summary: {
@@ -140,10 +137,6 @@ function SymbiDimensionCard({
     </div>
   );
 }
-
-import { api } from '@/lib/api';
-
-// ... (imports)
 
 export default function DashboardPage() {
   const [tenant, setTenant] = useState('default');
@@ -408,19 +401,22 @@ export default function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {experiments ? (
+                {experiments && experiments.experiments && experiments.experiments.length > 0 ? (
                   <div className="space-y-4">
-                    {experiments.experiments.slice(0, 3).map((exp) => (
+                    {experiments.experiments.slice(0, 3).map((exp) => {
+                      if (!exp) return null;
+                      return (
                       <div key={exp.id} className="p-3 rounded-lg border bg-card">
                         <div className="flex items-start justify-between mb-2">
                           <div>
                             <p className="font-medium text-sm">{exp.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {exp.results.variants.length} variants
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              {(exp && exp.variants && exp.variants.length) || 0} variants
+                              <InfoTooltip term="Variants" />
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
-                            {exp.results.statisticalAnalysis.significantDifference && (
+                            {exp.metrics?.significant && (
                               <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                                 SIGNIFICANT
                               </span>
@@ -435,13 +431,13 @@ export default function DashboardPage() {
                           />
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
-                          p-value <InfoTooltip term="p-value" />: {exp.results.statisticalAnalysis.pValue.toFixed(4)} | 
-                          Effect <InfoTooltip term="Effect Size" />: {exp.results.statisticalAnalysis.effectSize.toFixed(2)}
+                          p-value <InfoTooltip term="p-value" />: {exp.metrics?.pValue?.toFixed(4) ?? 'N/A'} | 
+                          Effect <InfoTooltip term="Effect Size" />: {exp.metrics?.effectSize?.toFixed(2) ?? 'N/A'}
                         </p>
                       </div>
-                    ))}
+                    )})}
                     <div className="text-center">
-                      <a href="/demo/lab" className="text-sm text-[var(--lab-primary)] hover:underline">
+                      <a href="/dashboard/experiments" className="text-sm text-[var(--lab-primary)] hover:underline">
                         View all {experiments.summary.total} experiments →
                       </a>
                     </div>

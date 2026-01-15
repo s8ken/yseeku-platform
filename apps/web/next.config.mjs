@@ -64,6 +64,42 @@ const nextConfig = {
           source: '/api/lab/:path*',
           destination: `${backendUrl}/api/lab/:path*`,
         },
+        {
+          source: '/api/demo/:path*',
+          destination: `${backendUrl}/api/demo/:path*`,
+        },
+        {
+          source: '/api/risk-events/:path*',
+          destination: `${backendUrl}/api/risk-events/:path*`,
+        },
+        {
+          source: '/api/audit/:path*',
+          destination: `${backendUrl}/api/audit/:path*`,
+        },
+        {
+          source: '/api/tenants/:path*',
+          destination: `${backendUrl}/api/tenants/:path*`,
+        },
+        {
+          source: '/api/secrets/:path*',
+          destination: `${backendUrl}/api/secrets/:path*`,
+        },
+        {
+          source: '/api/gateway/:path*',
+          destination: `${backendUrl}/api/gateway/:path*`,
+        },
+        {
+          source: '/api/overrides/:path*',
+          destination: `${backendUrl}/api/overrides/:path*`,
+        },
+        {
+          source: '/api/did/:path*',
+          destination: `${backendUrl}/api/did/:path*`,
+        },
+        {
+          source: '/api/conversations/:path*',
+          destination: `${backendUrl}/api/conversations/:path*`,
+        },
       ];
   },
   transpilePackages: [

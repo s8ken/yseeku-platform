@@ -1,5 +1,9 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
-const BACKEND_API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE = typeof window === 'undefined' 
+  ? (process.env.INTERNAL_API_URL || 'http://localhost:3001') 
+  : '';
+const BACKEND_API_BASE = typeof window === 'undefined'
+  ? (process.env.INTERNAL_API_URL || 'http://localhost:3001')
+  : '';
 
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -375,12 +379,21 @@ export interface Experiment {
   description: string;
   status: string;
   type: string;
+  variants: Array<{
+    name: string;
+    description: string;
+    sampleSize: number;
+    avgScore: number;
+    successCount: number;
+    failureCount: number;
+  }>;
   metrics: {
     pValue: number;
     effectSize: number;
     sampleSize: number;
     controlMean: number;
     treatmentMean: number;
+    significant: boolean;
   };
   progress: number;
   createdAt: string;

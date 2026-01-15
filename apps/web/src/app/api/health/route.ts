@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getPool } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -10,8 +9,8 @@ interface HealthCheck {
   version: string;
   uptime: number;
   checks: {
-    database: {
-      status: 'up' | 'down';
+    backend: {
+      status: 'up' | 'down' | 'unknown';
       latency?: number;
       error?: string;
     };
@@ -25,27 +24,32 @@ interface HealthCheck {
 }
 
 const startTime = Date.now();
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export async function GET(): Promise<NextResponse<HealthCheck>> {
   const timestamp = new Date().toISOString();
   const uptime = Math.floor((Date.now() - startTime) / 1000);
   
-  let dbStatus: HealthCheck['checks']['database'] = { status: 'down' };
+  let backendStatus: HealthCheck['checks']['backend'] = { status: 'unknown' };
   
   try {
-    const pool = getPool();
-    if (pool) {
-      const start = Date.now();
-      await pool.query('SELECT 1');
-      const latency = Date.now() - start;
-      dbStatus = { status: 'up', latency };
+    const start = Date.now();
+    const res = await fetch(`${BACKEND_URL}/health`, { 
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      next: { revalidate: 0 }
+    });
+    const latency = Date.now() - start;
+    
+    if (res.ok) {
+      backendStatus = { status: 'up', latency };
     } else {
-      dbStatus = { status: 'down', error: 'No database connection' };
+      backendStatus = { status: 'down', error: `Status ${res.status}` };
     }
   } catch (error) {
-    dbStatus = { 
+    backendStatus = { 
       status: 'down', 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+      error: error instanceof Error ? error.message : 'Connection failed' 
     };
   }
   
@@ -62,7 +66,7 @@ export async function GET(): Promise<NextResponse<HealthCheck>> {
   };
   
   const overallStatus: HealthCheck['status'] = 
-    dbStatus.status === 'down' ? 'unhealthy' :
+    backendStatus.status === 'down' ? 'degraded' :
     memStatus.status === 'critical' ? 'degraded' :
     'healthy';
   
@@ -72,15 +76,13 @@ export async function GET(): Promise<NextResponse<HealthCheck>> {
     version: process.env.npm_package_version || '1.0.0',
     uptime,
     checks: {
-      database: dbStatus,
+      backend: backendStatus,
       memory: memStatus
     }
   };
   
-  const statusCode = 200; // Return 200 to allow deployment even if DB is not yet configured
-  
   return NextResponse.json(health, { 
-    status: statusCode,
+    status: 200,
     headers: {
       'Cache-Control': 'no-cache, no-store, must-revalidate'
     }
