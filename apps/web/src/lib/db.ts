@@ -113,10 +113,16 @@ export function getPool(): Pool | null {
           client.release();
         }
 
-        console.log('Importing auth module for admin provisioning...');
-        const { ensureDefaultAdmin } = await import('./auth');
-        console.log('Calling ensureDefaultAdmin...');
-        await ensureDefaultAdmin();
+        const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+        const skipProvision = process.env.SKIP_ADMIN_PROVISIONING === 'true';
+        if (!isBuildPhase && !skipProvision) {
+          console.log('Importing auth module for admin provisioning...');
+          const { ensureDefaultAdmin } = await import('./auth');
+          console.log('Calling ensureDefaultAdmin...');
+          await ensureDefaultAdmin();
+        } else {
+          console.log('Skipping ensureDefaultAdmin during build or by flag');
+        }
         console.log('Database initialization process complete');
       } catch (err) {
         console.error('CRITICAL: Failed to initialize database:', err);
