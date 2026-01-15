@@ -18,7 +18,10 @@ export const ChatContainer: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'PASS' | 'PARTIAL' | 'FAIL'>('all');
   const [showStats, setShowStats] = useState(false);
   const [sessionId] = useState<string>(() => `session-${Date.now()}`);
+<<<<<<< HEAD
   const [conversationId, setConversationId] = useState<string | null>(null);
+=======
+>>>>>>> 42cd932 (feat(chat): persist trust receipts to /api/trust/receipt for cross-tab visibility)
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
