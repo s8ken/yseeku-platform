@@ -19,11 +19,11 @@
     "bcryptjs": "^3.0.3"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0",
+    "typescript": "^5.9.3",
+    "@types/node": "^25.0.8",
     "@types/bcryptjs": "^2.4.6",
-    "jest": "^29.0.0",
-    "@types/jest": "^29.0.0",
+    "jest": "^30.2.0",
+    "@types/jest": "^30.0.0",
     "ts-jest": "^29.0.0"
   }
 }
