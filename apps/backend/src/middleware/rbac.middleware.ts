@@ -16,7 +16,7 @@ const rbacDenials = new Counter({ name: 'security_denials_total', help: 'Total R
 const ROLE_SCOPES: Record<string, string[]> = {
   admin: ['read:all','llm:generate','llm:code-review','gateway:manage','secrets:manage'],
   editor: ['read:all','llm:generate','llm:code-review'],
-  viewer: ['read:all'],
+  viewer: ['read:all','llm:generate'],
 };
 
 function hasAllScopes(available: string[], required: string[]): boolean {
