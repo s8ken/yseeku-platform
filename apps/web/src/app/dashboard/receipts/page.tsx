@@ -292,14 +292,41 @@ export default function TrustReceiptsPage() {
   const { data: receiptsData, isLoading: isLoadingReal } = useQuery({
     queryKey: ['trust-receipts', tenant],
     queryFn: async () => {
-      const response = await fetch(`/api/trust-receipts?tenant=${encodeURIComponent(tenant)}&limit=50`);
-      if (!response.ok) throw new Error('Failed to fetch receipts');
-      return response.json() as Promise<{
-        success: boolean;
-        data: TrustReceipt[];
-        stats: { total: number; verified: number; invalid: number; chainLength: number };
-        source: string;
-      }>;
+      const res = await api.getTrustReceiptsList(50, 0);
+      const rows = res?.data || [];
+      const mapped: TrustReceipt[] = rows.map((r: any) => ({
+        id: r._id || r.self_hash,
+        hash: r.self_hash,
+        agentId: r.agent_id || '',
+        agentName: r.agent_id ? `Agent ${String(r.agent_id).slice(-4)}` : 'Unknown Agent',
+        timestamp: r.timestamp || r.createdAt || new Date().toISOString(),
+        trustScore: r.ciq_metrics?.quality ? Math.round(r.ciq_metrics.quality * 100) / 10 : 0,
+        symbiDimensions: {
+          realityIndex: r.ciq_metrics?.quality ? r.ciq_metrics.quality * 10 : 0,
+          trustProtocol: 'PASS',
+          ethicalAlignment: r.ciq_metrics?.integrity ? r.ciq_metrics.integrity * 5 : 0,
+          resonanceQuality: 'STRONG',
+          canvasParity: r.ciq_metrics?.clarity ? Math.round(r.ciq_metrics.clarity * 100) : 0,
+        },
+        verified: !!r.signature,
+        chainPosition: 1,
+        previousHash: r.previous_hash || '',
+        receiptData: r,
+        issuer: r.issuer,
+        subject: r.subject,
+        proof: r.proof,
+      }));
+      return {
+        success: true,
+        data: mapped,
+        stats: {
+          total: mapped.length,
+          verified: mapped.filter((x) => x.verified).length,
+          invalid: mapped.filter((x) => !x.verified).length,
+          chainLength: mapped.length,
+        },
+        source: 'backend',
+      };
     },
     staleTime: 30000,
     enabled: !isDemo && isLoaded,

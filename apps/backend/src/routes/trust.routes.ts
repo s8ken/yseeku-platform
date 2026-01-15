@@ -680,4 +680,53 @@ router.get('/did-info', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+/**
+ * GET /api/trust/receipts/list
+ * List trust receipts by tenant (current user tenant) with pagination
+ * Query: limit, offset
+ */
+router.get('/receipts/list', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { limit = 50, offset = 0 } = req.query;
+    const tenantId = req.userTenant || req.tenant || 'default';
+    const receipts = await TrustReceiptModel.find({ tenant_id: tenantId })
+      .sort({ createdAt: -1 })
+      .skip(Number(offset))
+      .limit(Number(limit))
+      .lean();
+    const total = await TrustReceiptModel.countDocuments({ tenant_id: tenantId });
+    res.json({
+      success: true,
+      data: receipts,
+      pagination: { total, limit: Number(limit), offset: Number(offset) },
+    });
+  } catch (error: any) {
+    console.error('List receipts error:', error);
+    res.status(500).json({ success: false, error: 'Failed to list receipts', message: error.message });
+  }
+});
+
+/**
+ * GET /api/trust/receipts/:receiptHash
+ * Fetch a single trust receipt by hash
+ */
+router.get('/receipts/:receiptHash', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { receiptHash } = req.params;
+    if (!receiptHash || receiptHash.length < 16) {
+      res.status(400).json({ success: false, error: 'Invalid receiptHash' });
+      return;
+    }
+    const receipt = await TrustReceiptModel.findOne({ self_hash: receiptHash }).lean();
+    if (!receipt) {
+      res.status(404).json({ success: false, error: 'Receipt not found' });
+      return;
+    }
+    res.json({ success: true, data: receipt });
+  } catch (error: any) {
+    console.error('Get receipt by hash error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch receipt', message: error.message });
+  }
+});
+
 export default router;

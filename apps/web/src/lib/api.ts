@@ -729,6 +729,18 @@ export const api = {
     return fetchAPI<any>(`/api/trust/receipts?${params.toString()}`);
   },
 
+  async getTrustReceiptsList(limit = 50, offset = 0): Promise<any> {
+    const params = new URLSearchParams();
+    params.set('limit', limit.toString());
+    params.set('offset', offset.toString());
+    const base = '';
+    return fetchAPI<any>(`/api/trust/receipts/list?${params.toString()}`);
+  },
+
+  async getTrustReceiptByHash(hash: string): Promise<any> {
+    return fetchAPI<any>(`/api/trust/receipts/${encodeURIComponent(hash)}`);
+  },
+
   async verifyTrustReceipt(receiptHash: string, receipt: any): Promise<any> {
     return fetchAPI<any>(`/api/trust/receipts/${receiptHash}/verify`, {
       method: 'POST',

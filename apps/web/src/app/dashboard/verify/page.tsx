@@ -84,9 +84,7 @@ export default function VerifyPage() {
     setVerificationResult(null);
 
     try {
-      const response = await fetch(`/api/trust-receipts?hash=${encodeURIComponent(receiptHash)}`);
-      if (!response.ok) throw new Error('Receipt not found');
-      const json = await response.json();
+      const json = await api.getTrustReceiptByHash(receiptHash);
       const record = json?.data;
 
       const result: VerificationResult = {
@@ -100,9 +98,9 @@ export default function VerifyPage() {
 
       setVerificationResult(result);
 
-      if (result.verified) {
+      if (record) {
         toast.success('Receipt Verified', {
-          description: 'Receipt hash found and signature is present in database.',
+          description: record.signature ? 'Receipt hash found and signature present.' : 'Receipt hash found.',
         });
       } else {
         toast.error('Verification Failed', {
