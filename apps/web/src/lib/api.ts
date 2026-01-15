@@ -728,6 +728,13 @@ export const api = {
     });
   },
 
+  async createTrustReceipt(transcript: any, session_id: string, tenant_id: string = 'default'): Promise<any> {
+    return fetchAPI<any>('/api/trust/receipt', {
+      method: 'POST',
+      body: JSON.stringify({ transcript, session_id, tenant_id }),
+    });
+  },
+
   async getTrustPrinciples(): Promise<TrustPrinciplesResponse> {
     return fetchAPI<TrustPrinciplesResponse>('/api/trust/principles');
   },

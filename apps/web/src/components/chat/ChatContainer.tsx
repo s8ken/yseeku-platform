@@ -17,6 +17,7 @@ export const ChatContainer: React.FC = () => {
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'PASS' | 'PARTIAL' | 'FAIL'>('all');
   const [showStats, setShowStats] = useState(false);
+  const [sessionId] = useState<string>(() => `session-${Date.now()}`);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -94,6 +95,33 @@ export const ChatContainer: React.FC = () => {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      try {
+        const turns = [
+          ...messages.map(m => ({
+            role: m.role,
+            ts_ms: m.timestamp,
+            content: m.content,
+          })),
+          { role: 'assistant', ts_ms: assistantMessage.timestamp, content: aiContent },
+        ];
+        const transcript = { turns };
+        const saved = await api.createTrustReceipt(transcript, sessionId);
+        if (saved && saved.receipt_id) {
+          setMessages(prev =>
+            prev.map((m, idx) =>
+              idx === prev.length - 1 && m.role === 'assistant' && m.evaluation
+                ? {
+                    ...m,
+                    evaluation: { ...m.evaluation, receiptHash: saved.receipt_id },
+                  }
+                : m
+            )
+          );
+        }
+      } catch (saveErr: any) {
+        console.warn('Failed to save trust receipt:', saveErr?.message || saveErr);
+      }
     } catch (error: any) {
       console.error('Failed to get trust evaluation:', error);
       toast.error('Session Error', {
