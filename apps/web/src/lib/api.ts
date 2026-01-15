@@ -532,6 +532,21 @@ export const api = {
     return res.data.agent;
   },
 
+  async createConversation(title = 'Trust Session', agentId?: string, ciEnabled = true): Promise<{ id: string }> {
+    const res = await fetchAPI<{ success: boolean; data: { conversation: { _id: string } } }>(`/api/conversations`, {
+      method: 'POST',
+      body: JSON.stringify({ title, agentId, ciEnabled }),
+    });
+    return { id: (res.data.conversation as any)._id };
+  },
+
+  async addConversationMessage(conversationId: string, content: string, agentId?: string, generateResponse = true): Promise<any> {
+    return fetchAPI<any>(`/api/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ content, agentId, generateResponse }),
+    });
+  },
+
   async createAgent(data: {
     name: string;
     description: string;

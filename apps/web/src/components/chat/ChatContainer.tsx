@@ -18,6 +18,7 @@ export const ChatContainer: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'PASS' | 'PARTIAL' | 'FAIL'>('all');
   const [showStats, setShowStats] = useState(false);
   const [sessionId] = useState<string>(() => `session-${Date.now()}`);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -76,37 +77,51 @@ export const ChatContainer: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // 1. Generate AI response
-      const llmResponse = await api.generateLLMResponse('anthropic', 'claude-3-haiku-20240307', [
-        ...messages.map(m => ({ role: m.role, content: m.content })),
-        { role: 'user', content: input }
-      ]);
+      // Ensure there is a backend conversation
+      if (!conversationId) {
+        const created = await api.createConversation('Trust-Aware Session');
+        setConversationId(created.id);
+      }
+      const convId = conversationId || (await (async () => {
+        const created = await api.createConversation('Trust-Aware Session');
+        setConversationId(created.id);
+        return created.id;
+      })());
 
-      const aiContent = llmResponse.data.response;
-
-      // 2. Evaluate trust for the AI response
-      const response = await api.evaluateTrust(aiContent);
-
-      const assistantMessage: ChatMessageProps = {
-        role: 'assistant',
-        content: aiContent,
-        evaluation: response.data.evaluation,
-        timestamp: Date.now(),
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      // Append user message and generate AI response with server-side trust evaluation
+      const convRes = await api.addConversationMessage(convId, input, undefined, true);
+      const last = convRes.data?.lastMessage || convRes.data?.conversation?.messages?.slice(-1)[0];
+      if (last) {
+        const evalMeta = last.metadata?.trustEvaluation;
+        const assistantMessage: ChatMessageProps = {
+          role: 'assistant',
+          content: last.content,
+          evaluation: evalMeta ? {
+            trustScore: evalMeta.trustScore,
+            status: evalMeta.status,
+            detection: evalMeta.detection,
+            receipt: evalMeta.receipt,
+            receiptHash: evalMeta.receiptHash,
+            timestamp: Date.now(),
+          } : undefined,
+          timestamp: Date.now(),
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+      }
 
       try {
-        const turns = [
-          ...messages.map(m => ({
-            role: m.role,
-            ts_ms: m.timestamp,
-            content: m.content,
-          })),
-          { role: 'assistant', ts_ms: assistantMessage.timestamp, content: aiContent },
-        ];
-        const transcript = { turns };
-        const saved = await api.createTrustReceipt(transcript, sessionId);
+        const recent = [...messages, {
+          role: 'user',
+          content: input,
+          timestamp: Date.now(),
+        }].slice(-8);
+        const turns = recent.map(m => ({
+          role: m.role,
+          ts_ms: m.timestamp,
+          content: m.content,
+        }));
+        const transcript = { turns, metadata: { model: 'chat-backend' } };
+        const saved = await api.createTrustReceipt(transcript, convId || sessionId);
         if (saved && saved.receipt_id) {
           setMessages(prev =>
             prev.map((m, idx) =>
