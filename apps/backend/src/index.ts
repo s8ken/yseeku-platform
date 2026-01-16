@@ -35,6 +35,7 @@ import overrideRoutes from './routes/override.routes';
 import demoRoutes from './routes/demo.routes';
 import didRoutes from './routes/did.routes';
 import { initializeSocket } from './socket';
+import { User } from './models/user.model';
 import { startOverseerScheduler } from './services/brain/scheduler';
 import logger from './utils/logger';
 import { requestLogger, errorLogger } from './middleware/request-logger';
@@ -209,6 +210,22 @@ async function startServer() {
       host: 'MongoDB',
       status: 'connected',
     });
+
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (adminEmail && adminPassword) {
+      try {
+        const existingAdmin = await User.findOne({ email: adminEmail });
+        if (!existingAdmin) {
+          await User.create({ name: 'Admin', email: adminEmail, password: adminPassword, role: 'admin' });
+          logger.info('Admin user provisioned', { email: adminEmail });
+        } else {
+          logger.info('Admin user exists', { email: adminEmail });
+        }
+      } catch (e: any) {
+        logger.warn('Admin provisioning failed', { error: e?.message || String(e) });
+      }
+    }
 
     // Initialize Socket.IO
     const io = new SocketIOServer(server, {
