@@ -51,12 +51,19 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit, retryCount =
     }
   }
 
-  // For demo mode, use local API for LLM calls to avoid backend auth issues
+  // For demo mode, use local API for LLM calls and other endpoints to avoid backend auth issues
   let finalEndpoint = endpoint;
-  if (isDemoMode && endpoint.includes('/api/llm/')) {
-    // Remove /api prefix since we're calling from the same app
-    finalEndpoint = endpoint.replace('/api', '');
-    console.log('Demo mode: using local endpoint', finalEndpoint);
+  if (isDemoMode) {
+    // In demo mode, use local endpoints for most API calls to avoid backend authentication
+    if (endpoint.includes('/api/llm/') || 
+        endpoint.includes('/api/agents/') || 
+        endpoint.includes('/api/trust/') ||
+        endpoint.includes('/api/dashboard/') ||
+        endpoint.includes('/api/overseer/')) {
+      // Remove /api prefix since we're calling from the same app
+      finalEndpoint = endpoint.replace('/api', '');
+      console.log('Demo mode: using local endpoint', finalEndpoint);
+    }
   }
 
   const headers: Record<string, string> = {
@@ -64,7 +71,8 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit, retryCount =
     ...(options?.headers as Record<string, string>),
   };
   
-  if (token) {
+  // Skip Authorization header for local demo endpoints
+  if (token && !isDemoMode) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
