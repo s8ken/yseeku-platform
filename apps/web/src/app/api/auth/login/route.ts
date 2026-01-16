@@ -6,21 +6,35 @@ export async function POST(req: Request) {
     const tenant = (req.headers.get('x-tenant-id') || 'default')
     const csrf = req.headers.get('x-csrf-token') || ''
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || ''
+    
+    console.log('Login attempt:', { username: body.username, tenant, hasBackendUrl: !!backendUrl })
+    
     if (backendUrl) {
-      const res = await fetch(`${backendUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-tenant-id': tenant,
-          'x-csrf-token': csrf,
-        },
-        body: JSON.stringify({ username: body.username, password: body.password })
-      })
-      const data = await res.json()
-      return NextResponse.json(data, { status: res.status })
+      try {
+        const res = await fetch(`${backendUrl}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-tenant-id': tenant,
+            'x-csrf-token': csrf,
+          },
+          body: JSON.stringify({ username: body.username, password: body.password })
+        })
+        const data = await res.json()
+        console.log('Backend login response:', { status: res.status, success: data.success })
+        return NextResponse.json(data, { status: res.status })
+      } catch (backendError) {
+        console.log('Backend login failed, falling back to local auth:', backendError)
+        // Continue to local fallback
+      }
     }
+    
+    // Local fallback authentication
     const isAdmin = String(body.username).toLowerCase() === 'admin@yseeku.com' || String(body.username).toLowerCase() === 'admin'
     const isDemo = String(body.username).toLowerCase() === 'demo@yseeku.com' || String(body.username).toLowerCase() === 'demo'
+    
+    console.log('Local auth check:', { isAdmin, isDemo, username: body.username.toLowerCase() })
+    
     if (isAdmin) {
       return NextResponse.json({
         success: true,
@@ -30,6 +44,7 @@ export async function POST(req: Request) {
         }
       }, { status: 200 })
     }
+    
     if (isDemo) {
       return NextResponse.json({
         success: true,
@@ -39,8 +54,11 @@ export async function POST(req: Request) {
         }
       }, { status: 200 })
     }
+    
+    console.log('Login failed for username:', body.username)
     return NextResponse.json({ success: false, message: 'Login failed' }, { status: 401 })
-  } catch {
+  } catch (error) {
+    console.error('Login route error:', error)
     return NextResponse.json({ success: false, message: 'Login failed' }, { status: 401 })
   }
 }
