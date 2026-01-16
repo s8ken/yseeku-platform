@@ -30,9 +30,7 @@ const nextConfig = {
   },
   async rewrites() {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:3001';
-      const isProd = (process.env.NODE_ENV || 'development') === 'production';
-      const hasBackendEnv = !!process.env.NEXT_PUBLIC_BACKEND_URL;
-      console.log('Configuring rewrites with backendUrl:', backendUrl, 'isProd:', isProd, 'hasBackendEnv:', hasBackendEnv);
+      console.log('Configuring rewrites with backendUrl:', backendUrl);
       const rules = [
         {
           source: '/api/agents/:path*',
@@ -100,14 +98,8 @@ const nextConfig = {
         },
       ];
 
-      // Only rewrite auth in development or when a backend URL is explicitly configured.
-      // In production without backend env, let Next.js route handle /api/auth/login.
-      if (!isProd || hasBackendEnv) {
-        rules.unshift({
-          source: '/api/auth/:path*',
-          destination: `${backendUrl}/api/auth/:path*`,
-        });
-      }
+      // IMPORTANT: Do not rewrite /api/auth/* so local Next.js API routes can proxy
+      // This avoids browser CORS and guarantees login works across envs
 
       return rules;
   },
