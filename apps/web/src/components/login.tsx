@@ -61,36 +61,15 @@ export function Login() {
         }),
       });
 
-      // Primary login attempt
-      if (response.ok) {
-        return response.json() as Promise<LoginResponse & { token?: string; data?: any }>;
+      if (!response.ok) {
+        throw new Error('Login failed');
       }
 
-      // Fallback: try guest login to avoid blocking access in demo/prod when backend proxy fails
-      const guest = await fetch('/api/auth/guest', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
-      if (guest.ok) {
-        return guest.json() as Promise<LoginResponse & { token?: string; data?: any }>;
-      }
-
-      throw new Error('Login failed');
+      return response.json() as Promise<LoginResponse>;
     },
     onSuccess: (data) => {
-      // Store session info
-      sessionStorage.setItem('tenant', (data as any)?.data?.tenant || 'default');
-      sessionStorage.setItem('user', JSON.stringify((data as any)?.data?.user || {}));
-
-      // Persist auth token for subsequent API calls if provided
-      try {
-        const token = (data as any)?.token || (data as any)?.data?.tokens?.accessToken;
-        if (token && typeof window !== 'undefined') {
-          localStorage.setItem('token', token);
-        }
-      } catch {}
-
+      sessionStorage.setItem('tenant', data.data.tenant);
+      sessionStorage.setItem('user', JSON.stringify(data.data.user));
       window.location.href = '/dashboard';
     },
   });
@@ -200,51 +179,8 @@ export function Login() {
             </form>
             
             <div className="mt-6 pt-6 border-t border-slate-700">
-              <p className="text-sm text-slate-400 text-center mb-4">Quick Demo Access</p>
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10"
-                  onClick={async () => {
-                    try {
-                      const response = await fetch('/api/auth/demo', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include'
-                      });
-                      const data = await response.json();
-                      if (data.success) {
-                        // Set all required session data
-                        sessionStorage.setItem('tenant', data.data.tenant || 'demo');
-                        sessionStorage.setItem('user', JSON.stringify(data.data.user || {}));
-                        
-                        // Enable demo mode in localStorage
-                        localStorage.setItem('yseeku-demo-mode', 'true');
-                        
-                        // Add demo parameter to URL for consistency
-                        const url = new URL('/dashboard', window.location.origin);
-                        url.searchParams.set('demo', 'true');
-                        window.location.href = url.toString();
-                      }
-                    } catch (error) {
-                      // Fallback - still enable demo mode
-                      localStorage.setItem('yseeku-demo-mode', 'true');
-                      window.location.href = '/dashboard?demo=true';
-                    }
-                  }}
-                >
-                  🚀 Demo Mode
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
-                  onClick={() => window.location.href = '/public'}
-                >
-                  📖 Public Demo
-                </Button>
-              </div>
-              <p className="text-xs text-slate-500 text-center mt-4">
-                Or contact your administrator for credentials
+              <p className="text-xs text-slate-500 text-center">
+                Contact your administrator for credentials
               </p>
             </div>
           </CardContent>

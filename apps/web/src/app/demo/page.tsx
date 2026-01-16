@@ -41,40 +41,11 @@ export default function DemoHome() {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button 
-            size="lg" 
-            className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white px-8"
-            onClick={async () => {
-              try {
-                // Auto-login as demo user
-                const response = await fetch('/api/auth/demo', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  credentials: 'include'
-                });
-                const data = await response.json();
-                if (data.success) {
-                  // Set all required session data
-                  sessionStorage.setItem('tenant', data.data.tenant || 'demo');
-                  sessionStorage.setItem('user', JSON.stringify(data.data.user || {}));
-                  
-                  // Enable demo mode in localStorage
-                  localStorage.setItem('yseeku-demo-mode', 'true');
-                  
-                  // Add demo parameter to URL for consistency
-                  const url = new URL('/dashboard', window.location.origin);
-                  url.searchParams.set('demo', 'true');
-                  window.location.href = url.toString();
-                }
-              } catch (error) {
-                // Fallback - still enable demo mode
-                localStorage.setItem('yseeku-demo-mode', 'true');
-                window.location.href = '/dashboard?demo=true';
-              }
-            }}
-          >
-            Open Demo Dashboard
-          </Button>
+          <Link href="/dashboard">
+            <Button size="lg" className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white px-8">
+              Open Dashboard
+            </Button>
+          </Link>
           <Link href="/demo/lab">
             <Button size="lg" variant="outline" className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 px-8">
               Explore Lab

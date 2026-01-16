@@ -29,9 +29,13 @@ const nextConfig = {
     ];
   },
   async rewrites() {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'https://thriving-vitality-production.up.railway.app';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:3001';
       console.log('Configuring rewrites with backendUrl:', backendUrl);
-      const rules = [
+      return [
+        {
+          source: '/api/auth/:path*',
+          destination: `${backendUrl}/api/auth/:path*`,
+        },
         {
           source: '/api/agents/:path*',
           destination: `${backendUrl}/api/agents/:path*`,
@@ -97,11 +101,6 @@ const nextConfig = {
           destination: `${backendUrl}/api/conversations/:path*`,
         },
       ];
-
-      // IMPORTANT: Do not rewrite /api/auth/* so local Next.js API routes can proxy
-      // This avoids browser CORS and guarantees login works across envs
-
-      return rules;
   },
   transpilePackages: [
     '@sonate/core',

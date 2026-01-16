@@ -13,11 +13,6 @@ function getAuthToken(): string | null {
 async function fetchAPI<T>(endpoint: string, options?: RequestInit, retryCount = 0): Promise<T> {
   let token = getAuthToken();
   
-  // Check if we're in demo mode
-  const isDemoMode = typeof window !== 'undefined' && 
-    (localStorage.getItem('yseeku-demo-mode') === 'true' || 
-     new URLSearchParams(window.location.search).get('demo') === 'true');
-  
   // Auto-login as guest if no token exists and we aren't already trying to authenticate
   const isAuthInitEndpoint = endpoint.includes('/auth/login') || 
                              endpoint.includes('/auth/register') || 
@@ -51,31 +46,17 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit, retryCount =
     }
   }
 
-  // For demo mode and dashboard endpoints, use local API to avoid backend issues
-  let finalEndpoint = endpoint;
-  if (isDemoMode || 
-      endpoint.includes('/api/dashboard/') || 
-      endpoint.includes('/api/llm/') || 
-      endpoint.includes('/api/agents/') || 
-      endpoint.includes('/api/trust/') ||
-      endpoint.includes('/api/overseer/')) {
-    // Remove /api prefix since we're calling from the same app
-    finalEndpoint = endpoint.replace('/api', '');
-    console.log('Using local endpoint:', finalEndpoint, isDemoMode ? '(demo mode)' : '(dashboard data)');
-  }
-
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options?.headers as Record<string, string>),
   };
   
-  // Skip Authorization header for local endpoints
-  if (token && finalEndpoint.startsWith('/api/')) {
+  if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
   // Ensure endpoint starts with /
-  const path = finalEndpoint.startsWith('/') ? finalEndpoint : `/${finalEndpoint}`;
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const fullUrl = `${API_BASE}${path}`;
   
   try {
