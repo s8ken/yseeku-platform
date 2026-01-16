@@ -393,13 +393,38 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
       let targetAgentId = agentId || conversation.agents[0];
       let agent = targetAgentId ? await Agent.findById(targetAgentId) : null;
       if (!agent) {
+        // Try find user's agent or any public agent
         agent = await Agent.findOne({ user: req.userId }) || await Agent.findOne({ isPublic: true });
         if (agent) {
           targetAgentId = agent._id;
-          // Attach the discovered agent to conversation for future turns
           if (!conversation.agents.includes(agent._id)) {
             conversation.agents.push(agent._id);
           }
+        } else {
+          // Auto-provision a default Anthropic agent when none exist
+          const mongoose = require('mongoose');
+          const apiKeyId = new mongoose.Types.ObjectId();
+          agent = await Agent.create({
+            name: 'Nova - Creative Writer',
+            description: 'Anthropic agent for trustworthy creative assistance',
+            user: req.userId,
+            provider: 'anthropic',
+            model: 'claude-3-5-sonnet-20241022',
+            apiKeyId,
+            systemPrompt: 'You are Nova, a helpful assistant. Be concise, accurate, and ethically aligned.',
+            temperature: 0.7,
+            maxTokens: 2000,
+            isPublic: true,
+            traits: new Map([
+              ['ethical_alignment', 4.8],
+              ['creativity', 4.5],
+              ['precision', 4.6],
+              ['adaptability', 4.2]
+            ]),
+            ciModel: 'symbi-core',
+          });
+          targetAgentId = agent._id;
+          conversation.agents.push(agent._id);
         }
       }
       if (!agent) {
