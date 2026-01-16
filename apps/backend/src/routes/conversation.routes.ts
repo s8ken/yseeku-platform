@@ -389,24 +389,24 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
 
     // Generate AI response if requested
     if (generateResponse) {
-      // Get agent to use
-      const targetAgentId = agentId || conversation.agents[0];
-      if (!targetAgentId) {
+      // Get agent to use, fallback to user's first agent or any public agent
+      let targetAgentId = agentId || conversation.agents[0];
+      let agent = targetAgentId ? await Agent.findById(targetAgentId) : null;
+      if (!agent) {
+        agent = await Agent.findOne({ user: req.userId }) || await Agent.findOne({ isPublic: true });
+        if (agent) {
+          targetAgentId = agent._id;
+          // Attach the discovered agent to conversation for future turns
+          if (!conversation.agents.includes(agent._id)) {
+            conversation.agents.push(agent._id);
+          }
+        }
+      }
+      if (!agent) {
         await conversation.save();
         res.status(400).json({
           success: false,
-          message: 'No agent specified for response generation',
-          data: { conversation },
-        });
-        return;
-      }
-
-      const agent = await Agent.findById(targetAgentId);
-      if (!agent) {
-        await conversation.save();
-        res.status(404).json({
-          success: false,
-          message: 'Agent not found',
+          message: 'No agent available. Create an agent first.',
           data: { conversation },
         });
         return;
