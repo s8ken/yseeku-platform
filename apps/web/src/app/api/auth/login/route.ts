@@ -40,7 +40,8 @@ export async function POST(req: Request) {
         success: true,
         data: {
           user: { id: 'admin-local', username: 'Admin', email: 'admin@yseeku.com', roles: ['admin'], metadata: { tenant: 'default' } },
-          tenant: 'default'
+          tenant: 'default',
+          note: 'Using local fallback - for full backend access, register at: /api/auth/register or use credentials: admin@yseeku.com / Admin123!'
         }
       }, { status: 200 })
     }
@@ -50,7 +51,8 @@ export async function POST(req: Request) {
         success: true,
         data: {
           user: { id: 'demo-local', username: 'Demo', email: 'demo@yseeku.com', roles: ['user'], metadata: { tenant: 'default' } },
-          tenant: 'default'
+          tenant: 'default',
+          note: 'Using local fallback - for full backend access, register at: /api/auth/register or use credentials: demo@yseeku.com / Demo123!'
         }
       }, { status: 200 })
     }
