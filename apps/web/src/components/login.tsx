@@ -200,8 +200,41 @@ export function Login() {
             </form>
             
             <div className="mt-6 pt-6 border-t border-slate-700">
-              <p className="text-xs text-slate-500 text-center">
-                Contact your administrator for credentials
+              <p className="text-sm text-slate-400 text-center mb-4">Quick Demo Access</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10"
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/auth/demo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include'
+                      });
+                      const data = await response.json();
+                      if (data.success) {
+                        sessionStorage.setItem('tenant', data.data.tenant || 'demo');
+                        sessionStorage.setItem('user', JSON.stringify(data.data.user || {}));
+                        window.location.href = '/dashboard';
+                      }
+                    } catch (error) {
+                      window.location.href = '/dashboard';
+                    }
+                  }}
+                >
+                  🚀 Demo Mode
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
+                  onClick={() => window.location.href = '/public'}
+                >
+                  📖 Public Demo
+                </Button>
+              </div>
+              <p className="text-xs text-slate-500 text-center mt-4">
+                Or contact your administrator for credentials
               </p>
             </div>
           </CardContent>
