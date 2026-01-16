@@ -260,6 +260,50 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 });
 
 /**
+ * @route   POST /api/auth/admin-reset
+ * @desc    Upsert admin user using ADMIN_EMAIL/ADMIN_PASSWORD env
+ * @access  Protected via ADMIN_RESET_TOKEN header
+ */
+router.post('/admin-reset', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const resetTokenHeader = req.headers['x-admin-reset'] as string | undefined;
+    const expectedToken = process.env.ADMIN_RESET_TOKEN;
+    if (!expectedToken || !resetTokenHeader || resetTokenHeader !== expectedToken) {
+      res.status(403).json({ success: false, message: 'Forbidden' });
+      return;
+    }
+
+    const email = process.env.ADMIN_EMAIL;
+    const password = process.env.ADMIN_PASSWORD;
+    if (!email || !password) {
+      res.status(400).json({ success: false, message: 'ADMIN_EMAIL or ADMIN_PASSWORD missing' });
+      return;
+    }
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = await User.create({ name: 'Admin', email, password, role: 'admin' });
+    } else {
+      user.password = password;
+      await user.save();
+    }
+
+    const tokens = authService.generateTokens({
+      id: user._id.toString(),
+      username: user.name,
+      email: user.email,
+      roles: ['admin'],
+      tenant: 'default',
+    });
+
+    res.json({ success: true, message: 'Admin reset successful', data: { user: { id: user._id, email: user.email }, tokens } });
+  } catch (error: any) {
+    console.error('Admin reset error:', error);
+    res.status(500).json({ success: false, message: 'Admin reset failed', error: error.message });
+  }
+});
+
+/**
  * @route   POST /api/auth/refresh
  * @desc    Refresh access token using refresh token
  * @access  Public
