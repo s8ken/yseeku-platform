@@ -13,6 +13,11 @@ function getAuthToken(): string | null {
 async function fetchAPI<T>(endpoint: string, options?: RequestInit, retryCount = 0): Promise<T> {
   let token = getAuthToken();
   
+  // Check if we're in demo mode
+  const isDemoMode = typeof window !== 'undefined' && 
+    (localStorage.getItem('yseeku-demo-mode') === 'true' || 
+     new URLSearchParams(window.location.search).get('demo') === 'true');
+  
   // Auto-login as guest if no token exists and we aren't already trying to authenticate
   const isAuthInitEndpoint = endpoint.includes('/auth/login') || 
                              endpoint.includes('/auth/register') || 
@@ -46,6 +51,14 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit, retryCount =
     }
   }
 
+  // For demo mode, use local API for LLM calls to avoid backend auth issues
+  let finalEndpoint = endpoint;
+  if (isDemoMode && endpoint.includes('/api/llm/')) {
+    // Remove /api prefix since we're calling from the same app
+    finalEndpoint = endpoint.replace('/api', '');
+    console.log('Demo mode: using local endpoint', finalEndpoint);
+  }
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options?.headers as Record<string, string>),
@@ -56,7 +69,7 @@ async function fetchAPI<T>(endpoint: string, options?: RequestInit, retryCount =
   }
 
   // Ensure endpoint starts with /
-  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const path = finalEndpoint.startsWith('/') ? finalEndpoint : `/${finalEndpoint}`;
   const fullUrl = `${API_BASE}${path}`;
   
   try {

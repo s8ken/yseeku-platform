@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 
 export async function POST() {
   try {
-    // Simple guest login for demo/fallback purposes
+    // Generate a simple demo token for backend compatibility
+    const demoToken = `demo-token-${Date.now()}-${Math.random().toString(36).substring(2)}`;
+    
     return NextResponse.json({
       success: true,
       data: {
@@ -10,10 +12,14 @@ export async function POST() {
           id: 'guest-local',
           username: 'Guest',
           email: 'guest@yseeku.com',
-          roles: ['user'],
-          metadata: { tenant: 'default' }
+          roles: ['user', 'demo'],
+          metadata: { tenant: 'default', isDemo: true }
         },
-        tenant: 'default'
+        tenant: 'default',
+        tokens: {
+          accessToken: demoToken,
+          refreshToken: `refresh-${demoToken}`
+        }
       }
     }, { status: 200 });
   } catch (error) {

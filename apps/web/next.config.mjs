@@ -29,7 +29,7 @@ const nextConfig = {
     ];
   },
   async rewrites() {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'https://thriving-vitality.up.railway.app';
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_URL || 'https://thriving-vitality-production.up.railway.app';
       console.log('Configuring rewrites with backendUrl:', backendUrl);
       const rules = [
         {
