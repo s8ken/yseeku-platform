@@ -54,13 +54,22 @@ export default function PublicAccess() {
                 });
                 const data = await response.json();
                 if (data.success) {
+                  // Set all required session data
                   sessionStorage.setItem('tenant', data.data.tenant || 'demo');
                   sessionStorage.setItem('user', JSON.stringify(data.data.user || {}));
-                  window.location.href = '/dashboard';
+                  
+                  // Enable demo mode in localStorage
+                  localStorage.setItem('yseeku-demo-mode', 'true');
+                  
+                  // Add demo parameter to URL for consistency
+                  const url = new URL('/dashboard', window.location.origin);
+                  url.searchParams.set('demo', 'true');
+                  window.location.href = url.toString();
                 }
               } catch (error) {
-                // Fallback to direct navigation
-                window.location.href = '/dashboard';
+                // Fallback - still enable demo mode
+                localStorage.setItem('yseeku-demo-mode', 'true');
+                window.location.href = '/dashboard?demo=true';
               }
             }}
           >
