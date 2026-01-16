@@ -30,12 +30,10 @@ const nextConfig = {
   },
   async rewrites() {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:3001';
-      console.log('Configuring rewrites with backendUrl:', backendUrl);
-      return [
-        {
-          source: '/api/auth/:path*',
-          destination: `${backendUrl}/api/auth/:path*`,
-        },
+      const isProd = (process.env.NODE_ENV || 'development') === 'production';
+      const hasBackendEnv = !!process.env.NEXT_PUBLIC_BACKEND_URL;
+      console.log('Configuring rewrites with backendUrl:', backendUrl, 'isProd:', isProd, 'hasBackendEnv:', hasBackendEnv);
+      const rules = [
         {
           source: '/api/agents/:path*',
           destination: `${backendUrl}/api/agents/:path*`,
@@ -101,6 +99,17 @@ const nextConfig = {
           destination: `${backendUrl}/api/conversations/:path*`,
         },
       ];
+
+      // Only rewrite auth in development or when a backend URL is explicitly configured.
+      // In production without backend env, let Next.js route handle /api/auth/login.
+      if (!isProd || hasBackendEnv) {
+        rules.unshift({
+          source: '/api/auth/:path*',
+          destination: `${backendUrl}/api/auth/:path*`,
+        });
+      }
+
+      return rules;
   },
   transpilePackages: [
     '@sonate/core',
