@@ -254,6 +254,41 @@ async function startServer() {
       }
     }
 
+    // Ensure demo user has a default Anthropic agent
+    try {
+      const demoUser = await User.findOne({ email: 'demo@yseeku.com' });
+      if (demoUser) {
+        const demoAnthropic = await Agent.findOne({ user: demoUser._id, provider: 'anthropic' });
+        if (!demoAnthropic) {
+          await Agent.create({
+            name: 'Nova - Creative Writer',
+            description: 'Anthropic agent for trustworthy creative assistance',
+            user: demoUser._id,
+            provider: 'anthropic',
+            model: 'claude-3-5-sonnet-20241022',
+            apiKeyId: new Types.ObjectId(),
+            systemPrompt: 'You are Nova, a helpful assistant. Be concise, accurate, and ethically aligned.',
+            temperature: 0.7,
+            maxTokens: 2000,
+            isPublic: true,
+            traits: new Map([
+              ['ethical_alignment', 4.8],
+              ['creativity', 4.5],
+              ['precision', 4.6],
+              ['adaptability', 4.2],
+            ]),
+            ciModel: 'symbi-core',
+            lastActive: new Date(),
+          });
+          logger.info('Default Anthropic agent provisioned for demo user');
+        }
+      } else {
+        logger.warn('Demo user not found during agent provisioning');
+      }
+    } catch (e: any) {
+      logger.warn('Demo agent provisioning failed', { error: e?.message || String(e) });
+    }
+
     // Initialize Socket.IO
     const io = new SocketIOServer(server, {
       cors: {
