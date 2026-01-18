@@ -8,6 +8,7 @@ import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import { Conversation, IMessage } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
+import { User } from '../models/user.model';
 import { llmService } from '../services/llm.service';
 import { TrustReceiptModel } from '../models/trust-receipt.model';
 import { trustService } from '../services/trust.service';
@@ -389,44 +390,85 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
 
     // Generate AI response if requested
     if (generateResponse) {
+      // Clean up orphaned agent IDs from conversation
+      const validAgents = [];
+      for (const agentId of conversation.agents) {
+        const agentExists = await Agent.findById(agentId);
+        if (agentExists) {
+          validAgents.push(agentId);
+        }
+      }
+      conversation.agents = validAgents;
+      
       // Get agent to use, fallback to user's first agent or any public agent
       let targetAgentId = agentId || conversation.agents[0];
       let agent = targetAgentId ? await Agent.findById(targetAgentId) : null;
       if (!agent) {
         // Try find user's agent or any public agent
-        agent = await Agent.findOne({ user: req.userId }) || await Agent.findOne({ isPublic: true });
+        agent = await Agent.findOne({ user: req.userId });
+        if (!agent) {
+          const publicAgent = await Agent.findOne({ isPublic: true });
+          if (publicAgent) {
+            agent = publicAgent;
+            targetAgentId = agent._id;
+            if (!conversation.agents.includes(agent._id)) {
+              conversation.agents.push(agent._id);
+            }
+          }
+        }
+        
         if (agent) {
           targetAgentId = agent._id;
           if (!conversation.agents.includes(agent._id)) {
             conversation.agents.push(agent._id);
           }
         } else {
-          // Auto-provision a default Anthropic agent when none exist
-          const mongoose = require('mongoose');
-          const apiKeyId = new mongoose.Types.ObjectId();
-          agent = await Agent.create({
-            name: 'Nova - Creative Writer',
-            description: 'Anthropic agent for trustworthy creative assistance',
-            user: req.userId,
-            provider: 'anthropic',
-            model: 'claude-sonnet-4-20250514',
-            apiKeyId,
-            systemPrompt: 'You are Nova, a helpful assistant. Be concise, accurate, and ethically aligned.',
-            temperature: 0.7,
-            maxTokens: 2000,
-            isPublic: true,
-            traits: new Map([
-              ['ethical_alignment', 4.8],
-              ['creativity', 4.5],
-              ['precision', 4.6],
-              ['adaptability', 4.2]
-            ]),
-            ciModel: 'symbi-core',
-          });
-          targetAgentId = agent._id;
-          conversation.agents.push(agent._id);
+          // Check if user has Anthropic API key before auto-provisioning
+          const user = await User.findById(req.userId);
+          const hasAnthropicKey = user?.apiKeys?.some(key => key.provider === 'anthropic' && key.isActive);
+          
+          if (hasAnthropicKey) {
+            // Auto-provision a default Anthropic agent when user has the key
+            const mongoose = require('mongoose');
+            const apiKeyId = new mongoose.Types.ObjectId();
+            agent = await Agent.create({
+              name: 'Nova - Creative Writer',
+              description: 'Anthropic agent for trustworthy creative assistance',
+              user: req.userId,
+              provider: 'anthropic',
+              model: 'claude-sonnet-4-20250514',
+              apiKeyId,
+              systemPrompt: 'You are Nova, a helpful assistant. Be concise, accurate, and ethically aligned.',
+              temperature: 0.7,
+              maxTokens: 2000,
+              isPublic: true,
+              traits: new Map([
+                ['ethical_alignment', 4.8],
+                ['creativity', 4.5],
+                ['precision', 4.6],
+                ['adaptability', 4.2]
+              ]),
+              ciModel: 'symbi-core',
+            });
+            targetAgentId = agent._id;
+            conversation.agents.push(agent._id);
+          } else {
+            // No agent and no API key - save user message and continue without AI
+            await conversation.save();
+            res.json({
+              success: true,
+              message: 'Message added successfully',
+              data: {
+                conversation,
+                lastMessage: conversation.messages[conversation.messages.length - 1],
+                warning: 'AI response not available - No agent configured. Please add an API key in settings.',
+              },
+            });
+            return;
+          }
         }
       }
+      
       if (!agent) {
         await conversation.save();
         res.status(400).json({
