@@ -71,6 +71,6 @@
     "tailwindcss": "^4",
     "tinyspy": "^2.2.0",
     "typescript": "^5",
-    "vitest": "^1.6.1"
+    "vitest": "1.6.1"
   }
 }
