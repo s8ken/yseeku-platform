@@ -59,7 +59,7 @@ export function validateEnvironment(): EnvConfig {
 
   // Validate NODE_ENV value
   const validEnvs = ['development', 'staging', 'production'];
-  if (!validEnvs.includes(process.env.NODE_ENV)) {
+  if (!process.env.NODE_ENV || !validEnvs.includes(process.env.NODE_ENV)) {
     logger.error(`NODE_ENV must be one of: ${validEnvs.join(', ')}`);
     process.exit(1);
   }

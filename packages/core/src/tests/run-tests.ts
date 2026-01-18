@@ -519,8 +519,8 @@ async function testPerformanceBenchmarkStats() {
   bench.record('op', 0.2);
   bench.record('op', 0.3);
   const stats = bench.getStats('op');
-  assert(Boolean(stats) && stats.count === 3, 'Benchmark stats should have count 3');
-  assert(Boolean(stats) && stats.min === 0.1, 'Benchmark min should be 0.1');
+  assert(stats !== null && stats.count === 3, 'Benchmark stats should have count 3');
+  assert(stats !== null && stats.min === 0.1, 'Benchmark min should be 0.1');
 }
 
 async function main() {
