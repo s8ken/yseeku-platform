@@ -62,7 +62,7 @@
   "dependencies": {
     "@noble/ed25519": "^3.0.0",
     "@testing-library/jest-dom": "^6.9.1",
-    "@vitest/ui": "^4.0.16",
+    "@vitest/ui": "^4.0.17",
     "axios": "^1.13.2",
     "esbuild": "^0.27.2",
     "jsdom": "^27.4.0",
@@ -70,7 +70,7 @@
     "parse-duration": "^2.1.5",
     "tweetnacl": "^1.0.3",
     "vite": "^7.3.0",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.17"
   },
   "optionalDependencies": {
     "lightningcss-darwin-arm64": "^1.30.2"
