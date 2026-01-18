@@ -26,6 +26,7 @@
    - `npm --workspace @sonate/detect run test`
    - `npm --workspace @sonate/orchestrate run test`
    - `npm --workspace @sonate/lab run test`
+   - `npm --workspace web run test` (runs vitest v4 for web tests)
 
 ## Reproducing CI Locally
 To reproduce the GitHub Actions CI steps locally:
@@ -35,11 +36,16 @@ To reproduce the GitHub Actions CI steps locally:
    - `npm run format:check`
    - `npm run lint`
 3. Run unit tests: `npm run test` (packages run as in CI).
-4. Build backend: `npm run build:backend`.
-5. Install Playwright browsers if running E2E: `npx playwright install --with-deps`.
-6. Start backend and web locally and run Playwright tests if desired (use the same commands used in `.github/workflows/ci.yml`).
+4. Run web tests: `npm --workspace web run test` (vitest v4.0.17).
+5. Build backend: `npm run build:backend`.
+6. Install Playwright browsers if running E2E: `npx playwright install --with-deps`.
+7. Start backend and web locally and run Playwright tests if desired (use the same commands used in `.github/workflows/ci.yml`).
 
 This sequence matches the CI steps so you can iterate locally before opening PRs.
+
+## Dependency Notes
+- **Vitest v4** is used for web tests (`apps/web`). Ensure your local node_modules are fresh (`npm ci`) to avoid version mismatches.
+- **npm audit**: The repo targets 0 high/critical vulnerabilities. Run `npm audit` to check; remaining low-severity transitive issues are tracked in follow-up PRs.
 ## Environment Variables
 - `SONATE_PUBLIC_KEY` (base64 Ed25519 public key)
 - `SONATE_PRIVATE_KEY` (development only)
