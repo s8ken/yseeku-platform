@@ -355,16 +355,59 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
       // Get agent to use, fallback to user's first agent or any public agent
       let targetAgentId = agentId || conversation.agents[0];
       let agent = targetAgentId ? await Agent.findById(targetAgentId) : null;
+      
       if (!agent) {
-        // Try find user's agent or any public agent
-        agent = await Agent.findOne({ user: req.userId });
-        if (!agent) {
-          const publicAgent = await Agent.findOne({ isPublic: true });
-          if (publicAgent) {
-            agent = publicAgent;
-            targetAgentId = agent._id;
-            if (!conversation.agents.includes(agent._id)) {
-              conversation.agents.push(agent._id);
+        // Check if user has API keys before looking for agents
+        const user = await User.findById(req.userId);
+        const hasAnthropicKey = user?.apiKeys?.some(key => key.provider === 'anthropic' && key.isActive);
+        const hasOpenAIKey = user?.apiKeys?.some(key => key.provider === 'openai' && key.isActive);
+        
+        if (hasAnthropicKey || hasOpenAIKey) {
+          // Create agent for user based on their available keys
+          const mongoose = require('mongoose');
+          const apiKeyId = new mongoose.Types.ObjectId();
+          const provider = hasAnthropicKey ? 'anthropic' : 'openai';
+          const model = hasAnthropicKey ? 'claude-sonnet-4-20250514' : 'gpt-4-turbo';
+          
+          agent = await Agent.create({
+            name: `${provider === 'anthropic' ? 'Claude' : 'GPT'} Assistant`,
+            description: `Personal ${provider} assistant`,
+            user: req.userId,
+            provider,
+            model,
+            apiKeyId,
+            systemPrompt: `You are a helpful ${provider} assistant. Be concise, accurate, and ethically aligned.`,
+            temperature: 0.7,
+            maxTokens: 2000,
+            isPublic: false,
+            traits: new Map([
+              ['ethical_alignment', 4.8],
+              ['creativity', 4.5],
+              ['precision', 4.6],
+              ['adaptability', 4.2]
+            ]),
+            ciModel: 'symbi-core',
+          });
+          targetAgentId = agent._id;
+          conversation.agents.push(agent._id);
+        } else {
+          // Only look for user agents if no API keys
+          agent = await Agent.findOne({ user: req.userId });
+          
+          if (!agent) {
+            const publicAgent = await Agent.findOne({ isPublic: true });
+            
+            if (publicAgent) {
+              // Double-check the agent actually exists by trying to find it again
+              const verifiedAgent = await Agent.findById(publicAgent._id);
+              
+              if (verifiedAgent) {
+                agent = verifiedAgent;
+                targetAgentId = agent._id;
+                if (!conversation.agents.includes(agent._id)) {
+                  conversation.agents.push(agent._id);
+                }
+              }
             }
           }
         }
@@ -375,49 +418,18 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             conversation.agents.push(agent._id);
           }
         } else {
-          // Check if user has Anthropic API key before auto-provisioning
-          const user = await User.findById(req.userId);
-          const hasAnthropicKey = user?.apiKeys?.some(key => key.provider === 'anthropic' && key.isActive);
-          
-          if (hasAnthropicKey) {
-            // Auto-provision a default Anthropic agent when user has the key
-            const mongoose = require('mongoose');
-            const apiKeyId = new mongoose.Types.ObjectId();
-            agent = await Agent.create({
-              name: 'Nova - Creative Writer',
-              description: 'Anthropic agent for trustworthy creative assistance',
-              user: req.userId,
-              provider: 'anthropic',
-              model: 'claude-sonnet-4-20250514',
-              apiKeyId,
-              systemPrompt: 'You are Nova, a helpful assistant. Be concise, accurate, and ethically aligned.',
-              temperature: 0.7,
-              maxTokens: 2000,
-              isPublic: true,
-              traits: new Map([
-                ['ethical_alignment', 4.8],
-                ['creativity', 4.5],
-                ['precision', 4.6],
-                ['adaptability', 4.2]
-              ]),
-              ciModel: 'symbi-core',
-            });
-            targetAgentId = agent._id;
-            conversation.agents.push(agent._id);
-          } else {
-            // No agent and no API key - save user message and continue without AI
-            await conversation.save();
-            res.json({
-              success: true,
-              message: 'Message added successfully',
-              data: {
-                conversation,
-                lastMessage: conversation.messages[conversation.messages.length - 1],
-                warning: 'AI response not available - No agent configured. Please add an API key in settings.',
-              },
-            });
-            return;
-          }
+          // No agent and no API key - save user message and continue without AI
+          await conversation.save();
+          res.json({
+            success: true,
+            message: 'Message added successfully',
+            data: {
+              conversation,
+              lastMessage: conversation.messages[conversation.messages.length - 1],
+              warning: 'AI response not available - No agent configured. Please add an API key in settings.',
+            },
+          });
+          return;
         }
       }
       
