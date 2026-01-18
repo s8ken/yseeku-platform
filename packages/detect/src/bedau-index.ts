@@ -10,6 +10,21 @@
  * - Irreducibility of system behavior
  */
 
+// Import constants - using relative path for now due to build issues
+// TODO: Fix module resolution and revert to '@sonate/core/constants/algorithmic'
+const BEDAU_INDEX_CONSTANTS = {
+  BASELINE_RANDOM_SCORE: 0.3,
+  POOLLED_STANDARD_DEVIATION: 0.25,
+  BOOTSTRAP_SAMPLES: 1000,
+  CONFIDENCE_LEVEL: 0.95,
+  EMERGENCE_THRESHOLDS: {
+    LINEAR: 0.3,
+    WEAK_EMERGENCE: 0.7,
+    HIGH_WEAK_EMERGENCE: 0.9,
+  },
+  QUANTIZATION_LEVELS: 8,
+} as const;
+
 export interface BedauMetrics {
   bedau_index: number; // 0-1: Weak emergence strength
   emergence_type: 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE';
@@ -83,11 +98,7 @@ export interface BedauIndexCalculator {
  * Core Bedau Index Calculator Implementation
  */
 class BedauIndexCalculatorImpl implements BedauIndexCalculator {
-  private readonly emergenceThresholds = {
-    LINEAR: 0.3,
-    WEAK_EMERGENCE: 0.7,
-    HIGH_WEAK_EMERGENCE: 0.9,
-  };
+  private readonly emergenceThresholds = BEDAU_INDEX_CONSTANTS.EMERGENCE_THRESHOLDS;
 
   /**
    * Calculate the Bedau Index for weak emergence detection
@@ -225,7 +236,7 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
   /**
    * Bootstrap confidence interval calculation
    */
-  bootstrapConfidenceInterval(data: number[], nBootstrap: number = 1000): [number, number] {
+  bootstrapConfidenceInterval(data: number[], nBootstrap: number = BEDAU_INDEX_CONSTANTS.BOOTSTRAP_SAMPLES): [number, number] {
     if (data.length === 0 || nBootstrap <= 0) {return [0, 0];}
     const bootstrapMeans: number[] = [];
     const seed = hashNumbers(data);
@@ -348,8 +359,8 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
 
   private calculateEffectSize(bedau_index: number): number {
     // Cohen's d relative to random baseline
-    const baseline = 0.3; // Expected random baseline
-    const pooledStd = 0.25; // Assumed pooled standard deviation
+    const baseline = BEDAU_INDEX_CONSTANTS.BASELINE_RANDOM_SCORE;
+    const pooledStd = BEDAU_INDEX_CONSTANTS.POOLLED_STANDARD_DEVIATION;
     return Math.max(0, (bedau_index - baseline) / pooledStd);
   }
 
@@ -364,7 +375,7 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     if (range === 0) {return sequence.map(() => 0);}
 
     // Quantize to 8 levels
-    const levels = 8;
+    const levels = BEDAU_INDEX_CONSTANTS.QUANTIZATION_LEVELS;
     return sequence.map((val) => {
       const scaled = (val - min) / range;
       const bucket = Math.floor(scaled * levels);

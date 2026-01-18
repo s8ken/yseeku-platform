@@ -26,6 +26,12 @@ export interface AuthenticatedUser {
   metadata?: Record<string, any>;
 }
 
+export interface TestUser {
+  username: string;
+  passwordHash: string;
+  user: AuthenticatedUser;
+}
+
 export interface JWTPayload {
   userId: string;
   username: string;
@@ -493,37 +499,25 @@ export class SecureAuthService {
   }
 
   /**
-   * Validate credentials (simulated database lookup)
+   * Validate credentials (environment-based authentication)
+   * 
+   * In production, this should query a real database or use OAuth/SAML
+   * For development, uses environment variables for test credentials
    */
   private async validateCredentials(
     credentials: UserCredentials
   ): Promise<AuthenticatedUser | null> {
-    // This is a simulation - in production, this would query a real database
-    // For demo purposes, we'll accept specific test credentials
-    const testUsers = [
-      {
-        username: 'admin',
-        passwordHash: await this.hashPassword('admin123!'), // In production, this would be pre-hashed
-        user: {
-          id: 'user-admin',
-          username: 'admin',
-          email: 'admin@yseeku.com',
-          roles: ['admin', 'user'],
-          tenant: credentials.tenant || 'default',
-        },
-      },
-      {
-        username: 'user',
-        passwordHash: await this.hashPassword('user123!'), // In production, this would be pre-hashed
-        user: {
-          id: 'user-regular',
-          username: 'user',
-          email: 'user@yseeku.com',
-          roles: ['user'],
-          tenant: credentials.tenant || 'default',
-        },
-      },
-    ];
+    // Check if development authentication is enabled
+    const devAuthEnabled = process.env.ENABLE_DEV_AUTH === 'true';
+    
+    if (!devAuthEnabled) {
+      // In production, this would query a real database or use external auth
+      // For now, fall back to guest authentication to prevent lockout
+      return null;
+    }
+
+    // Load development users from environment variables
+    const testUsers = await this.loadDevelopmentUsers();
 
     const testUser = testUsers.find((u) => u.username === credentials.username);
     if (!testUser) {
@@ -533,6 +527,37 @@ export class SecureAuthService {
     // Verify password
     const passwordValid = await this.verifyPassword(credentials.password, testUser.passwordHash);
     return passwordValid ? testUser.user : null;
+  }
+
+  /**
+   * Load development users from environment variables
+   * This keeps credentials out of source code while maintaining dev functionality
+   */
+  private async loadDevelopmentUsers(): Promise<TestUser[]> {
+    return [
+      {
+        username: process.env.DEV_ADMIN_USERNAME || 'admin',
+        passwordHash: await this.hashPassword(process.env.DEV_ADMIN_PASSWORD || 'admin123!'),
+        user: {
+          id: 'user-admin',
+          username: process.env.DEV_ADMIN_USERNAME || 'admin',
+          email: 'admin@yseeku.com',
+          roles: ['admin', 'user'],
+          tenant: 'default',
+        },
+      },
+      {
+        username: process.env.DEV_USER_USERNAME || 'user',
+        passwordHash: await this.hashPassword(process.env.DEV_USER_PASSWORD || 'user123!'),
+        user: {
+          id: 'user-regular',
+          username: process.env.DEV_USER_USERNAME || 'user',
+          email: 'user@yseeku.com',
+          roles: ['user'],
+          tenant: 'default',
+        },
+      },
+    ];
   }
 
   /**

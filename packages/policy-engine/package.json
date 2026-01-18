@@ -1,0 +1,31 @@
+{
+  "name": "@sonate/policy-engine",
+  "version": "1.4.0",
+  "description": "Policy Composition Engine for SONATE platform - industry-specific trust configurations",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "npm run clean && tsc",
+    "dev": "tsc --watch",
+    "clean": "node -e \"const fs=require('fs'); try{fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('tsconfig.tsbuildinfo',{force:true})}catch(e){console.error(e);process.exit(1)}\"",
+    "test": "npm run build && node dist/tests/run-tests.js"
+  },
+  "keywords": [
+    "sonate",
+    "policy",
+    "trust",
+    "composition",
+    "compliance",
+    "industry"
+  ],
+  "author": "YSEEKU",
+  "license": "MIT",
+  "dependencies": {
+    "@sonate/core": "file:../core",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

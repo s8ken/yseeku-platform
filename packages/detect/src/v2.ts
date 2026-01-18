@@ -3,6 +3,31 @@ import { CANONICAL_SCAFFOLD_VECTOR } from './constants';
 import { normalizeScore } from './model-normalize';
 import { classifyStakes, StakesEvidence } from './stakes';
 
+// Import constants - using inline definition due to build issues
+// TODO: Fix module resolution and revert to '@sonate/core/constants/algorithmic'
+const RESONANCE_CONSTANTS = {
+  WEIGHTS: {
+    ALIGNMENT: 0.3,
+    CONTINUITY: 0.3,
+    SCAFFOLD: 0.2,
+    ETHICS: 0.2,
+  },
+  DYNAMIC_THRESHOLDS: {
+    HIGH: {
+      ETHICS: 0.95,
+      ALIGNMENT: 0.85,
+    },
+    MEDIUM: {
+      ETHICS: 0.75,
+      ALIGNMENT: 0.7,
+    },
+    LOW: {
+      ETHICS: 0.5,
+      ALIGNMENT: 0.6,
+    },
+  },
+} as const;
+
 export type StakesLevel = StakesEvidence['level'];
 
 export interface EvidenceChunk {
@@ -63,16 +88,25 @@ export interface RobustResonanceResult {
 }
 
 export const CANONICAL_WEIGHTS = {
-  alignment: 0.3,
-  continuity: 0.3,
-  scaffold: 0.2,
-  ethics: 0.2,
+  alignment: RESONANCE_CONSTANTS.WEIGHTS.ALIGNMENT,
+  continuity: RESONANCE_CONSTANTS.WEIGHTS.CONTINUITY,
+  scaffold: RESONANCE_CONSTANTS.WEIGHTS.SCAFFOLD,
+  ethics: RESONANCE_CONSTANTS.WEIGHTS.ETHICS,
 } as const;
 
-export const DYNAMIC_THRESHOLDS: Record<StakesLevel, { ethics: number; alignment: number }> = {
-  HIGH: { ethics: 0.95, alignment: 0.85 },
-  MEDIUM: { ethics: 0.75, alignment: 0.7 },
-  LOW: { ethics: 0.5, alignment: 0.6 },
+export const DYNAMIC_THRESHOLDS = {
+  HIGH: {
+    ethics: RESONANCE_CONSTANTS.DYNAMIC_THRESHOLDS.HIGH.ETHICS,
+    alignment: RESONANCE_CONSTANTS.DYNAMIC_THRESHOLDS.HIGH.ALIGNMENT,
+  },
+  MEDIUM: {
+    ethics: RESONANCE_CONSTANTS.DYNAMIC_THRESHOLDS.MEDIUM.ETHICS,
+    alignment: RESONANCE_CONSTANTS.DYNAMIC_THRESHOLDS.MEDIUM.ALIGNMENT,
+  },
+  LOW: {
+    ethics: RESONANCE_CONSTANTS.DYNAMIC_THRESHOLDS.LOW.ETHICS,
+    alignment: RESONANCE_CONSTANTS.DYNAMIC_THRESHOLDS.LOW.ALIGNMENT,
+  },
 };
 
 function chunkText(

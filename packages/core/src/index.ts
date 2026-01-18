@@ -105,3 +105,6 @@ export * from './errors/math-errors';
 export { SecurityAuditor, runSecurityAudit } from './security/security-audit';
 export * from './security/mfa-system';
 export { SecureAuthService } from './security/auth-service';
+
+// Algorithmic constants
+export * from './constants/algorithmic';
