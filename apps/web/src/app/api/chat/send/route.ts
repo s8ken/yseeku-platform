@@ -42,7 +42,22 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    const data = await backendResponse.json();
+    const responseText = await backendResponse.text();
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Backend response is not JSON:', responseText.substring(0, 500));
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Backend returned invalid response',
+          details: { status: backendResponse.status, responsePreview: responseText.substring(0, 200) }
+        },
+        { status: 502 }
+      );
+    }
 
     if (!backendResponse.ok) {
       return NextResponse.json(

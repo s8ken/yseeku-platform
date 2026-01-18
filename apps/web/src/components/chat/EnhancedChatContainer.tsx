@@ -133,6 +133,7 @@ export function EnhancedChatContainer({
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
       const token = localStorage.getItem('token');
+      
       const res = await fetch(`/api/chat/send`, {
         method: 'POST',
         headers: {
@@ -146,7 +147,23 @@ export function EnhancedChatContainer({
           attachments: attachedFiles,
         }),
       });
-      if (!res.ok) throw new Error('Failed to send message');
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        const errorMessage = errorData.error || 'Failed to send message';
+        
+        // Provide helpful error messages for common issues
+        if (errorMessage.includes('API key not configured')) {
+          throw new Error('AI service not configured. Please add your OpenAI API key in settings.');
+        } else if (errorMessage.includes('Invalid or expired token')) {
+          throw new Error('Authentication expired. Please refresh the page.');
+        } else if (errorMessage.includes('Cast to ObjectId failed')) {
+          throw new Error('Invalid conversation. Please start a new chat.');
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
       return res.json();
     },
     onSuccess: (data) => {
