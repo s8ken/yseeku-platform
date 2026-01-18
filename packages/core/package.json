@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist",
+    "clean": "node -e \"const fs=require('fs'); try{fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('tsconfig.tsbuildinfo',{force:true})}catch(e){console.error(e);process.exit(1)}\"",
     "test": "npm run build && c8 --check-coverage --branches 25 --functions 5 --lines 40 --statements 40 node dist/tests/run-tests.js",
     "test:canonical": "jest src/__tests__/canonicalize.spec.ts",
     "test:python": "python3 packages/core/python/test_canonicalize.py"
