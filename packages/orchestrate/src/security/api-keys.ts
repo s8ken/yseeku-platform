@@ -4,18 +4,20 @@
  */
 
 import * as crypto from 'crypto';
+
 import { Logger } from '../observability/logger';
+
 import { getAuditLogger, AuditEventType } from './audit';
 
 export interface APIKey {
   id: string;
-  key: string;           // Hashed key stored in database
-  prefix: string;        // First 8 chars for identification
+  key: string; // Hashed key stored in database
+  prefix: string; // First 8 chars for identification
   name: string;
   description?: string;
   userId: string;
-  scopes: string[];      // Permissions/scopes for this key
-  rateLimit?: number;    // Custom rate limit for this key
+  scopes: string[]; // Permissions/scopes for this key
+  rateLimit?: number; // Custom rate limit for this key
   expiresAt?: Date;
   createdAt: Date;
   lastUsedAt?: Date;
@@ -72,21 +74,16 @@ export class APIKeyManager {
 
     // Log to audit
     const audit = getAuditLogger();
-    await audit.log(
-      AuditEventType.AUTH_TOKEN_CREATED,
-      'API key created',
-      'success',
-      {
-        userId,
-        resourceType: 'api_key',
-        resourceId: key.id,
-        details: {
-          name: key.name,
-          scopes: key.scopes,
-          expiresAt: key.expiresAt,
-        },
-      }
-    );
+    await audit.log(AuditEventType.AUTH_TOKEN_CREATED, 'API key created', 'success', {
+      userId,
+      resourceType: 'api_key',
+      resourceId: key.id,
+      details: {
+        name: key.name,
+        scopes: key.scopes,
+        expiresAt: key.expiresAt,
+      },
+    });
 
     this.logger.info('API key generated', {
       keyId: key.id,
@@ -107,9 +104,7 @@ export class APIKeyManager {
       const prefix = rawKey.substring(0, 8);
 
       // Find key by prefix first (optimization)
-      const keys = Array.from(this.keyStore.values()).filter(
-        k => k.prefix === prefix
-      );
+      const keys = Array.from(this.keyStore.values()).filter((k) => k.prefix === prefix);
 
       for (const key of keys) {
         // Use timing-safe comparison
@@ -143,14 +138,9 @@ export class APIKeyManager {
 
       // Log failed validation attempt
       const audit = getAuditLogger();
-      await audit.log(
-        AuditEventType.AUTH_FAILED,
-        'Invalid API key',
-        'failure',
-        {
-          details: { prefix },
-        }
-      );
+      await audit.log(AuditEventType.AUTH_FAILED, 'Invalid API key', 'failure', {
+        details: { prefix },
+      });
 
       return {
         valid: false,
@@ -170,7 +160,7 @@ export class APIKeyManager {
    */
   async revokeKey(keyId: string, userId: string): Promise<boolean> {
     const key = this.keyStore.get(keyId);
-    
+
     if (!key) {
       return false;
     }
@@ -191,19 +181,14 @@ export class APIKeyManager {
 
     // Log to audit
     const audit = getAuditLogger();
-    await audit.log(
-      AuditEventType.AUTH_TOKEN_REVOKED,
-      'API key revoked',
-      'success',
-      {
-        userId,
-        resourceType: 'api_key',
-        resourceId: keyId,
-        details: {
-          name: key.name,
-        },
-      }
-    );
+    await audit.log(AuditEventType.AUTH_TOKEN_REVOKED, 'API key revoked', 'success', {
+      userId,
+      resourceType: 'api_key',
+      resourceId: keyId,
+      details: {
+        name: key.name,
+      },
+    });
 
     this.logger.info('API key revoked', { keyId, userId });
     return true;
@@ -214,8 +199,8 @@ export class APIKeyManager {
    */
   async listKeys(userId: string): Promise<APIKey[]> {
     return Array.from(this.keyStore.values())
-      .filter(k => k.userId === userId)
-      .map(k => ({
+      .filter((k) => k.userId === userId)
+      .map((k) => ({
         ...k,
         key: '***', // Never return the actual key
       }));
@@ -251,17 +236,17 @@ export class APIKeyManager {
     }
   ): Promise<APIKey | null> {
     const key = this.keyStore.get(keyId);
-    
+
     if (!key || key.userId !== userId) {
       return null;
     }
 
     // Apply updates
-    if (updates.name) key.name = updates.name;
-    if (updates.description !== undefined) key.description = updates.description;
-    if (updates.scopes) key.scopes = updates.scopes;
-    if (updates.rateLimit !== undefined) key.rateLimit = updates.rateLimit;
-    if (updates.metadata) key.metadata = { ...key.metadata, ...updates.metadata };
+    if (updates.name) {key.name = updates.name;}
+    if (updates.description !== undefined) {key.description = updates.description;}
+    if (updates.scopes) {key.scopes = updates.scopes;}
+    if (updates.rateLimit !== undefined) {key.rateLimit = updates.rateLimit;}
+    if (updates.metadata) {key.metadata = { ...key.metadata, ...updates.metadata };}
 
     this.keyStore.set(keyId, key);
 
@@ -274,23 +259,19 @@ export class APIKeyManager {
    */
   async rotateKey(keyId: string, userId: string): Promise<{ key: APIKey; rawKey: string } | null> {
     const oldKey = this.keyStore.get(keyId);
-    
+
     if (!oldKey || oldKey.userId !== userId) {
       return null;
     }
 
     // Generate new key with same properties
-    const { key: newKey, rawKey } = await this.generateKey(
-      userId,
-      oldKey.name,
-      {
-        description: oldKey.description,
-        scopes: oldKey.scopes,
-        rateLimit: oldKey.rateLimit,
-        expiresAt: oldKey.expiresAt,
-        metadata: oldKey.metadata,
-      }
-    );
+    const { key: newKey, rawKey } = await this.generateKey(userId, oldKey.name, {
+      description: oldKey.description,
+      scopes: oldKey.scopes,
+      rateLimit: oldKey.rateLimit,
+      expiresAt: oldKey.expiresAt,
+      metadata: oldKey.metadata,
+    });
 
     // Revoke old key
     await this.revokeKey(keyId, userId);
@@ -334,8 +315,8 @@ export class APIKeyManager {
       try {
         // Extract API key from header
         const authHeader = req.headers.authorization;
-        
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+
+        if (!authHeader?.startsWith('Bearer ')) {
           return res.status(401).json({
             error: 'Unauthorized',
             message: 'API key required',
@@ -376,12 +357,13 @@ export class APIKeyManager {
     // Generate a secure random key
     // Format: symbi_<32 random chars>
     const randomBytes = crypto.randomBytes(24);
-    const randomString = randomBytes.toString('base64')
+    const randomString = randomBytes
+      .toString('base64')
       .replace(/\+/g, '')
       .replace(/\//g, '')
       .replace(/=/g, '')
       .substring(0, 32);
-    
+
     return `symbi_${randomString}`;
   }
 

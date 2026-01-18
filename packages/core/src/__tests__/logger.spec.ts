@@ -1,6 +1,6 @@
 /**
  * Logger Utility Tests
- * 
+ *
  * Tests the logging infrastructure and convenience methods
  */
 
@@ -101,9 +101,9 @@ describe('Logger Utility', () => {
       const complexObject = {
         user: { id: 1, name: 'John', roles: ['admin', 'user'] },
         metadata: { source: 'web', version: '1.0.0' },
-        nested: { deep: { value: 'test' } }
+        nested: { deep: { value: 'test' } },
       };
-      
+
       expect(() => {
         logger.info('Complex object test', complexObject);
       }).not.toThrow();
@@ -112,7 +112,7 @@ describe('Logger Utility', () => {
     it('should handle circular references gracefully', () => {
       const circular: any = { name: 'test' };
       circular.self = circular;
-      
+
       // The logger should handle circular references (though it might throw)
       // We test that it doesn't crash the entire test suite
       expect(() => {
@@ -144,11 +144,11 @@ describe('Logger Utility', () => {
   describe('Performance Logging', () => {
     it('should handle high-frequency logging efficiently', () => {
       const startTime = Date.now();
-      
+
       for (let i = 0; i < 100; i++) {
         logger.debug(`High frequency log ${i}`);
       }
-      
+
       const duration = Date.now() - startTime;
       expect(duration).toBeLessThan(1000); // Should complete within 1 second
     });
@@ -158,7 +158,7 @@ describe('Logger Utility', () => {
         performanceLogger.info('Performance test', {
           operation: 'database_query',
           duration: 45,
-          records: 100
+          records: 100,
         });
       }).not.toThrow();
     });
@@ -199,7 +199,7 @@ describe('Logger Utility', () => {
           service: 'sonate-platform',
           environment: 'test',
           operation: 'test_logging',
-          user_id: '12345'
+          user_id: '12345',
         });
       }).not.toThrow();
     });
@@ -208,7 +208,7 @@ describe('Logger Utility', () => {
       expect(() => {
         logger.info('Correlation test', {
           correlation_id: 'corr-123',
-          request_id: 'req-456'
+          request_id: 'req-456',
         });
       }).not.toThrow();
     });
@@ -221,7 +221,7 @@ describe('Logger Utility', () => {
           event_type: 'authentication',
           user_id: 'user-123',
           ip_address: '192.168.1.1',
-          success: false
+          success: false,
         });
       }).not.toThrow();
     });
@@ -232,7 +232,7 @@ describe('Logger Utility', () => {
           event_type: 'unauthorized_access',
           user_id: 'unknown',
           ip_address: '10.0.0.1',
-          threat_level: 'high'
+          threat_level: 'high',
         });
       }).not.toThrow();
     });
@@ -246,7 +246,7 @@ describe('Logger Utility', () => {
           endpoint: '/api/v1/trust',
           status_code: 201,
           duration: 123,
-          user_id: 'user-456'
+          user_id: 'user-456',
         });
       }).not.toThrow();
     });

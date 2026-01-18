@@ -1,6 +1,6 @@
 /**
  * Performance Optimization Types
- * 
+ *
  * Type definitions for performance monitoring and optimization
  */
 

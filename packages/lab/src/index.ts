@@ -1,9 +1,9 @@
 /**
  * @sonate/lab - Double-Blind Experimentation & Research
- * 
+ *
  * SONATE Lab provides isolated sandbox environments for controlled
  * experiments to prove causality and validate AI improvements.
- * 
+ *
  * HARD BOUNDARY: Research use only. No production data. No real users.
  */
 
@@ -23,12 +23,10 @@ export type {
   ConversationTurn,
   PhaseShiftMetrics,
   TransitionEvent,
-  ConversationalMetricsConfig
+  ConversationalMetricsConfig,
 } from './conversational-metrics';
 
-export type {
-  ArchiveConversation
-} from './archive-analyzer';
+export type { ArchiveConversation } from './archive-analyzer';
 
 // Agent roles (from symbi-resonate Lab)
 export const AGENT_ROLES = ['CONDUCTOR', 'VARIANT', 'EVALUATOR', 'OVERSEER'] as const;

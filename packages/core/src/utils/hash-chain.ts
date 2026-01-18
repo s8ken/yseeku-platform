@@ -1,8 +1,8 @@
 /**
  * Hash Chain Utilities
- * 
+ *
  * Implements: https://gammatria.com/schemas/trust-receipt#hash-chaining
- * 
+ *
  * Creates immutable audit trails by linking receipts via cryptographic hashes
  */
 
@@ -10,7 +10,7 @@ import { createHash } from 'crypto';
 
 /**
  * Calculate hash for hash chain
- * 
+ *
  * Formula: Current_Hash = SHA256(Prev_Hash + Current_Payload + Timestamp + Signature)
  */
 export function hashChain(
@@ -27,7 +27,9 @@ export function hashChain(
  * Verify integrity of hash chain
  * Returns true if all receipts are correctly chained
  */
-export function verifyHashChain(receipts: Array<{ self_hash: string; previous_hash?: string }>): boolean {
+export function verifyHashChain(
+  receipts: Array<{ self_hash: string; previous_hash?: string }>
+): boolean {
   if (receipts.length === 0) {
     return true;
   }

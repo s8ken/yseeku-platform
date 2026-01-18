@@ -3,8 +3,14 @@
  * Integrates SYMPHONY (metrics/detection) and SYNERGY (agents/trust) into unified governance
  */
 
-import { EventEmitter } from 'events';
 import { randomUUID } from 'crypto';
+import { EventEmitter } from 'events';
+
+import { TrustProtocolEnhanced, createTrustProtocolEnhanced } from './core/trust-protocol-enhanced';
+import {
+  ResonanceEngineClient,
+  createResonanceEngineClient,
+} from './detect/resonance-engine-client';
 import {
   Policy,
   Flow,
@@ -14,13 +20,11 @@ import {
   FlowTask,
   TrustReceiptData,
   ComplianceStatus,
-  FrameworkCompliance
+  FrameworkCompliance,
 } from './domain-models';
 
 // Integration interfaces (would connect to actual SYMPHONY/SYNERGY services)
-import { ResonanceEngineClient, createResonanceEngineClient } from './detect/resonance-engine-client';
 import { AgentOrchestrator } from './lab/agent-bus';
-import { TrustProtocolEnhanced, createTrustProtocolEnhanced } from './core/trust-protocol-enhanced';
 
 export interface OrchestrateServiceConfig {
   symphonyEndpoint?: string;
@@ -72,17 +76,17 @@ export class OrchestrateService extends EventEmitter {
   private symphonyClient?: ResonanceEngineClient;
   private synergyClient?: AgentOrchestrator;
   private trustProtocol: TrustProtocolEnhanced;
-  
+
   // Caches for performance
   private policyCache = new Map<string, Policy>();
   private flowCache = new Map<string, Flow>();
   private complianceCache = new Map<string, ComplianceSnapshot>();
-  
+
   constructor(config: OrchestrateServiceConfig) {
     super();
     this.config = config;
     this.trustProtocol = createTrustProtocolEnhanced();
-    
+
     this.initializeClients();
   }
 
@@ -92,12 +96,12 @@ export class OrchestrateService extends EventEmitter {
       if (this.config.symphonyEndpoint) {
         this.symphonyClient = createResonanceEngineClient();
       }
-      
+
       // Initialize SYNERGY client for agent management
       if (this.config.synergyEndpoint) {
         this.synergyClient = new AgentOrchestrator();
       }
-      
+
       this.emit('service:initialized');
     } catch (error) {
       this.emit('service:error', error);
@@ -115,27 +119,27 @@ export class OrchestrateService extends EventEmitter {
   async createPolicy(policy: Omit<Policy, 'id' | 'createdAt' | 'updatedAt'>): Promise<Policy> {
     // Validate policy structure
     this.validatePolicyStructure(policy);
-    
+
     // Check for conflicts with existing policies
     await this.checkPolicyConflicts(policy);
-    
+
     // Generate policy ID
     const newPolicy: Policy = {
       ...policy,
       id: this.generateId('policy'),
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
-    
+
     // Store policy
     await this.storePolicy(newPolicy);
-    
+
     // Generate trust receipt for policy creation
     await this.generatePolicyTrustReceipt(newPolicy, 'created');
-    
+
     // Invalidate relevant caches
     this.invalidatePolicyCache();
-    
+
     this.emit('policy:created', newPolicy);
     return newPolicy;
   }
@@ -157,7 +161,7 @@ export class OrchestrateService extends EventEmitter {
     for (const rule of policy.rules) {
       if (this.evaluateRule(rule, request.entity, request.action, request.parameters)) {
         violations.push(rule);
-        
+
         // Determine enforcement actions
         if (policy.enforcementLevel === 'blocking') {
           actions.push('block');
@@ -176,11 +180,11 @@ export class OrchestrateService extends EventEmitter {
       request,
       violations,
       actions,
-      allowed
+      allowed,
     });
 
     this.emit('policy:enforced', { policy, request, violations, actions, allowed });
-    
+
     return { allowed, violations, actions, trustReceipt };
   }
 
@@ -189,10 +193,10 @@ export class OrchestrateService extends EventEmitter {
    */
   async getApplicablePolicies(entityId: string, entityType: string): Promise<Policy[]> {
     const allPolicies = await this.getAllPolicies();
-    
-    return allPolicies.filter(policy => 
-      policy.status === 'active' &&
-      this.isPolicyApplicable(policy, entityId, entityType)
+
+    return allPolicies.filter(
+      (policy) =>
+        policy.status === 'active' && this.isPolicyApplicable(policy, entityId, entityType)
     );
   }
 
@@ -212,10 +216,10 @@ export class OrchestrateService extends EventEmitter {
   }> {
     const flow = await this.getFlow(request.flowId);
     const executionId = this.generateId('execution');
-    
+
     // Pre-execution compliance check
     const compliance = await this.checkFlowCompliance(flow, request.context);
-    
+
     // Create trust receipt for flow execution
     const receiptData: TrustReceiptData = {
       action: 'flow_execution',
@@ -224,35 +228,35 @@ export class OrchestrateService extends EventEmitter {
         flowId: flow.id,
         executionId,
         executionMode: request.executionMode,
-        complianceScore: compliance.overallScore
+        complianceScore: compliance.overallScore,
       },
       metrics: {
         startTime: Date.now(),
-        priority: request.priority
+        priority: request.priority,
       },
       compliance,
       risk: await this.assessFlowRisk(flow, request.context),
-      auditTrail: []
+      auditTrail: [],
     };
 
     // Execute flow with monitoring
     const results = await this.executeFlowWithMonitoring(flow, request, receiptData);
-    
+
     // Generate final trust receipt
     const trustReceipt = await this.trustProtocol.generateReceipt({
       transactionType: 'workflow_execution',
       workflowId: flow.id,
-      data: receiptData
+      data: receiptData,
     });
 
     this.emit('flow:executed', { flow, executionId, results, compliance });
-    
+
     return {
       executionId,
       status: results.status,
       results: results.data,
       compliance,
-      trustReceipt
+      trustReceipt,
     };
   }
 
@@ -268,7 +272,7 @@ export class OrchestrateService extends EventEmitter {
   }> {
     // Would integrate with SYMPHONY for real-time monitoring
     // and SYNERGY for agent state tracking
-    
+
     return {
       status: 'running',
       currentTask: 'data_validation',
@@ -276,10 +280,10 @@ export class OrchestrateService extends EventEmitter {
         executionTime: 45000,
         tasksCompleted: 3,
         tasksTotal: 8,
-        resourceUsage: 67
+        resourceUsage: 67,
       },
       interventions: [],
-      recommendations: ['Consider increasing timeout for LLM generation task']
+      recommendations: ['Consider increasing timeout for LLM generation task'],
     };
   }
 
@@ -310,7 +314,7 @@ export class OrchestrateService extends EventEmitter {
       certifications: [],
       attestations: [],
       version: '1.0',
-      generatedBy: request.context.userId
+      generatedBy: request.context.userId,
     };
 
     // Assess each framework
@@ -323,13 +327,13 @@ export class OrchestrateService extends EventEmitter {
     }
 
     // Calculate overall score
-    const frameworkScores = Object.values(snapshot.frameworks).map(f => f.score);
+    const frameworkScores = Object.values(snapshot.frameworks).map((f) => f.score);
     snapshot.overallScore = frameworkScores.reduce((a, b) => a + b, 0) / frameworkScores.length;
-    
+
     // Determine status
-    if (snapshot.overallScore >= 95) snapshot.status = 'compliant';
-    else if (snapshot.overallScore >= 80) snapshot.status = 'partial_compliance';
-    else snapshot.status = 'non_compliant';
+    if (snapshot.overallScore >= 95) {snapshot.status = 'compliant';}
+    else if (snapshot.overallScore >= 80) {snapshot.status = 'partial_compliance';}
+    else {snapshot.status = 'non_compliant';}
 
     // Generate insights and recommendations
     snapshot.insights = await this.generateComplianceInsights(snapshot);
@@ -360,7 +364,7 @@ export class OrchestrateService extends EventEmitter {
       compliant: true,
       score: 100,
       violations: [],
-      requirements: []
+      requirements: [],
     };
 
     // Check against each framework
@@ -371,7 +375,7 @@ export class OrchestrateService extends EventEmitter {
         request.entityType,
         request.context
       );
-      
+
       results.score = Math.min(results.score, frameworkResult.score);
       results.compliant = results.compliant && frameworkResult.compliant;
       results.violations.push(...frameworkResult.violations);
@@ -402,11 +406,11 @@ export class OrchestrateService extends EventEmitter {
     // Build chain backwards
     const chain: TrustReceipt[] = [receipt];
     let currentHash = receipt.previousHash;
-    
+
     while (currentHash) {
       const previousReceipt = await this.getTrustReceiptByHash(currentHash);
-      if (!previousReceipt) break;
-      
+      if (!previousReceipt) {break;}
+
       chain.unshift(previousReceipt);
       currentHash = previousReceipt.previousHash;
     }
@@ -418,12 +422,12 @@ export class OrchestrateService extends EventEmitter {
     for (let i = 1; i < chain.length; i++) {
       const current = chain[i];
       const previous = chain[i - 1];
-      
+
       if (current.previousHash !== previous.hash) {
         violations.push(`Chain break detected at receipt ${current.id}`);
         valid = false;
       }
-      
+
       // Verify cryptographic signature
       const signatureValid = await this.trustProtocol.verifySignature(current);
       if (!signatureValid) {
@@ -451,37 +455,37 @@ export class OrchestrateService extends EventEmitter {
   }> {
     // Get relevant trust receipts
     const receipts = await this.getTrustReceiptsByPeriod(request.period);
-    
+
     // Generate compliance snapshot
     const compliance = await this.generateComplianceSnapshot({
       ...request,
-      frameworks: request.frameworks
+      frameworks: request.frameworks,
     });
 
     // Generate summary
     const summary = {
       totalReceipts: receipts.length,
       complianceScore: compliance.overallScore,
-      frameworkBreakdown: Object.keys(compliance.frameworks).map(framework => ({
+      frameworkBreakdown: Object.keys(compliance.frameworks).map((framework) => ({
         framework,
         score: compliance.frameworks[framework].score,
-        violations: compliance.frameworks[framework].violations
+        violations: compliance.frameworks[framework].violations,
       })),
       trends: compliance.trends,
-      topIssues: compliance.auditFindings.slice(0, 10)
+      topIssues: compliance.auditFindings.slice(0, 10),
     };
 
     // Collect evidence
     const evidence = await this.collectComplianceEvidence(receipts, request.frameworks);
 
     const reportId = this.generateId('report');
-    
+
     return {
       reportId,
       summary,
       receipts,
       compliance,
-      evidence
+      evidence,
     };
   }
 
@@ -490,14 +494,16 @@ export class OrchestrateService extends EventEmitter {
   // ========================================
 
   private validatePolicyStructure(policy: any): void {
-    if (!policy.name || !policy.type || !policy.rules || !policy.rules.length) {
+    if (!policy.name || !policy.type || !policy.rules?.length) {
       throw new Error('Invalid policy structure: missing required fields');
     }
   }
 
-  private async checkPolicyConflicts(policy: Omit<Policy, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> {
+  private async checkPolicyConflicts(
+    policy: Omit<Policy, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<void> {
     const existingPolicies = await this.getAllPolicies();
-    
+
     for (const existing of existingPolicies) {
       if (existing.status === 'active' && this.policiesConflict(existing, policy)) {
         throw new Error(`Policy conflict detected with existing policy: ${existing.id}`);
@@ -505,7 +511,10 @@ export class OrchestrateService extends EventEmitter {
     }
   }
 
-  private policiesConflict(policy1: Policy, policy2: Omit<Policy, 'id' | 'createdAt' | 'updatedAt'>): boolean {
+  private policiesConflict(
+    policy1: Policy,
+    policy2: Omit<Policy, 'id' | 'createdAt' | 'updatedAt'>
+  ): boolean {
     // Simplified conflict detection - would be more sophisticated in production
     return policy1.type === policy2.type && policy1.category === policy2.category;
   }
@@ -517,27 +526,30 @@ export class OrchestrateService extends EventEmitter {
   }
 
   private isPolicyApplicable(policy: Policy, entityId: string, entityType: string): boolean {
-    if (policy.agents.includes(entityId)) return true;
-    if (entityType === 'workflow' && policy.workflows.includes(entityId)) return true;
-    
+    if (policy.agents.includes(entityId)) {return true;}
+    if (entityType === 'workflow' && policy.workflows.includes(entityId)) {return true;}
+
     // Check scope applicability
     if (policy.scope.agentTypes && entityType === 'agent') {
       // Would check entity type against scope
     }
-    
+
     return false;
   }
 
-  private async checkFlowCompliance(flow: Flow, context: GovernanceContext): Promise<ComplianceStatus> {
+  private async checkFlowCompliance(
+    flow: Flow,
+    context: GovernanceContext
+  ): Promise<ComplianceStatus> {
     // Would integrate with SYMPHONY for compliance checking
     return {
       frameworks: {
-        'EU_AI_Act': { framework: 'EU_AI_Act', score: 92, controls: {}, evidence: [] },
-        'GDPR': { framework: 'GDPR', score: 96, controls: {}, evidence: [] }
+        EU_AI_Act: { framework: 'EU_AI_Act', score: 92, controls: {}, evidence: [] },
+        GDPR: { framework: 'GDPR', score: 96, controls: {}, evidence: [] },
       },
       overallScore: 94,
       violations: [],
-      gaps: []
+      gaps: [],
     };
   }
 
@@ -545,10 +557,10 @@ export class OrchestrateService extends EventEmitter {
     return {
       overallRisk: 'medium',
       factors: [
-        { type: 'operational', score: 45, description: 'Complex workflow with multiple agents' }
+        { type: 'operational', score: 45, description: 'Complex workflow with multiple agents' },
       ],
       mitigation: ['Enhanced monitoring', 'Human approval for critical decisions'],
-      residualRisk: 25
+      residualRisk: 25,
     };
   }
 
@@ -559,7 +571,7 @@ export class OrchestrateService extends EventEmitter {
   ): Promise<any> {
     // Would integrate with SYNERGY for actual flow execution
     // and SYMPHONY for real-time monitoring
-    
+
     return {
       status: 'completed',
       data: {
@@ -567,9 +579,9 @@ export class OrchestrateService extends EventEmitter {
         metrics: {
           duration: 120000,
           tasksCompleted: flow.tasks.length,
-          successRate: 100
-        }
-      }
+          successRate: 100,
+        },
+      },
     };
   }
 
@@ -580,7 +592,7 @@ export class OrchestrateService extends EventEmitter {
   ): Promise<any> {
     // Framework-specific compliance assessment
     // Would integrate with compliance databases and evidence collection
-    
+
     return {
       framework,
       version: '1.0',
@@ -592,7 +604,7 @@ export class OrchestrateService extends EventEmitter {
       violations: 0,
       remediationTasks: 0,
       lastUpdated: new Date(),
-      nextAssessment: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 90 days
+      nextAssessment: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
     };
   }
 
@@ -606,8 +618,8 @@ export class OrchestrateService extends EventEmitter {
         description: '90% of evidence can be automatically collected from trust receipts',
         impact: 'Reduces manual audit effort by 75%',
         recommendation: 'Implement automated evidence gathering pipeline',
-        confidence: 0.85
-      }
+        confidence: 0.85,
+      },
     ];
   }
 
@@ -623,8 +635,8 @@ export class OrchestrateService extends EventEmitter {
         benefits: ['Reduced audit costs', 'Early issue detection', 'Improved compliance score'],
         effort: 'medium',
         timeline: '4-6 weeks',
-        dependencies: []
-      }
+        dependencies: [],
+      },
     ];
   }
 
@@ -641,8 +653,8 @@ export class OrchestrateService extends EventEmitter {
         policyId: policy.id,
         policyName: policy.name,
         policyType: policy.type,
-        ...metadata
-      }
+        ...metadata,
+      },
     });
   }
 
@@ -657,8 +669,8 @@ export class OrchestrateService extends EventEmitter {
         snapshotId: snapshot.id,
         overallScore: snapshot.overallScore,
         frameworks: Object.keys(snapshot.frameworks),
-        context
-      }
+        context,
+      },
     });
   }
 
@@ -675,7 +687,7 @@ export class OrchestrateService extends EventEmitter {
     if (this.policyCache.has(policyId)) {
       return this.policyCache.get(policyId)!;
     }
-    
+
     // Would fetch from database
     throw new Error(`Policy not found: ${policyId}`);
   }
@@ -689,7 +701,7 @@ export class OrchestrateService extends EventEmitter {
     if (this.flowCache.has(flowId)) {
       return this.flowCache.get(flowId)!;
     }
-    
+
     // Would fetch from database
     throw new Error(`Flow not found: ${flowId}`);
   }
@@ -704,12 +716,18 @@ export class OrchestrateService extends EventEmitter {
     return null;
   }
 
-  private async getTrustReceiptsByPeriod(period: { start: Date; end: Date }): Promise<TrustReceipt[]> {
+  private async getTrustReceiptsByPeriod(period: {
+    start: Date;
+    end: Date;
+  }): Promise<TrustReceipt[]> {
     // Would fetch from database
     return [];
   }
 
-  private async collectComplianceEvidence(receipts: TrustReceipt[], frameworks: string[]): Promise<any[]> {
+  private async collectComplianceEvidence(
+    receipts: TrustReceipt[],
+    frameworks: string[]
+  ): Promise<any[]> {
     // Would extract and organize evidence from trust receipts
     return [];
   }
@@ -725,7 +743,7 @@ export class OrchestrateService extends EventEmitter {
       compliant: true,
       score: 95,
       violations: [],
-      requirements: []
+      requirements: [],
     };
   }
 

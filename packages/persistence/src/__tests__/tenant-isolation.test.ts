@@ -19,12 +19,12 @@ describe('Tenant Isolation', () => {
 
   it('should use tenantId from context when not provided explicitly', async () => {
     const tenantId = 'test-tenant-123';
-    
+
     await tenantContext.run({ tenantId }, async () => {
       await writeAuditLog({
         id: 'log-1',
         event: 'test-event',
-        status: 'success'
+        status: 'success',
       });
     });
 
@@ -37,13 +37,16 @@ describe('Tenant Isolation', () => {
   it('should use explicitly provided tenantId instead of context', async () => {
     const contextTenantId = 'context-tenant';
     const explicitTenantId = 'explicit-tenant';
-    
+
     await tenantContext.run({ tenantId: contextTenantId }, async () => {
-      await writeAuditLog({
-        id: 'log-2',
-        event: 'test-event',
-        status: 'success'
-      }, explicitTenantId);
+      await writeAuditLog(
+        {
+          id: 'log-2',
+          event: 'test-event',
+          status: 'success',
+        },
+        explicitTenantId
+      );
     });
 
     expect(mockPool.query).toHaveBeenCalledWith(
@@ -54,7 +57,7 @@ describe('Tenant Isolation', () => {
 
   it('should filter query results by tenantId from context', async () => {
     const tenantId = 'query-tenant';
-    
+
     mockPool.query.mockResolvedValueOnce({ rows: [] });
 
     await tenantContext.run({ tenantId }, async () => {

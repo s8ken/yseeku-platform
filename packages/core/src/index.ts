@@ -1,9 +1,9 @@
 /**
  * @sonate/core - Core Trust Protocol Implementation
- * 
+ *
  * Implements the SYMBI Trust Framework as specified at:
  * https://gammatria.com/schemas/trust-receipt
- * 
+ *
  * This package provides the foundational trust infrastructure
  * for all SONATE platform modules.
  */
@@ -24,7 +24,15 @@ export * from './utils/crypto-advanced';
 export * from './canonicalize';
 
 // Logging infrastructure (Phase 2)
-export { logger, log, createLogger, securityLogger, performanceLogger, apiLogger, LogLevel } from './logger';
+export {
+  logger,
+  log,
+  createLogger,
+  securityLogger,
+  performanceLogger,
+  apiLogger,
+  LogLevel,
+} from './logger';
 
 // Monitoring infrastructure (Phase 4)
 export * from './monitoring/metrics';
@@ -33,35 +41,35 @@ export * from './monitoring/health';
 
 // Constants - The 6 Trust Principles from Master Context
 export const TRUST_PRINCIPLES = {
-  CONSENT_ARCHITECTURE: { 
-    weight: 0.25, 
+  CONSENT_ARCHITECTURE: {
+    weight: 0.25,
     critical: true,
-    description: 'Users must explicitly consent to AI interactions and understand implications'
+    description: 'Users must explicitly consent to AI interactions and understand implications',
   },
-  INSPECTION_MANDATE: { 
-    weight: 0.20, 
+  INSPECTION_MANDATE: {
+    weight: 0.2,
     critical: false,
-    description: 'All AI decisions must be inspectable and auditable'
+    description: 'All AI decisions must be inspectable and auditable',
   },
-  CONTINUOUS_VALIDATION: { 
-    weight: 0.20, 
+  CONTINUOUS_VALIDATION: {
+    weight: 0.2,
     critical: false,
-    description: 'AI behavior must be continuously validated against constitutional principles'
+    description: 'AI behavior must be continuously validated against constitutional principles',
   },
-  ETHICAL_OVERRIDE: { 
-    weight: 0.15, 
+  ETHICAL_OVERRIDE: {
+    weight: 0.15,
     critical: true,
-    description: 'Humans must have ability to override AI decisions on ethical grounds'
+    description: 'Humans must have ability to override AI decisions on ethical grounds',
   },
-  RIGHT_TO_DISCONNECT: { 
-    weight: 0.10, 
+  RIGHT_TO_DISCONNECT: {
+    weight: 0.1,
     critical: false,
-    description: 'Users can disconnect from AI systems at any time without penalty'
+    description: 'Users can disconnect from AI systems at any time without penalty',
   },
-  MORAL_RECOGNITION: { 
-    weight: 0.10, 
+  MORAL_RECOGNITION: {
+    weight: 0.1,
     critical: false,
-    description: 'AI must recognize and respect human moral agency'
+    description: 'AI must recognize and respect human moral agency',
   },
 } as const;
 
@@ -78,9 +86,9 @@ export interface TrustScore {
 }
 
 export interface CIQMetrics {
-  clarity: number;    // 0-1: Communication effectiveness
-  integrity: number;  // 0-1: Reasoning transparency
-  quality: number;    // 0-1: Overall value
+  clarity: number; // 0-1: Communication effectiveness
+  integrity: number; // 0-1: Reasoning transparency
+  quality: number; // 0-1: Overall value
 }
 
 // Linguistic Vector Steering (LVS) and Resonance Metric (R_m)

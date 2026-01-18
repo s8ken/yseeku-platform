@@ -15,46 +15,46 @@ export enum AuditEventType {
   AUTH_MFA_VERIFIED = 'auth.mfa_verified',
   AUTH_PASSWORD_CHANGED = 'auth.password_changed',
   AUTH_PASSWORD_RESET = 'auth.password_reset',
-  
+
   // Authorization Events
   AUTHZ_PERMISSION_GRANTED = 'authz.permission_granted',
   AUTHZ_PERMISSION_DENIED = 'authz.permission_denied',
   AUTHZ_ROLE_ASSIGNED = 'authz.role_assigned',
   AUTHZ_ROLE_REMOVED = 'authz.role_removed',
-  
+
   // Data Access Events
   DATA_READ = 'data.read',
   DATA_CREATE = 'data.create',
   DATA_UPDATE = 'data.update',
   DATA_DELETE = 'data.delete',
   DATA_EXPORT = 'data.export',
-  
+
   // API Events
   API_REQUEST = 'api.request',
   API_ERROR = 'api.error',
   API_RATE_LIMIT = 'api.rate_limit',
   API_KEY_CREATED = 'api.key_created',
   API_KEY_REVOKED = 'api.key_revoked',
-  
+
   // Configuration Events
   CONFIG_CHANGED = 'config.changed',
   SETTINGS_UPDATED = 'settings.updated',
-  
+
   // Security Events
   SECURITY_BREACH_ATTEMPT = 'security.breach_attempt',
   SECURITY_SUSPICIOUS_ACTIVITY = 'security.suspicious_activity',
   SECURITY_IP_BLOCKED = 'security.ip_blocked',
-  
+
   // Compliance Events
   COMPLIANCE_DATA_ACCESSED = 'compliance.data_accessed',
   COMPLIANCE_DATA_DELETED = 'compliance.data_deleted',
   COMPLIANCE_EXPORT = 'compliance.export',
-  
+
   // System Events
   SYSTEM_ERROR = 'system.error',
   SYSTEM_WARNING = 'system.warning',
   SYSTEM_STARTUP = 'system.startup',
-  SYSTEM_SHUTDOWN = 'system.shutdown'
+  SYSTEM_SHUTDOWN = 'system.shutdown',
 }
 
 export enum AuditSeverity {
@@ -62,7 +62,7 @@ export enum AuditSeverity {
   INFO = 'info',
   WARNING = 'warning',
   ERROR = 'error',
-  CRITICAL = 'critical'
+  CRITICAL = 'critical',
 }
 
 export interface AuditEvent {
@@ -124,31 +124,29 @@ export class EnhancedAuditLogger {
       ...event,
       timestamp: new Date(),
       correlationId: event.correlationId || this.correlationId || undefined,
-      sessionId: event.sessionId || this.sessionId || undefined
+      sessionId: event.sessionId || this.sessionId || undefined,
     };
 
     try {
       // Store in database
-      const { error } = await supabase
-        .from('audit_logs')
-        .insert({
-          event_type: auditEvent.eventType,
-          severity: auditEvent.severity,
-          user_id: auditEvent.userId,
-          organization_id: auditEvent.organizationId,
-          session_id: auditEvent.sessionId,
-          ip_address: auditEvent.ipAddress,
-          user_agent: auditEvent.userAgent,
-          resource: auditEvent.resource,
-          resource_id: auditEvent.resourceId,
-          action: auditEvent.action,
-          result: auditEvent.result,
-          details: auditEvent.details,
-          metadata: auditEvent.metadata,
-          correlation_id: auditEvent.correlationId,
-          parent_event_id: auditEvent.parentEventId,
-          created_at: auditEvent.timestamp.toISOString()
-        });
+      const { error } = await supabase.from('audit_logs').insert({
+        event_type: auditEvent.eventType,
+        severity: auditEvent.severity,
+        user_id: auditEvent.userId,
+        organization_id: auditEvent.organizationId,
+        session_id: auditEvent.sessionId,
+        ip_address: auditEvent.ipAddress,
+        user_agent: auditEvent.userAgent,
+        resource: auditEvent.resource,
+        resource_id: auditEvent.resourceId,
+        action: auditEvent.action,
+        result: auditEvent.result,
+        details: auditEvent.details,
+        metadata: auditEvent.metadata,
+        correlation_id: auditEvent.correlationId,
+        parent_event_id: auditEvent.parentEventId,
+        created_at: auditEvent.timestamp.toISOString(),
+      });
 
       if (error) {
         console.error('Failed to log audit event:', error);
@@ -182,7 +180,7 @@ export class EnhancedAuditLogger {
       userAgent,
       action: eventType,
       result,
-      details
+      details,
     });
   }
 
@@ -204,7 +202,7 @@ export class EnhancedAuditLogger {
       resource,
       action,
       result,
-      details
+      details,
     });
   }
 
@@ -228,7 +226,7 @@ export class EnhancedAuditLogger {
       resourceId,
       action,
       result,
-      details
+      details,
     });
   }
 
@@ -255,8 +253,8 @@ export class EnhancedAuditLogger {
       result: statusCode < 400 ? 'success' : 'failure',
       details: {
         statusCode,
-        duration
-      }
+        duration,
+      },
     });
   }
 
@@ -277,7 +275,7 @@ export class EnhancedAuditLogger {
       ipAddress,
       action,
       result: 'failure',
-      details
+      details,
     });
   }
 
@@ -298,7 +296,7 @@ export class EnhancedAuditLogger {
       resource,
       action,
       result: 'success',
-      details
+      details,
     });
   }
 
@@ -306,10 +304,7 @@ export class EnhancedAuditLogger {
    * Query audit logs
    */
   async query(query: AuditQuery): Promise<AuditEvent[]> {
-    let dbQuery = supabase
-      .from('audit_logs')
-      .select('*')
-      .order('created_at', { ascending: false });
+    let dbQuery = supabase.from('audit_logs').select('*').order('created_at', { ascending: false });
 
     if (query.startDate) {
       dbQuery = dbQuery.gte('created_at', query.startDate.toISOString());
@@ -358,7 +353,7 @@ export class EnhancedAuditLogger {
       return [];
     }
 
-    return (data || []).map(row => ({
+    return (data || []).map((row) => ({
       id: row.id,
       timestamp: new Date(row.created_at),
       eventType: row.event_type,
@@ -375,7 +370,7 @@ export class EnhancedAuditLogger {
       details: row.details,
       metadata: row.metadata,
       correlationId: row.correlation_id,
-      parentEventId: row.parent_event_id
+      parentEventId: row.parent_event_id,
     }));
   }
 
@@ -395,14 +390,14 @@ export class EnhancedAuditLogger {
     const events = await this.query({
       startDate,
       endDate,
-      organizationId
+      organizationId,
     });
 
     const eventsByType: Record<string, number> = {};
     const eventsBySeverity: Record<string, number> = {};
     let failures = 0;
 
-    events.forEach(event => {
+    events.forEach((event) => {
       eventsByType[event.eventType] = (eventsByType[event.eventType] || 0) + 1;
       eventsBySeverity[event.severity] = (eventsBySeverity[event.severity] || 0) + 1;
       if (event.result === 'failure') {
@@ -414,7 +409,7 @@ export class EnhancedAuditLogger {
       totalEvents: events.length,
       eventsByType,
       eventsBySeverity,
-      failureRate: events.length > 0 ? failures / events.length : 0
+      failureRate: events.length > 0 ? failures / events.length : 0,
     };
   }
 
@@ -429,15 +424,12 @@ export class EnhancedAuditLogger {
   /**
    * Export audit logs for compliance
    */
-  async exportLogs(
-    query: AuditQuery,
-    format: 'json' | 'csv' = 'json'
-  ): Promise<string> {
+  async exportLogs(query: AuditQuery, format: 'json' | 'csv' = 'json'): Promise<string> {
     const events = await this.query(query);
 
     if (format === 'json') {
       return JSON.stringify(events, null, 2);
-    } else {
+    } 
       // CSV export
       const headers = [
         'timestamp',
@@ -447,10 +439,10 @@ export class EnhancedAuditLogger {
         'action',
         'result',
         'resource',
-        'ipAddress'
+        'ipAddress',
       ];
-      
-      const rows = events.map(event => [
+
+      const rows = events.map((event) => [
         event.timestamp.toISOString(),
         event.eventType,
         event.severity,
@@ -458,14 +450,11 @@ export class EnhancedAuditLogger {
         event.action,
         event.result,
         event.resource || '',
-        event.ipAddress || ''
+        event.ipAddress || '',
       ]);
 
-      return [
-        headers.join(','),
-        ...rows.map(row => row.join(','))
-      ].join('\n');
-    }
+      return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+    
   }
 }
 

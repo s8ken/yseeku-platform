@@ -10,30 +10,30 @@ export enum Permission {
   AGENT_UPDATE = 'agent:update',
   AGENT_DELETE = 'agent:delete',
   AGENT_EXECUTE = 'agent:execute',
-  
+
   // Orchestra Management
   ORCHESTRA_CREATE = 'orchestra:create',
   ORCHESTRA_READ = 'orchestra:read',
   ORCHESTRA_UPDATE = 'orchestra:update',
   ORCHESTRA_DELETE = 'orchestra:delete',
   ORCHESTRA_CONTROL = 'orchestra:control',
-  
+
   // Trust Management
   TRUST_READ = 'trust:read',
   TRUST_VERIFY = 'trust:verify',
   TRUST_MANAGE = 'trust:manage',
-  
+
   // System Administration
   SYSTEM_CONFIG = 'system:config',
   SYSTEM_MONITOR = 'system:monitor',
   SYSTEM_ADMIN = 'system:admin',
-  
+
   // User Management
   USER_CREATE = 'user:create',
   USER_READ = 'user:read',
   USER_UPDATE = 'user:update',
   USER_DELETE = 'user:delete',
-  
+
   // Audit and Compliance
   AUDIT_READ = 'audit:read',
   AUDIT_EXPORT = 'audit:export',
@@ -169,10 +169,7 @@ export class RBACManager {
     this.defineRole({
       name: Role.GUEST,
       description: 'Minimal guest access',
-      permissions: [
-        Permission.AGENT_READ,
-        Permission.SYSTEM_MONITOR,
-      ],
+      permissions: [Permission.AGENT_READ, Permission.SYSTEM_MONITOR],
     });
   }
 
@@ -203,7 +200,7 @@ export class RBACManager {
     if (definition.inherits) {
       for (const inheritedRole of definition.inherits) {
         const inheritedPermissions = this.getRolePermissions(inheritedRole);
-        inheritedPermissions.forEach(p => permissions.add(p));
+        inheritedPermissions.forEach((p) => permissions.add(p));
       }
     }
 
@@ -219,12 +216,12 @@ export class RBACManager {
     // Add role-based permissions
     for (const role of user.roles) {
       const rolePermissions = this.getRolePermissions(role);
-      rolePermissions.forEach(p => permissions.add(p));
+      rolePermissions.forEach((p) => permissions.add(p));
     }
 
     // Add custom permissions
     if (user.customPermissions) {
-      user.customPermissions.forEach(p => permissions.add(p));
+      user.customPermissions.forEach((p) => permissions.add(p));
     }
 
     return Array.from(permissions);
@@ -243,7 +240,7 @@ export class RBACManager {
    */
   hasAllPermissions(user: User, permissions: Permission[]): boolean {
     const userPermissions = this.getUserPermissions(user);
-    return permissions.every(p => userPermissions.includes(p));
+    return permissions.every((p) => userPermissions.includes(p));
   }
 
   /**
@@ -251,7 +248,7 @@ export class RBACManager {
    */
   hasAnyPermission(user: User, permissions: Permission[]): boolean {
     const userPermissions = this.getUserPermissions(user);
-    return permissions.some(p => userPermissions.includes(p));
+    return permissions.some((p) => userPermissions.includes(p));
   }
 
   /**
@@ -265,7 +262,7 @@ export class RBACManager {
    * Check if a user has any of the specified roles
    */
   hasAnyRole(user: User, roles: Role[]): boolean {
-    return roles.some(r => user.roles.includes(r));
+    return roles.some((r) => user.roles.includes(r));
   }
 
   /**
@@ -283,7 +280,7 @@ export class RBACManager {
    * Revoke a role from a user
    */
   revokeRole(user: User, role: Role): User {
-    user.roles = user.roles.filter(r => r !== role);
+    user.roles = user.roles.filter((r) => r !== role);
     this.userCache.set(user.id, user);
     return user;
   }
@@ -307,7 +304,7 @@ export class RBACManager {
    */
   revokePermission(user: User, permission: Permission): User {
     if (user.customPermissions) {
-      user.customPermissions = user.customPermissions.filter(p => p !== permission);
+      user.customPermissions = user.customPermissions.filter((p) => p !== permission);
       this.userCache.set(user.id, user);
     }
     return user;
@@ -359,7 +356,7 @@ export function resetRBACManager(): void {
 export function requirePermission(...permissions: Permission[]) {
   return (req: any, res: any, next: any) => {
     const user = req.user as User | undefined;
-    
+
     if (!user) {
       return res.status(401).json({
         error: 'Unauthorized',
@@ -388,7 +385,7 @@ export function requirePermission(...permissions: Permission[]) {
 export function requireRole(...roles: Role[]) {
   return (req: any, res: any, next: any) => {
     const user = req.user as User | undefined;
-    
+
     if (!user) {
       return res.status(401).json({
         error: 'Unauthorized',

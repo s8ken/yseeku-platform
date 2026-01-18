@@ -2,7 +2,7 @@
 const tenantContext = {
   getTenantId: (throwOnError: boolean = false): string | null => {
     return process.env.TENANT_ID || null;
-  }
+  },
 };
 
 // Simple logger implementation to avoid circular dependencies
@@ -19,7 +19,7 @@ function getLogger(component: string) {
  * Helper to get the current tenant ID from context or provided value
  */
 export function resolveTenantId(providedId?: string): string | null {
-  if (providedId) return providedId;
+  if (providedId) {return providedId;}
   try {
     return tenantContext.getTenantId(false) || null;
   } catch {
@@ -39,7 +39,7 @@ export function getPool(): any | null {
     pool = null;
     return null;
   }
-  if (pool) return pool;
+  if (pool) {return pool;}
   const logger = getLogger('Persistence');
   try {
     // Use dynamic require to avoid TS type dependency
@@ -56,7 +56,7 @@ export function getPool(): any | null {
 
 export async function ensureSchema(): Promise<void> {
   const p = getPool();
-  if (!p) return;
+  if (!p) {return;}
   await p.query(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,

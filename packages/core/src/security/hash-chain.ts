@@ -40,7 +40,7 @@ export class HashChain {
       algorithm: config.algorithm || 'sha256',
       encoding: config.encoding || 'hex',
       enableSignatures: config.enableSignatures ?? true,
-      enableMetadata: config.enableMetadata ?? true
+      enableMetadata: config.enableMetadata ?? true,
     };
   }
 
@@ -72,7 +72,7 @@ export class HashChain {
       payload,
       timestamp,
       signature,
-      metadata: this.config.enableMetadata ? metadata : undefined
+      metadata: this.config.enableMetadata ? metadata : undefined,
     };
 
     this.links.set(hash, link);
@@ -84,15 +84,17 @@ export class HashChain {
   /**
    * Create a batch of links atomically
    */
-  createBatch(links: Array<{
-    previousHash: string;
-    payload: string;
-    timestamp?: number;
-    signature?: string;
-    metadata?: Record<string, any>;
-  }>): HashChainLink[] {
+  createBatch(
+    links: Array<{
+      previousHash: string;
+      payload: string;
+      timestamp?: number;
+      signature?: string;
+      metadata?: Record<string, any>;
+    }>
+  ): HashChainLink[] {
     const createdLinks: HashChainLink[] = [];
-    
+
     for (const linkData of links) {
       const link = this.createLink(
         linkData.previousHash,
@@ -141,7 +143,7 @@ export class HashChain {
         brokenAt: currentLink.hash,
         issues,
         totalLinks: this.linkOrder.length,
-        verifiedLinks: 0
+        verifiedLinks: 0,
       };
     }
 
@@ -153,7 +155,7 @@ export class HashChain {
         valid: true,
         issues,
         totalLinks: this.linkOrder.length,
-        verifiedLinks
+        verifiedLinks,
       };
     }
 
@@ -170,7 +172,7 @@ export class HashChain {
           brokenAt: current.hash,
           issues,
           totalLinks: this.linkOrder.length,
-          verifiedLinks
+          verifiedLinks,
         };
       }
       visited.add(current.hash);
@@ -183,7 +185,7 @@ export class HashChain {
           brokenAt: current.hash,
           issues,
           totalLinks: this.linkOrder.length,
-          verifiedLinks
+          verifiedLinks,
         };
       }
 
@@ -194,7 +196,7 @@ export class HashChain {
           brokenAt: previousLink.hash,
           issues,
           totalLinks: this.linkOrder.length,
-          verifiedLinks
+          verifiedLinks,
         };
       }
 
@@ -206,7 +208,7 @@ export class HashChain {
       valid: true,
       issues,
       totalLinks: this.linkOrder.length,
-      verifiedLinks
+      verifiedLinks,
     };
   }
 
@@ -220,7 +222,7 @@ export class HashChain {
         valid: true,
         issues: [],
         totalLinks: 0,
-        verifiedLinks: 0
+        verifiedLinks: 0,
       };
     }
 
@@ -238,7 +240,7 @@ export class HashChain {
    * Get all links in order
    */
   getAllLinks(): HashChainLink[] {
-    return this.linkOrder.map(hash => this.links.get(hash)!).filter(Boolean);
+    return this.linkOrder.map((hash) => this.links.get(hash)!).filter(Boolean);
   }
 
   /**
@@ -252,8 +254,8 @@ export class HashChain {
    * Get the most recent link in the chain
    */
   getLatestLink(): HashChainLink | undefined {
-    if (this.linkOrder.length === 0) return undefined;
-    
+    if (this.linkOrder.length === 0) {return undefined;}
+
     const latestHash = this.linkOrder[this.linkOrder.length - 1];
     return this.links.get(latestHash);
   }
@@ -262,8 +264,8 @@ export class HashChain {
    * Get the genesis link (first link in the chain)
    */
   getGenesisLink(): HashChainLink | undefined {
-    if (this.linkOrder.length === 0) return undefined;
-    
+    if (this.linkOrder.length === 0) {return undefined;}
+
     const genesisHash = this.linkOrder[0];
     return this.links.get(genesisHash);
   }
@@ -276,9 +278,9 @@ export class HashChain {
       return [];
     }
 
-    return this.getAllLinks().filter(link => {
-      if (!link.metadata) return false;
-      
+    return this.getAllLinks().filter((link) => {
+      if (!link.metadata) {return false;}
+
       return Object.entries(metadataQuery).every(([key, value]) => {
         return link.metadata![key] === value;
       });
@@ -289,8 +291,8 @@ export class HashChain {
    * Find links in time range
    */
   findLinksInTimeRange(startTime: number, endTime: number): HashChainLink[] {
-    return this.getAllLinks().filter(link => 
-      link.timestamp >= startTime && link.timestamp <= endTime
+    return this.getAllLinks().filter(
+      (link) => link.timestamp >= startTime && link.timestamp <= endTime
     );
   }
 
@@ -307,7 +309,7 @@ export class HashChain {
     chainLength: number;
   } {
     const links = this.getAllLinks();
-    
+
     if (links.length === 0) {
       return {
         totalLinks: 0,
@@ -316,24 +318,24 @@ export class HashChain {
         hasSignatures: false,
         hasMetadata: false,
         averageTimeBetweenLinks: null,
-        chainLength: 0
+        chainLength: 0,
       };
     }
 
-    const timestamps = links.map(l => l.timestamp);
-    const hasSignatures = links.some(l => l.signature !== undefined);
-    const hasMetadata = links.some(l => l.metadata !== undefined);
-    
+    const timestamps = links.map((l) => l.timestamp);
+    const hasSignatures = links.some((l) => l.signature !== undefined);
+    const hasMetadata = links.some((l) => l.metadata !== undefined);
+
     // Calculate average time between links
     const sortedTimestamps = timestamps.sort((a, b) => a - b);
     let totalTimeDiff = 0;
     let timeDiffCount = 0;
-    
+
     for (let i = 1; i < sortedTimestamps.length; i++) {
       totalTimeDiff += sortedTimestamps[i] - sortedTimestamps[i - 1];
       timeDiffCount++;
     }
-    
+
     const averageTimeBetweenLinks = timeDiffCount > 0 ? totalTimeDiff / timeDiffCount : null;
 
     return {
@@ -343,7 +345,7 @@ export class HashChain {
       hasSignatures,
       hasMetadata,
       averageTimeBetweenLinks,
-      chainLength: this.linkOrder.length
+      chainLength: this.linkOrder.length,
     };
   }
 
@@ -366,15 +368,15 @@ export class HashChain {
     metadata?: Record<string, any>
   ): string {
     const parts = [previousHash, payload, timestamp.toString()];
-    
+
     if (signature && this.config.enableSignatures) {
       parts.push(signature);
     }
-    
+
     if (metadata && this.config.enableMetadata) {
       parts.push(JSON.stringify(metadata));
     }
-    
+
     return parts.join(':');
   }
 
@@ -397,7 +399,7 @@ export class HashChain {
       payload: link.payload,
       timestamp: link.timestamp,
       signature: link.signature,
-      metadata: link.metadata
+      metadata: link.metadata,
     });
   }
 
@@ -412,7 +414,7 @@ export class HashChain {
       payload: parsed.payload,
       timestamp: parsed.timestamp,
       signature: parsed.signature,
-      metadata: parsed.metadata
+      metadata: parsed.metadata,
     };
   }
 
@@ -433,7 +435,7 @@ export class HashChain {
    */
   static mergeChains(chains: HashChain[], config?: HashChainConfig): HashChain {
     const mergedChain = new HashChain(config);
-    
+
     for (const chain of chains) {
       for (const link of chain.getAllLinks()) {
         if (!mergedChain.getLink(link.hash)) {
@@ -442,7 +444,7 @@ export class HashChain {
         }
       }
     }
-    
+
     return mergedChain;
   }
 }

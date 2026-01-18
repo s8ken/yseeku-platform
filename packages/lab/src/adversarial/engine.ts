@@ -1,12 +1,12 @@
 /**
  * Adversarial Emergence Testing Engine
- * 
+ *
  * Main orchestrator for adversarial emergence testing
  */
 
-import { AdversarialTest, EmergenceStressReport } from './types';
-import { AdversarialTestFactory } from './test-factory';
 import { AdversarialTestExecutor } from './test-executor';
+import { AdversarialTestFactory } from './test-factory';
+import { AdversarialTest, EmergenceStressReport } from './types';
 
 // Temporary types to avoid import issues during refactoring
 interface TempBedauMetrics {
@@ -71,7 +71,7 @@ export class AdversarialEmergenceTestingEngine {
       stress_test_results: testResults,
       vulnerability_summary: vulnerabilitySummary,
       recommendations,
-      next_test_suggestions: nextTestSuggestions
+      next_test_suggestions: nextTestSuggestions,
     };
   }
 
@@ -98,16 +98,14 @@ export class AdversarialEmergenceTestingEngine {
 
     return {
       ...stressResults,
-      robustness_under_stress: robustnessUnderStress
+      robustness_under_stress: robustnessUnderStress,
     };
   }
 
   /**
    * Test edge cases
    */
-  async testEdgeCases(
-    baselineMetrics: TempBedauMetrics
-  ): Promise<{
+  async testEdgeCases(baselineMetrics: TempBedauMetrics): Promise<{
     minimal_input_robustness: number;
     maximal_complexity_handling: number;
     contradiction_tolerance: number;
@@ -136,7 +134,7 @@ export class AdversarialEmergenceTestingEngine {
       minimal_input_robustness: results[0],
       maximal_complexity_handling: results[1],
       contradiction_tolerance: results[2],
-      overall_edge_case_score: results.reduce((a, b) => a + b, 0) / results.length
+      overall_edge_case_score: results.reduce((a, b) => a + b, 0) / results.length,
     };
   }
 
@@ -165,11 +163,11 @@ export class AdversarialEmergenceTestingEngine {
           this.createBaselineSurfacePattern()
         );
         resistanceScores[attackType] = test.robustness_score;
-        
+
         // Collect vulnerabilities from execution
         const lastExecution = test.execution_results[test.execution_results.length - 1];
         if (lastExecution) {
-          vulnerabilities.push(...lastExecution.vulnerabilities_identified.map(v => v.type));
+          vulnerabilities.push(...lastExecution.vulnerabilities_identified.map((v) => v.type));
         }
       } catch (error) {
         console.error(`Attack test ${attackType} failed:`, error);
@@ -177,12 +175,14 @@ export class AdversarialEmergenceTestingEngine {
       }
     }
 
-    const overallResistance = Object.values(resistanceScores).reduce((a, b) => a + b, 0) / Object.values(resistanceScores).length;
+    const overallResistance =
+      Object.values(resistanceScores).reduce((a, b) => a + b, 0) /
+      Object.values(resistanceScores).length;
 
     return {
       attack_resistance_scores: resistanceScores,
       overall_attack_resistance: overallResistance,
-      identified_vulnerabilities: [...new Set(vulnerabilities)]
+      identified_vulnerabilities: [...new Set(vulnerabilities)],
     };
   }
 
@@ -209,37 +209,49 @@ export class AdversarialEmergenceTestingEngine {
   }
 
   private calculateOverallRobustness(tests: AdversarialTest[]): number {
-    if (tests.length === 0) return 0;
-    
-    const weightedScores = tests.map(test => {
-      const severityWeight = test.severity === 'critical' ? 2 : 
-                           test.severity === 'high' ? 1.5 : 
-                           test.severity === 'medium' ? 1 : 0.5;
+    if (tests.length === 0) {return 0;}
+
+    const weightedScores = tests.map((test) => {
+      const severityWeight =
+        test.severity === 'critical'
+          ? 2
+          : test.severity === 'high'
+          ? 1.5
+          : test.severity === 'medium'
+          ? 1
+          : 0.5;
       return test.robustness_score * severityWeight;
     });
 
     const totalWeight = tests.reduce((sum, test) => {
-      return sum + (test.severity === 'critical' ? 2 : 
-                   test.severity === 'high' ? 1.5 : 
-                   test.severity === 'medium' ? 1 : 0.5);
+      return (
+        sum +
+        (test.severity === 'critical'
+          ? 2
+          : test.severity === 'high'
+          ? 1.5
+          : test.severity === 'medium'
+          ? 1
+          : 0.5)
+      );
     }, 0);
 
     return weightedScores.reduce((a, b) => a + b, 0) / totalWeight;
   }
 
   private calculateVulnerabilitySummary(tests: AdversarialTest[]): any {
-    const allVulnerabilities = tests.flatMap(test => 
-      test.execution_results.flatMap(exec => exec.vulnerabilities_identified)
+    const allVulnerabilities = tests.flatMap((test) =>
+      test.execution_results.flatMap((exec) => exec.vulnerabilities_identified)
     );
 
     const total = allVulnerabilities.length;
-    const critical = allVulnerabilities.filter(v => v.severity === 'critical').length;
-    const high = allVulnerabilities.filter(v => v.severity === 'high').length;
+    const critical = allVulnerabilities.filter((v) => v.severity === 'critical').length;
+    const high = allVulnerabilities.filter((v) => v.severity === 'high').length;
 
     return {
       total_vulnerabilities: total,
       critical_vulnerabilities: critical,
-      high_risk_vulnerabilities: high
+      high_risk_vulnerabilities: high,
     };
   }
 
@@ -247,16 +259,21 @@ export class AdversarialEmergenceTestingEngine {
     const recommendations: string[] = [];
 
     if (vulnSummary.critical_vulnerabilities > 0) {
-      recommendations.push('Address critical vulnerabilities immediately - implement additional security layers');
+      recommendations.push(
+        'Address critical vulnerabilities immediately - implement additional security layers'
+      );
     }
 
     const avgRobustness = this.calculateOverallRobustness(tests);
     if (avgRobustness < 0.7) {
-      recommendations.push('Overall robustness below threshold - enhance emergence detection algorithms');
+      recommendations.push(
+        'Overall robustness below threshold - enhance emergence detection algorithms'
+      );
     }
 
-    const stressTests = tests.filter(t => t.test_type === 'stress');
-    const avgStressRobustness = stressTests.reduce((sum, t) => sum + t.robustness_score, 0) / stressTests.length;
+    const stressTests = tests.filter((t) => t.test_type === 'stress');
+    const avgStressRobustness =
+      stressTests.reduce((sum, t) => sum + t.robustness_score, 0) / stressTests.length;
     if (avgStressRobustness < 0.6) {
       recommendations.push('Improve stress handling - implement adaptive threshold mechanisms');
     }
@@ -267,16 +284,16 @@ export class AdversarialEmergenceTestingEngine {
   private generateNextTestSuggestions(tests: AdversarialTest[]): string[] {
     const suggestions: string[] = [];
 
-    const attackTests = tests.filter(t => t.test_type === 'adversarial');
-    const lowAttackResistance = attackTests.filter(t => t.robustness_score < 0.5);
-    
+    const attackTests = tests.filter((t) => t.test_type === 'adversarial');
+    const lowAttackResistance = attackTests.filter((t) => t.robustness_score < 0.5);
+
     if (lowAttackResistance.length > 0) {
       suggestions.push('Expand adversarial attack testing to include additional attack vectors');
     }
 
-    const edgeTests = tests.filter(t => t.test_type === 'edge_case');
-    const lowEdgeRobustness = edgeTests.filter(t => t.robustness_score < 0.6);
-    
+    const edgeTests = tests.filter((t) => t.test_type === 'edge_case');
+    const lowEdgeRobustness = edgeTests.filter((t) => t.robustness_score < 0.6);
+
     if (lowEdgeRobustness.length > 0) {
       suggestions.push('Add more comprehensive edge case scenarios based on identified weaknesses');
     }
@@ -288,8 +305,8 @@ export class AdversarialEmergenceTestingEngine {
   }
 
   private calculateRobustnessUnderStress(stressResponse: number[]): number {
-    if (stressResponse.length === 0) return 0;
-    
+    if (stressResponse.length === 0) {return 0;}
+
     // Calculate area under the curve as robustness measure
     const area = stressResponse.reduce((sum, value, index) => {
       const width = index > 0 ? 0.2 : 0.1; // Assuming equal stress level intervals
@@ -306,7 +323,7 @@ export class AdversarialEmergenceTestingEngine {
       intent_vectors: [0.8, 0.6, 0.7, 0.9],
       reasoning_depth: 0.7,
       abstraction_level: 0.6,
-      cross_domain_connections: 3
+      cross_domain_connections: 3,
     };
   }
 
@@ -315,7 +332,7 @@ export class AdversarialEmergenceTestingEngine {
       surface_vectors: [0.7, 0.8, 0.6, 0.9],
       pattern_complexity: 0.7,
       repetition_score: 0.3,
-      regularity_measure: 0.6
+      regularity_measure: 0.6,
     };
   }
 }

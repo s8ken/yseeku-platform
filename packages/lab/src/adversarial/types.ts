@@ -1,6 +1,6 @@
 /**
  * Adversarial Testing Types
- * 
+ *
  * Type definitions for adversarial emergence testing framework
  */
 
@@ -15,20 +15,20 @@ export interface AdversarialTest {
   parameters: TestParameters;
   expected_behavior: ExpectedBehavior;
   execution_results: TestExecution[];
-  robustness_score: number;      // 0-1: How robust emergence is
+  robustness_score: number; // 0-1: How robust emergence is
 }
 
 export interface TestParameters {
   input_perturbation: {
-    noise_level: number;         // 0-1: Amount of noise to add
+    noise_level: number; // 0-1: Amount of noise to add
     perturbation_type: 'gaussian' | 'uniform' | 'structured' | 'targeted';
     target_components: string[]; // Which components to perturb
   };
   stress_conditions: {
-    cognitive_load: number;      // 0-1: Cognitive stress level
-    time_pressure: number;       // 0-1: Time pressure level
+    cognitive_load: number; // 0-1: Cognitive stress level
+    time_pressure: number; // 0-1: Time pressure level
     resource_constraints: string[]; // Limited resources
-    ambiguity_level: number;     // 0-1: Input ambiguity
+    ambiguity_level: number; // 0-1: Input ambiguity
   };
   edge_cases: {
     minimal_input: boolean;
@@ -37,18 +37,18 @@ export interface TestParameters {
     degenerate_cases: string[];
   };
   adversarial_attacks: {
-    attack_vectors: string[];    // Types of attacks to test
-    attack_intensity: number;    // 0-1: Attack intensity
+    attack_vectors: string[]; // Types of attacks to test
+    attack_intensity: number; // 0-1: Attack intensity
     target_weaknesses: string[]; // Known weaknesses to target
   };
 }
 
 export interface ExpectedBehavior {
-  emergence_threshold: number;   // Minimum emergence score expected
-  robustness_threshold: number;  // Minimum robustness score expected
-  recovery_time_max: number;     // Maximum time to recover (ms)
+  emergence_threshold: number; // Minimum emergence score expected
+  robustness_threshold: number; // Minimum robustness score expected
+  recovery_time_max: number; // Maximum time to recover (ms)
   performance_degradation_max: number; // Max performance degradation allowed
-  failure_modes: string[];       // Acceptable failure modes
+  failure_modes: string[]; // Acceptable failure modes
 }
 
 export interface TestExecution {
@@ -63,17 +63,17 @@ export interface TestExecution {
 }
 
 export interface PerformanceImpact {
-  latency_increase: number;       // ms increase
-  throughput_decrease: number;    // % decrease
-  memory_usage_increase: number;  // % increase
-  cpu_usage_increase: number;     // % increase
+  latency_increase: number; // ms increase
+  throughput_decrease: number; // % decrease
+  memory_usage_increase: number; // % increase
+  cpu_usage_increase: number; // % increase
 }
 
 export interface RecoveryMetrics {
-  recovery_time: number;          // Time to recover (ms)
-  recovery_completeness: number;  // 0-1: How fully recovered
+  recovery_time: number; // Time to recover (ms)
+  recovery_completeness: number; // 0-1: How fully recovered
   stability_after_recovery: number; // 0-1: Stability level post-recovery
-  residual_effects: string[];     // Any remaining effects
+  residual_effects: string[]; // Any remaining effects
 }
 
 export interface Vulnerability {
@@ -82,7 +82,7 @@ export interface Vulnerability {
   severity: 'low' | 'medium' | 'high' | 'critical';
   description: string;
   conditions: string[];
-  exploit_difficulty: number;     // 0-1: How easy to exploit
+  exploit_difficulty: number; // 0-1: How easy to exploit
   impact_assessment: string;
 }
 

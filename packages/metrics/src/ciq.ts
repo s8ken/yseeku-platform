@@ -1,9 +1,9 @@
 // Integer CIQ: 1000 basis points precision (Solana-grade)
 // Guarantees reproducibility across Node versions
 export interface CIQSubmetrics {
-  clarity: number;    // 0.0-1.0
-  integrity: number;  // 0.0-1.0 
-  quality: number;    // 0.0-1.0
+  clarity: number; // 0.0-1.0
+  integrity: number; // 0.0-1.0
+  quality: number; // 0.0-1.0
 }
 
 export function computeCIQ(metrics: CIQSubmetrics): number {
@@ -11,21 +11,18 @@ export function computeCIQ(metrics: CIQSubmetrics): number {
   const c = BigInt(Math.round(metrics.clarity * 1000));
   const i = BigInt(Math.round(metrics.integrity * 1000));
   const q = BigInt(Math.round(metrics.quality * 1000));
-  
+
   // Weighted sum (30/30/40) → multiply weights FIRST
   const weighted = c * 300n + i * 300n + q * 400n;
-  
+
   // Final division → guaranteed deterministic
-  // Since we multiplied by 1000 (basis points) and weights sum to 1000, 
+  // Since we multiplied by 1000 (basis points) and weights sum to 1000,
   // the result is in basis points.
   return Number(weighted / 1000n);
 }
 
-export function ciqUplift(
-  baseline: number,
-  symbi: number
-): number {
-  if (baseline === 0) return 0;
+export function ciqUplift(baseline: number, symbi: number): number {
+  if (baseline === 0) {return 0;}
   const b = BigInt(baseline);
   const s = BigInt(symbi);
   // (s - b) * 100 / b with rounding

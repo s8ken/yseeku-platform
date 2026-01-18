@@ -13,7 +13,7 @@ export function getLedgerEntries(filter?: any): Promise<any[]> {
     // Mock ledger entries
     const entries = [
       { id: '1', timestamp: new Date(), type: 'AGENT_CREATED', data: {} },
-      { id: '2', timestamp: new Date(), type: 'WORKFLOW_STARTED', data: {} }
+      { id: '2', timestamp: new Date(), type: 'WORKFLOW_STARTED', data: {} },
     ];
     resolve(entries);
   });

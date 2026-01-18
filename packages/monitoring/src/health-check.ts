@@ -1,16 +1,11 @@
 /**
  * Comprehensive Health Check System
- * 
- * Provides deep health monitoring with dependency checks, 
+ *
+ * Provides deep health monitoring with dependency checks,
  * circuit breakers, and automated recovery suggestions
  */
 
-import {
-  SystemError,
-  NetworkError,
-  DatabaseError,
-  CryptographicError
-} from '@sonate/core/errors';
+import { SystemError, NetworkError, DatabaseError, CryptographicError } from '@sonate/core/errors';
 
 export interface HealthCheck {
   id: string;
@@ -96,7 +91,7 @@ export class HealthCheckSystem {
       interval: 30000, // 30 seconds
       consecutiveFailures: 0,
       maxConsecutiveFailures: 3,
-      critical: true
+      critical: true,
     });
 
     // Redis cache health check
@@ -110,7 +105,7 @@ export class HealthCheckSystem {
       interval: 30000,
       consecutiveFailures: 0,
       maxConsecutiveFailures: 5,
-      critical: false
+      critical: false,
     });
 
     // API Gateway health check
@@ -124,7 +119,7 @@ export class HealthCheckSystem {
       interval: 15000, // 15 seconds
       consecutiveFailures: 0,
       maxConsecutiveFailures: 2,
-      critical: true
+      critical: true,
     });
 
     // Trust Protocol service health check
@@ -138,7 +133,7 @@ export class HealthCheckSystem {
       interval: 30000,
       consecutiveFailures: 0,
       maxConsecutiveFailures: 3,
-      critical: true
+      critical: true,
     });
 
     // Detect service health check
@@ -152,7 +147,7 @@ export class HealthCheckSystem {
       interval: 30000,
       consecutiveFailures: 0,
       maxConsecutiveFailures: 3,
-      critical: true
+      critical: true,
     });
 
     // HSM health check
@@ -166,7 +161,7 @@ export class HealthCheckSystem {
       interval: 60000, // 1 minute
       consecutiveFailures: 0,
       maxConsecutiveFailures: 2,
-      critical: true
+      critical: true,
     });
 
     // File system health check
@@ -180,7 +175,7 @@ export class HealthCheckSystem {
       interval: 60000,
       consecutiveFailures: 0,
       maxConsecutiveFailures: 3,
-      critical: false
+      critical: false,
     });
 
     // Memory health check
@@ -194,7 +189,7 @@ export class HealthCheckSystem {
       interval: 30000,
       consecutiveFailures: 0,
       maxConsecutiveFailures: 5,
-      critical: false
+      critical: false,
     });
 
     // CPU health check
@@ -208,7 +203,7 @@ export class HealthCheckSystem {
       interval: 30000,
       consecutiveFailures: 0,
       maxConsecutiveFailures: 5,
-      critical: false
+      critical: false,
     });
 
     // Network connectivity check
@@ -222,7 +217,7 @@ export class HealthCheckSystem {
       interval: 60000,
       consecutiveFailures: 0,
       maxConsecutiveFailures: 3,
-      critical: false
+      critical: false,
     });
   }
 
@@ -233,19 +228,19 @@ export class HealthCheckSystem {
     this.circuitBreakers.set('database', {
       failureThreshold: 5,
       timeout: 60000, // 1 minute
-      halfOpenAttempts: 2
+      halfOpenAttempts: 2,
     });
 
     this.circuitBreakers.set('redis', {
       failureThreshold: 10,
       timeout: 30000, // 30 seconds
-      halfOpenAttempts: 3
+      halfOpenAttempts: 3,
     });
 
     this.circuitBreakers.set('api_gateway', {
       failureThreshold: 3,
       timeout: 30000,
-      halfOpenAttempts: 1
+      halfOpenAttempts: 1,
     });
   }
 
@@ -254,7 +249,7 @@ export class HealthCheckSystem {
    */
   addCheck(check: HealthCheck): void {
     this.checks.set(check.id, check);
-    
+
     // Start periodic check if enabled
     if (check.enabled) {
       this.startPeriodicCheck(check.id);
@@ -266,7 +261,7 @@ export class HealthCheckSystem {
    */
   private startPeriodicCheck(checkId: string): void {
     const check = this.checks.get(checkId);
-    if (!check) return;
+    if (!check) {return;}
 
     // Clear existing interval
     const existingInterval = this.checkIntervals.get(checkId);
@@ -307,10 +302,7 @@ export class HealthCheckSystem {
 
     try {
       // Run check with timeout
-      result = await Promise.race([
-        check.checkFunction(),
-        this.createTimeoutResult(check.timeout)
-      ]);
+      result = await Promise.race([check.checkFunction(), this.createTimeoutResult(check.timeout)]);
 
       result.duration = Date.now() - startTime;
       result.timestamp = Date.now();
@@ -331,16 +323,15 @@ export class HealthCheckSystem {
         }
         result.recommendations.push('Wait for circuit breaker timeout before retrying');
       }
-
     } catch (error) {
       check.consecutiveFailures++;
-      
+
       result = {
         status: 'unhealthy',
         timestamp: Date.now(),
         duration: Date.now() - startTime,
         message: `Health check failed: ${error.message}`,
-        recommendations: ['Review error logs and system status']
+        recommendations: ['Review error logs and system status'],
       };
 
       // Update circuit breaker
@@ -359,14 +350,14 @@ export class HealthCheckSystem {
    */
   private async checkDatabase(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       // In production, this would query the database
       // For now, we'll simulate
       await this.sleep(100);
-      
+
       const latency = Date.now() - startTime;
-      
+
       return {
         status: latency < 100 ? 'healthy' : 'degraded',
         timestamp: Date.now(),
@@ -375,7 +366,7 @@ export class HealthCheckSystem {
         details: {
           latency,
           connectionPool: 'active',
-          queryPerformance: 'normal'
+          queryPerformance: 'normal',
         },
         dependencies: [
           {
@@ -383,9 +374,9 @@ export class HealthCheckSystem {
             type: 'database',
             status: 'available',
             latency,
-            metadata: { queriesPerSecond: 1000 }
-          }
-        ]
+            metadata: { queriesPerSecond: 1000 },
+          },
+        ],
       };
     } catch (error) {
       throw new DatabaseError('Database health check failed');
@@ -397,12 +388,12 @@ export class HealthCheckSystem {
    */
   private async checkRedis(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       await this.sleep(50);
-      
+
       const latency = Date.now() - startTime;
-      
+
       return {
         status: latency < 50 ? 'healthy' : 'degraded',
         timestamp: Date.now(),
@@ -411,7 +402,7 @@ export class HealthCheckSystem {
         details: {
           latency,
           memoryUsage: 'normal',
-          hitRate: 0.95
+          hitRate: 0.95,
         },
         dependencies: [
           {
@@ -419,9 +410,9 @@ export class HealthCheckSystem {
             type: 'cache',
             status: 'available',
             latency,
-            metadata: { hitRate: 0.95, memoryUsage: '45%' }
-          }
-        ]
+            metadata: { hitRate: 0.95, memoryUsage: '45%' },
+          },
+        ],
       };
     } catch (error) {
       throw new NetworkError('Redis health check failed');
@@ -433,12 +424,12 @@ export class HealthCheckSystem {
    */
   private async checkAPIGateway(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       await this.sleep(80);
-      
+
       const latency = Date.now() - startTime;
-      
+
       return {
         status: latency < 200 ? 'healthy' : 'degraded',
         timestamp: Date.now(),
@@ -447,7 +438,7 @@ export class HealthCheckSystem {
         details: {
           latency,
           activeConnections: 50,
-          requestRate: 1000
+          requestRate: 1000,
         },
         dependencies: [
           {
@@ -455,9 +446,9 @@ export class HealthCheckSystem {
             type: 'service',
             status: 'available',
             latency,
-            metadata: { activeConnections: 50, requestRate: 1000 }
-          }
-        ]
+            metadata: { activeConnections: 50, requestRate: 1000 },
+          },
+        ],
       };
     } catch (error) {
       throw new NetworkError('API Gateway health check failed');
@@ -469,12 +460,12 @@ export class HealthCheckSystem {
    */
   private async checkTrustProtocol(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       await this.sleep(60);
-      
+
       const latency = Date.now() - startTime;
-      
+
       return {
         status: latency < 100 ? 'healthy' : 'degraded',
         timestamp: Date.now(),
@@ -483,8 +474,8 @@ export class HealthCheckSystem {
         details: {
           latency,
           activeSessions: 100,
-          trustScoresCalculated: 500
-        }
+          trustScoresCalculated: 500,
+        },
       };
     } catch (error) {
       throw new SystemError('Trust Protocol health check failed');
@@ -496,12 +487,12 @@ export class HealthCheckSystem {
    */
   private async checkDetectService(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       await this.sleep(120);
-      
+
       const latency = Date.now() - startTime;
-      
+
       return {
         status: latency < 200 ? 'healthy' : 'degraded',
         timestamp: Date.now(),
@@ -510,8 +501,8 @@ export class HealthCheckSystem {
         details: {
           latency,
           activeDetections: 50,
-          modelVersion: '1.4.0'
-        }
+          modelVersion: '1.4.0',
+        },
       };
     } catch (error) {
       throw new SystemError('Detection service health check failed');
@@ -523,12 +514,12 @@ export class HealthCheckSystem {
    */
   private async checkHSM(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       await this.sleep(80);
-      
+
       const latency = Date.now() - startTime;
-      
+
       return {
         status: latency < 150 ? 'healthy' : 'degraded',
         timestamp: Date.now(),
@@ -537,8 +528,8 @@ export class HealthCheckSystem {
         details: {
           latency,
           keysManaged: 100,
-          signatureOperations: 500
-        }
+          signatureOperations: 500,
+        },
       };
     } catch (error) {
       throw new CryptographicError('HSM health check failed');
@@ -550,12 +541,12 @@ export class HealthCheckSystem {
    */
   private async checkFileSystem(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       await this.sleep(30);
-      
+
       const latency = Date.now() - startTime;
-      
+
       return {
         status: 'healthy',
         timestamp: Date.now(),
@@ -565,8 +556,8 @@ export class HealthCheckSystem {
           latency,
           diskUsage: '45%',
           availableSpace: '550GB',
-          iops: 'normal'
-        }
+          iops: 'normal',
+        },
       };
     } catch (error) {
       throw new SystemError('File system health check failed');
@@ -578,14 +569,14 @@ export class HealthCheckSystem {
    */
   private async checkMemory(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       await this.sleep(20);
-      
+
       const latency = Date.now() - startTime;
       const memoryUsage = process.memoryUsage();
       const usedPercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
-      
+
       return {
         status: usedPercent < 80 ? 'healthy' : usedPercent < 90 ? 'degraded' : 'unhealthy',
         timestamp: Date.now(),
@@ -595,9 +586,9 @@ export class HealthCheckSystem {
           latency,
           heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)}MB`,
           heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)}MB`,
-          usedPercent
+          usedPercent,
         },
-        recommendations: usedPercent > 80 ? ['Monitor memory usage closely'] : []
+        recommendations: usedPercent > 80 ? ['Monitor memory usage closely'] : [],
       };
     } catch (error) {
       throw new SystemError('Memory health check failed');
@@ -609,14 +600,14 @@ export class HealthCheckSystem {
    */
   private async checkCPU(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       await this.sleep(20);
-      
+
       const latency = Date.now() - startTime;
       // In production, this would get actual CPU usage
       const cpuUsage = 45;
-      
+
       return {
         status: cpuUsage < 70 ? 'healthy' : cpuUsage < 90 ? 'degraded' : 'unhealthy',
         timestamp: Date.now(),
@@ -625,9 +616,9 @@ export class HealthCheckSystem {
         details: {
           latency,
           cpuUsage,
-          loadAverage: [1.5, 2.0, 2.2]
+          loadAverage: [1.5, 2.0, 2.2],
         },
-        recommendations: cpuUsage > 70 ? ['Consider scaling up'] : []
+        recommendations: cpuUsage > 70 ? ['Consider scaling up'] : [],
       };
     } catch (error) {
       throw new SystemError('CPU health check failed');
@@ -639,12 +630,12 @@ export class HealthCheckSystem {
    */
   private async checkNetwork(): Promise<HealthCheckResult> {
     const startTime = Date.now();
-    
+
     try {
       await this.sleep(50);
-      
+
       const latency = Date.now() - startTime;
-      
+
       return {
         status: latency < 100 ? 'healthy' : 'degraded',
         timestamp: Date.now(),
@@ -653,8 +644,8 @@ export class HealthCheckSystem {
         details: {
           latency,
           packetLoss: 0,
-          bandwidth: '1Gbps'
-        }
+          bandwidth: '1Gbps',
+        },
       };
     } catch (error) {
       throw new NetworkError('Network health check failed');
@@ -704,8 +695,7 @@ export class HealthCheckSystem {
       .map(([checkId, _]) => checkId);
 
     // Collect recommendations
-    const recommendations = Object.values(checks)
-      .flatMap(result => result.recommendations || []);
+    const recommendations = Object.values(checks).flatMap((result) => result.recommendations || []);
 
     const report: HealthReport = {
       overallStatus,
@@ -716,10 +706,10 @@ export class HealthCheckSystem {
         healthy: totalHealthy,
         degraded: totalDegraded,
         unhealthy: totalUnhealthy,
-        criticalFailures: criticalFailures.length
+        criticalFailures: criticalFailures.length,
       },
       affectedSystems,
-      recommendations
+      recommendations,
     };
 
     // Store in history
@@ -737,7 +727,7 @@ export class HealthCheckSystem {
   private isCircuitOpen(checkId: string): boolean {
     const check = this.checks.get(checkId);
     const config = this.circuitBreakers.get(checkId);
-    
+
     if (!check || !config) {
       return false;
     }
@@ -751,7 +741,7 @@ export class HealthCheckSystem {
   private updateCircuitBreaker(checkId: string, success: boolean): void {
     const check = this.checks.get(checkId);
     const config = this.circuitBreakers.get(checkId);
-    
+
     if (!check || !config) {
       return;
     }
@@ -762,7 +752,7 @@ export class HealthCheckSystem {
     } else if (check.consecutiveFailures >= config.failureThreshold) {
       // Failure threshold reached: open circuit breaker
       console.log(`Circuit breaker opened for ${checkId}`);
-      
+
       // Schedule circuit breaker reset
       setTimeout(() => {
         check.consecutiveFailures = config.halfOpenAttempts;
@@ -776,13 +766,13 @@ export class HealthCheckSystem {
    */
   private async createTimeoutResult(timeout: number): Promise<HealthCheckResult> {
     await this.sleep(timeout);
-    
+
     return {
       status: 'unhealthy',
       timestamp: Date.now(),
       duration: timeout,
       message: `Health check timed out after ${timeout}ms`,
-      recommendations: ['Increase timeout or investigate performance issues']
+      recommendations: ['Increase timeout or investigate performance issues'],
     };
   }
 
@@ -790,7 +780,7 @@ export class HealthCheckSystem {
    * Sleep utility
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**

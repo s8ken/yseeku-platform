@@ -4,7 +4,7 @@ export class EthicalRuntimeGuard {
     return {
       passed: true,
       reason: 'ethical_floor_passed',
-      adjustmentFactor: 1.0
+      adjustmentFactor: 1.0,
     };
   }
 }

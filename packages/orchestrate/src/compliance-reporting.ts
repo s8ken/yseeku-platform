@@ -4,6 +4,7 @@
  */
 
 import { EventEmitter } from 'events';
+
 import { EnterpriseIntegration } from './enterprise-integration';
 import { MultiTenantIsolation } from './multi-tenant-isolation';
 
@@ -135,11 +136,11 @@ export class ComplianceReporting extends EventEmitter {
       averageScore: 0,
       trends: {
         monthly: [],
-        quarterly: []
+        quarterly: [],
       },
       criticalIssues: 0,
       resolvedIssues: 0,
-      averageResolutionTime: 0
+      averageResolutionTime: 0,
     };
   }
 
@@ -153,7 +154,8 @@ export class ComplianceReporting extends EventEmitter {
         {
           id: 'GDPR-001',
           category: 'Data Protection',
-          description: 'Personal data shall be processed lawfully, fairly and in a transparent manner',
+          description:
+            'Personal data shall be processed lawfully, fairly and in a transparent manner',
           mandatory: true,
           controls: [
             {
@@ -163,11 +165,11 @@ export class ComplianceReporting extends EventEmitter {
               implementation: 'Legal basis documented in privacy policy',
               testing: 'Review privacy policy quarterly',
               frequency: 'quarterly',
-              automated: false
-            }
+              automated: false,
+            },
           ],
           evidence: [],
-          status: 'not-assessed'
+          status: 'not-assessed',
         },
         {
           id: 'GDPR-002',
@@ -182,13 +184,13 @@ export class ComplianceReporting extends EventEmitter {
               implementation: 'AES-256 encryption for all data',
               testing: 'Automated encryption verification',
               frequency: 'continuous',
-              automated: true
-            }
+              automated: true,
+            },
           ],
           evidence: [],
-          status: 'not-assessed'
-        }
-      ]
+          status: 'not-assessed',
+        },
+      ],
     };
 
     // SOC 2 Framework
@@ -210,11 +212,11 @@ export class ComplianceReporting extends EventEmitter {
               implementation: 'MFA and RBAC implemented',
               testing: 'Access review monthly',
               frequency: 'monthly',
-              automated: true
-            }
+              automated: true,
+            },
           ],
           evidence: [],
-          status: 'not-assessed'
+          status: 'not-assessed',
         },
         {
           id: 'SOC2-002',
@@ -229,13 +231,13 @@ export class ComplianceReporting extends EventEmitter {
               implementation: 'Load balancer and failover systems',
               testing: 'Disaster recovery tests quarterly',
               frequency: 'quarterly',
-              automated: true
-            }
+              automated: true,
+            },
           ],
           evidence: [],
-          status: 'not-assessed'
-        }
-      ]
+          status: 'not-assessed',
+        },
+      ],
     };
 
     // ISO 27001 Framework
@@ -257,13 +259,13 @@ export class ComplianceReporting extends EventEmitter {
               implementation: 'Security policy documented and approved',
               testing: 'Policy review annually',
               frequency: 'annually',
-              automated: false
-            }
+              automated: false,
+            },
           ],
           evidence: [],
-          status: 'not-assessed'
-        }
-      ]
+          status: 'not-assessed',
+        },
+      ],
     };
 
     this.frameworks.set('GDPR', gdpr);
@@ -311,7 +313,7 @@ export class ComplianceReporting extends EventEmitter {
       recommendations,
       generatedAt: new Date(),
       generatedBy: 'system',
-      status: 'draft'
+      status: 'draft',
     };
 
     // Store report
@@ -347,7 +349,7 @@ export class ComplianceReporting extends EventEmitter {
     console.log(`🔍 Assessing requirement: ${requirement.id}`);
 
     const assessedRequirement = { ...requirement };
-    
+
     // Collect evidence for each control
     for (const control of requirement.controls) {
       const evidence = await this.collectEvidence(control, tenantId, period);
@@ -398,9 +400,9 @@ export class ComplianceReporting extends EventEmitter {
           encryptionStatus: 'active',
           algorithm: 'AES-256',
           keyRotation: 'current',
-          compliance: true
+          compliance: true,
         },
-        verified: true
+        verified: true,
       });
     }
 
@@ -415,9 +417,9 @@ export class ComplianceReporting extends EventEmitter {
           rbacActive: true,
           failedAttempts: 3,
           lastReview: new Date(),
-          compliance: true
+          compliance: true,
         },
-        verified: true
+        verified: true,
       });
     }
 
@@ -433,9 +435,9 @@ export class ComplianceReporting extends EventEmitter {
           slaMet: uptime >= 99.9,
           downtime: (100 - uptime) * 0.01,
           incidents: 0,
-          compliance: uptime >= 99.9
+          compliance: uptime >= 99.9,
         },
-        verified: true
+        verified: true,
       });
     }
 
@@ -462,17 +464,19 @@ export class ComplianceReporting extends EventEmitter {
           version: '2.1',
           approvedDate: new Date('2024-01-15'),
           nextReview: new Date('2025-01-15'),
-          compliance: true
+          compliance: true,
         },
-        verified: true
+        verified: true,
       });
     }
 
     return evidence;
   }
 
-  private determineComplianceStatus(requirement: ComplianceRequirement): ComplianceRequirement['status'] {
-    const verifiedEvidence = requirement.evidence.filter(e => e.verified && e.data.compliance);
+  private determineComplianceStatus(
+    requirement: ComplianceRequirement
+  ): ComplianceRequirement['status'] {
+    const verifiedEvidence = requirement.evidence.filter((e) => e.verified && e.data.compliance);
     const totalControls = requirement.controls.length;
     const compliantControls = verifiedEvidence.length;
 
@@ -480,9 +484,9 @@ export class ComplianceReporting extends EventEmitter {
       return 'compliant';
     } else if (compliantControls === 0) {
       return 'non-compliant';
-    } else {
+    } 
       return 'partial';
-    }
+    
   }
 
   private createSections(requirements: ComplianceRequirement[]): ComplianceSection[] {
@@ -507,7 +511,7 @@ export class ComplianceReporting extends EventEmitter {
         category,
         requirements: categoryRequirements,
         score,
-        findings
+        findings,
       });
     }
 
@@ -516,10 +520,10 @@ export class ComplianceReporting extends EventEmitter {
 
   private calculateSectionScore(requirements: ComplianceRequirement[]): number {
     const statusScores = {
-      'compliant': 100,
-      'partial': 50,
+      compliant: 100,
+      partial: 50,
       'non-compliant': 0,
-      'not-assessed': 25
+      'not-assessed': 25,
     };
 
     const totalScore = requirements.reduce((sum, req) => {
@@ -534,8 +538,8 @@ export class ComplianceReporting extends EventEmitter {
 
     for (const requirement of requirements) {
       if (requirement.status === 'non-compliant' || requirement.status === 'partial') {
-        const nonCompliantEvidence = requirement.evidence.filter(e => !e.data.compliance);
-        
+        const nonCompliantEvidence = requirement.evidence.filter((e) => !e.data.compliance);
+
         for (const evidence of nonCompliantEvidence) {
           findings.push({
             id: `finding_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -545,7 +549,7 @@ export class ComplianceReporting extends EventEmitter {
             evidence: [evidence.id],
             recommendation: `Implement required controls for ${requirement.category}`,
             dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-            status: 'open'
+            status: 'open',
           });
         }
       }
@@ -555,12 +559,13 @@ export class ComplianceReporting extends EventEmitter {
   }
 
   private calculateSummary(requirements: ComplianceRequirement[]) {
-    const compliant = requirements.filter(r => r.status === 'compliant').length;
+    const compliant = requirements.filter((r) => r.status === 'compliant').length;
     const total = requirements.length;
     const overallScore = Math.round((compliant / total) * 100);
 
-    const findingsCount = requirements.reduce((acc, r) => 
-      acc + r.evidence.filter(e => !e.data.compliance).length, 0
+    const findingsCount = requirements.reduce(
+      (acc, r) => acc + r.evidence.filter((e) => !e.data.compliance).length,
+      0
     );
 
     return {
@@ -570,7 +575,7 @@ export class ComplianceReporting extends EventEmitter {
       criticalFindings: 0,
       highFindings: Math.floor(findingsCount * 0.3),
       mediumFindings: Math.floor(findingsCount * 0.5),
-      lowFindings: Math.floor(findingsCount * 0.2)
+      lowFindings: Math.floor(findingsCount * 0.2),
     };
   }
 
@@ -590,7 +595,7 @@ export class ComplianceReporting extends EventEmitter {
         effort: 'medium',
         impact: 'high',
         timeline: '30 days',
-        dependencies: []
+        dependencies: [],
       });
     }
 
@@ -603,7 +608,7 @@ export class ComplianceReporting extends EventEmitter {
         effort: 'high',
         impact: 'high',
         timeline: '90 days',
-        dependencies: ['management-approval', 'budget-allocation']
+        dependencies: ['management-approval', 'budget-allocation'],
       });
     }
 
@@ -617,7 +622,8 @@ export class ComplianceReporting extends EventEmitter {
     this.metrics.reportsByFramework = {};
     for (const report of this.reports) {
       const framework = report.framework.name;
-      this.metrics.reportsByFramework[framework] = (this.metrics.reportsByFramework[framework] || 0) + 1;
+      this.metrics.reportsByFramework[framework] =
+        (this.metrics.reportsByFramework[framework] || 0) + 1;
     }
 
     // Update status breakdown
@@ -629,7 +635,8 @@ export class ComplianceReporting extends EventEmitter {
 
     // Calculate average score
     const totalScore = this.reports.reduce((sum, report) => sum + report.summary.overallScore, 0);
-    this.metrics.averageScore = this.reports.length > 0 ? Math.round(totalScore / this.reports.length) : 0;
+    this.metrics.averageScore =
+      this.reports.length > 0 ? Math.round(totalScore / this.reports.length) : 0;
 
     // Calculate trends
     this.calculateTrends();
@@ -646,10 +653,10 @@ export class ComplianceReporting extends EventEmitter {
       const date = new Date();
       date.setMonth(date.getMonth() - i);
       const monthKey = date.toISOString().slice(0, 7);
-      
+
       monthlyData.push({
         month: monthKey,
-        score: 85 + Math.random() * 15
+        score: 85 + Math.random() * 15,
       });
     }
 
@@ -658,15 +665,15 @@ export class ComplianceReporting extends EventEmitter {
   }
 
   getReport(reportId: string): ComplianceReport | undefined {
-    return this.reports.find(r => r.id === reportId);
+    return this.reports.find((r) => r.id === reportId);
   }
 
   getReportsByTenant(tenantId: string): ComplianceReport[] {
-    return this.reports.filter(r => r.tenantId === tenantId);
+    return this.reports.filter((r) => r.tenantId === tenantId);
   }
 
   getReportsByFramework(frameworkName: string): ComplianceReport[] {
-    return this.reports.filter(r => r.framework.name === frameworkName);
+    return this.reports.filter((r) => r.framework.name === frameworkName);
   }
 
   async approveReport(reportId: string, approvedBy: string): Promise<void> {
@@ -680,7 +687,7 @@ export class ComplianceReporting extends EventEmitter {
     }
 
     report.status = 'approved';
-    
+
     // Log approval
     console.log(`✅ Compliance report ${reportId} approved by ${approvedBy}`);
     this.emit('reportApproved', { reportId, approvedBy, report });
@@ -697,7 +704,7 @@ export class ComplianceReporting extends EventEmitter {
     }
 
     report.status = 'submitted';
-    
+
     // Log submission
     console.log(`📤 Compliance report ${reportId} submitted to regulatory authorities`);
     this.emit('reportSubmitted', { reportId, report });

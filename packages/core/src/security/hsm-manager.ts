@@ -1,12 +1,11 @@
 /**
  * Hardware Security Module (HSM) Integration
- * 
+ *
  * Provides enterprise-grade key management with HSM support
  * Fallback to software-based management when HSM is unavailable
  */
 
-import { createHash } from 'crypto';
-import crypto from 'crypto';
+import crypto, { createHash } from 'crypto';
 
 export interface HSMConfig {
   enabled: boolean;
@@ -106,11 +105,11 @@ export class HSMManager {
     // In production, this would use the AWS CloudHSM SDK
     // For now, we'll simulate the interface
     console.log('Initializing AWS CloudHSM...');
-    
+
     if (!this.config.credentials?.accessKeyId || !this.config.credentials?.secretAccessKey) {
       throw new Error('AWS credentials required for CloudHSM');
     }
-    
+
     // Validate connection
     await this.validateAWSConnection();
   }
@@ -120,11 +119,15 @@ export class HSMManager {
    */
   private async initializeAzureKeyVault(): Promise<void> {
     console.log('Initializing Azure Key Vault...');
-    
-    if (!this.config.credentials?.clientId || !this.config.credentials?.clientSecret || !this.config.credentials?.tenantId) {
+
+    if (
+      !this.config.credentials?.clientId ||
+      !this.config.credentials?.clientSecret ||
+      !this.config.credentials?.tenantId
+    ) {
       throw new Error('Azure credentials required for Key Vault');
     }
-    
+
     // Validate connection
     await this.validateAzureConnection();
   }
@@ -134,11 +137,11 @@ export class HSMManager {
    */
   private async initializeGCPKMS(): Promise<void> {
     console.log('Initializing GCP KMS...');
-    
+
     if (!this.config.credentials?.keyId) {
       throw new Error('GCP key credentials required for KMS');
     }
-    
+
     // Validate connection
     await this.validateGCPConnection();
   }
@@ -181,15 +184,15 @@ export class HSMManager {
    */
   async generateKeyPair(keyId?: string): Promise<KeyPair> {
     const generatedKeyId = keyId || `key_${Date.now()}_${crypto.randomUUID()}`;
-    
+
     let keyPair: KeyPair;
-    
+
     if (this.config.enabled && this.config.provider !== 'none') {
       keyPair = await this.generateKeyPairInHSM(generatedKeyId);
     } else {
       keyPair = this.generateKeyPairSoftware(generatedKeyId);
     }
-    
+
     // Store metadata
     this.keyMetadata.set(generatedKeyId, {
       keyId: generatedKeyId,
@@ -198,12 +201,12 @@ export class HSMManager {
       createdAt: Date.now(),
       lastRotated: Date.now(),
       rotationSchedule: this.config.keyRotationDays || 90,
-      status: 'active'
+      status: 'active',
     });
-    
+
     // Cache public key
     this.keyCache.set(generatedKeyId, keyPair);
-    
+
     return keyPair;
   }
 
@@ -232,13 +235,13 @@ export class HSMManager {
     // In production, this would call AWS CloudHSM SDK
     // For now, generate software keys
     const softwarePair = this.generateKeyPairSoftware(keyId);
-    
+
     // Store private key securely (in production, this would be in HSM)
     // For this demo, we'll just return the public key
     return {
       publicKey: softwarePair.publicKey,
       privateKey: undefined, // Private key stays in HSM
-      keyId
+      keyId,
     };
   }
 
@@ -251,7 +254,7 @@ export class HSMManager {
     return {
       publicKey: softwarePair.publicKey,
       privateKey: undefined,
-      keyId
+      keyId,
     };
   }
 
@@ -264,7 +267,7 @@ export class HSMManager {
     return {
       publicKey: softwarePair.publicKey,
       privateKey: undefined,
-      keyId
+      keyId,
     };
   }
 
@@ -275,11 +278,11 @@ export class HSMManager {
     const ed25519 = require('@noble/ed25519');
     const privateKey = ed25519.utils.randomPrivateKey();
     const publicKey = ed25519.getPublicKey(privateKey);
-    
+
     return {
       publicKey,
       privateKey,
-      keyId
+      keyId,
     };
   }
 
@@ -291,9 +294,9 @@ export class HSMManager {
     if (!keyPair) {
       throw new Error(`Key ${keyId} not found`);
     }
-    
+
     let signature: Uint8Array;
-    
+
     if (this.config.enabled && this.config.provider !== 'none') {
       signature = await this.signInHSM(keyId, message);
     } else if (keyPair.privateKey) {
@@ -301,11 +304,11 @@ export class HSMManager {
     } else {
       throw new Error('Private key not available for signing');
     }
-    
+
     return {
       signature,
       keyId,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -368,14 +371,14 @@ export class HSMManager {
     if (!keyPair) {
       throw new Error(`Key ${keyId} not found`);
     }
-    
+
     const ed25519 = require('@noble/ed25519');
     const valid = await ed25519.verify(signature, message, keyPair.publicKey);
-    
+
     return {
       valid,
       keyId,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -387,16 +390,16 @@ export class HSMManager {
     if (!metadata) {
       throw new Error(`Key ${keyId} not found`);
     }
-    
+
     console.log(`Rotating key ${keyId}...`);
-    
+
     // Generate new key
     const newKeyId = `${keyId}_rotated_${Date.now()}`;
     const newKeyPair = await this.generateKeyPair(newKeyId);
-    
+
     // Mark old key as deprecated
     metadata.status = 'deprecated';
-    
+
     return newKeyPair;
   }
 
@@ -406,11 +409,11 @@ export class HSMManager {
   private startRotationSchedule(): void {
     const rotationDays = this.config.keyRotationDays || 90;
     const rotationInterval = rotationDays * 24 * 60 * 60 * 1000;
-    
+
     this.rotationTimer = setInterval(async () => {
       await this.rotateAllKeys();
     }, rotationInterval);
-    
+
     console.log(`Key rotation schedule started: every ${rotationDays} days`);
   }
 
@@ -420,9 +423,9 @@ export class HSMManager {
   private async rotateAllKeys(): Promise<void> {
     const now = Date.now();
     const rotationMs = (this.config.keyRotationDays || 90) * 24 * 60 * 60 * 1000;
-    
+
     for (const [keyId, metadata] of this.keyMetadata.entries()) {
-      if (metadata.status === 'active' && (now - metadata.lastRotated) > rotationMs) {
+      if (metadata.status === 'active' && now - metadata.lastRotated > rotationMs) {
         console.log(`Rotating key ${keyId} due for rotation...`);
         await this.rotateKey(keyId);
       }
@@ -451,13 +454,13 @@ export class HSMManager {
     if (!metadata) {
       throw new Error(`Key ${keyId} not found`);
     }
-    
+
     // Mark as revoked
     metadata.status = 'revoked';
-    
+
     // Remove from cache
     this.keyCache.delete(keyId);
-    
+
     // In HSM, this would also delete from the HSM
     console.log(`Key ${keyId} marked as revoked`);
   }
@@ -470,7 +473,7 @@ export class HSMManager {
     if (!keyPair) {
       throw new Error(`Key ${keyId} not found`);
     }
-    
+
     return keyPair.publicKey;
   }
 
@@ -486,9 +489,10 @@ export class HSMManager {
     rotationSchedule: string;
   }> {
     const totalKeys = this.keyMetadata.size;
-    const activeKeys = Array.from(this.keyMetadata.values())
-      .filter(k => k.status === 'active').length;
-    
+    const activeKeys = Array.from(this.keyMetadata.values()).filter(
+      (k) => k.status === 'active'
+    ).length;
+
     let status: 'healthy' | 'degraded' | 'unhealthy';
     if (this.config.enabled && this.config.provider !== 'none') {
       status = 'healthy';
@@ -497,14 +501,14 @@ export class HSMManager {
     } else {
       status = 'unhealthy';
     }
-    
+
     return {
       status,
       hsmEnabled: this.config.enabled,
       hsmProvider: this.config.provider,
       totalKeys,
       activeKeys,
-      rotationSchedule: `${this.config.keyRotationDays || 90} days`
+      rotationSchedule: `${this.config.keyRotationDays || 90} days`,
     };
   }
 
@@ -515,10 +519,10 @@ export class HSMManager {
     if (this.rotationTimer) {
       clearInterval(this.rotationTimer);
     }
-    
+
     this.keyCache.clear();
     this.keyMetadata.clear();
-    
+
     console.log('HSM Manager shutdown complete');
   }
 
@@ -527,7 +531,7 @@ export class HSMManager {
    */
   private getPrivateKey(keyId: string): Uint8Array {
     const keyPair = this.keyCache.get(keyId);
-    if (!keyPair || !keyPair.privateKey) {
+    if (!keyPair?.privateKey) {
       throw new Error(`Private key not available for ${keyId}`);
     }
     return keyPair.privateKey;
@@ -541,12 +545,12 @@ export async function createHSMManager(config?: Partial<HSMConfig>): Promise<HSM
   const defaultConfig: HSMConfig = {
     enabled: false,
     provider: 'none',
-    keyRotationDays: 90
+    keyRotationDays: 90,
   };
-  
+
   const finalConfig = { ...defaultConfig, ...config };
   const manager = new HSMManager(finalConfig);
-  
+
   return manager;
 }
 
@@ -564,11 +568,11 @@ export function createHSMManagerFromEnv(): HSMManager {
       clientId: process.env.AZURE_CLIENT_ID,
       clientSecret: process.env.AZURE_CLIENT_SECRET,
       tenantId: process.env.AZURE_TENANT_ID,
-      keyId: process.env.GCP_KEY_ID
+      keyId: process.env.GCP_KEY_ID,
     },
     region: process.env.AWS_REGION || 'us-east-1',
-    keyRotationDays: parseInt(process.env.KEY_ROTATION_DAYS || '90')
+    keyRotationDays: parseInt(process.env.KEY_ROTATION_DAYS || '90'),
   };
-  
+
   return new HSMManager(config);
 }

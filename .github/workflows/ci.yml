@@ -21,6 +21,12 @@ jobs:
       - name: Install deps
         run: npm ci
 
+      - name: Format check
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
       - name: Unit tests (packages)
         run: npm run test
 

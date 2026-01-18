@@ -1,6 +1,8 @@
-import { initializeAuditLogger, DatabaseAuditStorage, InMemoryAuditStorage } from './audit';
 import { getPool, ensureSchema } from '@sonate/persistence';
+
 import { getLogger } from '../observability/logger';
+
+import { initializeAuditLogger, DatabaseAuditStorage, InMemoryAuditStorage } from './audit';
 
 const logger = getLogger('AuditInit');
 

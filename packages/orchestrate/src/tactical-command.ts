@@ -1,6 +1,6 @@
 /**
  * TacticalCommand - Real-time monitoring and control dashboard
- * 
+ *
  * Provides operational visibility into agent fleet:
  * - Agent status monitoring
  * - Workflow execution tracking
@@ -8,9 +8,10 @@
  * - Alert management
  */
 
-import { Workflow, TacticalDashboard, Alert } from './types';
-import { Agent } from './agent-types-enhanced';
 import { TrustProtocol } from '@sonate/core';
+
+import { Agent } from './agent-types-enhanced';
+import { Workflow, TacticalDashboard, Alert } from './types';
 
 export class TacticalCommand {
   private alerts: Alert[] = [];
@@ -24,12 +25,12 @@ export class TacticalCommand {
    * Get real-time dashboard
    */
   async getDashboard(agents: Map<string, Agent>): Promise<TacticalDashboard> {
-    const activeAgents = Array.from(agents.values()).filter(a => a.status === 'active').length;
+    const activeAgents = Array.from(agents.values()).filter((a) => a.status === 'active').length;
 
     return {
       active_agents: activeAgents,
       workflows_running: 0, // Updated by workflow engine
-      trust_score_avg: 0,   // Updated by trust scoring
+      trust_score_avg: 0, // Updated by trust scoring
       alerts: this.alerts.slice(-10), // Last 10 alerts
     };
   }
@@ -89,7 +90,7 @@ export class TacticalCommand {
    * Get alerts by severity
    */
   getAlertsBySeverity(severity: 'low' | 'medium' | 'high' | 'critical'): Alert[] {
-    return this.alerts.filter(a => a.severity === severity);
+    return this.alerts.filter((a) => a.severity === severity);
   }
 
   /**

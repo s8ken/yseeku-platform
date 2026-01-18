@@ -34,22 +34,33 @@ const defaultSymbiDimensions = {
   trust_protocol: 'PASS',
   ethical_alignment: 4.0,
   resonance_quality: 'STRONG',
-  canvas_parity: 85
+  canvas_parity: 85,
 };
 
 export async function createAgent(input: CreateAgentInput): Promise<Agent | null> {
   const pool = getPool();
-  if (!pool) return null;
-  
+  if (!pool) {return null;}
+
   const id = generateId();
   const now = new Date();
-  
+
   await pool.query(
     `INSERT INTO agents (id, name, type, status, trust_score, symbi_dimensions, last_interaction, interaction_count, tenant_id, created_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-    [id, input.name, input.type || 'general', 'active', 80, JSON.stringify(defaultSymbiDimensions), now, 0, input.tenant_id || null, now]
+    [
+      id,
+      input.name,
+      input.type || 'general',
+      'active',
+      80,
+      JSON.stringify(defaultSymbiDimensions),
+      now,
+      0,
+      input.tenant_id || null,
+      now,
+    ]
   );
-  
+
   return {
     id,
     name: input.name,
@@ -60,27 +71,27 @@ export async function createAgent(input: CreateAgentInput): Promise<Agent | null
     last_interaction: now,
     interaction_count: 0,
     tenant_id: input.tenant_id || null,
-    created_at: now
+    created_at: now,
   };
 }
 
 export async function getAgents(tenantId?: string): Promise<Agent[]> {
   const pool = getPool();
-  if (!pool) return [];
-  
+  if (!pool) {return [];}
+
   let query = `SELECT id, name, type, status, trust_score, symbi_dimensions, last_interaction, interaction_count, tenant_id, created_at 
                FROM agents`;
   const params: any[] = [];
-  
+
   if (tenantId) {
     query += ' WHERE tenant_id = $1';
     params.push(tenantId);
   }
-  
+
   query += ' ORDER BY created_at DESC';
-  
+
   const res = await pool.query(query, params);
-  
+
   return res.rows.map((row: any) => ({
     id: row.id,
     name: row.name,
@@ -91,22 +102,22 @@ export async function getAgents(tenantId?: string): Promise<Agent[]> {
     last_interaction: row.last_interaction,
     interaction_count: row.interaction_count,
     tenant_id: row.tenant_id,
-    created_at: row.created_at
+    created_at: row.created_at,
   }));
 }
 
 export async function getAgentById(id: string): Promise<Agent | null> {
   const pool = getPool();
-  if (!pool) return null;
-  
+  if (!pool) {return null;}
+
   const res = await pool.query(
     `SELECT id, name, type, status, trust_score, symbi_dimensions, last_interaction, interaction_count, tenant_id, created_at 
      FROM agents WHERE id = $1`,
     [id]
   );
-  
-  if (res.rows.length === 0) return null;
-  
+
+  if (res.rows.length === 0) {return null;}
+
   const row = res.rows[0];
   return {
     id: row.id,
@@ -118,18 +129,18 @@ export async function getAgentById(id: string): Promise<Agent | null> {
     last_interaction: row.last_interaction,
     interaction_count: row.interaction_count,
     tenant_id: row.tenant_id,
-    created_at: row.created_at
+    created_at: row.created_at,
   };
 }
 
 export async function updateAgent(id: string, updates: Partial<Agent>): Promise<Agent | null> {
   const pool = getPool();
-  if (!pool) return null;
-  
+  if (!pool) {return null;}
+
   const fields: string[] = [];
   const values: any[] = [];
   let idx = 1;
-  
+
   if (updates.name !== undefined) {
     fields.push(`name = $${idx++}`);
     values.push(updates.name);
@@ -154,43 +165,43 @@ export async function updateAgent(id: string, updates: Partial<Agent>): Promise<
     fields.push(`interaction_count = $${idx++}`);
     values.push(updates.interaction_count);
   }
-  
+
   fields.push(`last_interaction = $${idx++}`);
   values.push(new Date());
-  
-  if (fields.length === 0) return getAgentById(id);
-  
+
+  if (fields.length === 0) {return getAgentById(id);}
+
   values.push(id);
-  await pool.query(
-    `UPDATE agents SET ${fields.join(', ')} WHERE id = $${idx}`,
-    values
-  );
-  
+  await pool.query(`UPDATE agents SET ${fields.join(', ')} WHERE id = $${idx}`, values);
+
   return getAgentById(id);
 }
 
 export async function deleteAgent(id: string): Promise<boolean> {
   const pool = getPool();
-  if (!pool) return false;
-  
+  if (!pool) {return false;}
+
   const res = await pool.query('DELETE FROM agents WHERE id = $1', [id]);
   return res.rowCount > 0;
 }
 
-export async function recordInteraction(agentId: string, symbiDimensions?: Agent['symbi_dimensions']): Promise<void> {
+export async function recordInteraction(
+  agentId: string,
+  symbiDimensions?: Agent['symbi_dimensions']
+): Promise<void> {
   const pool = getPool();
-  if (!pool) return;
-  
-  const updates: string[] = ['interaction_count = interaction_count + 1', 'last_interaction = NOW()'];
+  if (!pool) {return;}
+
+  const updates: string[] = [
+    'interaction_count = interaction_count + 1',
+    'last_interaction = NOW()',
+  ];
   const values: any[] = [agentId];
-  
+
   if (symbiDimensions) {
     updates.push(`symbi_dimensions = $2`);
     values.push(JSON.stringify(symbiDimensions));
   }
-  
-  await pool.query(
-    `UPDATE agents SET ${updates.join(', ')} WHERE id = $1`,
-    values
-  );
+
+  await pool.query(`UPDATE agents SET ${updates.join(', ')} WHERE id = $1`, values);
 }

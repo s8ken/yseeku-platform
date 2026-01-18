@@ -40,7 +40,7 @@ export class ResonanceClient {
       const response = await axios.post(`${this.engineUrl}/v1/analyze`, {
         user_input: data.user_input,
         ai_response: data.ai_response,
-        history: data.history || []
+        history: data.history || [],
       });
 
       return response.data;

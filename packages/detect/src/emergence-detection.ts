@@ -14,12 +14,16 @@ export function detectEmergence(result: AssessmentResult): EmergenceSignal {
   const realityStrong = a.realityIndex.score >= 8.0;
   const trustPass = a.trustProtocol.status === 'PASS';
 
-  if (creativityHigh) reasons.push('High creativity');
-  if (innovationHigh) reasons.push('High innovation');
-  if (realityStrong) reasons.push('Strong reality grounding');
-  if (trustPass) reasons.push('Trust protocol pass');
+  if (creativityHigh) {reasons.push('High creativity');}
+  if (innovationHigh) {reasons.push('High innovation');}
+  if (realityStrong) {reasons.push('Strong reality grounding');}
+  if (trustPass) {reasons.push('Trust protocol pass');}
 
-  const score = (creativityHigh ? 1 : 0) + (innovationHigh ? 1 : 0) + (realityStrong ? 1 : 0) + (trustPass ? 1 : 0);
+  const score =
+    (creativityHigh ? 1 : 0) +
+    (innovationHigh ? 1 : 0) +
+    (realityStrong ? 1 : 0) +
+    (trustPass ? 1 : 0);
   const level = score >= 4 ? 'strong' : score === 3 ? 'moderate' : score === 2 ? 'weak' : 'none';
   return { level, reasons };
 }

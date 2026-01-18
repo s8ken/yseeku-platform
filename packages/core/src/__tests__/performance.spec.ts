@@ -1,18 +1,28 @@
-import { PerformanceTimer, timeAsync, getMemoryUsage, getCPUUsage, PerformanceBenchmark } from '../monitoring/performance';
+import {
+  PerformanceTimer,
+  timeAsync,
+  getMemoryUsage,
+  getCPUUsage,
+  PerformanceBenchmark,
+} from '../monitoring/performance';
 
 describe('Performance utilities', () => {
   test('PerformanceTimer measures duration and returns seconds', async () => {
     const timer = new PerformanceTimer('unit_test_operation', { unit: 'test' });
-    await new Promise(res => setTimeout(res, 10));
+    await new Promise((res) => setTimeout(res, 10));
     const duration = timer.end();
     expect(duration).toBeGreaterThan(0);
   });
 
   test('timeAsync wraps async function and logs', async () => {
-    const result = await timeAsync('async_op', async () => {
-      await new Promise(res => setTimeout(res, 5));
-      return 42;
-    }, { label: 'spec' });
+    const result = await timeAsync(
+      'async_op',
+      async () => {
+        await new Promise((res) => setTimeout(res, 5));
+        return 42;
+      },
+      { label: 'spec' }
+    );
     expect(result).toBe(42);
   });
 

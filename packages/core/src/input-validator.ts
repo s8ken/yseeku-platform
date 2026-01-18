@@ -1,6 +1,6 @@
 /**
  * Comprehensive Input Validation Framework
- * 
+ *
  * Provides enterprise-grade input validation for all public APIs
  * Includes type checking, range validation, format validation, and sanitization
  */
@@ -10,7 +10,7 @@ import {
   InvalidInputError,
   MissingRequiredFieldError,
   FormatValidationError,
-  RangeValidationError
+  RangeValidationError,
 } from './errors';
 
 export interface ValidationRule {
@@ -69,7 +69,7 @@ export class InputValidator {
 
     for (const rule of rules) {
       const value = data[rule.field];
-      
+
       try {
         // Check required fields
         if (rule.required && (value === undefined || value === null || value === '')) {
@@ -91,7 +91,9 @@ export class InputValidator {
         // String length validation
         if (rule.type === 'string' && typeof value === 'string') {
           if (rule.minLength !== undefined && value.length < rule.minLength) {
-            errors.push(new RangeValidationError(rule.field, value.length, rule.minLength, Infinity));
+            errors.push(
+              new RangeValidationError(rule.field, value.length, rule.minLength, Infinity)
+            );
           }
           if (rule.maxLength !== undefined && value.length > rule.maxLength) {
             errors.push(new RangeValidationError(rule.field, value.length, 0, rule.maxLength));
@@ -117,20 +119,21 @@ export class InputValidator {
 
         // Allowed values validation
         if (rule.allowedValues && !rule.allowedValues.includes(value)) {
-          errors.push(new InvalidInputError(
-            rule.field,
-            value,
-            { timestamp: Date.now(), metadata: { allowedValues: rule.allowedValues } }
-          ));
+          errors.push(
+            new InvalidInputError(rule.field, value, {
+              timestamp: Date.now(),
+              metadata: { allowedValues: rule.allowedValues },
+            })
+          );
         }
 
         // Custom validation
         if (rule.custom) {
           const isValid = await rule.custom(value);
           if (!isValid) {
-            errors.push(new ValidationError(
-              rule.errorMessage || `Validation failed for field: ${rule.field}`
-            ));
+            errors.push(
+              new ValidationError(rule.errorMessage || `Validation failed for field: ${rule.field}`)
+            );
           }
         }
 
@@ -141,19 +144,23 @@ export class InputValidator {
             sanitized[rule.field] = sanitizer(value);
           }
         }
-
       } catch (error) {
-        errors.push(new ValidationError(
-          `Validation error for field ${rule.field}: ${(error as Error).message}`,
-          { timestamp: Date.now(), metadata: { field: rule.field, originalError: (error as Error).message } }
-        ));
+        errors.push(
+          new ValidationError(
+            `Validation error for field ${rule.field}: ${(error as Error).message}`,
+            {
+              timestamp: Date.now(),
+              metadata: { field: rule.field, originalError: (error as Error).message },
+            }
+          )
+        );
       }
     }
 
     return {
       valid: errors.length === 0,
       errors,
-      sanitized: errors.length === 0 ? sanitized : undefined
+      sanitized: errors.length === 0 ? sanitized : undefined,
     };
   }
 
@@ -198,7 +205,7 @@ export const ValidationRules = {
     type: 'number' as const,
     min: 0,
     max: 10,
-    required: true
+    required: true,
   },
 
   principleScore: {
@@ -206,7 +213,7 @@ export const ValidationRules = {
     type: 'number' as const,
     min: 0,
     max: 10,
-    required: true
+    required: true,
   },
 
   // Session Rules
@@ -216,7 +223,7 @@ export const ValidationRules = {
     minLength: 1,
     maxLength: 255,
     pattern: /^[a-zA-Z0-9_-]+$/,
-    required: true
+    required: true,
   },
 
   userId: {
@@ -224,7 +231,7 @@ export const ValidationRules = {
     type: 'string' as const,
     minLength: 1,
     maxLength: 255,
-    required: true
+    required: true,
   },
 
   tenantId: {
@@ -232,7 +239,7 @@ export const ValidationRules = {
     type: 'string' as const,
     minLength: 1,
     maxLength: 255,
-    required: false
+    required: false,
   },
 
   // Timestamp Rules
@@ -240,7 +247,7 @@ export const ValidationRules = {
     field: 'timestamp',
     type: 'number' as const,
     min: 0,
-    required: true
+    required: true,
   },
 
   // Content Rules
@@ -250,7 +257,7 @@ export const ValidationRules = {
     minLength: 1,
     maxLength: 100000,
     required: true,
-    sanitize: true
+    sanitize: true,
   },
 
   // Key Management Rules
@@ -260,14 +267,14 @@ export const ValidationRules = {
     minLength: 1,
     maxLength: 255,
     pattern: /^[a-zA-Z0-9_-]+$/,
-    required: true
+    required: true,
   },
 
   signature: {
     field: 'signature',
     type: 'string' as const,
     minLength: 1,
-    required: true
+    required: true,
   },
 
   // Bedau Index Rules
@@ -276,14 +283,14 @@ export const ValidationRules = {
     type: 'number' as const,
     min: 0,
     max: 1,
-    required: true
+    required: true,
   },
 
   emergenceType: {
     field: 'emergenceType',
     type: 'string' as const,
     allowedValues: ['LINEAR', 'WEAK_EMERGENCE', 'HIGH_WEAK_EMERGENCE'],
-    required: true
+    required: true,
   },
 
   // Pagination Rules
@@ -291,7 +298,7 @@ export const ValidationRules = {
     field: 'page',
     type: 'number' as const,
     min: 1,
-    required: false
+    required: false,
   },
 
   limit: {
@@ -299,7 +306,7 @@ export const ValidationRules = {
     type: 'number' as const,
     min: 1,
     max: 1000,
-    required: false
+    required: false,
   },
 
   // Email Rules
@@ -307,7 +314,7 @@ export const ValidationRules = {
     field: 'email',
     type: 'string' as const,
     pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    required: true
+    required: true,
   },
 
   // API Key Rules
@@ -317,8 +324,8 @@ export const ValidationRules = {
     minLength: 32,
     maxLength: 256,
     pattern: /^[a-zA-Z0-9_-]+$/,
-    required: true
-  }
+    required: true,
+  },
 };
 
 /**
@@ -363,7 +370,7 @@ export const Sanitizers = {
   // Remove special characters
   alphanumeric: (value: string): string => {
     return value.replace(/[^a-zA-Z0-9]/g, '');
-  }
+  },
 };
 
 /**
@@ -374,7 +381,7 @@ export const Schemas = {
     ValidationRules.trustScore,
     ValidationRules.sessionId,
     ValidationRules.userId,
-    ValidationRules.timestamp
+    ValidationRules.timestamp,
   ],
 
   trustReceipt: [
@@ -382,49 +389,38 @@ export const Schemas = {
     ValidationRules.userId,
     ValidationRules.timestamp,
     ValidationRules.keyId,
-    ValidationRules.signature
+    ValidationRules.signature,
   ],
 
   bedauIndex: [
     ValidationRules.bedauIndex,
     ValidationRules.emergenceType,
     ValidationRules.sessionId,
-    ValidationRules.timestamp
+    ValidationRules.timestamp,
   ],
 
   emergenceDetection: [
     ValidationRules.sessionId,
     ValidationRules.userId,
     ValidationRules.content,
-    ValidationRules.timestamp
+    ValidationRules.timestamp,
   ],
 
-  keyGeneration: [
-    ValidationRules.userId,
-    ValidationRules.tenantId
-  ],
+  keyGeneration: [ValidationRules.userId, ValidationRules.tenantId],
 
-  keySigning: [
-    ValidationRules.keyId,
-    ValidationRules.signature
-  ],
+  keySigning: [ValidationRules.keyId, ValidationRules.signature],
 
   auditQuery: [
     ValidationRules.sessionId,
     ValidationRules.userId,
     ValidationRules.tenantId,
     ValidationRules.page,
-    ValidationRules.limit
+    ValidationRules.limit,
   ],
 
-  userAuthentication: [
-    ValidationRules.email,
-    ValidationRules.userId
-  ],
+  userAuthentication: [ValidationRules.email, ValidationRules.userId],
 
-  apiRequest: [
-    ValidationRules.apiKey
-  ]
+  apiRequest: [ValidationRules.apiKey],
 };
 
 /**
@@ -457,10 +453,7 @@ export const validator = createValidator();
 /**
  * Helper function for quick validation
  */
-export async function validateInput(
-  schema: string,
-  data: Record<string, any>
-): Promise<void> {
+export async function validateInput(schema: string, data: Record<string, any>): Promise<void> {
   const result = await validator.validate(schema, data);
   if (!result.valid) {
     const error = result.errors[0];

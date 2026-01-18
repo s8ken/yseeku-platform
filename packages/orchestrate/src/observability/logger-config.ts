@@ -1,5 +1,6 @@
-import winston from 'winston';
 import path from 'path';
+
+import winston from 'winston';
 
 // Define log levels
 const levels = {
@@ -26,38 +27,27 @@ winston.addColors(colors);
 const format = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
   winston.format.colorize({ all: true }),
-  winston.format.printf(
-    (info) => `${info.timestamp} ${info.level}: ${info.message}`,
-  ),
+  winston.format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`)
 );
 
 // Define which transports the logger must use
 const transports = [
   // Console transport for development
   new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.simple()
-    )
+    format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
   }),
 
   // File transport for all logs
   new winston.transports.File({
     filename: path.join(process.cwd(), 'logs', 'all.log'),
-    format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.json()
-    )
+    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
   }),
 
   // File transport for error logs
   new winston.transports.File({
     filename: path.join(process.cwd(), 'logs', 'error.log'),
     level: 'error',
-    format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.json()
-    )
+    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
   }),
 ];
 
@@ -71,10 +61,9 @@ export const winstonLogger = winston.createLogger({
 
 // If we're not in production, log to the console with colors
 if (process.env.NODE_ENV !== 'production') {
-  winstonLogger.add(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.simple()
-    )
-  }));
+  winstonLogger.add(
+    new winston.transports.Console({
+      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
+    })
+  );
 }

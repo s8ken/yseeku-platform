@@ -15,6 +15,6 @@ export function createResonanceEngineClient(): ResonanceEngineClient {
     },
     async analyze(data) {
       return { resonance: 0.8, confidence: 0.9 };
-    }
+    },
   };
 }

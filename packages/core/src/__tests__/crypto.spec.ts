@@ -29,7 +29,9 @@ describe('Ed25519 Crypto Tests', () => {
     expect(crypto.verify(null, Buffer.from(message, 'utf8'), publicKey, signature)).toBe(true);
 
     const alteredMessage = 'Hello, world!!';
-    expect(crypto.verify(null, Buffer.from(alteredMessage, 'utf8'), publicKey, signature)).toBe(false);
+    expect(crypto.verify(null, Buffer.from(alteredMessage, 'utf8'), publicKey, signature)).toBe(
+      false
+    );
   });
 
   test('Key Uniqueness', () => {
@@ -38,10 +40,14 @@ describe('Ed25519 Crypto Tests', () => {
 
     expect(
       (keyPair1.publicKey.export({ format: 'der', type: 'spki' }) as Buffer).toString('hex')
-    ).not.toEqual((keyPair2.publicKey.export({ format: 'der', type: 'spki' }) as Buffer).toString('hex'));
+    ).not.toEqual(
+      (keyPair2.publicKey.export({ format: 'der', type: 'spki' }) as Buffer).toString('hex')
+    );
     expect(
       (keyPair1.privateKey.export({ format: 'der', type: 'pkcs8' }) as Buffer).toString('hex')
-    ).not.toEqual((keyPair2.privateKey.export({ format: 'der', type: 'pkcs8' }) as Buffer).toString('hex'));
+    ).not.toEqual(
+      (keyPair2.privateKey.export({ format: 'der', type: 'pkcs8' }) as Buffer).toString('hex')
+    );
   });
 
   test('Invalid Key Handling', async () => {
@@ -49,7 +55,9 @@ describe('Ed25519 Crypto Tests', () => {
     const message = 'Test';
 
     expect(() => crypto.sign(null, Buffer.from(message, 'utf8'), invalidKey as any)).toThrow();
-    expect(() => crypto.verify(null, Buffer.from(message, 'utf8'), invalidKey as any, Buffer.alloc(64))).toThrow();
+    expect(() =>
+      crypto.verify(null, Buffer.from(message, 'utf8'), invalidKey as any, Buffer.alloc(64))
+    ).toThrow();
   });
 
   test('Performance - Sub-100ms Signing', () => {

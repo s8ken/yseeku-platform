@@ -31,7 +31,11 @@ export class RedisNonceStore implements NonceStore {
 export class RedisRevocationStore implements RevocationStore {
   constructor(private redis: Redis) {}
 
-  async revoke(id: string, reason: string = 'Revoked', ttlSeconds: number = 24 * 3600): Promise<void> {
+  async revoke(
+    id: string,
+    reason: string = 'Revoked',
+    ttlSeconds: number = 24 * 3600
+  ): Promise<void> {
     const key = `revoked:${id}`;
     await this.redis.set(key, reason, 'EX', ttlSeconds);
   }
@@ -73,15 +77,15 @@ export class InMemoryRevocationStore implements RevocationStore {
 
 // Factories
 export function createNonceStore(redisUrl?: string): NonceStore {
-    if (redisUrl) {
-        return new RedisNonceStore(new Redis(redisUrl));
-    }
-    return new InMemoryNonceStore();
+  if (redisUrl) {
+    return new RedisNonceStore(new Redis(redisUrl));
+  }
+  return new InMemoryNonceStore();
 }
 
 export function createRevocationStore(redisUrl?: string): RevocationStore {
-    if (redisUrl) {
-        return new RedisRevocationStore(new Redis(redisUrl));
-    }
-    return new InMemoryRevocationStore();
+  if (redisUrl) {
+    return new RedisRevocationStore(new Redis(redisUrl));
+  }
+  return new InMemoryRevocationStore();
 }

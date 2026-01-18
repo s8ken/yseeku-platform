@@ -13,32 +13,37 @@ export interface Policy {
   description: string;
   version: string;
   status: 'draft' | 'active' | 'deprecated' | 'disabled';
-  
+
   // Policy Definition
   type: 'constitutional' | 'operational' | 'security' | 'compliance' | 'ethical';
-  category: 'data_protection' | 'ai_governance' | 'agent_behavior' | 'human_oversight' | 'risk_management';
-  
+  category:
+    | 'data_protection'
+    | 'ai_governance'
+    | 'agent_behavior'
+    | 'human_oversight'
+    | 'risk_management';
+
   // Rules & Constraints
   rules: PolicyRule[];
   constraints: PolicyConstraint[];
   exceptions: PolicyException[];
-  
+
   // Metadata
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
   approvedBy?: string;
   approvedAt?: Date;
-  
+
   // Applicability
   scope: PolicyScope;
   agents: string[]; // Agent IDs this policy applies to
   workflows: string[]; // Workflow IDs this policy applies to
-  
+
   // Enforcement
   enforcementLevel: 'advisory' | 'warning' | 'blocking' | 'critical';
   violationActions: ViolationAction[];
-  
+
   // Compliance Mapping
   complianceFrameworks: ComplianceMapping[];
 }
@@ -100,32 +105,32 @@ export interface Flow {
   description: string;
   version: string;
   status: 'draft' | 'active' | 'paused' | 'disabled';
-  
+
   // Flow Definition
   type: 'sequential' | 'parallel' | 'conditional' | 'event_driven' | 'adaptive';
   category: 'ai_generation' | 'data_processing' | 'validation' | 'approval' | 'monitoring';
-  
+
   // Workflow Structure
   definition: WorkflowDefinition;
   tasks: FlowTask[];
   dependencies: TaskDependency[];
   triggers: FlowTrigger[];
-  
+
   // Runtime Control
   executionMode: 'automatic' | 'manual_approval' | 'supervised' | 'sandbox';
   timeoutSettings: TimeoutSettings;
   retryPolicy: RetryPolicy;
-  
+
   // Interventions
   interventionPoints: InterventionPoint[];
   escalationRules: EscalationRule[];
   humanInLoopConfig: HumanInLoopConfig;
-  
+
   // Metadata
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Performance & Monitoring
   performanceMetrics: FlowPerformanceMetrics;
   slaRequirements: SLARequirements;
@@ -153,7 +158,13 @@ export interface AgentRole {
 export interface FlowTask {
   id: string;
   name: string;
-  type: 'llm_generation' | 'data_processing' | 'validation' | 'coordination' | 'approval' | 'monitoring';
+  type:
+    | 'llm_generation'
+    | 'data_processing'
+    | 'validation'
+    | 'coordination'
+    | 'approval'
+    | 'monitoring';
   assignedAgent?: string;
   requiredCapabilities: string[];
   input: any;
@@ -162,7 +173,7 @@ export interface FlowTask {
   retryCount: number;
   maxRetries: number;
   timeout: number;
-  
+
   // Control & Monitoring
   controlPoints: ControlPoint[];
   monitoringRules: MonitoringRule[];
@@ -239,33 +250,38 @@ export interface TrustReceipt {
   hash: string;
   previousHash: string;
   timestamp: number;
-  
+
   // Transaction Details
   transactionId: string;
-  transactionType: 'agent_action' | 'workflow_execution' | 'policy_violation' | 'compliance_check' | 'human_intervention';
+  transactionType:
+    | 'agent_action'
+    | 'workflow_execution'
+    | 'policy_violation'
+    | 'compliance_check'
+    | 'human_intervention';
   agentId?: string;
   workflowId?: string;
   policyId?: string;
-  
+
   // Content (immutable)
   data: TrustReceiptData;
   signature: string;
   publicKey: string;
-  
+
   // Cryptographic Proofs
   merkleProof?: MerkleProof;
   zkProof?: ZKProof;
   multiSig?: MultiSignature;
-  
+
   // Validation Status
   validationStatus: 'pending' | 'validated' | 'invalid' | 'tampered';
   validatedAt?: Date;
   validatedBy?: string;
-  
+
   // Chain Information
   blockNumber: number;
   chainIndex: number;
-  
+
   // Metadata
   version: string;
   schema: string;
@@ -362,27 +378,27 @@ export interface ComplianceSnapshot {
     start: Date;
     end: Date;
   };
-  
+
   // Overall Status
   overallScore: number;
   status: 'compliant' | 'non_compliant' | 'partial_compliance' | 'not_assessed';
-  
+
   // Framework Breakdown
   frameworks: Record<string, FrameworkSnapshot>;
-  
+
   // Trends & Analytics
   trends: ComplianceTrend[];
   insights: ComplianceInsight[];
   recommendations: ComplianceRecommendation[];
-  
+
   // Evidence & Audit
   evidencePackages: EvidencePackage[];
   auditFindings: AuditFinding[];
-  
+
   // Certifications & Attestations
   certifications: Certification[];
   attestations: Attestation[];
-  
+
   // Metadata
   version: string;
   generatedBy: string;
@@ -395,14 +411,14 @@ export interface FrameworkSnapshot {
   version: string;
   score: number;
   status: 'compliant' | 'non_compliant' | 'partial_compliance' | 'not_assessed';
-  
+
   controls: Record<string, ControlSnapshot>;
   articles: Record<string, ArticleSnapshot>;
-  
+
   gaps: number;
   violations: number;
   remediationTasks: number;
-  
+
   lastUpdated: Date;
   nextAssessment: Date;
 }
@@ -412,14 +428,14 @@ export interface ControlSnapshot {
   title: string;
   status: 'compliant' | 'non_compliant' | 'partial' | 'not_assessed';
   score: number;
-  
+
   implementation: ImplementationStatus;
   testing: TestingStatus;
   evidence: EvidenceStatus;
-  
+
   lastAssessed: Date;
   nextReview: Date;
-  
+
   issues: ComplianceIssue[];
   remediation: RemediationTask[];
 }

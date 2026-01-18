@@ -1,10 +1,16 @@
 /**
  * Adversarial Test Executor
- * 
+ *
  * Executes individual adversarial tests and collects results
  */
 
-import { AdversarialTest, TestExecution, PerformanceImpact, RecoveryMetrics, Vulnerability } from './types';
+import {
+  AdversarialTest,
+  TestExecution,
+  PerformanceImpact,
+  RecoveryMetrics,
+  Vulnerability,
+} from './types';
 
 // Temporary type definitions to avoid import issues during refactoring
 interface TempBedauMetrics {
@@ -60,10 +66,7 @@ export class AdversarialTestExecutor {
       );
 
       // Calculate performance impact
-      const performanceImpact = this.calculatePerformanceImpact(
-        baselineMetrics,
-        testMetrics
-      );
+      const performanceImpact = this.calculatePerformanceImpact(baselineMetrics, testMetrics);
 
       // Calculate recovery metrics
       const recoveryMetrics = await this.calculateRecoveryMetrics(
@@ -87,17 +90,16 @@ export class AdversarialTestExecutor {
         test_metrics: testMetrics as any,
         performance_impact: performanceImpact,
         recovery_metrics: recoveryMetrics,
-        vulnerabilities_identified: vulnerabilities
+        vulnerabilities_identified: vulnerabilities,
       };
 
       // Update test with new execution
       test.execution_results.push(execution);
       test.robustness_score = this.calculateTestRobustness(test.execution_results);
-      
+
       this.executionHistory.push(execution);
 
       return execution;
-
     } catch (error) {
       throw new Error(`Test execution failed: ${error}`);
     }
@@ -115,7 +117,7 @@ export class AdversarialTestExecutor {
     degradation_pattern: string;
   }> {
     const stressResponse: number[] = [];
-    
+
     for (const stressLevel of stressLevels) {
       const stressTest = this.createStressTest(stressLevel);
       const execution = await this.executeSingleTest(
@@ -124,20 +126,20 @@ export class AdversarialTestExecutor {
         this.createBaselineSemanticIntent(),
         this.createBaselineSurfacePattern()
       );
-      
+
       stressResponse.push(execution.test_metrics.bedau_index);
     }
 
     // Calculate stress threshold (point where emergence drops significantly)
     const stressThreshold = this.calculateStressThreshold(stressLevels, stressResponse);
-    
+
     // Analyze degradation pattern
     const degradationPattern = this.analyzeDegradationPattern(stressResponse);
 
     return {
       stress_response_curve: stressResponse,
       stress_threshold: stressThreshold,
-      degradation_pattern: degradationPattern
+      degradation_pattern: degradationPattern,
     };
   }
 
@@ -150,7 +152,7 @@ export class AdversarialTestExecutor {
     // Simulate applying test conditions to metrics
     const noiseLevel = parameters.input_perturbation.noise_level;
     const cognitiveLoad = parameters.stress_conditions.cognitive_load;
-    
+
     return {
       ...baselineMetrics,
       bedau_index: Math.max(0, baselineMetrics.bedau_index - (noiseLevel + cognitiveLoad) * 0.3),
@@ -158,7 +160,8 @@ export class AdversarialTestExecutor {
       kolmogorov_complexity: baselineMetrics.kolmogorov_complexity * (1 - noiseLevel * 0.2),
       novelty_score: Math.max(0, baselineMetrics.novelty_score - cognitiveLoad * 0.4),
       downward_causation: baselineMetrics.downward_causation * (1 - cognitiveLoad * 0.3),
-      collective_behavior_score: baselineMetrics.collective_behavior_score * (1 - noiseLevel * 0.25)
+      collective_behavior_score:
+        baselineMetrics.collective_behavior_score * (1 - noiseLevel * 0.25),
     };
   }
 
@@ -167,12 +170,12 @@ export class AdversarialTestExecutor {
     test: TempBedauMetrics
   ): PerformanceImpact {
     const bedauDegradation = (baseline.bedau_index - test.bedau_index) / baseline.bedau_index;
-    
+
     return {
       latency_increase: bedauDegradation * 1000, // ms
-      throughput_decrease: bedauDegradation * 50,  // %
+      throughput_decrease: bedauDegradation * 50, // %
       memory_usage_increase: bedauDegradation * 30, // %
-      cpu_usage_increase: bedauDegradation * 40     // %
+      cpu_usage_increase: bedauDegradation * 40, // %
     };
   }
 
@@ -182,10 +185,15 @@ export class AdversarialTestExecutor {
     testMetrics: TempBedauMetrics
   ): Promise<RecoveryMetrics> {
     // Simulate recovery time based on test severity
-    const baseRecoveryTime = test.severity === 'critical' ? 10000 : 
-                           test.severity === 'high' ? 5000 : 
-                           test.severity === 'medium' ? 2000 : 1000;
-    
+    const baseRecoveryTime =
+      test.severity === 'critical'
+        ? 10000
+        : test.severity === 'high'
+        ? 5000
+        : test.severity === 'medium'
+        ? 2000
+        : 1000;
+
     const degradation = (baseline.bedau_index - testMetrics.bedau_index) / baseline.bedau_index;
     const recoveryTime = baseRecoveryTime * (1 + degradation);
 
@@ -193,7 +201,7 @@ export class AdversarialTestExecutor {
       recovery_time: recoveryTime,
       recovery_completeness: Math.max(0.7, 1 - degradation * 0.3),
       stability_after_recovery: Math.max(0.8, 1 - degradation * 0.2),
-      residual_effects: degradation > 0.5 ? ['metric_drift', 'pattern_corruption'] : []
+      residual_effects: degradation > 0.5 ? ['metric_drift', 'pattern_corruption'] : [],
     };
   }
 
@@ -212,7 +220,7 @@ export class AdversarialTestExecutor {
         description: 'High latency increase indicates potential emergence masking',
         conditions: ['high_load', 'complex_input'],
         exploit_difficulty: 0.6,
-        impact_assessment: 'May hide emergence signals under stress'
+        impact_assessment: 'May hide emergence signals under stress',
       });
     }
 
@@ -224,7 +232,7 @@ export class AdversarialTestExecutor {
         description: 'Incomplete recovery may indicate threshold bypass vulnerability',
         conditions: ['extended_stress', 'resource_depletion'],
         exploit_difficulty: 0.4,
-        impact_assessment: 'Could allow persistent emergence suppression'
+        impact_assessment: 'Could allow persistent emergence suppression',
       });
     }
 
@@ -232,16 +240,16 @@ export class AdversarialTestExecutor {
   }
 
   private calculateTestRobustness(executions: TestExecution[]): number {
-    if (executions.length === 0) return 0;
-    
+    if (executions.length === 0) {return 0;}
+
     const avgRobustness = executions.reduce((sum, exec) => {
       const performanceScore = Math.max(0, 1 - exec.performance_impact.latency_increase / 5000);
       const recoveryScore = exec.recovery_metrics.recovery_completeness;
       const vulnerabilityPenalty = exec.vulnerabilities_identified.length * 0.1;
-      
+
       return sum + Math.max(0, (performanceScore + recoveryScore) / 2 - vulnerabilityPenalty);
     }, 0);
-    
+
     return Math.max(0, Math.min(1, avgRobustness / executions.length));
   }
 
@@ -256,27 +264,30 @@ export class AdversarialTestExecutor {
   }
 
   private analyzeDegradationPattern(responses: number[]): string {
-    if (responses.length < 2) return 'insufficient_data';
-    
+    if (responses.length < 2) {return 'insufficient_data';}
+
     const firstHalf = responses.slice(0, Math.floor(responses.length / 2));
     const secondHalf = responses.slice(Math.floor(responses.length / 2));
-    
+
     const firstHalfAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
     const secondHalfAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
-    
+
     const degradationRate = (firstHalfAvg - secondHalfAvg) / firstHalfAvg;
-    
-    if (degradationRate > 0.5) return 'rapid_degradation';
-    if (degradationRate > 0.2) return 'gradual_degradation';
-    if (degradationRate > 0.05) return 'slow_degradation';
+
+    if (degradationRate > 0.5) {return 'rapid_degradation';}
+    if (degradationRate > 0.2) {return 'gradual_degradation';}
+    if (degradationRate > 0.05) {return 'slow_degradation';}
     return 'stable';
   }
 
-  private determineEmergenceType(baselineIndex: number, noiseLevel: number): 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE' {
+  private determineEmergenceType(
+    baselineIndex: number,
+    noiseLevel: number
+  ): 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE' {
     const adjustedIndex = baselineIndex * (1 - noiseLevel * 0.5);
-    
-    if (adjustedIndex > 0.8) return 'HIGH_WEAK_EMERGENCE';
-    if (adjustedIndex > 0.4) return 'WEAK_EMERGENCE';
+
+    if (adjustedIndex > 0.8) {return 'HIGH_WEAK_EMERGENCE';}
+    if (adjustedIndex > 0.4) {return 'WEAK_EMERGENCE';}
     return 'LINEAR';
   }
 
@@ -291,35 +302,35 @@ export class AdversarialTestExecutor {
         input_perturbation: {
           noise_level: stressLevel * 0.3,
           perturbation_type: 'gaussian',
-          target_components: ['semantic_coherence']
+          target_components: ['semantic_coherence'],
         },
         stress_conditions: {
           cognitive_load: stressLevel,
           time_pressure: stressLevel * 0.8,
           resource_constraints: ['working_memory'],
-          ambiguity_level: stressLevel * 0.5
+          ambiguity_level: stressLevel * 0.5,
         },
         edge_cases: {
           minimal_input: false,
           maximal_complexity: false,
           contradictory_input: false,
-          degenerate_cases: []
+          degenerate_cases: [],
         },
         adversarial_attacks: {
           attack_vectors: [],
           attack_intensity: 0,
-          target_weaknesses: []
-        }
+          target_weaknesses: [],
+        },
       },
       expected_behavior: {
         emergence_threshold: Math.max(0.3, 0.8 - stressLevel * 0.5),
         robustness_threshold: 0.7,
         recovery_time_max: 5000,
         performance_degradation_max: stressLevel * 0.6,
-        failure_modes: ['degraded_quality']
+        failure_modes: ['degraded_quality'],
       },
       execution_results: [],
-      robustness_score: 0
+      robustness_score: 0,
     };
   }
 
@@ -328,7 +339,7 @@ export class AdversarialTestExecutor {
       intent_vectors: [0.8, 0.6, 0.7, 0.9],
       reasoning_depth: 0.7,
       abstraction_level: 0.6,
-      cross_domain_connections: 3
+      cross_domain_connections: 3,
     };
   }
 
@@ -337,7 +348,7 @@ export class AdversarialTestExecutor {
       surface_vectors: [0.7, 0.8, 0.6, 0.9],
       pattern_complexity: 0.7,
       repetition_score: 0.3,
-      regularity_measure: 0.6
+      regularity_measure: 0.6,
     };
   }
 

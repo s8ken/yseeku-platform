@@ -22,11 +22,11 @@ export function createTrustProtocolEnhanced(): TrustProtocolEnhanced {
       return {
         id: 'receipt-' + Math.random().toString(36).substr(2, 9),
         timestamp: new Date(),
-        ...data
+        ...data,
       };
     },
     async verifySignature(data) {
       return true;
-    }
+    },
   };
 }

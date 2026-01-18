@@ -81,7 +81,7 @@ describe('Package Integration Tests', () => {
       metadata: {
         session_id: sessionId2,
         agent_id: agent.id,
-        workflow: 'e2e-test'
+        workflow: 'e2e-test',
       },
     };
 

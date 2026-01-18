@@ -1,6 +1,6 @@
 /**
  * Automated Compliance Auditor
- * 
+ *
  * Provides continuous compliance monitoring and automated auditing
  * for GDPR, SOC 2, ISO 27001, HIPAA, PCI DSS, and EU AI Act
  */
@@ -9,7 +9,7 @@ import {
   ComplianceError,
   GDPRViolationError,
   SOC2ViolationError,
-  AuditLogError
+  AuditLogError,
 } from '@sonate/core';
 
 export interface ComplianceFramework {
@@ -22,7 +22,12 @@ export interface ComplianceRequirement {
   id: string;
   name: string;
   description: string;
-  category: 'data_protection' | 'access_control' | 'audit_logging' | 'incident_response' | 'risk_management';
+  category:
+    | 'data_protection'
+    | 'access_control'
+    | 'audit_logging'
+    | 'incident_response'
+    | 'risk_management';
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   automatedCheck: boolean;
   checkFunction?: (context: ComplianceContext) => Promise<ComplianceCheckResult>;
@@ -111,11 +116,12 @@ export class ComplianceAuditor {
         {
           id: 'GDPR_ART_5',
           name: 'Data Minimization',
-          description: 'Personal data shall be adequate, relevant, and limited to what is necessary',
+          description:
+            'Personal data shall be adequate, relevant, and limited to what is necessary',
           category: 'data_protection',
           severity: 'HIGH',
           automatedCheck: true,
-          checkFunction: this.checkDataMinimization.bind(this)
+          checkFunction: this.checkDataMinimization.bind(this),
         },
         {
           id: 'GDPR_ART_32',
@@ -124,7 +130,7 @@ export class ComplianceAuditor {
           category: 'data_protection',
           severity: 'CRITICAL',
           automatedCheck: true,
-          checkFunction: this.checkDataSecurity.bind(this)
+          checkFunction: this.checkDataSecurity.bind(this),
         },
         {
           id: 'GDPR_ART_25',
@@ -133,7 +139,7 @@ export class ComplianceAuditor {
           category: 'data_protection',
           severity: 'HIGH',
           automatedCheck: true,
-          checkFunction: this.checkDataProtectionByDesign.bind(this)
+          checkFunction: this.checkDataProtectionByDesign.bind(this),
         },
         {
           id: 'GDPR_ART_30',
@@ -142,9 +148,9 @@ export class ComplianceAuditor {
           category: 'audit_logging',
           severity: 'MEDIUM',
           automatedCheck: true,
-          checkFunction: this.checkProcessingRecords.bind(this)
-        }
-      ]
+          checkFunction: this.checkProcessingRecords.bind(this),
+        },
+      ],
     };
     this.frameworks.set('GDPR', gdpr);
 
@@ -160,7 +166,7 @@ export class ComplianceAuditor {
           category: 'access_control',
           severity: 'CRITICAL',
           automatedCheck: true,
-          checkFunction: this.checkLogicalAccessControls.bind(this)
+          checkFunction: this.checkLogicalAccessControls.bind(this),
         },
         {
           id: 'SOC2_CC6_6',
@@ -169,7 +175,7 @@ export class ComplianceAuditor {
           category: 'audit_logging',
           severity: 'HIGH',
           automatedCheck: true,
-          checkFunction: this.checkAuditLogging.bind(this)
+          checkFunction: this.checkAuditLogging.bind(this),
         },
         {
           id: 'SOC2_CC7_2',
@@ -178,9 +184,9 @@ export class ComplianceAuditor {
           category: 'incident_response',
           severity: 'HIGH',
           automatedCheck: true,
-          checkFunction: this.checkIncidentResponse.bind(this)
-        }
-      ]
+          checkFunction: this.checkIncidentResponse.bind(this),
+        },
+      ],
     };
     this.frameworks.set('SOC2', soc2);
 
@@ -196,7 +202,7 @@ export class ComplianceAuditor {
           category: 'access_control',
           severity: 'HIGH',
           automatedCheck: true,
-          checkFunction: this.checkAccessControlPolicy.bind(this)
+          checkFunction: this.checkAccessControlPolicy.bind(this),
         },
         {
           id: 'ISO_A12_3',
@@ -205,9 +211,9 @@ export class ComplianceAuditor {
           category: 'data_protection',
           severity: 'HIGH',
           automatedCheck: true,
-          checkFunction: this.checkBackupInformation.bind(this)
-        }
-      ]
+          checkFunction: this.checkBackupInformation.bind(this),
+        },
+      ],
     };
     this.frameworks.set('ISO27001', iso27001);
 
@@ -223,7 +229,7 @@ export class ComplianceAuditor {
           category: 'data_protection',
           severity: 'HIGH',
           automatedCheck: true,
-          checkFunction: this.checkAIDataGovernance.bind(this)
+          checkFunction: this.checkAIDataGovernance.bind(this),
         },
         {
           id: 'EUAI_ART_12',
@@ -232,9 +238,9 @@ export class ComplianceAuditor {
           category: 'data_protection',
           severity: 'HIGH',
           automatedCheck: true,
-          checkFunction: this.checkAITransparency.bind(this)
-        }
-      ]
+          checkFunction: this.checkAITransparency.bind(this),
+        },
+      ],
     };
     this.frameworks.set('EUAI', euAiAct);
   }
@@ -248,10 +254,7 @@ export class ComplianceAuditor {
   ): Promise<ComplianceCheckResult[]> {
     const complianceFramework = this.frameworks.get(framework);
     if (!complianceFramework) {
-      throw new ComplianceError(
-        `Compliance framework not found: ${framework}`,
-        framework
-      );
+      throw new ComplianceError(`Compliance framework not found: ${framework}`, framework);
     }
 
     const results: ComplianceCheckResult[] = [];
@@ -272,15 +275,17 @@ export class ComplianceAuditor {
             passed: false,
             score: 0,
             evidence: [],
-            violations: [{
-              requirementId: requirement.id,
-              severity: 'HIGH',
-              description: `Compliance check failed: ${(error as Error).message}`,
-              evidence: (error as Error).message,
-              remediation: 'Investigate and resolve the error',
-              affectedResources: []
-            }],
-            recommendations: ['Review the error and retry the compliance check']
+            violations: [
+              {
+                requirementId: requirement.id,
+                severity: 'HIGH',
+                description: `Compliance check failed: ${(error as Error).message}`,
+                evidence: (error as Error).message,
+                remediation: 'Investigate and resolve the error',
+                affectedResources: [],
+              },
+            ],
+            recommendations: ['Review the error and retry the compliance check'],
           });
         }
       }
@@ -299,10 +304,7 @@ export class ComplianceAuditor {
   ): Promise<ComplianceReport> {
     const complianceFramework = this.frameworks.get(framework);
     if (!complianceFramework) {
-      throw new ComplianceError(
-        `Compliance framework not found: ${framework}`,
-        framework
-      );
+      throw new ComplianceError(`Compliance framework not found: ${framework}`, framework);
     }
 
     const auditLogs = this.getAuditLogs(period, tenantId);
@@ -312,13 +314,13 @@ export class ComplianceAuditor {
     for (const requirement of complianceFramework.requirements) {
       if (requirement.automatedCheck && requirement.checkFunction) {
         // Aggregate results from audit logs
-        const results = auditLogs.map(log => 
+        const results = auditLogs.map((log) =>
           requirement.checkFunction!({
             timestamp: log.timestamp,
             tenantId: log.tenantId,
             userId: log.userId,
             operation: log.type,
-            data: log.metadata || {}
+            data: log.metadata || {},
           })
         );
 
@@ -326,11 +328,11 @@ export class ComplianceAuditor {
         const checkResults = await Promise.all(results);
 
         // Aggregate scores
-        const scores = checkResults.map(r => r.score);
+        const scores = checkResults.map((r) => r.score);
         const avgScore = scores.reduce((sum, s) => sum + s, 0) / scores.length;
 
         // Collect all violations
-        const violations = checkResults.flatMap(r => r.violations);
+        const violations = checkResults.flatMap((r) => r.violations);
 
         // Generate recommendations
         const recommendations = this.generateRecommendations(checkResults);
@@ -339,9 +341,9 @@ export class ComplianceAuditor {
           requirementId: requirement.id,
           passed: avgScore >= 0.8,
           score: avgScore,
-          evidence: checkResults.flatMap(r => r.evidence),
+          evidence: checkResults.flatMap((r) => r.evidence),
           violations,
-          recommendations
+          recommendations,
         });
       }
     }
@@ -352,10 +354,14 @@ export class ComplianceAuditor {
     // Summary
     const summary = {
       total: requirements.length,
-      passed: requirements.filter(r => r.passed).length,
-      failed: requirements.filter(r => !r.passed).length,
-      highSeverityViolations: requirements.flatMap(r => r.violations).filter(v => v.severity === 'HIGH').length,
-      criticalViolations: requirements.flatMap(r => r.violations).filter(v => v.severity === 'CRITICAL').length
+      passed: requirements.filter((r) => r.passed).length,
+      failed: requirements.filter((r) => !r.passed).length,
+      highSeverityViolations: requirements
+        .flatMap((r) => r.violations)
+        .filter((v) => v.severity === 'HIGH').length,
+      criticalViolations: requirements
+        .flatMap((r) => r.violations)
+        .filter((v) => v.severity === 'CRITICAL').length,
     };
 
     // Determine trend
@@ -373,17 +379,14 @@ export class ComplianceAuditor {
       requirements,
       summary,
       recommendations: overallRecommendations,
-      trend
+      trend,
     };
   }
 
   /**
    * Get audit logs for period
    */
-  private getAuditLogs(
-    period: { start: number; end: number },
-    tenantId?: string
-  ): AuditLogEntry[] {
+  private getAuditLogs(period: { start: number; end: number }, tenantId?: string): AuditLogEntry[] {
     const logs: AuditLogEntry[] = [];
 
     for (const [_, tenantLogs] of this.auditLogs) {
@@ -414,7 +417,7 @@ export class ComplianceAuditor {
       description: `Compliance audit for operation: ${context.operation}`,
       userId: context.userId,
       tenantId: context.tenantId,
-      metadata: context.data
+      metadata: context.data,
     };
 
     const tenantId = context.tenantId || 'default';
@@ -432,9 +435,7 @@ export class ComplianceAuditor {
   /**
    * GDPR: Data Minimization Check
    */
-  private async checkDataMinimization(
-    context: ComplianceContext
-  ): Promise<ComplianceCheckResult> {
+  private async checkDataMinimization(context: ComplianceContext): Promise<ComplianceCheckResult> {
     const violations: ComplianceViolation[] = [];
     const evidence: string[] = [];
     let score = 1.0;
@@ -444,7 +445,7 @@ export class ComplianceAuditor {
     if (data && typeof data === 'object') {
       const requiredFields = ['userId', 'sessionId'];
       const collectedFields = Object.keys(data);
-      const unnecessaryFields = collectedFields.filter(f => !requiredFields.includes(f));
+      const unnecessaryFields = collectedFields.filter((f) => !requiredFields.includes(f));
 
       if (unnecessaryFields.length > 0) {
         score -= 0.3;
@@ -454,11 +455,13 @@ export class ComplianceAuditor {
           description: `Unnecessary data fields collected: ${unnecessaryFields.join(', ')}`,
           evidence: `Fields: ${unnecessaryFields.join(', ')}`,
           remediation: 'Remove unnecessary data fields or justify their necessity',
-          affectedResources: [context.tenantId || 'system']
+          affectedResources: [context.tenantId || 'system'],
         });
       }
 
-      evidence.push(`Collected ${collectedFields.length} fields, ${requiredFields.length} required`);
+      evidence.push(
+        `Collected ${collectedFields.length} fields, ${requiredFields.length} required`
+      );
     }
 
     return {
@@ -467,16 +470,14 @@ export class ComplianceAuditor {
       score,
       evidence,
       violations,
-      recommendations: violations.length > 0 ? ['Review data collection practices'] : []
+      recommendations: violations.length > 0 ? ['Review data collection practices'] : [],
     };
   }
 
   /**
    * GDPR: Data Security Check
    */
-  private async checkDataSecurity(
-    context: ComplianceContext
-  ): Promise<ComplianceCheckResult> {
+  private async checkDataSecurity(context: ComplianceContext): Promise<ComplianceCheckResult> {
     const violations: ComplianceViolation[] = [];
     const evidence: string[] = [];
     let score = 1.0;
@@ -491,7 +492,7 @@ export class ComplianceAuditor {
         description: 'Data is not encrypted',
         evidence: 'No encryption detected in data',
         remediation: 'Implement encryption at rest and in transit',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
@@ -505,7 +506,7 @@ export class ComplianceAuditor {
         description: 'Data lacks access controls',
         evidence: 'No access control detected',
         remediation: 'Implement role-based access control',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
@@ -517,7 +518,7 @@ export class ComplianceAuditor {
       score,
       evidence,
       violations,
-      recommendations: violations.length > 0 ? ['Implement security controls'] : []
+      recommendations: violations.length > 0 ? ['Implement security controls'] : [],
     };
   }
 
@@ -543,7 +544,7 @@ export class ComplianceAuditor {
         description: 'Privacy impact assessment not performed',
         evidence: 'No privacy impact assessment detected',
         remediation: 'Conduct privacy impact assessment for data processing',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
@@ -555,11 +556,13 @@ export class ComplianceAuditor {
         description: 'Data retention policy not defined',
         evidence: 'No retention policy detected',
         remediation: 'Define and implement data retention policy',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
-    evidence.push(`PIA: ${hasPrivacyImpactAssessment}, Retention Policy: ${hasDataRetentionPolicy}`);
+    evidence.push(
+      `PIA: ${hasPrivacyImpactAssessment}, Retention Policy: ${hasDataRetentionPolicy}`
+    );
 
     return {
       requirementId: 'GDPR_ART_25',
@@ -567,16 +570,14 @@ export class ComplianceAuditor {
       score,
       evidence,
       violations,
-      recommendations: violations.length > 0 ? ['Implement privacy by design measures'] : []
+      recommendations: violations.length > 0 ? ['Implement privacy by design measures'] : [],
     };
   }
 
   /**
    * GDPR: Processing Records Check
    */
-  private async checkProcessingRecords(
-    context: ComplianceContext
-  ): Promise<ComplianceCheckResult> {
+  private async checkProcessingRecords(context: ComplianceContext): Promise<ComplianceCheckResult> {
     const violations: ComplianceViolation[] = [];
     const evidence: string[] = [];
     let score = 1.0;
@@ -590,7 +591,7 @@ export class ComplianceAuditor {
         description: 'Processing activity not logged',
         evidence: 'No audit log entry found',
         remediation: 'Ensure all processing activities are logged',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
@@ -602,7 +603,7 @@ export class ComplianceAuditor {
       score,
       evidence,
       violations,
-      recommendations: violations.length > 0 ? ['Implement comprehensive audit logging'] : []
+      recommendations: violations.length > 0 ? ['Implement comprehensive audit logging'] : [],
     };
   }
 
@@ -626,7 +627,7 @@ export class ComplianceAuditor {
         description: 'Access without authentication',
         evidence: 'No user ID in context',
         remediation: 'Require authentication for all operations',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
@@ -640,7 +641,7 @@ export class ComplianceAuditor {
         description: 'Access without proper authorization',
         evidence: 'No authorization check detected',
         remediation: 'Implement role-based access control',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
@@ -652,16 +653,14 @@ export class ComplianceAuditor {
       score,
       evidence,
       violations,
-      recommendations: violations.length > 0 ? ['Strengthen access controls'] : []
+      recommendations: violations.length > 0 ? ['Strengthen access controls'] : [],
     };
   }
 
   /**
    * SOC 2: Audit Logging Check
    */
-  private async checkAuditLogging(
-    context: ComplianceContext
-  ): Promise<ComplianceCheckResult> {
+  private async checkAuditLogging(context: ComplianceContext): Promise<ComplianceCheckResult> {
     const violations: ComplianceViolation[] = [];
     const evidence: string[] = [];
     let score = 1.0;
@@ -675,7 +674,7 @@ export class ComplianceAuditor {
         description: 'Activity not logged',
         evidence: 'No audit log entry',
         remediation: 'Implement comprehensive audit logging',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
@@ -687,16 +686,14 @@ export class ComplianceAuditor {
       score,
       evidence,
       violations,
-      recommendations: violations.length > 0 ? ['Implement audit logging'] : []
+      recommendations: violations.length > 0 ? ['Implement audit logging'] : [],
     };
   }
 
   /**
    * SOC 2: Incident Response Check
    */
-  private async checkIncidentResponse(
-    context: ComplianceContext
-  ): Promise<ComplianceCheckResult> {
+  private async checkIncidentResponse(context: ComplianceContext): Promise<ComplianceCheckResult> {
     const violations: ComplianceViolation[] = [];
     const evidence: string[] = [];
     let score = 1.0;
@@ -711,7 +708,7 @@ export class ComplianceAuditor {
         description: 'Incident response procedures not established',
         evidence: 'No incident response capability detected',
         remediation: 'Establish incident response procedures',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
@@ -723,7 +720,7 @@ export class ComplianceAuditor {
       score,
       evidence,
       violations,
-      recommendations: violations.length > 0 ? ['Establish incident response'] : []
+      recommendations: violations.length > 0 ? ['Establish incident response'] : [],
     };
   }
 
@@ -749,7 +746,7 @@ export class ComplianceAuditor {
         description: 'Access control policy not enforced',
         evidence: 'Missing authentication or authorization',
         remediation: 'Enforce access control policy',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
@@ -761,16 +758,14 @@ export class ComplianceAuditor {
       score,
       evidence,
       violations,
-      recommendations: violations.length > 0 ? ['Enforce access control policy'] : []
+      recommendations: violations.length > 0 ? ['Enforce access control policy'] : [],
     };
   }
 
   /**
    * ISO 27001: Backup Information Check
    */
-  private async checkBackupInformation(
-    context: ComplianceContext
-  ): Promise<ComplianceCheckResult> {
+  private async checkBackupInformation(context: ComplianceContext): Promise<ComplianceCheckResult> {
     const violations: ComplianceViolation[] = [];
     const evidence: string[] = [];
     let score = 1.0;
@@ -785,7 +780,7 @@ export class ComplianceAuditor {
         description: 'Backup procedures not confirmed',
         evidence: 'No backup confirmation',
         remediation: 'Implement and test backup procedures',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
@@ -797,16 +792,14 @@ export class ComplianceAuditor {
       score,
       evidence,
       violations,
-      recommendations: violations.length > 0 ? ['Implement backup procedures'] : []
+      recommendations: violations.length > 0 ? ['Implement backup procedures'] : [],
     };
   }
 
   /**
    * EU AI Act: Data Governance Check
    */
-  private async checkAIDataGovernance(
-    context: ComplianceContext
-  ): Promise<ComplianceCheckResult> {
+  private async checkAIDataGovernance(context: ComplianceContext): Promise<ComplianceCheckResult> {
     const violations: ComplianceViolation[] = [];
     const evidence: string[] = [];
     let score = 1.0;
@@ -823,7 +816,7 @@ export class ComplianceAuditor {
         description: 'Data quality not verified',
         evidence: 'No data quality check',
         remediation: 'Implement data quality verification',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
@@ -835,7 +828,7 @@ export class ComplianceAuditor {
         description: 'Data bias not checked',
         evidence: 'No bias check',
         remediation: 'Implement bias detection and mitigation',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
@@ -847,16 +840,14 @@ export class ComplianceAuditor {
       score,
       evidence,
       violations,
-      recommendations: violations.length > 0 ? ['Implement AI data governance'] : []
+      recommendations: violations.length > 0 ? ['Implement AI data governance'] : [],
     };
   }
 
   /**
    * EU AI Act: AI Transparency Check
    */
-  private async checkAITransparency(
-    context: ComplianceContext
-  ): Promise<ComplianceCheckResult> {
+  private async checkAITransparency(context: ComplianceContext): Promise<ComplianceCheckResult> {
     const violations: ComplianceViolation[] = [];
     const evidence: string[] = [];
     let score = 1.0;
@@ -871,7 +862,7 @@ export class ComplianceAuditor {
         description: 'AI system not disclosed to users',
         evidence: 'No AI disclosure',
         remediation: 'Disclose AI system presence to users',
-        affectedResources: [context.tenantId || 'system']
+        affectedResources: [context.tenantId || 'system'],
       });
     }
 
@@ -883,7 +874,7 @@ export class ComplianceAuditor {
       score,
       evidence,
       violations,
-      recommendations: violations.length > 0 ? ['Implement AI transparency'] : []
+      recommendations: violations.length > 0 ? ['Implement AI transparency'] : [],
     };
   }
 
@@ -892,13 +883,13 @@ export class ComplianceAuditor {
    */
   private generateRecommendations(results: ComplianceCheckResult[]): string[] {
     const recommendations: Set<string> = new Set();
-    
+
     for (const result of results) {
       for (const rec of result.recommendations) {
         recommendations.add(rec);
       }
     }
-    
+
     return Array.from(recommendations);
   }
 
@@ -906,25 +897,27 @@ export class ComplianceAuditor {
    * Generate overall recommendations
    */
   private generateOverallRecommendations(requirements: ComplianceCheckResult[]): string[] {
-    const criticalViolations = requirements.flatMap(r => 
-      r.violations.filter(v => v.severity === 'CRITICAL')
+    const criticalViolations = requirements.flatMap((r) =>
+      r.violations.filter((v) => v.severity === 'CRITICAL')
     );
-    
-    const highViolations = requirements.flatMap(r => 
-      r.violations.filter(v => v.severity === 'HIGH')
+
+    const highViolations = requirements.flatMap((r) =>
+      r.violations.filter((v) => v.severity === 'HIGH')
     );
 
     const recommendations: string[] = [];
 
     if (criticalViolations.length > 0) {
-      recommendations.push(`URGENT: Address ${criticalViolations.length} critical compliance violations`);
+      recommendations.push(
+        `URGENT: Address ${criticalViolations.length} critical compliance violations`
+      );
     }
 
     if (highViolations.length > 0) {
       recommendations.push(`HIGH: Address ${highViolations.length} high-severity violations`);
     }
 
-    const failedRequirements = requirements.filter(r => !r.passed);
+    const failedRequirements = requirements.filter((r) => !r.passed);
     if (failedRequirements.length > 0) {
       recommendations.push(`Review ${failedRequirements.length} failed compliance requirements`);
     }
@@ -935,21 +928,24 @@ export class ComplianceAuditor {
   /**
    * Determine trend from historical scores
    */
-  private determineTrend(framework: string, currentScore: number): 'IMPROVING' | 'STABLE' | 'DECLINING' {
+  private determineTrend(
+    framework: string,
+    currentScore: number
+  ): 'IMPROVING' | 'STABLE' | 'DECLINING' {
     const scores = this.historicalScores.get(framework) || [];
-    
+
     if (scores.length < 3) {
       return 'STABLE';
     }
 
     // Add current score
     scores.push(currentScore);
-    
+
     // Maintain size limit
     if (scores.length > this.MAX_HISTORICAL_SCORES) {
       scores.shift();
     }
-    
+
     this.historicalScores.set(framework, scores);
 
     // Calculate trend
@@ -964,9 +960,9 @@ export class ComplianceAuditor {
       return 'IMPROVING';
     } else if (delta < -0.05) {
       return 'DECLINING';
-    } else {
+    } 
       return 'STABLE';
-    }
+    
   }
 
   /**
@@ -983,16 +979,17 @@ export class ComplianceAuditor {
   }> {
     const period = {
       start: Date.now() - 30 * 24 * 60 * 60 * 1000, // 30 days ago
-      end: Date.now()
+      end: Date.now(),
     };
 
     const report = await this.generateComplianceReport(framework, period, tenantId);
 
     return {
-      compliant: report.summary.criticalViolations === 0 && report.summary.highSeverityViolations === 0,
+      compliant:
+        report.summary.criticalViolations === 0 && report.summary.highSeverityViolations === 0,
       score: report.overallScore,
-      violations: report.requirements.flatMap(r => r.violations),
-      framework: report.framework
+      violations: report.requirements.flatMap((r) => r.violations),
+      framework: report.framework,
     };
   }
 

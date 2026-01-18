@@ -4,6 +4,7 @@
  */
 
 import { EventEmitter } from 'events';
+
 import { ProductionMonitoring } from './production-monitoring';
 
 export interface DeploymentConfig {
@@ -197,10 +198,10 @@ export class DeploymentAutomation extends EventEmitter {
       uptime: {
         last30Days: 99.9,
         last7Days: 99.95,
-        last24Hours: 100
+        last24Hours: 100,
       },
       changeFailureRate: 0,
-      leadTimeForChanges: 0
+      leadTimeForChanges: 0,
     };
   }
 
@@ -216,18 +217,18 @@ export class DeploymentAutomation extends EventEmitter {
         resources: {
           cpu: '2 cores',
           memory: '4Gi',
-          storage: '20Gi'
+          storage: '20Gi',
         },
         networking: {
           loadBalancer: 'dev-lb',
           ingress: ['dev.yseeku.local'],
-          certificates: ['dev-cert']
+          certificates: ['dev-cert'],
         },
         security: {
           secrets: ['dev-secrets'],
           rbac: true,
-          networkPolicy: false
-        }
+          networkPolicy: false,
+        },
       },
       services: [
         {
@@ -242,17 +243,17 @@ export class DeploymentAutomation extends EventEmitter {
             path: '/health',
             interval: 30,
             timeout: 5,
-            retries: 3
-          }
-        }
+            retries: 3,
+          },
+        },
       ],
       status: 'active',
       health: {
         overall: 'healthy',
         services: {
-          'api-service': 'healthy'
-        }
-      }
+          'api-service': 'healthy',
+        },
+      },
     };
 
     // Staging environment
@@ -266,18 +267,18 @@ export class DeploymentAutomation extends EventEmitter {
         resources: {
           cpu: '4 cores',
           memory: '8Gi',
-          storage: '50Gi'
+          storage: '50Gi',
         },
         networking: {
           loadBalancer: 'staging-lb',
           ingress: ['staging.yseeku.com'],
-          certificates: ['staging-cert']
+          certificates: ['staging-cert'],
         },
         security: {
           secrets: ['staging-secrets'],
           rbac: true,
-          networkPolicy: true
-        }
+          networkPolicy: true,
+        },
       },
       services: [
         {
@@ -292,17 +293,17 @@ export class DeploymentAutomation extends EventEmitter {
             path: '/health',
             interval: 30,
             timeout: 5,
-            retries: 3
-          }
-        }
+            retries: 3,
+          },
+        },
       ],
       status: 'active',
       health: {
         overall: 'healthy',
         services: {
-          'api-service': 'healthy'
-        }
-      }
+          'api-service': 'healthy',
+        },
+      },
     };
 
     // Production environment
@@ -316,18 +317,18 @@ export class DeploymentAutomation extends EventEmitter {
         resources: {
           cpu: '16 cores',
           memory: '32Gi',
-          storage: '200Gi'
+          storage: '200Gi',
         },
         networking: {
           loadBalancer: 'prod-lb',
           ingress: ['api.yseeku.com', 'app.yseeku.com'],
-          certificates: ['prod-cert', 'wildcard-cert']
+          certificates: ['prod-cert', 'wildcard-cert'],
         },
         security: {
           secrets: ['prod-secrets'],
           rbac: true,
-          networkPolicy: true
-        }
+          networkPolicy: true,
+        },
       },
       services: [
         {
@@ -342,17 +343,17 @@ export class DeploymentAutomation extends EventEmitter {
             path: '/health',
             interval: 15,
             timeout: 5,
-            retries: 3
-          }
-        }
+            retries: 3,
+          },
+        },
       ],
       status: 'active',
       health: {
         overall: 'healthy',
         services: {
-          'api-service': 'healthy'
-        }
-      }
+          'api-service': 'healthy',
+        },
+      },
     };
 
     this.environments.set('development', devEnvironment);
@@ -377,9 +378,9 @@ export class DeploymentAutomation extends EventEmitter {
         artifactsDeployed: 0,
         testsPassed: 0,
         testsFailed: 0,
-        rollbacksPerformed: 0
+        rollbacksPerformed: 0,
       },
-      logs: []
+      logs: [],
     };
 
     this.deployments.push(deployment);
@@ -409,7 +410,7 @@ export class DeploymentAutomation extends EventEmitter {
           output: '',
           error: '',
           retries: 0,
-          maxRetries: 3
+          maxRetries: 3,
         },
         {
           id: 'download-artifacts',
@@ -419,11 +420,11 @@ export class DeploymentAutomation extends EventEmitter {
           output: '',
           error: '',
           retries: 0,
-          maxRetries: 3
-        }
+          maxRetries: 3,
+        },
       ],
-      artifacts: config.artifacts.map(a => a.name),
-      logs: []
+      artifacts: config.artifacts.map((a) => a.name),
+      logs: [],
     });
 
     // Backup phase
@@ -441,7 +442,7 @@ export class DeploymentAutomation extends EventEmitter {
           output: '',
           error: '',
           retries: 0,
-          maxRetries: 2
+          maxRetries: 2,
         },
         {
           id: 'backup-config',
@@ -451,11 +452,11 @@ export class DeploymentAutomation extends EventEmitter {
           output: '',
           error: '',
           retries: 0,
-          maxRetries: 2
-        }
+          maxRetries: 2,
+        },
       ],
       artifacts: [],
-      logs: []
+      logs: [],
     });
 
     // Deployment phase
@@ -473,7 +474,7 @@ export class DeploymentAutomation extends EventEmitter {
           output: '',
           error: '',
           retries: 0,
-          maxRetries: 2
+          maxRetries: 2,
         },
         {
           id: 'deploy-artifacts',
@@ -483,7 +484,7 @@ export class DeploymentAutomation extends EventEmitter {
           output: '',
           error: '',
           retries: 0,
-          maxRetries: 3
+          maxRetries: 3,
         },
         {
           id: 'start-services',
@@ -493,11 +494,11 @@ export class DeploymentAutomation extends EventEmitter {
           output: '',
           error: '',
           retries: 0,
-          maxRetries: 2
-        }
+          maxRetries: 2,
+        },
       ],
-      artifacts: config.artifacts.map(a => a.name),
-      logs: []
+      artifacts: config.artifacts.map((a) => a.name),
+      logs: [],
     });
 
     // Testing phase
@@ -516,7 +517,7 @@ export class DeploymentAutomation extends EventEmitter {
             output: '',
             error: '',
             retries: 0,
-            maxRetries: 1
+            maxRetries: 1,
           },
           {
             id: 'integration-tests',
@@ -526,11 +527,11 @@ export class DeploymentAutomation extends EventEmitter {
             output: '',
             error: '',
             retries: 0,
-            maxRetries: 1
-          }
+            maxRetries: 1,
+          },
         ],
         artifacts: [],
-        logs: []
+        logs: [],
       });
     }
 
@@ -549,7 +550,7 @@ export class DeploymentAutomation extends EventEmitter {
           output: '',
           error: '',
           retries: 0,
-          maxRetries: 5
+          maxRetries: 5,
         },
         {
           id: 'metrics-verification',
@@ -559,11 +560,11 @@ export class DeploymentAutomation extends EventEmitter {
           output: '',
           error: '',
           retries: 0,
-          maxRetries: 3
-        }
+          maxRetries: 3,
+        },
       ],
       artifacts: [],
-      logs: []
+      logs: [],
     });
 
     // Cleanup phase
@@ -581,7 +582,7 @@ export class DeploymentAutomation extends EventEmitter {
           output: '',
           error: '',
           retries: 0,
-          maxRetries: 1
+          maxRetries: 1,
         },
         {
           id: 'update-records',
@@ -591,18 +592,18 @@ export class DeploymentAutomation extends EventEmitter {
           output: '',
           error: '',
           retries: 0,
-          maxRetries: 1
-        }
+          maxRetries: 1,
+        },
       ],
       artifacts: [],
-      logs: []
+      logs: [],
     });
 
     return phases;
   }
 
   async executeDeployment(deploymentId: string): Promise<void> {
-    const deployment = this.deployments.find(d => d.id === deploymentId);
+    const deployment = this.deployments.find((d) => d.id === deploymentId);
     if (!deployment) {
       throw new Error(`Deployment not found: ${deploymentId}`);
     }
@@ -623,7 +624,7 @@ export class DeploymentAutomation extends EventEmitter {
     try {
       for (const phase of deployment.phases) {
         await this.executePhase(deployment, phase);
-        
+
         if (phase.status === 'failed') {
           throw new Error(`Phase ${phase.name} failed`);
         }
@@ -631,21 +632,23 @@ export class DeploymentAutomation extends EventEmitter {
 
       deployment.status = 'completed';
       deployment.completedAt = new Date();
-      deployment.metrics.duration = deployment.completedAt.getTime() - deployment.startedAt!.getTime();
+      deployment.metrics.duration =
+        deployment.completedAt.getTime() - deployment.startedAt.getTime();
 
       console.log(`✅ Deployment completed successfully: ${deployment.id}`);
       this.emit('deploymentCompleted', deployment);
-
     } catch (error) {
       deployment.status = 'failed';
       deployment.completedAt = new Date();
-      
+
       console.error(`❌ Deployment failed: ${deployment.id}`, error);
       this.emit('deploymentFailed', { deployment, error: (error as Error).message });
 
       // Auto-rollback if enabled
-      if (deployment.config.rollback.enabled && 
-          deployment.config.rollback.strategy === 'automatic') {
+      if (
+        deployment.config.rollback.enabled &&
+        deployment.config.rollback.strategy === 'automatic'
+      ) {
         await this.executeRollback(deployment);
       }
     } finally {
@@ -662,7 +665,7 @@ export class DeploymentAutomation extends EventEmitter {
     try {
       for (const step of phase.steps) {
         await this.executeStep(deployment, phase, step);
-        
+
         if (step.status === 'failed') {
           phase.status = 'failed';
           throw new Error(`Step ${step.name} failed`);
@@ -671,10 +674,9 @@ export class DeploymentAutomation extends EventEmitter {
 
       phase.status = 'completed';
       phase.completedAt = new Date();
-      phase.duration = phase.completedAt.getTime() - phase.startedAt!.getTime();
+      phase.duration = phase.completedAt.getTime() - phase.startedAt.getTime();
 
       console.log(`✅ Phase completed: ${phase.name}`);
-
     } catch (error) {
       phase.status = 'failed';
       phase.completedAt = new Date();
@@ -682,7 +684,11 @@ export class DeploymentAutomation extends EventEmitter {
     }
   }
 
-  private async executeStep(deployment: Deployment, phase: DeploymentPhase, step: DeploymentStep): Promise<void> {
+  private async executeStep(
+    deployment: Deployment,
+    phase: DeploymentPhase,
+    step: DeploymentStep
+  ): Promise<void> {
     console.log(`🔧 Executing step: ${step.name}`);
     step.status = 'running';
     step.startedAt = new Date();
@@ -690,28 +696,45 @@ export class DeploymentAutomation extends EventEmitter {
     try {
       // Mock step execution
       await this.mockStepExecution(step);
-      
+
       step.status = 'completed';
       step.completedAt = new Date();
-      step.duration = step.completedAt.getTime() - step.startedAt!.getTime();
+      step.duration = step.completedAt.getTime() - step.startedAt.getTime();
       step.exitCode = 0;
 
-      this.addDeploymentLog(deployment, 'info', `Step completed: ${step.name}`, phase.name, step.name);
-
+      this.addDeploymentLog(
+        deployment,
+        'info',
+        `Step completed: ${step.name}`,
+        phase.name,
+        step.name
+      );
     } catch (error) {
       step.status = 'failed';
       step.completedAt = new Date();
       step.error = (error as Error).message;
       step.exitCode = 1;
 
-      this.addDeploymentLog(deployment, 'error', `Step failed: ${step.name} - ${(error as Error).message}`, phase.name, step.name);
+      this.addDeploymentLog(
+        deployment,
+        'error',
+        `Step failed: ${step.name} - ${(error as Error).message}`,
+        phase.name,
+        step.name
+      );
 
       // Retry if configured
       if (step.retries < step.maxRetries) {
         step.retries++;
         step.status = 'pending';
-        
-        this.addDeploymentLog(deployment, 'warn', `Retrying step: ${step.name} (attempt ${step.retries})`, phase.name, step.name);
+
+        this.addDeploymentLog(
+          deployment,
+          'warn',
+          `Retrying step: ${step.name} (attempt ${step.retries})`,
+          phase.name,
+          step.name
+        );
         await this.executeStep(deployment, phase, step);
         return;
       }
@@ -723,12 +746,12 @@ export class DeploymentAutomation extends EventEmitter {
   private async mockStepExecution(step: DeploymentStep): Promise<void> {
     // Simulate step execution with realistic timing
     const executionTime = 1000 + Math.random() * 5000; // 1-6 seconds
-    
+
     step.output = `Executing ${step.command}...`;
-    await new Promise(resolve => setTimeout(resolve, executionTime / 2));
-    
+    await new Promise((resolve) => setTimeout(resolve, executionTime / 2));
+
     step.output += `\n${step.command} completed successfully`;
-    await new Promise(resolve => setTimeout(resolve, executionTime / 2));
+    await new Promise((resolve) => setTimeout(resolve, executionTime / 2));
 
     // Simulate occasional failures (10% chance)
     if (Math.random() < 0.1) {
@@ -736,7 +759,13 @@ export class DeploymentAutomation extends EventEmitter {
     }
   }
 
-  private addDeploymentLog(deployment: Deployment, level: DeploymentLog['level'], message: string, phase?: string, step?: string): void {
+  private addDeploymentLog(
+    deployment: Deployment,
+    level: DeploymentLog['level'],
+    message: string,
+    phase?: string,
+    step?: string
+  ): void {
     const log: DeploymentLog = {
       id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date(),
@@ -746,8 +775,8 @@ export class DeploymentAutomation extends EventEmitter {
       step,
       metadata: {
         deploymentId: deployment.id,
-        environment: deployment.config.environment
-      }
+        environment: deployment.config.environment,
+      },
     };
 
     deployment.logs.push(log);
@@ -756,19 +785,19 @@ export class DeploymentAutomation extends EventEmitter {
 
   async executeRollback(deployment: Deployment): Promise<void> {
     console.log(`🔄 Executing rollback for deployment: ${deployment.id}`);
-    
+
     deployment.status = 'rolled-back';
     deployment.metrics.rollbacksPerformed++;
 
     // Mock rollback execution
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     console.log(`✅ Rollback completed: ${deployment.id}`);
     this.emit('deploymentRolledBack', deployment);
   }
 
   async approveDeployment(deploymentId: string, approvedBy: string): Promise<void> {
-    const deployment = this.deployments.find(d => d.id === deploymentId);
+    const deployment = this.deployments.find((d) => d.id === deploymentId);
     if (!deployment) {
       throw new Error(`Deployment not found: ${deploymentId}`);
     }
@@ -786,7 +815,7 @@ export class DeploymentAutomation extends EventEmitter {
   }
 
   getDeployment(deploymentId: string): Deployment | undefined {
-    return this.deployments.find(d => d.id === deploymentId);
+    return this.deployments.find((d) => d.id === deploymentId);
   }
 
   getDeployments(filter?: {
@@ -797,15 +826,15 @@ export class DeploymentAutomation extends EventEmitter {
     let filtered = [...this.deployments];
 
     if (filter?.environment) {
-      filtered = filtered.filter(d => d.config.environment === filter.environment);
+      filtered = filtered.filter((d) => d.config.environment === filter.environment);
     }
 
     if (filter?.status) {
-      filtered = filtered.filter(d => d.status === filter.status);
+      filtered = filtered.filter((d) => d.status === filter.status);
     }
 
     if (filter?.createdBy) {
-      filtered = filtered.filter(d => d.createdBy === filter.createdBy);
+      filtered = filtered.filter((d) => d.createdBy === filter.createdBy);
     }
 
     return filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -825,11 +854,15 @@ export class DeploymentAutomation extends EventEmitter {
 
   private updateMetrics(): void {
     this.metrics.totalDeployments = this.deployments.length;
-    this.metrics.successfulDeployments = this.deployments.filter(d => d.status === 'completed').length;
-    this.metrics.failedDeployments = this.deployments.filter(d => d.status === 'failed').length;
+    this.metrics.successfulDeployments = this.deployments.filter(
+      (d) => d.status === 'completed'
+    ).length;
+    this.metrics.failedDeployments = this.deployments.filter((d) => d.status === 'failed').length;
 
     // Calculate average deployment time
-    const completedDeployments = this.deployments.filter(d => d.status === 'completed' && d.metrics.duration > 0);
+    const completedDeployments = this.deployments.filter(
+      (d) => d.status === 'completed' && d.metrics.duration > 0
+    );
     if (completedDeployments.length > 0) {
       const totalTime = completedDeployments.reduce((sum, d) => sum + d.metrics.duration, 0);
       this.metrics.averageDeploymentTime = totalTime / completedDeployments.length;
@@ -839,29 +872,35 @@ export class DeploymentAutomation extends EventEmitter {
     this.metrics.deploymentsByEnvironment = {};
     for (const deployment of this.deployments) {
       const env = deployment.config.environment;
-      this.metrics.deploymentsByEnvironment[env] = (this.metrics.deploymentsByEnvironment[env] || 0) + 1;
+      this.metrics.deploymentsByEnvironment[env] =
+        (this.metrics.deploymentsByEnvironment[env] || 0) + 1;
     }
 
     // Update status breakdown
     this.metrics.deploymentsByStatus = {};
     for (const deployment of this.deployments) {
       const status = deployment.status;
-      this.metrics.deploymentsByStatus[status] = (this.metrics.deploymentsByStatus[status] || 0) + 1;
+      this.metrics.deploymentsByStatus[status] =
+        (this.metrics.deploymentsByStatus[status] || 0) + 1;
     }
 
     // Calculate change failure rate
     if (this.metrics.totalDeployments > 0) {
-      this.metrics.changeFailureRate = (this.metrics.failedDeployments / this.metrics.totalDeployments) * 100;
+      this.metrics.changeFailureRate =
+        (this.metrics.failedDeployments / this.metrics.totalDeployments) * 100;
     }
 
     this.emit('metricsUpdated', this.metrics);
   }
 
-  async getDeploymentLogs(deploymentId: string, filter?: {
-    level?: DeploymentLog['level'];
-    phase?: string;
-    step?: string;
-  }): Promise<DeploymentLog[]> {
+  async getDeploymentLogs(
+    deploymentId: string,
+    filter?: {
+      level?: DeploymentLog['level'];
+      phase?: string;
+      step?: string;
+    }
+  ): Promise<DeploymentLog[]> {
     const deployment = this.getDeployment(deploymentId);
     if (!deployment) {
       throw new Error(`Deployment not found: ${deploymentId}`);
@@ -870,22 +909,22 @@ export class DeploymentAutomation extends EventEmitter {
     let logs = [...deployment.logs];
 
     if (filter?.level) {
-      logs = logs.filter(l => l.level === filter.level);
+      logs = logs.filter((l) => l.level === filter.level);
     }
 
     if (filter?.phase) {
-      logs = logs.filter(l => l.phase === filter.phase);
+      logs = logs.filter((l) => l.phase === filter.phase);
     }
 
     if (filter?.step) {
-      logs = logs.filter(l => l.step === filter.step);
+      logs = logs.filter((l) => l.step === filter.step);
     }
 
     return logs.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   }
 
   async cancelDeployment(deploymentId: string): Promise<void> {
-    const deployment = this.deployments.find(d => d.id === deploymentId);
+    const deployment = this.deployments.find((d) => d.id === deploymentId);
     if (!deployment) {
       throw new Error(`Deployment not found: ${deploymentId}`);
     }

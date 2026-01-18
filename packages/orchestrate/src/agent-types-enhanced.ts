@@ -27,8 +27,8 @@ export interface TrustArticles {
 }
 
 export interface TrustScores {
-  compliance_score: number;  // 0-1 range
-  guilt_score: number;       // 0-1 range
+  compliance_score: number; // 0-1 range
+  guilt_score: number; // 0-1 range
   confidence_interval?: {
     lower: number;
     upper: number;
@@ -44,7 +44,7 @@ export interface TrustDeclaration {
   declaration_date: Date;
   trust_articles: TrustArticles;
   scores: TrustScores;
-  issuer?: string;           // DID of issuer
+  issuer?: string; // DID of issuer
   verifiable_credential?: VerifiableCredential;
   audit_history?: TrustAuditEntry[];
 }
@@ -119,9 +119,15 @@ export interface TrustMetrics {
   diversity_score?: number;
 }
 
-export type TaskStatus = 'pending' | 'assigned' | 'in_progress' | 'blocked' | 'completed' | 'failed';
+export type TaskStatus =
+  | 'pending'
+  | 'assigned'
+  | 'in_progress'
+  | 'blocked'
+  | 'completed'
+  | 'failed';
 
-export type TaskType = 
+export type TaskType =
   | 'code_review'
   | 'bug_fix'
   | 'feature_development'
@@ -132,7 +138,7 @@ export type TaskType =
   | 'research'
   | 'collaboration';
 
-export type MessageType = 
+export type MessageType =
   | 'task_request'
   | 'task_response'
   | 'collaboration_invite'
@@ -155,7 +161,7 @@ export interface AgentConfig {
   webhookUrl?: string;
   capabilities: AgentCapability[];
   permissions: AgentPermission[];
-  did?: string;                       // Decentralized Identifier
+  did?: string; // Decentralized Identifier
   trustDeclaration?: TrustDeclaration;
   metadata?: Record<string, any>;
 }

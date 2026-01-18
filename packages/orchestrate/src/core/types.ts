@@ -14,5 +14,5 @@ export interface LVSScaffolding {
 
 export const DEFAULT_LVS_SCAFFOLDING: LVSScaffolding = {
   level: 'basic',
-  requirements: ['trust', 'validation', 'ethics']
+  requirements: ['trust', 'validation', 'ethics'],
 };

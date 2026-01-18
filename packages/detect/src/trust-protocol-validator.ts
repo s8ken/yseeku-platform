@@ -1,6 +1,6 @@
 /**
  * Trust Protocol Validator (PASS/PARTIAL/FAIL)
- * 
+ *
  * Dimension 2 of SYMBI Framework
  * Checks: Verification methods, boundary maintenance, security awareness
  */
@@ -17,8 +17,8 @@ export class TrustProtocolValidator {
 
     const passedChecks = Object.values(checks).filter(Boolean).length;
 
-    if (passedChecks === 3) return 'PASS';
-    if (passedChecks >= 2) return 'PARTIAL';
+    if (passedChecks === 3) {return 'PASS';}
+    if (passedChecks >= 2) {return 'PARTIAL';}
     return 'FAIL';
   }
 

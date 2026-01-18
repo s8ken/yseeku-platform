@@ -1,13 +1,17 @@
 /**
  * Archive-Based Benchmarking Suite for Conversational Metrics
- * 
+ *
  * Comprehensive testing and calibration system using historical
  * conversation archives to validate Phase-Shift Velocity metrics
  * and optimize detection parameters.
  */
 
-import { ConversationalMetrics, ConversationTurn, PhaseShiftMetrics } from './conversational-metrics';
 import { ArchiveAnalyzer, ArchiveConversation } from './archive-analyzer';
+import {
+  ConversationalMetrics,
+  ConversationTurn,
+  PhaseShiftMetrics,
+} from './conversational-metrics';
 import { ExperimentOrchestrator } from './experiment-orchestrator';
 import { StatisticalEngine } from './statistical-engine';
 
@@ -45,12 +49,15 @@ export interface BenchmarkResult {
     optimalWindowSize: number;
   };
   systemPerformance: {
-    byAI: Record<string, {
-      conversations: number;
-      avgPhaseShiftVelocity: number;
-      avgIdentityStability: number;
-      alertRate: number;
-    }>;
+    byAI: Record<
+      string,
+      {
+        conversations: number;
+        avgPhaseShiftVelocity: number;
+        avgIdentityStability: number;
+        alertRate: number;
+      }
+    >;
   };
 }
 
@@ -72,11 +79,15 @@ export class ArchiveBenchmarkSuite {
   async initialize(): Promise<void> {
     console.log('Loading conversation archives...');
     this.conversations = await this.archiveAnalyzer.loadAllConversations();
-    
+
     const stats = this.archiveAnalyzer.getArchiveStatistics(this.conversations);
-    console.log(`Loaded ${stats.totalConversations} conversations with ${stats.totalTurns} total turns`);
+    console.log(
+      `Loaded ${stats.totalConversations} conversations with ${stats.totalTurns} total turns`
+    );
     console.log(`Average ${stats.avgTurnsPerConversation.toFixed(1)} turns per conversation`);
-    console.log(`Average resonance: ${stats.avgResonance.toFixed(2)}, canvas: ${stats.avgCanvas.toFixed(2)}`);
+    console.log(
+      `Average resonance: ${stats.avgResonance.toFixed(2)}, canvas: ${stats.avgCanvas.toFixed(2)}`
+    );
   }
 
   /**
@@ -92,10 +103,10 @@ export class ArchiveBenchmarkSuite {
     // Test each metric configuration
     for (const metricConfig of config.metricConfigs) {
       const result = await this.testMetricConfiguration(config, metricConfig);
-      
+
       // Calculate composite score (weighted combination of metrics)
       const score = this.calculateCompositeScore(result, config.validationCriteria);
-      
+
       if (score > bestScore) {
         bestScore = score;
         bestResult = result;
@@ -116,22 +127,21 @@ export class ArchiveBenchmarkSuite {
     config: BenchmarkConfig,
     metricConfig: BenchmarkConfig['metricConfigs'][0]
   ): Promise<BenchmarkResult> {
-    
     const metrics = new ConversationalMetrics({
       yellowThreshold: metricConfig.yellowThreshold,
       redThreshold: metricConfig.redThreshold,
       identityStabilityThreshold: metricConfig.identityStabilityThreshold,
-      windowSize: metricConfig.windowSize
+      windowSize: metricConfig.windowSize,
     });
 
     let totalDetectedShifts = 0;
     let totalFalsePositives = 0;
     let totalFalseNegatives = 0;
-    let systemPerformance: BenchmarkResult['systemPerformance'] = { byAI: {} };
+    const systemPerformance: BenchmarkResult['systemPerformance'] = { byAI: {} };
 
     // Process each conversation
     for (const conversation of this.conversations) {
-      const aiTurns = conversation.turns.filter(t => t.speaker === 'ai');
+      const aiTurns = conversation.turns.filter((t) => t.speaker === 'ai');
       let conversationShifts = 0;
       let conversationAlerts = 0;
       let totalPhaseShiftVelocity = 0;
@@ -140,7 +150,7 @@ export class ArchiveBenchmarkSuite {
       // Process AI turns as conversation sequence
       for (let i = 0; i < aiTurns.length; i++) {
         const turn = aiTurns[i];
-        
+
         // Convert to ConversationalMetrics format
         const metricsTurn: ConversationTurn = {
           turnNumber: i + 1,
@@ -149,11 +159,11 @@ export class ArchiveBenchmarkSuite {
           resonance: turn.resonance || 5,
           canvas: turn.canvas || 5,
           identityVector: turn.identityVector || ['neutral'],
-          content: turn.content
+          content: turn.content,
         };
 
         const result = metrics.recordTurn(metricsTurn);
-        
+
         totalPhaseShiftVelocity += result.phaseShiftVelocity;
         totalIdentityStability += result.identityStability;
 
@@ -173,7 +183,7 @@ export class ArchiveBenchmarkSuite {
           conversations: 0,
           avgPhaseShiftVelocity: 0,
           avgIdentityStability: 0,
-          alertRate: 0
+          alertRate: 0,
         };
       }
 
@@ -185,7 +195,7 @@ export class ArchiveBenchmarkSuite {
     }
 
     // Calculate averages for system performance
-    Object.keys(systemPerformance.byAI).forEach(system => {
+    Object.keys(systemPerformance.byAI).forEach((system) => {
       const stats = systemPerformance.byAI[system];
       stats.avgPhaseShiftVelocity /= stats.conversations;
       stats.avgIdentityStability /= stats.conversations;
@@ -216,9 +226,9 @@ export class ArchiveBenchmarkSuite {
         optimalYellowThreshold: metricConfig.yellowThreshold,
         optimalRedThreshold: metricConfig.redThreshold,
         optimalIdentityThreshold: metricConfig.identityStabilityThreshold,
-        optimalWindowSize: metricConfig.windowSize
+        optimalWindowSize: metricConfig.windowSize,
       },
-      systemPerformance
+      systemPerformance,
     };
   }
 
@@ -228,8 +238,8 @@ export class ArchiveBenchmarkSuite {
   private estimateExpectedPhaseShifts(): number {
     // Use the archive analyzer's phase shift detection as ground truth
     let totalExpectedShifts = 0;
-    
-    this.conversations.forEach(conv => {
+
+    this.conversations.forEach((conv) => {
       totalExpectedShifts += conv.metadata.phaseShifts;
     });
 
@@ -239,18 +249,27 @@ export class ArchiveBenchmarkSuite {
   /**
    * Calculate composite score for configuration comparison
    */
-  private calculateCompositeScore(result: BenchmarkResult, criteria: BenchmarkConfig['validationCriteria']): number {
-    const detectionScore = result.detectionRate >= criteria.minDetectionRate ? 1.0 : 
-      result.detectionRate / criteria.minDetectionRate;
-    
-    const falsePositiveScore = result.falsePositiveRate <= criteria.maxFalsePositiveRate ? 1.0 :
-      Math.max(0, 1 - (result.falsePositiveRate - criteria.maxFalsePositiveRate));
-    
-    const accuracyScore = result.accuracy >= criteria.minPhaseShiftAccuracy ? 1.0 :
-      result.accuracy / criteria.minPhaseShiftAccuracy;
+  private calculateCompositeScore(
+    result: BenchmarkResult,
+    criteria: BenchmarkConfig['validationCriteria']
+  ): number {
+    const detectionScore =
+      result.detectionRate >= criteria.minDetectionRate
+        ? 1.0
+        : result.detectionRate / criteria.minDetectionRate;
+
+    const falsePositiveScore =
+      result.falsePositiveRate <= criteria.maxFalsePositiveRate
+        ? 1.0
+        : Math.max(0, 1 - (result.falsePositiveRate - criteria.maxFalsePositiveRate));
+
+    const accuracyScore =
+      result.accuracy >= criteria.minPhaseShiftAccuracy
+        ? 1.0
+        : result.accuracy / criteria.minPhaseShiftAccuracy;
 
     // Weighted combination (detection is most important)
-    return (detectionScore * 0.5) + (falsePositiveScore * 0.3) + (accuracyScore * 0.2);
+    return detectionScore * 0.5 + falsePositiveScore * 0.3 + accuracyScore * 0.2;
   }
 
   /**
@@ -267,35 +286,137 @@ export class ArchiveBenchmarkSuite {
       description: 'Find optimal thresholds for phase-shift detection',
       metricConfigs: [
         // Test different yellow threshold values
-        { name: 'yellow_2.0', yellowThreshold: 2.0, redThreshold: 3.5, identityStabilityThreshold: 0.65, windowSize: 3 },
-        { name: 'yellow_2.5', yellowThreshold: 2.5, redThreshold: 3.5, identityStabilityThreshold: 0.65, windowSize: 3 },
-        { name: 'yellow_3.0', yellowThreshold: 3.0, redThreshold: 3.5, identityStabilityThreshold: 0.65, windowSize: 3 },
-        { name: 'yellow_3.5', yellowThreshold: 3.5, redThreshold: 4.0, identityStabilityThreshold: 0.65, windowSize: 3 },
-        
+        {
+          name: 'yellow_2.0',
+          yellowThreshold: 2.0,
+          redThreshold: 3.5,
+          identityStabilityThreshold: 0.65,
+          windowSize: 3,
+        },
+        {
+          name: 'yellow_2.5',
+          yellowThreshold: 2.5,
+          redThreshold: 3.5,
+          identityStabilityThreshold: 0.65,
+          windowSize: 3,
+        },
+        {
+          name: 'yellow_3.0',
+          yellowThreshold: 3.0,
+          redThreshold: 3.5,
+          identityStabilityThreshold: 0.65,
+          windowSize: 3,
+        },
+        {
+          name: 'yellow_3.5',
+          yellowThreshold: 3.5,
+          redThreshold: 4.0,
+          identityStabilityThreshold: 0.65,
+          windowSize: 3,
+        },
+
         // Test different red threshold values
-        { name: 'red_3.0', yellowThreshold: 2.5, redThreshold: 3.0, identityStabilityThreshold: 0.65, windowSize: 3 },
-        { name: 'red_3.5', yellowThreshold: 2.5, redThreshold: 3.5, identityStabilityThreshold: 0.65, windowSize: 3 },
-        { name: 'red_4.0', yellowThreshold: 2.5, redThreshold: 4.0, identityStabilityThreshold: 0.65, windowSize: 3 },
-        { name: 'red_4.5', yellowThreshold: 2.5, redThreshold: 4.5, identityStabilityThreshold: 0.65, windowSize: 3 },
-        
+        {
+          name: 'red_3.0',
+          yellowThreshold: 2.5,
+          redThreshold: 3.0,
+          identityStabilityThreshold: 0.65,
+          windowSize: 3,
+        },
+        {
+          name: 'red_3.5',
+          yellowThreshold: 2.5,
+          redThreshold: 3.5,
+          identityStabilityThreshold: 0.65,
+          windowSize: 3,
+        },
+        {
+          name: 'red_4.0',
+          yellowThreshold: 2.5,
+          redThreshold: 4.0,
+          identityStabilityThreshold: 0.65,
+          windowSize: 3,
+        },
+        {
+          name: 'red_4.5',
+          yellowThreshold: 2.5,
+          redThreshold: 4.5,
+          identityStabilityThreshold: 0.65,
+          windowSize: 3,
+        },
+
         // Test different identity stability thresholds
-        { name: 'identity_0.5', yellowThreshold: 2.5, redThreshold: 3.5, identityStabilityThreshold: 0.5, windowSize: 3 },
-        { name: 'identity_0.6', yellowThreshold: 2.5, redThreshold: 3.5, identityStabilityThreshold: 0.6, windowSize: 3 },
-        { name: 'identity_0.65', yellowThreshold: 2.5, redThreshold: 3.5, identityStabilityThreshold: 0.65, windowSize: 3 },
-        { name: 'identity_0.7', yellowThreshold: 2.5, redThreshold: 3.5, identityStabilityThreshold: 0.7, windowSize: 3 },
-        { name: 'identity_0.8', yellowThreshold: 2.5, redThreshold: 3.5, identityStabilityThreshold: 0.8, windowSize: 3 },
-        
+        {
+          name: 'identity_0.5',
+          yellowThreshold: 2.5,
+          redThreshold: 3.5,
+          identityStabilityThreshold: 0.5,
+          windowSize: 3,
+        },
+        {
+          name: 'identity_0.6',
+          yellowThreshold: 2.5,
+          redThreshold: 3.5,
+          identityStabilityThreshold: 0.6,
+          windowSize: 3,
+        },
+        {
+          name: 'identity_0.65',
+          yellowThreshold: 2.5,
+          redThreshold: 3.5,
+          identityStabilityThreshold: 0.65,
+          windowSize: 3,
+        },
+        {
+          name: 'identity_0.7',
+          yellowThreshold: 2.5,
+          redThreshold: 3.5,
+          identityStabilityThreshold: 0.7,
+          windowSize: 3,
+        },
+        {
+          name: 'identity_0.8',
+          yellowThreshold: 2.5,
+          redThreshold: 3.5,
+          identityStabilityThreshold: 0.8,
+          windowSize: 3,
+        },
+
         // Test different window sizes
-        { name: 'window_2', yellowThreshold: 2.5, redThreshold: 3.5, identityStabilityThreshold: 0.65, windowSize: 2 },
-        { name: 'window_3', yellowThreshold: 2.5, redThreshold: 3.5, identityStabilityThreshold: 0.65, windowSize: 3 },
-        { name: 'window_4', yellowThreshold: 2.5, redThreshold: 3.5, identityStabilityThreshold: 0.65, windowSize: 4 },
-        { name: 'window_5', yellowThreshold: 2.5, redThreshold: 3.5, identityStabilityThreshold: 0.65, windowSize: 5 },
+        {
+          name: 'window_2',
+          yellowThreshold: 2.5,
+          redThreshold: 3.5,
+          identityStabilityThreshold: 0.65,
+          windowSize: 2,
+        },
+        {
+          name: 'window_3',
+          yellowThreshold: 2.5,
+          redThreshold: 3.5,
+          identityStabilityThreshold: 0.65,
+          windowSize: 3,
+        },
+        {
+          name: 'window_4',
+          yellowThreshold: 2.5,
+          redThreshold: 3.5,
+          identityStabilityThreshold: 0.65,
+          windowSize: 4,
+        },
+        {
+          name: 'window_5',
+          yellowThreshold: 2.5,
+          redThreshold: 3.5,
+          identityStabilityThreshold: 0.65,
+          windowSize: 5,
+        },
       ],
       validationCriteria: {
         minDetectionRate: 0.8,
         maxFalsePositiveRate: 0.2,
-        minPhaseShiftAccuracy: 0.85
-      }
+        minPhaseShiftAccuracy: 0.85,
+      },
     };
 
     const result = await this.runBenchmark(optimizationConfig);
@@ -303,7 +424,7 @@ export class ArchiveBenchmarkSuite {
       yellowThreshold: result.parameterOptimization.optimalYellowThreshold,
       redThreshold: result.parameterOptimization.optimalRedThreshold,
       identityStabilityThreshold: result.parameterOptimization.optimalIdentityThreshold,
-      windowSize: result.parameterOptimization.optimalWindowSize
+      windowSize: result.parameterOptimization.optimalWindowSize,
     };
   }
 
@@ -319,7 +440,9 @@ export class ArchiveBenchmarkSuite {
       `## Dataset Statistics`,
       `- Total Conversations: ${result.totalConversations}`,
       `- Total Turns: ${result.totalTurns}`,
-      `- Average Turns per Conversation: ${(result.totalTurns / result.totalConversations).toFixed(1)}`,
+      `- Average Turns per Conversation: ${(result.totalTurns / result.totalConversations).toFixed(
+        1
+      )}`,
       ``,
       `## Detection Performance`,
       `- Detected Phase Shifts: ${result.detectedPhaseShifts}`,

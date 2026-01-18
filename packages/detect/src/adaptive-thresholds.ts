@@ -3,14 +3,14 @@ export class AdaptiveThresholdManager {
   async getAdaptiveThresholds(stakes: string, text: string): Promise<any> {
     return {
       thresholds: { ethics: 0.75, alignment: 0.7 },
-      thresholdUncertainty: 0.05
+      thresholdUncertainty: 0.05,
     };
   }
 
   applyThresholds(score: number, thresholds: any, stakes: string): any {
     return {
       adjustedScore: score * 0.9,
-      adjustmentFactor: 0.9
+      adjustmentFactor: 0.9,
     };
   }
 }

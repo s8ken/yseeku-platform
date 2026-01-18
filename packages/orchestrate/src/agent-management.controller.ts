@@ -1,9 +1,11 @@
-import { Agent, UserModel as User } from './agent.model';
+import { tenantContext } from '@sonate/core';
+import Ajv from 'ajv';
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import Ajv from 'ajv';
+
+import { Agent, UserModel as User } from './agent.model';
 import { appendEvent } from './services/ledger.service';
-import { tenantContext } from '@sonate/core';
+
 
 // Custom Request type to include user
 interface AuthenticatedRequest extends Request {
@@ -31,7 +33,7 @@ export const getAllAgents = asyncHandler(async (req: AuthenticatedRequest, res: 
 
   const tenantId = tenantContext.getTenantId(false) || req.user.tenantId;
   const query: any = { user: req.user.id };
-  if (tenantId) query.tenantId = tenantId;
+  if (tenantId) {query.tenantId = tenantId;}
 
   const agents = await Agent.find(query)
     .populate('connectedAgents', 'name description')
@@ -40,7 +42,7 @@ export const getAllAgents = asyncHandler(async (req: AuthenticatedRequest, res: 
   res.status(200).json({
     success: true,
     count: agents.length,
-    data: agents
+    data: agents,
   });
 });
 
@@ -50,7 +52,7 @@ export const getAllAgents = asyncHandler(async (req: AuthenticatedRequest, res: 
 export const getPublicAgents = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const tenantId = tenantContext.getTenantId(false) || req.user?.tenantId;
   const query: any = { isPublic: true };
-  if (tenantId) query.tenantId = tenantId;
+  if (tenantId) {query.tenantId = tenantId;}
 
   const agents = await Agent.find(query)
     .populate('user', 'name')
@@ -60,7 +62,7 @@ export const getPublicAgents = asyncHandler(async (req: AuthenticatedRequest, re
   res.status(200).json({
     success: true,
     count: agents.length,
-    data: agents
+    data: agents,
   });
 });
 
@@ -80,7 +82,7 @@ export const getAgent = asyncHandler(async (req: AuthenticatedRequest, res: Resp
   if (!agent) {
     res.status(404).json({
       success: false,
-      message: 'Agent not found'
+      message: 'Agent not found',
     });
     return;
   }
@@ -90,25 +92,27 @@ export const getAgent = asyncHandler(async (req: AuthenticatedRequest, res: Resp
   if (tenantId && agent.tenantId && agent.tenantId !== tenantId) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to access this agent (tenant mismatch)'
+      message: 'Not authorized to access this agent (tenant mismatch)',
     });
     return;
   }
 
   // Check ownership
-  const agentUserId = (agent.user as any)._id ? (agent.user as any)._id.toString() : agent.user.toString();
+  const agentUserId = (agent.user as any)._id
+    ? (agent.user as any)._id.toString()
+    : agent.user.toString();
 
   if (agentUserId !== req.user.id && !agent.isPublic) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to access this agent'
+      message: 'Not authorized to access this agent',
     });
     return;
   }
 
   res.status(200).json({
     success: true,
-    data: agent
+    data: agent,
   });
 });
 
@@ -132,7 +136,7 @@ export const createAgent = asyncHandler(async (req: AuthenticatedRequest, res: R
     maxTokens,
     isPublic,
     traits,
-    ciModel
+    ciModel,
   } = req.body;
 
   // Verify API key belongs to user or use default (explicitly select key field)
@@ -143,26 +147,26 @@ export const createAgent = asyncHandler(async (req: AuthenticatedRequest, res: R
   }
 
   let selectedApiKeyId = apiKeyId;
-  
+
   // If no API key specified, use the first available key for the provider
   if (!apiKeyId || apiKeyId === '') {
-    const defaultKey = user.apiKeys.find(key => key.provider === provider && key.isActive);
+    const defaultKey = user.apiKeys.find((key) => key.provider === provider && key.isActive);
     if (!defaultKey) {
       res.status(400).json({
         success: false,
-        message: `No API key found for provider: ${provider}. Please add an API key in Settings.`
+        message: `No API key found for provider: ${provider}. Please add an API key in Settings.`,
       });
       return;
     }
     selectedApiKeyId = defaultKey._id;
   }
-  
-  const apiKey = user.apiKeys.find(key => key._id?.toString() === selectedApiKeyId.toString());
-  
+
+  const apiKey = user.apiKeys.find((key) => key._id?.toString() === selectedApiKeyId.toString());
+
   if (!apiKey) {
     res.status(400).json({
       success: false,
-      message: 'Invalid API key'
+      message: 'Invalid API key',
     });
     return;
   }
@@ -183,12 +187,12 @@ export const createAgent = asyncHandler(async (req: AuthenticatedRequest, res: R
     maxTokens,
     isPublic,
     traits,
-    ciModel
+    ciModel,
   });
 
   res.status(201).json({
     success: true,
-    data: agent
+    data: agent,
   });
 });
 
@@ -206,7 +210,7 @@ export const updateAgent = asyncHandler(async (req: AuthenticatedRequest, res: R
   if (!agent) {
     res.status(404).json({
       success: false,
-      message: 'Agent not found'
+      message: 'Agent not found',
     });
     return;
   }
@@ -215,7 +219,7 @@ export const updateAgent = asyncHandler(async (req: AuthenticatedRequest, res: R
   if (agent.user.toString() !== req.user.id) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to update this agent'
+      message: 'Not authorized to update this agent',
     });
     return;
   }
@@ -225,19 +229,19 @@ export const updateAgent = asyncHandler(async (req: AuthenticatedRequest, res: R
   if (tenantId && agent.tenantId && agent.tenantId !== tenantId) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to update this agent (tenant mismatch)'
+      message: 'Not authorized to update this agent (tenant mismatch)',
     });
     return;
   }
 
   agent = await Agent.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
-    runValidators: true
+    runValidators: true,
   });
 
   res.status(200).json({
     success: true,
-    data: agent
+    data: agent,
   });
 });
 
@@ -255,7 +259,7 @@ export const deleteAgent = asyncHandler(async (req: AuthenticatedRequest, res: R
   if (!agent) {
     res.status(404).json({
       success: false,
-      message: 'Agent not found'
+      message: 'Agent not found',
     });
     return;
   }
@@ -264,7 +268,7 @@ export const deleteAgent = asyncHandler(async (req: AuthenticatedRequest, res: R
   if (agent.user.toString() !== req.user.id) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to delete this agent'
+      message: 'Not authorized to delete this agent',
     });
     return;
   }
@@ -274,7 +278,7 @@ export const deleteAgent = asyncHandler(async (req: AuthenticatedRequest, res: R
   if (tenantId && agent.tenantId && agent.tenantId !== tenantId) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to delete this agent (tenant mismatch)'
+      message: 'Not authorized to delete this agent (tenant mismatch)',
     });
     return;
   }
@@ -283,7 +287,7 @@ export const deleteAgent = asyncHandler(async (req: AuthenticatedRequest, res: R
 
   res.status(200).json({
     success: true,
-    message: 'Agent deleted successfully'
+    message: 'Agent deleted successfully',
   });
 });
 
@@ -304,7 +308,7 @@ export const connectAgents = asyncHandler(async (req: AuthenticatedRequest, res:
   if (!agent || !targetAgent) {
     res.status(404).json({
       success: false,
-      message: 'One or both agents not found'
+      message: 'One or both agents not found',
     });
     return;
   }
@@ -314,7 +318,7 @@ export const connectAgents = asyncHandler(async (req: AuthenticatedRequest, res:
   if (tenantId && agent.tenantId && agent.tenantId !== tenantId) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to modify this agent (tenant mismatch)'
+      message: 'Not authorized to modify this agent (tenant mismatch)',
     });
     return;
   }
@@ -323,7 +327,7 @@ export const connectAgents = asyncHandler(async (req: AuthenticatedRequest, res:
   if (agent.user.toString() !== req.user.id) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to modify this agent'
+      message: 'Not authorized to modify this agent',
     });
     return;
   }
@@ -332,16 +336,21 @@ export const connectAgents = asyncHandler(async (req: AuthenticatedRequest, res:
   if (targetAgent.user.toString() !== req.user.id && !targetAgent.isPublic) {
     res.status(403).json({
       success: false,
-      message: 'Target agent is not accessible'
+      message: 'Target agent is not accessible',
     });
     return;
   }
 
   // Check tenant isolation for target agent if not public
-  if (!targetAgent.isPublic && tenantId && targetAgent.tenantId && targetAgent.tenantId !== tenantId) {
+  if (
+    !targetAgent.isPublic &&
+    tenantId &&
+    targetAgent.tenantId &&
+    targetAgent.tenantId !== tenantId
+  ) {
     res.status(403).json({
       success: false,
-      message: 'Target agent is not accessible (tenant mismatch)'
+      message: 'Target agent is not accessible (tenant mismatch)',
     });
     return;
   }
@@ -355,7 +364,7 @@ export const connectAgents = asyncHandler(async (req: AuthenticatedRequest, res:
   res.status(200).json({
     success: true,
     message: 'Agents connected successfully',
-    data: agent
+    data: agent,
   });
 });
 
@@ -373,7 +382,7 @@ export const addExternalSystem = asyncHandler(async (req: AuthenticatedRequest, 
   if (!agent) {
     res.status(404).json({
       success: false,
-      message: 'Agent not found'
+      message: 'Agent not found',
     });
     return;
   }
@@ -382,7 +391,7 @@ export const addExternalSystem = asyncHandler(async (req: AuthenticatedRequest, 
   if (agent.user.toString() !== req.user.id) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to modify this agent'
+      message: 'Not authorized to modify this agent',
     });
     return;
   }
@@ -392,7 +401,7 @@ export const addExternalSystem = asyncHandler(async (req: AuthenticatedRequest, 
   if (tenantId && agent.tenantId && agent.tenantId !== tenantId) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to modify this agent (tenant mismatch)'
+      message: 'Not authorized to modify this agent (tenant mismatch)',
     });
     return;
   }
@@ -403,17 +412,17 @@ export const addExternalSystem = asyncHandler(async (req: AuthenticatedRequest, 
   if (!name || !type || !endpoint) {
     res.status(400).json({
       success: false,
-      message: 'Name, type, and endpoint are required'
+      message: 'Name, type, and endpoint are required',
     });
     return;
   }
 
   // Check if external system with same name already exists
-  const existingSystem = agent.externalSystems.find(sys => sys.name === name);
+  const existingSystem = agent.externalSystems.find((sys) => sys.name === name);
   if (existingSystem) {
     res.status(400).json({
       success: false,
-      message: 'External system with this name already exists'
+      message: 'External system with this name already exists',
     });
     return;
   }
@@ -423,63 +432,65 @@ export const addExternalSystem = asyncHandler(async (req: AuthenticatedRequest, 
     type,
     endpoint,
     apiKey,
-    config
+    config,
   });
 
   res.status(201).json({
     success: true,
     message: 'External system added successfully',
-    data: agent
+    data: agent,
   });
 });
 
 // @desc    Update external system status
 // @route   PUT /api/agents/:id/external-systems/:systemName/toggle
 // @access  Private
-export const toggleExternalSystem = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  if (!req.user) {
-    res.status(401).json({ success: false, message: 'Unauthorized' });
-    return;
-  }
+export const toggleExternalSystem = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
 
-  const agent = await Agent.findById(req.params.id);
+    const agent = await Agent.findById(req.params.id);
 
-  if (!agent) {
-    res.status(404).json({
-      success: false,
-      message: 'Agent not found'
+    if (!agent) {
+      res.status(404).json({
+        success: false,
+        message: 'Agent not found',
+      });
+      return;
+    }
+
+    // Check ownership
+    if (agent.user.toString() !== req.user.id) {
+      res.status(403).json({
+        success: false,
+        message: 'Not authorized to modify this agent',
+      });
+      return;
+    }
+
+    // Check tenant isolation
+    const tenantId = tenantContext.getTenantId(false) || req.user.tenantId;
+    if (tenantId && agent.tenantId && agent.tenantId !== tenantId) {
+      res.status(403).json({
+        success: false,
+        message: 'Not authorized to modify this agent (tenant mismatch)',
+      });
+      return;
+    }
+
+    const { isActive } = req.body;
+    await agent.toggleExternalSystem(req.params.systemName, isActive);
+
+    res.status(200).json({
+      success: true,
+      message: 'External system status updated',
+      data: agent,
     });
-    return;
   }
-
-  // Check ownership
-  if (agent.user.toString() !== req.user.id) {
-    res.status(403).json({
-      success: false,
-      message: 'Not authorized to modify this agent'
-    });
-    return;
-  }
-
-  // Check tenant isolation
-  const tenantId = tenantContext.getTenantId(false) || req.user.tenantId;
-  if (tenantId && agent.tenantId && agent.tenantId !== tenantId) {
-    res.status(403).json({
-      success: false,
-      message: 'Not authorized to modify this agent (tenant mismatch)'
-    });
-    return;
-  }
-
-  const { isActive } = req.body;
-  await agent.toggleExternalSystem(req.params.systemName, isActive);
-
-  res.status(200).json({
-    success: true,
-    message: 'External system status updated',
-    data: agent
-  });
-});
+);
 
 // @desc    Sync with external system
 // @route   POST /api/agents/:id/external-systems/:systemName/sync
@@ -495,7 +506,7 @@ export const syncExternalSystem = asyncHandler(async (req: AuthenticatedRequest,
   if (!agent) {
     res.status(404).json({
       success: false,
-      message: 'Agent not found'
+      message: 'Agent not found',
     });
     return;
   }
@@ -504,7 +515,7 @@ export const syncExternalSystem = asyncHandler(async (req: AuthenticatedRequest,
   if (agent.user.toString() !== req.user.id) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to modify this agent'
+      message: 'Not authorized to modify this agent',
     });
     return;
   }
@@ -514,18 +525,18 @@ export const syncExternalSystem = asyncHandler(async (req: AuthenticatedRequest,
   if (tenantId && agent.tenantId && agent.tenantId !== tenantId) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to modify this agent (tenant mismatch)'
+      message: 'Not authorized to modify this agent (tenant mismatch)',
     });
     return;
   }
 
   const systemName = req.params.systemName;
-  const system = agent.externalSystems.find(sys => sys.name === systemName);
+  const system = agent.externalSystems.find((sys) => sys.name === systemName);
 
   if (!system) {
     res.status(404).json({
       success: false,
-      message: 'External system not found'
+      message: 'External system not found',
     });
     return;
   }
@@ -533,7 +544,7 @@ export const syncExternalSystem = asyncHandler(async (req: AuthenticatedRequest,
   if (!system.isActive) {
     res.status(400).json({
       success: false,
-      message: 'External system is not active'
+      message: 'External system is not active',
     });
     return;
   }
@@ -549,8 +560,8 @@ export const syncExternalSystem = asyncHandler(async (req: AuthenticatedRequest,
     data: {
       systemName,
       lastSync: new Date(),
-      status: 'synced'
-    }
+      status: 'synced',
+    },
   });
 });
 
@@ -581,14 +592,20 @@ export const initiateBonding = asyncHandler(async (req: AuthenticatedRequest, re
   if (tenantId && agent.tenantId && agent.tenantId !== tenantId) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to modify this agent (tenant mismatch)'
+      message: 'Not authorized to modify this agent (tenant mismatch)',
     });
     return;
   }
 
   const status = agent.bondingStatus || 'none';
   if (status !== 'none') {
-    res.status(409).json({ success: false, message: 'Invalid state: bonding already initiated or completed', from: status });
+    res
+      .status(409)
+      .json({
+        success: false,
+        message: 'Invalid state: bonding already initiated or completed',
+        from: status,
+      });
     return;
   }
 
@@ -604,9 +621,11 @@ export const initiateBonding = asyncHandler(async (req: AuthenticatedRequest, re
     await appendEvent({
       session_id: `agent:${agent._id}`,
       prompt: '[BOND] initiate',
-      response: `agent ${String(agent._id)} bonding initiated by ${String(req.user?.id || 'system')}`,
+      response: `agent ${String(agent._id)} bonding initiated by ${String(
+        req.user?.id || 'system'
+      )}`,
       metadata: { bonding: { action: 'initiate' } },
-      analysis: { actions: ['bonding_initiated'] }
+      analysis: { actions: ['bonding_initiated'] },
     });
   } catch (_) {}
 
@@ -640,7 +659,7 @@ export const completeBonding = asyncHandler(async (req: AuthenticatedRequest, re
   if (tenantId && agent.tenantId && agent.tenantId !== tenantId) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized to modify this agent (tenant mismatch)'
+      message: 'Not authorized to modify this agent (tenant mismatch)',
     });
     return;
   }
@@ -650,10 +669,10 @@ export const completeBonding = asyncHandler(async (req: AuthenticatedRequest, re
     properties: {
       decision: { enum: ['bonded', 'rejected'] },
       notes: { type: 'string', maxLength: 2000 },
-      traitsSnapshot: { type: 'object' }
+      traitsSnapshot: { type: 'object' },
     },
     required: ['decision'],
-    additionalProperties: true
+    additionalProperties: true,
   };
   const validate = ajv.compile(schema);
   if (!validate(req.body || {})) {
@@ -664,7 +683,9 @@ export const completeBonding = asyncHandler(async (req: AuthenticatedRequest, re
   const { decision, notes, traitsSnapshot } = req.body;
   const status = agent.bondingStatus || 'none';
   if (status !== 'initiated') {
-    res.status(409).json({ success: false, message: 'Invalid state: must be initiated', from: status });
+    res
+      .status(409)
+      .json({ success: false, message: 'Invalid state: must be initiated', from: status });
     return;
   }
 
@@ -682,7 +703,7 @@ export const completeBonding = asyncHandler(async (req: AuthenticatedRequest, re
       prompt: '[BOND] complete',
       response: `agent ${String(agent._id)} bonding ${decision}`,
       metadata: { bonding: { action: 'complete', decision, notes, traitsSnapshot } },
-      analysis: { actions: ['bonding_completed'] }
+      analysis: { actions: ['bonding_completed'] },
     });
   } catch (_) {}
 

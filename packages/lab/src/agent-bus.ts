@@ -5,6 +5,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
+
 import { AgentRole, AgentMessage, ExperimentError } from './types';
 
 /**
@@ -30,7 +31,7 @@ export class InMemoryAgentBus implements AgentBus {
   async publish<T>(message: AgentMessage<T>): Promise<void> {
     // Validate message integrity
     this.validateMessage(message);
-    
+
     // Add timestamp if not present
     if (!message.createdAt) {
       message.createdAt = new Date().toISOString();
@@ -38,7 +39,7 @@ export class InMemoryAgentBus implements AgentBus {
 
     // Store in history
     this.messageHistory.push(message);
-    
+
     // Buffer for specific experiments
     if (!this.messageBuffer.has(message.experimentId)) {
       this.messageBuffer.set(message.experimentId, []);
@@ -56,7 +57,7 @@ export class InMemoryAgentBus implements AgentBus {
         console.error(`Error handling message to ${message.to}:`, error);
         throw new ExperimentError(
           `Failed to deliver message to ${message.to}`,
-          "MESSAGE_DELIVERY_FAILED",
+          'MESSAGE_DELIVERY_FAILED',
           message.experimentId,
           message.runId
         );
@@ -67,9 +68,12 @@ export class InMemoryAgentBus implements AgentBus {
     }
   }
 
-  async subscribe(role: AgentRole, handler: (message: AgentMessage) => Promise<void>): Promise<void> {
+  async subscribe(
+    role: AgentRole,
+    handler: (message: AgentMessage) => Promise<void>
+  ): Promise<void> {
     this.handlers.set(role, handler);
-    
+
     // Process any buffered messages for this role
     const buffered = this.getBufferedMessages(role);
     for (const message of buffered) {
@@ -88,15 +92,15 @@ export class InMemoryAgentBus implements AgentBus {
 
   getMessageHistory(role?: AgentRole, experimentId?: string): AgentMessage[] {
     let messages = this.messageHistory;
-    
+
     if (experimentId) {
-      messages = messages.filter(msg => msg.experimentId === experimentId);
+      messages = messages.filter((msg) => msg.experimentId === experimentId);
     }
-    
+
     if (role) {
-      messages = messages.filter(msg => msg.from === role || msg.to === role);
+      messages = messages.filter((msg) => msg.from === role || msg.to === role);
     }
-    
+
     return messages;
   }
 
@@ -105,19 +109,19 @@ export class InMemoryAgentBus implements AgentBus {
    */
   private validateMessage(message: AgentMessage): void {
     if (!message.id) {
-      throw new ExperimentError("Message ID is required", "INVALID_MESSAGE");
+      throw new ExperimentError('Message ID is required', 'INVALID_MESSAGE');
     }
-    
+
     if (!message.from || !message.to) {
-      throw new ExperimentError("Message must have from and to roles", "INVALID_MESSAGE");
+      throw new ExperimentError('Message must have from and to roles', 'INVALID_MESSAGE');
     }
-    
+
     if (!message.experimentId || !message.runId) {
-      throw new ExperimentError("Message must have experiment and run IDs", "INVALID_MESSAGE");
+      throw new ExperimentError('Message must have experiment and run IDs', 'INVALID_MESSAGE');
     }
-    
+
     if (message.from === message.to) {
-      throw new ExperimentError("Message cannot be from and to the same role", "INVALID_MESSAGE");
+      throw new ExperimentError('Message cannot be from and to the same role', 'INVALID_MESSAGE');
     }
   }
 
@@ -127,11 +131,11 @@ export class InMemoryAgentBus implements AgentBus {
   private applyDoubleBlindFilter(message: AgentMessage): AgentMessage {
     // Create a deep copy to avoid modifying original
     const filtered = JSON.parse(JSON.stringify(message));
-    
+
     // Remove any identifying information based on message type and roles
-    if (message.to === "EVALUATOR") {
+    if (message.to === 'EVALUATOR') {
       // Evaluators should never see variant identities
-      if (message.type === "TRIAL_RESULT" && message.payload) {
+      if (message.type === 'TRIAL_RESULT' && message.payload) {
         // Strip any variant IDs from payload
         if (message.payload.outputs) {
           // Keep slot-based structure but remove variant metadata
@@ -144,21 +148,21 @@ export class InMemoryAgentBus implements AgentBus {
           }
           filtered.payload.outputs = sanitizedOutputs;
         }
-        
+
         // Remove slot mapping if present
         if (filtered.payload.slotMapping) {
           delete filtered.payload.slotMapping;
         }
       }
     }
-    
-    if (message.to === "VARIANT") {
+
+    if (message.to === 'VARIANT') {
       // Variants should not see other variant information
       if (filtered.payload.otherVariants) {
         delete filtered.payload.otherVariants;
       }
     }
-    
+
     return filtered;
   }
 
@@ -167,7 +171,7 @@ export class InMemoryAgentBus implements AgentBus {
    */
   private getBufferedMessages(role: AgentRole): AgentMessage[] {
     const messages: AgentMessage[] = [];
-    
+
     for (const [experimentId, experimentMessages] of this.messageBuffer.entries()) {
       for (const message of experimentMessages) {
         if (message.to === role) {
@@ -175,7 +179,7 @@ export class InMemoryAgentBus implements AgentBus {
         }
       }
     }
-    
+
     return messages;
   }
 
@@ -184,9 +188,7 @@ export class InMemoryAgentBus implements AgentBus {
    */
   clearHistory(experimentId?: string): void {
     if (experimentId) {
-      this.messageHistory = this.messageHistory.filter(
-        msg => msg.experimentId !== experimentId
-      );
+      this.messageHistory = this.messageHistory.filter((msg) => msg.experimentId !== experimentId);
       this.messageBuffer.delete(experimentId);
     } else {
       this.messageHistory = [];
@@ -211,15 +213,15 @@ export class InMemoryAgentBus implements AgentBus {
     };
 
     // Count by role
-    for (const role of ["CONDUCTOR", "VARIANT", "EVALUATOR", "OVERSEER"] as AgentRole[]) {
+    for (const role of ['CONDUCTOR', 'VARIANT', 'EVALUATOR', 'OVERSEER'] as AgentRole[]) {
       stats.messagesByRole[role] = this.messageHistory.filter(
-        msg => msg.from === role || msg.to === role
+        (msg) => msg.from === role || msg.to === role
       ).length;
     }
 
     // Count by experiment
     for (const message of this.messageHistory) {
-      stats.messagesByExperiment[message.experimentId] = 
+      stats.messagesByExperiment[message.experimentId] =
         (stats.messagesByExperiment[message.experimentId] || 0) + 1;
     }
 
@@ -271,8 +273,13 @@ export class MessageBuilder {
   }
 
   build<T>(): AgentMessage<T> {
-    if (!this.message.to || !this.message.type || !this.message.experimentId || !this.message.runId) {
-      throw new Error("Message missing required fields");
+    if (
+      !this.message.to ||
+      !this.message.type ||
+      !this.message.experimentId ||
+      !this.message.runId
+    ) {
+      throw new Error('Message missing required fields');
     }
 
     return this.message as AgentMessage<T>;
@@ -284,30 +291,30 @@ export class MessageBuilder {
  */
 export const MessageTypes = {
   // Conductor messages
-  EXPERIMENT_START: "EXPERIMENT_START",
-  EXPERIMENT_END: "EXPERIMENT_END",
-  RUN_START: "RUN_START",
-  RUN_END: "RUN_END",
-  
+  EXPERIMENT_START: 'EXPERIMENT_START',
+  EXPERIMENT_END: 'EXPERIMENT_END',
+  RUN_START: 'RUN_START',
+  RUN_END: 'RUN_END',
+
   // Trial messages
-  TRIAL_REQUEST: "TRIAL_REQUEST",
-  TRIAL_RESULT: "TRIAL_RESULT",
-  TRIAL_FAILED: "TRIAL_FAILED",
-  
+  TRIAL_REQUEST: 'TRIAL_REQUEST',
+  TRIAL_RESULT: 'TRIAL_RESULT',
+  TRIAL_FAILED: 'TRIAL_FAILED',
+
   // Evaluation messages
-  EVALUATION_REQUEST: "EVALUATION_REQUEST",
-  EVALUATION_RESULT: "EVALUATION_RESULT",
-  EVALUATION_FAILED: "EVALUATION_FAILED",
-  
+  EVALUATION_REQUEST: 'EVALUATION_REQUEST',
+  EVALUATION_RESULT: 'EVALUATION_RESULT',
+  EVALUATION_FAILED: 'EVALUATION_FAILED',
+
   // Overseer messages
-  QUALITY_CHECK: "QUALITY_CHECK",
-  DRIFT_ALERT: "DRIFT_ALERT",
-  ANOMALY_DETECTED: "ANOMALY_DETECTED",
-  
+  QUALITY_CHECK: 'QUALITY_CHECK',
+  DRIFT_ALERT: 'DRIFT_ALERT',
+  ANOMALY_DETECTED: 'ANOMALY_DETECTED',
+
   // System messages
-  HEARTBEAT: "HEARTBEAT",
-  ERROR: "ERROR",
-  WARNING: "WARNING",
+  HEARTBEAT: 'HEARTBEAT',
+  ERROR: 'ERROR',
+  WARNING: 'WARNING',
 } as const;
 
-export type MessageType = typeof MessageTypes[keyof typeof MessageTypes];
+export type MessageType = (typeof MessageTypes)[keyof typeof MessageTypes];

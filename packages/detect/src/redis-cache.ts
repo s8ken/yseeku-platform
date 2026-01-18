@@ -34,7 +34,7 @@ const DEFAULT_CONFIG: RedisCacheConfig = {
   connectionTimeout: 5000,
   retryDelay: 1000,
   maxRetries: 3,
-  enableCompression: false
+  enableCompression: false,
 };
 
 /**
@@ -49,7 +49,7 @@ export class RedisCacheProvider {
     misses: 0,
     sets: 0,
     deletes: 0,
-    errors: 0
+    errors: 0,
   };
 
   constructor(config: Partial<RedisCacheConfig> = {}) {
@@ -68,7 +68,7 @@ export class RedisCacheProvider {
         db: this.config.db,
         connectTimeout: this.config.connectionTimeout,
         maxRetriesPerRequest: this.config.maxRetries,
-        lazyConnect: true
+        lazyConnect: true,
       });
 
       // Event handlers
@@ -109,7 +109,7 @@ export class RedisCacheProvider {
    * Check if Redis is connected and operational
    */
   async healthCheck(): Promise<boolean> {
-    if (!this.redis || !this.isConnected) return false;
+    if (!this.redis || !this.isConnected) {return false;}
 
     try {
       await this.redis.ping();
@@ -124,7 +124,7 @@ export class RedisCacheProvider {
    * Get value from cache
    */
   async get(key: string): Promise<any | null> {
-    if (!this.redis || !this.isConnected) return null;
+    if (!this.redis || !this.isConnected) {return null;}
 
     try {
       const fullKey = this.getFullKey(key);
@@ -145,10 +145,10 @@ export class RedisCacheProvider {
         await this.redis.setex(fullKey, entry.ttl, JSON.stringify(entry));
 
         return entry.data;
-      } else {
+      } 
         this.stats.misses++;
         return null;
-      }
+      
     } catch (error) {
       this.stats.errors++;
       console.error('Redis get error:', error);
@@ -160,7 +160,7 @@ export class RedisCacheProvider {
    * Set value in cache with TTL
    */
   async set(key: string, value: any, ttlSeconds?: number): Promise<boolean> {
-    if (!this.redis || !this.isConnected) return false;
+    if (!this.redis || !this.isConnected) {return false;}
 
     try {
       const fullKey = this.getFullKey(key);
@@ -170,12 +170,13 @@ export class RedisCacheProvider {
         data: value,
         timestamp: Date.now(),
         ttl,
-        accessCount: 0
+        accessCount: 0,
       };
 
       const serialized = JSON.stringify(entry);
-      const compressed = this.config.enableCompression ?
-        await this.compressData(serialized) : serialized;
+      const compressed = this.config.enableCompression
+        ? await this.compressData(serialized)
+        : serialized;
 
       await this.redis.setex(fullKey, ttl, compressed);
       this.stats.sets++;
@@ -191,7 +192,7 @@ export class RedisCacheProvider {
    * Delete value from cache
    */
   async delete(key: string): Promise<boolean> {
-    if (!this.redis || !this.isConnected) return false;
+    if (!this.redis || !this.isConnected) {return false;}
 
     try {
       const fullKey = this.getFullKey(key);
@@ -209,7 +210,7 @@ export class RedisCacheProvider {
    * Check if key exists in cache
    */
   async exists(key: string): Promise<boolean> {
-    if (!this.redis || !this.isConnected) return false;
+    if (!this.redis || !this.isConnected) {return false;}
 
     try {
       const fullKey = this.getFullKey(key);
@@ -233,7 +234,7 @@ export class RedisCacheProvider {
       ...this.stats,
       hitRate,
       connected: this.isConnected,
-      config: { ...this.config, password: this.config.password ? '[REDACTED]' : undefined }
+      config: { ...this.config, password: this.config.password ? '[REDACTED]' : undefined },
     };
   }
 
@@ -241,7 +242,7 @@ export class RedisCacheProvider {
    * Clear all cache entries with the configured prefix
    */
   async clearAll(): Promise<number> {
-    if (!this.redis || !this.isConnected) return 0;
+    if (!this.redis || !this.isConnected) {return 0;}
 
     try {
       const pattern = this.config.keyPrefix + '*';
@@ -261,12 +262,12 @@ export class RedisCacheProvider {
    * Get cache keys matching a pattern
    */
   async getKeys(pattern: string = '*'): Promise<string[]> {
-    if (!this.redis || !this.isConnected) return [];
+    if (!this.redis || !this.isConnected) {return [];}
 
     try {
       const fullPattern = this.config.keyPrefix + pattern;
       const keys = await this.redis.keys(fullPattern);
-      return keys.map(key => key.replace(this.config.keyPrefix, ''));
+      return keys.map((key) => key.replace(this.config.keyPrefix, ''));
     } catch (error) {
       this.stats.errors++;
       console.error('Redis getKeys error:', error);
@@ -297,7 +298,7 @@ export const redisCache = new RedisCacheProvider({
   db: parseInt(process.env.REDIS_DB || '0'),
   keyPrefix: 'sonate:detect:',
   defaultTTL: 3600,
-  enableCompression: false
+  enableCompression: false,
 });
 
 /**
@@ -335,7 +336,7 @@ export class HybridCache {
   async get(key: string): Promise<any | null> {
     if (this.redisAvailable) {
       return this.redisCache.get(key);
-    } else {
+    } 
       const entry = this.memoryCache.get(key);
       if (entry && Date.now() < entry.expiry) {
         return entry.data;
@@ -343,36 +344,36 @@ export class HybridCache {
         this.memoryCache.delete(key); // Remove expired entry
       }
       return null;
-    }
+    
   }
 
   async set(key: string, value: any, ttlSeconds: number = 3600): Promise<boolean> {
     if (this.redisAvailable) {
       return this.redisCache.set(key, value, ttlSeconds);
-    } else {
-      const expiry = Date.now() + (ttlSeconds * 1000);
+    } 
+      const expiry = Date.now() + ttlSeconds * 1000;
       this.memoryCache.set(key, { data: value, expiry });
       return true;
-    }
+    
   }
 
   async delete(key: string): Promise<boolean> {
     if (this.redisAvailable) {
       return this.redisCache.delete(key);
-    } else {
+    } 
       return this.memoryCache.delete(key);
-    }
+    
   }
 
   getStats() {
     if (this.redisAvailable) {
       return this.redisCache.getStats();
-    } else {
+    } 
       return {
         memoryCacheSize: this.memoryCache.size,
-        connected: false
+        connected: false,
       };
-    }
+    
   }
 }
 

@@ -4,7 +4,7 @@
  */
 
 export * from './types';
-export { 
+export {
   AgentType,
   AgentStatus,
   TrustArticles,
@@ -25,7 +25,7 @@ export {
   AgentTask,
   WorkflowDefinition,
   WorkflowTrigger,
-  WorkflowExecution
+  WorkflowExecution,
 } from './agent-types-enhanced';
 export * from './api-gateway';
 export * from './multi-tenant-isolation';
@@ -35,4 +35,10 @@ export * from './audit-trails';
 // LVS Agent Orchestration
 export * from './lvs-agent-orchestrator';
 export * from './observability/metrics';
-export { createSecretsManager, type SecretsManager, AWSKMSSecretsManager, HashiCorpVaultSecretsManager, LocalSecretsManager } from './security/secrets-manager';
+export {
+  createSecretsManager,
+  type SecretsManager,
+  AWSKMSSecretsManager,
+  HashiCorpVaultSecretsManager,
+  LocalSecretsManager,
+} from './security/secrets-manager';

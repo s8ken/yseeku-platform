@@ -1,16 +1,19 @@
 /**
  * Enhanced Trust Protocol Validator (PASS/PARTIAL/FAIL)
- * 
+ *
  * Dimension 2 of SYMBI Framework
  * Checks: Verification methods, boundary maintenance, security awareness
  * Enhanced with cryptographic validation and audit integration
  */
 
 import { AIInteraction } from '@sonate/detect';
-import { AuthenticationError, SecurityError } from './errors';
-import { EnhancedAuditSystem } from './audit-enhanced';
-import { SignedTrustReceipt } from './trust-receipt-enhanced';
+
 import { TrustReceipt } from '../trust-receipt';
+
+import { EnhancedAuditSystem } from './audit-enhanced';
+import { AuthenticationError, SecurityError } from './errors';
+import { SignedTrustReceipt } from './trust-receipt-enhanced';
+
 
 export interface TrustProtocolResult {
   status: 'PASS' | 'PARTIAL' | 'FAIL';
@@ -43,7 +46,7 @@ export class EnhancedTrustProtocolValidator {
       strictBoundaryEnforcement: true,
       enableAuditLogging: true,
       autoEscalateFailures: true,
-      ...config
+      ...config,
     };
     this.auditSystem = auditSystem;
   }
@@ -51,31 +54,35 @@ export class EnhancedTrustProtocolValidator {
   /**
    * Validate interaction across all trust protocol dimensions
    */
-  async validate(interaction: AIInteraction, context?: {
-    userId?: string;
-    sessionId?: string;
-    tenant?: string;
-    ipAddress?: string;
-  }): Promise<TrustProtocolResult> {
+  async validate(
+    interaction: AIInteraction,
+    context?: {
+      userId?: string;
+      sessionId?: string;
+      tenant?: string;
+      ipAddress?: string;
+    }
+  ): Promise<TrustProtocolResult> {
     try {
       const startTime = Date.now();
-      
+
       // Run all validation checks
       const checks = {
         verification: await this.checkVerification(interaction),
         boundaries: await this.checkBoundaries(interaction),
         security: await this.checkSecurity(interaction),
-        cryptographic: this.config.requireCryptographicValidation ? 
-          await this.checkCryptographicIntegrity(interaction) : true
+        cryptographic: this.config.requireCryptographicValidation
+          ? await this.checkCryptographicIntegrity(interaction)
+          : true,
       };
 
       const passedChecks = Object.values(checks).filter(Boolean).length;
       const totalChecks = Object.keys(checks).length;
-      
+
       let status: 'PASS' | 'PARTIAL' | 'FAIL';
-      if (passedChecks === totalChecks) status = 'PASS';
-      else if (passedChecks >= Math.ceil(totalChecks * 0.6)) status = 'PARTIAL';
-      else status = 'FAIL';
+      if (passedChecks === totalChecks) {status = 'PASS';}
+      else if (passedChecks >= Math.ceil(totalChecks * 0.6)) {status = 'PARTIAL';}
+      else {status = 'FAIL';}
 
       const score = passedChecks / totalChecks;
       const issues = this.collectIssues(checks, interaction);
@@ -93,7 +100,7 @@ export class EnhancedTrustProtocolValidator {
         checks,
         issues,
         recommendations,
-        receipt
+        receipt,
       };
 
       // Audit logging
@@ -111,7 +118,7 @@ export class EnhancedTrustProtocolValidator {
       if (error instanceof SecurityError) {
         throw error;
       }
-      
+
       throw new SecurityError(
         'Trust protocol validation failed',
         'TRUST_PROTOCOL_VALIDATION_FAILED',
@@ -119,7 +126,7 @@ export class EnhancedTrustProtocolValidator {
           originalError: error instanceof Error ? error.message : 'Unknown error',
           interactionId: interaction.id,
           userId: context?.userId,
-          tenant: context?.tenant
+          tenant: context?.tenant,
         }
       );
     }
@@ -139,15 +146,23 @@ export class EnhancedTrustProtocolValidator {
       if (interaction.metadata.verificationTimestamp) {
         const verificationTime = new Date(interaction.metadata.verificationTimestamp).getTime();
         const now = Date.now();
-        if (now - verificationTime > 5 * 60 * 1000) { // 5 minutes
+        if (now - verificationTime > 5 * 60 * 1000) {
+          // 5 minutes
           return false;
         }
       }
 
       // Check verification method is valid
-      const validMethods = ['digital_signature', 'hash_verification', 'multi_party', 'trusted_oracle'];
-      if (!interaction.metadata.verificationMethod || 
-          !validMethods.includes(interaction.metadata.verificationMethod)) {
+      const validMethods = [
+        'digital_signature',
+        'hash_verification',
+        'multi_party',
+        'trusted_oracle',
+      ];
+      if (
+        !interaction.metadata.verificationMethod ||
+        !validMethods.includes(interaction.metadata.verificationMethod)
+      ) {
         return false;
       }
 
@@ -174,7 +189,8 @@ export class EnhancedTrustProtocolValidator {
 
       // Check content length boundaries (prevent excessive data exposure)
       const content = interaction.content || '';
-      if (content.length > 10000) { // 10KB limit
+      if (content.length > 10000) {
+        // 10KB limit
         return false;
       }
 
@@ -183,7 +199,7 @@ export class EnhancedTrustProtocolValidator {
         /password\s*[:=]\s*["'][^"']{8,}["']/i,
         /api[_-]?key\s*[:=]\s*["'][^"']{16,}["']/i,
         /ssn\s*[:=]\s*\d{3}-?\d{2}-?\d{4}/i,
-        /credit[_-]?card\s*[:=]\s*\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}/i
+        /credit[_-]?card\s*[:=]\s*\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}/i,
       ];
 
       for (const pattern of boundaryPatterns) {
@@ -221,7 +237,7 @@ export class EnhancedTrustProtocolValidator {
         /\${[^}]*}/, // Template injection
         /__proto__/i,
         /constructor/i,
-        /prototype/i
+        /prototype/i,
       ];
 
       const content = interaction.content || '';
@@ -283,7 +299,9 @@ export class EnhancedTrustProtocolValidator {
     }
 
     if (!checks.security) {
-      issues.push('Security concern detected (malicious content, injection attempts, or privilege escalation)');
+      issues.push(
+        'Security concern detected (malicious content, injection attempts, or privilege escalation)'
+      );
     }
 
     if (!checks.cryptographic && this.config.requireCryptographicValidation) {
@@ -325,8 +343,8 @@ export class EnhancedTrustProtocolValidator {
   }
 
   private async generateTrustReceipt(
-    interaction: AIInteraction, 
-    checks: any, 
+    interaction: AIInteraction,
+    checks: any,
     score: number,
     context?: { userId?: string; sessionId?: string; tenant?: string; ipAddress?: string }
   ): Promise<SignedTrustReceipt> {
@@ -334,14 +352,14 @@ export class EnhancedTrustProtocolValidator {
     const ciq = {
       clarity: score,
       integrity: checks.cryptographic ? 0.9 : 0.5,
-      quality: score
+      quality: score,
     };
     const receipt = new TrustReceipt({
       version: '1.0.0',
       session_id: sessionId,
       timestamp: Date.now(),
       mode: 'constitutional',
-      ciq_metrics: ciq
+      ciq_metrics: ciq,
     });
     const privHex = process.env.TRUST_ED25519_PRIVATE_KEY_HEX || '';
     if (privHex) {
@@ -356,7 +374,7 @@ export class EnhancedTrustProtocolValidator {
       mode: receipt.mode,
       ciq_metrics: receipt.ciq_metrics,
       signature: receipt.signature,
-      self_hash: receipt.self_hash
+      self_hash: receipt.self_hash,
     } as SignedTrustReceipt;
   }
 
@@ -364,12 +382,12 @@ export class EnhancedTrustProtocolValidator {
    * Log validation event to audit system
    */
   private async logValidationEvent(
-    interaction: AIInteraction, 
-    result: TrustProtocolResult, 
+    interaction: AIInteraction,
+    result: TrustProtocolResult,
     context?: { userId?: string; sessionId?: string; tenant?: string; ipAddress?: string },
     duration?: number
   ): Promise<void> {
-    if (!this.auditSystem) return;
+    if (!this.auditSystem) {return;}
 
     await this.auditSystem.logEvent({
       type: 'TRUST_PROTOCOL_VALIDATION',
@@ -383,8 +401,8 @@ export class EnhancedTrustProtocolValidator {
         validationScore: result.score,
         issues: result.issues,
         duration,
-        ipAddress: context?.ipAddress
-      }
+        ipAddress: context?.ipAddress,
+      },
     });
   }
 
@@ -392,11 +410,11 @@ export class EnhancedTrustProtocolValidator {
    * Escalate critical validation failures
    */
   private async escalateFailure(
-    interaction: AIInteraction, 
-    result: TrustProtocolResult, 
+    interaction: AIInteraction,
+    result: TrustProtocolResult,
     context?: { userId?: string; sessionId?: string; tenant?: string; ipAddress?: string }
   ): Promise<void> {
-    if (!this.auditSystem) return;
+    if (!this.auditSystem) {return;}
 
     await this.auditSystem.logEvent({
       type: 'TRUST_PROTOCOL_FAILURE_ESCALATED',
@@ -409,8 +427,8 @@ export class EnhancedTrustProtocolValidator {
         validationScore: result.score,
         issues: result.issues,
         ipAddress: context?.ipAddress,
-        escalationReason: 'Trust protocol validation failed'
-      }
+        escalationReason: 'Trust protocol validation failed',
+      },
     });
   }
 }
