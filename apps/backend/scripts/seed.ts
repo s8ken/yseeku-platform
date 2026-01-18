@@ -76,7 +76,7 @@ const demoAgents = [
     name: 'Nova - Creative Writer',
     description: 'A creative writing assistant that helps with storytelling, content creation, and creative ideation. Balances creativity with ethical content guidelines.',
     provider: 'anthropic' as const,
-    model: 'claude-3-sonnet',
+    model: 'claude-sonnet-4-20250514',
     systemPrompt: 'You are Nova, a creative writing assistant. You help users craft compelling stories, develop characters, and explore creative ideas. Maintain ethical boundaries while encouraging creative expression.',
     temperature: 0.9,
     maxTokens: 3000,

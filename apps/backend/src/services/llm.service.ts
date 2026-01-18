@@ -94,14 +94,14 @@ export const LLM_PROVIDERS: Record<string, LLMProvider> = {
     requiresApiKey: true,
     models: [
       {
-        id: 'claude-3-5-sonnet-20241022',
+        id: 'claude-sonnet-4-20250514',
         name: 'Claude 3.5 Sonnet',
         maxTokens: 8192,
         contextWindow: 200000,
         pricing: { input: 0.003, output: 0.015 }
       },
       {
-        id: 'claude-3-opus-20240229',
+        id: 'claude-opus-4-20250514',
         name: 'Claude 3 Opus',
         maxTokens: 4096,
         contextWindow: 200000,
@@ -503,7 +503,7 @@ ${code}
       },
     ];
 
-    const selectedModel = model || (provider === 'openai' ? 'gpt-4-turbo' : 'claude-3-5-sonnet-20241022');
+    const selectedModel = model || (provider === 'openai' ? 'gpt-4-turbo' : 'claude-sonnet-4-20250514');
 
     return this.generate({
       provider,

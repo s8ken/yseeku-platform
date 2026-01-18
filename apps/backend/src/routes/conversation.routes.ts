@@ -409,7 +409,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             description: 'Anthropic agent for trustworthy creative assistance',
             user: req.userId,
             provider: 'anthropic',
-            model: 'claude-3-5-sonnet-20241022',
+            model: 'claude-sonnet-4-20250514',
             apiKeyId,
             systemPrompt: 'You are Nova, a helpful assistant. Be concise, accurate, and ethically aligned.',
             temperature: 0.7,

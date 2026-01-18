@@ -49,7 +49,7 @@ export class SystemBrainService {
       description: 'Autonomous System Governance Agent',
       user: ownerId,
       provider: 'anthropic', // Anthropic is good for system logic
-      model: 'claude-3-opus-20240229',
+      model: 'claude-opus-4-20250514',
       apiKeyId: ownerId, // Use user's key (LLMService will fallback to user keys if this ID matches user)
       systemPrompt: `You are the Overseer of the YSEEKU Platform.
 Your goal is to monitor system health, trust metrics, and emergence patterns.

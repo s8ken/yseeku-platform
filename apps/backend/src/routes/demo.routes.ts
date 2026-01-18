@@ -270,7 +270,7 @@ router.get('/agents', async (req: Request, res: Response): Promise<void> => {
             name: 'Nova - Creative Writer',
             description: 'Creative assistant with balanced safety controls',
             provider: 'anthropic',
-            model: 'claude-3-sonnet',
+            model: 'claude-sonnet-4-20250514',
             ciModel: 'symbi-core',
             traits: { ethical_alignment: 4.5, creativity: 4.9, precision: 3.2 },
             lastActive: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
