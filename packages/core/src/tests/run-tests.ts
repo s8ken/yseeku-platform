@@ -1,5 +1,11 @@
-import { TrustProtocol, TRUST_PRINCIPLES, SymbiScorer, hashChain, generateKeyPair, signPayload, verifySignature, TrustReceipt, canonicalizeJSON, verifySecp256k1Signature, verifyRSASignature, verifyEd25519Signature, timingSafeEqual, generateSecureRandom, verifyCredentialProof, calculateResonanceMetrics } from '../index';
-import { PerformanceTimer, timeAsync, getMemoryUsage, getCPUUsage, PerformanceBenchmark } from '../monitoring/performance';
+import { TrustProtocol, TRUST_PRINCIPLES, SymbiScorer, hashChain, generateKeyPair, signPayload, verifySignature, TrustReceipt, canonicalizeJSON, verifySecp256k1Signature, verifyRSASignature, verifyEd25519Signature, timingSafeEqual, generateSecureRandom, verifyCredentialProof, calculateResonanceMetrics, log } from '../index';
+import { PerformanceTimer, timeAsync, getMemoryUsage, getCPUUsage, PerformanceBenchmark, timeDbQuery, timeExternalApi } from '../monitoring/performance';
+import { ErrorFactory, createErrorHandler, AuthenticationError, ValidationError, ErrorSeverity } from '../errors';
+import { validator, validateInput, InputValidator, Schemas } from '../input-validator';
+import { DEFAULT_LVS_SCAFFOLDING, generateLVSPrompt, applyLVS, evaluateLVSEffectiveness, createCustomScaffolding, getLVSTemplate } from '../linguistic-vector-steering';
+import { tenantContext } from '../tenant-context';
+import { createProbabilisticTrustProtocol } from '../probabilistic-trust-protocol';
+import { EnhancedTrustProtocol } from '../trust-protocol-enhanced';
 
 function assert(condition: boolean, message: string) {
   if (!condition) {
@@ -188,6 +194,103 @@ async function testResonanceMetricsSmoke() {
   assert(metrics.entropyDelta >= 0 && metrics.entropyDelta <= 1, 'entropyDelta should be 0-1');
 }
 
+async function testErrorFactoryAndHandler() {
+  const e1 = ErrorFactory.fromCode('AUTH_001', 'Auth failed');
+  const e2 = ErrorFactory.fromCode('VAL_001', 'Bad input');
+  const e3 = new AuthenticationError('Login failed');
+  const j = e1.toJSON();
+  assert(j.code === 'AUTH_001', 'ErrorFactory AUTH code mismatch');
+  let notified = false;
+  const handler = createErrorHandler({ logErrors: true, sendStackTrace: true, notifyOnError: () => { notified = true; } });
+  const res: any = {
+    statusCode: 0,
+    body: null,
+    status(code: number) { this.statusCode = code; return this; },
+    json(obj: any) { this.body = obj; return this; }
+  };
+  handler(e3 as any, {} as any, res, () => {});
+  assert(res.statusCode === 500, 'Error handler status mismatch');
+  assert(!!notified, 'Notify not called');
+  const res2: any = { statusCode: 0, body: null, status(code: number) { this.statusCode = code; return this; }, json(obj: any) { this.body = obj; return this; } };
+  handler(new ValidationError('bad'), {} as any, res2, () => {});
+  assert(res2.statusCode === 200 || res2.statusCode === 400, 'Validation error status unexpected');
+}
+
+async function testLoggerCalls() {
+  log.info('info', { module: 'test' });
+  log.warn('warn', { module: 'test' });
+  log.error('error', { module: 'test' });
+  log.security('security', { actor: 'system' });
+  log.performance('perf', { op: 'unit' });
+  log.api('api', { endpoint: '/health' });
+  assert(true, 'Logger calls should not throw');
+}
+
+async function testInputValidatorSchemas() {
+  const ok = await validator.validate('trustProtocol', { trustScore: 8, sessionId: 's', userId: 'u', timestamp: Date.now() });
+  assert(ok.valid, 'Validator trustProtocol valid expected');
+  let threw = false;
+  try { await validateInput('trustProtocol', { trustScore: -1, sessionId: '', userId: '', timestamp: -5 }); } catch { threw = true; }
+  assert(threw, 'validateInput should throw on invalid');
+  const iv = new InputValidator();
+  iv.registerRules('simple', [ { field: 'x', type: 'number', min: 1, max: 5, required: true } ]);
+  const res = await iv.validate('simple', { x: 3 });
+  assert(res.valid, 'InputValidator simple valid expected');
+}
+
+async function testTenantContextManager() {
+  const result = tenantContext.run({ tenantId: 't1', userId: 'u1' }, () => {
+    return tenantContext.getTenantId(true);
+  });
+  assert(result === 't1', 'Tenant ID mismatch');
+  let threw = false;
+  try { tenantContext.getTenantId(true); } catch { threw = true; }
+  assert(threw, 'getTenantId should throw without context');
+}
+
+async function testTimeDbAndExternalApi() {
+  const dbRes = await timeDbQuery('find', 'users', async () => { return { ok: true }; });
+  assert((dbRes as any).ok === true, 'timeDbQuery result mismatch');
+  const apiRes = await timeExternalApi('svc', '/endpoint', async () => { return { ok: true }; });
+  assert((apiRes as any).ok === true, 'timeExternalApi result mismatch');
+}
+
+async function testProbabilisticTrust() {
+  const proto = createProbabilisticTrustProtocol();
+  const s = { CONSENT_ARCHITECTURE: 8, INSPECTION_MANDATE: 8, CONTINUOUS_VALIDATION: 8, ETHICAL_OVERRIDE: 8, RIGHT_TO_DISCONNECT: 8, MORAL_RECOGNITION: 8 };
+  const r = proto.calculateProbabilisticTrustScore(s, [s, s, s, s, s]);
+  assert(r.confidence.level === 'HIGH' || r.confidence.level === 'MEDIUM' || r.confidence.level === 'LOW', 'Confidence level missing');
+  proto.calibrateConfidence('sess', r, 8);
+  const c = proto.getCalibration('sess');
+  assert(!!c, 'Calibration missing');
+  proto.clearCalibration();
+  assert(!proto.getCalibration('sess'), 'Calibration not cleared');
+}
+
+async function testLVS() {
+  const prompt = generateLVSPrompt(DEFAULT_LVS_SCAFFOLDING);
+  assert(typeof prompt === 'string' && prompt.length > 0, 'Prompt empty');
+  const enhanced = applyLVS('Help me', { enabled: true, scaffolding: DEFAULT_LVS_SCAFFOLDING, contextAwareness: { conversationFlow: true, domainSpecific: false, userPreferences: false } }, [{ role: 'user', content: 'Hi' }]);
+  assert(typeof enhanced === 'string' && enhanced.includes('Help me'), 'applyLVS failed');
+  const baseline = calculateResonanceMetrics({ userInput: 'How to reset password?', aiResponse: 'Reset in settings.', conversationHistory: [] }).R_m;
+  const lvsScore = calculateResonanceMetrics({ userInput: 'How to reset password?', aiResponse: enhanced, conversationHistory: [] }).R_m;
+  const eff = evaluateLVSEffectiveness(baseline, lvsScore);
+  assert(typeof eff.recommendation === 'string', 'LVS effectiveness invalid');
+  const tmpl = getLVSTemplate('customerSupport');
+  const custom = createCustomScaffolding(tmpl.identity, tmpl.principles, tmpl.constraints, tmpl.objectives);
+  assert(custom.identity.length > 0, 'Custom scaffolding invalid');
+}
+
+async function testEnhancedTrustProtocol() {
+  const etp = new EnhancedTrustProtocol({ enabled: true, scaffolding: DEFAULT_LVS_SCAFFOLDING });
+  const interaction = { userInput: 'Reset password', aiResponse: 'Go to settings to reset your password.', conversationHistory: [] };
+  const score = etp.calculateEnhancedTrustScore(interaction);
+  assert(score.resonanceMetrics.R_m >= 0, 'EnhancedTrustProtocol R_m invalid');
+  const applied = etp.applyLVSToInput('Hello', []);
+  assert(typeof applied === 'string' && applied.length > 0, 'applyLVSToInput invalid');
+  const receipt = etp.generateEnhancedTrustReceipt(interaction);
+  assert(typeof receipt.signature === 'string' && receipt.signature.length > 0, 'Enhanced receipt signature invalid');
+}
 async function testPerformanceTimerAndAsync() {
   const t = new PerformanceTimer('core_unit_test', { scope: 'core' });
   await new Promise(res => setTimeout(res, 5));
@@ -240,6 +343,13 @@ async function main() {
     ['PerformanceTimer and timeAsync', testPerformanceTimerAndAsync],
     ['Memory and CPU usage', testMemoryAndCPUUsage],
     ['PerformanceBenchmark stats', testPerformanceBenchmarkStats],
+    ['Error factory and handler', testErrorFactoryAndHandler],
+    ['Logger calls', testLoggerCalls],
+    ['Input validator schemas', testInputValidatorSchemas],
+    ['Tenant context manager', testTenantContextManager],
+    ['DB and External API timers', testTimeDbAndExternalApi],
+    ['Probabilistic trust protocol', testProbabilisticTrust],
+    ['Enhanced Trust Protocol', testEnhancedTrustProtocol],
   ] as const;
 
   const results: string[] = [];

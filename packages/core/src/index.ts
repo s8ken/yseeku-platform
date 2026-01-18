@@ -87,6 +87,8 @@ export interface CIQMetrics {
 export * from './resonance-metric';
 export * from './linguistic-vector-steering';
 export * from './tenant-context';
+export * from './validation/schemas';
+export * from './errors/math-errors';
 
 // Calculator V2 is in @sonate/detect (has detect dependencies)
 // Import from @sonate/detect instead: import { explainableSymbiResonance } from '@sonate/detect';

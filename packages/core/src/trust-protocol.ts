@@ -11,6 +11,8 @@
  */
 
 import { TRUST_PRINCIPLES, TrustScore, TrustPrincipleKey, PrincipleScores } from './index';
+import { PrincipleScoresSchema } from './validation/schemas';
+import { CalculationError, MathValidationError } from './errors/math-errors';
 
 export class TrustProtocol {
   /**
@@ -24,6 +26,16 @@ export class TrustProtocol {
    * @returns TrustScore object with overall score and violations
    */
   calculateTrustScore(principleScores: PrincipleScores): TrustScore {
+    let validated: PrincipleScores;
+    try {
+      validated = PrincipleScoresSchema.parse(principleScores) as PrincipleScores;
+    } catch (e) {
+      throw new MathValidationError('Invalid principle scores', (e as Error).message);
+    }
+    const values = Object.values(validated);
+    if (values.some(v => !isFinite(v))) {
+      throw new CalculationError('Non-finite values in trust scoring', 'calculateTrustScore', { principleScores });
+    }
     let weightedSum = 0;
     const violations: TrustPrincipleKey[] = [];
     let hasCriticalViolation = false;
@@ -31,7 +43,7 @@ export class TrustProtocol {
     // Calculate weighted sum
     for (const [key, principle] of Object.entries(TRUST_PRINCIPLES)) {
       const principleKey = key as TrustPrincipleKey;
-      const score = principleScores[principleKey] || 0;
+      const score = validated[principleKey] || 0;
 
       // Check for violations (score < 5)
       if (score < 5) {
@@ -48,6 +60,9 @@ export class TrustProtocol {
 
     // Apply critical violation rule
     const overall = hasCriticalViolation ? 0 : weightedSum;
+    if (!isFinite(overall) || overall < 0 || overall > 10) {
+      throw new CalculationError('Invalid trust score result', 'calculateTrustScore', { overall, inputs: { principleScores } });
+    }
 
     return {
       overall,

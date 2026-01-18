@@ -10,6 +10,8 @@ export const VERSION = '1.4.0';
  */
 
 import { TrustProtocol } from '@sonate/core';
+import { CalculationError } from '@sonate/core';
+import { calculateResonanceMetrics } from './resonance-metrics';
 
 // Core detector
 export { SymbiFrameworkDetector } from './framework-detector';
@@ -117,3 +119,24 @@ export {
 
 // Performance monitoring
 export { PerformanceProfiler } from './performance-profiler';
+
+export function detect(input: any) {
+  try {
+    return calculateResonanceMetrics(input);
+  } catch (error) {
+    if (error instanceof CalculationError) {
+      console.error('Math error in detection:', error.message);
+      return {
+        R_m: 0.5,
+        vectorAlignment: 0.5,
+        contextualContinuity: 0.5,
+        semanticMirroring: 0.5,
+        entropyDelta: 0.5,
+        alertLevel: 'YELLOW' as const,
+        interpretation: 'Fallback due to calculation error',
+        error: error.message
+      };
+    }
+    throw error;
+  }
+}
