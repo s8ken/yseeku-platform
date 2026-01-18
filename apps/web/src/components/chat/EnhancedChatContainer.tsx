@@ -167,7 +167,34 @@ export function EnhancedChatContainer({
       return res.json();
     },
     onSuccess: (data) => {
-      setMessages((prev) => [...prev, data.message]);
+      // Handle both successful AI response and failed AI generation cases
+      if (data.message) {
+        setMessages((prev) => [...prev, data.message]);
+        
+        // Show warning if AI response was not available
+        if (data.warning) {
+          toast.warning('AI Response Unavailable', {
+            description: data.warning,
+            duration: 5000,
+          });
+        }
+      } else if (data.conversation) {
+        // AI generation failed but user message was saved, get the last message
+        const lastMessage = data.conversation.messages[data.conversation.messages.length - 1];
+        if (lastMessage) {
+          setMessages((prev) => [...prev, {
+            id: lastMessage._id || `msg-${Date.now()}`,
+            conversationId: conversationId || '',
+            role: lastMessage.sender === 'user' ? 'user' : 'assistant',
+            content: lastMessage.content,
+            timestamp: lastMessage.timestamp || new Date().toISOString(),
+            reactions: [],
+            attachments: [],
+            trustReceipt: lastMessage.metadata?.trustEvaluation,
+          }]);
+        }
+      }
+      
       setInputMessage('');
       setAttachedFiles([]);
       queryClient.invalidateQueries({ queryKey: ['conversations'] });

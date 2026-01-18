@@ -60,6 +60,32 @@ export async function POST(request: NextRequest) {
     }
 
     if (!backendResponse.ok) {
+      // Special handling for AI generation failure where user message was saved
+      if (backendResponse.status === 500 && data.error?.includes('OpenAI API key not configured')) {
+        // The user message was actually saved, extract it from the conversation data
+        const conversation = data.data?.conversation;
+        const lastMessage = conversation?.messages?.[conversation.messages.length - 1];
+        
+        if (lastMessage && lastMessage.sender === 'user') {
+          // Return success with the user message, but include a warning about AI response
+          return NextResponse.json({
+            success: true,
+            message: {
+              id: lastMessage._id || `msg-${Date.now()}`,
+              conversationId,
+              role: 'user',
+              content: lastMessage.content,
+              timestamp: lastMessage.timestamp || new Date().toISOString(),
+              trustReceipt: lastMessage.metadata?.trustEvaluation,
+              reactions: [],
+              attachments: [],
+            },
+            warning: 'AI response not available - API key not configured',
+            conversation: data.data?.conversation,
+          });
+        }
+      }
+      
       return NextResponse.json(
         {
           success: false,
