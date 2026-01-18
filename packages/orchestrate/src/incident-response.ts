@@ -7,10 +7,9 @@
 
 import {
   SystemError,
-  SecurityError,
   PerformanceError,
   ComplianceError
-} from '@sonate/core/errors';
+} from '@sonate/core';
 
 export interface Incident {
   id: string;
@@ -468,7 +467,9 @@ export class IncidentResponseSystem {
     // Maintain size limits
     if (this.incidents.size > this.MAX_INCIDENTS) {
       const oldestKey = this.incidents.keys().next().value;
-      this.incidents.delete(oldestKey);
+      if (oldestKey) {
+        this.incidents.delete(oldestKey);
+      }
     }
 
     if (this.incidentHistory.length > this.MAX_HISTORY) {

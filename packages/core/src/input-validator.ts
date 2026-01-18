@@ -120,7 +120,7 @@ export class InputValidator {
           errors.push(new InvalidInputError(
             rule.field,
             value,
-            { metadata: { allowedValues: rule.allowedValues } }
+            { timestamp: Date.now(), metadata: { allowedValues: rule.allowedValues } }
           ));
         }
 
@@ -144,8 +144,8 @@ export class InputValidator {
 
       } catch (error) {
         errors.push(new ValidationError(
-          `Validation error for field ${rule.field}: ${error.message}`,
-          { metadata: { field: rule.field, originalError: error.message } }
+          `Validation error for field ${rule.field}: ${(error as Error).message}`,
+          { timestamp: Date.now(), metadata: { field: rule.field, originalError: (error as Error).message } }
         ));
       }
     }
@@ -153,7 +153,7 @@ export class InputValidator {
     return {
       valid: errors.length === 0,
       errors,
-      sanitized: rule.sanitize ? sanitized : undefined
+      sanitized: errors.length === 0 ? sanitized : undefined
     };
   }
 

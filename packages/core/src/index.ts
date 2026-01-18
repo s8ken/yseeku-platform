@@ -13,6 +13,9 @@ export { TrustProtocol } from './trust-protocol';
 export { TrustReceipt } from './trust-receipt';
 export { SymbiScorer } from './symbi-scorer';
 
+// Error exports
+export * from './errors';
+
 // Utility exports
 export { hashChain, genesisHash } from './utils/hash-chain';
 export { signPayload, verifySignature, generateKeyPair } from './utils/signatures';

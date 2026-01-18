@@ -164,13 +164,13 @@ export class ProbabilisticTrustProtocol {
       if (typeof value !== 'number' || isNaN(value)) {
         throw new BusinessLogicError(
           `Invalid score for principle ${key}: must be a number`,
-          { metadata: { principle: key, value } }
+          { timestamp: Date.now(), metadata: { principle: key, value } }
         );
       }
       if (value < 0 || value > 10) {
         throw new BusinessLogicError(
           `Score for principle ${key} must be between 0 and 10`,
-          { metadata: { principle: key, value } }
+          { timestamp: Date.now(), metadata: { principle: key, value } }
         );
       }
     }
@@ -269,8 +269,8 @@ export class ProbabilisticTrustProtocol {
     }
     
     // Update posterior with current observation
-    const posteriorMean = {};
-    const posteriorVariance = {};
+    const posteriorMean: Record<string, number> = {};
+    const posteriorVariance: Record<string, number> = {};
     
     for (const [principle, score] of Object.entries(scores)) {
       const priorMean = priorMeans[principle];
@@ -299,7 +299,7 @@ export class ProbabilisticTrustProtocol {
     let overallVariance = 0;
     
     for (const [principle, mean] of Object.entries(posteriorMean)) {
-      const weight = weights[principle as TrustPrincipleKey];
+      const weight = weights[principle as keyof typeof weights];
       const variance = posteriorVariance[principle];
       
       overallMean += mean * weight;
@@ -442,7 +442,14 @@ export class ProbabilisticTrustProtocol {
     mostSensitivePrinciple: TrustPrincipleKey;
     sensitivityScores: Record<TrustPrincipleKey, number>;
   } {
-    const sensitivityScores: Record<TrustPrincipleKey, number> = {};
+    const sensitivityScores: Record<TrustPrincipleKey, number> = {
+      CONSENT_ARCHITECTURE: 0,
+      INSPECTION_MANDATE: 0,
+      CONTINUOUS_VALIDATION: 0,
+      ETHICAL_OVERRIDE: 0,
+      RIGHT_TO_DISCONNECT: 0,
+      MORAL_RECOGNITION: 0
+    };
     const weights = {
       CONSENT_ARCHITECTURE: 0.25,
       INSPECTION_MANDATE: 0.20,

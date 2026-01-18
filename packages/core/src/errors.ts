@@ -53,7 +53,7 @@ export class PlatformError extends Error {
     code: string,
     category: ErrorCategory,
     severity: ErrorSeverity,
-    context: ErrorContext = {},
+    context: ErrorContext = { timestamp: Date.now() },
     retryable: boolean = false,
     userMessage?: string
   ) {
@@ -62,10 +62,7 @@ export class PlatformError extends Error {
     this.code = code;
     this.category = category;
     this.severity = severity;
-    this.context = {
-      timestamp: Date.now(),
-      ...context
-    };
+    this.context = context;
     this.retryable = retryable;
     this.userMessage = userMessage || this.getDefaultUserMessage();
     
@@ -105,7 +102,7 @@ export class PlatformError extends Error {
 // Authentication Errors
 
 export class AuthenticationError extends PlatformError {
-  constructor(message: string, context: ErrorContext = {}) {
+  constructor(message: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(
       message,
       'AUTH_001',
@@ -119,29 +116,28 @@ export class AuthenticationError extends PlatformError {
 }
 
 export class InvalidCredentialsError extends AuthenticationError {
-  constructor(context: ErrorContext = {}) {
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('Invalid credentials provided', context);
   }
 }
 
 export class TokenExpiredError extends AuthenticationError {
-  constructor(context: ErrorContext = {}) {
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('Authentication token has expired', {
       ...context,
-      retryable: true
+      timestamp: Date.now()
     });
-    this.retryable = true;
   }
 }
 
 export class InvalidTokenError extends AuthenticationError {
-  constructor(context: ErrorContext = {}) {
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('Invalid authentication token', context);
   }
 }
 
 export class MFATokenRequiredError extends AuthenticationError {
-  constructor(context: ErrorContext = {}) {
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('Multi-factor authentication token required', context);
   }
 }
@@ -149,7 +145,7 @@ export class MFATokenRequiredError extends AuthenticationError {
 // Authorization Errors
 
 export class AuthorizationError extends PlatformError {
-  constructor(message: string, context: ErrorContext = {}) {
+  constructor(message: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(
       message,
       'AUTHZ_001',
@@ -163,19 +159,19 @@ export class AuthorizationError extends PlatformError {
 }
 
 export class PermissionDeniedError extends AuthorizationError {
-  constructor(permission: string, context: ErrorContext = {}) {
+  constructor(permission: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Permission denied: ${permission}`, context);
   }
 }
 
 export class RoleRequiredError extends AuthorizationError {
-  constructor(requiredRole: string, context: ErrorContext = {}) {
+  constructor(requiredRole: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Required role not found: ${requiredRole}`, context);
   }
 }
 
 export class TenantAccessDeniedError extends AuthorizationError {
-  constructor(tenantId: string, context: ErrorContext = {}) {
+  constructor(tenantId: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Access denied to tenant: ${tenantId}`, context);
   }
 }
@@ -183,7 +179,7 @@ export class TenantAccessDeniedError extends AuthorizationError {
 // Validation Errors
 
 export class ValidationError extends PlatformError {
-  constructor(message: string, context: ErrorContext = {}) {
+  constructor(message: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(
       message,
       'VAL_001',
@@ -197,7 +193,7 @@ export class ValidationError extends PlatformError {
 }
 
 export class InvalidInputError extends ValidationError {
-  constructor(field: string, value: any, context: ErrorContext = {}) {
+  constructor(field: string, value: any, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Invalid value for field ${field}: ${JSON.stringify(value)}`, {
       ...context,
       metadata: { ...context.metadata, field, value }
@@ -206,7 +202,7 @@ export class InvalidInputError extends ValidationError {
 }
 
 export class MissingRequiredFieldError extends ValidationError {
-  constructor(field: string, context: ErrorContext = {}) {
+  constructor(field: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Missing required field: ${field}`, {
       ...context,
       metadata: { ...context.metadata, field }
@@ -215,7 +211,7 @@ export class MissingRequiredFieldError extends ValidationError {
 }
 
 export class FormatValidationError extends ValidationError {
-  constructor(field: string, expectedFormat: string, context: ErrorContext = {}) {
+  constructor(field: string, expectedFormat: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Invalid format for field ${field}. Expected: ${expectedFormat}`, {
       ...context,
       metadata: { ...context.metadata, field, expectedFormat }
@@ -224,7 +220,7 @@ export class FormatValidationError extends ValidationError {
 }
 
 export class RangeValidationError extends ValidationError {
-  constructor(field: string, value: number, min: number, max: number, context: ErrorContext = {}) {
+  constructor(field: string, value: number, min: number, max: number, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Value ${value} for field ${field} is outside valid range [${min}, ${max}]`, {
       ...context,
       metadata: { ...context.metadata, field, value, min, max }
@@ -235,7 +231,7 @@ export class RangeValidationError extends ValidationError {
 // Cryptographic Errors
 
 export class CryptographicError extends PlatformError {
-  constructor(message: string, context: ErrorContext = {}) {
+  constructor(message: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(
       message,
       'CRYPTO_001',
@@ -249,13 +245,13 @@ export class CryptographicError extends PlatformError {
 }
 
 export class SignatureVerificationError extends CryptographicError {
-  constructor(context: ErrorContext = {}) {
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('Signature verification failed', context);
   }
 }
 
 export class KeyNotFoundError extends CryptographicError {
-  constructor(keyId: string, context: ErrorContext = {}) {
+  constructor(keyId: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Key not found: ${keyId}`, {
       ...context,
       metadata: { ...context.metadata, keyId }
@@ -264,28 +260,26 @@ export class KeyNotFoundError extends CryptographicError {
 }
 
 export class KeyRotationError extends CryptographicError {
-  constructor(keyId: string, context: ErrorContext = {}) {
+  constructor(keyId: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Failed to rotate key: ${keyId}`, {
       ...context,
       metadata: { ...context.metadata, keyId },
-      retryable: true
+      timestamp: Date.now()
     });
-    this.retryable = true;
   }
 }
 
 export class HSMUnavailableError extends CryptographicError {
-  constructor(context: ErrorContext = {}) {
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('Hardware Security Module is unavailable', {
       ...context,
-      retryable: true
+      timestamp: Date.now()
     });
-    this.retryable = true;
   }
 }
 
 export class HashChainIntegrityError extends CryptographicError {
-  constructor(context: ErrorContext = {}) {
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('Hash chain integrity verification failed', context);
   }
 }
@@ -293,7 +287,7 @@ export class HashChainIntegrityError extends CryptographicError {
 // Database Errors
 
 export class DatabaseError extends PlatformError {
-  constructor(message: string, context: ErrorContext = {}) {
+  constructor(message: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(
       message,
       'DB_001',
@@ -303,18 +297,17 @@ export class DatabaseError extends PlatformError {
       true,
       'A database error occurred. Please try again later.'
     );
-    this.retryable = true;
   }
 }
 
 export class ConnectionError extends DatabaseError {
-  constructor(context: ErrorContext = {}) {
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('Database connection failed', context);
   }
 }
 
 export class QueryError extends DatabaseError {
-  constructor(query: string, context: ErrorContext = {}) {
+  constructor(query: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Database query failed: ${query}`, {
       ...context,
       metadata: { ...context.metadata, query }
@@ -323,30 +316,25 @@ export class QueryError extends DatabaseError {
 }
 
 export class RecordNotFoundError extends DatabaseError {
-  constructor(recordType: string, id: string, context: ErrorContext = {}) {
-    super(`${recordType} not found: ${id}`, {
-      ...context,
-      retryable: false
-    });
-    this.retryable = false;
+  constructor(recordType: string, id: string, context: ErrorContext = { timestamp: Date.now() }) {
+    super(`${recordType} not found: ${id}`, context);
   }
 }
 
 export class DuplicateRecordError extends DatabaseError {
-  constructor(recordType: string, field: string, value: string, context: ErrorContext = {}) {
+  constructor(recordType: string, field: string, value: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Duplicate ${recordType}: ${field}=${value}`, {
       ...context,
-      retryable: false,
-      metadata: { ...context.metadata, recordType, field, value }
+      metadata: { ...context.metadata, recordType, field, value },
+      timestamp: Date.now()
     });
-    this.retryable = false;
   }
 }
 
 // Network Errors
 
 export class NetworkError extends PlatformError {
-  constructor(message: string, context: ErrorContext = {}) {
+  constructor(message: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(
       message,
       'NET_001',
@@ -356,12 +344,11 @@ export class NetworkError extends PlatformError {
       true,
       'A network error occurred. Please check your connection.'
     );
-    this.retryable = true;
   }
 }
 
 export class TimeoutError extends NetworkError {
-  constructor(operation: string, timeout: number, context: ErrorContext = {}) {
+  constructor(operation: string, timeout: number, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Operation ${operation} timed out after ${timeout}ms`, {
       ...context,
       metadata: { ...context.metadata, operation, timeout }
@@ -370,7 +357,7 @@ export class TimeoutError extends NetworkError {
 }
 
 export class ServiceUnavailableError extends NetworkError {
-  constructor(service: string, context: ErrorContext = {}) {
+  constructor(service: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Service ${service} is unavailable`, context);
   }
 }
@@ -378,7 +365,7 @@ export class ServiceUnavailableError extends NetworkError {
 // Business Logic Errors
 
 export class BusinessLogicError extends PlatformError {
-  constructor(message: string, context: ErrorContext = {}) {
+  constructor(message: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(
       message,
       'BIZ_001',
@@ -392,31 +379,27 @@ export class BusinessLogicError extends PlatformError {
 }
 
 export class TrustScoreCalculationError extends BusinessLogicError {
-  constructor(context: ErrorContext = {}) {
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('Failed to calculate trust score', context);
   }
 }
 
 export class EmergenceDetectionError extends BusinessLogicError {
-  constructor(context: ErrorContext = {}) {
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('Failed to detect emergence patterns', context);
   }
 }
 
 export class InvariantViolationError extends BusinessLogicError {
-  constructor(invariant: string, context: ErrorContext = {}) {
-    super(`Invariant violation: ${invariant}`, {
-      ...context,
-      severity: ErrorSeverity.HIGH
-    });
-    this.severity = ErrorSeverity.HIGH;
+  constructor(invariant: string, context: ErrorContext = { timestamp: Date.now() }) {
+    super(`Invariant violation: ${invariant}`, context);
   }
 }
 
 // External Service Errors
 
 export class ExternalServiceError extends PlatformError {
-  constructor(message: string, service: string, context: ErrorContext = {}) {
+  constructor(message: string, service: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(
       message,
       'EXT_001',
@@ -429,14 +412,13 @@ export class ExternalServiceError extends PlatformError {
       true,
       `Error communicating with external service: ${service}`
     );
-    this.retryable = true;
   }
 }
 
 // Compliance Errors
 
 export class ComplianceError extends PlatformError {
-  constructor(message: string, framework: string, context: ErrorContext = {}) {
+  constructor(message: string, framework: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(
       message,
       'COMP_001',
@@ -453,31 +435,27 @@ export class ComplianceError extends PlatformError {
 }
 
 export class GDPRViolationError extends ComplianceError {
-  constructor(context: ErrorContext = {}) {
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('GDPR compliance violation detected', 'GDPR', context);
   }
 }
 
 export class SOC2ViolationError extends ComplianceError {
-  constructor(context: ErrorContext = {}) {
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('SOC 2 compliance violation detected', 'SOC2', context);
   }
 }
 
 export class AuditLogError extends ComplianceError {
-  constructor(context: ErrorContext = {}) {
-    super('Failed to write audit log', 'AUDIT', {
-      ...context,
-      severity: ErrorSeverity.CRITICAL
-    });
-    this.severity = ErrorSeverity.CRITICAL;
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
+    super('Failed to write audit log', 'AUDIT', context);
   }
 }
 
 // Performance Errors
 
 export class PerformanceError extends PlatformError {
-  constructor(message: string, context: ErrorContext = {}) {
+  constructor(message: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(
       message,
       'PERF_001',
@@ -491,17 +469,16 @@ export class PerformanceError extends PlatformError {
 }
 
 export class RateLimitExceededError extends PerformanceError {
-  constructor(limit: number, window: string, context: ErrorContext = {}) {
+  constructor(limit: number, window: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Rate limit exceeded: ${limit} requests per ${window}`, {
       ...context,
-      metadata: { ...context.metadata, limit, window },
-      retryable: true
+      metadata: { ...context.metadata, limit, window }
     });
   }
 }
 
 export class SlowOperationError extends PerformanceError {
-  constructor(operation: string, duration: number, threshold: number, context: ErrorContext = {}) {
+  constructor(operation: string, duration: number, threshold: number, context: ErrorContext = { timestamp: Date.now() }) {
     super(
       `Slow operation detected: ${operation} took ${duration}ms (threshold: ${threshold}ms)`,
       {
@@ -515,7 +492,7 @@ export class SlowOperationError extends PerformanceError {
 // System Errors
 
 export class SystemError extends PlatformError {
-  constructor(message: string, context: ErrorContext = {}) {
+  constructor(message: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(
       message,
       'SYS_001',
@@ -529,13 +506,13 @@ export class SystemError extends PlatformError {
 }
 
 export class OutOfMemoryError extends SystemError {
-  constructor(context: ErrorContext = {}) {
+  constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('System out of memory', context);
   }
 }
 
 export class DiskSpaceError extends SystemError {
-  constructor(available: number, required: number, context: ErrorContext = {}) {
+  constructor(available: number, required: number, context: ErrorContext = { timestamp: Date.now() }) {
     super(
       `Insufficient disk space: ${available} bytes available, ${required} bytes required`,
       {
@@ -604,7 +581,7 @@ export function createErrorHandler(options: ErrorHandlerOptions = {}) {
         'SYS_001',
         ErrorCategory.SYSTEM,
         ErrorSeverity.MEDIUM,
-        { originalError: error.name }
+        { timestamp: Date.now() }
       );
 
     // Log error

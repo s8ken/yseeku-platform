@@ -9,7 +9,7 @@
  * - Regression detection
  */
 
-import { BedauIndexCalculator, createBedauIndexCalculator, SemanticIntent, SurfacePattern } from './bedau-index';
+import { BedauIndexCalculator, createBedauIndexCalculator } from './bedau-index';
 import { TemporalBedauTracker, TemporalBedauRecord } from './temporal-bedau-tracker';
 import { EmergenceFingerprintingEngine } from './emergence-fingerprinting';
 import { CrossModalityCoherenceValidator, ModalityMetrics } from './cross-modality-coherence';
@@ -922,7 +922,7 @@ export class PerformanceBenchmarkingEngine {
   }
 
   // Helper data creation methods
-  private createSemanticIntent(size: number): SemanticIntent {
+  private createSemanticIntent(size: number): any {
     return {
       intent_vectors: Array.from({ length: size }, () => this.nextRandom()),
       reasoning_depth: this.nextRandom(),
@@ -931,7 +931,7 @@ export class PerformanceBenchmarkingEngine {
     };
   }
 
-  private createSurfacePattern(size: number): SurfacePattern {
+  private createSurfacePattern(size: number): any {
     return {
       surface_vectors: Array.from({ length: size }, () => this.nextRandom()),
       pattern_complexity: this.nextRandom(),

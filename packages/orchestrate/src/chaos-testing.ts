@@ -9,7 +9,7 @@ import {
   SystemError,
   NetworkError,
   DatabaseError
-} from '@sonate/core/errors';
+} from '@sonate/core';
 
 export interface ChaosTest {
   id: string;
@@ -278,7 +278,7 @@ export class ChaosTestingFramework {
 
     } catch (error) {
       result.status = 'error';
-      result.observations.push(`Test error: ${error.message}`);
+      result.observations.push(`Test error: ${(error as Error).message}`);
       result.recommendations.push('Review test configuration and error logs');
     } finally {
       // Mark test as inactive
@@ -350,7 +350,7 @@ export class ChaosTestingFramework {
 
     } catch (error) {
       result.status = 'error';
-      result.observations.push(`Network failure simulation error: ${error.message}`);
+      result.observations.push(`Network failure simulation error: ${(error as Error).message}`);
     }
   }
 
@@ -402,7 +402,7 @@ export class ChaosTestingFramework {
 
     } catch (error) {
       result.status = 'error';
-      result.observations.push(`Database failure simulation error: ${error.message}`);
+      result.observations.push(`Database failure simulation error: ${(error as Error).message}`);
     }
   }
 
@@ -450,7 +450,7 @@ export class ChaosTestingFramework {
 
     } catch (error) {
       result.status = 'error';
-      result.observations.push(`Service failure simulation error: ${error.message}`);
+      result.observations.push(`Service failure simulation error: ${(error as Error).message}`);
     }
   }
 
@@ -499,7 +499,7 @@ export class ChaosTestingFramework {
 
     } catch (error) {
       result.status = 'error';
-      result.observations.push(`Resource exhaustion simulation error: ${error.message}`);
+      result.observations.push(`Resource exhaustion simulation error: ${(error as Error).message}`);
     }
   }
 
@@ -548,7 +548,7 @@ export class ChaosTestingFramework {
 
     } catch (error) {
       result.status = 'error';
-      result.observations.push(`Latency spike simulation error: ${error.message}`);
+      result.observations.push(`Latency spike simulation error: ${(error as Error).message}`);
     }
   }
 
@@ -600,7 +600,7 @@ export class ChaosTestingFramework {
 
     } catch (error) {
       result.status = 'error';
-      result.observations.push(`Data corruption simulation error: ${error.message}`);
+      result.observations.push(`Data corruption simulation error: ${(error as Error).message}`);
     }
   }
 

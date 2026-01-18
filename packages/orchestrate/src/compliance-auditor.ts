@@ -10,7 +10,7 @@ import {
   GDPRViolationError,
   SOC2ViolationError,
   AuditLogError
-} from '@sonate/core/errors';
+} from '@sonate/core';
 
 export interface ComplianceFramework {
   name: string;
@@ -275,8 +275,8 @@ export class ComplianceAuditor {
             violations: [{
               requirementId: requirement.id,
               severity: 'HIGH',
-              description: `Compliance check failed: ${error.message}`,
-              evidence: error.message,
+              description: `Compliance check failed: ${(error as Error).message}`,
+              evidence: (error as Error).message,
               remediation: 'Investigate and resolve the error',
               affectedResources: []
             }],
@@ -314,8 +314,11 @@ export class ComplianceAuditor {
         // Aggregate results from audit logs
         const results = auditLogs.map(log => 
           requirement.checkFunction!({
-            ...log,
-            auditLog: log
+            timestamp: log.timestamp,
+            tenantId: log.tenantId,
+            userId: log.userId,
+            operation: log.type,
+            data: log.metadata || {}
           })
         );
 

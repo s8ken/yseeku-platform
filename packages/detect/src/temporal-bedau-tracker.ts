@@ -126,11 +126,10 @@ export class TemporalBedauTracker {
    * Validate emergence signature
    */
   private validateEmergenceSignature(signature: EmergenceSignature): void {
-    const requiredFields = ['complexity', 'novelty', 'coherence', 'stability'];
-    for (const field of requiredFields) {
-      if (typeof signature[field] !== 'number' || 
-          signature[field] < 0 || 
-          signature[field] > 1) {
+    const fields: (keyof EmergenceSignature)[] = ['complexity', 'novelty', 'coherence', 'stability'];
+    for (const field of fields) {
+      const value = signature[field];
+      if (typeof value !== 'number' || value < 0 || value > 1) {
         throw new Error(`Invalid ${field} in emergence signature: must be between 0 and 1`);
       }
     }
