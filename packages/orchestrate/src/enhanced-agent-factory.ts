@@ -66,7 +66,7 @@ export class EnhancedAgentFactory {
         defaultCapabilities: ['git_operations', 'code_analysis', 'ci_cd_integration'],
         defaultPermissions: ['read_repository', 'write_branches'],
         requiredConfig: ['repository_url'],
-        trustArticles: ['security_first', 'privacy_protection']
+        trustArticles: ['security_first', 'privacy_protection'],
       },
       {
         type: 'research',
@@ -74,11 +74,11 @@ export class EnhancedAgentFactory {
         defaultCapabilities: ['data_analysis', 'hypothesis_testing', 'bedau_calculation'],
         defaultPermissions: ['read_research_data', 'write_results'],
         requiredConfig: ['research_domain'],
-        trustArticles: ['ethical_research', 'transparency', 'peer_review']
-      }
+        trustArticles: ['ethical_research', 'transparency', 'peer_review'],
+      },
     ];
 
-    templates.forEach(template => {
+    templates.forEach((template) => {
       this.templates.set(template.type, template);
     });
   }
@@ -99,7 +99,7 @@ export class EnhancedAgentFactory {
         description: config.description || template.description,
         maxConcurrentTasks: config.maxConcurrentTasks || 10,
         timeoutMs: config.timeoutMs || 30000,
-        metadata: config.metadata || {}
+        metadata: config.metadata || {},
       },
       status: 'active',
       createdAt: new Date(),
@@ -107,12 +107,12 @@ export class EnhancedAgentFactory {
       performance: {
         totalTasks: 0,
         averageResponseTime: 0,
-        successRate: 1.0
+        successRate: 1.0,
       },
       metadata: {
         trustArticles: template.trustArticles,
-        ...config.metadata
-      }
+        ...config.metadata,
+      },
     };
 
     this.agents.set(agent.id, agent);
@@ -139,7 +139,7 @@ export class EnhancedAgentFactory {
    * List agents by type
    */
   listAgentsByType(typeId: string): Agent[] {
-    return Array.from(this.agents.values()).filter(agent => agent.config.type === typeId);
+    return Array.from(this.agents.values()).filter((agent) => agent.config.type === typeId);
   }
 
   /**
@@ -153,7 +153,7 @@ export class EnhancedAgentFactory {
 
     Object.assign(agent.config, updates);
     agent.lastActivity = new Date();
-    
+
     this.logger.info(`Updated agent ${agentId}`);
     return agent;
   }
@@ -166,26 +166,30 @@ export class EnhancedAgentFactory {
     if (!deleted) {
       throw new Error(`Agent not found: ${agentId}`);
     }
-    
+
     this.logger.info(`Deleted agent ${agentId}`);
   }
 
   /**
    * Update agent performance metrics
    */
-  async updateAgentPerformance(agentId: string, metrics: {
-    tasksCompleted?: number;
-    responseTime?: number;
-    success?: boolean;
-  }): Promise<void> {
+  async updateAgentPerformance(
+    agentId: string,
+    metrics: {
+      tasksCompleted?: number;
+      responseTime?: number;
+      success?: boolean;
+    }
+  ): Promise<void> {
     const agent = this.agents.get(agentId);
     if (!agent) {
       throw new Error(`Agent not found: ${agentId}`);
     }
 
     if (metrics.responseTime !== undefined) {
-      const totalResponseTime = agent.performance.averageResponseTime * 
-        (agent.performance.totalTasks - (metrics.tasksCompleted || 0)) + 
+      const totalResponseTime =
+        agent.performance.averageResponseTime *
+          (agent.performance.totalTasks - (metrics.tasksCompleted || 0)) +
         metrics.responseTime;
       agent.performance.averageResponseTime = totalResponseTime / agent.performance.totalTasks;
     }
@@ -207,7 +211,7 @@ export class EnhancedAgentFactory {
       operation,
       timestamp: Date.now(),
       trustScore: await this.calculateAgentTrustScore(agent),
-      articles: agent.metadata.trustArticles || []
+      articles: agent.metadata.trustArticles || [],
     };
 
     this.logger.debug(`Generated trust receipt for ${operation} on agent ${agent.id}`);
@@ -219,7 +223,7 @@ export class EnhancedAgentFactory {
   private async calculateAgentTrustScore(agent: Agent): Promise<number> {
     // Mock trust score calculation for build compatibility
     const score = 8.5;
-    
+
     return score;
   }
 }

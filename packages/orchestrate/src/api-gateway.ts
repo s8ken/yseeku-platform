@@ -3,10 +3,12 @@
  * Centralized API management with rate limiting, authentication, and monitoring
  */
 
-import { EventEmitter } from 'events';
 import { randomUUID } from 'crypto';
-import { EnterpriseIntegration } from './enterprise-integration';
+import { EventEmitter } from 'events';
+
 import { tenantContext, SecureAuthService } from '@sonate/core';
+
+import { EnterpriseIntegration } from './enterprise-integration';
 import { getLogger } from './observability/logger';
 import { getAPIKeyManager } from './security/api-keys';
 
@@ -102,7 +104,7 @@ export class APIGateway extends EventEmitter {
       errorRate: 0,
       activeConnections: 0,
       rateLimitHits: 0,
-      authFailures: 0
+      authFailures: 0,
     };
   }
 
@@ -113,12 +115,12 @@ export class APIGateway extends EventEmitter {
       execute: async (req, next) => {
         logger.http(`📥 ${req.method} ${req.path}`, { requestId: req.id });
         const response = await next();
-        logger.http(`📤 ${req.method} ${req.path} - ${response.status}`, { 
-          requestId: req.id, 
-          processingTime: response.metadata?.processingTime 
+        logger.http(`📤 ${req.method} ${req.path} - ${response.status}`, {
+          requestId: req.id,
+          processingTime: response.metadata?.processingTime,
         });
         return response;
-      }
+      },
     });
 
     // Metrics collection middleware
@@ -128,10 +130,10 @@ export class APIGateway extends EventEmitter {
         const startTime = Date.now();
         const response = await next();
         const processingTime = Date.now() - startTime;
-        
+
         this.updateMetrics(req, response, processingTime);
         return response;
-      }
+      },
     });
 
     // CORS middleware
@@ -145,7 +147,7 @@ export class APIGateway extends EventEmitter {
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains';
         response.headers['Content-Security-Policy'] = "default-src 'self'";
         return response;
-      }
+      },
     });
 
     // CORS middleware
@@ -157,7 +159,7 @@ export class APIGateway extends EventEmitter {
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS';
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-API-Key';
         return response;
-      }
+      },
     });
   }
 
@@ -185,14 +187,14 @@ export class APIGateway extends EventEmitter {
       metadata: {
         ip: request.metadata?.ip || 'unknown',
         userAgent: request.metadata?.userAgent || 'unknown',
-        requestId: requestId
-      }
+        requestId: requestId,
+      },
     };
 
     // Try to extract tenant from token if present to initialize context early
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers.authorization;
     let initialTenantId: string | undefined;
-    
+
     if (authHeader?.startsWith('Bearer ')) {
       try {
         const token = authHeader.substring(7);
@@ -202,7 +204,7 @@ export class APIGateway extends EventEmitter {
           id: payload.userId,
           tenantId: payload.tenant,
           roles: payload.roles || [],
-          permissions: (payload as any).permissions || []
+          permissions: (payload as any).permissions || [],
         };
       } catch (e) {
         // Ignore token errors here, they will be caught in authenticateRequest
@@ -226,7 +228,7 @@ export class APIGateway extends EventEmitter {
         }
 
         // Apply authentication
-        if (route.auth?.required && !await this.authenticateRequest(req, route.auth)) {
+        if (route.auth?.required && !(await this.authenticateRequest(req, route.auth))) {
           this.metrics.authFailures++;
           return this.createErrorResponse(401, 'Authentication required', req.id);
         }
@@ -240,7 +242,6 @@ export class APIGateway extends EventEmitter {
 
         this.metrics.activeConnections--;
         return response;
-
       } catch (error: any) {
         this.metrics.activeConnections--;
         logger.error('❌ Middleware execution error', { error: String(error) });
@@ -256,18 +257,18 @@ export class APIGateway extends EventEmitter {
 
   private checkRateLimit(req: APIRequest, limit: { requests: number; window: number }): boolean {
     // Priority: tenantId > userId > IP
-    const key = req.user?.tenantId 
-      ? `tenant:${req.user.tenantId}:${req.path}` 
-      : req.user?.id 
-        ? `user:${req.user.id}:${req.path}`
-        : `ip:${req.metadata.ip}:${req.path}`;
-        
+    const key = req.user?.tenantId
+      ? `tenant:${req.user.tenantId}:${req.path}`
+      : req.user?.id
+      ? `user:${req.user.id}:${req.path}`
+      : `ip:${req.metadata.ip}:${req.path}`;
+
     const now = Date.now();
-    const windowStart = now - (limit.window * 1000);
+    const windowStart = now - limit.window * 1000;
 
     let stored = this.rateLimitStore.get(key);
     if (!stored || stored.resetTime < now) {
-      stored = { count: 0, resetTime: now + (limit.window * 1000) };
+      stored = { count: 0, resetTime: now + limit.window * 1000 };
       this.rateLimitStore.set(key, stored);
     }
 
@@ -276,9 +277,9 @@ export class APIGateway extends EventEmitter {
   }
 
   private async authenticateRequest(req: APIRequest, auth: APIRoute['auth']): Promise<boolean> {
-    if (!auth?.required) return true;
+    if (!auth?.required) {return true;}
 
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers.authorization;
     const apiKey = req.headers['x-api-key'];
 
     if (!authHeader && !apiKey) {
@@ -289,35 +290,37 @@ export class APIGateway extends EventEmitter {
       if (authHeader?.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
         const payload = this.authService.verifyToken(token);
-        
+
         req.user = {
           id: payload.userId,
           tenantId: payload.tenant,
           roles: payload.roles || [],
-          permissions: (payload as any).permissions || []
+          permissions: (payload as any).permissions || [],
         };
       } else if (apiKey) {
         const keyResult = await getAPIKeyManager().validateKey(apiKey);
-        if (!keyResult.valid || !keyResult.key) return false;
-        const tenantId = (keyResult.key.metadata?.tenantId ?? keyResult.key.metadata?.tenant ?? 'tenant_api') as string;
+        if (!keyResult.valid || !keyResult.key) {return false;}
+        const tenantId = (keyResult.key.metadata?.tenantId ??
+          keyResult.key.metadata?.tenant ??
+          'tenant_api') as string;
         req.user = {
           id: keyResult.key.userId,
           tenantId,
           roles: ['api_user'],
-          permissions: keyResult.key.scopes || []
+          permissions: keyResult.key.scopes || [],
         };
       }
 
       // Check role requirements
       if (auth.roles && auth.roles.length > 0) {
-        if (!req.user || !auth.roles.some(role => req.user!.roles.includes(role))) {
+        if (!req.user || !auth.roles.some((role) => req.user!.roles.includes(role))) {
           return false;
         }
       }
 
       // Check permission requirements
       if (auth.permissions && auth.permissions.length > 0) {
-        if (!req.user || !auth.permissions.some(perm => req.user!.permissions.includes(perm))) {
+        if (!req.user || !auth.permissions.some((perm) => req.user!.permissions.includes(perm))) {
           return false;
         }
       }
@@ -355,19 +358,19 @@ export class APIGateway extends EventEmitter {
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
         'Content-Security-Policy': "default-src 'none'",
-        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
       },
       body: {
         error: true,
         message,
         requestId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       metadata: {
         requestId,
         timestamp: new Date(),
-        processingTime: 0
-      }
+        processingTime: 0,
+      },
     };
 
     return response;
@@ -391,18 +394,24 @@ export class APIGateway extends EventEmitter {
     // Emit metrics update
     this.emit('metricsUpdated', {
       global: this.metrics,
-      tenant: tenantId ? this.tenantMetrics.get(tenantId) : null
+      tenant: tenantId ? this.tenantMetrics.get(tenantId) : null,
     });
   }
 
-  private updateMetricsObject(metrics: APIMetrics, req: APIRequest, response: APIResponse, processingTime: number): void {
+  private updateMetricsObject(
+    metrics: APIMetrics,
+    req: APIRequest,
+    response: APIResponse,
+    processingTime: number
+  ): void {
     metrics.totalRequests++;
-    
+
     // Update path metrics
     metrics.requestsByPath[req.path] = (metrics.requestsByPath[req.path] || 0) + 1;
 
     // Update status metrics
-    metrics.requestsByStatus[response.status] = (metrics.requestsByStatus[response.status] || 0) + 1;
+    metrics.requestsByStatus[response.status] =
+      (metrics.requestsByStatus[response.status] || 0) + 1;
 
     // Update average response time
     const totalTime = metrics.averageResponseTime * (metrics.totalRequests - 1) + processingTime;
@@ -441,9 +450,9 @@ export class APIGateway extends EventEmitter {
           status: 'healthy',
           timestamp: new Date().toISOString(),
           uptime: process.uptime(),
-          metrics: this.getMetrics()
-        }
-      })
+          metrics: this.getMetrics(),
+        },
+      }),
     });
 
     // Tenant metrics
@@ -464,10 +473,10 @@ export class APIGateway extends EventEmitter {
           body: {
             tenantId,
             metrics: metrics || this.initializeMetrics(),
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         };
-      }
+      },
     });
 
     // Metrics endpoint
@@ -478,8 +487,8 @@ export class APIGateway extends EventEmitter {
       handler: async (req) => ({
         status: 200,
         headers: { 'Content-Type': 'application/json' },
-        body: this.getMetrics()
-      })
+        body: this.getMetrics(),
+      }),
     });
 
     // Tenant endpoints
@@ -490,8 +499,8 @@ export class APIGateway extends EventEmitter {
       handler: async (req) => ({
         status: 200,
         headers: { 'Content-Type': 'application/json' },
-        body: this.enterprise.getAllTenants()
-      })
+        body: this.enterprise.getAllTenants(),
+      }),
     });
 
     this.addRoute({
@@ -504,16 +513,16 @@ export class APIGateway extends EventEmitter {
           return {
             status: 201,
             headers: { 'Content-Type': 'application/json' },
-            body: { message: 'Tenant created successfully', tenant: req.body }
+            body: { message: 'Tenant created successfully', tenant: req.body },
           };
         } catch (error: any) {
           return {
             status: 400,
             headers: { 'Content-Type': 'application/json' },
-            body: { error: error.message }
+            body: { error: error.message },
           };
         }
-      }
+      },
     });
 
     // Compliance reports
@@ -530,16 +539,16 @@ export class APIGateway extends EventEmitter {
           return {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
-            body: report
+            body: report,
           };
         } catch (error: any) {
           return {
             status: 400,
             headers: { 'Content-Type': 'application/json' },
-            body: { error: error.message }
+            body: { error: error.message },
           };
         }
-      }
+      },
     });
 
     logger.info('🏢 Enterprise API endpoints configured');
@@ -547,24 +556,24 @@ export class APIGateway extends EventEmitter {
 
   async start(port: number = 3000): Promise<void> {
     logger.info(`🚀 Starting API Gateway on port ${port}`);
-    
+
     // Start enterprise monitoring
     await this.enterprise.startMonitoring();
-    
+
     // Mock server start - in production would start actual HTTP server
     logger.info(`✅ API Gateway running on http://localhost:${port}`);
     logger.info(`📊 Enterprise metrics available at /metrics`);
     logger.info(`🏥 Health check available at /health`);
-    
+
     this.emit('started', { port });
   }
 
   async stop(): Promise<void> {
     logger.info('⏹️ Stopping API Gateway...');
-    
+
     // Stop enterprise monitoring
     await this.enterprise.stopMonitoring();
-    
+
     this.emit('stopped');
     logger.info('✅ API Gateway stopped');
   }

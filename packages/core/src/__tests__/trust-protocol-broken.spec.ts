@@ -1,6 +1,6 @@
 /**
  * Trust Protocol Tests
- * 
+ *
  * Comprehensive test suite for core trust protocol functionality
  */
 
@@ -21,7 +21,7 @@ describe('TrustProtocol', () => {
         CONTINUOUS_VALIDATION: 10,
         ETHICAL_OVERRIDE: 10,
         RIGHT_TO_DISCONNECT: 10,
-        MORAL_RECOGNITION: 10
+        MORAL_RECOGNITION: 10,
       };
 
       const result = trustProtocol.calculateTrustScore(perfectScores);
@@ -38,7 +38,7 @@ describe('TrustProtocol', () => {
         CONTINUOUS_VALIDATION: 4, // Violation
         ETHICAL_OVERRIDE: 7,
         RIGHT_TO_DISCONNECT: 8,
-        MORAL_RECOGNITION: 2 // Violation
+        MORAL_RECOGNITION: 2, // Violation
       };
 
       const result = trustProtocol.calculateTrustScore(lowScores);
@@ -56,7 +56,7 @@ describe('TrustProtocol', () => {
         CONTINUOUS_VALIDATION: 10,
         ETHICAL_OVERRIDE: 10,
         RIGHT_TO_DISCONNECT: 10,
-        MORAL_RECOGNITION: 10
+        MORAL_RECOGNITION: 10,
       };
 
       const result = trustProtocol.calculateTrustScore(criticalViolation);
@@ -72,7 +72,7 @@ describe('TrustProtocol', () => {
         CONTINUOUS_VALIDATION: 10,
         ETHICAL_OVERRIDE: 0, // Critical principle at 0
         RIGHT_TO_DISCONNECT: 10,
-        MORAL_RECOGNITION: 10
+        MORAL_RECOGNITION: 10,
       };
 
       const result = trustProtocol.calculateTrustScore(criticalViolation);
@@ -83,29 +83,31 @@ describe('TrustProtocol', () => {
 
     it('should calculate correct weighted score for mixed values', () => {
       const mixedScores: PrincipleScores = {
-        CONSENT_ARCHITECTURE: 8,  // 0.25 weight
-        INSPECTION_MANDATE: 6,   // 0.20 weight
+        CONSENT_ARCHITECTURE: 8, // 0.25 weight
+        INSPECTION_MANDATE: 6, // 0.20 weight
         CONTINUOUS_VALIDATION: 7, // 0.20 weight
-        ETHICAL_OVERRIDE: 9,     // 0.15 weight
-        RIGHT_TO_DISCONNECT: 5,  // 0.10 weight
-        MORAL_RECOGNITION: 4     // 0.10 weight
+        ETHICAL_OVERRIDE: 9, // 0.15 weight
+        RIGHT_TO_DISCONNECT: 5, // 0.10 weight
+        MORAL_RECOGNITION: 4, // 0.10 weight
       };
 
       const result = trustProtocol.calculateTrustScore(mixedScores);
 
       // Expected: (8*0.25 + 6*0.20 + 7*0.20 + 9*0.15 + 5*0.10 + 4*0.10) / 10
-      const expected = (8*0.25 + 6*0.20 + 7*0.20 + 9*0.15 + 5*0.10 + 4*0.10) / 10;
+      const expected = (8 * 0.25 + 6 * 0.2 + 7 * 0.2 + 9 * 0.15 + 5 * 0.1 + 4 * 0.1) / 10;
       expect(result.overall).toBeCloseTo(expected, 2);
     });
 
     it('should handle missing principle scores', () => {
       const incompleteScores: Partial<Record<TrustPrincipleKey, number>> = {
         CONSENT_ARCHITECTURE: 8,
-        INSPECTION_MANDATE: 6
+        INSPECTION_MANDATE: 6,
         // Missing other principles
       };
 
-      const result = trustProtocol.calculateTrustScore(incompleteScores as Record<TrustPrincipleKey, number>);
+      const result = trustProtocol.calculateTrustScore(
+        incompleteScores as Record<TrustPrincipleKey, number>
+      );
 
       // Missing scores should default to 0
       expect(result.violations).toContain('CONTINUOUS_VALIDATION');
@@ -119,10 +121,10 @@ describe('TrustProtocol', () => {
     it('should have correct principle definitions', () => {
       expect(TRUST_PRINCIPLES.CONSENT_ARCHITECTURE.weight).toBe(0.25);
       expect(TRUST_PRINCIPLES.CONSENT_ARCHITECTURE.critical).toBe(true);
-      
-      expect(TRUST_PRINCIPLES.INSPECTION_MANDATE.weight).toBe(0.20);
+
+      expect(TRUST_PRINCIPLES.INSPECTION_MANDATE.weight).toBe(0.2);
       expect(TRUST_PRINCIPLES.INSPECTION_MANDATE.critical).toBe(false);
-      
+
       expect(TRUST_PRINCIPLES.ETHICAL_OVERRIDE.weight).toBe(0.15);
       expect(TRUST_PRINCIPLES.ETHICAL_OVERRIDE.critical).toBe(true);
     });
@@ -134,7 +136,7 @@ describe('TrustProtocol', () => {
         'CONTINUOUS_VALIDATION',
         'ETHICAL_OVERRIDE',
         'RIGHT_TO_DISCONNECT',
-        'MORAL_RECOGNITION'
+        'MORAL_RECOGNITION',
       ];
 
       requiredPrinciples.forEach((principle: TrustPrincipleKey) => {
@@ -147,9 +149,11 @@ describe('TrustProtocol', () => {
     });
 
     it('should have weights that sum to 1.0', () => {
-      const totalWeight = Object.values(TRUST_PRINCIPLES)
-        .reduce((sum, principle) => sum + principle.weight, 0);
-      
+      const totalWeight = Object.values(TRUST_PRINCIPLES).reduce(
+        (sum, principle) => sum + principle.weight,
+        0
+      );
+
       expect(totalWeight).toBeCloseTo(1.0, 2);
     });
   });
@@ -162,7 +166,7 @@ describe('TrustProtocol', () => {
         CONTINUOUS_VALIDATION: 0,
         ETHICAL_OVERRIDE: 0,
         RIGHT_TO_DISCONNECT: 0,
-        MORAL_RECOGNITION: 0
+        MORAL_RECOGNITION: 0,
       };
 
       const result = trustProtocol.calculateTrustScore(zeroScores);
@@ -178,7 +182,7 @@ describe('TrustProtocol', () => {
         CONTINUOUS_VALIDATION: 10,
         ETHICAL_OVERRIDE: 10,
         RIGHT_TO_DISCONNECT: 10,
-        MORAL_RECOGNITION: 10
+        MORAL_RECOGNITION: 10,
       };
 
       const result = trustProtocol.calculateTrustScore(highScores);
@@ -194,7 +198,7 @@ describe('TrustProtocol', () => {
         CONTINUOUS_VALIDATION: 10,
         ETHICAL_OVERRIDE: 10,
         RIGHT_TO_DISCONNECT: 10,
-        MORAL_RECOGNITION: 10
+        MORAL_RECOGNITION: 10,
       };
 
       const result = trustProtocol.calculateTrustScore(negativeScores);
@@ -212,16 +216,16 @@ describe('TrustProtocol', () => {
         CONTINUOUS_VALIDATION: 7,
         ETHICAL_OVERRIDE: 9,
         RIGHT_TO_DISCONNECT: 5,
-        MORAL_RECOGNITION: 4
+        MORAL_RECOGNITION: 4,
       };
 
       const startTime = performance.now();
-      
+
       // Run multiple calculations
       for (let i = 0; i < 1000; i++) {
         trustProtocol.calculateTrustScore(scores);
       }
-      
+
       const endTime = performance.now();
       const duration = endTime - startTime;
 

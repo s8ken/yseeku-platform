@@ -55,12 +55,12 @@ export const defaultAlertRules: AlertRule[] = [
       metric: 'sonate_errors_total',
       operator: 'gt',
       threshold: 0.05,
-      duration: 300 // 5 minutes
+      duration: 300, // 5 minutes
     },
     severity: 'high',
     enabled: true,
     cooldownMinutes: 15,
-    channels: []
+    channels: [],
   },
   {
     id: 'redis-disconnected',
@@ -69,12 +69,12 @@ export const defaultAlertRules: AlertRule[] = [
     condition: {
       metric: 'sonate_redis_connection_status',
       operator: 'eq',
-      threshold: 0
+      threshold: 0,
     },
     severity: 'high',
     enabled: true,
     cooldownMinutes: 5,
-    channels: []
+    channels: [],
   },
   {
     id: 'low-cache-hit-rate',
@@ -84,12 +84,12 @@ export const defaultAlertRules: AlertRule[] = [
       metric: 'sonate_cache_hit_rate',
       operator: 'lt',
       threshold: 0.7,
-      duration: 600 // 10 minutes
+      duration: 600, // 10 minutes
     },
     severity: 'medium',
     enabled: true,
     cooldownMinutes: 30,
-    channels: []
+    channels: [],
   },
   {
     id: 'high-detection-latency',
@@ -99,12 +99,12 @@ export const defaultAlertRules: AlertRule[] = [
       metric: 'sonate_detection_duration_seconds',
       operator: 'gt',
       threshold: 2.0,
-      duration: 300
+      duration: 300,
     },
     severity: 'medium',
     enabled: true,
     cooldownMinutes: 10,
-    channels: []
+    channels: [],
   },
   {
     id: 'security-events',
@@ -114,13 +114,13 @@ export const defaultAlertRules: AlertRule[] = [
       metric: 'sonate_security_events_total',
       operator: 'gt',
       threshold: 10,
-      duration: 3600 // 1 hour
+      duration: 3600, // 1 hour
     },
     severity: 'high',
     enabled: true,
     cooldownMinutes: 60,
-    channels: []
-  }
+    channels: [],
+  },
 ];
 
 /**
@@ -133,7 +133,7 @@ export class AlertManager {
 
   constructor() {
     // Load default rules
-    defaultAlertRules.forEach(rule => this.addRule(rule));
+    defaultAlertRules.forEach((rule) => this.addRule(rule));
   }
 
   /**
@@ -167,12 +167,14 @@ export class AlertManager {
     const newAlerts: Alert[] = [];
 
     for (const rule of this.rules.values()) {
-      if (!rule.enabled) continue;
+      if (!rule.enabled) {continue;}
 
       // Check cooldown
       if (rule.lastTriggered) {
-        const cooldownEnd = new Date(rule.lastTriggered.getTime() + rule.cooldownMinutes * 60 * 1000);
-        if (new Date() < cooldownEnd) continue;
+        const cooldownEnd = new Date(
+          rule.lastTriggered.getTime() + rule.cooldownMinutes * 60 * 1000
+        );
+        if (new Date() < cooldownEnd) {continue;}
       }
 
       // Evaluate condition
@@ -219,7 +221,7 @@ export class AlertManager {
    * Get active alerts
    */
   getActiveAlerts(): Alert[] {
-    return Array.from(this.activeAlerts.values()).filter(alert => !alert.resolved);
+    return Array.from(this.activeAlerts.values()).filter((alert) => !alert.resolved);
   }
 
   /**
@@ -227,7 +229,7 @@ export class AlertManager {
    */
   getAlertHistory(hoursBack: number = 24): Alert[] {
     const cutoff = new Date(Date.now() - hoursBack * 60 * 60 * 1000);
-    return this.alertHistory.filter(alert => alert.timestamp >= cutoff);
+    return this.alertHistory.filter((alert) => alert.timestamp >= cutoff);
   }
 
   /**
@@ -241,34 +243,40 @@ export class AlertManager {
 
   private evaluateCondition(condition: AlertCondition, metricsData: any[]): boolean {
     // Find the relevant metric
-    const metric = metricsData.find((m: any) =>
-      m.name === condition.metric &&
-      this.matchLabels(m, condition.labels)
+    const metric = metricsData.find(
+      (m: any) => m.name === condition.metric && this.matchLabels(m, condition.labels)
     );
 
-    if (!metric) return false;
+    if (!metric) {return false;}
 
     // Get current value (simplified - would need more sophisticated aggregation)
     const currentValue = metric.values?.[0]?.value || 0;
 
     // Evaluate condition
     switch (condition.operator) {
-      case 'gt': return currentValue > condition.threshold;
-      case 'lt': return currentValue < condition.threshold;
-      case 'eq': return currentValue === condition.threshold;
-      case 'ne': return currentValue !== condition.threshold;
-      case 'gte': return currentValue >= condition.threshold;
-      case 'lte': return currentValue <= condition.threshold;
-      default: return false;
+      case 'gt':
+        return currentValue > condition.threshold;
+      case 'lt':
+        return currentValue < condition.threshold;
+      case 'eq':
+        return currentValue === condition.threshold;
+      case 'ne':
+        return currentValue !== condition.threshold;
+      case 'gte':
+        return currentValue >= condition.threshold;
+      case 'lte':
+        return currentValue <= condition.threshold;
+      default:
+        return false;
     }
   }
 
   private matchLabels(metric: any, labels?: Record<string, string>): boolean {
-    if (!labels) return true;
+    if (!labels) {return true;}
 
     // Simplified label matching
     for (const [key, value] of Object.entries(labels)) {
-      if (metric.labels?.[key] !== value) return false;
+      if (metric.labels?.[key] !== value) {return false;}
     }
     return true;
   }
@@ -285,7 +293,7 @@ export class AlertManager {
       value: 0, // Would be populated from actual metric value
       threshold: rule.condition.threshold,
       acknowledged: false,
-      resolved: false
+      resolved: false,
     };
   }
 }

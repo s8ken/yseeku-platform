@@ -4,9 +4,11 @@
  * Implements proper credential validation, password hashing, and session management
  */
 
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
 import { AuthenticationError, SecurityUtils, SECURITY_CONSTANTS } from './index';
 
 export interface UserCredentials {
@@ -63,13 +65,15 @@ export class SecureAuthService {
   private sessionStore: Map<string, { userId: string; expiresAt: number }> = new Map();
   private loginAttempts: Map<string, LoginAttempt[]> = new Map();
 
-  constructor(config: {
-    jwtSecret?: string;
-    refreshTokenSecret?: string;
-    saltRounds?: number;
-    maxLoginAttempts?: number;
-    lockoutDuration?: number;
-  } = {}) {
+  constructor(
+    config: {
+      jwtSecret?: string;
+      refreshTokenSecret?: string;
+      saltRounds?: number;
+      maxLoginAttempts?: number;
+      lockoutDuration?: number;
+    } = {}
+  ) {
     this.jwtSecret = config.jwtSecret || this.generateSecureSecret();
     this.refreshTokenSecret = config.refreshTokenSecret || this.generateSecureSecret();
     this.saltRounds = config.saltRounds || 12;
@@ -98,11 +102,11 @@ export class SecureAuthService {
           operation: 'hashPassword',
           severity: 'high',
           userId: undefined,
-          tenantId: undefined
+          tenantId: undefined,
         },
         {
           originalError: error instanceof Error ? error : new Error(String(error)),
-          remediation: 'Check bcrypt configuration and system resources'
+          remediation: 'Check bcrypt configuration and system resources',
         }
       );
     }
@@ -122,11 +126,11 @@ export class SecureAuthService {
           operation: 'verifyPassword',
           severity: 'high',
           userId: undefined,
-          tenantId: undefined
+          tenantId: undefined,
         },
         {
           originalError: error instanceof Error ? error : new Error(String(error)),
-          remediation: 'Check bcrypt configuration and password hash format'
+          remediation: 'Check bcrypt configuration and password hash format',
         }
       );
     }
@@ -150,11 +154,11 @@ export class SecureAuthService {
         sessionId,
         iat: now,
         exp: now + expiresIn,
-        iss: SECURITY_CONSTANTS.JWT_ISSUER
+        iss: SECURITY_CONSTANTS.JWT_ISSUER,
       };
 
       const accessToken = jwt.sign(payload, this.jwtSecret, {
-        algorithm: 'HS256'
+        algorithm: 'HS256',
         // issuer is already in payload, so we don't specify it in options to avoid conflict
       });
 
@@ -164,14 +168,14 @@ export class SecureAuthService {
         {
           algorithm: 'HS256',
           issuer: SECURITY_CONSTANTS.JWT_ISSUER,
-          expiresIn: SECURITY_CONSTANTS.JWT_REFRESH_EXPIRATION_TIME
+          expiresIn: SECURITY_CONSTANTS.JWT_REFRESH_EXPIRATION_TIME,
         }
       );
 
       // Store session
       this.sessionStore.set(sessionId, {
         userId: user.id,
-        expiresAt: Date.now() + (expiresIn * 1000)
+        expiresAt: Date.now() + expiresIn * 1000,
       });
 
       // Clean up expired sessions periodically
@@ -181,7 +185,7 @@ export class SecureAuthService {
         accessToken,
         refreshToken,
         expiresIn,
-        tokenType: 'Bearer'
+        tokenType: 'Bearer',
       };
     } catch (error) {
       throw new AuthenticationError(
@@ -191,11 +195,11 @@ export class SecureAuthService {
           operation: 'generateTokens',
           severity: 'critical',
           userId: user.id,
-          tenantId: user.tenant
+          tenantId: user.tenant,
         },
         {
           originalError: error instanceof Error ? error : new Error(String(error)),
-          remediation: 'Check JWT configuration and system time synchronization'
+          remediation: 'Check JWT configuration and system time synchronization',
         }
       );
     }
@@ -208,26 +212,23 @@ export class SecureAuthService {
     try {
       const payload = jwt.verify(token, this.jwtSecret, {
         issuer: SECURITY_CONSTANTS.JWT_ISSUER,
-        algorithms: ['HS256']
+        algorithms: ['HS256'],
       }) as JWTPayload;
 
       // Check if session is still valid (only if sessionId is provided and exists)
       if (payload.sessionId) {
         const session = this.sessionStore.get(payload.sessionId);
-        // We don't strictly require the session to be in our memory store 
+        // We don't strictly require the session to be in our memory store
         // because the token might have been issued by another service (like Next.js)
         // that shares the same secret but has its own session store.
         if (session && session.expiresAt < Date.now()) {
-          throw new AuthenticationError(
-            'Session expired',
-            {
-              component: 'SecureAuthService',
-              operation: 'verifyToken',
-              severity: 'medium',
-              userId: payload.userId,
-              tenantId: payload.tenant
-            }
-          );
+          throw new AuthenticationError('Session expired', {
+            component: 'SecureAuthService',
+            operation: 'verifyToken',
+            severity: 'medium',
+            userId: payload.userId,
+            tenantId: payload.tenant,
+          });
         }
       }
 
@@ -244,11 +245,11 @@ export class SecureAuthService {
           operation: 'verifyToken',
           severity: 'medium',
           userId: undefined,
-          tenantId: undefined
+          tenantId: undefined,
         },
         {
           originalError: error instanceof Error ? error : new Error(String(error)),
-          remediation: 'Request new authentication token'
+          remediation: 'Request new authentication token',
         }
       );
     }
@@ -261,7 +262,7 @@ export class SecureAuthService {
     try {
       const payload = jwt.verify(refreshToken, this.refreshTokenSecret, {
         issuer: SECURITY_CONSTANTS.JWT_ISSUER,
-        algorithms: ['HS256']
+        algorithms: ['HS256'],
       }) as any;
 
       if (payload.type !== 'refresh') {
@@ -272,10 +273,10 @@ export class SecureAuthService {
             operation: 'refreshToken',
             severity: 'high',
             userId: payload.userId,
-            tenantId: undefined
+            tenantId: undefined,
           },
           {
-            remediation: 'Use proper refresh token'
+            remediation: 'Use proper refresh token',
           }
         );
       }
@@ -290,10 +291,10 @@ export class SecureAuthService {
             operation: 'refreshToken',
             severity: 'medium',
             userId: payload.userId,
-            tenantId: undefined
+            tenantId: undefined,
           },
           {
-            remediation: 'User must re-authenticate'
+            remediation: 'User must re-authenticate',
           }
         );
       }
@@ -304,7 +305,7 @@ export class SecureAuthService {
         username: 'user', // Would fetch from database
         email: 'user@example.com', // Would fetch from database
         roles: ['user'], // Would fetch from database
-        tenant: 'default' // Would fetch from database
+        tenant: 'default', // Would fetch from database
       };
 
       return this.generateTokens(user);
@@ -320,11 +321,11 @@ export class SecureAuthService {
           operation: 'refreshToken',
           severity: 'medium',
           userId: undefined,
-          tenantId: undefined
+          tenantId: undefined,
         },
         {
           originalError: error instanceof Error ? error : new Error(String(error)),
-          remediation: 'User must re-authenticate'
+          remediation: 'User must re-authenticate',
         }
       );
     }
@@ -333,10 +334,13 @@ export class SecureAuthService {
   /**
    * Authenticate user with credentials
    */
-  async authenticate(credentials: UserCredentials, context: {
-    ipAddress: string;
-    userAgent: string;
-  }): Promise<{
+  async authenticate(
+    credentials: UserCredentials,
+    context: {
+      ipAddress: string;
+      userAgent: string;
+    }
+  ): Promise<{
     user: AuthenticatedUser;
     tokens: AuthTokens;
     sessionId: string;
@@ -346,27 +350,34 @@ export class SecureAuthService {
       const lockoutResult = this.checkBruteForceProtection(credentials.username, context.ipAddress);
       if (lockoutResult.locked) {
         throw new AuthenticationError(
-          `Account temporarily locked due to excessive failed login attempts. Try again in ${Math.ceil(lockoutResult.remainingTime / 60000)} minutes.`,
+          `Account temporarily locked due to excessive failed login attempts. Try again in ${Math.ceil(
+            lockoutResult.remainingTime / 60000
+          )} minutes.`,
           {
             component: 'SecureAuthService',
             operation: 'authenticate',
             severity: 'medium',
             userId: undefined,
-            tenantId: credentials.tenant
+            tenantId: credentials.tenant,
           },
           {
             metadata: {
               attempts: lockoutResult.attempts,
-              remainingTime: lockoutResult.remainingTime
+              remainingTime: lockoutResult.remainingTime,
             },
-            remediation: 'Wait for lockout period to expire or contact administrator'
+            remediation: 'Wait for lockout period to expire or contact administrator',
           }
         );
       }
 
       // Validate credentials format
       if (!credentials.username || !credentials.password) {
-        await this.recordFailedAttempt(credentials.username, credentials.tenant || 'default', context, 'Missing credentials');
+        await this.recordFailedAttempt(
+          credentials.username,
+          credentials.tenant || 'default',
+          context,
+          'Missing credentials'
+        );
         throw new AuthenticationError(
           'Username and password are required',
           {
@@ -374,17 +385,22 @@ export class SecureAuthService {
             operation: 'authenticate',
             severity: 'low',
             userId: undefined,
-            tenantId: credentials.tenant
+            tenantId: credentials.tenant,
           },
           {
-            remediation: 'Provide both username and password'
+            remediation: 'Provide both username and password',
           }
         );
       }
 
       // Validate username format
       if (!this.isValidUsername(credentials.username)) {
-        await this.recordFailedAttempt(credentials.username, credentials.tenant || 'default', context, 'Invalid username format');
+        await this.recordFailedAttempt(
+          credentials.username,
+          credentials.tenant || 'default',
+          context,
+          'Invalid username format'
+        );
         throw new AuthenticationError(
           'Invalid username format',
           {
@@ -392,10 +408,10 @@ export class SecureAuthService {
             operation: 'authenticate',
             severity: 'low',
             userId: undefined,
-            tenantId: credentials.tenant
+            tenantId: credentials.tenant,
           },
           {
-            remediation: 'Username must be 3-30 characters, alphanumeric and underscores only'
+            remediation: 'Username must be 3-30 characters, alphanumeric and underscores only',
           }
         );
       }
@@ -404,12 +420,17 @@ export class SecureAuthService {
       // 1. Fetch user from database
       // 2. Verify password hash
       // 3. Check account status, roles, etc.
-      
+
       // For now, we'll simulate a database lookup with hardcoded test users
       const user = await this.validateCredentials(credentials);
-      
+
       if (!user) {
-        await this.recordFailedAttempt(credentials.username, credentials.tenant || 'default', context, 'Invalid credentials');
+        await this.recordFailedAttempt(
+          credentials.username,
+          credentials.tenant || 'default',
+          context,
+          'Invalid credentials'
+        );
         throw new AuthenticationError(
           'Invalid username or password',
           {
@@ -417,10 +438,10 @@ export class SecureAuthService {
             operation: 'authenticate',
             severity: 'medium',
             userId: undefined,
-            tenantId: credentials.tenant
+            tenantId: credentials.tenant,
           },
           {
-            remediation: 'Verify username and password are correct'
+            remediation: 'Verify username and password are correct',
           }
         );
       }
@@ -429,14 +450,18 @@ export class SecureAuthService {
       const tokens = this.generateTokens(user);
 
       // Record successful login
-      await this.recordSuccessfulAttempt(credentials.username, credentials.tenant || 'default', context, user.id);
+      await this.recordSuccessfulAttempt(
+        credentials.username,
+        credentials.tenant || 'default',
+        context,
+        user.id
+      );
 
       return {
         user,
         tokens,
-        sessionId: this.extractSessionIdFromToken(tokens.accessToken)
+        sessionId: this.extractSessionIdFromToken(tokens.accessToken),
       };
-
     } catch (error) {
       if (error instanceof AuthenticationError) {
         throw error;
@@ -449,11 +474,11 @@ export class SecureAuthService {
           operation: 'authenticate',
           severity: 'high',
           userId: undefined,
-          tenantId: credentials.tenant
+          tenantId: credentials.tenant,
         },
         {
           originalError: error instanceof Error ? error : new Error(String(error)),
-          remediation: 'Contact administrator if problem persists'
+          remediation: 'Contact administrator if problem persists',
         }
       );
     }
@@ -470,7 +495,9 @@ export class SecureAuthService {
   /**
    * Validate credentials (simulated database lookup)
    */
-  private async validateCredentials(credentials: UserCredentials): Promise<AuthenticatedUser | null> {
+  private async validateCredentials(
+    credentials: UserCredentials
+  ): Promise<AuthenticatedUser | null> {
     // This is a simulation - in production, this would query a real database
     // For demo purposes, we'll accept specific test credentials
     const testUsers = [
@@ -482,8 +509,8 @@ export class SecureAuthService {
           username: 'admin',
           email: 'admin@yseeku.com',
           roles: ['admin', 'user'],
-          tenant: credentials.tenant || 'default'
-        }
+          tenant: credentials.tenant || 'default',
+        },
       },
       {
         username: 'user',
@@ -493,12 +520,12 @@ export class SecureAuthService {
           username: 'user',
           email: 'user@yseeku.com',
           roles: ['user'],
-          tenant: credentials.tenant || 'default'
-        }
-      }
+          tenant: credentials.tenant || 'default',
+        },
+      },
     ];
 
-    const testUser = testUsers.find(u => u.username === credentials.username);
+    const testUser = testUsers.find((u) => u.username === credentials.username);
     if (!testUser) {
       return null;
     }
@@ -523,7 +550,10 @@ export class SecureAuthService {
   /**
    * Check brute force protection
    */
-  private checkBruteForceProtection(username: string, ipAddress: string): {
+  private checkBruteForceProtection(
+    username: string,
+    ipAddress: string
+  ): {
     locked: boolean;
     attempts: number;
     remainingTime: number;
@@ -531,30 +561,30 @@ export class SecureAuthService {
     const key = `${username}:${ipAddress}`;
     const attempts = this.loginAttempts.get(key) || [];
     const now = Date.now();
-    
+
     // Filter recent attempts (within lockout duration)
-    const recentAttempts = attempts.filter(attempt => 
-      attempt.timestamp > now - this.lockoutDuration
+    const recentAttempts = attempts.filter(
+      (attempt) => attempt.timestamp > now - this.lockoutDuration
     );
 
     // Count failed attempts
-    const failedAttempts = recentAttempts.filter(attempt => !attempt.success);
+    const failedAttempts = recentAttempts.filter((attempt) => !attempt.success);
 
     if (failedAttempts.length >= this.maxLoginAttempts) {
-      const lastFailedAttempt = Math.max(...failedAttempts.map(a => a.timestamp));
+      const lastFailedAttempt = Math.max(...failedAttempts.map((a) => a.timestamp));
       const remainingTime = this.lockoutDuration - (now - lastFailedAttempt);
-      
+
       return {
         locked: true,
         attempts: failedAttempts.length,
-        remainingTime: Math.max(0, remainingTime)
+        remainingTime: Math.max(0, remainingTime),
       };
     }
 
     return {
       locked: false,
       attempts: failedAttempts.length,
-      remainingTime: 0
+      remainingTime: 0,
     };
   }
 
@@ -569,7 +599,7 @@ export class SecureAuthService {
   ): Promise<void> {
     const key = `${username}:${context.ipAddress}`;
     const attempts = this.loginAttempts.get(key) || [];
-    
+
     attempts.push({
       username,
       tenant,
@@ -577,13 +607,13 @@ export class SecureAuthService {
       userAgent: context.userAgent,
       timestamp: Date.now(),
       success: false,
-      reason
+      reason,
     });
 
     // Keep only recent attempts
     const cutoff = Date.now() - this.lockoutDuration;
-    const recentAttempts = attempts.filter(attempt => attempt.timestamp > cutoff);
-    
+    const recentAttempts = attempts.filter((attempt) => attempt.timestamp > cutoff);
+
     this.loginAttempts.set(key, recentAttempts);
   }
 
@@ -598,7 +628,7 @@ export class SecureAuthService {
   ): Promise<void> {
     const key = `${username}:${context.ipAddress}`;
     const attempts = this.loginAttempts.get(key) || [];
-    
+
     attempts.push({
       userId,
       username,
@@ -606,13 +636,13 @@ export class SecureAuthService {
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
       timestamp: Date.now(),
-      success: true
+      success: true,
     });
 
     // Keep only recent attempts
     const cutoff = Date.now() - this.lockoutDuration;
-    const recentAttempts = attempts.filter(attempt => attempt.timestamp > cutoff);
-    
+    const recentAttempts = attempts.filter((attempt) => attempt.timestamp > cutoff);
+
     this.loginAttempts.set(key, recentAttempts);
   }
 
@@ -633,16 +663,18 @@ export class SecureAuthService {
    */
   getLoginAttempts(username?: string, ipAddress?: string): LoginAttempt[] {
     const allAttempts: LoginAttempt[] = [];
-    
+
     for (const attempts of this.loginAttempts.values()) {
       allAttempts.push(...attempts);
     }
 
-    return allAttempts.filter(attempt => {
-      if (username && attempt.username !== username) return false;
-      if (ipAddress && attempt.ipAddress !== ipAddress) return false;
-      return true;
-    }).sort((a, b) => a.timestamp - b.timestamp);
+    return allAttempts
+      .filter((attempt) => {
+        if (username && attempt.username !== username) {return false;}
+        if (ipAddress && attempt.ipAddress !== ipAddress) {return false;}
+        return true;
+      })
+      .sort((a, b) => a.timestamp - b.timestamp);
   }
 
   /**

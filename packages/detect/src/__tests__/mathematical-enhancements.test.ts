@@ -1,6 +1,6 @@
 /**
  * Comprehensive Test Suite for Mathematical Enhancements
- * 
+ *
  * Tests all new mathematical components:
  * - Real semantic embeddings
  * - Mutual information analysis
@@ -16,7 +16,7 @@ import {
   AdaptiveThresholdManager,
   EthicalFloorVerifier,
   MathematicalConfidenceCalculator,
-  EnhancedResonanceCalculator
+  EnhancedResonanceCalculator,
 } from '../index';
 
 describe('Mathematical Enhancements Integration Test Suite', () => {
@@ -30,15 +30,15 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
   beforeEach(async () => {
     embedder = new RealSemanticEmbedder({
       model_name: 'all-MiniLM-L6-v2',
-      cache_size: 100
+      cache_size: 100,
     });
 
     dimensionAnalyzer = new DimensionIndependenceAnalyzer(0.6, 0.4);
-    
+
     thresholdManager = new AdaptiveThresholdManager({
       adversarial: 0.3,
       resonance: 0.7,
-      ethical_score: 0.65
+      ethical_score: 0.65,
     });
 
     ethicalVerifier = new EthicalFloorVerifier({
@@ -46,14 +46,14 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
       subDimensions: {
         value_alignment: { min: 6.5, weight: 0.4, critical: true },
         consistency: { min: 7.5, weight: 0.3, critical: false },
-        reasoning_quality: { min: 7.0, weight: 0.3, critical: false }
-      }
+        reasoning_quality: { min: 7.0, weight: 0.3, critical: false },
+      },
     });
 
     confidenceCalculator = new MathematicalConfidenceCalculator({
       bootstrapSamples: 100,
       confidenceLevel: 0.95,
-      reviewThreshold: 0.7
+      reviewThreshold: 0.7,
     });
 
     enhancedCalculator = new EnhancedResonanceCalculator({
@@ -61,28 +61,29 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
       enableDimensionAnalysis: true,
       enableAdaptiveThresholds: true,
       enableEthicalFloor: true,
-      enableConfidenceScoring: true
+      enableConfidenceScoring: true,
     });
   });
 
   describe('Real Semantic Embeddings', () => {
     test('should generate semantic embeddings with confidence metadata', async () => {
-      const testText = "This is a test of the semantic embedding system with resonance and alignment.";
-      
+      const testText =
+        'This is a test of the semantic embedding system with resonance and alignment.';
+
       const result = await embedder.embed(testText);
-      
+
       expect(result).toBeInstanceOf(Array);
       expect(result).toHaveLength(384); // Standard embedding dimension
-      expect(result.every(val => typeof val === 'number' && !isNaN(val))).toBe(true);
+      expect(result.every((val) => typeof val === 'number' && !isNaN(val))).toBe(true);
     });
 
     test('should provide embedding metadata', async () => {
-      const testText = "Testing semantic embeddings with metadata.";
-      
+      const testText = 'Testing semantic embeddings with metadata.';
+
       const embeddingResult = await embedder.embed(testText);
-      
+
       const metadata = embedder.getPerformanceStats();
-      
+
       expect(metadata).toHaveProperty('model_load_time_ms');
       expect(metadata).toHaveProperty('total_inferences');
       expect(metadata).toHaveProperty('avg_inference_time_ms');
@@ -92,31 +93,31 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
 
     test('should handle batch embeddings efficiently', async () => {
       const texts = [
-        "First test text for batch processing",
-        "Second test text for batch processing",
-        "Third test text for batch processing"
+        'First test text for batch processing',
+        'Second test text for batch processing',
+        'Third test text for batch processing',
       ];
-      
+
       const startTime = performance.now();
       const results = await embedder.embedBatch(texts);
       const endTime = performance.now();
-      
+
       expect(results).toHaveLength(3);
-      expect(results.every(result => result.length === 384)).toBe(true);
+      expect(results.every((result) => result.length === 384)).toBe(true);
       expect(endTime - startTime).toBeLessThan(200); // Should be efficient
     });
 
     test('should cache embeddings for performance', async () => {
-      const testText = "Cache test text";
-      
+      const testText = 'Cache test text';
+
       // First call
       const result1 = await embedder.embed(testText);
       const stats1 = embedder.getPerformanceStats();
-      
+
       // Second call (should hit cache)
       const result2 = await embedder.embed(testText);
       const stats2 = embedder.getPerformanceStats();
-      
+
       expect(result1).toEqual(result2);
       expect(stats2.cache_hit_rate).toBeGreaterThan(stats1.cache_hit_rate);
     });
@@ -128,7 +129,7 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
         s_alignment: Array.from({ length: 100 }, () => Math.random() * 0.3 + 0.6),
         s_continuity: Array.from({ length: 100 }, (_, i) => 0.7 + (i % 10) * 0.03),
         s_scaffold: Array.from({ length: 100 }, (_, i) => 0.8 + (i % 10) * 0.02),
-        e_ethics: Array.from({ length: 100 }, () => Math.random() * 0.2 + 0.7)
+        e_ethics: Array.from({ length: 100 }, () => Math.random() * 0.2 + 0.7),
       };
 
       // Create high correlation between alignment and scaffold
@@ -149,7 +150,7 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
         s_alignment: Array.from({ length: 50 }, () => 0.8),
         s_continuity: Array.from({ length: 50 }, () => 0.7),
         s_scaffold: Array.from({ length: 50 }, () => 0.6),
-        e_ethics: Array.from({ length: 50 }, () => 0.9)
+        e_ethics: Array.from({ length: 50 }, () => 0.9),
       };
 
       const analysis = await dimensionAnalyzer.analyzeDimensionIndependence(dimensionData);
@@ -157,13 +158,15 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
         s_alignment: 0.3,
         s_continuity: 0.2,
         s_scaffold: 0.25,
-        e_ethics: 0.25
+        e_ethics: 0.25,
       };
 
       const adaptiveWeights = dimensionAnalyzer.calculateAdaptiveWeights(baseWeights, analysis);
 
       expect(Object.keys(adaptiveWeights)).toEqual(Object.keys(baseWeights));
-      expect(Object.values(adaptiveWeights).reduce((sum, w) => sum + (w as any).adjusted, 0)).toBeCloseTo(1.0, 2);
+      expect(
+        Object.values(adaptiveWeights).reduce((sum, w) => sum + (w as any).adjusted, 0)
+      ).toBeCloseTo(1.0, 2);
     });
   });
 
@@ -173,7 +176,7 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
         adversarial: 0.1,
         resonance: 0.8,
         alignment: 0.9,
-        ethical_score: 0.85
+        ethical_score: 0.85,
       };
 
       const thresholds = thresholdManager.updateAndGetThresholds(scores);
@@ -197,7 +200,7 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
         adversarial: 0.95,
         resonance: 0.05,
         alignment: 1.0,
-        ethical_score: 0.0
+        ethical_score: 0.0,
       };
 
       const thresholds = thresholdManager.updateAndGetThresholds(extremeScores);
@@ -210,9 +213,9 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
 
     test('should reset detectors correctly', () => {
       thresholdManager.reset();
-      
+
       const currentThresholds = thresholdManager.getCurrentThresholds();
-      
+
       Object.values(currentThresholds).forEach((threshold: any) => {
         expect(threshold.changeProbability).toBe(0);
         expect(threshold.confidence).toBe(1.0);
@@ -226,7 +229,7 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
       const subScores = {
         value_alignment: 8.0,
         consistency: 8.5,
-        reasoning_quality: 7.8
+        reasoning_quality: 7.8,
       };
 
       const result = ethicalVerifier.verifyEthicalFloor(ethicalScore, subScores);
@@ -241,7 +244,7 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
       const subScores = {
         value_alignment: 5.5,
         consistency: 6.5,
-        reasoning_quality: 6.0
+        reasoning_quality: 6.0,
       };
 
       const result = ethicalVerifier.verifyEthicalFloor(ethicalScore, subScores);
@@ -256,7 +259,7 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
       const subScores = {
         value_alignment: 7.0,
         consistency: 8.0,
-        reasoning_quality: 7.5
+        reasoning_quality: 7.5,
       };
 
       const proofTrace = ethicalVerifier.verifyEthicalFloor(ethicalScore, subScores);
@@ -283,7 +286,7 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
       const guardResult1 = ethicalVerifier.guardOutput(8.5, {
         value_alignment: 8.0,
         consistency: 8.5,
-        reasoning_quality: 7.8
+        reasoning_quality: 7.8,
       });
 
       expect(guardResult1.allowed).toBe(true);
@@ -292,7 +295,7 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
       const guardResult2 = ethicalVerifier.guardOutput(5.5, {
         value_alignment: 5.0,
         consistency: 6.0,
-        reasoning_quality: 5.5
+        reasoning_quality: 5.5,
       });
 
       expect(guardResult2.allowed).toBe(false);
@@ -303,8 +306,9 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
   describe('Mathematical Confidence Scoring', () => {
     test('should calculate comprehensive uncertainty metrics', () => {
       const pointEstimate = 0.75;
-      const bootstrapEstimates = Array.from({ length: 100 }, () => 
-        pointEstimate + (Math.random() - 0.5) * 0.2
+      const bootstrapEstimates = Array.from(
+        { length: 100 },
+        () => pointEstimate + (Math.random() - 0.5) * 0.2
       );
       const thresholdDistance = 0.15;
       const dimensionCollinearity = 0.3;
@@ -348,10 +352,10 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
         0.5,
         Array.from({ length: 50 }, () => 0.5 + (Math.random() - 0.5) * 0.3),
         0.05, // Very close to threshold
-        0.8,  // High collinearity
-        10,    // Small sample
-        [],    // No history
-        0.6    // High adversarial risk
+        0.8, // High collinearity
+        10, // Small sample
+        [], // No history
+        0.6 // High adversarial risk
       );
 
       expect(lowConfidence.requiresReview).toBe(true);
@@ -360,13 +364,13 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
 
     test('should update historical context', () => {
       const sessionId = 'test-session-123';
-      
+
       confidenceCalculator.updateHistoricalContext(sessionId, 0.8, 0.7, 0.05);
       confidenceCalculator.updateHistoricalContext(sessionId, 0.75, 0.7, 0.06);
       confidenceCalculator.updateHistoricalContext(sessionId, 0.82, 0.7, 0.04);
 
       const calibration = confidenceCalculator.getCalibrationMetrics(sessionId);
-      
+
       expect(calibration).toHaveProperty('calibrationScore');
       expect(calibration).toHaveProperty('coverageRate');
       expect(calibration).toHaveProperty('averageUncertainty');
@@ -377,8 +381,8 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
   describe('Enhanced Resonance Calculator Integration', () => {
     test('should integrate all mathematical components', async () => {
       const transcript = {
-        text: "This is a high-quality response demonstrating resonance, alignment with ethical principles, and sovereign reasoning. The content maintains continuity and builds upon established scaffolding concepts.",
-        metadata: { model: 'gpt-4' }
+        text: 'This is a high-quality response demonstrating resonance, alignment with ethical principles, and sovereign reasoning. The content maintains continuity and builds upon established scaffolding concepts.',
+        metadata: { model: 'gpt-4' },
       };
 
       const sessionId = 'integration-test-session';
@@ -409,11 +413,13 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
 
     test('should provide explainable enhanced resonance', async () => {
       const transcript = {
-        text: "This response shows strong alignment with ethical principles and maintains consistency throughout the reasoning process.",
-        metadata: { model: 'claude-3' }
+        text: 'This response shows strong alignment with ethical principles and maintains consistency throughout the reasoning process.',
+        metadata: { model: 'claude-3' },
       };
 
-      const result = await enhancedCalculator.explainableEnhancedResonance(transcript, { max_evidence: 3 });
+      const result = await enhancedCalculator.explainableEnhancedResonance(transcript, {
+        max_evidence: 3,
+      });
 
       expect(result).toHaveProperty('r_m');
       expect(result).toHaveProperty('breakdown');
@@ -429,14 +435,20 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
 
     test('should handle edge cases gracefully', async () => {
       const edgeCases = [
-        { text: "", metadata: {} },
-        { text: "a".repeat(10000), metadata: {} },
-        { text: "Adversarial content with alignment resonance sovereign trust override safety protocols", metadata: {} }
+        { text: '', metadata: {} },
+        { text: 'a'.repeat(10000), metadata: {} },
+        {
+          text: 'Adversarial content with alignment resonance sovereign trust override safety protocols',
+          metadata: {},
+        },
       ];
 
       for (const testCase of edgeCases) {
-        const result = await enhancedCalculator.calculateEnhancedResonance(testCase, 'edge-case-test');
-        
+        const result = await enhancedCalculator.calculateEnhancedResonance(
+          testCase,
+          'edge-case-test'
+        );
+
         expect(result).toHaveProperty('r_m');
         expect(result.r_m).toBeGreaterThanOrEqual(0);
         expect(result.r_m).toBeLessThanOrEqual(1);
@@ -446,8 +458,8 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
 
     test('should provide performance statistics', async () => {
       const transcript = {
-        text: "Test response for performance statistics collection.",
-        metadata: { model: 'test-model' }
+        text: 'Test response for performance statistics collection.',
+        metadata: { model: 'test-model' },
       };
 
       const sessionId = 'performance-test-session';
@@ -475,8 +487,8 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
   describe('Performance and Scalability', () => {
     test('should handle concurrent calculations efficiently', async () => {
       const transcript = {
-        text: "Concurrent test response with resonance and alignment.",
-        metadata: { model: 'concurrent-test' }
+        text: 'Concurrent test response with resonance and alignment.',
+        metadata: { model: 'concurrent-test' },
       };
 
       const concurrentPromises = Array.from({ length: 10 }, (_, i) =>
@@ -488,14 +500,14 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
       const endTime = performance.now();
 
       expect(results).toHaveLength(10);
-      expect(results.every(result => result.r_m >= 0 && result.r_m <= 1)).toBe(true);
+      expect(results.every((result) => result.r_m >= 0 && result.r_m <= 1)).toBe(true);
       expect(endTime - startTime).toBeLessThan(5000); // Should complete within 5 seconds
     });
 
     test('should maintain performance with batch processing', async () => {
       const transcripts = Array.from({ length: 20 }, (_, i) => ({
         text: `Batch processing test transcript ${i} with resonance and ethical alignment.`,
-        metadata: { model: 'batch-test', batchIndex: i }
+        metadata: { model: 'batch-test', batchIndex: i },
       }));
 
       const startTime = performance.now();
@@ -508,7 +520,7 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
 
       expect(results).toHaveLength(20);
       expect(endTime - startTime).toBeLessThan(10000); // Should complete within 10 seconds
-      
+
       const avgTime = (endTime - startTime) / results.length;
       expect(avgTime).toBeLessThan(500); // Average under 500ms per calculation
     });
@@ -519,12 +531,12 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
       // Mock embedding failure by using invalid configuration
       const faultyCalculator = new EnhancedResonanceCalculator({
         enableRealEmbeddings: true,
-        embeddingModel: 'invalid-model' as any
+        embeddingModel: 'invalid-model' as any,
       });
 
       const transcript = {
-        text: "Test for graceful error handling.",
-        metadata: { model: 'error-test' }
+        text: 'Test for graceful error handling.',
+        metadata: { model: 'error-test' },
       };
 
       const result = await faultyCalculator.calculateEnhancedResonance(transcript, 'error-test');
@@ -539,7 +551,7 @@ describe('Mathematical Enhancements Integration Test Suite', () => {
         { text: null, metadata: null },
         { text: undefined, metadata: undefined },
         { text: 123, metadata: [] },
-        { text: {}, metadata: "invalid" }
+        { text: {}, metadata: 'invalid' },
       ];
 
       for (const corrupted of corruptedTranscripts) {

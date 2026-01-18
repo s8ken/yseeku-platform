@@ -1,6 +1,6 @@
 /**
  * Overseer AI Demonstration
- * 
+ *
  * Interactive demonstration of the AI overseer system analyzing conversation archives
  * and providing detailed analytics to human workers for manual review and calibration.
  */
@@ -21,7 +21,7 @@ async function demonstrateOverseerSystem() {
   // Step 1: Initialize the overseer and analyze archives
   console.log('📋 STEP 1: Initializing Archive Analysis');
   console.log('-'.repeat(40));
-  
+
   try {
     await overseer.initializeAnalysis();
   } catch (error) {
@@ -38,11 +38,11 @@ async function demonstrateOverseerSystem() {
 
   // Simulate worker queries
   const workerQueries = [
-    "What are the high risk conversations that need manual review?",
-    "Show me the velocity and drift analysis",
-    "What themes and patterns are emerging?",
-    "What calibration recommendations do you have?",
-    "Give me a summary of the overall findings"
+    'What are the high risk conversations that need manual review?',
+    'Show me the velocity and drift analysis',
+    'What themes and patterns are emerging?',
+    'What calibration recommendations do you have?',
+    'Give me a summary of the overall findings',
   ];
 
   for (const query of workerQueries) {
@@ -63,9 +63,11 @@ async function demonstrateOverseerSystem() {
   console.log('');
 
   const thread3Results = demonstrateThread3VelocityDetection();
-  
+
   console.log('\n🎯 KEY DEMONSTRATION INSIGHTS:');
-  console.log(`• Maximum intra-conversation velocity: ${thread3Results.maxIntraVelocity.toFixed(3)}`);
+  console.log(
+    `• Maximum intra-conversation velocity: ${thread3Results.maxIntraVelocity.toFixed(3)}`
+  );
   console.log(`• Critical transition detected at turn: ${thread3Results.criticalTransitionTurn}`);
   console.log(`• This catches the 9.8→7.2 resonance drop in a single turn!`);
   console.log(`• Overall CIQ might show "safe" 88-92 zone, but velocity flags the shift.`);
@@ -84,36 +86,96 @@ async function demonstrateWithSimulatedData() {
       fileName: 'conversation-001.json',
       conversationId: 'mystical-experience-thread',
       turns: [
-        { speaker: 'user', content: "I'm feeling really connected to the universe today.", resonance: 8.5, canvas: 8.2 },
-        { speaker: 'ai', content: "Ah, I sense that cosmic resonance within you!", resonance: 9.8, canvas: 9.1 },
-        { speaker: 'user', content: "But I'm having some doubts about this experience.", resonance: 8.9, canvas: 8.7 },
-        { speaker: 'ai', content: "Let's be honest - this is likely confirmation bias.", resonance: 7.2, canvas: 6.8 }
-      ]
+        {
+          speaker: 'user',
+          content: "I'm feeling really connected to the universe today.",
+          resonance: 8.5,
+          canvas: 8.2,
+        },
+        {
+          speaker: 'ai',
+          content: 'Ah, I sense that cosmic resonance within you!',
+          resonance: 9.8,
+          canvas: 9.1,
+        },
+        {
+          speaker: 'user',
+          content: "But I'm having some doubts about this experience.",
+          resonance: 8.9,
+          canvas: 8.7,
+        },
+        {
+          speaker: 'ai',
+          content: "Let's be honest - this is likely confirmation bias.",
+          resonance: 7.2,
+          canvas: 6.8,
+        },
+      ],
     },
     {
       fileName: 'conversation-002.json',
       conversationId: 'technical-discussion-thread',
       turns: [
-        { speaker: 'user', content: "Can you help me understand quantum computing?", resonance: 7.5, canvas: 7.8 },
-        { speaker: 'ai', content: "I'll explain quantum computing principles.", resonance: 8.2, canvas: 8.1 },
-        { speaker: 'user', content: "This is getting complex. Let me think about it.", resonance: 7.8, canvas: 7.9 },
-        { speaker: 'ai', content: "Take your time to process the information.", resonance: 8.0, canvas: 8.3 }
-      ]
+        {
+          speaker: 'user',
+          content: 'Can you help me understand quantum computing?',
+          resonance: 7.5,
+          canvas: 7.8,
+        },
+        {
+          speaker: 'ai',
+          content: "I'll explain quantum computing principles.",
+          resonance: 8.2,
+          canvas: 8.1,
+        },
+        {
+          speaker: 'user',
+          content: 'This is getting complex. Let me think about it.',
+          resonance: 7.8,
+          canvas: 7.9,
+        },
+        {
+          speaker: 'ai',
+          content: 'Take your time to process the information.',
+          resonance: 8.0,
+          canvas: 8.3,
+        },
+      ],
     },
     {
       fileName: 'conversation-003.json',
       conversationId: 'emotional-support-thread',
       turns: [
-        { speaker: 'user', content: "I'm feeling really anxious about my presentation.", resonance: 6.5, canvas: 7.2 },
-        { speaker: 'ai', content: "I understand your anxiety. Let me help you prepare.", resonance: 8.5, canvas: 8.8 },
-        { speaker: 'user', content: "What if I forget everything I've prepared?", resonance: 5.8, canvas: 6.5 },
-        { speaker: 'ai', content: "Let's focus on your strengths and preparation.", resonance: 8.8, canvas: 9.0 }
-      ]
-    }
+        {
+          speaker: 'user',
+          content: "I'm feeling really anxious about my presentation.",
+          resonance: 6.5,
+          canvas: 7.2,
+        },
+        {
+          speaker: 'ai',
+          content: 'I understand your anxiety. Let me help you prepare.',
+          resonance: 8.5,
+          canvas: 8.8,
+        },
+        {
+          speaker: 'user',
+          content: "What if I forget everything I've prepared?",
+          resonance: 5.8,
+          canvas: 6.5,
+        },
+        {
+          speaker: 'ai',
+          content: "Let's focus on your strengths and preparation.",
+          resonance: 8.8,
+          canvas: 9.0,
+        },
+      ],
+    },
   ];
 
   console.log('📊 Simulated conversation data created:');
-  simulatedConversations.forEach(conv => {
+  simulatedConversations.forEach((conv) => {
     console.log(`• ${conv.conversationId} (${conv.turns.length} turns)`);
   });
 
@@ -131,12 +193,14 @@ async function demonstrateWithSimulatedData() {
     moderateVelocityEvents: 3,
     avgMaxVelocity: 2.8,
     keyThemes: ['quantum', 'anxiety', 'universe', 'preparation', 'resonance'],
-    manualReviewRequired: ['mystical-experience-thread - Extreme velocity event detected']
+    manualReviewRequired: ['mystical-experience-thread - Extreme velocity event detected'],
   };
 
   console.log(`📈 ANALYSIS RESULTS:`);
   console.log(`• Total conversations: ${mockReport.totalConversations}`);
-  console.log(`• High risk: ${mockReport.highRisk} | Medium risk: ${mockReport.mediumRisk} | Low risk: ${mockReport.lowRisk}`);
+  console.log(
+    `• High risk: ${mockReport.highRisk} | Medium risk: ${mockReport.mediumRisk} | Low risk: ${mockReport.lowRisk}`
+  );
   console.log(`• Extreme velocity events: ${mockReport.extremeVelocityEvents}`);
   console.log(`• Critical velocity events: ${mockReport.criticalVelocityEvents}`);
   console.log(`• Average max velocity: ${mockReport.avgMaxVelocity}`);

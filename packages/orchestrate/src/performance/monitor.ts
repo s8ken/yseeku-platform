@@ -1,10 +1,11 @@
 /**
  * Performance Monitor
- * 
+ *
  * Collects and analyzes performance metrics
  */
 
 import { EventEmitter } from 'events';
+
 import { PerformanceMetrics, PerformanceThresholds, PerformanceReport } from './types';
 
 export class PerformanceMonitor extends EventEmitter {
@@ -20,15 +21,15 @@ export class PerformanceMonitor extends EventEmitter {
       memory: { warning: 80, critical: 95 },
       disk: {
         latency: { warning: 100, critical: 500 },
-        iops: { warning: 1000, critical: 500 }
+        iops: { warning: 1000, critical: 500 },
       },
       responseTime: {
         p50: { warning: 200, critical: 1000 },
         p95: { warning: 500, critical: 2000 },
-        p99: { warning: 1000, critical: 5000 }
+        p99: { warning: 1000, critical: 5000 },
       },
       errorRate: { warning: 1, critical: 5 },
-      ...thresholds
+      ...thresholds,
     };
   }
 
@@ -36,7 +37,7 @@ export class PerformanceMonitor extends EventEmitter {
    * Start performance monitoring
    */
   startMonitoring(intervalMs: number = 5000): void {
-    if (this.isMonitoring) return;
+    if (this.isMonitoring) {return;}
 
     this.isMonitoring = true;
     this.monitoringInterval = setInterval(() => {
@@ -50,7 +51,7 @@ export class PerformanceMonitor extends EventEmitter {
    * Stop performance monitoring
    */
   stopMonitoring(): void {
-    if (!this.isMonitoring) return;
+    if (!this.isMonitoring) {return;}
 
     this.isMonitoring = false;
     if (this.monitoringInterval) {
@@ -66,9 +67,9 @@ export class PerformanceMonitor extends EventEmitter {
    */
   async collectMetrics(): Promise<PerformanceMetrics> {
     const metrics = await this.gatherSystemMetrics();
-    
+
     this.metrics.push(metrics);
-    
+
     // Keep only last 1000 metrics to prevent memory issues
     if (this.metrics.length > 1000) {
       this.metrics = this.metrics.slice(-1000);
@@ -76,7 +77,7 @@ export class PerformanceMonitor extends EventEmitter {
 
     // Check thresholds and emit alerts
     this.checkThresholds(metrics);
-    
+
     this.emit('metrics:collected', metrics);
     return metrics;
   }
@@ -101,8 +102,8 @@ export class PerformanceMonitor extends EventEmitter {
   generateReport(periodMs: number = 3600000): PerformanceReport {
     const now = Date.now();
     const start = now - periodMs;
-    
-    const periodMetrics = this.metrics.filter(m => {
+
+    const periodMetrics = this.metrics.filter((m) => {
       // This would need timestamp in metrics - assuming we have it
       return true; // Placeholder
     });
@@ -118,7 +119,7 @@ export class PerformanceMonitor extends EventEmitter {
       metrics: periodMetrics,
       thresholds: this.thresholds,
       appliedOptimizations: [], // Would be populated by optimizer
-      recommendations
+      recommendations,
     };
   }
 
@@ -133,45 +134,45 @@ export class PerformanceMonitor extends EventEmitter {
   private async gatherSystemMetrics(): Promise<PerformanceMetrics> {
     // Simulate metric collection - in real implementation would use system APIs
     const now = Date.now();
-    
+
     return {
       system: {
         cpu: {
           usage: Math.random() * 100,
           load: [Math.random() * 2, Math.random() * 2, Math.random() * 2],
           cores: 8,
-          frequency: 2400
+          frequency: 2400,
         },
         memory: {
           usage: Math.random() * 100,
           fragmentation: Math.random() * 20,
           swap: Math.random() * 50,
-          cache: Math.random() * 30
+          cache: Math.random() * 30,
         },
         disk: {
           readSpeed: 500 + Math.random() * 500,
           writeSpeed: 400 + Math.random() * 400,
           iops: 1000 + Math.random() * 2000,
-          latency: 5 + Math.random() * 20
+          latency: 5 + Math.random() * 20,
         },
         network: {
           bandwidth: {
             inbound: Math.random() * 1000,
-            outbound: Math.random() * 1000
+            outbound: Math.random() * 1000,
           },
           latency: 10 + Math.random() * 50,
-          packetLoss: Math.random() * 2
-        }
+          packetLoss: Math.random() * 2,
+        },
       },
       application: {
         responseTime: {
           p50: 100 + Math.random() * 400,
           p95: 200 + Math.random() * 800,
-          p99: 500 + Math.random() * 1500
+          p99: 500 + Math.random() * 1500,
         },
         throughput: {
           requests: 1000 + Math.random() * 9000,
-          bytes: 1000000 + Math.random() * 9000000
+          bytes: 1000000 + Math.random() * 9000000,
         },
         errorRate: Math.random() * 5,
         cacheHitRate: 70 + Math.random() * 30,
@@ -181,18 +182,18 @@ export class PerformanceMonitor extends EventEmitter {
           connectionPool: {
             active: Math.floor(Math.random() * 20),
             idle: Math.floor(Math.random() * 30),
-            total: 50
-          }
+            total: 50,
+          },
         },
         queueDepth: Math.floor(Math.random() * 100),
-        activeConnections: Math.floor(Math.random() * 1000)
+        activeConnections: Math.floor(Math.random() * 1000),
       },
       business: {
         transactionRate: 100 + Math.random() * 900,
         conversionRate: 2 + Math.random() * 8,
         userSatisfaction: 3 + Math.random() * 2,
-        revenue: 1000 + Math.random() * 9000
-      }
+        revenue: 1000 + Math.random() * 9000,
+      },
     };
   }
 
@@ -220,10 +221,16 @@ export class PerformanceMonitor extends EventEmitter {
     // Response time checks
     if (metrics.application.responseTime.p95 >= this.thresholds.responseTime.p95.critical) {
       alerts.push('Response time critical');
-      this.emit('alert:critical', { type: 'response_time', value: metrics.application.responseTime.p95 });
+      this.emit('alert:critical', {
+        type: 'response_time',
+        value: metrics.application.responseTime.p95,
+      });
     } else if (metrics.application.responseTime.p95 >= this.thresholds.responseTime.p95.warning) {
       alerts.push('Response time warning');
-      this.emit('alert:warning', { type: 'response_time', value: metrics.application.responseTime.p95 });
+      this.emit('alert:warning', {
+        type: 'response_time',
+        value: metrics.application.responseTime.p95,
+      });
     }
 
     // Error rate checks
@@ -247,20 +254,20 @@ export class PerformanceMonitor extends EventEmitter {
         criticalIssues: 0,
         warnings: 0,
         optimizationsApplied: 0,
-        performanceImprovement: 0
+        performanceImprovement: 0,
       };
     }
 
     const latest = metrics[metrics.length - 1];
     const criticalIssues = this.countCriticalIssues(latest);
     const warnings = this.countWarnings(latest);
-    
+
     // Calculate overall score (0-100)
     const cpuScore = Math.max(0, 100 - latest.system.cpu.usage);
     const memoryScore = Math.max(0, 100 - latest.system.memory.usage);
-    const responseScore = Math.max(0, 100 - (latest.application.responseTime.p95 / 20));
-    const errorScore = Math.max(0, 100 - (latest.application.errorRate * 20));
-    
+    const responseScore = Math.max(0, 100 - latest.application.responseTime.p95 / 20);
+    const errorScore = Math.max(0, 100 - latest.application.errorRate * 20);
+
     const overallScore = (cpuScore + memoryScore + responseScore + errorScore) / 4;
 
     return {
@@ -268,29 +275,45 @@ export class PerformanceMonitor extends EventEmitter {
       criticalIssues,
       warnings,
       optimizationsApplied: 0, // Would be tracked by optimizer
-      performanceImprovement: 0 // Would be calculated by optimizer
+      performanceImprovement: 0, // Would be calculated by optimizer
     };
   }
 
   private countCriticalIssues(metrics: PerformanceMetrics): number {
     let count = 0;
-    
-    if (metrics.system.cpu.usage >= this.thresholds.cpu.critical) count++;
-    if (metrics.system.memory.usage >= this.thresholds.memory.critical) count++;
-    if (metrics.application.responseTime.p95 >= this.thresholds.responseTime.p95.critical) count++;
-    if (metrics.application.errorRate >= this.thresholds.errorRate.critical) count++;
-    
+
+    if (metrics.system.cpu.usage >= this.thresholds.cpu.critical) {count++;}
+    if (metrics.system.memory.usage >= this.thresholds.memory.critical) {count++;}
+    if (metrics.application.responseTime.p95 >= this.thresholds.responseTime.p95.critical) {count++;}
+    if (metrics.application.errorRate >= this.thresholds.errorRate.critical) {count++;}
+
     return count;
   }
 
   private countWarnings(metrics: PerformanceMetrics): number {
     let count = 0;
-    
-    if (metrics.system.cpu.usage >= this.thresholds.cpu.warning && metrics.system.cpu.usage < this.thresholds.cpu.critical) count++;
-    if (metrics.system.memory.usage >= this.thresholds.memory.warning && metrics.system.memory.usage < this.thresholds.memory.critical) count++;
-    if (metrics.application.responseTime.p95 >= this.thresholds.responseTime.p95.warning && metrics.application.responseTime.p95 < this.thresholds.responseTime.p95.critical) count++;
-    if (metrics.application.errorRate >= this.thresholds.errorRate.warning && metrics.application.errorRate < this.thresholds.errorRate.critical) count++;
-    
+
+    if (
+      metrics.system.cpu.usage >= this.thresholds.cpu.warning &&
+      metrics.system.cpu.usage < this.thresholds.cpu.critical
+    )
+      {count++;}
+    if (
+      metrics.system.memory.usage >= this.thresholds.memory.warning &&
+      metrics.system.memory.usage < this.thresholds.memory.critical
+    )
+      {count++;}
+    if (
+      metrics.application.responseTime.p95 >= this.thresholds.responseTime.p95.warning &&
+      metrics.application.responseTime.p95 < this.thresholds.responseTime.p95.critical
+    )
+      {count++;}
+    if (
+      metrics.application.errorRate >= this.thresholds.errorRate.warning &&
+      metrics.application.errorRate < this.thresholds.errorRate.critical
+    )
+      {count++;}
+
     return count;
   }
 
@@ -306,11 +329,13 @@ export class PerformanceMonitor extends EventEmitter {
     }
 
     if (summary.overallScore < 70) {
-      recommendations.push('Overall performance score below optimal - consider comprehensive optimization');
+      recommendations.push(
+        'Overall performance score below optimal - consider comprehensive optimization'
+      );
     }
 
     recommendations.push('Continue monitoring and adjust thresholds based on patterns');
-    
+
     return recommendations;
   }
 }

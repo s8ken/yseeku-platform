@@ -34,7 +34,7 @@ async function testAlertRuleEvaluation() {
   const rules = alertManager.getRules();
   assert(rules.length > 0, 'Should have default alert rules');
 
-  const highErrorRateRule = rules.find(r => r.id === 'high-error-rate');
+  const highErrorRateRule = rules.find((r) => r.id === 'high-error-rate');
   assert(highErrorRateRule !== undefined, 'High error rate rule should exist');
   assert(highErrorRateRule?.enabled === true, 'Rule should be enabled by default');
 }
@@ -48,8 +48,8 @@ async function testIntegrationManagerOperations() {
     enabled: true,
     config: {
       url: 'https://example.com/webhook',
-      headers: { 'Authorization': 'Bearer test-token' }
-    }
+      headers: { Authorization: 'Bearer test-token' },
+    },
   });
 
   const webhookIntegration = integrationManager.getIntegration('webhook');
@@ -60,7 +60,7 @@ async function testIntegrationManagerOperations() {
     await webhookIntegration.sendAlert({
       title: 'Test Alert',
       severity: 'high',
-      description: 'Test alert for integration'
+      description: 'Test alert for integration',
     });
     assert(true, 'Alert sending should not throw');
   } catch (error) {

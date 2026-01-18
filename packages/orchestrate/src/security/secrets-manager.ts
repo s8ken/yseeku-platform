@@ -1,4 +1,5 @@
 import { KMSClient, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
+
 // import { Vault } from 'hashi-vault-js'; // TODO: Fix Vault API integration
 import { getLogger } from '../observability/logger';
 
@@ -51,9 +52,13 @@ export class AWSKMSSecretsManager implements SecretsManager {
   async healthCheck(): Promise<boolean> {
     try {
       // Try to describe the key
-      await this.kmsClient.send(new (await import('@aws-sdk/client-kms')).DescribeKeyCommand({
-        KeyId: this.keyId,
-      }));
+      await this.kmsClient.send(
+        new (
+          await import('@aws-sdk/client-kms')
+        ).DescribeKeyCommand({
+          KeyId: this.keyId,
+        })
+      );
       return true;
     } catch (error) {
       logger.error('KMS health check failed', { error: (error as Error).message });
@@ -66,7 +71,9 @@ export class HashiCorpVaultSecretsManager implements SecretsManager {
   // TODO: Implement Vault integration with correct API
   // The hashi-vault-js library API needs to be verified
   constructor(endpoint: string, token: string, mountPath: string = 'secret') {
-    throw new Error('HashiCorpVaultSecretsManager not yet implemented - use AWS KMS or Local provider');
+    throw new Error(
+      'HashiCorpVaultSecretsManager not yet implemented - use AWS KMS or Local provider'
+    );
   }
 
   async encrypt(data: string, keyId?: string): Promise<string> {
@@ -140,13 +147,16 @@ export function createSecretsManager(): SecretsManager {
       const vaultToken = process.env.VAULT_TOKEN;
       const vaultMountPath = process.env.VAULT_MOUNT_PATH || 'secret';
       if (!vaultEndpoint || !vaultToken) {
-        throw new Error('VAULT_ENDPOINT and VAULT_TOKEN environment variables are required for Vault provider');
+        throw new Error(
+          'VAULT_ENDPOINT and VAULT_TOKEN environment variables are required for Vault provider'
+        );
       }
       return new HashiCorpVaultSecretsManager(vaultEndpoint, vaultToken, vaultMountPath);
 
     case 'local':
     default:
-      const localKey = process.env.SECRETS_ENCRYPTION_KEY || 'default-local-key-change-in-production';
+      const localKey =
+        process.env.SECRETS_ENCRYPTION_KEY || 'default-local-key-change-in-production';
       return new LocalSecretsManager(localKey);
   }
 }

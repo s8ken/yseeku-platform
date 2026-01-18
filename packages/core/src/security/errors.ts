@@ -1,6 +1,6 @@
 /**
  * Security Error Classes
- * 
+ *
  * Custom error types for security-related operations
  */
 

@@ -1,15 +1,11 @@
 /**
  * Automated Incident Response System
- * 
+ *
  * Provides automated detection, classification, and response to security incidents
  * and operational anomalies with configurable escalation policies
  */
 
-import {
-  SystemError,
-  PerformanceError,
-  ComplianceError
-} from '@sonate/core';
+import { SystemError, PerformanceError, ComplianceError } from '@sonate/core';
 
 export interface Incident {
   id: string;
@@ -31,24 +27,19 @@ export interface Incident {
   resolvedAt?: number;
 }
 
-export type IncidentType = 
-  | 'security' 
-  | 'performance' 
-  | 'compliance' 
-  | 'availability' 
-  | 'data_integrity' 
+export type IncidentType =
+  | 'security'
+  | 'performance'
+  | 'compliance'
+  | 'availability'
+  | 'data_integrity'
   | 'unauthorized_access'
   | 'rate_limit_exceeded'
   | 'anomaly_detected';
 
 export type IncidentSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
-export type IncidentStatus = 
-  | 'detected' 
-  | 'investigating' 
-  | 'mitigating' 
-  | 'resolved' 
-  | 'closed';
+export type IncidentStatus = 'detected' | 'investigating' | 'mitigating' | 'resolved' | 'closed';
 
 export interface IncidentRule {
   id: string;
@@ -133,13 +124,13 @@ export class IncidentResponseSystem {
       actions: [
         {
           type: 'block',
-          config: { blockDuration: 3600000, blockSource: true }
+          config: { blockDuration: 3600000, blockSource: true },
         },
         {
           type: 'alert',
-          config: { channels: ['email', 'slack'], priority: 'critical' }
-        }
-      ]
+          config: { channels: ['email', 'slack'], priority: 'critical' },
+        },
+      ],
     });
 
     // Security: Rate limit exceeded
@@ -157,13 +148,13 @@ export class IncidentResponseSystem {
       actions: [
         {
           type: 'throttle',
-          config: { throttleFactor: 0.5 }
+          config: { throttleFactor: 0.5 },
         },
         {
           type: 'alert',
-          config: { channels: ['slack'], priority: 'medium' }
-        }
-      ]
+          config: { channels: ['slack'], priority: 'medium' },
+        },
+      ],
     });
 
     // Performance: High latency
@@ -181,13 +172,13 @@ export class IncidentResponseSystem {
       actions: [
         {
           type: 'scale',
-          config: { scaleUp: true, factor: 1.5 }
+          config: { scaleUp: true, factor: 1.5 },
         },
         {
           type: 'alert',
-          config: { channels: ['email'], priority: 'high' }
-        }
-      ]
+          config: { channels: ['email'], priority: 'high' },
+        },
+      ],
     });
 
     // Availability: Service down
@@ -205,13 +196,13 @@ export class IncidentResponseSystem {
       actions: [
         {
           type: 'restart',
-          config: { maxRetries: 3 }
+          config: { maxRetries: 3 },
         },
         {
           type: 'alert',
-          config: { channels: ['email', 'slack', 'sms'], priority: 'critical' }
-        }
-      ]
+          config: { channels: ['email', 'slack', 'sms'], priority: 'critical' },
+        },
+      ],
     });
 
     // Data integrity: Hash chain broken
@@ -229,13 +220,13 @@ export class IncidentResponseSystem {
       actions: [
         {
           type: 'alert',
-          config: { channels: ['email', 'slack'], priority: 'critical' }
+          config: { channels: ['email', 'slack'], priority: 'critical' },
         },
         {
           type: 'custom',
-          config: { action: 'quarantine_data', verify: true }
-        }
-      ]
+          config: { action: 'quarantine_data', verify: true },
+        },
+      ],
     });
 
     // Compliance: Audit log failure
@@ -253,13 +244,13 @@ export class IncidentResponseSystem {
       actions: [
         {
           type: 'alert',
-          config: { channels: ['email'], priority: 'high' }
+          config: { channels: ['email'], priority: 'high' },
         },
         {
           type: 'custom',
-          config: { action: 'enable_fallback_logging' }
-        }
-      ]
+          config: { action: 'enable_fallback_logging' },
+        },
+      ],
     });
 
     // Anomaly: Unusual pattern detected
@@ -274,22 +265,22 @@ export class IncidentResponseSystem {
       condition: async (ctx) => {
         // Simple anomaly detection using z-score
         const history = this.getMetricHistory(ctx.metric, 20);
-        if (history.length < 10) return false;
-        
+        if (history.length < 10) {return false;}
+
         const mean = history.reduce((sum, v) => sum + v, 0) / history.length;
         const std = Math.sqrt(
           history.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / history.length
         );
-        
+
         const zScore = std > 0 ? (ctx.value - mean) / std : 0;
         return Math.abs(zScore) > 3; // 3 sigma anomaly
       },
       actions: [
         {
           type: 'alert',
-          config: { channels: ['slack'], priority: 'medium' }
-        }
-      ]
+          config: { channels: ['slack'], priority: 'medium' },
+        },
+      ],
     });
   }
 
@@ -306,10 +297,10 @@ export class IncidentResponseSystem {
         actions: [
           {
             type: 'alert',
-            config: { channels: ['sms', 'email'], priority: 'critical' }
-          }
+            config: { channels: ['sms', 'email'], priority: 'critical' },
+          },
         ],
-        notify: ['oncall@company.com', 'security@company.com']
+        notify: ['oncall@company.com', 'security@company.com'],
       },
       {
         level: 2,
@@ -318,11 +309,11 @@ export class IncidentResponseSystem {
         actions: [
           {
             type: 'alert',
-            config: { channels: ['sms', 'email', 'slack'], priority: 'critical' }
-          }
+            config: { channels: ['sms', 'email', 'slack'], priority: 'critical' },
+          },
         ],
-        notify: ['cto@company.com', 'ceo@company.com']
-      }
+        notify: ['cto@company.com', 'ceo@company.com'],
+      },
     ]);
 
     // High severity incidents
@@ -334,10 +325,10 @@ export class IncidentResponseSystem {
         actions: [
           {
             type: 'alert',
-            config: { channels: ['email', 'slack'], priority: 'high' }
-          }
+            config: { channels: ['email', 'slack'], priority: 'high' },
+          },
         ],
-        notify: ['oncall@company.com']
+        notify: ['oncall@company.com'],
       },
       {
         level: 2,
@@ -346,11 +337,11 @@ export class IncidentResponseSystem {
         actions: [
           {
             type: 'alert',
-            config: { channels: ['email', 'slack'], priority: 'high' }
-          }
+            config: { channels: ['email', 'slack'], priority: 'high' },
+          },
         ],
-        notify: ['team-lead@company.com', 'manager@company.com']
-      }
+        notify: ['team-lead@company.com', 'manager@company.com'],
+      },
     ]);
 
     // Medium severity incidents
@@ -362,11 +353,11 @@ export class IncidentResponseSystem {
         actions: [
           {
             type: 'alert',
-            config: { channels: ['slack'], priority: 'medium' }
-          }
+            config: { channels: ['slack'], priority: 'medium' },
+          },
         ],
-        notify: ['team-lead@company.com']
-      }
+        notify: ['team-lead@company.com'],
+      },
     ]);
 
     // Low severity incidents
@@ -378,11 +369,11 @@ export class IncidentResponseSystem {
         actions: [
           {
             type: 'alert',
-            config: { channels: ['slack'], priority: 'low' }
-          }
+            config: { channels: ['slack'], priority: 'low' },
+          },
         ],
-        notify: ['team@company.com']
-      }
+        notify: ['team@company.com'],
+      },
     ]);
   }
 
@@ -400,17 +391,16 @@ export class IncidentResponseSystem {
     const detectedIncidents: Incident[] = [];
 
     for (const [ruleId, rule] of this.rules) {
-      if (!rule.enabled) continue;
+      if (!rule.enabled) {continue;}
 
       // Check cooldown
-      if (rule.lastTriggered && 
-          Date.now() - rule.lastTriggered < rule.cooldown) {
+      if (rule.lastTriggered && Date.now() - rule.lastTriggered < rule.cooldown) {
         continue;
       }
 
       // Evaluate condition
       const triggered = await rule.condition(context);
-      if (!triggered) continue;
+      if (!triggered) {continue;}
 
       // Create incident
       const incident = await this.createIncident(rule, context);
@@ -429,10 +419,7 @@ export class IncidentResponseSystem {
   /**
    * Create a new incident
    */
-  private async createIncident(
-    rule: IncidentRule,
-    context: IncidentContext
-  ): Promise<Incident> {
+  private async createIncident(rule: IncidentRule, context: IncidentContext): Promise<Incident> {
     const incidentId = `inc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     const incident: Incident = {
@@ -451,13 +438,13 @@ export class IncidentResponseSystem {
         detectionDetails: {
           metric: context.metric,
           value: context.value,
-          threshold: context.threshold
-        }
+          threshold: context.threshold,
+        },
       },
       detectionMethod: 'automated',
       firstDetected: Date.now(),
       lastUpdated: Date.now(),
-      escalationLevel: 1
+      escalationLevel: 1,
     };
 
     // Store incident
@@ -482,10 +469,7 @@ export class IncidentResponseSystem {
   /**
    * Execute incident response actions
    */
-  private async executeActions(
-    incident: Incident,
-    actions: IncidentAction[]
-  ): Promise<void> {
+  private async executeActions(incident: Incident, actions: IncidentAction[]): Promise<void> {
     for (const action of actions) {
       try {
         switch (action.type) {
@@ -511,7 +495,10 @@ export class IncidentResponseSystem {
             break;
         }
       } catch (error) {
-        console.error(`Failed to execute action ${action.type} for incident ${incident.id}:`, error);
+        console.error(
+          `Failed to execute action ${action.type} for incident ${incident.id}:`,
+          error
+        );
       }
     }
   }
@@ -520,7 +507,8 @@ export class IncidentResponseSystem {
    * Execute alert action
    */
   private async executeAlert(incident: Incident, config: Record<string, any>): Promise<void> {
-    const message = `🚨 Incident Alert\n\n` +
+    const message =
+      `🚨 Incident Alert\n\n` +
       `Type: ${incident.type}\n` +
       `Severity: ${incident.severity}\n` +
       `Title: ${incident.title}\n` +
@@ -533,13 +521,21 @@ export class IncidentResponseSystem {
     // In production, this would send to actual alerting systems
     // For now, we'll log it
     if (config.channels?.includes('email')) {
-      console.log(`[EMAIL] Would send to: ${this.escalationPolicies.get(incident.severity)?.[0].notify.join(', ')}`);
+      console.log(
+        `[EMAIL] Would send to: ${this.escalationPolicies
+          .get(incident.severity)?.[0]
+          .notify.join(', ')}`
+      );
     }
     if (config.channels?.includes('slack')) {
       console.log(`[SLACK] Would post to channel: ${config.channel || '#incidents'}`);
     }
     if (config.channels?.includes('sms')) {
-      console.log(`[SMS] Would send to: ${this.escalationPolicies.get(incident.severity)?.[0].notify.join(', ')}`);
+      console.log(
+        `[SMS] Would send to: ${this.escalationPolicies
+          .get(incident.severity)?.[0]
+          .notify.join(', ')}`
+      );
     }
   }
 
@@ -549,7 +545,7 @@ export class IncidentResponseSystem {
   private async executeBlock(incident: Incident, config: Record<string, any>): Promise<void> {
     const { blockDuration, blockSource } = config;
     console.log(`[BLOCK] Blocking ${incident.source} for ${blockDuration}ms`);
-    
+
     // In production, this would add to firewall, rate limiter, etc.
     // For now, we'll log it
     incident.metadata.blocked = true;
@@ -563,7 +559,7 @@ export class IncidentResponseSystem {
   private async executeThrottle(incident: Incident, config: Record<string, any>): Promise<void> {
     const { throttleFactor } = config;
     console.log(`[THROTTLE] Throttling ${incident.source} by factor ${throttleFactor}`);
-    
+
     // In production, this would adjust rate limits
     incident.metadata.throttled = true;
     incident.metadata.throttleFactor = throttleFactor;
@@ -576,7 +572,7 @@ export class IncidentResponseSystem {
   private async executeRestart(incident: Incident, config: Record<string, any>): Promise<void> {
     const { maxRetries = 3 } = config;
     console.log(`[RESTART] Attempting to restart service (max ${maxRetries} retries)`);
-    
+
     // In production, this would restart services
     incident.metadata.restartAttempted = true;
     incident.metadata.maxRetries = maxRetries;
@@ -588,7 +584,7 @@ export class IncidentResponseSystem {
   private async executeScale(incident: Incident, config: Record<string, any>): Promise<void> {
     const { scaleUp, factor } = config;
     console.log(`[SCALE] ${scaleUp ? 'Scaling up' : 'Scaling down'} by factor ${factor}`);
-    
+
     // In production, this would adjust autoscaling
     incident.metadata.scaled = true;
     incident.metadata.scaleDirection = scaleUp ? 'up' : 'down';
@@ -606,18 +602,15 @@ export class IncidentResponseSystem {
    * Get all open incidents
    */
   getOpenIncidents(): Incident[] {
-    return Array.from(this.incidents.values())
-      .filter(inc => inc.status !== 'resolved' && inc.status !== 'closed');
+    return Array.from(this.incidents.values()).filter(
+      (inc) => inc.status !== 'resolved' && inc.status !== 'closed'
+    );
   }
 
   /**
    * Update incident status
    */
-  updateIncidentStatus(
-    incidentId: string,
-    status: IncidentStatus,
-    notes?: string
-  ): void {
+  updateIncidentStatus(incidentId: string, status: IncidentStatus, notes?: string): void {
     const incident = this.incidents.get(incidentId);
     if (!incident) {
       throw new Error(`Incident not found: ${incidentId}`);
@@ -661,7 +654,9 @@ export class IncidentResponseSystem {
     // Check if time threshold has passed
     const timeSinceDetection = Date.now() - incident.firstDetected;
     if (timeSinceDetection < nextPolicy.timeThreshold) {
-      console.log(`Escalation time threshold not yet reached (${timeSinceDetection}ms < ${nextPolicy.timeThreshold}ms)`);
+      console.log(
+        `Escalation time threshold not yet reached (${timeSinceDetection}ms < ${nextPolicy.timeThreshold}ms)`
+      );
       return;
     }
 
@@ -690,14 +685,14 @@ export class IncidentResponseSystem {
       data_integrity: 0,
       unauthorized_access: 0,
       rate_limit_exceeded: 0,
-      anomaly_detected: 0
+      anomaly_detected: 0,
     };
 
     const bySeverity: Record<IncidentSeverity, number> = {
       LOW: 0,
       MEDIUM: 0,
       HIGH: 0,
-      CRITICAL: 0
+      CRITICAL: 0,
     };
 
     const byStatus: Record<IncidentStatus, number> = {
@@ -705,7 +700,7 @@ export class IncidentResponseSystem {
       investigating: 0,
       mitigating: 0,
       resolved: 0,
-      closed: 0
+      closed: 0,
     };
 
     let totalResolutionTime = 0;
@@ -728,9 +723,9 @@ export class IncidentResponseSystem {
       bySeverity,
       byStatus,
       avgResolutionTime: resolvedCount > 0 ? totalResolutionTime / resolvedCount : 0,
-      openIncidents: allIncidents.filter(inc => 
-        inc.status !== 'resolved' && inc.status !== 'closed'
-      ).length
+      openIncidents: allIncidents.filter(
+        (inc) => inc.status !== 'resolved' && inc.status !== 'closed'
+      ).length,
     };
   }
 
@@ -748,7 +743,7 @@ export class IncidentResponseSystem {
    */
   async checkEscalations(): Promise<void> {
     const openIncidents = this.getOpenIncidents();
-    
+
     for (const incident of openIncidents) {
       await this.escalateIncident(incident.id);
     }

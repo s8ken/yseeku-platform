@@ -55,47 +55,45 @@ export class RateLimiter {
       if (currentCount > config.maxRequests) {
         const retryAfter = Math.max(1, Math.ceil((windowEndMs - nowMs) / 1000));
         await this.logRateLimitExceeded(config, retryAfter);
-        
+
         return {
           allowed: false,
           remaining: 0,
           resetAt: windowEnd,
-          retryAfter
+          retryAfter,
         };
       }
 
       return {
         allowed: true,
         remaining: config.maxRequests - currentCount,
-        resetAt: windowEnd
+        resetAt: windowEnd,
       };
-
     } catch (error) {
       const failOpen = config.failOpen ?? process.env.RATE_LIMIT_FAIL_OPEN === 'true';
       const retryAfter = Math.max(1, Math.ceil((windowEndMs - nowMs) / 1000));
-      await getAuditLogger().log(
-        AuditEventType.SYSTEM_ERROR,
-        'rate_limit.check',
-        'failure',
-        {
-          severity: AuditSeverity.ERROR,
-          resourceType: 'rate_limit',
-          resourceId: config.identifier,
-          details: { identifierType: config.identifierType, endpoint: config.endpoint, error: String(error) }
-        }
-      );
+      await getAuditLogger().log(AuditEventType.SYSTEM_ERROR, 'rate_limit.check', 'failure', {
+        severity: AuditSeverity.ERROR,
+        resourceType: 'rate_limit',
+        resourceId: config.identifier,
+        details: {
+          identifierType: config.identifierType,
+          endpoint: config.endpoint,
+          error: String(error),
+        },
+      });
       if (failOpen) {
         return {
           allowed: true,
           remaining: config.maxRequests,
-          resetAt: windowEnd
+          resetAt: windowEnd,
         };
       }
       return {
         allowed: false,
         remaining: 0,
         resetAt: windowEnd,
-        retryAfter
+        retryAfter,
       };
     }
   }
@@ -114,8 +112,8 @@ export class RateLimiter {
           endpoint: config.endpoint,
           retryAfter,
           maxRequests: config.maxRequests,
-          windowMs: config.windowMs
-        }
+          windowMs: config.windowMs,
+        },
       }
     );
   }
@@ -161,19 +159,21 @@ export function createRateLimiter(store?: RateLimitStore): RateLimiter {
   return new RateLimiter(store);
 }
 
-export function createEndpointRateLimiters(configs: Record<string, RateLimitConfig>): Record<string, RateLimiter> {
+export function createEndpointRateLimiters(
+  configs: Record<string, RateLimitConfig>
+): Record<string, RateLimiter> {
   const limiters: Record<string, RateLimiter> = {};
-  
+
   for (const endpoint of Object.keys(configs)) {
     limiters[endpoint] = createRateLimiter();
   }
-  
+
   return limiters;
 }
 
 export class InMemoryRateLimitStore implements RateLimitStore {
   private windows = new Map<string, { count: number; expiresAt: number }>();
-  
+
   async increment(key: string): Promise<number> {
     const now = Date.now();
     const parts = key.split('|');
@@ -189,22 +189,22 @@ export class InMemoryRateLimitStore implements RateLimitStore {
     this.windows.set(key, { count: 1, expiresAt });
     return 1;
   }
-  
+
   async reset(key: string): Promise<void> {
     this.windows.delete(key);
   }
-  
+
   async cleanup(): Promise<number> {
     const now = Date.now();
     let cleaned = 0;
-    
+
     for (const [key, window] of this.windows.entries()) {
       if (now >= window.expiresAt) {
         this.windows.delete(key);
         cleaned++;
       }
     }
-    
+
     return cleaned;
   }
 
@@ -221,7 +221,7 @@ export class InMemoryRateLimitStore implements RateLimitStore {
 
   async getCount(key: string): Promise<number | null> {
     const entry = this.windows.get(key);
-    if (!entry) return null;
+    if (!entry) {return null;}
     if (Date.now() >= entry.expiresAt) {
       this.windows.delete(key);
       return null;
@@ -232,11 +232,11 @@ export class InMemoryRateLimitStore implements RateLimitStore {
 
 export class RedisRateLimitStore implements RateLimitStore {
   private redis: any; // Redis client
-  
+
   constructor(redis: any) {
     this.redis = redis;
   }
-  
+
   async increment(key: string): Promise<number> {
     const parts = key.split('|');
     const windowEndMs = Number(parts[parts.length - 1]);
@@ -253,25 +253,25 @@ export class RedisRateLimitStore implements RateLimitStore {
     }
     return Number(count);
   }
-  
+
   async reset(key: string): Promise<void> {
     await this.redis.del(key);
   }
-  
+
   async cleanup(): Promise<number> {
     return 0;
   }
 
   async resetMatching(prefix: string): Promise<number> {
     const keys = await this.redis.keys(`${prefix}*`);
-    if (!Array.isArray(keys) || keys.length === 0) return 0;
+    if (!Array.isArray(keys) || keys.length === 0) {return 0;}
     await this.redis.del(...keys);
     return keys.length;
   }
 
   async getCount(key: string): Promise<number | null> {
     const val = await this.redis.get(key);
-    if (val == null) return null;
+    if (val == null) {return null;}
     const n = Number(val);
     return Number.isFinite(n) ? n : null;
   }

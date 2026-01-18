@@ -5,8 +5,10 @@
 
 // import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import * as crypto from 'crypto';
-import { AuthenticationError } from './error-taxonomy';
+
 import { tenantContext } from '../tenant-context';
+
+import { AuthenticationError } from './error-taxonomy';
 
 export interface MFASetupResult {
   secret: string;
@@ -52,7 +54,7 @@ export class MFAService {
         {
           component: 'MFAService',
           operation: 'getSupabase',
-          severity: 'critical'
+          severity: 'critical',
         },
         { remediation: 'Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables' }
       );
@@ -84,7 +86,9 @@ export class MFAService {
    * Generate QR code URL for authenticator apps
    */
   generateQRCodeUrl(email: string, secret: string): string {
-    const otpauthUrl = `otpauth://totp/${encodeURIComponent(this.issuer)}:${encodeURIComponent(email)}?secret=${secret}&issuer=${encodeURIComponent(this.issuer)}`;
+    const otpauthUrl = `otpauth://totp/${encodeURIComponent(this.issuer)}:${encodeURIComponent(
+      email
+    )}?secret=${secret}&issuer=${encodeURIComponent(this.issuer)}`;
     return otpauthUrl;
   }
 
@@ -98,20 +102,18 @@ export class MFAService {
 
     // Hash backup codes before storing
     const hashedBackupCodes = await Promise.all(
-      backupCodes.map(code => this.hashBackupCode(code))
+      backupCodes.map((code) => this.hashBackupCode(code))
     );
 
     // Store in database (encrypted)
-    const { error } = await this.getSupabase()
-      .from('user_mfa')
-      .upsert({
-        user_id: userId,
-        tenant_id: this.getTenantId(),
-        mfa_secret: secret, // In production, this should be encrypted
-        backup_codes: hashedBackupCodes,
-        is_enabled: true,
-        updated_at: new Date().toISOString()
-      });
+    const { error } = await this.getSupabase().from('user_mfa').upsert({
+      user_id: userId,
+      tenant_id: this.getTenantId(),
+      mfa_secret: secret, // In production, this should be encrypted
+      backup_codes: hashedBackupCodes,
+      is_enabled: true,
+      updated_at: new Date().toISOString(),
+    });
 
     if (error) {
       throw new AuthenticationError(
@@ -120,16 +122,16 @@ export class MFAService {
           component: 'MFAService',
           operation: 'setupMFA',
           severity: 'high',
-          userId
+          userId,
         },
         { originalError: new Error(error.message) }
       );
     }
-    
+
     return {
       secret,
       qrCodeUrl,
-      backupCodes
+      backupCodes,
     };
   }
 
@@ -142,9 +144,9 @@ export class MFAService {
 
     // Check current time and adjacent windows
     for (let i = -window; i <= window; i++) {
-      const time = currentTime + (i * timeStep);
+      const time = currentTime + i * timeStep;
       const expectedToken = this.generateTOTP(secret, time);
-      
+
       if (this.constantTimeCompare(token, expectedToken)) {
         return true;
       }
@@ -158,14 +160,11 @@ export class MFAService {
    */
   async verifyBackupCode(userId: string, code: string): Promise<boolean> {
     const hashedCode = await this.hashBackupCode(code);
-    
+
     // Check if backup code exists and hasn't been used
     const tid = this.getTenantId();
-    let query = this.getSupabase()
-      .from('user_mfa')
-      .select('backup_codes')
-      .eq('user_id', userId);
-    
+    let query = this.getSupabase().from('user_mfa').select('backup_codes').eq('user_id', userId);
+
     if (tid) {
       query = query.eq('tenant_id', tid);
     }
@@ -190,7 +189,7 @@ export class MFAService {
       .from('user_mfa')
       .update({ backup_codes: remainingCodes })
       .eq('user_id', userId);
-    
+
     if (tid) {
       updateQuery = updateQuery.eq('tenant_id', tid);
     }
@@ -204,12 +203,12 @@ export class MFAService {
           component: 'MFAService',
           operation: 'verifyBackupCode',
           severity: 'high',
-          userId
+          userId,
         },
         { originalError: new Error(updateError.message) }
       );
     }
-    
+
     return true;
   }
 
@@ -219,22 +218,22 @@ export class MFAService {
   private generateTOTP(secret: string, time: number): string {
     const timeStep = 30;
     const counter = Math.floor(time / timeStep);
-    
+
     const buffer = Buffer.alloc(8);
     buffer.writeBigInt64BE(BigInt(counter));
-    
+
     const decodedSecret = this.base32Decode(secret);
     const hmac = crypto.createHmac('sha1', decodedSecret);
     hmac.update(buffer);
     const hash = hmac.digest();
-    
+
     const offset = hash[hash.length - 1] & 0x0f;
-    const binary = 
+    const binary =
       ((hash[offset] & 0x7f) << 24) |
       ((hash[offset + 1] & 0xff) << 16) |
       ((hash[offset + 2] & 0xff) << 8) |
       (hash[offset + 3] & 0xff);
-    
+
     const otp = binary % 1000000;
     return otp.toString().padStart(6, '0');
   }
@@ -253,12 +252,12 @@ export class MFAService {
     if (a.length !== b.length) {
       return false;
     }
-    
+
     let result = 0;
     for (let i = 0; i < a.length; i++) {
       result |= a.charCodeAt(i) ^ b.charCodeAt(i);
     }
-    
+
     return result === 0;
   }
 
@@ -294,7 +293,7 @@ export class MFAService {
   private base32Decode(input: string): Buffer {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     const cleanInput = input.toUpperCase().replace(/=+$/, '');
-    
+
     let bits = 0;
     let value = 0;
     const output: number[] = [];
@@ -340,7 +339,7 @@ export class MFAService {
           component: 'MFAService',
           operation: 'disableMFA',
           severity: 'high',
-          userId
+          userId,
         },
         { originalError: new Error(error.message) }
       );
@@ -352,10 +351,7 @@ export class MFAService {
    */
   async isMFAEnabled(userId: string): Promise<boolean> {
     const tid = this.getTenantId();
-    let query = this.getSupabase()
-      .from('user_mfa')
-      .select('is_enabled')
-      .eq('user_id', userId);
+    let query = this.getSupabase().from('user_mfa').select('is_enabled').eq('user_id', userId);
 
     if (tid) {
       query = query.eq('tenant_id', tid);

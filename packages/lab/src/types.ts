@@ -18,7 +18,7 @@ export const MessageTypes = {
   ERROR: 'ERROR',
 } as const;
 
-export type MessageType = typeof MessageTypes[keyof typeof MessageTypes];
+export type MessageType = (typeof MessageTypes)[keyof typeof MessageTypes];
 
 // Agent Message
 export interface AgentMessage<T = any> {
@@ -153,12 +153,12 @@ export interface ExperimentRun {
   results?: ExperimentResults;
 }
 
-export type ExperimentStatus = 
-  | 'QUEUED' 
-  | 'RUNNING' 
-  | 'PAUSED' 
-  | 'COMPLETED' 
-  | 'FAILED' 
+export type ExperimentStatus =
+  | 'QUEUED'
+  | 'RUNNING'
+  | 'PAUSED'
+  | 'COMPLETED'
+  | 'FAILED'
   | 'CANCELLED';
 
 // Trial
@@ -175,11 +175,7 @@ export interface Trial {
   completedAt?: string;
 }
 
-export type TrialStatus = 
-  | 'PENDING' 
-  | 'RUNNING' 
-  | 'COMPLETED' 
-  | 'FAILED';
+export type TrialStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 
 export interface TrialResponse {
   slot: string;
@@ -216,7 +212,7 @@ export interface StatisticalResult {
 }
 
 // SYMBI Dimension
-export type SymbiDimension = 
+export type SymbiDimension =
   | 'reality_index'
   | 'trust_protocol'
   | 'ethical_alignment'

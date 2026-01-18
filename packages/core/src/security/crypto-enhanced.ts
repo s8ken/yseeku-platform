@@ -5,7 +5,9 @@
  */
 
 import { createHash, generateKeyPairSync } from 'crypto';
+
 import * as ed25519 from '@noble/ed25519';
+
 import { TrustReceipt, TrustReceiptData } from '../trust-receipt';
 
 export interface EnhancedKeyPair {
@@ -49,22 +51,22 @@ export class EnhancedCryptoManager {
       const keyPair = generateKeyPairSync('ed25519', {
         publicKeyEncoding: {
           type: 'spki',
-          format: 'pem'
+          format: 'pem',
         },
         privateKeyEncoding: {
           type: 'pkcs8',
-          format: 'pem'
-        }
+          format: 'pem',
+        },
       });
 
       // Convert to Uint8Array for @noble/ed25519 compatibility
       const publicKeyBuffer = Buffer.from(keyPair.publicKey);
       const privateKeyBuffer = Buffer.from(keyPair.privateKey);
-      
+
       // For @noble/ed25519, we need 32-byte keys
       const privateKeyUint8Array = new Uint8Array(32);
       const publicKeyUint8Array = new Uint8Array(32);
-      
+
       // Extract key material (simplified - in production, use proper key parsing)
       if (privateKeyBuffer.length >= 32) {
         privateKeyUint8Array.set(privateKeyBuffer.slice(-32));
@@ -79,10 +81,14 @@ export class EnhancedCryptoManager {
         publicKeyBuffer,
         privateKeyBuffer,
         publicKeyUint8Array,
-        privateKeyUint8Array
+        privateKeyUint8Array,
       };
     } catch (error) {
-      throw new Error(`Failed to generate enhanced Ed25519 key pair: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to generate enhanced Ed25519 key pair: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
     }
   }
 
@@ -96,7 +102,7 @@ export class EnhancedCryptoManager {
   ): Promise<SignedReceipt> {
     // Create standard trust receipt
     const receipt = new TrustReceipt(receiptData);
-    
+
     // Sign with the standard method
     await receipt.sign(privateKey);
 
@@ -112,7 +118,7 @@ export class EnhancedCryptoManager {
     return {
       ...receipt,
       integrityHash,
-      chainSignature
+      chainSignature,
     };
   }
 
@@ -131,7 +137,7 @@ export class EnhancedCryptoManager {
         return {
           valid: false,
           reason: 'Receipt signature verification failed',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
       }
 
@@ -141,7 +147,7 @@ export class EnhancedCryptoManager {
         return {
           valid: false,
           reason: 'Integrity hash mismatch',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
       }
 
@@ -153,12 +159,12 @@ export class EnhancedCryptoManager {
           previousReceipt,
           publicKey
         );
-        
+
         if (!chainValid) {
           return {
             valid: false,
             reason: 'Chain signature verification failed',
-            timestamp: Date.now()
+            timestamp: Date.now(),
           };
         }
       }
@@ -166,13 +172,13 @@ export class EnhancedCryptoManager {
       return {
         valid: true,
         timestamp: Date.now(),
-        hash: calculatedIntegrityHash
+        hash: calculatedIntegrityHash,
       };
     } catch (error) {
       return {
         valid: false,
         reason: `Verification error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
     }
   }
@@ -184,9 +190,9 @@ export class EnhancedCryptoManager {
     const receiptData = receipt.toJSON();
     const combinedData = JSON.stringify({
       ...receiptData,
-      timestamp: receipt.timestamp // Ensure timestamp is included
+      timestamp: receipt.timestamp, // Ensure timestamp is included
     });
-    
+
     return createHash(this.hashAlgorithm).update(combinedData).digest('hex');
   }
 
@@ -201,7 +207,7 @@ export class EnhancedCryptoManager {
     const chainData = JSON.stringify({
       currentHash,
       previousHash: previousReceipt.integrityHash,
-      previousTimestamp: previousReceipt.timestamp
+      previousTimestamp: previousReceipt.timestamp,
     });
 
     const chainHash = createHash(this.hashAlgorithm).update(chainData).digest('hex');
@@ -222,12 +228,12 @@ export class EnhancedCryptoManager {
       const chainData = JSON.stringify({
         currentHash,
         previousHash: previousReceipt.integrityHash,
-        previousTimestamp: previousReceipt.timestamp
+        previousTimestamp: previousReceipt.timestamp,
       });
 
       const chainHash = createHash(this.hashAlgorithm).update(chainData).digest('hex');
       const signature = Buffer.from(chainSignature, 'hex');
-      
+
       return await ed25519.verify(signature, Buffer.from(chainHash, 'hex'), publicKey);
     } catch (error) {
       return false;
@@ -239,11 +245,11 @@ export class EnhancedCryptoManager {
    */
   generateDeterministicKeyPair(seed: string): EnhancedKeyPair {
     const hash = createHash(this.hashAlgorithm).update(seed).digest('hex');
-    
+
     // Create 32-byte keys for Ed25519
     const privateKeyUint8Array = new Uint8Array(32);
     const publicKeyUint8Array = new Uint8Array(32);
-    
+
     // Fill with deterministic values from hash
     for (let i = 0; i < 32; i++) {
       privateKeyUint8Array[i] = parseInt(hash.substr(i * 2, 2), 16);
@@ -251,8 +257,12 @@ export class EnhancedCryptoManager {
     }
 
     // Create PEM representations (simplified)
-    const privateKey = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(privateKeyUint8Array).toString('base64')}\n-----END PRIVATE KEY-----`;
-    const publicKey = `-----BEGIN PUBLIC KEY-----\n${Buffer.from(publicKeyUint8Array).toString('base64')}\n-----END PUBLIC KEY-----`;
+    const privateKey = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(privateKeyUint8Array).toString(
+      'base64'
+    )}\n-----END PRIVATE KEY-----`;
+    const publicKey = `-----BEGIN PUBLIC KEY-----\n${Buffer.from(publicKeyUint8Array).toString(
+      'base64'
+    )}\n-----END PUBLIC KEY-----`;
 
     return {
       publicKey,
@@ -260,7 +270,7 @@ export class EnhancedCryptoManager {
       publicKeyBuffer: Buffer.from(publicKey),
       privateKeyBuffer: Buffer.from(privateKey),
       publicKeyUint8Array,
-      privateKeyUint8Array
+      privateKeyUint8Array,
     };
   }
 
@@ -276,7 +286,7 @@ export class EnhancedCryptoManager {
    * Combine multiple data pieces for signing
    */
   combineData(...pieces: (string | number)[]): string {
-    return pieces.map(p => String(p)).join(':');
+    return pieces.map((p) => String(p)).join(':');
   }
 }
 
@@ -291,7 +301,7 @@ export const EnhancedCryptoUtils = {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const result = new Array(length);
     const randomBytes = new Uint8Array(length);
-    
+
     // Use crypto.getRandomValues for secure random generation
     if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
       crypto.getRandomValues(randomBytes);
@@ -300,11 +310,11 @@ export const EnhancedCryptoUtils = {
       const crypto = require('crypto');
       crypto.randomFillSync(randomBytes);
     }
-    
+
     for (let i = 0; i < length; i++) {
       result[i] = chars[randomBytes[i] % chars.length];
     }
-    
+
     return result.join('');
   },
 
@@ -324,9 +334,9 @@ export const EnhancedCryptoUtils = {
     try {
       if (type === 'public') {
         return key.includes('BEGIN PUBLIC KEY') && key.includes('END PUBLIC KEY');
-      } else {
+      } 
         return key.includes('BEGIN PRIVATE KEY') && key.includes('END PRIVATE KEY');
-      }
+      
     } catch {
       return false;
     }
@@ -338,19 +348,20 @@ export const EnhancedCryptoUtils = {
   convertKeyFormat(key: string, targetFormat: 'pem' | 'uint8array'): Uint8Array | string {
     if (targetFormat === 'uint8array') {
       // Extract key material from PEM
-      const keyContent = key.replace(/-----BEGIN (PUBLIC|PRIVATE) KEY-----/, '')
-                            .replace(/-----END (PUBLIC|PRIVATE) KEY-----/, '')
-                            .replace(/\s/g, '');
+      const keyContent = key
+        .replace(/-----BEGIN (PUBLIC|PRIVATE) KEY-----/, '')
+        .replace(/-----END (PUBLIC|PRIVATE) KEY-----/, '')
+        .replace(/\s/g, '');
       return new Uint8Array(Buffer.from(keyContent, 'base64'));
-    } else {
+    } 
       // Convert Uint8Array to PEM (simplified)
       const keyContent = Buffer.from(key).toString('base64');
       const isPrivate = keyContent.length > 100; // Simple heuristic
       if (isPrivate) {
         return `-----BEGIN PRIVATE KEY-----\n${keyContent}\n-----END PRIVATE KEY-----`;
-      } else {
+      } 
         return `-----BEGIN PUBLIC KEY-----\n${keyContent}\n-----END PUBLIC KEY-----`;
-      }
-    }
-  }
+      
+    
+  },
 };

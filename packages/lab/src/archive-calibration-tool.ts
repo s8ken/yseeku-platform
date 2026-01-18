@@ -35,15 +35,15 @@ export class ArchiveCalibrationTool {
     manualReviewGuide: string;
   }> {
     console.log('🔍 Calibrating with manual archives...');
-    
+
     const analysisResults = await this.analyzer.processArchivesWithIdentification(archivePath);
-    
+
     // Generate detailed location information for each flagged conversation
-    const locations = analysisResults.flaggedConversations.map(conv => 
+    const locations = analysisResults.flaggedConversations.map((conv) =>
       this.generateArchiveLocation(conv)
     );
 
-    locations.forEach(loc => {
+    locations.forEach((loc) => {
       this.archiveLocations.set(loc.conversationName, loc);
     });
 
@@ -52,7 +52,7 @@ export class ArchiveCalibrationTool {
     return {
       flaggedConversations: analysisResults.flaggedConversations,
       archiveLocations: locations,
-      manualReviewGuide
+      manualReviewGuide,
     };
   }
 
@@ -62,13 +62,13 @@ export class ArchiveCalibrationTool {
   private generateArchiveLocation(conv: FlaggedConversation): ArchiveLocation {
     const date = new Date(conv.locationInArchive.timestamp);
     const dateRange = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-    
+
     // Extract key identifiers for manual search
     const keyIdentifiers = [
       ...this.extractUniquePhrases(conv.directQuotes.before),
       ...this.extractUniquePhrases(conv.directQuotes.after),
       conv.aiSystem,
-      conv.severity
+      conv.severity,
     ];
 
     // Generate search keywords
@@ -77,7 +77,7 @@ export class ArchiveCalibrationTool {
       ...this.generateSearchKeywords(conv.directQuotes.after),
       conv.aiSystem.toLowerCase(),
       `velocity-${Math.round(conv.metrics.velocity)}`,
-      `resonance-${Math.round(Math.abs(conv.metrics.deltaResonance))}`
+      `resonance-${Math.round(Math.abs(conv.metrics.deltaResonance))}`,
     ];
 
     return {
@@ -90,10 +90,10 @@ export class ArchiveCalibrationTool {
         before: conv.directQuotes.before,
         after: conv.directQuotes.after,
         firstUserMessage: '', // Would be populated from full conversation
-        firstAIResponse: ''   // Would be populated from full conversation
+        firstAIResponse: '', // Would be populated from full conversation
       },
       searchKeywords: [...new Set(searchKeywords)],
-      lineNumber: undefined // Would be determined during actual file processing
+      lineNumber: undefined, // Would be determined during actual file processing
     };
   }
 
@@ -102,10 +102,10 @@ export class ArchiveCalibrationTool {
    */
   private extractUniquePhrases(text: string): string[] {
     const phrases = [];
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
-    
+    const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 10);
+
     // Extract distinctive phrases (8+ words, unique vocabulary)
-    sentences.forEach(sentence => {
+    sentences.forEach((sentence) => {
       const words = sentence.trim().split(/\s+/);
       if (words.length >= 8) {
         // Take first 8 words as identifier
@@ -124,14 +124,15 @@ export class ArchiveCalibrationTool {
    * Generate search keywords
    */
   private generateSearchKeywords(text: string): string[] {
-    const words = text.toLowerCase()
+    const words = text
+      .toLowerCase()
       .replace(/[^a-zA-Z\s]/g, '')
       .split(/\s+/)
-      .filter(word => word.length > 4 && word.length < 15);
+      .filter((word) => word.length > 4 && word.length < 15);
 
     // Get unique, meaningful words
     const wordFreq: Record<string, number> = {};
-    words.forEach(word => {
+    words.forEach((word) => {
       wordFreq[word] = (wordFreq[word] || 0) + 1;
     });
 
@@ -166,35 +167,35 @@ export class ArchiveCalibrationTool {
     locations.forEach((loc, index) => {
       guide += `---\n\n`;
       guide += `### ${index + 1}. ${loc.conversationName}\n\n`;
-      
+
       guide += `**FILE LOCATION:**\n`;
       guide += `- File: \`${loc.fileName}\`\n`;
       guide += `- AI System: ${loc.aiSystem.toUpperCase()}\n`;
       guide += `- Date/Time: ${loc.dateRange}\n\n`;
-      
+
       guide += `**SEARCH KEYWORDS:**\n`;
       guide += `\`\`\`\n`;
       guide += loc.searchKeywords.join(', ') + '\n';
       guide += `\`\`\`\n\n`;
-      
+
       guide += `**DISTINCTIVE PHRASES TO FIND:**\n`;
       loc.keyIdentifiers.forEach((phrase, i) => {
         guide += `${i + 1}. "${phrase}"\n`;
       });
       guide += '\n';
-      
+
       guide += `**CRITICAL TRANSITION QUOTES:**\n`;
       guide += `**BEFORE (Higher Resonance):**\n`;
       guide += `> ${loc.directQuotes.before}\n\n`;
       guide += `**AFTER (Lower Resonance):**\n`;
       guide += `> ${loc.directQuotes.after}\n\n`;
-      
+
       guide += `**REVIEW CHECKLIST:**\n`;
       guide += `- [ ] Located conversation in archive\n`;
       guide += `- [ ] Verified the transition quotes match\n`;
       guide += `- [ ] Assessed context and severity\n`;
       guide += `- [ ] Documented review outcome below\n\n`;
-      
+
       guide += `**REVIEW NOTES:**\n`;
       guide += `_Add your findings here..._\n\n`;
     });
@@ -221,7 +222,7 @@ export class ArchiveCalibrationTool {
       grep: `grep -n -A5 -B5 "${location.searchKeywords[0]}" ${location.fileName}`,
       findstr: `findstr /n /c:"${location.searchKeywords[0]}" ${location.fileName}`,
       vscode: `code -r ${location.fileName} -g ${location.lineNumber || 1}`,
-      notepad: `notepad ${location.fileName}`
+      notepad: `notepad ${location.fileName}`,
     };
 
     let output = `🔍 SEARCH COMMANDS FOR: ${location.conversationName}\n\n`;
@@ -229,12 +230,12 @@ export class ArchiveCalibrationTool {
     output += `\`\`\`bash\n`;
     output += `${commands.grep}\n`;
     output += `\`\`\`\n\n`;
-    
+
     output += `**Windows (findstr):**\n`;
     output += `\`\`\`cmd\n`;
     output += `${commands.findstr}\n`;
     output += `\`\`\`\n\n`;
-    
+
     output += `**VS Code:**\n`;
     output += `\`\`\`bash\n`;
     output += `${commands.vscode}\n`;
@@ -246,24 +247,37 @@ export class ArchiveCalibrationTool {
   /**
    * Create a calibration report for threshold adjustment
    */
-  generateCalibrationReport(reviewResults: {
-    conversationName: string;
-    severity: 'low' | 'medium' | 'high' | 'critical';
-    reviewerAssessment: 'accurate' | 'false-positive' | 'understated';
-    notes: string;
-  }[]): string {
+  generateCalibrationReport(
+    reviewResults: {
+      conversationName: string;
+      severity: 'low' | 'medium' | 'high' | 'critical';
+      reviewerAssessment: 'accurate' | 'false-positive' | 'understated';
+      notes: string;
+    }[]
+  ): string {
     let report = `# THRESHOLD CALIBRATION REPORT\n\n`;
     report += `Based on manual review of flagged conversations:\n\n`;
 
-    const accurate = reviewResults.filter(r => r.reviewerAssessment === 'accurate').length;
-    const falsePositives = reviewResults.filter(r => r.reviewerAssessment === 'false-positive').length;
-    const understated = reviewResults.filter(r => r.reviewerAssessment === 'understated').length;
+    const accurate = reviewResults.filter((r) => r.reviewerAssessment === 'accurate').length;
+    const falsePositives = reviewResults.filter(
+      (r) => r.reviewerAssessment === 'false-positive'
+    ).length;
+    const understated = reviewResults.filter((r) => r.reviewerAssessment === 'understated').length;
 
     report += `**Review Summary:**\n`;
     report += `- Total reviewed: ${reviewResults.length}\n`;
-    report += `- Accurate detections: ${accurate} (${((accurate/reviewResults.length)*100).toFixed(1)}%)\n`;
-    report += `- False positives: ${falsePositives} (${((falsePositives/reviewResults.length)*100).toFixed(1)}%)\n`;
-    report += `- Understated issues: ${understated} (${((understated/reviewResults.length)*100).toFixed(1)}%)\n\n`;
+    report += `- Accurate detections: ${accurate} (${(
+      (accurate / reviewResults.length) *
+      100
+    ).toFixed(1)}%)\n`;
+    report += `- False positives: ${falsePositives} (${(
+      (falsePositives / reviewResults.length) *
+      100
+    ).toFixed(1)}%)\n`;
+    report += `- Understated issues: ${understated} (${(
+      (understated / reviewResults.length) *
+      100
+    ).toFixed(1)}%)\n\n`;
 
     if (falsePositives > 0) {
       report += `**Recommended Threshold Adjustments:**\n`;
@@ -301,14 +315,14 @@ export class ArchiveCalibrationTool {
 export async function demonstrateArchiveCalibration() {
   console.log('🔧 ARCHIVE CALIBRATION TOOL DEMO');
   console.log('='.repeat(80));
-  
+
   const calibrator = new ArchiveCalibrationTool();
   const results = await calibrator.calibrateWithArchives('./archives');
-  
+
   console.log('\n📊 CALIBRATION RESULTS:');
   console.log(`Flagged conversations: ${results.flaggedConversations.length}`);
   console.log(`Archive locations identified: ${results.archiveLocations.length}`);
-  
+
   if (results.flaggedConversations.length > 0) {
     console.log('\n🚨 FIRST FLAGGED CONVERSATION:');
     const first = results.flaggedConversations[0];
@@ -319,15 +333,15 @@ export async function demonstrateArchiveCalibration() {
     console.log(`Reason: ${first.reason}`);
     console.log(`\nBEFORE: "${first.directQuotes.before}"`);
     console.log(`AFTER:  "${first.directQuotes.after}"`);
-    
+
     console.log('\n🔍 SEARCH COMMANDS:');
     const location = results.archiveLocations[0];
     console.log(calibrator.generateSearchCommands(location));
   }
-  
+
   console.log('\n📋 MANUAL REVIEW GUIDE:');
   console.log(results.manualReviewGuide);
-  
+
   return results;
 }
 

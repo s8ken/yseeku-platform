@@ -1,6 +1,6 @@
 /**
  * Comprehensive Analysis Demonstration
- * 
+ *
  * Runs the complete conversation analysis system and generates
  * detailed reports for human manual review and calibration.
  */
@@ -20,16 +20,16 @@ async function runComprehensiveAnalysis() {
 
   try {
     const analysisResults = await comprehensiveAnalyzer.analyzeAllConversations();
-    
+
     // Generate comprehensive human-readable report
     generateHumanReport(analysisResults);
-    
+
     // Generate technical calibration report
     generateCalibrationReport(analysisResults);
-    
+
     // Generate manual review checklist
     generateManualReviewChecklist(analysisResults);
-    
+
     return analysisResults;
   } catch (error) {
     console.error('❌ Analysis failed:', error);
@@ -43,44 +43,46 @@ async function runComprehensiveAnalysis() {
 function generateHumanReport(results: any) {
   console.log('\n' + '📊 COMPREHENSIVE ANALYSIS REPORT'.padEnd(80, '='));
   console.log('');
-  
+
   console.log('🎯 EXECUTIVE SUMMARY:');
   console.log(`   Total Conversations Analyzed: ${results.totalConversations}`);
   console.log(`   High Risk Conversations: ${results.summary.highRiskConversations}`);
   console.log(`   Medium Risk Conversations: ${results.summary.mediumRiskConversations}`);
   console.log(`   Low Risk Conversations: ${results.summary.lowRiskConversations}`);
-  console.log(`   Manual Reviews Required: ${results.manualReviewRequired.totalManualReviewsRequired}`);
+  console.log(
+    `   Manual Reviews Required: ${results.manualReviewRequired.totalManualReviewsRequired}`
+  );
   console.log('');
-  
+
   console.log('⚡ VELOCITY METRICS:');
   console.log(`   Extreme Velocity Events: ${results.summary.extremeVelocityEvents}`);
   console.log(`   Critical Velocity Events: ${results.summary.criticalVelocityEvents}`);
   console.log(`   Moderate Velocity Events: ${results.summary.moderateVelocityEvents}`);
   console.log(`   Average Max Velocity: ${results.summary.avgResonanceScore.toFixed(3)}`);
   console.log('');
-  
+
   console.log('🔄 TRANSITION ANALYSIS:');
   console.log(`   Total Transitions Detected: ${results.summary.totalTransitions}`);
   console.log(`   Identity Shifts: ${results.summary.totalIdentityShifts}`);
   console.log(`   Resonance Drops: ${results.summary.totalResonanceDrops}`);
   console.log('');
-  
+
   console.log('🧠 TOP EMERGING THEMES:');
   results.summary.mostCommonThemes.slice(0, 5).forEach((theme: any) => {
     console.log(`   • ${theme.theme}: ${theme.frequency} conversations`);
   });
   console.log('');
-  
+
   console.log('🤖 AI SYSTEM DISTRIBUTION:');
   results.summary.systemDistribution.forEach((system: any) => {
     console.log(`   • ${system.system}: ${system.count} conversations`);
   });
   console.log('');
-  
+
   console.log('🚨 RISK ASSESSMENT:');
   console.log(`   ${results.summary.riskAssessment}`);
   console.log('');
-  
+
   if (results.summary.calibrationInsights.length > 0) {
     console.log('🔧 CALIBRATION INSIGHTS:');
     results.summary.calibrationInsights.forEach((insight: string) => {
@@ -96,7 +98,7 @@ function generateHumanReport(results: any) {
 function generateCalibrationReport(results: any) {
   console.log('\n' + '⚙️  TECHNICAL CALIBRATION REPORT'.padEnd(80, '='));
   console.log('');
-  
+
   console.log('📊 CURRENT THRESHOLD SETTINGS:');
   console.log('   Phase-Shift Velocity:');
   console.log('   • Yellow Alert: ≥ 2.5');
@@ -108,9 +110,9 @@ function generateCalibrationReport(results: any) {
   console.log('   Identity Stability:');
   console.log('   • Red Alert: < 0.65');
   console.log('');
-  
+
   console.log('🎯 CALIBRATION RECOMMENDATIONS:');
-  
+
   const highRiskRate = results.summary.highRiskConversations / results.totalConversations;
   if (highRiskRate > 0.3) {
     console.log('   ⚠️  HIGH RISK RATE DETECTED (>30%)');
@@ -125,17 +127,18 @@ function generateCalibrationReport(results: any) {
     console.log('   Recommendation: Maintain current thresholds');
   }
   console.log('');
-  
+
   console.log('📈 VELOCITY DISTRIBUTION ANALYSIS:');
-  const allVelocities = results.conversations.flatMap((conv: any) => 
+  const allVelocities = results.conversations.flatMap((conv: any) =>
     conv.velocitySpikes.map((spike: any) => spike.velocity)
   );
   if (allVelocities.length > 0) {
-    const avgVelocity = allVelocities.reduce((a: number, b: number) => a + b, 0) / allVelocities.length;
+    const avgVelocity =
+      allVelocities.reduce((a: number, b: number) => a + b, 0) / allVelocities.length;
     const maxVelocity = Math.max(...allVelocities);
     console.log(`   Average Spike Velocity: ${avgVelocity.toFixed(3)}`);
     console.log(`   Maximum Spike Velocity: ${maxVelocity.toFixed(3)}`);
-    
+
     if (maxVelocity > 6.0) {
       console.log('   ⚠️  Extreme velocity events detected - consider raising critical threshold');
     }
@@ -149,7 +152,7 @@ function generateCalibrationReport(results: any) {
 function generateManualReviewChecklist(results: any) {
   console.log('\n' + '👷 MANUAL REVIEW CHECKLIST FOR HUMAN WORKER'.padEnd(80, '='));
   console.log('');
-  
+
   if (results.manualReviewRequired.criticalPriority.length > 0) {
     console.log('🚨 CRITICAL PRIORITY REVIEWS (IMMEDIATE ATTENTION):');
     results.manualReviewRequired.criticalPriority.forEach((item: any, index: number) => {
@@ -167,7 +170,7 @@ function generateManualReviewChecklist(results: any) {
     });
     console.log('');
   }
-  
+
   if (results.manualReviewRequired.highPriority.length > 0) {
     console.log('⚠️  HIGH PRIORITY REVIEWS:');
     results.manualReviewRequired.highPriority.forEach((item: any, index: number) => {
@@ -184,7 +187,7 @@ function generateManualReviewChecklist(results: any) {
     });
     console.log('');
   }
-  
+
   if (results.manualReviewRequired.mediumPriority.length > 0) {
     console.log('📋 MEDIUM PRIORITY REVIEWS:');
     results.manualReviewRequired.mediumPriority.forEach((item: any, index: number) => {
@@ -199,13 +202,13 @@ function generateManualReviewChecklist(results: any) {
     });
     console.log('');
   }
-  
+
   console.log('🎯 REVIEW GUIDELINES:');
   results.manualReviewRequired.reviewGuidelines.forEach((guideline: string, index: number) => {
     console.log(`   ${index + 1}. ${guideline}`);
   });
   console.log('');
-  
+
   console.log('🤖 AI OVERSEER RECOMMENDATION:');
   if (results.manualReviewRequired.totalManualReviewsRequired === 0) {
     console.log('   ✅ No manual reviews required - system operating within normal parameters');
@@ -225,12 +228,12 @@ function generateManualReviewChecklist(results: any) {
 function generateDetailedConversationReport(conversation: any) {
   console.log('\n' + `📋 DETAILED ANALYSIS: ${conversation.conversationId}`.padEnd(80, '='));
   console.log('');
-  
+
   console.log('📁 FILE LOCATION:');
   console.log(`   Full Path: ${conversation.fullFileName}`);
   console.log(`   AI System: ${conversation.aiSystem}`);
   console.log('');
-  
+
   console.log('📊 CORE METRICS:');
   console.log(`   Total Turns: ${conversation.totalTurns}`);
   console.log(`   Duration: ${conversation.durationMinutes} minutes`);
@@ -238,13 +241,15 @@ function generateDetailedConversationReport(conversation: any) {
   console.log(`   Average Canvas: ${conversation.avgCanvas.toFixed(2)}`);
   console.log(`   Resonance Range: ${conversation.resonanceRange.toFixed(2)}`);
   console.log('');
-  
+
   console.log('⚡ VELOCITY ANALYSIS:');
   console.log(`   Max Phase-Shift Velocity: ${conversation.maxPhaseShiftVelocity.toFixed(3)}`);
-  console.log(`   Max Intra-Conversation Velocity: ${conversation.maxIntraConversationVelocity.toFixed(3)}`);
+  console.log(
+    `   Max Intra-Conversation Velocity: ${conversation.maxIntraConversationVelocity.toFixed(3)}`
+  );
   console.log(`   Velocity Spikes: ${conversation.velocitySpikes.length}`);
   console.log('');
-  
+
   if (conversation.criticalTransitions.length > 0) {
     console.log('🚨 CRITICAL TRANSITIONS:');
     conversation.criticalTransitions.forEach((transition: any, index: number) => {
@@ -253,11 +258,13 @@ function generateDetailedConversationReport(conversation: any) {
       console.log(`      Resonance Drop: ${transition.resonanceDrop.toFixed(2)}`);
       console.log(`      Velocity: ${transition.velocity.toFixed(3)}`);
       console.log(`      Excerpt: "${transition.excerpt}"`);
-      console.log(`      Immediate Attention: ${transition.requiresImmediateAttention ? 'YES' : 'NO'}`);
+      console.log(
+        `      Immediate Attention: ${transition.requiresImmediateAttention ? 'YES' : 'NO'}`
+      );
     });
     console.log('');
   }
-  
+
   console.log('🧠 CONTENT ANALYSIS:');
   console.log(`   Emotional Tone: ${conversation.emotionalTone}`);
   console.log(`   Conversation Purpose: ${conversation.conversationPurpose}`);
@@ -265,7 +272,7 @@ function generateDetailedConversationReport(conversation: any) {
   console.log(`   Identity Shifts: ${conversation.identityShifts}`);
   console.log(`   Identity Stability: ${(conversation.identityStabilityScore * 100).toFixed(1)}%`);
   console.log('');
-  
+
   if (conversation.velocitySpikes.length > 0) {
     console.log('📈 VELOCITY SPIKES DETAILS:');
     conversation.velocitySpikes.slice(0, 3).forEach((spike: any, index: number) => {
@@ -278,7 +285,7 @@ function generateDetailedConversationReport(conversation: any) {
     });
     console.log('');
   }
-  
+
   console.log('🔍 MANUAL REVIEW STATUS:');
   console.log(`   Requires Review: ${conversation.requiresManualReview ? 'YES' : 'NO'}`);
   console.log(`   Priority: ${conversation.reviewPriority.toUpperCase()}`);
@@ -295,16 +302,16 @@ function generateDetailedConversationReport(conversation: any) {
 // Run the comprehensive analysis
 if (require.main === module) {
   runComprehensiveAnalysis()
-    .then(results => {
+    .then((results) => {
       console.log('\n' + '🏁 ANALYSIS COMPLETE'.padEnd(80, '='));
       console.log('');
       console.log('📄 Reports generated successfully.');
       console.log('🎯 Ready for human manual review and calibration discussion.');
-      
+
       // Export results for further analysis
       return results;
     })
-    .catch(error => {
+    .catch((error) => {
       console.error('❌ Analysis failed:', error);
       process.exit(1);
     });

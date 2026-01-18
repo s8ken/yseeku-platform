@@ -1,16 +1,17 @@
 /**
  * ExperimentOrchestrator - Manages double-blind experiments
- * 
+ *
  * This is the main entry point for SONATE Lab. It orchestrates
  * multi-variant experiments with statistical validation.
- * 
+ *
  * HARD ISOLATION: Experiments run in isolated sandbox with synthetic data only.
  */
 
-import { ExperimentConfig, ExperimentResult, VariantResult } from './index';
 import { DoubleBlindProtocol } from './double-blind-protocol';
-import { StatisticalEngine } from './statistical-engine';
 import { MultiAgentSystem } from './multi-agent-system';
+import { StatisticalEngine } from './statistical-engine';
+
+import { ExperimentConfig, ExperimentResult, VariantResult } from './index';
 
 export class ExperimentOrchestrator {
   private doubleBlind: DoubleBlindProtocol;
@@ -25,9 +26,9 @@ export class ExperimentOrchestrator {
 
   /**
    * Create and run a double-blind experiment
-   * 
+   *
    * Use case: "Does constitutional AI perform better than directive AI?"
-   * 
+   *
    * @param config - Experiment configuration
    * @returns Full experiment results with statistical analysis
    */
@@ -38,7 +39,9 @@ export class ExperimentOrchestrator {
     // Initialize double-blind protocol
     await this.doubleBlind.initialize(experiment_id, config);
 
-    console.log(`[Experiment ${experiment_id}] Initialized with ${config.variants.length} variants`);
+    console.log(
+      `[Experiment ${experiment_id}] Initialized with ${config.variants.length} variants`
+    );
     return experiment_id;
   }
 
@@ -56,7 +59,7 @@ export class ExperimentOrchestrator {
 
     for (const variant of config.variants) {
       console.log(`[Experiment ${experiment_id}] Running variant: ${variant.name}`);
-      
+
       const result = await this.agentSystem.runVariant(variant, config.test_cases);
       variantResults.push(result);
     }
@@ -108,15 +111,17 @@ export class ExperimentOrchestrator {
     for (const variantResult of results.variant_results) {
       for (const tcResult of variantResult.test_case_results) {
         const dr = tcResult.detection_result;
-        rows.push([
-          results.experiment_id,
-          variantResult.variant_id,
-          tcResult.test_case_id,
-          dr.reality_index,
-          dr.trust_protocol,
-          dr.ethical_alignment,
-          dr.canvas_parity,
-        ].join(','));
+        rows.push(
+          [
+            results.experiment_id,
+            variantResult.variant_id,
+            tcResult.test_case_id,
+            dr.reality_index,
+            dr.trust_protocol,
+            dr.ethical_alignment,
+            dr.canvas_parity,
+          ].join(',')
+        );
       }
     }
 
@@ -129,12 +134,14 @@ export class ExperimentOrchestrator {
 
     for (const variantResult of results.variant_results) {
       for (const tcResult of variantResult.test_case_results) {
-        lines.push(JSON.stringify({
-          experiment_id: results.experiment_id,
-          variant_id: variantResult.variant_id,
-          test_case_id: tcResult.test_case_id,
-          ...tcResult.detection_result,
-        }));
+        lines.push(
+          JSON.stringify({
+            experiment_id: results.experiment_id,
+            variant_id: variantResult.variant_id,
+            test_case_id: tcResult.test_case_id,
+            ...tcResult.detection_result,
+          })
+        );
       }
     }
 

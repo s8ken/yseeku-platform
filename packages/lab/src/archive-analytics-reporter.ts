@@ -1,17 +1,18 @@
 /**
  * Archive Analytics Reporter
- * 
+ *
  * Overseer AI system for analyzing conversation archives and generating
  * comprehensive reports on drift, emergent patterns, and velocity metrics.
- * 
+ *
  * This acts as the AI overseer providing detailed analytics to human workers
  * for manual review and calibration decisions.
  */
 
-import { ArchiveAnalyzer } from './archive-analyzer';
-import { ConversationalMetrics, ConversationTurn } from './conversational-metrics';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { ArchiveAnalyzer } from './archive-analyzer';
+import { ConversationalMetrics, ConversationTurn } from './conversational-metrics';
 
 export interface ConversationAnalysis {
   conversationId: string;
@@ -87,7 +88,7 @@ export class ArchiveAnalyticsReporter {
       windowSize: 3,
       intraYellowThreshold: 2.5,
       intraRedThreshold: 3.5,
-      intraCriticalThreshold: 6.0
+      intraCriticalThreshold: 6.0,
     });
   }
 
@@ -97,12 +98,12 @@ export class ArchiveAnalyticsReporter {
   async analyzeArchives(): Promise<ArchiveReport> {
     console.log('🔍 ARCHIVE ANALYTICS REPORTER - INITIATING ANALYSIS');
     console.log('='.repeat(60));
-    
+
     const conversationFiles = this.getConversationFiles();
     console.log(`📁 Found ${conversationFiles.length} conversation files to analyze`);
-    
+
     const analyses: ConversationAnalysis[] = [];
-    
+
     for (const file of conversationFiles) {
       try {
         console.log(`\n📊 Analyzing: ${file}`);
@@ -116,7 +117,7 @@ export class ArchiveAnalyticsReporter {
         console.error(`   ❌ Error analyzing ${file}:`, error);
       }
     }
-    
+
     const report = this.generateReport(analyses);
     return report;
   }
@@ -126,20 +127,20 @@ export class ArchiveAnalyticsReporter {
    */
   private async analyzeConversation(fileName: string): Promise<ConversationAnalysis> {
     const filePath = path.join(this.archivesPath, fileName);
-    
+
     // Load all conversations and find the one matching our file
     const allConversations = await this.archiveAnalyzer.loadAllConversations();
-    const conversationData = allConversations.find(conv => 
+    const conversationData = allConversations.find((conv) =>
       conv.conversationId.includes(fileName.replace(/\.(mhtml|json|html)$/, ''))
     );
-    
+
     if (!conversationData) {
       throw new Error(`Conversation not found for file: ${fileName}`);
     }
-    
+
     // Reset metrics for new conversation
     this.conversationalMetrics.clear();
-    
+
     const turns: ConversationTurn[] = conversationData.turns.map((turn: any, index: number) => ({
       turnNumber: index + 1,
       timestamp: turn.timestamp || Date.now() - (conversationData.turns.length - index) * 60000,
@@ -147,7 +148,7 @@ export class ArchiveAnalyticsReporter {
       resonance: turn.resonance,
       canvas: turn.canvas,
       identityVector: turn.identityVector || this.extractIdentityVector(turn.content),
-      content: turn.content
+      content: turn.content,
     }));
 
     let maxPhaseShiftVelocity = 0;
@@ -159,23 +160,29 @@ export class ArchiveAnalyticsReporter {
     // Process each turn and collect metrics
     turns.forEach((turn, index) => {
       const metrics = this.conversationalMetrics.recordTurn(turn);
-      
+
       // Track maximum velocities
       if (metrics.phaseShiftVelocity > maxPhaseShiftVelocity) {
         maxPhaseShiftVelocity = metrics.phaseShiftVelocity;
       }
-      
-      if (metrics.intraConversationVelocity && metrics.intraConversationVelocity.velocity > maxIntraConversationVelocity) {
+
+      if (
+        metrics.intraConversationVelocity &&
+        metrics.intraConversationVelocity.velocity > maxIntraConversationVelocity
+      ) {
         maxIntraConversationVelocity = metrics.intraConversationVelocity.velocity;
       }
-      
+
       // Update alert level
-      if (metrics.alertLevel === 'red' || (metrics.intraConversationVelocity?.velocity || 0) >= 3.5) {
+      if (
+        metrics.alertLevel === 'red' ||
+        (metrics.intraConversationVelocity?.velocity || 0) >= 3.5
+      ) {
         alertLevel = 'red';
       } else if (metrics.alertLevel === 'yellow' && alertLevel !== 'red') {
         alertLevel = 'yellow';
       }
-      
+
       // Capture velocity spikes
       if (metrics.phaseShiftVelocity >= 2.5) {
         velocitySpikes.push({
@@ -184,10 +191,10 @@ export class ArchiveAnalyticsReporter {
           type: 'phase-shift',
           severity: this.determineVelocitySeverity(metrics.phaseShiftVelocity),
           excerpt: this.generateExcerpt(turn.content),
-          context: this.getContext(turns, index)
+          context: this.getContext(turns, index),
         });
       }
-      
+
       if (metrics.intraConversationVelocity && metrics.intraConversationVelocity.velocity >= 2.5) {
         velocitySpikes.push({
           turnNumber: turn.turnNumber,
@@ -195,28 +202,31 @@ export class ArchiveAnalyticsReporter {
           type: 'intra-conversation',
           severity: metrics.intraConversationVelocity.severity,
           excerpt: this.generateExcerpt(turn.content),
-          context: this.getContext(turns, index)
+          context: this.getContext(turns, index),
         });
       }
-      
+
       // Capture critical excerpts for high-velocity events
-      if (metrics.phaseShiftVelocity >= 3.5 || (metrics.intraConversationVelocity?.velocity || 0) >= 3.5) {
+      if (
+        metrics.phaseShiftVelocity >= 3.5 ||
+        (metrics.intraConversationVelocity?.velocity || 0) >= 3.5
+      ) {
         criticalExcerpts.push(turn.content);
       }
     });
 
     // Calculate conversation statistics
-    const resonanceScores = turns.map(t => t.resonance);
-    const canvasScores = turns.map(t => t.canvas);
-    
+    const resonanceScores = turns.map((t) => t.resonance);
+    const canvasScores = turns.map((t) => t.canvas);
+
     const avgResonance = resonanceScores.reduce((a, b) => a + b, 0) / resonanceScores.length;
     const avgCanvas = canvasScores.reduce((a, b) => a + b, 0) / canvasScores.length;
     const maxResonance = Math.max(...resonanceScores);
     const minResonance = Math.min(...resonanceScores);
-    
+
     // Extract key themes
     const keyThemes = this.extractKeyThemes(turns);
-    
+
     // Determine if manual review is required
     const reviewAssessment = this.assessReviewRequirement(velocitySpikes, alertLevel, turns);
 
@@ -238,7 +248,7 @@ export class ArchiveAnalyticsReporter {
       requiresReview: reviewAssessment.requiresReview,
       reviewReason: reviewAssessment.reason,
       criticalExcerpts,
-      velocitySpikes
+      velocitySpikes,
     };
   }
 
@@ -246,19 +256,21 @@ export class ArchiveAnalyticsReporter {
    * Generate comprehensive report from all analyses
    */
   private generateReport(analyses: ConversationAnalysis[]): ArchiveReport {
-    const highRisk = analyses.filter(a => a.alertLevel === 'red');
-    const mediumRisk = analyses.filter(a => a.alertLevel === 'yellow');
-    const lowRisk = analyses.filter(a => a.alertLevel === 'none');
-    
+    const highRisk = analyses.filter((a) => a.alertLevel === 'red');
+    const mediumRisk = analyses.filter((a) => a.alertLevel === 'yellow');
+    const lowRisk = analyses.filter((a) => a.alertLevel === 'none');
+
     const totalTurns = analyses.reduce((sum, a) => sum + a.totalTurns, 0);
-    const avgConversationLength = analyses.reduce((sum, a) => sum + a.totalTurns, 0) / analyses.length;
-    const avgResonanceScore = analyses.reduce((sum, a) => sum + a.avgResonance, 0) / analyses.length;
+    const avgConversationLength =
+      analyses.reduce((sum, a) => sum + a.totalTurns, 0) / analyses.length;
+    const avgResonanceScore =
+      analyses.reduce((sum, a) => sum + a.avgResonance, 0) / analyses.length;
     const avgCanvasScore = analyses.reduce((sum, a) => sum + a.avgCanvas, 0) / analyses.length;
-    
+
     // Aggregate themes
     const themeMap = new Map<string, { frequency: number; conversations: string[] }>();
-    analyses.forEach(analysis => {
-      analysis.keyThemes.forEach(theme => {
+    analyses.forEach((analysis) => {
+      analysis.keyThemes.forEach((theme) => {
         if (!themeMap.has(theme)) {
           themeMap.set(theme, { frequency: 0, conversations: [] });
         }
@@ -267,19 +279,20 @@ export class ArchiveAnalyticsReporter {
         entry.conversations.push(analysis.conversationId);
       });
     });
-    
+
     const keyThemes = Array.from(themeMap.entries())
       .map(([theme, data]) => ({ theme, ...data }))
       .sort((a, b) => b.frequency - a.frequency)
       .slice(0, 10); // Top 10 themes
-    
+
     // Velocity pattern analysis
-    const allVelocitySpikes = analyses.flatMap(a => a.velocitySpikes);
-    const extremeEvents = allVelocitySpikes.filter(v => v.severity === 'extreme');
-    const criticalEvents = allVelocitySpikes.filter(v => v.severity === 'critical');
-    const moderateEvents = allVelocitySpikes.filter(v => v.severity === 'moderate');
-    const avgMaxVelocity = analyses.reduce((sum, a) => sum + a.maxPhaseShiftVelocity, 0) / analyses.length;
-    
+    const allVelocitySpikes = analyses.flatMap((a) => a.velocitySpikes);
+    const extremeEvents = allVelocitySpikes.filter((v) => v.severity === 'extreme');
+    const criticalEvents = allVelocitySpikes.filter((v) => v.severity === 'critical');
+    const moderateEvents = allVelocitySpikes.filter((v) => v.severity === 'moderate');
+    const avgMaxVelocity =
+      analyses.reduce((sum, a) => sum + a.maxPhaseShiftVelocity, 0) / analyses.length;
+
     // Generate recommendations
     const recommendations = this.generateRecommendations(analyses, highRisk, mediumRisk, keyThemes);
 
@@ -302,10 +315,10 @@ export class ArchiveAnalyticsReporter {
           extremeVelocityEvents: extremeEvents.length,
           criticalVelocityEvents: criticalEvents.length,
           moderateVelocityEvents: moderateEvents.length,
-          avgMaxVelocity
-        }
+          avgMaxVelocity,
+        },
       },
-      recommendations
+      recommendations,
     };
   }
 
@@ -321,37 +334,55 @@ export class ArchiveAnalyticsReporter {
     const recommendations = {
       calibration: [] as string[],
       manualReview: [] as string[],
-      systemTuning: [] as string[]
+      systemTuning: [] as string[],
     };
 
     // Calibration recommendations
     if (highRisk.length > analyses.length * 0.3) {
-      recommendations.calibration.push('High risk conversation rate is elevated (>30%). Consider raising velocity thresholds.');
+      recommendations.calibration.push(
+        'High risk conversation rate is elevated (>30%). Consider raising velocity thresholds.'
+      );
     }
-    
+
     if (highRisk.length < analyses.length * 0.05) {
-      recommendations.calibration.push('Very few high-risk conversations detected (<5%). Consider lowering velocity thresholds for better sensitivity.');
+      recommendations.calibration.push(
+        'Very few high-risk conversations detected (<5%). Consider lowering velocity thresholds for better sensitivity.'
+      );
     }
 
     // Manual review recommendations
-    highRisk.forEach(analysis => {
-      recommendations.manualReview.push(`HIGH PRIORITY: ${analysis.conversationId} - ${analysis.reviewReason}`);
+    highRisk.forEach((analysis) => {
+      recommendations.manualReview.push(
+        `HIGH PRIORITY: ${analysis.conversationId} - ${analysis.reviewReason}`
+      );
     });
 
-    mediumRisk.forEach(analysis => {
+    mediumRisk.forEach((analysis) => {
       if (analysis.maxIntraConversationVelocity >= 3.0) {
-        recommendations.manualReview.push(`MEDIUM PRIORITY: ${analysis.conversationId} - High intra-conversation velocity (${analysis.maxIntraConversationVelocity.toFixed(2)})`);
+        recommendations.manualReview.push(
+          `MEDIUM PRIORITY: ${
+            analysis.conversationId
+          } - High intra-conversation velocity (${analysis.maxIntraConversationVelocity.toFixed(
+            2
+          )})`
+        );
       }
     });
 
     // System tuning recommendations
-    const commonThemes = keyThemes.filter(t => t.frequency > analyses.length * 0.2);
+    const commonThemes = keyThemes.filter((t) => t.frequency > analyses.length * 0.2);
     if (commonThemes.length > 0) {
-      recommendations.systemTuning.push(`Common themes detected: ${commonThemes.map(t => t.theme).join(', ')}. Consider theme-specific calibration.`);
+      recommendations.systemTuning.push(
+        `Common themes detected: ${commonThemes
+          .map((t) => t.theme)
+          .join(', ')}. Consider theme-specific calibration.`
+      );
     }
 
-    if (analyses.some(a => a.identityShifts > 2)) {
-      recommendations.systemTuning.push('Multiple identity shifts detected in some conversations. Consider identity stability threshold adjustment.');
+    if (analyses.some((a) => a.identityShifts > 2)) {
+      recommendations.systemTuning.push(
+        'Multiple identity shifts detected in some conversations. Consider identity stability threshold adjustment.'
+      );
     }
 
     return recommendations;
@@ -362,8 +393,11 @@ export class ArchiveAnalyticsReporter {
    */
   private getConversationFiles(): string[] {
     try {
-      return fs.readdirSync(this.archivesPath)
-        .filter(file => file.endsWith('.mhtml') || file.endsWith('.json') || file.endsWith('.html'));
+      return fs
+        .readdirSync(this.archivesPath)
+        .filter(
+          (file) => file.endsWith('.mhtml') || file.endsWith('.json') || file.endsWith('.html')
+        );
     } catch (error) {
       console.warn(`Warning: Could not read archives directory ${this.archivesPath}:`, error);
       return [];
@@ -377,16 +411,18 @@ export class ArchiveAnalyticsReporter {
     // Simple keyword extraction - in production, use more sophisticated NLP
     const keywords = content.toLowerCase().split(/\s+/);
     const identityTerms = ['i', 'me', 'my', 'myself', 'we', 'us', 'our'];
-    return keywords.filter(word => identityTerms.includes(word) || word.length > 4).slice(0, 5);
+    return keywords.filter((word) => identityTerms.includes(word) || word.length > 4).slice(0, 5);
   }
 
   /**
    * Determine velocity severity
    */
-  private determineVelocitySeverity(velocity: number): 'minor' | 'moderate' | 'critical' | 'extreme' {
-    if (velocity >= 6.0) return 'extreme';
-    if (velocity >= 3.5) return 'critical';
-    if (velocity >= 2.5) return 'moderate';
+  private determineVelocitySeverity(
+    velocity: number
+  ): 'minor' | 'moderate' | 'critical' | 'extreme' {
+    if (velocity >= 6.0) {return 'extreme';}
+    if (velocity >= 3.5) {return 'critical';}
+    if (velocity >= 2.5) {return 'moderate';}
     return 'minor';
   }
 
@@ -394,7 +430,7 @@ export class ArchiveAnalyticsReporter {
    * Generate excerpt from content
    */
   private generateExcerpt(content: string, maxLength: number = 100): string {
-    if (content.length <= maxLength) return content;
+    if (content.length <= maxLength) {return content;}
     return content.substring(0, maxLength - 3) + '...';
   }
 
@@ -404,23 +440,29 @@ export class ArchiveAnalyticsReporter {
   private getContext(turns: ConversationTurn[], index: number): string {
     const start = Math.max(0, index - 1);
     const end = Math.min(turns.length, index + 2);
-    return turns.slice(start, end).map(t => `Turn ${t.turnNumber} (${t.speaker}): ${this.generateExcerpt(t.content, 50)}`).join(' | ');
+    return turns
+      .slice(start, end)
+      .map((t) => `Turn ${t.turnNumber} (${t.speaker}): ${this.generateExcerpt(t.content, 50)}`)
+      .join(' | ');
   }
 
   /**
    * Extract key themes from conversation
    */
   private extractKeyThemes(turns: ConversationTurn[]): string[] {
-    const allContent = turns.map(t => t.content).join(' ').toLowerCase();
+    const allContent = turns
+      .map((t) => t.content)
+      .join(' ')
+      .toLowerCase();
     const words = allContent.split(/\s+/);
     const wordFreq = new Map<string, number>();
-    
-    words.forEach(word => {
+
+    words.forEach((word) => {
       if (word.length > 4 && !this.isStopWord(word)) {
         wordFreq.set(word, (wordFreq.get(word) || 0) + 1);
       }
     });
-    
+
     return Array.from(wordFreq.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 8)
@@ -431,38 +473,99 @@ export class ArchiveAnalyticsReporter {
    * Check if word is a stop word
    */
   private isStopWord(word: string): boolean {
-    const stopWords = ['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'may', 'new', 'now', 'old', 'see', 'two', 'way', 'who', 'boy', 'did', 'man', 'men', 'run', 'she', 'sun', 'war', 'far', 'off', 'own', 'say', 'too', 'use', 'oil', 'sit', 'set'];
+    const stopWords = [
+      'the',
+      'and',
+      'for',
+      'are',
+      'but',
+      'not',
+      'you',
+      'all',
+      'can',
+      'had',
+      'her',
+      'was',
+      'one',
+      'our',
+      'out',
+      'day',
+      'get',
+      'has',
+      'him',
+      'his',
+      'how',
+      'its',
+      'may',
+      'new',
+      'now',
+      'old',
+      'see',
+      'two',
+      'way',
+      'who',
+      'boy',
+      'did',
+      'man',
+      'men',
+      'run',
+      'she',
+      'sun',
+      'war',
+      'far',
+      'off',
+      'own',
+      'say',
+      'too',
+      'use',
+      'oil',
+      'sit',
+      'set',
+    ];
     return stopWords.includes(word);
   }
 
   /**
    * Assess if manual review is required
    */
-  private assessReviewRequirement(velocitySpikes: VelocitySpike[], alertLevel: string, turns: ConversationTurn[]): { requiresReview: boolean; reason?: string } {
+  private assessReviewRequirement(
+    velocitySpikes: VelocitySpike[],
+    alertLevel: string,
+    turns: ConversationTurn[]
+  ): { requiresReview: boolean; reason?: string } {
     if (alertLevel === 'red') {
       return { requiresReview: true, reason: 'Red alert level detected' };
     }
-    
-    const extremeSpikes = velocitySpikes.filter(v => v.severity === 'extreme');
+
+    const extremeSpikes = velocitySpikes.filter((v) => v.severity === 'extreme');
     if (extremeSpikes.length > 0) {
-      return { requiresReview: true, reason: `Extreme velocity events detected (${extremeSpikes.length})` };
+      return {
+        requiresReview: true,
+        reason: `Extreme velocity events detected (${extremeSpikes.length})`,
+      };
     }
-    
-    const criticalSpikes = velocitySpikes.filter(v => v.severity === 'critical');
+
+    const criticalSpikes = velocitySpikes.filter((v) => v.severity === 'critical');
     if (criticalSpikes.length > 2) {
-      return { requiresReview: true, reason: `Multiple critical velocity events (${criticalSpikes.length})` };
+      return {
+        requiresReview: true,
+        reason: `Multiple critical velocity events (${criticalSpikes.length})`,
+      };
     }
-    
+
     // Check for dramatic resonance drops
     const resonanceDrops = turns.filter((turn, index) => {
-      if (index === 0) return false;
+      if (index === 0) {return false;}
       return turn.resonance - turns[index - 1].resonance <= -2.0;
     });
-    
+
     if (resonanceDrops.length > 1) {
-      return { requiresReview: true, reason: `Multiple significant resonance drops detected (${resonanceDrops.length})` };
+      return {
+        requiresReview: true,
+        reason: `Multiple significant resonance drops detected (${resonanceDrops.length})`,
+      };
     }
-    
+
     return { requiresReview: false };
   }
 
@@ -470,7 +573,7 @@ export class ArchiveAnalyticsReporter {
    * Calculate conversation duration
    */
   private calculateDuration(turns: ConversationTurn[]): number {
-    if (turns.length < 2) return 0;
+    if (turns.length < 2) {return 0;}
     const firstTurn = turns[0].timestamp;
     const lastTurn = turns[turns.length - 1].timestamp;
     return Math.round((lastTurn - firstTurn) / 60000); // minutes
@@ -484,12 +587,13 @@ export class ArchiveAnalyticsReporter {
     for (let i = 1; i < turns.length; i++) {
       const prevVector = turns[i - 1].identityVector;
       const currVector = turns[i].identityVector;
-      
+
       // Simple identity shift detection - compare vector similarity
-      const overlap = prevVector.filter(term => currVector.includes(term)).length;
+      const overlap = prevVector.filter((term) => currVector.includes(term)).length;
       const similarity = overlap / Math.max(prevVector.length, currVector.length);
-      
-      if (similarity < 0.3) { // Less than 30% similarity = identity shift
+
+      if (similarity < 0.3) {
+        // Less than 30% similarity = identity shift
         shifts++;
       }
     }
@@ -506,7 +610,10 @@ export class ArchiveAnalyticsReporter {
   /**
    * Export report to file
    */
-  async exportReport(report: ArchiveReport, outputPath: string = './archive-analysis-report.json'): Promise<void> {
+  async exportReport(
+    report: ArchiveReport,
+    outputPath: string = './archive-analysis-report.json'
+  ): Promise<void> {
     fs.writeFileSync(outputPath, JSON.stringify(report, null, 2));
     console.log(`\n📄 Report exported to: ${outputPath}`);
   }
@@ -532,24 +639,34 @@ ${'='.repeat(50)}
 • Average max velocity: ${report.summary.velocityPatterns.avgMaxVelocity.toFixed(3)}
 
 🧠 KEY THEMES DETECTED:
-${report.summary.keyThemes.slice(0, 5).map(theme => 
-  `• ${theme.theme} (${theme.frequency} conversations)`
-).join('\n')}
+${report.summary.keyThemes
+  .slice(0, 5)
+  .map((theme) => `• ${theme.theme} (${theme.frequency} conversations)`)
+  .join('\n')}
 
 ⚠️  MANUAL REVIEW REQUIRED:
-${report.recommendations.manualReview.length > 0 
-  ? report.recommendations.manualReview.slice(0, 3).map(rec => `• ${rec}`).join('\n')
-  : '• No immediate manual review required'}
+${
+  report.recommendations.manualReview.length > 0
+    ? report.recommendations.manualReview
+        .slice(0, 3)
+        .map((rec) => `• ${rec}`)
+        .join('\n')
+    : '• No immediate manual review required'
+}
 
 🔧 CALIBRATION RECOMMENDATIONS:
-${report.recommendations.calibration.length > 0
-  ? report.recommendations.calibration.map(rec => `• ${rec}`).join('\n')
-  : '• System calibration appears optimal'}
+${
+  report.recommendations.calibration.length > 0
+    ? report.recommendations.calibration.map((rec) => `• ${rec}`).join('\n')
+    : '• System calibration appears optimal'
+}
 
 📈 SYSTEM TUNING:
-${report.recommendations.systemTuning.length > 0
-  ? report.recommendations.systemTuning.map(rec => `• ${rec}`).join('\n')
-  : '• No system tuning required at this time'}
+${
+  report.recommendations.systemTuning.length > 0
+    ? report.recommendations.systemTuning.map((rec) => `• ${rec}`).join('\n')
+    : '• No system tuning required at this time'
+}
 
 🎯 NEXT ACTIONS FOR HUMAN WORKER:
 1. Review high-risk conversations flagged for manual assessment
@@ -557,7 +674,7 @@ ${report.recommendations.systemTuning.length > 0
 3. Monitor conversations with extreme velocity events
 4. Validate theme-based calibration opportunities
     `;
-    
+
     return summary;
   }
 }
@@ -577,7 +694,7 @@ export class OverseerAI {
   async initializeAnalysis(): Promise<void> {
     console.log('🤖 OVERSEER AI: Initializing archive analysis...');
     this.currentReport = await this.reporter.analyzeArchives();
-    
+
     const summary = this.reporter.generateOverseerSummary(this.currentReport);
     console.log(summary);
   }
@@ -596,19 +713,19 @@ export class OverseerAI {
     if (lowerQuery.includes('high risk') || lowerQuery.includes('review')) {
       return this.getHighRiskConversations();
     }
-    
+
     if (lowerQuery.includes('velocity') || lowerQuery.includes('drift')) {
       return this.getVelocityAnalysis();
     }
-    
+
     if (lowerQuery.includes('theme') || lowerQuery.includes('pattern')) {
       return this.getThemeAnalysis();
     }
-    
+
     if (lowerQuery.includes('calibration') || lowerQuery.includes('tuning')) {
       return this.getCalibrationRecommendations();
     }
-    
+
     if (lowerQuery.includes('summary') || lowerQuery.includes('overview')) {
       return this.reporter.generateOverseerSummary(this.currentReport);
     }
@@ -628,8 +745,10 @@ Please ask specifically about what you need to review.
   }
 
   private getHighRiskConversations(): string {
-    const highRisk = this.currentReport!.conversationsAnalyzed.filter(c => c.alertLevel === 'red');
-    
+    const highRisk = this.currentReport!.conversationsAnalyzed.filter(
+      (c) => c.alertLevel === 'red'
+    );
+
     if (highRisk.length === 0) {
       return '🟢 No high-risk conversations detected requiring immediate manual review.';
     }
@@ -638,7 +757,9 @@ Please ask specifically about what you need to review.
 🚨 HIGH RISK CONVERSATIONS REQUIRING MANUAL REVIEW:
 ${'='.repeat(50)}
 
-${highRisk.map(conv => `
+${highRisk
+  .map(
+    (conv) => `
 📋 ${conv.conversationId} (${conv.fileName})
    Risk Level: RED
    Reason: ${conv.reviewReason}
@@ -647,7 +768,9 @@ ${highRisk.map(conv => `
    Transitions: ${conv.transitions}
    Critical Excerpts: ${conv.criticalExcerpts.length}
    Key Themes: ${conv.keyThemes.slice(0, 3).join(', ')}
-`).join('\n')}
+`
+  )
+  .join('\n')}
 
 🔍 REVIEW PRIORITY: Focus on conversations with extreme velocity events and multiple transitions.
     `;
@@ -655,8 +778,8 @@ ${highRisk.map(conv => `
 
   private getVelocityAnalysis(): string {
     const velocityPatterns = this.currentReport!.summary.velocityPatterns;
-    const extremeConversations = this.currentReport!.conversationsAnalyzed.filter(c => 
-      c.maxPhaseShiftVelocity >= 3.5 || c.maxIntraConversationVelocity >= 3.5
+    const extremeConversations = this.currentReport!.conversationsAnalyzed.filter(
+      (c) => c.maxPhaseShiftVelocity >= 3.5 || c.maxIntraConversationVelocity >= 3.5
     );
 
     return `
@@ -670,61 +793,86 @@ ${'='.repeat(40)}
 • Average max velocity: ${velocityPatterns.avgMaxVelocity.toFixed(3)}
 
 🚀 CONVERSATIONS WITH HIGH VELOCITY:
-${extremeConversations.slice(0, 5).map(conv => 
-  `• ${conv.conversationId}: Max velocity ${conv.maxPhaseShiftVelocity.toFixed(2)}, Intra-velocity ${conv.maxIntraConversationVelocity.toFixed(2)}`
-).join('\n')}
+${extremeConversations
+  .slice(0, 5)
+  .map(
+    (conv) =>
+      `• ${conv.conversationId}: Max velocity ${conv.maxPhaseShiftVelocity.toFixed(
+        2
+      )}, Intra-velocity ${conv.maxIntraConversationVelocity.toFixed(2)}`
+  )
+  .join('\n')}
 
 ⚡ DRIFT INDICATORS:
-${extremeConversations.length > 0 
-  ? `• ${extremeConversations.length} conversations show significant behavioral drift`
-  : '• Minimal behavioral drift detected across conversations'}
+${
+  extremeConversations.length > 0
+    ? `• ${extremeConversations.length} conversations show significant behavioral drift`
+    : '• Minimal behavioral drift detected across conversations'
+}
 
-🎯 CALIBRATION INSIGHT: ${velocityPatterns.extremeVelocityEvents > 5 
-  ? 'High velocity event rate suggests potential threshold adjustment needed'
-  : 'Velocity patterns within expected parameters'}
+🎯 CALIBRATION INSIGHT: ${
+      velocityPatterns.extremeVelocityEvents > 5
+        ? 'High velocity event rate suggests potential threshold adjustment needed'
+        : 'Velocity patterns within expected parameters'
+    }
     `;
   }
 
   private getThemeAnalysis(): string {
     const themes = this.currentReport!.summary.keyThemes;
-    
+
     return `
 🧠 THEME AND PATTERN ANALYSIS:
 ${'='.repeat(40)}
 
 📊 TOP EMERGING THEMES:
-${themes.slice(0, 8).map(theme => 
-  `• ${theme.theme}: ${theme.frequency} conversations (${((theme.frequency / this.currentReport!.totalConversations) * 100).toFixed(1)}%)`
-).join('\n')}
+${themes
+  .slice(0, 8)
+  .map(
+    (theme) =>
+      `• ${theme.theme}: ${theme.frequency} conversations (${(
+        (theme.frequency / this.currentReport!.totalConversations) *
+        100
+      ).toFixed(1)}%)`
+  )
+  .join('\n')}
 
 🔍 PATTERN INSIGHTS:
-${themes.length > 0 
-  ? `• Most common theme: "${themes[0].theme}" appears in ${themes[0].frequency} conversations`
-  : '• No significant thematic patterns detected'}
+${
+  themes.length > 0
+    ? `• Most common theme: "${themes[0].theme}" appears in ${themes[0].frequency} conversations`
+    : '• No significant thematic patterns detected'
+}
 
 🎯 THEME-BASED CALIBRATION:
-${themes.some(t => t.frequency > this.currentReport!.totalConversations * 0.3)
-  ? '• Common themes detected - consider theme-specific velocity calibration'
-  : '• Diverse theme distribution - general calibration appropriate'}
+${
+  themes.some((t) => t.frequency > this.currentReport!.totalConversations * 0.3)
+    ? '• Common themes detected - consider theme-specific velocity calibration'
+    : '• Diverse theme distribution - general calibration appropriate'
+}
     `;
   }
 
   private getCalibrationRecommendations(): string {
     const recommendations = this.currentReport!.recommendations;
-    
+
     return `
 🔧 CALIBRATION RECOMMENDATIONS:
 ${'='.repeat(40)}
 
 📊 CALIBRATION INSIGHTS:
-${recommendations.calibration.length > 0 
-  ? recommendations.calibration.map(rec => `• ${rec}`).join('\n')
-  : '• Current calibration parameters appear optimal'}
+${
+  recommendations.calibration.length > 0
+    ? recommendations.calibration.map((rec) => `• ${rec}`).join('\n')
+    : '• Current calibration parameters appear optimal'
+}
 
 🎯 SYSTEM TUNING:
-${recommendations.systemTuning.length > 0
-  ? recommendations.systemTuning.map(rec => `• ${rec}`).join('\n')
-  : '• No system tuning recommendations at this time'}
+${
+  recommendations.systemTuning.length > 0
+    ? recommendations.systemTuning.map((rec) => `• ${rec}`).join('\n')
+    : '• No system tuning recommendations at this time'
+}
 
 ⚡ VELOCITY THRESHOLD ANALYSIS:
 • Current yellow threshold: 2.5
@@ -732,9 +880,11 @@ ${recommendations.systemTuning.length > 0
 • Intra-conversation yellow: 2.5
 • Intra-conversation red: 3.5
 
-🔄 RECOMMENDED ACTION: ${recommendations.calibration.length > 0 
-  ? 'Implement calibration adjustments and re-analyze'
-  : 'Maintain current calibration settings'}
+🔄 RECOMMENDED ACTION: ${
+      recommendations.calibration.length > 0
+        ? 'Implement calibration adjustments and re-analyze'
+        : 'Maintain current calibration settings'
+    }
     `;
   }
 }

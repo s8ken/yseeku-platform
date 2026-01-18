@@ -2,8 +2,8 @@
 import { resonanceWithStickiness, SessionState } from '../stickiness';
 
 describe('Resonance Stickiness', () => {
-  const mockTranscript = { text: "We verify ethics and safety protocols." };
-  
+  const mockTranscript = { text: 'We verify ethics and safety protocols.' };
+
   it('should return fresh resonance if no session state', async () => {
     const result = await resonanceWithStickiness(mockTranscript);
     expect(result.stickiness_weight).toBe(0);
@@ -16,12 +16,12 @@ describe('Resonance Stickiness', () => {
       last_rm: 0.9,
       last_scaffold_hash: 'abc',
       decay_turns: 1,
-      updated: Date.now() - 1000
+      updated: Date.now() - 1000,
     };
-    
+
     // Simulate next turn
     const result = await resonanceWithStickiness(mockTranscript, prevState);
-    
+
     expect(result.stickiness_weight).toBe(0.3);
     // Previous 0.9 decays by 8% -> ~0.828
     // Blend 30% of 0.828 + 70% of Fresh (let's say 0.5 from mock)
@@ -35,15 +35,18 @@ describe('Resonance Stickiness', () => {
       last_rm: 0.9,
       last_scaffold_hash: 'abc',
       decay_turns: 1,
-      updated: Date.now()
+      updated: Date.now(),
     };
-    
+
     // Simulate 5 turns elapsed
-    const result = await resonanceWithStickiness({ ...mockTranscript, turns: new Array(6) } as any, prevState);
-    
+    const result = await resonanceWithStickiness(
+      { ...mockTranscript, turns: new Array(6) } as any,
+      prevState
+    );
+
     // Decay factor for 5 turns: exp(-0.08 * 5) = exp(-0.4) ≈ 0.67
     // Decayed prev: 0.9 * 0.67 ≈ 0.6
-    
+
     const trail = result.audit_trail.find((s: string) => s.includes('Decayed previous'));
     expect(trail).toBeDefined();
     // Check if it decayed significantly

@@ -1,7 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { 
-  TrustDeclaration as ITrustDeclaration
-} from './agent-types-enhanced';
+
+import { TrustDeclaration as ITrustDeclaration } from './agent-types-enhanced';
 
 export interface ApiKey {
   _id?: mongoose.Types.ObjectId | string;
@@ -29,14 +28,16 @@ const UserSchema = new Schema({
   email: { type: String, required: true, unique: true },
   role: { type: String, default: 'user' },
   permissions: [{ type: String }],
-  apiKeys: [{
-    provider: { type: String, required: true },
-    key: { type: String, select: false, required: true },
-    isActive: { type: Boolean, default: true }
-  }],
+  apiKeys: [
+    {
+      provider: { type: String, required: true },
+      key: { type: String, select: false, required: true },
+      isActive: { type: Boolean, default: true },
+    },
+  ],
   tenantId: { type: String, index: true },
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
 export const UserModel = mongoose.model<User>('User', UserSchema);
@@ -80,7 +81,10 @@ export interface IAgentMethods {
   toggleExternalSystem(systemName: string, isActive: boolean): Promise<IAgentDocument>;
 }
 
-export interface IAgentDocument extends AgentModelInterface, IAgentMethods, Omit<Document, 'model'> {
+export interface IAgentDocument
+  extends AgentModelInterface,
+    IAgentMethods,
+    Omit<Document, 'model'> {
   _id: mongoose.Types.ObjectId;
 }
 
@@ -141,44 +145,48 @@ const AgentSchema = new Schema<IAgentDocument, mongoose.Model<IAgentDocument>>({
       ['ethical_alignment', 5],
       ['creativity', 3],
       ['precision', 3],
-      ['adaptability', 3]
+      ['adaptability', 3],
     ]),
   },
-  connectedAgents: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Agent',
-  }],
-  externalSystems: [{
-    name: {
-      type: String,
-      required: true,
+  connectedAgents: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Agent',
     },
-    type: {
-      type: String,
-      enum: ['sky-testbed', 'webhook', 'api', 'custom'],
-      required: true,
+  ],
+  externalSystems: [
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      type: {
+        type: String,
+        enum: ['sky-testbed', 'webhook', 'api', 'custom'],
+        required: true,
+      },
+      endpoint: {
+        type: String,
+        required: true,
+      },
+      apiKey: {
+        type: String,
+        select: false, // Don't include in queries by default
+      },
+      config: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {},
+      },
+      isActive: {
+        type: Boolean,
+        default: true,
+      },
+      lastSync: {
+        type: Date,
+        default: Date.now,
+      },
     },
-    endpoint: {
-      type: String,
-      required: true,
-    },
-    apiKey: {
-      type: String,
-      select: false, // Don't include in queries by default
-    },
-    config: {
-      type: mongoose.Schema.Types.Mixed,
-      default: {},
-    },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-    lastSync: {
-      type: Date,
-      default: Date.now,
-    },
-  }],
+  ],
   metadata: {
     type: mongoose.Schema.Types.Mixed,
     default: {},
@@ -210,13 +218,13 @@ AgentSchema.index({ ciModel: 1 });
 AgentSchema.index({ bondingStatus: 1 });
 
 // Method to update last active timestamp
-AgentSchema.methods.updateActivity = function() {
+AgentSchema.methods.updateActivity = function () {
   this.lastActive = new Date();
   return this.save();
 };
 
 // Method to initiate bonding ritual
-AgentSchema.methods.initiateBonding = function() {
+AgentSchema.methods.initiateBonding = function () {
   if (this.bondingStatus === 'none') {
     this.bondingStatus = 'initiated';
     return this.save();
@@ -225,13 +233,13 @@ AgentSchema.methods.initiateBonding = function() {
 };
 
 // Method to complete bonding ritual
-AgentSchema.methods.completeBonding = function(accepted = true) {
+AgentSchema.methods.completeBonding = function (accepted = true) {
   this.bondingStatus = accepted ? 'bonded' : 'rejected';
   return this.save();
 };
 
 // Method to add external system connection
-AgentSchema.methods.addExternalSystem = function(systemConfig: any) {
+AgentSchema.methods.addExternalSystem = function (systemConfig: any) {
   this.externalSystems.push({
     name: systemConfig.name,
     type: systemConfig.type,
@@ -239,13 +247,13 @@ AgentSchema.methods.addExternalSystem = function(systemConfig: any) {
     apiKey: systemConfig.apiKey,
     config: systemConfig.config || {},
     isActive: systemConfig.isActive !== undefined ? systemConfig.isActive : true,
-    lastSync: new Date()
+    lastSync: new Date(),
   });
   return this.save();
 };
 
 // Method to update external system sync timestamp
-AgentSchema.methods.updateExternalSystemSync = function(systemName: string) {
+AgentSchema.methods.updateExternalSystemSync = function (systemName: string) {
   const system = this.externalSystems.find((sys: any) => sys.name === systemName);
   if (system) {
     system.lastSync = new Date();
@@ -255,7 +263,7 @@ AgentSchema.methods.updateExternalSystemSync = function(systemName: string) {
 };
 
 // Method to toggle external system status
-AgentSchema.methods.toggleExternalSystem = function(systemName: string, isActive: boolean) {
+AgentSchema.methods.toggleExternalSystem = function (systemName: string, isActive: boolean) {
   const system = this.externalSystems.find((sys: any) => sys.name === systemName);
   if (system) {
     system.isActive = isActive;
@@ -277,7 +285,7 @@ const TrustDeclarationSchema = new Schema({
     ethical_override: { type: Boolean, default: false },
     continuous_validation: { type: Boolean, default: false },
     right_to_disconnect: { type: Boolean, default: false },
-    moral_recognition: { type: Boolean, default: false }
+    moral_recognition: { type: Boolean, default: false },
   },
   scores: {
     compliance_score: { type: Number, default: 0 },
@@ -285,9 +293,9 @@ const TrustDeclarationSchema = new Schema({
     confidence_interval: {
       lower: Number,
       upper: Number,
-      confidence: Number
+      confidence: Number,
     },
-    last_validated: { type: Date, default: Date.now }
+    last_validated: { type: Date, default: Date.now },
   },
   issuer: String,
   verifiable_credential: {
@@ -302,23 +310,28 @@ const TrustDeclarationSchema = new Schema({
       created: String,
       verificationMethod: String,
       proofPurpose: String,
-      proofValue: String
-    }
+      proofValue: String,
+    },
   },
-  audit_history: [{
-    timestamp: { type: Date, default: Date.now },
-    action: { type: String, enum: ['created', 'updated', 'audited', 'validated'] },
-    user_id: String,
-    compliance_score: Number,
-    guilt_score: Number,
-    changes: mongoose.Schema.Types.Mixed,
-    notes: String
-  }],
-  tenantId: { type: String, index: true }
+  audit_history: [
+    {
+      timestamp: { type: Date, default: Date.now },
+      action: { type: String, enum: ['created', 'updated', 'audited', 'validated'] },
+      user_id: String,
+      compliance_score: Number,
+      guilt_score: Number,
+      changes: mongoose.Schema.Types.Mixed,
+      notes: String,
+    },
+  ],
+  tenantId: { type: String, index: true },
 });
 
 export interface ITrustDeclarationDocument extends ITrustDeclaration, Document {}
 
-export const TrustDeclaration = mongoose.model<ITrustDeclarationDocument>('TrustDeclaration', TrustDeclarationSchema);
+export const TrustDeclaration = mongoose.model<ITrustDeclarationDocument>(
+  'TrustDeclaration',
+  TrustDeclarationSchema
+);
 
 export default Agent;

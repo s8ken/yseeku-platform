@@ -6,21 +6,21 @@ import { randomBytes, randomUUID } from 'crypto';
  */
 export interface SessionContext {
   session_id: string;
-  nonce: string;        // 64 hex chars (32 bytes)
-  ttl_ms: number;       // 24h default
-  created: number;      // Unix timestamp
+  nonce: string; // 64 hex chars (32 bytes)
+  ttl_ms: number; // 24h default
+  created: number; // Unix timestamp
 }
 
 export function generateSessionContext(): SessionContext {
   const session_id = randomUUID();
   const nonce = randomBytes(32).toString('hex');
   const created = Date.now();
-  
+
   return {
     session_id,
     nonce,
     ttl_ms: 24 * 60 * 60 * 1000, // 24h
-    created
+    created,
   };
 }
 

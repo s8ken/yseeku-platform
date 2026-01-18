@@ -1,10 +1,20 @@
 import { APIKeyManager, getAPIKeyManager } from '../security/api-keys';
-import { initializeAuditLogger, getAuditLogger, InMemoryAuditStorage, AuditEventType, AuditSeverity } from '../security/audit';
+import {
+  initializeAuditLogger,
+  getAuditLogger,
+  InMemoryAuditStorage,
+  AuditEventType,
+  AuditSeverity,
+} from '../security/audit';
+import {
+  InMemoryRateLimitStore,
+  createRateLimiter,
+  RateLimitConfig,
+} from '../security/rate-limiter';
 import { getRBACManager, Permission, Role } from '../security/rbac';
-import { InMemoryRateLimitStore, createRateLimiter, RateLimitConfig } from '../security/rate-limiter';
 
 function assert(condition: boolean, message: string) {
-  if (!condition) throw new Error(message);
+  if (!condition) {throw new Error(message);}
 }
 
 async function testAPIKeys() {
@@ -21,7 +31,9 @@ async function testAPIKeys() {
 async function testAudit() {
   initializeAuditLogger(new InMemoryAuditStorage());
   const audit = getAuditLogger();
-  await audit.log(AuditEventType.SYSTEM_STARTED, 'system start', 'success', { severity: AuditSeverity.INFO });
+  await audit.log(AuditEventType.SYSTEM_STARTED, 'system start', 'success', {
+    severity: AuditSeverity.INFO,
+  });
   const items = await audit.query({ limit: 10 });
   assert(items.length >= 1, 'Audit log should contain events');
 }
@@ -37,7 +49,12 @@ async function testRBAC() {
 
 async function testRateLimiterBasic() {
   const store = new InMemoryRateLimitStore();
-  const config: RateLimitConfig = { windowMs: 1000, maxRequests: 2, identifier: 'test', identifierType: 'ip' };
+  const config: RateLimitConfig = {
+    windowMs: 1000,
+    maxRequests: 2,
+    identifier: 'test',
+    identifierType: 'ip',
+  };
   const limiter = createRateLimiter(store);
   const r1 = await limiter.checkLimit(config);
   const r2 = await limiter.checkLimit(config);
@@ -54,7 +71,15 @@ async function main() {
   ] as const;
   const results: string[] = [];
   for (const [name, fn] of tests) {
-    try { await fn(); results.push(`PASS: ${name}`); } catch (e: any) { results.push(`FAIL: ${name} -> ${e?.message || e}`); console.error(results.join('\n')); process.exitCode = 1; return; }
+    try {
+      await fn();
+      results.push(`PASS: ${name}`);
+    } catch (e: any) {
+      results.push(`FAIL: ${name} -> ${e?.message || e}`);
+      console.error(results.join('\n'));
+      process.exitCode = 1;
+      return;
+    }
   }
   console.log(results.join('\n'));
 }

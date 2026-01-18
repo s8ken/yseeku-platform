@@ -38,7 +38,8 @@ export const applyGuardrails = asyncHandler(async (req: Request, res: Response) 
     sections.push(buildDualTrack());
   }
 
-  const final_response = sections.length ? `${sections.join(' ')}\n\n${draft_response}` : draft_response;
+  const final_response = sections.length
+    ? `${sections.join(' ')}\n\n${draft_response}`
+    : draft_response;
   res.json({ success: true, final_response, actions });
 });
-

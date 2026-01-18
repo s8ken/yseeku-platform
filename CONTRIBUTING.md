@@ -27,6 +27,19 @@
    - `npm --workspace @sonate/orchestrate run test`
    - `npm --workspace @sonate/lab run test`
 
+## Reproducing CI Locally
+To reproduce the GitHub Actions CI steps locally:
+
+1. Install dependencies via `npm ci` (clean install matching CI).
+2. Run formatting and lint checks:
+   - `npm run format:check`
+   - `npm run lint`
+3. Run unit tests: `npm run test` (packages run as in CI).
+4. Build backend: `npm run build:backend`.
+5. Install Playwright browsers if running E2E: `npx playwright install --with-deps`.
+6. Start backend and web locally and run Playwright tests if desired (use the same commands used in `.github/workflows/ci.yml`).
+
+This sequence matches the CI steps so you can iterate locally before opening PRs.
 ## Environment Variables
 - `SONATE_PUBLIC_KEY` (base64 Ed25519 public key)
 - `SONATE_PRIVATE_KEY` (development only)

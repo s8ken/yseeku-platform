@@ -1,6 +1,6 @@
 /**
  * Performance Profiler for Detection Pipeline
- * 
+ *
  * Real-time performance monitoring and optimization recommendations
  */
 
@@ -48,7 +48,7 @@ export class PerformanceProfiler {
   recordProfile(profile: DetectionProfile): void {
     this.profiles.push(profile);
     this.detectionCount++;
-    
+
     if (profile.cacheHit) {
       this.cacheHits++;
     }
@@ -76,13 +76,13 @@ export class PerformanceProfiler {
   getCurrentMetrics(): PerformanceMetrics {
     const now = Date.now();
     const timeElapsed = (now - this.startTime) / 1000; // seconds
-    
+
     return {
       detectionTime: this.getAverageDetectionTime(),
       cacheHitRate: this.cacheHits / Math.max(this.detectionCount, 1),
       memoryUsage: process.memoryUsage().heapUsed / 1024 / 1024, // MB
       throughput: this.detectionCount / Math.max(timeElapsed, 1),
-      errorRate: this.errorCount / Math.max(this.detectionCount, 1)
+      errorRate: this.errorCount / Math.max(this.detectionCount, 1),
     };
   }
 
@@ -100,7 +100,7 @@ export class PerformanceProfiler {
       metrics,
       bottlenecks,
       recommendations,
-      grade
+      grade,
     };
   }
 
@@ -109,20 +109,24 @@ export class PerformanceProfiler {
    */
   getAnalytics(): {
     byComplexity: Record<string, DetectionProfile[]>;
-    byContentLength: { short: DetectionProfile[]; medium: DetectionProfile[]; long: DetectionProfile[] };
+    byContentLength: {
+      short: DetectionProfile[];
+      medium: DetectionProfile[];
+      long: DetectionProfile[];
+    };
     dimensionPerformance: Record<string, { avg: number; min: number; max: number }>;
-    trends: { detectionTime: number[]; cacheHitRate: number[]; };
+    trends: { detectionTime: number[]; cacheHitRate: number[] };
   } {
     const byComplexity = {
-      low: this.profiles.filter(p => p.complexity === 'low'),
-      medium: this.profiles.filter(p => p.complexity === 'medium'),
-      high: this.profiles.filter(p => p.complexity === 'high')
+      low: this.profiles.filter((p) => p.complexity === 'low'),
+      medium: this.profiles.filter((p) => p.complexity === 'medium'),
+      high: this.profiles.filter((p) => p.complexity === 'high'),
     };
 
     const byContentLength = {
-      short: this.profiles.filter(p => p.contentLength < 100),
-      medium: this.profiles.filter(p => p.contentLength >= 100 && p.contentLength < 500),
-      long: this.profiles.filter(p => p.contentLength >= 500)
+      short: this.profiles.filter((p) => p.contentLength < 100),
+      medium: this.profiles.filter((p) => p.contentLength >= 100 && p.contentLength < 500),
+      long: this.profiles.filter((p) => p.contentLength >= 500),
     };
 
     const dimensionPerformance = {
@@ -130,19 +134,19 @@ export class PerformanceProfiler {
       trust: this.calculateDimensionStats('trust'),
       ethical: this.calculateDimensionStats('ethical'),
       resonance: this.calculateDimensionStats('resonance'),
-      canvas: this.calculateDimensionStats('canvas')
+      canvas: this.calculateDimensionStats('canvas'),
     };
 
     const trends = {
-      detectionTime: this.profiles.slice(-50).map(p => p.duration),
-      cacheHitRate: this.calculateCacheHitTrends()
+      detectionTime: this.profiles.slice(-50).map((p) => p.duration),
+      cacheHitRate: this.calculateCacheHitTrends(),
     };
 
     return {
       byComplexity,
       byContentLength,
       dimensionPerformance,
-      trends
+      trends,
     };
   }
 
@@ -160,7 +164,7 @@ export class PerformanceProfiler {
 
   private updateMetrics(): void {
     this.metrics.push(this.getCurrentMetrics());
-    
+
     // Keep only recent metrics (last 100)
     if (this.metrics.length > 100) {
       this.metrics = this.metrics.slice(-100);
@@ -168,8 +172,8 @@ export class PerformanceProfiler {
   }
 
   private getAverageDetectionTime(): number {
-    if (this.profiles.length === 0) return 0;
-    
+    if (this.profiles.length === 0) {return 0;}
+
     const totalTime = this.profiles.reduce((sum, profile) => sum + profile.duration, 0);
     return totalTime / this.profiles.length;
   }
@@ -240,55 +244,55 @@ export class PerformanceProfiler {
     let score = 100;
 
     // Detection time scoring (40% weight)
-    if (metrics.detectionTime > 50) score -= 40;
-    else if (metrics.detectionTime > 30) score -= 20;
-    else if (metrics.detectionTime > 20) score -= 10;
+    if (metrics.detectionTime > 50) {score -= 40;}
+    else if (metrics.detectionTime > 30) {score -= 20;}
+    else if (metrics.detectionTime > 20) {score -= 10;}
 
     // Cache hit rate scoring (20% weight)
-    if (metrics.cacheHitRate < 0.3) score -= 20;
-    else if (metrics.cacheHitRate < 0.5) score -= 10;
-    else if (metrics.cacheHitRate < 0.7) score -= 5;
+    if (metrics.cacheHitRate < 0.3) {score -= 20;}
+    else if (metrics.cacheHitRate < 0.5) {score -= 10;}
+    else if (metrics.cacheHitRate < 0.7) {score -= 5;}
 
     // Throughput scoring (20% weight)
-    if (metrics.throughput < 20) score -= 20;
-    else if (metrics.throughput < 30) score -= 10;
-    else if (metrics.throughput < 40) score -= 5;
+    if (metrics.throughput < 20) {score -= 20;}
+    else if (metrics.throughput < 30) {score -= 10;}
+    else if (metrics.throughput < 40) {score -= 5;}
 
     // Error rate scoring (10% weight)
-    if (metrics.errorRate > 0.05) score -= 10;
-    else if (metrics.errorRate > 0.02) score -= 5;
+    if (metrics.errorRate > 0.05) {score -= 10;}
+    else if (metrics.errorRate > 0.02) {score -= 5;}
 
     // Memory usage scoring (10% weight)
-    if (metrics.memoryUsage > 100) score -= 10;
-    else if (metrics.memoryUsage > 50) score -= 5;
+    if (metrics.memoryUsage > 100) {score -= 10;}
+    else if (metrics.memoryUsage > 50) {score -= 5;}
 
-    if (score >= 90) return 'A';
-    if (score >= 80) return 'B';
-    if (score >= 70) return 'C';
-    if (score >= 60) return 'D';
+    if (score >= 90) {return 'A';}
+    if (score >= 80) {return 'B';}
+    if (score >= 70) {return 'C';}
+    if (score >= 60) {return 'D';}
     return 'F';
   }
 
   private calculateDimensionStats(dimension: string): { avg: number; min: number; max: number } {
-    const values = this.profiles.map(p => p.dimensions[dimension as keyof typeof p.dimensions]);
-    
+    const values = this.profiles.map((p) => p.dimensions[dimension as keyof typeof p.dimensions]);
+
     return {
       avg: values.reduce((sum, v) => sum + v, 0) / values.length,
       min: Math.min(...values),
-      max: Math.max(...values)
+      max: Math.max(...values),
     };
   }
 
   private calculateCacheHitTrends(): number[] {
     const windowSize = 20;
     const trends: number[] = [];
-    
+
     for (let i = windowSize; i < this.profiles.length; i++) {
       const window = this.profiles.slice(i - windowSize, i);
-      const hitRate = window.filter(p => p.cacheHit).length / windowSize;
+      const hitRate = window.filter((p) => p.cacheHit).length / windowSize;
       trends.push(hitRate);
     }
-    
+
     return trends;
   }
 
@@ -303,7 +307,7 @@ export class PerformanceProfiler {
     return {
       profiles: [...this.profiles],
       metrics: [...this.metrics],
-      summary: this.generateReport()
+      summary: this.generateReport(),
     };
   }
 
@@ -327,7 +331,7 @@ export class PerformanceProfiler {
         message: 'Detection time critically high',
         metric: 'detectionTime' as const,
         value: metrics.detectionTime,
-        threshold: 100
+        threshold: 100,
       });
     }
 
@@ -337,7 +341,7 @@ export class PerformanceProfiler {
         message: 'Error rate critically high',
         metric: 'errorRate' as const,
         value: metrics.errorRate,
-        threshold: 0.1
+        threshold: 0.1,
       });
     }
 
@@ -348,7 +352,7 @@ export class PerformanceProfiler {
         message: 'Detection time exceeds target',
         metric: 'detectionTime' as const,
         value: metrics.detectionTime,
-        threshold: 50
+        threshold: 50,
       });
     }
 
@@ -358,7 +362,7 @@ export class PerformanceProfiler {
         message: 'Cache hit rate very low',
         metric: 'cacheHitRate' as const,
         value: metrics.cacheHitRate,
-        threshold: 0.2
+        threshold: 0.2,
       });
     }
 
@@ -369,7 +373,7 @@ export class PerformanceProfiler {
         message: 'Throughput could be improved',
         metric: 'throughput' as const,
         value: metrics.throughput,
-        threshold: 10
+        threshold: 10,
       });
     }
 

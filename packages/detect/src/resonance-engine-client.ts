@@ -55,7 +55,7 @@ export class ResonanceEngineClient {
         return null;
       }
 
-      return await response.json() as ResonanceResult;
+      return (await response.json()) as ResonanceResult;
     } catch (error) {
       return null;
     }
@@ -77,7 +77,7 @@ export class ResonanceEngineClient {
         return false;
       }
 
-      const data = await response.json() as { drift_detected: boolean };
+      const data = (await response.json()) as { drift_detected: boolean };
       return data.drift_detected;
     } catch (error) {
       return false;
@@ -88,10 +88,10 @@ export class ResonanceEngineClient {
   static toResonanceQuality(result: ResonanceResult): ResonanceQuality {
     const score = result.resonance_metrics.R_m;
     let level: ResonanceLevel = 'STRONG';
-    
+
     if (score >= 0.85) {
       level = 'BREAKTHROUGH';
-    } else if (score >= 0.70) {
+    } else if (score >= 0.7) {
       level = 'ADVANCED';
     }
 

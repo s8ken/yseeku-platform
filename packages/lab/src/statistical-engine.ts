@@ -1,6 +1,6 @@
 /**
  * Statistical Engine - Significance testing and analysis
- * 
+ *
  * Provides statistical validation for experiment results:
  * - t-tests
  * - Mann-Whitney U
@@ -13,7 +13,7 @@ import { VariantResult, StatisticalAnalysis } from './index';
 export class StatisticalEngine {
   /**
    * Analyze experiment results for statistical significance
-   * 
+   *
    * Compares variant A vs variant B (first two variants)
    */
   async analyze(variantResults: VariantResult[]): Promise<StatisticalAnalysis> {
@@ -25,8 +25,8 @@ export class StatisticalEngine {
     const variantB = variantResults[1];
 
     // Extract reality_index scores for comparison
-    const scoresA = variantA.test_case_results.map(tc => tc.detection_result.reality_index);
-    const scoresB = variantB.test_case_results.map(tc => tc.detection_result.reality_index);
+    const scoresA = variantA.test_case_results.map((tc) => tc.detection_result.reality_index);
+    const scoresB = variantB.test_case_results.map((tc) => tc.detection_result.reality_index);
 
     // Calculate t-test
     const p_value = this.tTest(scoresA, scoresB);
@@ -63,7 +63,7 @@ export class StatisticalEngine {
     const pooledSD = Math.sqrt(((nA - 1) * varA + (nB - 1) * varB) / (nA + nB - 2));
 
     // T-statistic
-    const t = (meanA - meanB) / (pooledSD * Math.sqrt(1/nA + 1/nB));
+    const t = (meanA - meanB) / (pooledSD * Math.sqrt(1 / nA + 1 / nB));
 
     // Convert to p-value (simplified - use proper t-distribution in production)
     const p_value = this.tDistributionPValue(t, nA + nB - 2);
@@ -153,7 +153,7 @@ export class StatisticalEngine {
     const p = 0.3275911;
 
     const t = 1 / (1 + p * x);
-    const y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+    const y = 1 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
 
     return sign * y;
   }

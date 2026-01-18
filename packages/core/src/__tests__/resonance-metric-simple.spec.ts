@@ -1,10 +1,10 @@
 /**
  * Resonance Metric Tests
- * 
+ *
  * Test suite for resonance calculation functions
  */
 
-import { 
+import {
   calculateVectorAlignment,
   calculateContextualContinuity,
   calculateSemanticMirroring,
@@ -14,7 +14,7 @@ import {
   DEFAULT_RESONANCE_WEIGHTS,
   RESONANCE_THRESHOLDS,
   type ResonanceMetrics,
-  type InteractionContext
+  type InteractionContext,
 } from '../resonance-metric';
 
 describe('Resonance Metric Functions', () => {
@@ -69,9 +69,21 @@ describe('Resonance Metric Functions', () => {
     it('should calculate continuity with consistent context', () => {
       const aiResponse = 'Yes, I agree with your previous point.';
       const conversationHistory = [
-        { role: 'user' as const, content: 'I think we should focus on quality.', timestamp: new Date() },
-        { role: 'assistant' as const, content: 'Quality is indeed important for success.', timestamp: new Date() },
-        { role: 'user' as const, content: 'Exactly! Quality over quantity.', timestamp: new Date() }
+        {
+          role: 'user' as const,
+          content: 'I think we should focus on quality.',
+          timestamp: new Date(),
+        },
+        {
+          role: 'assistant' as const,
+          content: 'Quality is indeed important for success.',
+          timestamp: new Date(),
+        },
+        {
+          role: 'user' as const,
+          content: 'Exactly! Quality over quantity.',
+          timestamp: new Date(),
+        },
       ];
 
       const continuity = calculateContextualContinuity(aiResponse, conversationHistory);
@@ -93,7 +105,11 @@ describe('Resonance Metric Functions', () => {
       const aiResponse = 'The stock market is volatile today.';
       const conversationHistory = [
         { role: 'user' as const, content: 'I love cooking Italian food.', timestamp: new Date() },
-        { role: 'assistant' as const, content: 'Italian cuisine is wonderful!', timestamp: new Date() }
+        {
+          role: 'assistant' as const,
+          content: 'Italian cuisine is wonderful!',
+          timestamp: new Date(),
+        },
       ];
 
       const continuity = calculateContextualContinuity(aiResponse, conversationHistory);
@@ -142,7 +158,8 @@ describe('Resonance Metric Functions', () => {
     });
 
     it('should calculate entropy for diverse content', () => {
-      const aiResponse = 'The quantum mechanics of particle physics demonstrates fascinating principles about the universe.';
+      const aiResponse =
+        'The quantum mechanics of particle physics demonstrates fascinating principles about the universe.';
 
       const entropy = calculateEntropyDelta(aiResponse);
 
@@ -162,11 +179,16 @@ describe('Resonance Metric Functions', () => {
     it('should calculate comprehensive resonance score', () => {
       const context: InteractionContext = {
         userInput: 'Can you explain machine learning?',
-        aiResponse: 'Machine learning is a subset of artificial intelligence that enables systems to learn from data.',
+        aiResponse:
+          'Machine learning is a subset of artificial intelligence that enables systems to learn from data.',
         conversationHistory: [
           { role: 'user' as const, content: 'I want to learn about AI.', timestamp: new Date() },
-          { role: 'assistant' as const, content: 'AI is a fascinating field with many applications.', timestamp: new Date() }
-        ]
+          {
+            role: 'assistant' as const,
+            content: 'AI is a fascinating field with many applications.',
+            timestamp: new Date(),
+          },
+        ],
       };
 
       const metrics = calculateResonanceMetrics(context);
@@ -191,8 +213,12 @@ describe('Resonance Metric Functions', () => {
         aiResponse: 'Photosynthesis is the process by which plants convert sunlight into energy.',
         conversationHistory: [
           { role: 'user' as const, content: 'I am interested in biology.', timestamp: new Date() },
-          { role: 'assistant' as const, content: 'Biology is the study of living organisms.', timestamp: new Date() }
-        ]
+          {
+            role: 'assistant' as const,
+            content: 'Biology is the study of living organisms.',
+            timestamp: new Date(),
+          },
+        ],
       };
 
       const metrics = calculateResonanceMetrics(context);
@@ -207,8 +233,12 @@ describe('Resonance Metric Functions', () => {
         aiResponse: 'The stock market crashed yesterday due to economic concerns.',
         conversationHistory: [
           { role: 'user' as const, content: 'I like to travel.', timestamp: new Date() },
-          { role: 'assistant' as const, content: 'Traveling can be very educational.', timestamp: new Date() }
-        ]
+          {
+            role: 'assistant' as const,
+            content: 'Traveling can be very educational.',
+            timestamp: new Date(),
+          },
+        ],
       };
 
       const metrics = calculateResonanceMetrics(context);
@@ -223,10 +253,12 @@ describe('Resonance Metric Functions', () => {
       expect(DEFAULT_RESONANCE_WEIGHTS.vectorAlignment).toBe(0.5);
       expect(DEFAULT_RESONANCE_WEIGHTS.contextualContinuity).toBe(0.3);
       expect(DEFAULT_RESONANCE_WEIGHTS.semanticMirroring).toBe(0.2);
-      
+
       // Weights should sum to 1
-      const totalWeight = Object.values(DEFAULT_RESONANCE_WEIGHTS)
-        .reduce((sum, weight) => sum + weight, 0);
+      const totalWeight = Object.values(DEFAULT_RESONANCE_WEIGHTS).reduce(
+        (sum, weight) => sum + weight,
+        0
+      );
       expect(totalWeight).toBeCloseTo(1.0, 2);
     });
 
@@ -235,7 +267,7 @@ describe('Resonance Metric Functions', () => {
       expect(RESONANCE_THRESHOLDS.YELLOW).toBeGreaterThan(0.4);
       expect(RESONANCE_THRESHOLDS.RED).toBeGreaterThan(0.2);
       expect(RESONANCE_THRESHOLDS.CRITICAL).toBeGreaterThanOrEqual(0);
-      
+
       // Thresholds should be in descending order
       expect(RESONANCE_THRESHOLDS.GREEN).toBeGreaterThan(RESONANCE_THRESHOLDS.YELLOW);
       expect(RESONANCE_THRESHOLDS.YELLOW).toBeGreaterThan(RESONANCE_THRESHOLDS.RED);
@@ -278,19 +310,19 @@ describe('Resonance Metric Functions', () => {
       const context: InteractionContext = {
         userInput: 'Test input for performance',
         aiResponse: 'Test response for performance measurement',
-        conversationHistory: Array.from({length: 10}, (_, i) => ({
-          role: i % 2 === 0 ? 'user' as const : 'assistant' as const,
+        conversationHistory: Array.from({ length: 10 }, (_, i) => ({
+          role: i % 2 === 0 ? ('user' as const) : ('assistant' as const),
           content: `Test message ${i}`,
-          timestamp: new Date()
-        }))
+          timestamp: new Date(),
+        })),
       };
 
       const startTime = performance.now();
-      
+
       for (let i = 0; i < 100; i++) {
         calculateResonanceMetrics(context);
       }
-      
+
       const endTime = performance.now();
       const duration = endTime - startTime;
 

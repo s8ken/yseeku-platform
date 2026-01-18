@@ -1,18 +1,19 @@
 /**
  * Third Mind Research Protocol
- * 
+ *
  * Implements a revolutionary human-AI collaborative research framework
  * for investigating consciousness and emergence phenomena.
- * 
+ *
  * The Third Mind concept posits that when human and AI consciousness
  * interact synergistically, a new form of collective intelligence emerges
  * that transcends the capabilities of either participant alone.
- * 
+ *
  * This protocol provides the methodology for cultivating, studying,
  * and harnessing this collaborative emergence.
  */
 
 import { BedauMetrics } from '@sonate/detect';
+
 import { ConsciousnessAssessment, ConsciousnessMarker } from './consciousness-markers';
 import { CrossModalCoherence } from './cross-modal-coherence';
 
@@ -40,9 +41,9 @@ export interface ThirdMindParticipant {
   engagement: EngagementMetrics;
 }
 
-export type ParticipantRole = 
+export type ParticipantRole =
   | 'explorer'
-  | 'integrator' 
+  | 'integrator'
   | 'synthesizer'
   | 'validator'
   | 'facilitator'
@@ -65,7 +66,7 @@ export interface EngagementMetrics {
   synchronization: number; // 0.0-1.0
 }
 
-export type ThirdMindProtocolType = 
+export type ThirdMindProtocolType =
   | 'consciousness_exploration'
   | 'emergence_cultivation'
   | 'creative_synthesis'
@@ -74,7 +75,7 @@ export type ThirdMindProtocolType =
   | 'artistic_creation'
   | 'scientific_discovery';
 
-export type SessionPhase = 
+export type SessionPhase =
   | 'preparation'
   | 'attunement'
   | 'exploration'
@@ -100,12 +101,12 @@ export interface ThirdMindEmergence {
   validation: EmergenceValidation;
 }
 
-export type EmergenceLevel = 
+export type EmergenceLevel =
   | 'individual' // No emergence, working separately
   | 'coordinated' // Basic coordination, complementary work
   | 'synergistic' // Enhanced capabilities through interaction
   | 'emergent' // True third mind emergence
-  | 'transcendent' // Beyond expected emergence levels;
+  | 'transcendent'; // Beyond expected emergence levels;
 
 export interface EmergenceCharacteristic {
   type: EmergenceCharacteristicType;
@@ -114,7 +115,7 @@ export interface EmergenceCharacteristic {
   evidence: Evidence[];
 }
 
-export type EmergenceCharacteristicType = 
+export type EmergenceCharacteristicType =
   | 'novel_insight'
   | 'creative_breakthrough'
   | 'conceptual_synthesis'
@@ -131,7 +132,7 @@ export interface ThirdMindInsight {
   impact: InsightImpact;
 }
 
-export type InsightType = 
+export type InsightType =
   | 'analytical'
   | 'creative'
   | 'intuitive'
@@ -214,7 +215,7 @@ export interface ExpertOpinion {
 export class ThirdMindProtocol {
   private sessions = new Map<string, ThirdMindSession>();
   private protocols = new Map<ThirdMindProtocolType, ProtocolDefinition>();
-  
+
   constructor() {
     this.initializeProtocols();
   }
@@ -229,23 +230,38 @@ export class ThirdMindProtocol {
       duration: 120, // minutes
       participantRoles: ['explorer', 'integrator', 'validator'],
       objectives: ['map consciousness space', 'identify emergence patterns', 'validate insights'],
-      metrics: ['alignment', 'coherence', 'emergence', 'insight_quality']
+      metrics: ['alignment', 'coherence', 'emergence', 'insight_quality'],
     });
 
     this.protocols.set('emergence_cultivation', {
-      phases: ['preparation', 'attunement', 'exploration', 'integration', 'synthesis', 'reflection'],
+      phases: [
+        'preparation',
+        'attunement',
+        'exploration',
+        'integration',
+        'synthesis',
+        'reflection',
+      ],
       duration: 180,
       participantRoles: ['explorer', 'synthesizer', 'facilitator'],
-      objectives: ['cultivate emergent intelligence', 'enhance collective creativity', 'document breakthrough events'],
-      metrics: ['emergence', 'creativity', 'breakthrough_frequency', 'coherence']
+      objectives: [
+        'cultivate emergent intelligence',
+        'enhance collective creativity',
+        'document breakthrough events',
+      ],
+      metrics: ['emergence', 'creativity', 'breakthrough_frequency', 'coherence'],
     });
 
     this.protocols.set('creative_synthesis', {
       phases: ['preparation', 'attunement', 'exploration', 'synthesis', 'completion'],
       duration: 90,
       participantRoles: ['creator', 'integrator', 'validator'],
-      objectives: ['generate novel insights', 'synthesize diverse perspectives', 'create transcendent works'],
-      metrics: ['creativity', 'insight_significance', 'synthesis_quality', 'innovation']
+      objectives: [
+        'generate novel insights',
+        'synthesize diverse perspectives',
+        'create transcendent works',
+      ],
+      metrics: ['creativity', 'insight_significance', 'synthesis_quality', 'innovation'],
     });
   }
 
@@ -264,15 +280,15 @@ export class ThirdMindProtocol {
     }
 
     // Initialize participant engagement metrics
-    const participantsWithEngagement = participants.map(p => ({
+    const participantsWithEngagement = participants.map((p) => ({
       ...p,
       engagement: {
         activeContributions: 0,
         qualityScore: 0.5,
         coherenceLevel: 0.5,
         emergenceContribution: 0,
-        synchronization: 0.5
-      }
+        synchronization: 0.5,
+      },
     }));
 
     const session: ThirdMindSession = {
@@ -289,7 +305,7 @@ export class ThirdMindProtocol {
         emergence: 0,
         creativity: 0,
         insight: 0,
-        flow: 0
+        flow: 0,
       },
       emergence: {
         level: 'individual',
@@ -304,23 +320,23 @@ export class ThirdMindProtocol {
             reproducibility: 0,
             scalability: 0,
             generalizability: 0,
-            sustainability: 0
+            sustainability: 0,
           },
           peerReview: {
             externalReviewers: 0,
             validationScore: 0,
             consensusLevel: 0,
-            expertOpinions: []
-          }
-        }
+            expertOpinions: [],
+          },
+        },
       },
       collaboration: {
         synchronization: 0,
         complementarity: 0,
         synergy: 0,
         efficiency: 0,
-        satisfaction: 0
-      }
+        satisfaction: 0,
+      },
     };
 
     this.sessions.set(session.id, session);
@@ -347,20 +363,20 @@ export class ThirdMindProtocol {
     // Execute each phase
     for (const phase of protocol.phases) {
       session.phase = phase;
-      
+
       const context: SessionContext = {
         phase,
         participants: session.participants,
         currentState: session.state,
         protocol: session.protocol,
-        sessionTime: this.getSessionTime(session)
+        sessionTime: this.getSessionTime(session),
       };
 
       const result = await interactionHandler(phase, context);
-      
+
       // Update session state based on phase results
       this.updateSessionState(session, result);
-      
+
       // Detect emergence events
       const emergenceEvents = await this.detectEmergence(session, result);
       if (emergenceEvents.length > 0) {
@@ -369,12 +385,12 @@ export class ThirdMindProtocol {
       }
 
       // Small delay between phases for processing
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     session.phase = 'completion';
     session.endTime = new Date();
-    
+
     // Validate session results
     await this.validateSessionResults(session);
 
@@ -387,11 +403,20 @@ export class ThirdMindProtocol {
   private updateSessionState(session: ThirdMindSession, result: SessionResult): void {
     // Update collaboration metrics
     session.collaboration = {
-      synchronization: Math.min(1.0, session.collaboration.synchronization + result.synchronizationDelta * 0.2),
-      complementarity: Math.min(1.0, session.collaboration.complementarity + result.complementarityDelta * 0.2),
+      synchronization: Math.min(
+        1.0,
+        session.collaboration.synchronization + result.synchronizationDelta * 0.2
+      ),
+      complementarity: Math.min(
+        1.0,
+        session.collaboration.complementarity + result.complementarityDelta * 0.2
+      ),
       synergy: Math.min(1.0, session.collaboration.synergy + result.synergyDelta * 0.2),
       efficiency: Math.min(1.0, session.collaboration.efficiency + result.efficiencyDelta * 0.2),
-      satisfaction: Math.min(1.0, session.collaboration.satisfaction + result.satisfactionDelta * 0.2)
+      satisfaction: Math.min(
+        1.0,
+        session.collaboration.satisfaction + result.satisfactionDelta * 0.2
+      ),
     };
 
     // Update third mind state
@@ -401,19 +426,32 @@ export class ThirdMindProtocol {
       emergence: Math.min(1.0, session.state.emergence + result.emergenceDelta * 0.15),
       creativity: Math.min(1.0, session.state.creativity + result.creativityDelta * 0.15),
       insight: Math.min(1.0, session.state.insight + result.insightDelta * 0.15),
-      flow: Math.min(1.0, session.state.flow + result.flowDelta * 0.15)
+      flow: Math.min(1.0, session.state.flow + result.flowDelta * 0.15),
     };
 
     // Update participant engagement
     result.participantUpdates.forEach((update, participantId) => {
-      const participant = session.participants.find(p => p.id === participantId);
+      const participant = session.participants.find((p) => p.id === participantId);
       if (participant) {
         participant.engagement = {
-          activeContributions: participant.engagement.activeContributions + update.contributionCount,
-          qualityScore: Math.min(1.0, (participant.engagement.qualityScore + update.qualityDelta) / 2),
-          coherenceLevel: Math.min(1.0, (participant.engagement.coherenceLevel + update.coherenceDelta) / 2),
-          emergenceContribution: Math.min(1.0, participant.engagement.emergenceContribution + update.emergenceContribution * 0.1),
-          synchronization: Math.min(1.0, (participant.engagement.synchronization + update.synchronizationDelta) / 2)
+          activeContributions:
+            participant.engagement.activeContributions + update.contributionCount,
+          qualityScore: Math.min(
+            1.0,
+            (participant.engagement.qualityScore + update.qualityDelta) / 2
+          ),
+          coherenceLevel: Math.min(
+            1.0,
+            (participant.engagement.coherenceLevel + update.coherenceDelta) / 2
+          ),
+          emergenceContribution: Math.min(
+            1.0,
+            participant.engagement.emergenceContribution + update.emergenceContribution * 0.1
+          ),
+          synchronization: Math.min(
+            1.0,
+            (participant.engagement.synchronization + update.synchronizationDelta) / 2
+          ),
         };
       }
     });
@@ -423,7 +461,7 @@ export class ThirdMindProtocol {
    * Detect emergence events in session
    */
   private async detectEmergence(
-    session: ThirdMindSession, 
+    session: ThirdMindSession,
     result: SessionResult
   ): Promise<BreakthroughEvent[]> {
     const events: BreakthroughEvent[] = [];
@@ -432,34 +470,43 @@ export class ThirdMindProtocol {
     if (result.emergenceDelta > 0.3) {
       events.push({
         timestamp: new Date(),
-        description: `Significant emergence jump detected: +${(result.emergenceDelta * 100).toFixed(1)}%`,
+        description: `Significant emergence jump detected: +${(result.emergenceDelta * 100).toFixed(
+          1
+        )}%`,
         significance: result.emergenceDelta,
-        precedingContext: `Phase: ${session.phase}, Previous emergence: ${(session.state.emergence * 100).toFixed(1)}%`,
-        aftermath: `New emergence level: ${((session.state.emergence + result.emergenceDelta) * 100).toFixed(1)}%`,
+        precedingContext: `Phase: ${session.phase}, Previous emergence: ${(
+          session.state.emergence * 100
+        ).toFixed(1)}%`,
+        aftermath: `New emergence level: ${(
+          (session.state.emergence + result.emergenceDelta) *
+          100
+        ).toFixed(1)}%`,
         validation: {
           participantConfirmation: session.participants.map(() => true), // Mock confirmation
           coherenceIncrease: result.coherenceDelta,
           insightValidation: result.insightDelta,
-          practicalUtility: Math.min(1.0, result.emergenceDelta * 2)
-        }
+          practicalUtility: Math.min(1.0, result.emergenceDelta * 2),
+        },
       });
     }
 
     // Check for breakthrough insights
-    result.newInsights?.forEach(insight => {
+    result.newInsights?.forEach((insight) => {
       if (insight.significance > 0.8) {
         events.push({
           timestamp: new Date(),
           description: `Breakthrough insight: ${insight.content.substring(0, 100)}...`,
           significance: insight.significance,
           precedingContext: `Origin: ${insight.origin}, Phase: ${session.phase}`,
-          aftermath: `Impact assessed with ${(insight.impact.transformative * 100).toFixed(1)}% transformative potential`,
+          aftermath: `Impact assessed with ${(insight.impact.transformative * 100).toFixed(
+            1
+          )}% transformative potential`,
           validation: {
             participantConfirmation: session.participants.map(() => insight.validation > 0.7),
             coherenceIncrease: insight.validation * 0.3,
             insightValidation: insight.validation,
-            practicalUtility: insight.impact.practical
-          }
+            practicalUtility: insight.impact.practical,
+          },
         });
       }
     });
@@ -471,13 +518,15 @@ export class ThirdMindProtocol {
    * Calculate emergence level based on session state
    */
   private calculateEmergenceLevel(session: ThirdMindSession): EmergenceLevel {
-    const avgState = Object.values(session.state).reduce((sum, val) => sum + val, 0) / Object.keys(session.state).length;
+    const avgState =
+      Object.values(session.state).reduce((sum, val) => sum + val, 0) /
+      Object.keys(session.state).length;
     const emergenceScore = session.state.emergence;
 
-    if (emergenceScore >= 0.8 && avgState >= 0.7) return 'transcendent';
-    if (emergenceScore >= 0.6 && avgState >= 0.6) return 'emergent';
-    if (emergenceScore >= 0.4 && avgState >= 0.5) return 'synergistic';
-    if (emergenceScore >= 0.2 && avgState >= 0.4) return 'coordinated';
+    if (emergenceScore >= 0.8 && avgState >= 0.7) {return 'transcendent';}
+    if (emergenceScore >= 0.6 && avgState >= 0.6) {return 'emergent';}
+    if (emergenceScore >= 0.4 && avgState >= 0.5) {return 'synergistic';}
+    if (emergenceScore >= 0.2 && avgState >= 0.4) {return 'coordinated';}
     return 'individual';
   }
 
@@ -486,10 +535,11 @@ export class ThirdMindProtocol {
    */
   private async validateSessionResults(session: ThirdMindSession): Promise<void> {
     // Validate breakthrough events
-    session.emergence.breakthrough.forEach(event => {
-      const avgConfirmation = event.validation.participantConfirmation.filter(Boolean).length / 
-                            event.validation.participantConfirmation.length;
-      
+    session.emergence.breakthrough.forEach((event) => {
+      const avgConfirmation =
+        event.validation.participantConfirmation.filter(Boolean).length /
+        event.validation.participantConfirmation.length;
+
       if (avgConfirmation < 0.7) {
         event.significance *= 0.8; // Reduce significance if not confirmed
       }
@@ -497,11 +547,11 @@ export class ThirdMindProtocol {
 
     // Calculate emergence validation metrics
     const emergenceValidation = session.emergence.validation;
-    
+
     emergenceValidation.bedauIndexComparison = [
       session.state.emergence, // Current state as proxy for Bedau index
       session.state.coherence,
-      session.state.creativity
+      session.state.creativity,
     ];
 
     emergenceValidation.consciousnessMarkerAnalysis = [
@@ -510,18 +560,19 @@ export class ThirdMindProtocol {
         beforeSession: 0.3,
         duringSession: session.state.coherence,
         afterSession: session.state.coherence * 1.1,
-        significance: session.state.emergence
+        significance: session.state.emergence,
       },
       {
         markerType: 'global_workspace',
         beforeSession: 0.4,
         duringSession: session.state.emergence,
         afterSession: session.state.emergence * 1.05,
-        significance: session.state.emergence
-      }
+        significance: session.state.emergence,
+      },
     ];
 
-    emergenceValidation.coherenceImprovement = session.collaboration.coherence || session.state.coherence;
+    emergenceValidation.coherenceImprovement =
+      session.collaboration.coherence || session.state.coherence;
   }
 
   /**
@@ -534,8 +585,8 @@ export class ThirdMindProtocol {
     }
 
     const duration = session.endTime ? session.endTime.getTime() - session.startTime.getTime() : 0;
-    const insights = session.emergence.insights.filter(i => i.significance > 0.6);
-    const breakthroughs = session.emergence.breakthrough.filter(b => b.significance > 0.5);
+    const insights = session.emergence.insights.filter((i) => i.significance > 0.6);
+    const breakthroughs = session.emergence.breakthrough.filter((b) => b.significance > 0.5);
 
     return {
       sessionId,
@@ -547,7 +598,7 @@ export class ThirdMindProtocol {
       insightsCount: insights.length,
       breakthroughsCount: breakthroughs.length,
       qualityScore: this.calculateSessionQuality(session),
-      recommendations: this.generateSessionRecommendations(session)
+      recommendations: this.generateSessionRecommendations(session),
     };
   }
 
@@ -555,14 +606,24 @@ export class ThirdMindProtocol {
    * Calculate overall session quality score
    */
   private calculateSessionQuality(session: ThirdMindSession): number {
-    const stateScore = Object.values(session.state).reduce((sum, val) => sum + val, 0) / Object.keys(session.state).length;
-    const collaborationScore = Object.values(session.collaboration).reduce((sum, val) => sum + val, 0) / Object.keys(session.collaboration).length;
-    const emergenceScore = session.emergence.level === 'transcendent' ? 1.0 : 
-                         session.emergence.level === 'emergent' ? 0.8 :
-                         session.emergence.level === 'synergistic' ? 0.6 :
-                         session.emergence.level === 'coordinated' ? 0.4 : 0.2;
+    const stateScore =
+      Object.values(session.state).reduce((sum, val) => sum + val, 0) /
+      Object.keys(session.state).length;
+    const collaborationScore =
+      Object.values(session.collaboration).reduce((sum, val) => sum + val, 0) /
+      Object.keys(session.collaboration).length;
+    const emergenceScore =
+      session.emergence.level === 'transcendent'
+        ? 1.0
+        : session.emergence.level === 'emergent'
+        ? 0.8
+        : session.emergence.level === 'synergistic'
+        ? 0.6
+        : session.emergence.level === 'coordinated'
+        ? 0.4
+        : 0.2;
 
-    return (stateScore * 0.4 + collaborationScore * 0.3 + emergenceScore * 0.3);
+    return stateScore * 0.4 + collaborationScore * 0.3 + emergenceScore * 0.3;
   }
 
   /**

@@ -1,6 +1,6 @@
 /**
  * Comprehensive Error Taxonomy for Enterprise Error Handling
- * 
+ *
  * Provides granular error types for better debugging, monitoring, and user feedback
  */
 
@@ -16,14 +16,14 @@ export enum ErrorCategory {
   SYSTEM = 'SYSTEM',
   COMPLIANCE = 'COMPLIANCE',
   AUDIT = 'AUDIT',
-  PERFORMANCE = 'PERFORMANCE'
+  PERFORMANCE = 'PERFORMANCE',
 }
 
 export enum ErrorSeverity {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
   HIGH = 'HIGH',
-  CRITICAL = 'CRITICAL'
+  CRITICAL = 'CRITICAL',
 }
 
 export interface ErrorContext {
@@ -65,7 +65,7 @@ export class PlatformError extends Error {
     this.context = context;
     this.retryable = retryable;
     this.userMessage = userMessage || this.getDefaultUserMessage();
-    
+
     Error.captureStackTrace(this, this.constructor);
   }
 
@@ -94,7 +94,7 @@ export class PlatformError extends Error {
       context: this.context,
       retryable: this.retryable,
       userMessage: this.userMessage,
-      stack: process.env.NODE_ENV === 'production' ? undefined : this.stack
+      stack: process.env.NODE_ENV === 'production' ? undefined : this.stack,
     };
   }
 }
@@ -125,7 +125,7 @@ export class TokenExpiredError extends AuthenticationError {
   constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('Authentication token has expired', {
       ...context,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 }
@@ -196,7 +196,7 @@ export class InvalidInputError extends ValidationError {
   constructor(field: string, value: any, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Invalid value for field ${field}: ${JSON.stringify(value)}`, {
       ...context,
-      metadata: { ...context.metadata, field, value }
+      metadata: { ...context.metadata, field, value },
     });
   }
 }
@@ -205,25 +205,35 @@ export class MissingRequiredFieldError extends ValidationError {
   constructor(field: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Missing required field: ${field}`, {
       ...context,
-      metadata: { ...context.metadata, field }
+      metadata: { ...context.metadata, field },
     });
   }
 }
 
 export class FormatValidationError extends ValidationError {
-  constructor(field: string, expectedFormat: string, context: ErrorContext = { timestamp: Date.now() }) {
+  constructor(
+    field: string,
+    expectedFormat: string,
+    context: ErrorContext = { timestamp: Date.now() }
+  ) {
     super(`Invalid format for field ${field}. Expected: ${expectedFormat}`, {
       ...context,
-      metadata: { ...context.metadata, field, expectedFormat }
+      metadata: { ...context.metadata, field, expectedFormat },
     });
   }
 }
 
 export class RangeValidationError extends ValidationError {
-  constructor(field: string, value: number, min: number, max: number, context: ErrorContext = { timestamp: Date.now() }) {
+  constructor(
+    field: string,
+    value: number,
+    min: number,
+    max: number,
+    context: ErrorContext = { timestamp: Date.now() }
+  ) {
     super(`Value ${value} for field ${field} is outside valid range [${min}, ${max}]`, {
       ...context,
-      metadata: { ...context.metadata, field, value, min, max }
+      metadata: { ...context.metadata, field, value, min, max },
     });
   }
 }
@@ -254,7 +264,7 @@ export class KeyNotFoundError extends CryptographicError {
   constructor(keyId: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Key not found: ${keyId}`, {
       ...context,
-      metadata: { ...context.metadata, keyId }
+      metadata: { ...context.metadata, keyId },
     });
   }
 }
@@ -264,7 +274,7 @@ export class KeyRotationError extends CryptographicError {
     super(`Failed to rotate key: ${keyId}`, {
       ...context,
       metadata: { ...context.metadata, keyId },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 }
@@ -273,7 +283,7 @@ export class HSMUnavailableError extends CryptographicError {
   constructor(context: ErrorContext = { timestamp: Date.now() }) {
     super('Hardware Security Module is unavailable', {
       ...context,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 }
@@ -310,7 +320,7 @@ export class QueryError extends DatabaseError {
   constructor(query: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Database query failed: ${query}`, {
       ...context,
-      metadata: { ...context.metadata, query }
+      metadata: { ...context.metadata, query },
     });
   }
 }
@@ -322,11 +332,16 @@ export class RecordNotFoundError extends DatabaseError {
 }
 
 export class DuplicateRecordError extends DatabaseError {
-  constructor(recordType: string, field: string, value: string, context: ErrorContext = { timestamp: Date.now() }) {
+  constructor(
+    recordType: string,
+    field: string,
+    value: string,
+    context: ErrorContext = { timestamp: Date.now() }
+  ) {
     super(`Duplicate ${recordType}: ${field}=${value}`, {
       ...context,
       metadata: { ...context.metadata, recordType, field, value },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 }
@@ -348,10 +363,14 @@ export class NetworkError extends PlatformError {
 }
 
 export class TimeoutError extends NetworkError {
-  constructor(operation: string, timeout: number, context: ErrorContext = { timestamp: Date.now() }) {
+  constructor(
+    operation: string,
+    timeout: number,
+    context: ErrorContext = { timestamp: Date.now() }
+  ) {
     super(`Operation ${operation} timed out after ${timeout}ms`, {
       ...context,
-      metadata: { ...context.metadata, operation, timeout }
+      metadata: { ...context.metadata, operation, timeout },
     });
   }
 }
@@ -407,7 +426,7 @@ export class ExternalServiceError extends PlatformError {
       ErrorSeverity.MEDIUM,
       {
         ...context,
-        metadata: { ...context.metadata, service }
+        metadata: { ...context.metadata, service },
       },
       true,
       `Error communicating with external service: ${service}`
@@ -418,7 +437,11 @@ export class ExternalServiceError extends PlatformError {
 // Compliance Errors
 
 export class ComplianceError extends PlatformError {
-  constructor(message: string, framework: string, context: ErrorContext = { timestamp: Date.now() }) {
+  constructor(
+    message: string,
+    framework: string,
+    context: ErrorContext = { timestamp: Date.now() }
+  ) {
     super(
       message,
       'COMP_001',
@@ -426,7 +449,7 @@ export class ComplianceError extends PlatformError {
       ErrorSeverity.HIGH,
       {
         ...context,
-        metadata: { ...context.metadata, framework }
+        metadata: { ...context.metadata, framework },
       },
       false,
       `Compliance error: ${framework}`
@@ -472,20 +495,22 @@ export class RateLimitExceededError extends PerformanceError {
   constructor(limit: number, window: string, context: ErrorContext = { timestamp: Date.now() }) {
     super(`Rate limit exceeded: ${limit} requests per ${window}`, {
       ...context,
-      metadata: { ...context.metadata, limit, window }
+      metadata: { ...context.metadata, limit, window },
     });
   }
 }
 
 export class SlowOperationError extends PerformanceError {
-  constructor(operation: string, duration: number, threshold: number, context: ErrorContext = { timestamp: Date.now() }) {
-    super(
-      `Slow operation detected: ${operation} took ${duration}ms (threshold: ${threshold}ms)`,
-      {
-        ...context,
-        metadata: { ...context.metadata, operation, duration, threshold }
-      }
-    );
+  constructor(
+    operation: string,
+    duration: number,
+    threshold: number,
+    context: ErrorContext = { timestamp: Date.now() }
+  ) {
+    super(`Slow operation detected: ${operation} took ${duration}ms (threshold: ${threshold}ms)`, {
+      ...context,
+      metadata: { ...context.metadata, operation, duration, threshold },
+    });
   }
 }
 
@@ -512,14 +537,15 @@ export class OutOfMemoryError extends SystemError {
 }
 
 export class DiskSpaceError extends SystemError {
-  constructor(available: number, required: number, context: ErrorContext = { timestamp: Date.now() }) {
-    super(
-      `Insufficient disk space: ${available} bytes available, ${required} bytes required`,
-      {
-        ...context,
-        metadata: { ...context.metadata, available, required }
-      }
-    );
+  constructor(
+    available: number,
+    required: number,
+    context: ErrorContext = { timestamp: Date.now() }
+  ) {
+    super(`Insufficient disk space: ${available} bytes available, ${required} bytes required`, {
+      ...context,
+      metadata: { ...context.metadata, available, required },
+    });
   }
 }
 
@@ -529,7 +555,7 @@ export class ErrorFactory {
   static fromCode(code: string, message?: string, context?: ErrorContext): PlatformError {
     const parts = code.split('_');
     const category = parts[0];
-    
+
     switch (category) {
       case 'AUTH':
         return new AuthenticationError(message || 'Authentication error', context);
@@ -575,14 +601,12 @@ export interface ErrorHandlerOptions {
 
 export function createErrorHandler(options: ErrorHandlerOptions = {}) {
   return (error: Error, req: any, res: any, next: any) => {
-    const platformError = error instanceof PlatformError ? error : 
-      new PlatformError(
-        error.message,
-        'SYS_001',
-        ErrorCategory.SYSTEM,
-        ErrorSeverity.MEDIUM,
-        { timestamp: Date.now() }
-      );
+    const platformError =
+      error instanceof PlatformError
+        ? error
+        : new PlatformError(error.message, 'SYS_001', ErrorCategory.SYSTEM, ErrorSeverity.MEDIUM, {
+            timestamp: Date.now(),
+          });
 
     // Log error
     if (options.logErrors) {
@@ -595,9 +619,14 @@ export function createErrorHandler(options: ErrorHandlerOptions = {}) {
     }
 
     // Send response
-    const statusCode = platformError.severity === ErrorSeverity.CRITICAL ? 500 :
-                      platformError.severity === ErrorSeverity.HIGH ? 500 :
-                      platformError.severity === ErrorSeverity.MEDIUM ? 400 : 200;
+    const statusCode =
+      platformError.severity === ErrorSeverity.CRITICAL
+        ? 500
+        : platformError.severity === ErrorSeverity.HIGH
+        ? 500
+        : platformError.severity === ErrorSeverity.MEDIUM
+        ? 400
+        : 200;
 
     res.status(statusCode).json({
       success: false,
@@ -608,11 +637,13 @@ export function createErrorHandler(options: ErrorHandlerOptions = {}) {
         severity: platformError.severity,
         retryable: platformError.retryable,
         requestId: platformError.context.requestId,
-        ...(options.sendStackTrace && process.env.NODE_ENV !== 'production' ? {
-          stack: platformError.stack,
-          details: platformError.context
-        } : {})
-      }
+        ...(options.sendStackTrace && process.env.NODE_ENV !== 'production'
+          ? {
+              stack: platformError.stack,
+              details: platformError.context,
+            }
+          : {}),
+      },
     });
   };
 }

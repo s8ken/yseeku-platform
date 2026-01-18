@@ -1,7 +1,7 @@
 import { SYMBICollaborationLedger } from '../index';
 
 function assert(condition: boolean, message?: string) {
-  if (!condition) throw new Error(message || 'Assertion failed');
+  if (!condition) {throw new Error(message || 'Assertion failed');}
 }
 
 (function main() {
@@ -11,7 +11,7 @@ function assert(condition: boolean, message?: string) {
     provider: 'openai',
     version: '5.0',
     timestamp: Date.now(),
-    verification: { method: 'provider_signed', proof: 'sig' }
+    verification: { method: 'provider_signed', proof: 'sig' },
   });
 
   const w1 = ledger.logWorkUnit(agentId, 'input A', 'output A');
@@ -22,7 +22,10 @@ function assert(condition: boolean, message?: string) {
   const manifest = ledger.generateManifest();
   // Basic checks
   console.log('Merkle Root:', manifest.merkleRoot);
-  assert(typeof manifest.merkleRoot === 'string' && manifest.merkleRoot.length > 0, 'Invalid merkle root');
+  assert(
+    typeof manifest.merkleRoot === 'string' && manifest.merkleRoot.length > 0,
+    'Invalid merkle root'
+  );
 
   // Human signature verification (Ed25519)
   const crypto = require('crypto');
@@ -33,7 +36,9 @@ function assert(condition: boolean, message?: string) {
   const signature = crypto.sign(null, msgHash, privateKey).toString('base64');
   const pubDerB64 = publicKey.export({ type: 'spki', format: 'der' }).toString('base64');
   process.env.SONATE_HUMAN_PUBKEYS_JSON = JSON.stringify({ [humanId]: pubDerB64 });
-  const decision = ledger.logDecision(humanId, signature, 'accept', w2.workId, 'Looks good', [w2.workId]);
+  const decision = ledger.logDecision(humanId, signature, 'accept', w2.workId, 'Looks good', [
+    w2.workId,
+  ]);
   assert(decision.humanId === humanId, 'Decision should record human id');
   console.log('All tests passed');
 })();

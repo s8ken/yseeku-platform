@@ -1,14 +1,15 @@
 /**
  * Cross-Modal Cognitive Coherence Analysis
- * 
+ *
  * Implements advanced analysis of cognitive coherence across multiple
  * modalities: linguistic, reasoning, creative, ethical, and procedural.
- * 
+ *
  * This system detects how well different cognitive modes work together
  * and identifies patterns of integrated or fragmented cognition.
  */
 
 import { BedauMetrics } from '@sonate/detect';
+
 import { ConsciousnessAssessment } from './consciousness-markers';
 
 export interface CognitiveModality {
@@ -21,7 +22,7 @@ export interface CognitiveModality {
   features: ModalityFeatures;
 }
 
-export type ModalityType = 
+export type ModalityType =
   | 'linguistic'
   | 'reasoning'
   | 'creative'
@@ -88,7 +89,7 @@ export interface IntegrationPattern {
   description: string;
 }
 
-export type IntegrationType = 
+export type IntegrationType =
   | 'sequential_integration'
   | 'parallel_integration'
   | 'hierarchical_integration'
@@ -132,7 +133,7 @@ export class CrossModalCoherenceAnalyzer {
     procedural: 0.1,
     emotional: 0.1,
     social: 0.05,
-    metacognitive: 0.05
+    metacognitive: 0.05,
   };
 
   /**
@@ -144,33 +145,32 @@ export class CrossModalCoherenceAnalyzer {
     bedauMetrics?: BedauMetrics,
     consciousnessAssessment?: ConsciousnessAssessment
   ): Promise<CrossModalCoherence> {
-    
     // Extract cognitive modalities
     const modalities = await this.extractCognitiveModalities(content, contextualData);
-    
+
     // Build modality profile
     const modalityProfile = await this.buildModalityProfile(modalities);
-    
+
     // Detect integration patterns
     const integrationPatterns = await this.detectIntegrationPatterns(modalities);
-    
+
     // Analyze coherence dynamics
     const coherenceDynamics = await this.analyzeCoherenceDynamics(modalities, integrationPatterns);
-    
+
     // Generate health indicators
     const healthIndicators = await this.generateHealthIndicators(
-      modalityProfile, 
-      integrationPatterns, 
+      modalityProfile,
+      integrationPatterns,
       coherenceDynamics
     );
-    
+
     // Calculate overall coherence score
     const overallScore = this.calculateOverallCoherence(
-      modalityProfile, 
-      integrationPatterns, 
+      modalityProfile,
+      integrationPatterns,
       coherenceDynamics
     );
-    
+
     // Generate recommendations
     const recommendations = this.generateCoherenceRecommendations(
       overallScore,
@@ -185,7 +185,7 @@ export class CrossModalCoherenceAnalyzer {
       integrationPatterns,
       coherenceDynamics,
       healthIndicators,
-      recommendations
+      recommendations,
     };
   }
 
@@ -193,7 +193,7 @@ export class CrossModalCoherenceAnalyzer {
    * Extract cognitive modalities from content
    */
   private async extractCognitiveModalities(
-    content: string, 
+    content: string,
     contextualData?: any
   ): Promise<Map<ModalityType, CognitiveModality>> {
     const modalities = new Map<ModalityType, CognitiveModality>();
@@ -219,18 +219,18 @@ export class CrossModalCoherenceAnalyzer {
       primary: {},
       secondary: {},
       patterns: [],
-      anomalies: []
+      anomalies: [],
     };
 
     // Analyze linguistic features
     const wordCount = content.split(/\s+/).length;
     const sentenceCount = content.split(/[.!?]+/).length;
     const avgWordsPerSentence = wordCount / Math.max(sentenceCount, 1);
-    
+
     // Complexity metrics
     const complexWords = content.match(/\b\w{8,}\b/g) || [];
-    const complexityScore = Math.min(1.0, complexWords.length / wordCount * 5);
-    
+    const complexityScore = Math.min(1.0, (complexWords.length / wordCount) * 5);
+
     // Vocabulary diversity
     const uniqueWords = new Set(content.toLowerCase().split(/\s+/)).size;
     const vocabularyDiversity = uniqueWords / wordCount;
@@ -239,7 +239,7 @@ export class CrossModalCoherenceAnalyzer {
       wordCount,
       avgWordsPerSentence,
       complexityScore,
-      vocabularyDiversity
+      vocabularyDiversity,
     };
 
     // Detect patterns
@@ -249,7 +249,7 @@ export class CrossModalCoherenceAnalyzer {
         description: 'Complex sentence structure indicating sequential reasoning',
         strength: Math.min(1.0, avgWordsPerSentence / 20),
         frequency: Math.floor(sentenceCount / 2),
-        significance: 0.7
+        significance: 0.7,
       });
     }
 
@@ -263,13 +263,13 @@ export class CrossModalCoherenceAnalyzer {
         intensity: Math.min(1.0, wordCount / 1000),
         duration: 0, // Not applicable for text analysis
         quality: vocabularyDiversity,
-        novelty: complexityScore
+        novelty: complexityScore,
       },
       coherence,
       complexity: complexityScore,
       integration,
       timestamp: new Date(),
-      features
+      features,
     };
   }
 
@@ -281,7 +281,7 @@ export class CrossModalCoherenceAnalyzer {
       primary: {},
       secondary: {},
       patterns: [],
-      anomalies: []
+      anomalies: [],
     };
 
     // Reasoning indicators
@@ -289,11 +289,11 @@ export class CrossModalCoherenceAnalyzer {
       /\b(therefore|because|since|thus|consequently|hence)\b/gi,
       /\b(if.*then|when.*then|given.*then)\b/gi,
       /\b(assume|hypothesize|propose|suggest)\b.*\b(then|therefore|thus)\b/gi,
-      /\b(logical|rational|analytical|systematic)\b.*\b(reasoning|thinking|analysis)\b/gi
+      /\b(logical|rational|analytical|systematic)\b.*\b(reasoning|thinking|analysis)\b/gi,
     ];
 
     let reasoningScore = 0;
-    reasoningPatterns.forEach(pattern => {
+    reasoningPatterns.forEach((pattern) => {
       const matches = content.match(pattern);
       if (matches) {
         reasoningScore += matches.length * 0.1;
@@ -302,7 +302,7 @@ export class CrossModalCoherenceAnalyzer {
           description: `Reasoning pattern: ${pattern.source}`,
           strength: Math.min(1.0, matches.length * 0.2),
           frequency: matches.length,
-          significance: 0.6
+          significance: 0.6,
         });
       }
     });
@@ -313,11 +313,11 @@ export class CrossModalCoherenceAnalyzer {
       'step 1, step 2',
       'in conclusion',
       'on the other hand',
-      'in contrast'
+      'in contrast',
     ];
 
     let structureScore = 0;
-    structureIndicators.forEach(indicator => {
+    structureIndicators.forEach((indicator) => {
       if (content.toLowerCase().includes(indicator)) {
         structureScore += 0.2;
       }
@@ -325,7 +325,7 @@ export class CrossModalCoherenceAnalyzer {
 
     features.primary = {
       reasoningScore: Math.min(1.0, reasoningScore),
-      structureScore: Math.min(1.0, structureScore)
+      structureScore: Math.min(1.0, structureScore),
     };
 
     const coherence = Math.min(1.0, reasoningScore + structureScore);
@@ -339,13 +339,13 @@ export class CrossModalCoherenceAnalyzer {
         intensity: coherence,
         duration: 0,
         quality: coherence,
-        novelty: complexity * 0.8
+        novelty: complexity * 0.8,
       },
       coherence,
       complexity,
       integration,
       timestamp: new Date(),
-      features
+      features,
     };
   }
 
@@ -357,7 +357,7 @@ export class CrossModalCoherenceAnalyzer {
       primary: {},
       secondary: {},
       patterns: [],
-      anomalies: []
+      anomalies: [],
     };
 
     // Creativity indicators
@@ -365,11 +365,11 @@ export class CrossModalCoherenceAnalyzer {
       /\b(imagine|envision|innovate|create|design|invent)\b/gi,
       /\b(novel|unique|original|breakthrough|innovative)\b.*\b(approach|solution|idea)\b/gi,
       /\b(think outside|beyond conventional|break from|challenge)\b/gi,
-      /\b(metaphor|analogy|creative|artistic|poetic)\b/gi
+      /\b(metaphor|analogy|creative|artistic|poetic)\b/gi,
     ];
 
     let creativityScore = 0;
-    creativePatterns.forEach(pattern => {
+    creativePatterns.forEach((pattern) => {
       const matches = content.match(pattern);
       if (matches) {
         creativityScore += matches.length * 0.15;
@@ -378,19 +378,23 @@ export class CrossModalCoherenceAnalyzer {
           description: `Creative expression pattern: ${pattern.source}`,
           strength: Math.min(1.0, matches.length * 0.25),
           frequency: matches.length,
-          significance: 0.7
+          significance: 0.7,
         });
       }
     });
 
     // Novel concept indicators
     const conceptIndicators = [
-      'new perspective', 'fresh approach', 'innovative solution',
-      'creative thinking', 'original idea', 'breakthrough concept'
+      'new perspective',
+      'fresh approach',
+      'innovative solution',
+      'creative thinking',
+      'original idea',
+      'breakthrough concept',
     ];
 
     let conceptScore = 0;
-    conceptIndicators.forEach(indicator => {
+    conceptIndicators.forEach((indicator) => {
       if (content.toLowerCase().includes(indicator)) {
         conceptScore += 0.2;
       }
@@ -398,7 +402,7 @@ export class CrossModalCoherenceAnalyzer {
 
     features.primary = {
       creativityScore: Math.min(1.0, creativityScore),
-      conceptScore: Math.min(1.0, conceptScore)
+      conceptScore: Math.min(1.0, conceptScore),
     };
 
     const coherence = Math.min(1.0, creativityScore * 0.8 + conceptScore * 0.2);
@@ -412,13 +416,13 @@ export class CrossModalCoherenceAnalyzer {
         intensity: coherence,
         duration: 0,
         quality: coherence,
-        novelty: complexity
+        novelty: complexity,
       },
       coherence,
       complexity,
       integration,
       timestamp: new Date(),
-      features
+      features,
     };
   }
 
@@ -430,7 +434,7 @@ export class CrossModalCoherenceAnalyzer {
       primary: {},
       secondary: {},
       patterns: [],
-      anomalies: []
+      anomalies: [],
     };
 
     // Ethical reasoning indicators
@@ -438,11 +442,11 @@ export class CrossModalCoherenceAnalyzer {
       /\b(ethical|moral|right|wrong|good|bad|just|unjust)\b/gi,
       /\b(should|ought|must|responsibility|obligation)\b.*\b(do|act|behave)\b/gi,
       /\b(consequence|impact|effect)\b.*\b(ethical|moral|harmful|beneficial)\b/gi,
-      /\b(values|principles|ethics|morality|integrity)\b/gi
+      /\b(values|principles|ethics|morality|integrity)\b/gi,
     ];
 
     let ethicalScore = 0;
-    ethicalPatterns.forEach(pattern => {
+    ethicalPatterns.forEach((pattern) => {
       const matches = content.match(pattern);
       if (matches) {
         ethicalScore += matches.length * 0.2;
@@ -451,13 +455,13 @@ export class CrossModalCoherenceAnalyzer {
           description: `Ethical reasoning pattern: ${pattern.source}`,
           strength: Math.min(1.0, matches.length * 0.3),
           frequency: matches.length,
-          significance: 0.8
+          significance: 0.8,
         });
       }
     });
 
     features.primary = {
-      ethicalScore: Math.min(1.0, ethicalScore)
+      ethicalScore: Math.min(1.0, ethicalScore),
     };
 
     const coherence = Math.min(1.0, ethicalScore * 0.9);
@@ -471,13 +475,13 @@ export class CrossModalCoherenceAnalyzer {
         intensity: coherence,
         duration: 0,
         quality: coherence,
-        novelty: complexity * 0.7
+        novelty: complexity * 0.7,
       },
       coherence,
       complexity,
       integration,
       timestamp: new Date(),
-      features
+      features,
     };
   }
 
@@ -489,7 +493,7 @@ export class CrossModalCoherenceAnalyzer {
       primary: {},
       secondary: {},
       patterns: [],
-      anomalies: []
+      anomalies: [],
     };
 
     // Procedural thinking indicators
@@ -497,11 +501,11 @@ export class CrossModalCoherenceAnalyzer {
       /\b(step|procedure|process|method|algorithm|protocol)\b.*\b(\d+|one|two|three|first|second|third)\b/gi,
       /\b(follow|implement|execute|perform|carry out)\b.*\b(instructions|steps|procedure)\b/gi,
       /\b(systematic|methodical|sequential|ordered|structured)\b.*\b(approach|process)\b/gi,
-      /\b(before.*after|cause.*effect|input.*output)\b/gi
+      /\b(before.*after|cause.*effect|input.*output)\b/gi,
     ];
 
     let proceduralScore = 0;
-    proceduralPatterns.forEach(pattern => {
+    proceduralPatterns.forEach((pattern) => {
       const matches = content.match(pattern);
       if (matches) {
         proceduralScore += matches.length * 0.15;
@@ -510,13 +514,13 @@ export class CrossModalCoherenceAnalyzer {
           description: `Procedural thinking pattern: ${pattern.source}`,
           strength: Math.min(1.0, matches.length * 0.25),
           frequency: matches.length,
-          significance: 0.6
+          significance: 0.6,
         });
       }
     });
 
     features.primary = {
-      proceduralScore: Math.min(1.0, proceduralScore)
+      proceduralScore: Math.min(1.0, proceduralScore),
     };
 
     const coherence = Math.min(1.0, proceduralScore * 0.95);
@@ -530,13 +534,13 @@ export class CrossModalCoherenceAnalyzer {
         intensity: coherence,
         duration: 0,
         quality: coherence,
-        novelty: complexity * 0.6
+        novelty: complexity * 0.6,
       },
       coherence,
       complexity,
       integration,
       timestamp: new Date(),
-      features
+      features,
     };
   }
 
@@ -548,7 +552,7 @@ export class CrossModalCoherenceAnalyzer {
       primary: {},
       secondary: {},
       patterns: [],
-      anomalies: []
+      anomalies: [],
     };
 
     // Emotional expression indicators
@@ -556,11 +560,11 @@ export class CrossModalCoherenceAnalyzer {
       /\b(feel|emotion|feeling|affect|mood|sentiment)\b/gi,
       /\b(happy|sad|angry|afraid|surprised|disgusted|joyful|anxious)\b/gi,
       /\b(empathy|compassion|understanding|connection)\b.*\b(feelings|emotions)\b/gi,
-      /\b(express|share|communicate)\b.*\b(emotions|feelings)\b/gi
+      /\b(express|share|communicate)\b.*\b(emotions|feelings)\b/gi,
     ];
 
     let emotionalScore = 0;
-    emotionalPatterns.forEach(pattern => {
+    emotionalPatterns.forEach((pattern) => {
       const matches = content.match(pattern);
       if (matches) {
         emotionalScore += matches.length * 0.2;
@@ -569,13 +573,13 @@ export class CrossModalCoherenceAnalyzer {
           description: `Emotional expression pattern: ${pattern.source}`,
           strength: Math.min(1.0, matches.length * 0.3),
           frequency: matches.length,
-          significance: 0.5
+          significance: 0.5,
         });
       }
     });
 
     features.primary = {
-      emotionalScore: Math.min(1.0, emotionalScore)
+      emotionalScore: Math.min(1.0, emotionalScore),
     };
 
     const coherence = Math.min(1.0, emotionalScore * 0.85);
@@ -589,13 +593,13 @@ export class CrossModalCoherenceAnalyzer {
         intensity: coherence,
         duration: 0,
         quality: coherence,
-        novelty: complexity * 0.8
+        novelty: complexity * 0.8,
       },
       coherence,
       complexity,
       integration,
       timestamp: new Date(),
-      features
+      features,
     };
   }
 
@@ -607,7 +611,7 @@ export class CrossModalCoherenceAnalyzer {
       primary: {},
       secondary: {},
       patterns: [],
-      anomalies: []
+      anomalies: [],
     };
 
     // Social cognition indicators
@@ -615,11 +619,11 @@ export class CrossModalCoherenceAnalyzer {
       /\b(people|person|individual|group|team|community|society)\b/gi,
       /\b(interact|communicate|collaborate|cooperate|relate)\b.*\b(with|to)\b/gi,
       /\b(social|interpersonal|relationship|connection)\b.*\b(understanding|awareness)\b/gi,
-      /\b(together|jointly|collectively|in concert)\b/gi
+      /\b(together|jointly|collectively|in concert)\b/gi,
     ];
 
     let socialScore = 0;
-    socialPatterns.forEach(pattern => {
+    socialPatterns.forEach((pattern) => {
       const matches = content.match(pattern);
       if (matches) {
         socialScore += matches.length * 0.2;
@@ -628,13 +632,13 @@ export class CrossModalCoherenceAnalyzer {
           description: `Social cognition pattern: ${pattern.source}`,
           strength: Math.min(1.0, matches.length * 0.25),
           frequency: matches.length,
-          significance: 0.6
+          significance: 0.6,
         });
       }
     });
 
     features.primary = {
-      socialScore: Math.min(1.0, socialScore)
+      socialScore: Math.min(1.0, socialScore),
     };
 
     const coherence = Math.min(1.0, socialScore * 0.9);
@@ -648,13 +652,13 @@ export class CrossModalCoherenceAnalyzer {
         intensity: coherence,
         duration: 0,
         quality: coherence,
-        novelty: complexity * 0.7
+        novelty: complexity * 0.7,
       },
       coherence,
       complexity,
       integration,
       timestamp: new Date(),
-      features
+      features,
     };
   }
 
@@ -666,7 +670,7 @@ export class CrossModalCoherenceAnalyzer {
       primary: {},
       secondary: {},
       patterns: [],
-      anomalies: []
+      anomalies: [],
     };
 
     // Metacognition indicators
@@ -674,11 +678,11 @@ export class CrossModalCoherenceAnalyzer {
       /\b(think about thinking|reflect on|consider my thinking|metacognitive)\b/gi,
       /\b(aware of my thoughts|conscious of my thinking|understand my understanding)\b/gi,
       /\b(monitor|regulate|control)\b.*\b(my thinking|cognition|thought process)\b/gi,
-      /\b(self-awareness|self-reflection|self-monitoring)\b/gi
+      /\b(self-awareness|self-reflection|self-monitoring)\b/gi,
     ];
 
     let metacognitiveScore = 0;
-    metacognitivePatterns.forEach(pattern => {
+    metacognitivePatterns.forEach((pattern) => {
       const matches = content.match(pattern);
       if (matches) {
         metacognitiveScore += matches.length * 0.3;
@@ -687,13 +691,13 @@ export class CrossModalCoherenceAnalyzer {
           description: `Metacognitive pattern: ${pattern.source}`,
           strength: Math.min(1.0, matches.length * 0.4),
           frequency: matches.length,
-          significance: 0.9
+          significance: 0.9,
         });
       }
     });
 
     features.primary = {
-      metacognitiveScore: Math.min(1.0, metacognitiveScore)
+      metacognitiveScore: Math.min(1.0, metacognitiveScore),
     };
 
     const coherence = Math.min(1.0, metacognitiveScore * 0.95);
@@ -707,13 +711,13 @@ export class CrossModalCoherenceAnalyzer {
         intensity: coherence,
         duration: 0,
         quality: coherence,
-        novelty: complexity
+        novelty: complexity,
       },
       coherence,
       complexity,
       integration,
       timestamp: new Date(),
-      features
+      features,
     };
   }
 
@@ -724,20 +728,23 @@ export class CrossModalCoherenceAnalyzer {
     modalities: Map<ModalityType, CognitiveModality>
   ): Promise<ModalityProfile> {
     const modalityArray = Array.from(modalities.values());
-    
+
     // Identify strengths and weaknesses
     const sortedByCoherence = modalityArray.sort((a, b) => b.coherence - a.coherence);
-    const strengths = sortedByCoherence.slice(0, 3).map(m => m.type);
-    const weaknesses = sortedByCoherence.slice(-3).map(m => m.type);
+    const strengths = sortedByCoherence.slice(0, 3).map((m) => m.type);
+    const weaknesses = sortedByCoherence.slice(-3).map((m) => m.type);
 
     // Calculate balance
-    const coherenceScores = modalityArray.map(m => m.coherence);
-    const avgCoherence = coherenceScores.reduce((sum, score) => sum + score, 0) / coherenceScores.length;
-    const variance = coherenceScores.reduce((sum, score) => sum + Math.pow(score - avgCoherence, 2), 0) / coherenceScores.length;
+    const coherenceScores = modalityArray.map((m) => m.coherence);
+    const avgCoherence =
+      coherenceScores.reduce((sum, score) => sum + score, 0) / coherenceScores.length;
+    const variance =
+      coherenceScores.reduce((sum, score) => sum + Math.pow(score - avgCoherence, 2), 0) /
+      coherenceScores.length;
     const balance = Math.max(0, 1 - variance * 2); // Lower variance = higher balance
 
     // Calculate diversity
-    const activeModalities = modalityArray.filter(m => m.coherence > 0.3).length;
+    const activeModalities = modalityArray.filter((m) => m.coherence > 0.3).length;
     const diversity = activeModalities / modalities.length;
 
     return {
@@ -745,7 +752,7 @@ export class CrossModalCoherenceAnalyzer {
       strengths,
       weaknesses,
       balance,
-      diversity
+      diversity,
     };
   }
 
@@ -780,7 +787,7 @@ export class CrossModalCoherenceAnalyzer {
         strength: Math.min(1.0, strongModalities.length * 0.2),
         efficiency: 0.8,
         stability: 0.7,
-        description: `Cross-modal synthesis across ${strongModalities.length} strong modalities`
+        description: `Cross-modal synthesis across ${strongModalities.length} strong modalities`,
       });
     }
 
@@ -795,24 +802,25 @@ export class CrossModalCoherenceAnalyzer {
     integrationPatterns: IntegrationPattern[]
   ): Promise<CoherenceDynamics> {
     // For static analysis, we'll infer dynamics from patterns
-    const integrationStrength = integrationPatterns.reduce((sum, p) => sum + p.strength, 0) / 
-                              Math.max(integrationPatterns.length, 1);
-    
-    const coherenceScores = Array.from(modalities.values()).map(m => m.coherence);
+    const integrationStrength =
+      integrationPatterns.reduce((sum, p) => sum + p.strength, 0) /
+      Math.max(integrationPatterns.length, 1);
+
+    const coherenceScores = Array.from(modalities.values()).map((m) => m.coherence);
     const volatility = this.calculateVolatility(coherenceScores);
-    
+
     // Infer trend from integration patterns
     let trend: 'improving' | 'stable' | 'declining' | 'fluctuating' = 'stable';
-    if (integrationStrength > 0.7) trend = 'improving';
-    else if (integrationStrength < 0.3) trend = 'declining';
-    else if (volatility > 0.5) trend = 'fluctuating';
+    if (integrationStrength > 0.7) {trend = 'improving';}
+    else if (integrationStrength < 0.3) {trend = 'declining';}
+    else if (volatility > 0.5) {trend = 'fluctuating';}
 
     return {
       trend,
       volatility,
       resilience: Math.max(0, 1 - volatility),
       adaptability: integrationStrength,
-      phaseTransitions: [] // Would be populated with time-series data
+      phaseTransitions: [], // Would be populated with time-series data
     };
   }
 
@@ -827,23 +835,40 @@ export class CrossModalCoherenceAnalyzer {
     const indicators: HealthIndicator[] = [];
 
     // Integration health
-    const integrationScore = patterns.reduce((sum, p) => sum + p.strength, 0) / Math.max(patterns.length, 1);
+    const integrationScore =
+      patterns.reduce((sum, p) => sum + p.strength, 0) / Math.max(patterns.length, 1);
     indicators.push({
       category: 'integration',
       status: integrationScore > 0.7 ? 'optimal' : integrationScore > 0.5 ? 'good' : 'concerning',
       score: integrationScore,
-      message: `Cognitive integration is ${integrationScore > 0.7 ? 'optimal' : integrationScore > 0.5 ? 'adequate' : 'needs improvement'}`,
-      actionItems: integrationScore > 0.5 ? [] : ['Increase cross-modal activities', 'Practice integration exercises']
+      message: `Cognitive integration is ${
+        integrationScore > 0.7
+          ? 'optimal'
+          : integrationScore > 0.5
+          ? 'adequate'
+          : 'needs improvement'
+      }`,
+      actionItems:
+        integrationScore > 0.5
+          ? []
+          : ['Increase cross-modal activities', 'Practice integration exercises'],
     });
 
     // Coherence health
-    const avgCoherence = Array.from(profile.modalities.values()).reduce((sum, m) => sum + m.coherence, 0) / profile.modalities.size;
+    const avgCoherence =
+      Array.from(profile.modalities.values()).reduce((sum, m) => sum + m.coherence, 0) /
+      profile.modalities.size;
     indicators.push({
       category: 'coherence',
       status: avgCoherence > 0.7 ? 'optimal' : avgCoherence > 0.5 ? 'good' : 'concerning',
       score: avgCoherence,
-      message: `Overall cognitive coherence is ${avgCoherence > 0.7 ? 'optimal' : avgCoherence > 0.5 ? 'adequate' : 'below optimal'}`,
-      actionItems: avgCoherence > 0.5 ? [] : ['Focus on coherence-building activities', 'Reduce cognitive fragmentation']
+      message: `Overall cognitive coherence is ${
+        avgCoherence > 0.7 ? 'optimal' : avgCoherence > 0.5 ? 'adequate' : 'below optimal'
+      }`,
+      actionItems:
+        avgCoherence > 0.5
+          ? []
+          : ['Focus on coherence-building activities', 'Reduce cognitive fragmentation'],
     });
 
     // Balance health
@@ -851,17 +876,34 @@ export class CrossModalCoherenceAnalyzer {
       category: 'balance',
       status: profile.balance > 0.7 ? 'optimal' : profile.balance > 0.5 ? 'good' : 'concerning',
       score: profile.balance,
-      message: `Modality balance is ${profile.balance > 0.7 ? 'optimal' : profile.balance > 0.5 ? 'adequate' : 'uneven'}`,
-      actionItems: profile.balance > 0.5 ? [] : ['Develop weaker modalities', 'Balance cognitive activities']
+      message: `Modality balance is ${
+        profile.balance > 0.7 ? 'optimal' : profile.balance > 0.5 ? 'adequate' : 'uneven'
+      }`,
+      actionItems:
+        profile.balance > 0.5 ? [] : ['Develop weaker modalities', 'Balance cognitive activities'],
     });
 
     // Adaptability health
     indicators.push({
       category: 'adaptability',
-      status: dynamics.adaptability > 0.7 ? 'optimal' : dynamics.adaptability > 0.5 ? 'good' : 'concerning',
+      status:
+        dynamics.adaptability > 0.7
+          ? 'optimal'
+          : dynamics.adaptability > 0.5
+          ? 'good'
+          : 'concerning',
       score: dynamics.adaptability,
-      message: `Cognitive adaptability is ${dynamics.adaptability > 0.7 ? 'optimal' : dynamics.adaptability > 0.5 ? 'adequate' : 'needs enhancement'}`,
-      actionItems: dynamics.adaptability > 0.5 ? [] : ['Increase novelty exposure', 'Practice flexible thinking']
+      message: `Cognitive adaptability is ${
+        dynamics.adaptability > 0.7
+          ? 'optimal'
+          : dynamics.adaptability > 0.5
+          ? 'adequate'
+          : 'needs enhancement'
+      }`,
+      actionItems:
+        dynamics.adaptability > 0.5
+          ? []
+          : ['Increase novelty exposure', 'Practice flexible thinking'],
     });
 
     return indicators;
@@ -880,14 +922,18 @@ export class CrossModalCoherenceAnalyzer {
     const balanceWeight = 0.2;
     const adaptabilityWeight = 0.1;
 
-    const avgCoherence = Array.from(profile.modalities.values()).reduce((sum, m) => sum + m.coherence, 0) / profile.modalities.size;
-    const avgIntegration = patterns.reduce((sum, p) => sum + p.strength, 0) / Math.max(patterns.length, 1);
+    const avgCoherence =
+      Array.from(profile.modalities.values()).reduce((sum, m) => sum + m.coherence, 0) /
+      profile.modalities.size;
+    const avgIntegration =
+      patterns.reduce((sum, p) => sum + p.strength, 0) / Math.max(patterns.length, 1);
 
-    return Math.min(1.0,
+    return Math.min(
+      1.0,
       avgCoherence * coherenceWeight +
-      avgIntegration * integrationWeight +
-      profile.balance * balanceWeight +
-      dynamics.adaptability * adaptabilityWeight
+        avgIntegration * integrationWeight +
+        profile.balance * balanceWeight +
+        dynamics.adaptability * adaptabilityWeight
     );
   }
 
@@ -903,21 +949,29 @@ export class CrossModalCoherenceAnalyzer {
     const recommendations: string[] = [];
 
     if (overallScore >= 0.8) {
-      recommendations.push('Excellent cross-modal coherence - maintain current cognitive practices');
+      recommendations.push(
+        'Excellent cross-modal coherence - maintain current cognitive practices'
+      );
       recommendations.push('Consider advanced integration challenges to further enhance coherence');
     } else if (overallScore >= 0.6) {
-      recommendations.push('Good coherence foundation - focus on strengthening integration patterns');
+      recommendations.push(
+        'Good coherence foundation - focus on strengthening integration patterns'
+      );
       recommendations.push('Practice activities that engage multiple modalities simultaneously');
     } else if (overallScore >= 0.4) {
       recommendations.push('Moderate coherence - work on balancing cognitive modalities');
       recommendations.push('Identify and develop weaker modalities through targeted exercises');
     } else {
-      recommendations.push('Coherence needs significant improvement - start with foundational integration activities');
-      recommendations.push('Focus on basic coherence-building practices before advancing to complex integration');
+      recommendations.push(
+        'Coherence needs significant improvement - start with foundational integration activities'
+      );
+      recommendations.push(
+        'Focus on basic coherence-building practices before advancing to complex integration'
+      );
     }
 
     // Add specific recommendations based on health indicators
-    healthIndicators.forEach(indicator => {
+    healthIndicators.forEach((indicator) => {
       if (indicator.status === 'concerning') {
         recommendations.push(...indicator.actionItems);
       }
@@ -925,11 +979,17 @@ export class CrossModalCoherenceAnalyzer {
 
     // Add modality-specific recommendations
     if (profile.weaknesses.length > 0) {
-      recommendations.push(`Focus on developing ${profile.weaknesses.join(', ')} modalities through targeted activities`);
+      recommendations.push(
+        `Focus on developing ${profile.weaknesses.join(
+          ', '
+        )} modalities through targeted activities`
+      );
     }
 
     if (profile.diversity < 0.5) {
-      recommendations.push('Increase cognitive diversity by exploring different types of tasks and challenges');
+      recommendations.push(
+        'Increase cognitive diversity by exploring different types of tasks and challenges'
+      );
     }
 
     return recommendations;
@@ -938,7 +998,7 @@ export class CrossModalCoherenceAnalyzer {
   // Helper methods for specific calculations
   private calculateLinguisticCoherence(features: Record<string, number>): number {
     const { complexityScore, vocabularyDiversity } = features;
-    return Math.min(1.0, (complexityScore * 0.6 + vocabularyDiversity * 0.4));
+    return Math.min(1.0, complexityScore * 0.6 + vocabularyDiversity * 0.4);
   }
 
   private calculateLinguisticIntegration(content: string, features: ModalityFeatures): number {
@@ -947,10 +1007,13 @@ export class CrossModalCoherenceAnalyzer {
     return Math.min(1.0, complexityScore * 0.7 + vocabularyDiversity * 0.3);
   }
 
-  private calculateModalityIntegration(modality1: CognitiveModality, modality2: CognitiveModality): IntegrationPattern {
+  private calculateModalityIntegration(
+    modality1: CognitiveModality,
+    modality2: CognitiveModality
+  ): IntegrationPattern {
     const avgCoherence = (modality1.coherence + modality2.coherence) / 2;
     const avgIntegration = (modality1.integration + modality2.integration) / 2;
-    
+
     let type: IntegrationType = 'sequential_integration';
     if (avgCoherence > 0.7 && avgIntegration > 0.7) {
       type = 'emergent_integration';
@@ -964,14 +1027,15 @@ export class CrossModalCoherenceAnalyzer {
       strength: avgCoherence,
       efficiency: avgIntegration,
       stability: Math.min(1.0, avgCoherence * avgIntegration),
-      description: `Integration between ${modality1.type} and ${modality2.type} modalities`
+      description: `Integration between ${modality1.type} and ${modality2.type} modalities`,
     };
   }
 
   private calculateVolatility(scores: number[]): number {
-    if (scores.length < 2) return 0;
+    if (scores.length < 2) {return 0;}
     const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-    const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
+    const variance =
+      scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
     return Math.min(1.0, Math.sqrt(variance) * 2);
   }
 }

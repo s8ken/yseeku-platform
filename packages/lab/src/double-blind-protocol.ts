@@ -1,6 +1,6 @@
 /**
  * Double-Blind Protocol - Prevents experimenter bias
- * 
+ *
  * Ensures that neither the AI models nor the evaluators know
  * which variant they are testing until experiment completion.
  */
@@ -21,12 +21,12 @@ export class DoubleBlindProtocol {
     this.blinded.set(experiment_id, {
       config: {
         ...config,
-        variants: anonymized_variants.map(v => ({
+        variants: anonymized_variants.map((v) => ({
           ...v,
           id: v.blind_id, // Replace with blind ID
         })),
       },
-      mapping: new Map(anonymized_variants.map(v => [v.blind_id, v.original_id])),
+      mapping: new Map(anonymized_variants.map((v) => [v.blind_id, v.original_id])),
       is_blinded: true,
     });
   }
@@ -46,7 +46,7 @@ export class DoubleBlindProtocol {
     }
 
     // Restore original IDs
-    blinded.config.variants = blinded.config.variants.map(v => ({
+    blinded.config.variants = blinded.config.variants.map((v) => ({
       ...v,
       id: blinded.mapping.get(v.id) || v.id,
     }));

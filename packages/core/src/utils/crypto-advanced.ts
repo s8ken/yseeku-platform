@@ -5,8 +5,9 @@
  * P0 CRITICAL: Required for pilot
  */
 
-import { canonicalize } from 'json-canonicalize';
 import crypto from 'crypto';
+
+import { canonicalize } from 'json-canonicalize';
 
 export type SignatureAlgorithm = 'Ed25519' | 'ES256K' | 'RS256';
 
@@ -29,11 +30,13 @@ let secp256k1Promise: Promise<any> | null = null;
 
 async function loadEd25519(): Promise<any> {
   if (!ed25519Promise) {
-    ed25519Promise = (new Function('return import("@noble/ed25519")')() as Promise<any>).then((ed25519) => {
-      (ed25519 as any).etc.sha512Sync = (...m: Uint8Array[]) =>
-        new Uint8Array(crypto.createHash('sha512').update(m[0]).digest());
-      return ed25519;
-    });
+    ed25519Promise = (new Function('return import("@noble/ed25519")')() as Promise<any>).then(
+      (ed25519) => {
+        (ed25519).etc.sha512Sync = (...m: Uint8Array[]) =>
+          new Uint8Array(crypto.createHash('sha512').update(m[0]).digest());
+        return ed25519;
+      }
+    );
   }
 
   return ed25519Promise;
@@ -51,13 +54,16 @@ async function loadSecp256k1(): Promise<any> {
  * Canonicalize JSON for deterministic signing
  * Uses JSON Canonicalization Scheme (JCS) RFC 8785
  */
-export function canonicalizeJSON(data: any, options: CanonicalizeOptions = { method: 'JCS' }): string {
+export function canonicalizeJSON(
+  data: any,
+  options: CanonicalizeOptions = { method: 'JCS' }
+): string {
   if (options.method === 'JCS') {
     return canonicalize(data);
-  } else {
+  } 
     // URDNA2015 for RDF - placeholder for future implementation
     throw new Error('URDNA2015 not yet implemented');
-  }
+  
 }
 
 /**
@@ -80,7 +86,7 @@ export async function verifyEd25519Signature(
       return {
         valid: false,
         algorithm: 'Ed25519',
-        error: 'Invalid multibase encoding (expected base58btc with z prefix)'
+        error: 'Invalid multibase encoding (expected base58btc with z prefix)',
       };
     }
 
@@ -94,13 +100,13 @@ export async function verifyEd25519Signature(
 
     return {
       valid: isValid,
-      algorithm: 'Ed25519'
+      algorithm: 'Ed25519',
     };
   } catch (error) {
     return {
       valid: false,
       algorithm: 'Ed25519',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -133,13 +139,13 @@ export async function verifySecp256k1Signature(
 
     return {
       valid: isValid,
-      algorithm: 'ES256K'
+      algorithm: 'ES256K',
     };
   } catch (error) {
     return {
       valid: false,
       algorithm: 'ES256K',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -156,7 +162,7 @@ export async function verifyRSASignature(
 ): Promise<SignatureVerificationResult> {
   try {
     // For RSA signatures, we'll need Node.js crypto module
-    
+
     const canonical = canonicalizeJSON(data, options);
     const message = Buffer.from(canonical, 'utf8');
 
@@ -166,20 +172,20 @@ export async function verifyRSASignature(
       {
         key: publicKey,
         padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
-        saltLength: crypto.constants.RSA_PSS_SALTLEN_DIGEST
+        saltLength: crypto.constants.RSA_PSS_SALTLEN_DIGEST,
       },
       Buffer.from(signature, 'base64')
     );
 
     return {
       valid: isValid,
-      algorithm: 'RS256'
+      algorithm: 'RS256',
     };
   } catch (error) {
     return {
       valid: false,
       algorithm: 'RS256',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -195,7 +201,7 @@ export async function verifyCredentialProof(
     return {
       valid: false,
       algorithm: 'Ed25519',
-      error: 'No proof found in credential'
+      error: 'No proof found in credential',
     };
   }
 
@@ -236,7 +242,7 @@ export async function verifyCredentialProof(
       return {
         valid: false,
         algorithm: 'Ed25519',
-        error: `Unsupported proof type: ${proof.type}`
+        error: `Unsupported proof type: ${proof.type}`,
       };
   }
 }
@@ -287,7 +293,10 @@ export function generateSecureRandom(length: number): Uint8Array {
 /**
  * Generate Ed25519 key pair
  */
-export async function generateEd25519KeyPair(): Promise<{ publicKey: Uint8Array; privateKey: Uint8Array }> {
+export async function generateEd25519KeyPair(): Promise<{
+  publicKey: Uint8Array;
+  privateKey: Uint8Array;
+}> {
   const ed25519 = await loadEd25519();
   const privateKey = ed25519.utils.randomPrivateKey();
   const publicKey = await ed25519.getPublicKey(privateKey);
@@ -328,7 +337,7 @@ export function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) {
     return false;
   }
-  
+
   // Use Node.js crypto module for timing-safe comparison
   return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }

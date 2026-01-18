@@ -45,7 +45,7 @@ class TenantContextManager {
    * Check if a tenant context is currently active
    */
   isActive(): boolean {
-    return !!this.get();
+    return Boolean(this.get());
   }
 }
 

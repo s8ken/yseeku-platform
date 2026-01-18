@@ -33,11 +33,13 @@ export class MathematicalConfidenceCalculator {
   private reviewThreshold: number;
   private historicalData: Map<string, number[]>;
 
-  constructor(options: {
-    bootstrapSamples?: number;
-    confidenceLevel?: number;
-    reviewThreshold?: number;
-  } = {}) {
+  constructor(
+    options: {
+      bootstrapSamples?: number;
+      confidenceLevel?: number;
+      reviewThreshold?: number;
+    } = {}
+  ) {
     this.bootstrapSamples = options.bootstrapSamples || 1000;
     this.confidenceLevel = options.confidenceLevel || 0.95;
     this.reviewThreshold = options.reviewThreshold || 0.7;
@@ -73,10 +75,7 @@ export class MathematicalConfidenceCalculator {
     const sampleUncertainty = this.calculateSampleUncertainty(sampleSize);
 
     // 5. Temporal uncertainty (historical stability)
-    const temporalUncertainty = this.calculateTemporalUncertainty(
-      pointEstimate,
-      historicalScores
-    );
+    const temporalUncertainty = this.calculateTemporalUncertainty(pointEstimate, historicalScores);
 
     // 6. Adversarial uncertainty
     const adversarialUncertainty = adversarialRisk;
@@ -84,21 +83,20 @@ export class MathematicalConfidenceCalculator {
     // Combine uncertainties (weighted average)
     const weights = {
       bootstrap: 0.25,
-      threshold: 0.20,
+      threshold: 0.2,
       model: 0.15,
       sample: 0.15,
       temporal: 0.15,
-      adversarial: 0.10
+      adversarial: 0.1,
     };
 
-    const uncertainty = (
+    const uncertainty =
       bootstrapUncertainty * weights.bootstrap +
       thresholdUncertainty * weights.threshold +
       modelUncertainty * weights.model +
       sampleUncertainty * weights.sample +
       temporalUncertainty * weights.temporal +
-      adversarialUncertainty * weights.adversarial
-    );
+      adversarialUncertainty * weights.adversarial;
 
     // Calculate overall confidence (inverse of uncertainty, bounded)
     const confidence = Math.max(0, Math.min(1, 1 - uncertainty));
@@ -127,9 +125,10 @@ export class MathematicalConfidenceCalculator {
     }
 
     // Calculate stability score
-    const stabilityScore = historicalScores.length > 0
-      ? this.calculateStabilityScore(pointEstimate, historicalScores)
-      : 0.5;
+    const stabilityScore =
+      historicalScores.length > 0
+        ? this.calculateStabilityScore(pointEstimate, historicalScores)
+        : 0.5;
 
     return {
       confidence,
@@ -140,12 +139,12 @@ export class MathematicalConfidenceCalculator {
         model: modelUncertainty,
         sample: sampleUncertainty,
         temporal: temporalUncertainty,
-        adversarial: adversarialUncertainty
+        adversarial: adversarialUncertainty,
       },
       confidenceInterval,
       requiresReview,
       reviewReasons,
-      stabilityScore
+      stabilityScore,
     };
   }
 
@@ -182,7 +181,7 @@ export class MathematicalConfidenceCalculator {
         calibrationScore: 0.5,
         coverageRate: 0.5,
         averageUncertainty: 0.5,
-        predictionError: 0.5
+        predictionError: 0.5,
       };
     }
 
@@ -193,8 +192,9 @@ export class MathematicalConfidenceCalculator {
     const coverageRate = this.calculateCoverageRate(historicalScores);
 
     // Average uncertainty
-    const averageUncertainty = historicalScores.reduce((sum, score) =>
-      sum + this.estimateUncertainty(score), 0) / historicalScores.length;
+    const averageUncertainty =
+      historicalScores.reduce((sum, score) => sum + this.estimateUncertainty(score), 0) /
+      historicalScores.length;
 
     // Prediction error (RMSE)
     const predictionError = this.calculatePredictionError(historicalScores);
@@ -203,18 +203,18 @@ export class MathematicalConfidenceCalculator {
       calibrationScore,
       coverageRate,
       averageUncertainty,
-      predictionError
+      predictionError,
     };
   }
 
   // Private helper methods
 
   private calculateBootstrapCI(estimates: number[]): [number, number] {
-    if (estimates.length === 0) return [0, 1];
+    if (estimates.length === 0) {return [0, 1];}
 
     const sorted = [...estimates].sort((a, b) => a - b);
-    const lowerIndex = Math.floor((1 - this.confidenceLevel) / 2 * estimates.length);
-    const upperIndex = Math.floor((1 + this.confidenceLevel) / 2 * estimates.length);
+    const lowerIndex = Math.floor(((1 - this.confidenceLevel) / 2) * estimates.length);
+    const upperIndex = Math.floor(((1 + this.confidenceLevel) / 2) * estimates.length);
 
     return [sorted[lowerIndex], sorted[upperIndex]];
   }
@@ -231,10 +231,11 @@ export class MathematicalConfidenceCalculator {
   }
 
   private calculateTemporalUncertainty(currentScore: number, historicalScores: number[]): number {
-    if (historicalScores.length === 0) return 0.5;
+    if (historicalScores.length === 0) {return 0.5;}
 
     const mean = historicalScores.reduce((sum, s) => sum + s, 0) / historicalScores.length;
-    const variance = historicalScores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / historicalScores.length;
+    const variance =
+      historicalScores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / historicalScores.length;
     const std = Math.sqrt(variance);
 
     // Uncertainty based on deviation from historical mean
@@ -243,11 +244,12 @@ export class MathematicalConfidenceCalculator {
   }
 
   private calculateStabilityScore(currentScore: number, historicalScores: number[]): number {
-    if (historicalScores.length < 3) return 0.5;
+    if (historicalScores.length < 3) {return 0.5;}
 
     const recentScores = historicalScores.slice(-10); // Last 10 scores
     const mean = recentScores.reduce((sum, s) => sum + s, 0) / recentScores.length;
-    const variance = recentScores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / recentScores.length;
+    const variance =
+      recentScores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / recentScores.length;
 
     // Stability is inverse of coefficient of variation
     const cv = Math.sqrt(variance) / (mean + 0.001); // Avoid division by zero
@@ -264,12 +266,12 @@ export class MathematicalConfidenceCalculator {
   private calculateCoverageRate(scores: number[]): number {
     // Simplified coverage calculation
     const mean = scores.reduce((sum, s) => sum + s, 0) / scores.length;
-    const withinBounds = scores.filter(s => Math.abs(s - mean) < 0.2).length;
+    const withinBounds = scores.filter((s) => Math.abs(s - mean) < 0.2).length;
     return withinBounds / scores.length;
   }
 
   private calculatePredictionError(scores: number[]): number {
-    if (scores.length < 2) return 0.5;
+    if (scores.length < 2) {return 0.5;}
 
     // Calculate RMSE between consecutive predictions
     let totalError = 0;

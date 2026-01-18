@@ -1,9 +1,9 @@
 /**
  * Bedau Index Implementation for Weak Emergence Detection
- * 
+ *
  * Based on Mark Bedau's work on weak emergence:
  * "Weak emergence: the characteristic features of complex systems"
- * 
+ *
  * The Bedau Index measures weak emergence by comparing:
  * - Semantic intent vs. surface-level mirroring
  * - Micro-level interactions vs. macro-level patterns
@@ -11,47 +11,47 @@
  */
 
 export interface BedauMetrics {
-  bedau_index: number;           // 0-1: Weak emergence strength
+  bedau_index: number; // 0-1: Weak emergence strength
   emergence_type: 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE';
   kolmogorov_complexity: number; // Approximation of irreducibility
-  semantic_entropy: number;      // Cognitive diversity measure
+  semantic_entropy: number; // Cognitive diversity measure
   confidence_interval: [number, number]; // Bootstrap CI
-  effect_size: number;          // Cohen's d for emergence significance
+  effect_size: number; // Cohen's d for emergence significance
   strong_emergence_indicators?: StrongEmergenceIndicators; // For future strong emergence detection
 }
 
 /**
  * Strong Emergence Indicators (Experimental)
- * 
+ *
  * Strong emergence is characterized by unpredictable collective behavior
  * that cannot be reduced to component interactions, even with complete
  * knowledge of the system. This is distinct from weak emergence measured
  * by the Bedau Index.
- * 
+ *
  * IMPORTANT: The Bedau Index measures WEAK emergence only. Strong emergence
  * detection is experimental and requires additional validation beyond
  * the Bedau Index methodology.
  */
 export interface StrongEmergenceIndicators {
-  irreducibility_proof: boolean;      // Cannot be predicted from components
-  downward_causation: boolean;        // Higher level affects lower level
-  novel_causal_powers: boolean;       // New causal capabilities emerge
+  irreducibility_proof: boolean; // Cannot be predicted from components
+  downward_causation: boolean; // Higher level affects lower level
+  novel_causal_powers: boolean; // New causal capabilities emerge
   unpredictability_verified: boolean; // Verified through testing
-  collective_behavior_score: number;  // 0-1: Degree of collective behavior
+  collective_behavior_score: number; // 0-1: Degree of collective behavior
 }
 
 export interface SemanticIntent {
-  intent_vectors: number[];     // High-level semantic representations
-  reasoning_depth: number;       // 0-1: Depth of reasoning chains
-  abstraction_level: number;     // 0-1: Level of conceptual abstraction
+  intent_vectors: number[]; // High-level semantic representations
+  reasoning_depth: number; // 0-1: Depth of reasoning chains
+  abstraction_level: number; // 0-1: Level of conceptual abstraction
   cross_domain_connections: number; // Count of cross-domain insights
 }
 
 export interface SurfacePattern {
-  surface_vectors: number[];     // Surface-level pattern representations
-  pattern_complexity: number;    // 0-1: Complexity of observable patterns
-  repetition_score: number;      // 0-1: Degree of pattern repetition
-  novelty_score: number;         // 0-1: Novelty of patterns
+  surface_vectors: number[]; // Surface-level pattern representations
+  pattern_complexity: number; // 0-1: Complexity of observable patterns
+  repetition_score: number; // 0-1: Degree of pattern repetition
+  novelty_score: number; // 0-1: Novelty of patterns
 }
 
 export interface EmergenceSignal {
@@ -72,19 +72,11 @@ export interface EmergenceTrajectory {
 }
 
 export interface BedauIndexCalculator {
-  calculateBedauIndex(
-    semanticIntent: SemanticIntent,
-    surfacePattern: SurfacePattern
-  ): BedauMetrics;
-  
-  analyzeTemporalEvolution(
-    timeSeriesData: number[][]
-  ): EmergenceTrajectory;
-  
-  bootstrapConfidenceInterval(
-    data: number[],
-    nBootstrap: number
-  ): [number, number];
+  calculateBedauIndex(semanticIntent: SemanticIntent, surfacePattern: SurfacePattern): BedauMetrics;
+
+  analyzeTemporalEvolution(timeSeriesData: number[][]): EmergenceTrajectory;
+
+  bootstrapConfidenceInterval(data: number[], nBootstrap: number): [number, number];
 }
 
 /**
@@ -94,7 +86,7 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
   private readonly emergenceThresholds = {
     LINEAR: 0.3,
     WEAK_EMERGENCE: 0.7,
-    HIGH_WEAK_EMERGENCE: 0.9
+    HIGH_WEAK_EMERGENCE: 0.9,
   };
 
   /**
@@ -108,15 +100,10 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     const surface = this.normalizeSurfacePattern(surfacePattern);
 
     // 1. Calculate semantic-surface divergence
-    const semanticSurfaceDivergence = this.calculateSemanticSurfaceDivergence(
-      semantic,
-      surface
-    );
+    const semanticSurfaceDivergence = this.calculateSemanticSurfaceDivergence(semantic, surface);
 
     // 2. Calculate irreducibility using Kolmogorov complexity approximation
-    const kolmogorovComplexity = this.approximateKolmogorovComplexity(
-      semantic.intent_vectors
-    );
+    const kolmogorovComplexity = this.approximateKolmogorovComplexity(semantic.intent_vectors);
 
     // 3. Calculate semantic entropy
     const semanticEntropy = this.calculateSemanticEntropy(semantic);
@@ -134,19 +121,14 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     // 6. Detect strong emergence indicators if potential is high
     let strong_emergence_indicators: StrongEmergenceIndicators | undefined;
     if (emergence_type === 'HIGH_WEAK_EMERGENCE') {
-      strong_emergence_indicators = this.detectStrongEmergence(
-        semantic,
-        surface,
-        bedau_index
-      );
+      strong_emergence_indicators = this.detectStrongEmergence(semantic, surface, bedau_index);
     }
 
     // 7. Calculate confidence interval
-    const confidence_interval = this.calculateConfidenceInterval([
-      semanticSurfaceDivergence,
-      kolmogorovComplexity,
-      semanticEntropy
-    ], bedau_index);
+    const confidence_interval = this.calculateConfidenceInterval(
+      [semanticSurfaceDivergence, kolmogorovComplexity, semanticEntropy],
+      bedau_index
+    );
 
     // 8. Calculate effect size
     const effect_size = this.calculateEffectSize(bedau_index);
@@ -158,7 +140,7 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
       semantic_entropy: semanticEntropy,
       confidence_interval,
       effect_size,
-      strong_emergence_indicators
+      strong_emergence_indicators,
     };
   }
 
@@ -171,42 +153,37 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     bedau_index: number
   ): StrongEmergenceIndicators {
     // These are heuristic approximations of strong emergence properties
-    
+
     // 1. Irreducibility proof: High complexity + low mirroring
-    const irreducibility_proof = 
-      bedau_index > 0.85 && 
-      surface.pattern_complexity > 0.8 && 
-      surface.repetition_score < 0.2;
+    const irreducibility_proof =
+      bedau_index > 0.85 && surface.pattern_complexity > 0.8 && surface.repetition_score < 0.2;
 
     // 2. Downward causation: High abstraction + high novelty
-    const downward_causation = 
-      semantic.abstraction_level > 0.8 && 
-      surface.novelty_score > 0.7;
+    const downward_causation = semantic.abstraction_level > 0.8 && surface.novelty_score > 0.7;
 
     // 3. Novel causal powers: Cross-domain connections + deep reasoning
-    const novel_causal_powers = 
-      semantic.cross_domain_connections > 5 && 
-      semantic.reasoning_depth > 0.8;
+    const novel_causal_powers =
+      semantic.cross_domain_connections > 5 && semantic.reasoning_depth > 0.8;
 
     // 4. Unpredictability: High divergence + low pattern repetition
-    const unpredictability_verified = 
-      (1 - this.calculateSemanticSurfaceDivergence(semantic, surface)) < 0.3 &&
+    const unpredictability_verified =
+      1 - this.calculateSemanticSurfaceDivergence(semantic, surface) < 0.3 &&
       surface.repetition_score < 0.15;
 
     // 5. Collective behavior score: Combination of factors
-    const collective_behavior_score = (
-      (irreducibility_proof ? 1 : 0) +
-      (downward_causation ? 1 : 0) +
-      (novel_causal_powers ? 1 : 0) +
-      (unpredictability_verified ? 1 : 0)
-    ) / 4;
+    const collective_behavior_score =
+      ((irreducibility_proof ? 1 : 0) +
+        (downward_causation ? 1 : 0) +
+        (novel_causal_powers ? 1 : 0) +
+        (unpredictability_verified ? 1 : 0)) /
+      4;
 
     return {
       irreducibility_proof,
       downward_causation,
       novel_causal_powers,
       unpredictability_verified,
-      collective_behavior_score
+      collective_behavior_score,
     };
   }
 
@@ -222,7 +199,7 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
       const window = timeSeriesData[i];
       const semanticIntent = this.extractSemanticIntent(window);
       const surfacePattern = this.extractSurfacePattern(window);
-      
+
       const metrics = this.calculateBedauIndex(semanticIntent, surfacePattern);
       trajectory.push(metrics.bedau_index);
 
@@ -241,7 +218,7 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
       trajectory,
       emergenceLevel: trajectory[trajectory.length - 1] || 0,
       confidence: 0.8, // Default confidence
-      critical_transitions
+      critical_transitions,
     };
   }
 
@@ -249,7 +226,7 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
    * Bootstrap confidence interval calculation
    */
   bootstrapConfidenceInterval(data: number[], nBootstrap: number = 1000): [number, number] {
-    if (data.length === 0 || nBootstrap <= 0) return [0, 0];
+    if (data.length === 0 || nBootstrap <= 0) {return [0, 0];}
     const bootstrapMeans: number[] = [];
     const seed = hashNumbers(data);
 
@@ -291,8 +268,8 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
   }
 
   private normalizeVector(values: number[]): number[] {
-    if (!Array.isArray(values) || values.length === 0) return [];
-    return values.map(v => this.sanitizeNumber(v, 0));
+    if (!Array.isArray(values) || values.length === 0) {return [];}
+    return values.map((v) => this.sanitizeNumber(v, 0));
   }
 
   private sanitizeNumber(value: number, fallback: number): number {
@@ -303,12 +280,16 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     semantic: SemanticIntent,
     surface: SurfacePattern
   ): number {
-    if (semantic.intent_vectors.length === 0 || surface.surface_vectors.length === 0) return 0;
+    if (semantic.intent_vectors.length === 0 || surface.surface_vectors.length === 0) {return 0;}
 
-    const semanticMean = semantic.intent_vectors.reduce((sum, val) => sum + val, 0) / semantic.intent_vectors.length;
-    const surfaceMean = surface.surface_vectors.reduce((sum, val) => sum + val, 0) / surface.surface_vectors.length;
-    
-    const divergence = Math.abs(semanticMean - surfaceMean) / Math.max(Math.abs(semanticMean), Math.abs(surfaceMean), 1);
+    const semanticMean =
+      semantic.intent_vectors.reduce((sum, val) => sum + val, 0) / semantic.intent_vectors.length;
+    const surfaceMean =
+      surface.surface_vectors.reduce((sum, val) => sum + val, 0) / surface.surface_vectors.length;
+
+    const divergence =
+      Math.abs(semanticMean - surfaceMean) /
+      Math.max(Math.abs(semanticMean), Math.abs(surfaceMean), 1);
     return Math.max(0, Math.min(1, divergence));
   }
 
@@ -322,41 +303,37 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
     const a = Math.max(0, semantic.reasoning_depth);
     const b = Math.max(0, semantic.abstraction_level);
     const total = a + b;
-    if (total <= 0) return 0;
+    if (total <= 0) {return 0;}
     const p1 = a / total;
     const p2 = b / total;
     const entropy = -(p1 * Math.log2(p1 + 1e-12) + p2 * Math.log2(p2 + 1e-12));
     return Math.max(0, Math.min(1, entropy));
   }
 
-  private combineMetrics(
-    divergence: number,
-    complexity: number,
-    entropy: number
-  ): number {
+  private combineMetrics(divergence: number, complexity: number, entropy: number): number {
     // Weighted combination of metrics
     const weights = { divergence: 0.4, complexity: 0.3, entropy: 0.3 };
     return (
-      divergence * weights.divergence +
-      complexity * weights.complexity +
-      entropy * weights.entropy
+      divergence * weights.divergence + complexity * weights.complexity + entropy * weights.entropy
     );
   }
 
-  private classifyEmergenceType(bedau_index: number): 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE' {
+  private classifyEmergenceType(
+    bedau_index: number
+  ): 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE' {
     if (bedau_index <= this.emergenceThresholds.LINEAR) {
       return 'LINEAR';
     } else if (bedau_index <= this.emergenceThresholds.WEAK_EMERGENCE) {
       return 'WEAK_EMERGENCE';
-    } else {
+    } 
       return 'HIGH_WEAK_EMERGENCE';
-    }
+    
   }
 
   private calculateConfidenceInterval(values: number[]): [number, number];
   private calculateConfidenceInterval(values: number[], center: number): [number, number];
   private calculateConfidenceInterval(values: number[], center?: number): [number, number] {
-    if (values.length === 0) return [0, 0];
+    if (values.length === 0) {return [0, 0];}
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
     const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
     const stdError = Math.sqrt(variance / values.length);
@@ -377,18 +354,18 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
   }
 
   private quantizeSequence(sequence: number[]): number[] {
-    if (sequence.length === 0) return [];
-    
+    if (sequence.length === 0) {return [];}
+
     // Use adaptive quantization based on sequence statistics
     const min = Math.min(...sequence);
     const max = Math.max(...sequence);
     const range = max - min;
-    
-    if (range === 0) return sequence.map(() => 0);
-    
+
+    if (range === 0) {return sequence.map(() => 0);}
+
     // Quantize to 8 levels
     const levels = 8;
-    return sequence.map(val => {
+    return sequence.map((val) => {
       const scaled = (val - min) / range;
       const bucket = Math.floor(scaled * levels);
       return Math.max(0, Math.min(levels - 1, bucket));
@@ -396,15 +373,15 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
   }
 
   private lempelZivComplexity(sequence: number[]): number {
-    if (sequence.length === 0) return 0;
-    
+    if (sequence.length === 0) {return 0;}
+
     const vocabulary = new Set<string>();
     let currentContext = '';
     let complexity = 0;
-    
+
     for (const symbol of sequence) {
       const newContext = currentContext + symbol.toString();
-      
+
       if (!vocabulary.has(newContext)) {
         vocabulary.add(newContext);
         complexity++;
@@ -413,7 +390,7 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
         currentContext = newContext;
       }
     }
-    
+
     return complexity / sequence.length;
   }
 
@@ -432,7 +409,7 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
         intent_vectors: window,
         reasoning_depth: 0,
         abstraction_level: 0,
-        cross_domain_connections: 0
+        cross_domain_connections: 0,
       };
     }
 
@@ -443,13 +420,17 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
 
     const reasoning_depth = clamp01(0.25 + energy * 0.45 + roughness * 0.3);
     const abstraction_level = clamp01(0.2 + (1 - variability) * 0.5 + energy * 0.3);
-    const cross_domain_connections = estimateCrossDomainConnections(window, stats.mean, stats.stdDev);
+    const cross_domain_connections = estimateCrossDomainConnections(
+      window,
+      stats.mean,
+      stats.stdDev
+    );
 
     return {
       intent_vectors: window,
       reasoning_depth,
       abstraction_level,
-      cross_domain_connections
+      cross_domain_connections,
     };
   }
 
@@ -459,13 +440,14 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
         surface_vectors: window,
         pattern_complexity: 0,
         repetition_score: 0,
-        novelty_score: 0
+        novelty_score: 0,
       };
     }
 
     const quantized = this.quantizeSequence(window);
     const complexity = this.lempelZivComplexity(quantized);
-    const uniqueSymbolRatio = quantized.length === 0 ? 0 : new Set(quantized).size / quantized.length;
+    const uniqueSymbolRatio =
+      quantized.length === 0 ? 0 : new Set(quantized).size / quantized.length;
     const repetition_score = clamp01(1 - uniqueSymbolRatio);
     const novelty_score = clamp01(uniqueSymbolRatio);
 
@@ -473,7 +455,7 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
       surface_vectors: window,
       pattern_complexity: clamp01(complexity),
       repetition_score,
-      novelty_score
+      novelty_score,
     };
   }
 }
@@ -498,7 +480,7 @@ function hashNumbers(values: number[]): number {
 }
 
 function createXorshift32(seed: number): () => number {
-  let x = (seed >>> 0) || 0x9e3779b9;
+  let x = seed >>> 0 || 0x9e3779b9;
   return () => {
     x ^= x << 13;
     x >>>= 0;
@@ -528,7 +510,7 @@ function basicStats(values: number[]): {
     const dv = v - mean;
     variance += dv * dv;
     meanSquare += v * v;
-    if (i > 0) meanAbsDelta += Math.abs(v - values[i - 1]);
+    if (i > 0) {meanAbsDelta += Math.abs(v - values[i - 1]);}
   }
 
   variance /= n;
@@ -544,8 +526,8 @@ function estimateCrossDomainConnections(values: number[], mean: number, stdDev: 
   for (let i = 1; i < values.length; i++) {
     const a = values[i - 1] - mean;
     const b = values[i] - mean;
-    if ((a < 0 && b > 0) || (a > 0 && b < 0)) count++;
-    if (Math.abs(values[i] - values[i - 1]) > threshold) count++;
+    if ((a < 0 && b > 0) || (a > 0 && b < 0)) {count++;}
+    if (Math.abs(values[i] - values[i - 1]) > threshold) {count++;}
   }
   return Math.max(0, Math.min(10, Math.floor(count / 2)));
 }

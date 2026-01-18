@@ -18,7 +18,12 @@ export class CalculationError extends PlatformError {
   public readonly operation: string;
   public readonly inputs?: any;
 
-  constructor(message: string, operation: string, inputs?: any, context: ErrorContext = { timestamp: Date.now() }) {
+  constructor(
+    message: string,
+    operation: string,
+    inputs?: any,
+    context: ErrorContext = { timestamp: Date.now() }
+  ) {
     super(
       message,
       'CALC_001',
@@ -35,6 +40,10 @@ export class CalculationError extends PlatformError {
 
 export class InvalidWeightsError extends MathValidationError {
   constructor(weights: Record<string, number>, context: ErrorContext = { timestamp: Date.now() }) {
-    super(`Invalid weights: ${JSON.stringify(weights)} - must be 0-1 and sum to 1.0`, { weights }, context);
+    super(
+      `Invalid weights: ${JSON.stringify(weights)} - must be 0-1 and sum to 1.0`,
+      { weights },
+      context
+    );
   }
 }

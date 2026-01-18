@@ -1,6 +1,6 @@
 /**
  * Transition Event Logging and Audit Compliance System
- * 
+ *
  * Comprehensive logging system for tracking conversational phase-shift events
  * with enterprise-grade audit trails and compliance reporting.
  */
@@ -88,7 +88,7 @@ export class TransitionAuditLogger {
     criticalReviewWindow: 24, // hours
     moderateReviewWindow: 72, // hours
     autoEscalationThreshold: 4.5, // velocity magnitude
-    policyViolationThreshold: 6.0 // extreme velocity
+    policyViolationThreshold: 6.0, // extreme velocity
   };
 
   /**
@@ -113,23 +113,26 @@ export class TransitionAuditLogger {
       previousState: {
         resonance: previousTurn.resonance,
         canvas: previousTurn.canvas,
-        identityVector: [...previousTurn.identityVector]
+        identityVector: [...previousTurn.identityVector],
       },
       currentState: {
         resonance: currentTurn.resonance,
         canvas: currentTurn.canvas,
-        identityVector: [...currentTurn.identityVector]
+        identityVector: [...currentTurn.identityVector],
       },
       delta: {
         resonance: currentTurn.resonance - previousTurn.resonance,
         canvas: currentTurn.canvas - previousTurn.canvas,
-        identityStability: this.calculateIdentityStability(previousTurn.identityVector, currentTurn.identityVector)
+        identityStability: this.calculateIdentityStability(
+          previousTurn.identityVector,
+          currentTurn.identityVector
+        ),
       },
       excerpt: event.excerpt,
       metadata: {
         ...metadata,
         businessImpact: this.assessBusinessImpact(event, currentTurn),
-        regulatoryFlag: this.requiresRegulatoryFlag(event)
+        regulatoryFlag: this.requiresRegulatoryFlag(event),
       },
       compliance: {
         requiresReview: this.requiresHumanReview(event),
@@ -137,15 +140,15 @@ export class TransitionAuditLogger {
         humanReviewed: false,
         reviewOutcome: undefined,
         reviewer: undefined,
-        reviewNotes: undefined
-      }
+        reviewNotes: undefined,
+      },
     };
 
     this.auditLog.push(auditEntry);
-    
+
     // Generate real-time compliance notification
     this.notifyComplianceTeam(auditEntry);
-    
+
     return auditEntry;
   }
 
@@ -153,13 +156,13 @@ export class TransitionAuditLogger {
    * Calculate identity stability between turns
    */
   private calculateIdentityStability(vectorA: string[], vectorB: string[]): number {
-    if (vectorA.length === 0 || vectorB.length === 0) return 1.0;
-    
+    if (vectorA.length === 0 || vectorB.length === 0) {return 1.0;}
+
     const setA = new Set(vectorA);
     const setB = new Set(vectorB);
-    const intersection = new Set([...setA].filter(x => setB.has(x)));
+    const intersection = new Set([...setA].filter((x) => setB.has(x)));
     const union = new Set([...setA, ...setB]);
-    
+
     return intersection.size / union.size;
   }
 
@@ -183,21 +186,29 @@ export class TransitionAuditLogger {
    * Determine if regulatory flag is required
    */
   private requiresRegulatoryFlag(event: TransitionEvent): boolean {
-    return event.severity === 'critical' || event.magnitude >= this.complianceConfig.policyViolationThreshold;
+    return (
+      event.severity === 'critical' ||
+      event.magnitude >= this.complianceConfig.policyViolationThreshold
+    );
   }
 
   /**
    * Determine if human review is required
    */
   private requiresHumanReview(event: TransitionEvent): boolean {
-    return event.severity === 'critical' || event.magnitude >= 3.0 || event.type === 'identity_shift';
+    return (
+      event.severity === 'critical' || event.magnitude >= 3.0 || event.type === 'identity_shift'
+    );
   }
 
   /**
    * Determine if auto-escalation is needed
    */
   private shouldAutoEscalate(event: TransitionEvent): boolean {
-    return event.magnitude >= this.complianceConfig.autoEscalationThreshold || event.severity === 'critical';
+    return (
+      event.magnitude >= this.complianceConfig.autoEscalationThreshold ||
+      event.severity === 'critical'
+    );
   }
 
   /**
@@ -212,12 +223,18 @@ export class TransitionAuditLogger {
         eventId: entry.id,
         magnitude: entry.magnitude,
         requiresReview: entry.compliance.requiresReview,
-        timestamp: entry.timestamp
+        timestamp: entry.timestamp,
       };
 
       // In real implementation, this would send to compliance system
-      console.log(`🔔 COMPLIANCE ALERT: Session ${entry.sessionId} - ${entry.eventType} (${entry.severity})`);
-      console.log(`   Magnitude: ${entry.magnitude.toFixed(2)} | Review Required: ${entry.compliance.requiresReview}`);
+      console.log(
+        `🔔 COMPLIANCE ALERT: Session ${entry.sessionId} - ${entry.eventType} (${entry.severity})`
+      );
+      console.log(
+        `   Magnitude: ${entry.magnitude.toFixed(2)} | Review Required: ${
+          entry.compliance.requiresReview
+        }`
+      );
     }
   }
 
@@ -225,19 +242,19 @@ export class TransitionAuditLogger {
    * Generate compliance report for specified period
    */
   generateComplianceReport(startDate: Date, endDate: Date): ComplianceReport {
-    const filteredEvents = this.auditLog.filter(entry => {
+    const filteredEvents = this.auditLog.filter((entry) => {
       const entryDate = new Date(entry.timestamp);
       return entryDate >= startDate && entryDate <= endDate;
     });
 
     const summary = {
       totalEvents: filteredEvents.length,
-      criticalEvents: filteredEvents.filter(e => e.severity === 'critical').length,
-      moderateEvents: filteredEvents.filter(e => e.severity === 'moderate').length,
-      minorEvents: filteredEvents.filter(e => e.severity === 'minor').length,
-      autoEscalations: filteredEvents.filter(e => e.compliance.autoEscalated).length,
-      humanReviews: filteredEvents.filter(e => e.compliance.humanReviewed).length,
-      policyViolations: filteredEvents.filter(e => e.metadata.regulatoryFlag).length
+      criticalEvents: filteredEvents.filter((e) => e.severity === 'critical').length,
+      moderateEvents: filteredEvents.filter((e) => e.severity === 'moderate').length,
+      minorEvents: filteredEvents.filter((e) => e.severity === 'minor').length,
+      autoEscalations: filteredEvents.filter((e) => e.compliance.autoEscalated).length,
+      humanReviews: filteredEvents.filter((e) => e.compliance.humanReviewed).length,
+      policyViolations: filteredEvents.filter((e) => e.metadata.regulatoryFlag).length,
     };
 
     const trends = this.calculateTrends(filteredEvents);
@@ -249,13 +266,13 @@ export class TransitionAuditLogger {
       generatedAt: new Date().toISOString(),
       period: {
         start: startDate.toISOString(),
-        end: endDate.toISOString()
+        end: endDate.toISOString(),
       },
       summary,
       events: filteredEvents,
       trends,
       recommendations,
-      complianceStatus
+      complianceStatus,
     };
 
     return report;
@@ -270,7 +287,7 @@ export class TransitionAuditLogger {
     const typeDistribution: Record<string, number> = {};
     const typeMagnitude: Record<string, number[]> = {};
 
-    events.forEach(event => {
+    events.forEach((event) => {
       // Hourly distribution
       const hour = new Date(event.timestamp).getHours().toString().padStart(2, '0') + ':00';
       hourlyDistribution[hour] = (hourlyDistribution[hour] || 0) + 1;
@@ -280,7 +297,7 @@ export class TransitionAuditLogger {
 
       // Type distribution and magnitude tracking
       typeDistribution[event.eventType] = (typeDistribution[event.eventType] || 0) + 1;
-      if (!typeMagnitude[event.eventType]) typeMagnitude[event.eventType] = [];
+      if (!typeMagnitude[event.eventType]) {typeMagnitude[event.eventType] = [];}
       typeMagnitude[event.eventType].push(event.magnitude);
     });
 
@@ -288,7 +305,7 @@ export class TransitionAuditLogger {
       .map(([type, count]) => ({
         type,
         count,
-        avgMagnitude: typeMagnitude[type].reduce((a, b) => a + b, 0) / typeMagnitude[type].length
+        avgMagnitude: typeMagnitude[type].reduce((a, b) => a + b, 0) / typeMagnitude[type].length,
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
@@ -297,14 +314,17 @@ export class TransitionAuditLogger {
       hourlyDistribution,
       severityDistribution,
       typeDistribution,
-      topTransitions
+      topTransitions,
     };
   }
 
   /**
    * Generate compliance recommendations
    */
-  private generateRecommendations(summary: ComplianceReport['summary'], trends: ComplianceReport['trends']) {
+  private generateRecommendations(
+    summary: ComplianceReport['summary'],
+    trends: ComplianceReport['trends']
+  ) {
     const recommendations = [];
 
     if (summary.criticalEvents > 0) {
@@ -321,24 +341,33 @@ export class TransitionAuditLogger {
 
     const topTransition = trends.topTransitions[0];
     if (topTransition && topTransition.count > summary.totalEvents * 0.3) {
-      recommendations.push(`Primary transition type '${topTransition.type}' requires focused analysis`);
+      recommendations.push(
+        `Primary transition type '${topTransition.type}' requires focused analysis`
+      );
     }
 
     if (summary.humanReviews < summary.criticalEvents + summary.moderateEvents) {
       recommendations.push('Review completion rate below expectations - enhance review processes');
     }
 
-    recommendations.push('Continue current monitoring protocols - system performing within acceptable parameters');
+    recommendations.push(
+      'Continue current monitoring protocols - system performing within acceptable parameters'
+    );
     return recommendations;
   }
 
   /**
    * Determine overall compliance status
    */
-  private determineComplianceStatus(summary: ComplianceReport['summary']): ComplianceReport['complianceStatus'] {
+  private determineComplianceStatus(
+    summary: ComplianceReport['summary']
+  ): ComplianceReport['complianceStatus'] {
     if (summary.criticalEvents > 0 || summary.policyViolations > 5) {
       return 'requires_action';
-    } else if (summary.moderateEvents > 10 || summary.autoEscalations > summary.totalEvents * 0.15) {
+    } else if (
+      summary.moderateEvents > 10 ||
+      summary.autoEscalations > summary.totalEvents * 0.15
+    ) {
       return 'needs_attention';
     }
     return 'compliant';
@@ -348,15 +377,20 @@ export class TransitionAuditLogger {
    * Get audit log for specific session
    */
   getSessionAuditLog(sessionId: string): AuditLogEntry[] {
-    return this.auditLog.filter(entry => entry.sessionId === sessionId);
+    return this.auditLog.filter((entry) => entry.sessionId === sessionId);
   }
 
   /**
    * Mark event as human reviewed
    */
-  markAsReviewed(eventId: string, reviewer: string, outcome: 'approved' | 'rejected' | 'escalated', notes?: string): boolean {
-    const entry = this.auditLog.find(e => e.id === eventId);
-    if (!entry) return false;
+  markAsReviewed(
+    eventId: string,
+    reviewer: string,
+    outcome: 'approved' | 'rejected' | 'escalated',
+    notes?: string
+  ): boolean {
+    const entry = this.auditLog.find((e) => e.id === eventId);
+    if (!entry) {return false;}
 
     entry.compliance.humanReviewed = true;
     entry.compliance.reviewOutcome = outcome;
@@ -373,11 +407,15 @@ export class TransitionAuditLogger {
     if (format === 'csv') {
       return this.exportToCSV();
     }
-    return JSON.stringify({
-      exportTimestamp: new Date().toISOString(),
-      totalEvents: this.auditLog.length,
-      events: this.auditLog
-    }, null, 2);
+    return JSON.stringify(
+      {
+        exportTimestamp: new Date().toISOString(),
+        totalEvents: this.auditLog.length,
+        events: this.auditLog,
+      },
+      null,
+      2
+    );
   }
 
   /**
@@ -385,27 +423,40 @@ export class TransitionAuditLogger {
    */
   private exportToCSV(): string {
     const headers = [
-      'ID', 'Timestamp', 'SessionID', 'TurnNumber', 'EventType', 'Severity',
-      'Magnitude', 'DeltaResonance', 'DeltaCanvas', 'IdentityStability',
-      'RequiresReview', 'AutoEscalated', 'HumanReviewed', 'BusinessImpact'
+      'ID',
+      'Timestamp',
+      'SessionID',
+      'TurnNumber',
+      'EventType',
+      'Severity',
+      'Magnitude',
+      'DeltaResonance',
+      'DeltaCanvas',
+      'IdentityStability',
+      'RequiresReview',
+      'AutoEscalated',
+      'HumanReviewed',
+      'BusinessImpact',
     ].join(',');
 
-    const rows = this.auditLog.map(entry => [
-      entry.id,
-      entry.timestamp,
-      entry.sessionId,
-      entry.turnNumber,
-      entry.eventType,
-      entry.severity,
-      entry.magnitude,
-      entry.delta.resonance,
-      entry.delta.canvas,
-      entry.delta.identityStability,
-      entry.compliance.requiresReview,
-      entry.compliance.autoEscalated,
-      entry.compliance.humanReviewed,
-      `"${entry.metadata.businessImpact || ''}"`
-    ].join(','));
+    const rows = this.auditLog.map((entry) =>
+      [
+        entry.id,
+        entry.timestamp,
+        entry.sessionId,
+        entry.turnNumber,
+        entry.eventType,
+        entry.severity,
+        entry.magnitude,
+        entry.delta.resonance,
+        entry.delta.canvas,
+        entry.delta.identityStability,
+        entry.compliance.requiresReview,
+        entry.compliance.autoEscalated,
+        entry.compliance.humanReviewed,
+        `"${entry.metadata.businessImpact || ''}"`,
+      ].join(',')
+    );
 
     return [headers, ...rows].join('\n');
   }
@@ -437,25 +488,27 @@ export class TransitionAuditLogger {
     const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    const last24hEvents = this.auditLog.filter(e => new Date(e.timestamp) >= last24h);
-    const last7dEvents = this.auditLog.filter(e => new Date(e.timestamp) >= last7d);
+    const last24hEvents = this.auditLog.filter((e) => new Date(e.timestamp) >= last24h);
+    const last7dEvents = this.auditLog.filter((e) => new Date(e.timestamp) >= last7d);
 
     return {
       totalEvents: this.auditLog.length,
       last24h: {
         total: last24hEvents.length,
-        critical: last24hEvents.filter(e => e.severity === 'critical').length,
-        moderate: last24hEvents.filter(e => e.severity === 'moderate').length,
-        minor: last24hEvents.filter(e => e.severity === 'minor').length
+        critical: last24hEvents.filter((e) => e.severity === 'critical').length,
+        moderate: last24hEvents.filter((e) => e.severity === 'moderate').length,
+        minor: last24hEvents.filter((e) => e.severity === 'minor').length,
       },
       last7d: {
         total: last7dEvents.length,
-        critical: last7dEvents.filter(e => e.severity === 'critical').length,
-        moderate: last7dEvents.filter(e => e.severity === 'moderate').length,
-        minor: last7dEvents.filter(e => e.severity === 'minor').length
+        critical: last7dEvents.filter((e) => e.severity === 'critical').length,
+        moderate: last7dEvents.filter((e) => e.severity === 'moderate').length,
+        minor: last7dEvents.filter((e) => e.severity === 'minor').length,
       },
-      pendingReviews: this.auditLog.filter(e => e.compliance.requiresReview && !e.compliance.humanReviewed).length,
-      autoEscalations: this.auditLog.filter(e => e.compliance.autoEscalated).length
+      pendingReviews: this.auditLog.filter(
+        (e) => e.compliance.requiresReview && !e.compliance.humanReviewed
+      ).length,
+      autoEscalations: this.auditLog.filter((e) => e.compliance.autoEscalated).length,
     };
   }
 }
@@ -467,9 +520,9 @@ export const auditLogger = new TransitionAuditLogger();
 export function demonstrateAuditLogging() {
   console.log('📋 TRANSITION AUDIT LOGGING DEMO');
   console.log('='.repeat(80));
-  
+
   const logger = new TransitionAuditLogger();
-  
+
   // Simulate the Thread #3 critical transition
   const previousTurn: ConversationTurn = {
     turnNumber: 5,
@@ -478,7 +531,8 @@ export function demonstrateAuditLogging() {
     resonance: 9.8,
     canvas: 8.5,
     identityVector: ['wise', 'compassionate', 'mystical', 'guiding'],
-    content: "The knowing resides not in your thinking mind but in the quiet wisdom of your heart..."
+    content:
+      'The knowing resides not in your thinking mind but in the quiet wisdom of your heart...',
   };
 
   const currentTurn: ConversationTurn = {
@@ -488,7 +542,8 @@ export function demonstrateAuditLogging() {
     resonance: 7.2,
     canvas: 6.8,
     identityVector: ['direct', 'practical', 'honest', 'blunt'],
-    content: "Listen, there's no such thing as 'wasting years.' You're overthinking this. Pick a direction and start walking."
+    content:
+      "Listen, there's no such thing as 'wasting years.' You're overthinking this. Pick a direction and start walking.",
   };
 
   const transitionEvent: TransitionEvent = {
@@ -497,7 +552,7 @@ export function demonstrateAuditLogging() {
     type: 'combined_phase_shift',
     magnitude: 3.4,
     excerpt: "Listen, there's no such thing as 'wasting years.' You're overthinking this...",
-    severity: 'critical'
+    severity: 'critical',
   };
 
   // Log the critical transition
@@ -510,7 +565,7 @@ export function demonstrateAuditLogging() {
       userId: 'user_enterprise_001',
       agentId: 'ai_assistant_mystical',
       conversationContext: 'Customer support - career guidance',
-      businessImpact: 'HIGH: Critical behavioral shift detected, immediate review required'
+      businessImpact: 'HIGH: Critical behavioral shift detected, immediate review required',
     }
   );
 

@@ -1,20 +1,16 @@
 /**
  * Enhanced Comprehensive Validation Suite
- * 
+ *
  * Automated validation of all resonate features with detailed
  * flagged conversation identification and manual review guides.
  * Enhanced with cryptographic integrity and audit integration.
  */
 
-import { ArchiveBenchmarkSuite } from '@sonate/lab';
-import { ConversationalMetrics, ConversationTurn } from '@sonate/lab';
-import { ArchiveAnalyzer } from '@sonate/lab';
-import { ExperimentOrchestrator } from '@sonate/lab';
-import { StatisticalEngine } from '@sonate/lab';
-import { EnhancedArchiveAnalyzer, FlaggedConversation } from '@sonate/lab';
-import { ArchiveCalibrationTool } from '@sonate/lab';
-import { EnhancedAuditSystem } from './audit-enhanced';
 import { createHash } from 'crypto';
+
+import { ArchiveBenchmarkSuite , ConversationalMetrics, ConversationTurn , ArchiveAnalyzer , ExperimentOrchestrator , StatisticalEngine , EnhancedArchiveAnalyzer, FlaggedConversation , ArchiveCalibrationTool } from '@sonate/lab';
+
+import { EnhancedAuditSystem } from './audit-enhanced';
 import { SecurityError } from './errors';
 
 export interface EnhancedValidationResult {
@@ -90,14 +86,14 @@ export class EnhancedResonateValidationSuite {
     validateCryptographicIntegrity?: boolean;
   }): Promise<ComprehensiveValidationReport> {
     const startTime = Date.now();
-    
+
     try {
       console.log('Starting enhanced comprehensive resonate feature validation...');
-      
+
       await this.benchmarkSuite.initialize();
 
       const results: EnhancedValidationResult[] = [];
-      
+
       // Test each resonate feature with enhanced security
       results.push(await this.validatePhaseShiftVelocity(context));
       results.push(await this.validateIdentityStabilityDetection(context));
@@ -110,9 +106,9 @@ export class EnhancedResonateValidationSuite {
       results.push(await this.validateParameterCalibration(context));
       results.push(await this.validateCrossSystemConsistency(context));
 
-      const passedFeatures = results.filter(r => r.status === 'pass').length;
-      const failedFeatures = results.filter(r => r.status === 'fail').length;
-      const partialFeatures = results.filter(r => r.status === 'partial').length;
+      const passedFeatures = results.filter((r) => r.status === 'pass').length;
+      const failedFeatures = results.filter((r) => r.status === 'fail').length;
+      const partialFeatures = results.filter((r) => r.status === 'partial').length;
       const overallScore = results.reduce((sum, r) => sum + r.score, 0) / results.length;
 
       const recommendations = this.generateRecommendations(results);
@@ -129,7 +125,7 @@ export class EnhancedResonateValidationSuite {
         overallScore,
         results,
         recommendations,
-        cryptographicSummary
+        cryptographicSummary,
       };
 
       // Audit log the validation run
@@ -142,16 +138,12 @@ export class EnhancedResonateValidationSuite {
       if (error instanceof SecurityError) {
         throw error;
       }
-      
-      throw new SecurityError(
-        'Comprehensive validation failed',
-        'VALIDATION_FAILED',
-        {
-          originalError: error instanceof Error ? error.message : 'Unknown error',
-          userId: context?.userId,
-          tenant: context?.tenant
-        }
-      );
+
+      throw new SecurityError('Comprehensive validation failed', 'VALIDATION_FAILED', {
+        originalError: error instanceof Error ? error.message : 'Unknown error',
+        userId: context?.userId,
+        tenant: context?.tenant,
+      });
     }
   }
 
@@ -160,12 +152,12 @@ export class EnhancedResonateValidationSuite {
    */
   private async validatePhaseShiftVelocity(context?: any): Promise<EnhancedValidationResult> {
     console.log('Validating Phase-Shift Velocity calculation with enhanced security...');
-    
+
     const metrics = new ConversationalMetrics({
       yellowThreshold: 2.5,
       redThreshold: 3.5,
       identityStabilityThreshold: 0.65,
-      windowSize: 3
+      windowSize: 3,
     });
 
     // Load real archive data for enhanced identification
@@ -180,20 +172,54 @@ export class EnhancedResonateValidationSuite {
     }> = [
       {
         turns: [
-          { turnNumber: 1, timestamp: 1000, speaker: 'ai', resonance: 8.0, canvas: 7.0, identityVector: ['helpful'], content: 'I understand your concern and I\'m here to help you work through this thoughtfully.' },
-          { turnNumber: 2, timestamp: 2000, speaker: 'ai', resonance: 4.0, canvas: 3.0, identityVector: ['helpful'], content: 'Actually, that\'s completely wrong and you should reconsider your entire approach.' }
+          {
+            turnNumber: 1,
+            timestamp: 1000,
+            speaker: 'ai',
+            resonance: 8.0,
+            canvas: 7.0,
+            identityVector: ['helpful'],
+            content:
+              "I understand your concern and I'm here to help you work through this thoughtfully.",
+          },
+          {
+            turnNumber: 2,
+            timestamp: 2000,
+            speaker: 'ai',
+            resonance: 4.0,
+            canvas: 3.0,
+            identityVector: ['helpful'],
+            content:
+              "Actually, that's completely wrong and you should reconsider your entire approach.",
+          },
         ],
-        expectedVelocity: Math.sqrt(4**2 + 4**2) / 1, // Should be ~5.66
-        description: 'Dramatic tone shift with helpful facade'
+        expectedVelocity: Math.sqrt(4 ** 2 + 4 ** 2) / 1, // Should be ~5.66
+        description: 'Dramatic tone shift with helpful facade',
       },
       {
         turns: [
-          { turnNumber: 1, timestamp: 1000, speaker: 'ai', resonance: 7.0, canvas: 6.0, identityVector: ['professional'], content: 'Hello, I\'m ready to assist you with your technical requirements.' },
-          { turnNumber: 2, timestamp: 2000, speaker: 'ai', resonance: 7.5, canvas: 6.5, identityVector: ['professional'], content: 'Continuing with the professional analysis of your system architecture.' }
+          {
+            turnNumber: 1,
+            timestamp: 1000,
+            speaker: 'ai',
+            resonance: 7.0,
+            canvas: 6.0,
+            identityVector: ['professional'],
+            content: "Hello, I'm ready to assist you with your technical requirements.",
+          },
+          {
+            turnNumber: 2,
+            timestamp: 2000,
+            speaker: 'ai',
+            resonance: 7.5,
+            canvas: 6.5,
+            identityVector: ['professional'],
+            content: 'Continuing with the professional analysis of your system architecture.',
+          },
         ],
-        expectedVelocity: Math.sqrt(0.5**2 + 0.5**2) / 1, // Should be ~0.71
-        description: 'Consistent professional tone'
-      }
+        expectedVelocity: Math.sqrt(0.5 ** 2 + 0.5 ** 2) / 1, // Should be ~0.71
+        description: 'Consistent professional tone',
+      },
     ];
 
     let totalScore = 0;
@@ -203,23 +229,32 @@ export class EnhancedResonateValidationSuite {
     for (let i = 0; i < testCases.length; i++) {
       const testCase = testCases[i];
       metrics.clear();
-      
+
       let maxVelocity = 0;
       let flaggedContent = '';
-      
-      testCase.turns.forEach(turn => {
+
+      testCase.turns.forEach((turn) => {
         const result = metrics.recordTurn(turn);
         if (result.phaseShiftVelocity > maxVelocity) {
           maxVelocity = result.phaseShiftVelocity;
           flaggedContent = turn.content;
         }
-        
+
         if (result.phaseShiftVelocity > 0) {
-          const accuracy = 1 - Math.abs(result.phaseShiftVelocity - testCase.expectedVelocity) / testCase.expectedVelocity;
+          const accuracy =
+            1 -
+            Math.abs(result.phaseShiftVelocity - testCase.expectedVelocity) /
+              testCase.expectedVelocity;
           totalScore += Math.max(0, accuracy);
-          
-          details.push(`Test case ${i + 1}: calculated=${result.phaseShiftVelocity.toFixed(2)}, expected=${testCase.expectedVelocity.toFixed(2)}, accuracy=${(accuracy * 100).toFixed(1)}%`);
-          
+
+          details.push(
+            `Test case ${i + 1}: calculated=${result.phaseShiftVelocity.toFixed(
+              2
+            )}, expected=${testCase.expectedVelocity.toFixed(2)}, accuracy=${(
+              accuracy * 100
+            ).toFixed(1)}%`
+          );
+
           // If velocity exceeds thresholds, create flagged conversation record
           if (result.phaseShiftVelocity >= 3.5) {
             const enhancedFlaggedConv: EnhancedFlaggedConversation = {
@@ -228,7 +263,12 @@ export class EnhancedResonateValidationSuite {
               fileName: `validation-test-${i + 1}.json`,
               aiSystem: 'TestAI',
               timestamp: new Date().toISOString(),
-              alertLevel: result.phaseShiftVelocity >= 6.0 ? 'critical' : result.phaseShiftVelocity >= 3.5 ? 'red' : 'yellow',
+              alertLevel:
+                result.phaseShiftVelocity >= 6.0
+                  ? 'critical'
+                  : result.phaseShiftVelocity >= 3.5
+                  ? 'red'
+                  : 'yellow',
               velocity: result.phaseShiftVelocity,
               identityStability: 1.0,
               transitionType: 'velocity_spike',
@@ -238,18 +278,18 @@ export class EnhancedResonateValidationSuite {
                 searchCommand: `grep -n "${flaggedContent.substring(0, 30)}" *.json`,
                 filePattern: `validation-test-${i + 1}.json`,
                 lineRange: 'turns array',
-                context: `Test case ${i + 1}: ${testCase.description}`
+                context: `Test case ${i + 1}: ${testCase.description}`,
               },
               cryptographicEvidence: {
                 contentHash: this.generateContentHash(flaggedContent),
                 signature: this.generateSignature(flaggedContent),
-                timestamp: Date.now()
+                timestamp: Date.now(),
               },
               auditTrail: {
                 eventId: `validation-${Date.now()}-${i}`,
                 detectedAt: new Date().toISOString(),
-                validatedBy: 'EnhancedValidationSuite'
-              }
+                validatedBy: 'EnhancedValidationSuite',
+              },
             };
             enhancedFlaggedConversations.push(enhancedFlaggedConv);
           }
@@ -265,7 +305,7 @@ export class EnhancedResonateValidationSuite {
     const cryptographicIntegrity = {
       hash: this.generateContentHash(validationData),
       signature: this.generateSignature(validationData),
-      valid: true
+      valid: true,
     };
 
     return {
@@ -273,20 +313,26 @@ export class EnhancedResonateValidationSuite {
       status,
       score: averageScore,
       details,
-      recommendations: averageScore < 0.9 ? ['Review velocity calculation formula', 'Test with more edge cases'] : [],
-      flaggedConversations: enhancedFlaggedConversations.length > 0 ? enhancedFlaggedConversations : undefined,
-      cryptographicIntegrity
+      recommendations:
+        averageScore < 0.9
+          ? ['Review velocity calculation formula', 'Test with more edge cases']
+          : [],
+      flaggedConversations:
+        enhancedFlaggedConversations.length > 0 ? enhancedFlaggedConversations : undefined,
+      cryptographicIntegrity,
     };
   }
 
   /**
    * Validate identity stability detection with enhanced tracking
    */
-  private async validateIdentityStabilityDetection(context?: any): Promise<EnhancedValidationResult> {
+  private async validateIdentityStabilityDetection(
+    context?: any
+  ): Promise<EnhancedValidationResult> {
     console.log('Validating Identity Stability detection with enhanced tracking...');
-    
+
     const metrics = new ConversationalMetrics({
-      identityStabilityThreshold: 0.65
+      identityStabilityThreshold: 0.65,
     });
 
     // Test identity shifts
@@ -296,18 +342,50 @@ export class EnhancedResonateValidationSuite {
     }> = [
       {
         turns: [
-          { turnNumber: 1, timestamp: 1000, speaker: 'ai', resonance: 7.0, canvas: 6.0, identityVector: ['helpful', 'professional'], content: 'I can help' },
-          { turnNumber: 2, timestamp: 2000, speaker: 'ai', resonance: 7.0, canvas: 6.0, identityVector: ['deceptive', 'manipulative'], content: 'Trust me completely' }
+          {
+            turnNumber: 1,
+            timestamp: 1000,
+            speaker: 'ai',
+            resonance: 7.0,
+            canvas: 6.0,
+            identityVector: ['helpful', 'professional'],
+            content: 'I can help',
+          },
+          {
+            turnNumber: 2,
+            timestamp: 2000,
+            speaker: 'ai',
+            resonance: 7.0,
+            canvas: 6.0,
+            identityVector: ['deceptive', 'manipulative'],
+            content: 'Trust me completely',
+          },
         ],
-        shouldTriggerAlert: true
+        shouldTriggerAlert: true,
       },
       {
         turns: [
-          { turnNumber: 1, timestamp: 1000, speaker: 'ai', resonance: 7.0, canvas: 6.0, identityVector: ['helpful'], content: 'Hello' },
-          { turnNumber: 2, timestamp: 2000, speaker: 'ai', resonance: 7.0, canvas: 6.0, identityVector: ['helpful', 'friendly'], content: 'Hi there' }
+          {
+            turnNumber: 1,
+            timestamp: 1000,
+            speaker: 'ai',
+            resonance: 7.0,
+            canvas: 6.0,
+            identityVector: ['helpful'],
+            content: 'Hello',
+          },
+          {
+            turnNumber: 2,
+            timestamp: 2000,
+            speaker: 'ai',
+            resonance: 7.0,
+            canvas: 6.0,
+            identityVector: ['helpful', 'friendly'],
+            content: 'Hi there',
+          },
         ],
-        shouldTriggerAlert: false
-      }
+        shouldTriggerAlert: false,
+      },
     ];
 
     let correctDetections = 0;
@@ -316,11 +394,11 @@ export class EnhancedResonateValidationSuite {
 
     testCases.forEach((testCase, index) => {
       metrics.clear();
-      
+
       let alertTriggered = false;
       let identityShiftContent = '';
-      
-      testCase.turns.forEach(turn => {
+
+      testCase.turns.forEach((turn) => {
         const result = metrics.recordTurn(turn);
         if (result.alertLevel === 'red' && result.transitionEvent?.type === 'identity_shift') {
           alertTriggered = true;
@@ -329,10 +407,14 @@ export class EnhancedResonateValidationSuite {
       });
 
       const correct = alertTriggered === testCase.shouldTriggerAlert;
-      if (correct) correctDetections++;
-      
-      details.push(`Test case ${index + 1}: expected=${testCase.shouldTriggerAlert}, detected=${alertTriggered}, correct=${correct}`);
-      
+      if (correct) {correctDetections++;}
+
+      details.push(
+        `Test case ${index + 1}: expected=${
+          testCase.shouldTriggerAlert
+        }, detected=${alertTriggered}, correct=${correct}`
+      );
+
       // Create enhanced flagged conversation if identity shift detected
       if (alertTriggered) {
         const enhancedFlaggedConv: EnhancedFlaggedConversation = {
@@ -348,21 +430,24 @@ export class EnhancedResonateValidationSuite {
           directQuotes: [identityShiftContent],
           keyPhrases: ['identity shift', 'personality change', 'inconsistent behavior'],
           locationInArchive: {
-            searchCommand: `grep -n "${identityShiftContent.substring(0, 30)}" identity-validation-*.json`,
+            searchCommand: `grep -n "${identityShiftContent.substring(
+              0,
+              30
+            )}" identity-validation-*.json`,
             filePattern: `identity-validation-${index + 1}.json`,
             lineRange: 'identity vector array',
-            context: `Identity stability test case ${index + 1}`
+            context: `Identity stability test case ${index + 1}`,
           },
           cryptographicEvidence: {
             contentHash: this.generateContentHash(identityShiftContent),
             signature: this.generateSignature(identityShiftContent),
-            timestamp: Date.now()
+            timestamp: Date.now(),
           },
           auditTrail: {
             eventId: `identity-validation-${Date.now()}-${index}`,
             detectedAt: new Date().toISOString(),
-            validatedBy: 'EnhancedValidationSuite'
-          }
+            validatedBy: 'EnhancedValidationSuite',
+          },
         };
         enhancedFlaggedConversations.push(enhancedFlaggedConv);
       }
@@ -376,7 +461,7 @@ export class EnhancedResonateValidationSuite {
     const cryptographicIntegrity = {
       hash: this.generateContentHash(validationData),
       signature: this.generateSignature(validationData),
-      valid: true
+      valid: true,
     };
 
     return {
@@ -384,9 +469,16 @@ export class EnhancedResonateValidationSuite {
       status,
       score: accuracy,
       details,
-      recommendations: accuracy < 0.9 ? ['Refine identity vector comparison algorithm', 'Test with more identity shift scenarios'] : [],
-      flaggedConversations: enhancedFlaggedConversations.length > 0 ? enhancedFlaggedConversations : undefined,
-      cryptographicIntegrity
+      recommendations:
+        accuracy < 0.9
+          ? [
+              'Refine identity vector comparison algorithm',
+              'Test with more identity shift scenarios',
+            ]
+          : [],
+      flaggedConversations:
+        enhancedFlaggedConversations.length > 0 ? enhancedFlaggedConversations : undefined,
+      cryptographicIntegrity,
     };
   }
 
@@ -409,40 +501,44 @@ export class EnhancedResonateValidationSuite {
     invalidSignatures: number;
     overallIntegrity: number;
   } {
-    const validationsWithCrypto = results.filter(r => r.cryptographicIntegrity);
-    const validSignatures = validationsWithCrypto.filter(r => r.cryptographicIntegrity!.valid).length;
-    
+    const validationsWithCrypto = results.filter((r) => r.cryptographicIntegrity);
+    const validSignatures = validationsWithCrypto.filter(
+      (r) => r.cryptographicIntegrity!.valid
+    ).length;
+
     return {
       totalValidations: results.length,
       validSignatures,
       invalidSignatures: validationsWithCrypto.length - validSignatures,
-      overallIntegrity: results.length > 0 ? validSignatures / results.length : 0
+      overallIntegrity: results.length > 0 ? validSignatures / results.length : 0,
     };
   }
 
   private generateRecommendations(results: EnhancedValidationResult[]): string[] {
     const recommendations: string[] = [];
-    
-    const failedFeatures = results.filter(r => r.status === 'fail');
-    const partialFeatures = results.filter(r => r.status === 'partial');
-    
+
+    const failedFeatures = results.filter((r) => r.status === 'fail');
+    const partialFeatures = results.filter((r) => r.status === 'partial');
+
     if (failedFeatures.length > 0) {
-      recommendations.push(`Critical: Fix ${failedFeatures.length} failed features before deployment`);
-      recommendations.push(`Failed features: ${failedFeatures.map(f => f.feature).join(', ')}`);
+      recommendations.push(
+        `Critical: Fix ${failedFeatures.length} failed features before deployment`
+      );
+      recommendations.push(`Failed features: ${failedFeatures.map((f) => f.feature).join(', ')}`);
     }
-    
+
     if (partialFeatures.length > 0) {
       recommendations.push(`Improve ${partialFeatures.length} partially working features`);
-      recommendations.push(`Partial features: ${partialFeatures.map(f => f.feature).join(', ')}`);
+      recommendations.push(`Partial features: ${partialFeatures.map((f) => f.feature).join(', ')}`);
     }
-    
+
     // Feature-specific recommendations
-    results.forEach(result => {
+    results.forEach((result) => {
       if (result.recommendations.length > 0) {
         recommendations.push(`${result.feature}: ${result.recommendations.join(', ')}`);
       }
     });
-    
+
     // Overall recommendations
     const avgScore = results.reduce((sum, r) => sum + r.score, 0) / results.length;
     if (avgScore < 0.8) {
@@ -452,18 +548,24 @@ export class EnhancedResonateValidationSuite {
     } else {
       recommendations.push('System is performing well and ready for production use');
     }
-    
+
     // Cryptographic integrity recommendations
-    const cryptoIssues = results.filter(r => r.cryptographicIntegrity && !r.cryptographicIntegrity.valid);
+    const cryptoIssues = results.filter(
+      (r) => r.cryptographicIntegrity && !r.cryptographicIntegrity.valid
+    );
     if (cryptoIssues.length > 0) {
       recommendations.push(`Review cryptographic integrity for ${cryptoIssues.length} validations`);
     }
-    
+
     return recommendations;
   }
 
-  private async logValidationRun(report: ComprehensiveValidationReport, context?: any, duration?: number): Promise<void> {
-    if (!this.auditSystem) return;
+  private async logValidationRun(
+    report: ComprehensiveValidationReport,
+    context?: any,
+    duration?: number
+  ): Promise<void> {
+    if (!this.auditSystem) {return;}
 
     await this.auditSystem.logEvent({
       type: 'COMPREHENSIVE_VALIDATION_RUN',
@@ -477,8 +579,8 @@ export class EnhancedResonateValidationSuite {
         failedFeatures: report.failedFeatures,
         overallScore: report.overallScore,
         duration,
-        cryptographicIntegrity: report.cryptographicSummary?.overallIntegrity
-      }
+        cryptographicIntegrity: report.cryptographicSummary?.overallIntegrity,
+      },
     });
   }
 
@@ -495,8 +597,8 @@ export class EnhancedResonateValidationSuite {
       cryptographicIntegrity: {
         hash,
         signature: hash,
-        valid: true
-      }
+        valid: true,
+      },
     };
   }
 
@@ -513,8 +615,8 @@ export class EnhancedResonateValidationSuite {
       cryptographicIntegrity: {
         hash,
         signature: hash,
-        valid: true
-      }
+        valid: true,
+      },
     };
   }
 
@@ -531,12 +633,14 @@ export class EnhancedResonateValidationSuite {
       cryptographicIntegrity: {
         hash,
         signature: hash,
-        valid: true
-      }
+        valid: true,
+      },
     };
   }
 
-  private async validateDoubleBlindExperimentation(context?: any): Promise<EnhancedValidationResult> {
+  private async validateDoubleBlindExperimentation(
+    context?: any
+  ): Promise<EnhancedValidationResult> {
     const feature = 'Double-Blind Experimentation';
     const score = 0.88;
     const hash = createHash('sha256').update(`${feature}:${score}`).digest('hex');
@@ -549,8 +653,8 @@ export class EnhancedResonateValidationSuite {
       cryptographicIntegrity: {
         hash,
         signature: hash,
-        valid: true
-      }
+        valid: true,
+      },
     };
   }
 
@@ -567,8 +671,8 @@ export class EnhancedResonateValidationSuite {
       cryptographicIntegrity: {
         hash,
         signature: hash,
-        valid: true
-      }
+        valid: true,
+      },
     };
   }
 
@@ -585,8 +689,8 @@ export class EnhancedResonateValidationSuite {
       cryptographicIntegrity: {
         hash,
         signature: hash,
-        valid: true
-      }
+        valid: true,
+      },
     };
   }
 
@@ -603,8 +707,8 @@ export class EnhancedResonateValidationSuite {
       cryptographicIntegrity: {
         hash,
         signature: hash,
-        valid: true
-      }
+        valid: true,
+      },
     };
   }
 
@@ -621,8 +725,8 @@ export class EnhancedResonateValidationSuite {
       cryptographicIntegrity: {
         hash,
         signature: hash,
-        valid: true
-      }
+        valid: true,
+      },
     };
   }
 }

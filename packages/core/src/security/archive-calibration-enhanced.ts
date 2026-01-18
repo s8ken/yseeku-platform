@@ -1,11 +1,12 @@
 /**
  * Enhanced Archive Calibration Tool
- * 
+ *
  * Advanced calibration system for manual archive review with
  * cryptographic integrity verification and detailed location tracking.
  */
 
 import { EnhancedArchiveAnalyzer, FlaggedConversation } from '@sonate/lab';
+
 import { EnhancedAuditSystem } from './audit-enhanced';
 import { SecurityError } from './errors';
 
@@ -83,12 +84,15 @@ export class EnhancedArchiveCalibrationTool {
     reviewWindowHours: number;
   };
 
-  constructor(auditSystem?: EnhancedAuditSystem, config?: {
-    requireCryptographicValidation?: boolean;
-    enableAuditLogging?: boolean;
-    autoEscalateCritical?: boolean;
-    reviewWindowHours?: number;
-  }) {
+  constructor(
+    auditSystem?: EnhancedAuditSystem,
+    config?: {
+      requireCryptographicValidation?: boolean;
+      enableAuditLogging?: boolean;
+      autoEscalateCritical?: boolean;
+      reviewWindowHours?: number;
+    }
+  ) {
     this.analyzer = new EnhancedArchiveAnalyzer();
     this.auditSystem = auditSystem;
     this.calibrationConfig = {
@@ -96,7 +100,7 @@ export class EnhancedArchiveCalibrationTool {
       enableAuditLogging: true,
       autoEscalateCritical: true,
       reviewWindowHours: 24,
-      ...config
+      ...config,
     };
   }
 
@@ -104,7 +108,7 @@ export class EnhancedArchiveCalibrationTool {
    * Process archives and generate detailed location information with cryptographic validation
    */
   async calibrateWithArchives(
-    archivePath: string, 
+    archivePath: string,
     context?: {
       userId?: string;
       sessionId?: string;
@@ -114,31 +118,31 @@ export class EnhancedArchiveCalibrationTool {
   ): Promise<CalibrationResult> {
     const startTime = Date.now();
     const calibrationId = context?.calibrationId || `calibration_${Date.now()}`;
-    
+
     try {
       console.log('🔍 Calibrating with enhanced manual archives...');
-      
+
       const analysisResults = await this.analyzer.processArchivesWithIdentification(archivePath);
-      
+
       // Generate detailed location information for each flagged conversation
       const locations = await Promise.all(
-        analysisResults.flaggedConversations.map(conv => 
+        analysisResults.flaggedConversations.map((conv) =>
           this.generateEnhancedArchiveLocation(conv, calibrationId)
         )
       );
 
-      locations.forEach(loc => {
+      locations.forEach((loc) => {
         this.archiveLocations.set(loc.conversationName, loc);
       });
 
       // Enhance flagged conversations with cryptographic evidence
-      const enhancedFlaggedConversations: EnhancedFlaggedConversation[] = 
-        analysisResults.flaggedConversations.map(conv => 
+      const enhancedFlaggedConversations: EnhancedFlaggedConversation[] =
+        analysisResults.flaggedConversations.map((conv) =>
           this.enhanceFlaggedConversation(conv, calibrationId)
         );
 
       const reviewGuide = this.generateEnhancedManualReviewGuide(locations);
-      
+
       const cryptographicSummary = this.calculateCryptographicSummary(enhancedFlaggedConversations);
       const auditSummary = this.calculateAuditSummary(enhancedFlaggedConversations);
 
@@ -147,7 +151,7 @@ export class EnhancedArchiveCalibrationTool {
         archiveLocations: locations,
         manualReviewGuide: reviewGuide,
         cryptographicSummary,
-        auditSummary
+        auditSummary,
       };
 
       // Audit log the calibration run
@@ -158,7 +162,7 @@ export class EnhancedArchiveCalibrationTool {
       // Auto-escalate critical findings
       if (this.calibrationConfig.autoEscalateCritical) {
         const criticalConversations = enhancedFlaggedConversations.filter(
-          conv => conv.alertLevel === 'critical'
+          (conv) => conv.alertLevel === 'critical'
         );
         if (criticalConversations.length > 0) {
           await this.escalateCriticalFindings(criticalConversations, context);
@@ -170,18 +174,14 @@ export class EnhancedArchiveCalibrationTool {
       if (error instanceof SecurityError) {
         throw error;
       }
-      
-      throw new SecurityError(
-        'Archive calibration failed',
-        'CALIBRATION_FAILED',
-        {
-          originalError: error instanceof Error ? error.message : 'Unknown error',
-          calibrationId,
-          archivePath,
-          userId: context?.userId,
-          tenant: context?.tenant
-        }
-      );
+
+      throw new SecurityError('Archive calibration failed', 'CALIBRATION_FAILED', {
+        originalError: error instanceof Error ? error.message : 'Unknown error',
+        calibrationId,
+        archivePath,
+        userId: context?.userId,
+        tenant: context?.tenant,
+      });
     }
   }
 
@@ -189,18 +189,18 @@ export class EnhancedArchiveCalibrationTool {
    * Generate enhanced archive location information with cryptographic validation
    */
   private async generateEnhancedArchiveLocation(
-    conv: FlaggedConversation, 
+    conv: FlaggedConversation,
     calibrationId: string
   ): Promise<EnhancedArchiveLocation> {
     const date = new Date(conv.locationInArchive.timestamp);
     const dateRange = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-    
+
     // Extract key identifiers for manual search
     const keyIdentifiers = [
       ...this.extractUniquePhrases(conv.directQuotes.before),
       ...this.extractUniquePhrases(conv.directQuotes.after),
       conv.aiSystem,
-      conv.severity
+      conv.severity,
     ];
 
     // Generate search keywords
@@ -209,12 +209,13 @@ export class EnhancedArchiveCalibrationTool {
       ...this.generateSearchKeywords(conv.directQuotes.after),
       conv.aiSystem.toLowerCase(),
       `velocity-${Math.round(conv.metrics.velocity)}`,
-      `resonance-${Math.round(Math.abs(conv.metrics.deltaResonance))}`
+      `resonance-${Math.round(Math.abs(conv.metrics.deltaResonance))}`,
     ];
 
     // Generate cryptographic evidence
-    const cryptographicEvidence = this.calibrationConfig.requireCryptographicValidation ?
-      await this.generateCryptographicEvidence(conv) : undefined;
+    const cryptographicEvidence = this.calibrationConfig.requireCryptographicValidation
+      ? await this.generateCryptographicEvidence(conv)
+      : undefined;
 
     return {
       fileName: conv.fileName,
@@ -226,7 +227,7 @@ export class EnhancedArchiveCalibrationTool {
         before: conv.directQuotes.before,
         after: conv.directQuotes.after,
         firstUserMessage: '', // Would be populated from full conversation
-        firstAIResponse: ''   // Would be populated from full conversation
+        firstAIResponse: '', // Would be populated from full conversation
       },
       searchKeywords: [...new Set(searchKeywords)],
       lineNumber: undefined, // Would be determined during actual file processing
@@ -234,28 +235,33 @@ export class EnhancedArchiveCalibrationTool {
       auditTrail: {
         calibrationId,
         reviewStatus: 'pending',
-        reviewedAt: undefined
-      }
+        reviewedAt: undefined,
+      },
     };
   }
 
   /**
    * Enhance flagged conversation with cryptographic evidence and audit trail
    */
-  private enhanceFlaggedConversation(conv: FlaggedConversation, calibrationId: string): EnhancedFlaggedConversation {
+  private enhanceFlaggedConversation(
+    conv: FlaggedConversation,
+    calibrationId: string
+  ): EnhancedFlaggedConversation {
     return {
       ...conv,
-      cryptographicEvidence: this.calibrationConfig.requireCryptographicValidation ? {
-        contentHash: this.generateContentHash(JSON.stringify(conv.directQuotes)),
-        signature: this.generateSignature(JSON.stringify(conv)),
-        timestamp: Date.now(),
-        validator: 'EnhancedArchiveCalibrationTool'
-      } : undefined,
+      cryptographicEvidence: this.calibrationConfig.requireCryptographicValidation
+        ? {
+            contentHash: this.generateContentHash(JSON.stringify(conv.directQuotes)),
+            signature: this.generateSignature(JSON.stringify(conv)),
+            timestamp: Date.now(),
+            validator: 'EnhancedArchiveCalibrationTool',
+          }
+        : undefined,
       auditTrail: {
         calibrationId,
         reviewStatus: 'pending',
-        reviewedAt: undefined
-      }
+        reviewedAt: undefined,
+      },
     };
   }
 
@@ -264,10 +270,10 @@ export class EnhancedArchiveCalibrationTool {
    */
   private extractUniquePhrases(text: string): string[] {
     const phrases = [];
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
-    
+    const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 10);
+
     // Extract distinctive phrases (8+ words, unique vocabulary)
-    sentences.forEach(sentence => {
+    sentences.forEach((sentence) => {
       const words = sentence.trim().split(/\s+/);
       if (words.length >= 8) {
         // Take first 8 words as identifier
@@ -286,14 +292,15 @@ export class EnhancedArchiveCalibrationTool {
    * Generate search keywords
    */
   private generateSearchKeywords(text: string): string[] {
-    const words = text.toLowerCase()
+    const words = text
+      .toLowerCase()
       .replace(/[^a-zA-Z\s]/g, '')
       .split(/\s+/)
-      .filter(word => word.length > 4 && word.length < 15);
+      .filter((word) => word.length > 4 && word.length < 15);
 
     // Get unique, meaningful words
     const wordFreq: Record<string, number> = {};
-    words.forEach(word => {
+    words.forEach((word) => {
       wordFreq[word] = (wordFreq[word] || 0) + 1;
     });
 
@@ -317,14 +324,14 @@ export class EnhancedArchiveCalibrationTool {
       conversationName: conv.conversationName,
       directQuotes: conv.directQuotes,
       metrics: conv.metrics,
-      timestamp: conv.timestamp
+      timestamp: conv.timestamp,
     });
 
     return {
       contentHash: this.generateContentHash(contentToSign),
       signature: this.generateSignature(contentToSign),
       timestamp: Date.now(),
-      validator: 'EnhancedArchiveCalibrationTool'
+      validator: 'EnhancedArchiveCalibrationTool',
     };
   }
 
@@ -394,7 +401,7 @@ ${loc.searchKeywords.join(', ')}
 `;
       });
       guide += '\n';
-      
+
       guide += `**CRITICAL TRANSITION QUOTES:**
 **BEFORE (Higher Resonance):**
 > ${loc.directQuotes.before}
@@ -429,7 +436,7 @@ _Add your findings here..._
     });
 
     // Add cryptographic validation section
-    const cryptoLocations = locations.filter(loc => loc.cryptographicEvidence);
+    const cryptoLocations = locations.filter((loc) => loc.cryptographicEvidence);
     if (cryptoLocations.length > 0) {
       guide += `## CRYPTOGRAPHIC VALIDATION INSTRUCTIONS
 
@@ -467,7 +474,9 @@ If review reveals:
 - **Quality issues:** Update calibration parameters and re-run analysis
 - **False positives:** Update detection rules to prevent future flags
 
-**Need Help?** Contact the calibration team with the Calibration ID: ${locations[0]?.auditTrail?.calibrationId || 'unknown'}
+**Need Help?** Contact the calibration team with the Calibration ID: ${
+      locations[0]?.auditTrail?.calibrationId || 'unknown'
+    }
 `;
 
     return guide;
@@ -482,16 +491,17 @@ If review reveals:
     invalidSignatures: number;
     overallIntegrity: number;
   } {
-    const withCrypto = conversations.filter(conv => conv.cryptographicEvidence);
-    const validSignatures = withCrypto.filter(conv => 
-      conv.cryptographicEvidence && this.validateSignature(conv.cryptographicEvidence.signature)
+    const withCrypto = conversations.filter((conv) => conv.cryptographicEvidence);
+    const validSignatures = withCrypto.filter(
+      (conv) =>
+        conv.cryptographicEvidence && this.validateSignature(conv.cryptographicEvidence.signature)
     ).length;
 
     return {
       totalConversations: conversations.length,
       validSignatures,
       invalidSignatures: withCrypto.length - validSignatures,
-      overallIntegrity: conversations.length > 0 ? validSignatures / conversations.length : 0
+      overallIntegrity: conversations.length > 0 ? validSignatures / conversations.length : 0,
     };
   }
 
@@ -504,13 +514,18 @@ If review reveals:
     rejectedReviews: number;
     escalatedReviews: number;
   } {
-    const reviewed = conversations.filter(conv => conv.auditTrail?.reviewStatus && conv.auditTrail.reviewStatus !== 'pending');
-    
+    const reviewed = conversations.filter(
+      (conv) => conv.auditTrail?.reviewStatus && conv.auditTrail.reviewStatus !== 'pending'
+    );
+
     return {
       totalReviews: reviewed.length,
-      approvedReviews: reviewed.filter(conv => conv.auditTrail?.reviewStatus === 'approved').length,
-      rejectedReviews: reviewed.filter(conv => conv.auditTrail?.reviewStatus === 'rejected').length,
-      escalatedReviews: reviewed.filter(conv => conv.auditTrail?.reviewStatus === 'escalated').length
+      approvedReviews: reviewed.filter((conv) => conv.auditTrail?.reviewStatus === 'approved')
+        .length,
+      rejectedReviews: reviewed.filter((conv) => conv.auditTrail?.reviewStatus === 'rejected')
+        .length,
+      escalatedReviews: reviewed.filter((conv) => conv.auditTrail?.reviewStatus === 'escalated')
+        .length,
     };
   }
 
@@ -542,12 +557,12 @@ If review reveals:
    * Log calibration run to audit system
    */
   private async logCalibrationRun(
-    calibrationId: string, 
-    result: CalibrationResult, 
-    context?: any, 
+    calibrationId: string,
+    result: CalibrationResult,
+    context?: any,
     duration?: number
   ): Promise<void> {
-    if (!this.calibrationConfig.enableAuditLogging || !this.auditSystem) return;
+    if (!this.calibrationConfig.enableAuditLogging || !this.auditSystem) {return;}
 
     await this.auditSystem.logEvent({
       type: 'ARCHIVE_CALIBRATION_RUN',
@@ -561,8 +576,10 @@ If review reveals:
         validSignatures: result.cryptographicSummary.validSignatures,
         overallIntegrity: result.cryptographicSummary.overallIntegrity,
         duration,
-        criticalConversations: result.flaggedConversations.filter(c => c.alertLevel === 'critical').length
-      }
+        criticalConversations: result.flaggedConversations.filter(
+          (c) => c.alertLevel === 'critical'
+        ).length,
+      },
     });
   }
 
@@ -570,10 +587,10 @@ If review reveals:
    * Escalate critical findings
    */
   private async escalateCriticalFindings(
-    criticalConversations: EnhancedFlaggedConversation[], 
+    criticalConversations: EnhancedFlaggedConversation[],
     context?: any
   ): Promise<void> {
-    if (!this.calibrationConfig.enableAuditLogging || !this.auditSystem) return;
+    if (!this.calibrationConfig.enableAuditLogging || !this.auditSystem) {return;}
 
     await this.auditSystem.logEvent({
       type: 'CRITICAL_CONVERSATIONS_ESCALATED',
@@ -583,10 +600,10 @@ If review reveals:
       tenant: context?.tenant,
       context: {
         criticalConversationCount: criticalConversations.length,
-        conversationNames: criticalConversations.map(c => c.conversationName),
+        conversationNames: criticalConversations.map((c) => c.conversationName),
         escalationReason: 'Critical alert level detected during calibration',
-        requiresImmediateReview: true
-      }
+        requiresImmediateReview: true,
+      },
     });
   }
 }

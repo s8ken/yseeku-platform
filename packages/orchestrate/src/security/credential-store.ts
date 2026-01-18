@@ -4,7 +4,9 @@
  */
 
 import * as crypto from 'crypto';
+
 import { Logger } from '../observability/logger';
+
 import { getAuditLogger, AuditEventType, AuditLogger } from './audit';
 import { getRBACManager, RBACManager, Permission, User } from './rbac';
 
@@ -77,7 +79,10 @@ export class CredentialEncryption {
   /**
    * Encrypt a credential value
    */
-  static encrypt(value: string, encryptionKey: string): { encrypted: string; iv: string; tag: string; salt: string } {
+  static encrypt(
+    value: string,
+    encryptionKey: string
+  ): { encrypted: string; iv: string; tag: string; salt: string } {
     // Generate a random salt and IV
     const salt = crypto.randomBytes(16).toString('hex');
     const iv = crypto.randomBytes(this.IV_LENGTH);
@@ -105,7 +110,13 @@ export class CredentialEncryption {
   /**
    * Decrypt a credential value
    */
-  static decrypt(encrypted: string, iv: string, tag: string, salt: string, encryptionKey: string): string {
+  static decrypt(
+    encrypted: string,
+    iv: string,
+    tag: string,
+    salt: string,
+    encryptionKey: string
+  ): string {
     // Derive the same key
     const derivedKey = crypto.pbkdf2Sync(encryptionKey, salt, 10000, this.KEY_LENGTH, 'sha256');
 
@@ -162,7 +173,7 @@ export class MemoryStorageBackend implements StorageBackend {
     }
 
     return Array.from(credentialIds)
-      .map(id => this.credentials.get(id))
+      .map((id) => this.credentials.get(id))
       .filter((cred): cred is Credential => cred !== undefined);
   }
 

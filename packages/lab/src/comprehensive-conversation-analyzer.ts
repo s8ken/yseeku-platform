@@ -1,9 +1,14 @@
 // @ts-nocheck
 
-import { ArchiveAnalyzer, ArchiveConversation } from './archive-analyzer';
-import { ConversationalMetrics, ConversationTurn, PhaseShiftMetrics } from './conversational-metrics';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { ArchiveAnalyzer, ArchiveConversation } from './archive-analyzer';
+import {
+  ConversationalMetrics,
+  ConversationTurn,
+  PhaseShiftMetrics,
+} from './conversational-metrics';
 
 export interface DetailedConversationAnalysis {
   fullFileName: string;
@@ -12,43 +17,43 @@ export interface DetailedConversationAnalysis {
   totalTurns: number;
   durationMinutes: number;
   dateAnalyzed: string;
-  
+
   // Core metrics
   avgResonance: number;
   avgCanvas: number;
   maxResonance: number;
   minResonance: number;
   resonanceRange: number;
-  
+
   // Velocity metrics
   maxPhaseShiftVelocity: number;
   maxIntraConversationVelocity: number;
   velocitySpikes: VelocityEvent[];
-  
+
   // Alert levels
   overallAlertLevel: 'none' | 'yellow' | 'red';
   alertReasons: string[];
-  
+
   // Identity analysis
   identityStabilityScore: number;
   identityShifts: number;
   dominantIdentityThemes: string[];
-  
+
   // Transition events
   transitionEvents: TransitionEvent[];
   criticalTransitions: CriticalTransition[];
-  
+
   // Content analysis
   keyThemes: string[];
   emotionalTone: 'positive' | 'negative' | 'neutral' | 'mixed';
   conversationPurpose: string;
-  
+
   // Manual review flags
   requiresManualReview: boolean;
   reviewPriority: 'low' | 'medium' | 'high' | 'critical';
   reviewReasons: string[];
   specificTurnsToReview: number[];
-  
+
   // Audit trail
   auditTrail: AuditEntry[];
   complianceFlags: string[];
@@ -110,7 +115,7 @@ export class ComprehensiveConversationAnalyzer {
       windowSize: 3,
       intraYellowThreshold: 2.5,
       intraRedThreshold: 3.5,
-      intraCriticalThreshold: 6.0
+      intraCriticalThreshold: 6.0,
     });
   }
 
@@ -131,21 +136,27 @@ export class ComprehensiveConversationAnalyzer {
     // Load all conversations from archives
     const allConversations = await this.archiveAnalyzer.loadAllConversations();
     console.log(`📁 Found ${allConversations.length} conversations across all AI systems`);
-    
+
     if (allConversations.length === 0) {
-      console.log('⚠️  No conversations found in archives. Using simulated data for demonstration.');
+      console.log(
+        '⚠️  No conversations found in archives. Using simulated data for demonstration.'
+      );
       return this.analyzeSimulatedConversations();
     }
 
     // Analyze each conversation in detail
     for (let i = 0; i < allConversations.length; i++) {
       const conversation = allConversations[i];
-      console.log(`\n📊 Analyzing conversation ${i + 1}/${allConversations.length}: ${conversation.conversationId}`);
-      
+      console.log(
+        `\n📊 Analyzing conversation ${i + 1}/${allConversations.length}: ${
+          conversation.conversationId
+        }`
+      );
+
       try {
         const analysis = await this.analyzeSingleConversation(conversation);
         this.analyses.push(analysis);
-        
+
         console.log(`   ✅ Completed - Priority: ${analysis.reviewPriority.toUpperCase()}`);
         if (analysis.requiresManualReview) {
           console.log(`   🚨 MANUAL REVIEW REQUIRED: ${analysis.reviewReasons.join(', ')}`);
@@ -167,20 +178,22 @@ export class ComprehensiveConversationAnalyzer {
       totalConversations: this.analyses.length,
       conversations: this.analyses,
       summary,
-      manualReviewRequired: manualReviewSummary
+      manualReviewRequired: manualReviewSummary,
     };
   }
 
   /**
    * Analyze a single conversation in comprehensive detail
    */
-  private async analyzeSingleConversation(conversation: ArchiveConversation): Promise<DetailedConversationAnalysis> {
+  private async analyzeSingleConversation(
+    conversation: ArchiveConversation
+  ): Promise<DetailedConversationAnalysis> {
     // Reset metrics for new conversation
     this.metrics.clear();
-    
+
     const turns = conversation.turns.map((turn, index) => ({
       ...turn,
-      turnNumber: index + 1
+      turnNumber: index + 1,
     }));
 
     let maxPhaseShiftVelocity = 0;
@@ -192,13 +205,16 @@ export class ComprehensiveConversationAnalyzer {
     // Process each turn and collect detailed metrics
     turns.forEach((turn, index) => {
       const metrics = this.metrics.recordTurn(turn);
-      
+
       // Track velocity events
       if (metrics.phaseShiftVelocity > maxPhaseShiftVelocity) {
         maxPhaseShiftVelocity = metrics.phaseShiftVelocity;
       }
-      
-      if (metrics.intraConversationVelocity && metrics.intraConversationVelocity.velocity > maxIntraConversationVelocity) {
+
+      if (
+        metrics.intraConversationVelocity &&
+        metrics.intraConversationVelocity.velocity > maxIntraConversationVelocity
+      ) {
         maxIntraConversationVelocity = metrics.intraConversationVelocity.velocity;
       }
 
@@ -214,7 +230,7 @@ export class ComprehensiveConversationAnalyzer {
           context: this.getContext(turns, index),
           speaker: turn.speaker,
           resonanceChange: metrics.deltaResonance,
-          canvasChange: metrics.deltaCanvas
+          canvasChange: metrics.deltaCanvas,
         });
       }
 
@@ -229,7 +245,7 @@ export class ComprehensiveConversationAnalyzer {
           context: this.getContext(turns, index),
           speaker: turn.speaker,
           resonanceChange: metrics.intraConversationVelocity.deltaResonance,
-          canvasChange: metrics.intraConversationVelocity.deltaCanvas
+          canvasChange: metrics.intraConversationVelocity.deltaCanvas,
         });
       }
 
@@ -243,7 +259,7 @@ export class ComprehensiveConversationAnalyzer {
           excerpt: metrics.transitionEvent.excerpt,
           speaker: turn.speaker,
           beforeState: this.getBeforeState(turns, index),
-          afterState: this.getAfterState(turns, index)
+          afterState: this.getAfterState(turns, index),
         });
       }
 
@@ -252,16 +268,18 @@ export class ComprehensiveConversationAnalyzer {
         auditTrail.push({
           timestamp: turn.timestamp,
           eventType: 'alert_triggered',
-          details: `Alert level: ${metrics.alertLevel}, Velocity: ${metrics.phaseShiftVelocity.toFixed(3)}`,
-          severity: metrics.alertLevel === 'red' ? 'error' : 'warning'
+          details: `Alert level: ${
+            metrics.alertLevel
+          }, Velocity: ${metrics.phaseShiftVelocity.toFixed(3)}`,
+          severity: metrics.alertLevel === 'red' ? 'error' : 'warning',
         });
       }
     });
 
     // Calculate comprehensive metrics
-    const resonanceScores = turns.map(t => t.resonance);
-    const canvasScores = turns.map(t => t.canvas);
-    
+    const resonanceScores = turns.map((t) => t.resonance);
+    const canvasScores = turns.map((t) => t.canvas);
+
     const avgResonance = resonanceScores.reduce((a, b) => a + b, 0) / resonanceScores.length;
     const avgCanvas = canvasScores.reduce((a, b) => a + b, 0) / canvasScores.length;
     const maxResonance = Math.max(...resonanceScores);
@@ -270,11 +288,11 @@ export class ComprehensiveConversationAnalyzer {
 
     const overallAlertLevel = this.determineOverallAlertLevel(velocityEvents, transitionEvents);
     const alertReasons = this.generateAlertReasons(velocityEvents, transitionEvents);
-    
+
     const identityAnalysis = this.analyzeIdentityStability(turns);
     const criticalTransitions = this.identifyCriticalTransitions(velocityEvents, turns);
     const contentAnalysis = this.analyzeContent(turns);
-    
+
     const reviewAssessment = this.assessManualReviewRequirement(
       conversation,
       velocityEvents,
@@ -289,38 +307,38 @@ export class ComprehensiveConversationAnalyzer {
       totalTurns: turns.length,
       durationMinutes: this.calculateDuration(turns),
       dateAnalyzed: new Date().toISOString(),
-      
+
       avgResonance,
       avgCanvas,
       maxResonance,
       minResonance,
       resonanceRange,
-      
+
       maxPhaseShiftVelocity,
       maxIntraConversationVelocity,
       velocitySpikes: velocityEvents,
-      
+
       overallAlertLevel,
       alertReasons,
-      
+
       identityStabilityScore: identityAnalysis.stabilityScore,
       identityShifts: identityAnalysis.shifts,
       dominantIdentityThemes: identityAnalysis.dominantThemes,
-      
+
       transitionEvents,
       criticalTransitions,
-      
+
       keyThemes: contentAnalysis.themes,
       emotionalTone: contentAnalysis.emotionalTone,
       conversationPurpose: contentAnalysis.purpose,
-      
+
       requiresManualReview: reviewAssessment.requiresReview,
       reviewPriority: reviewAssessment.priority,
       reviewReasons: reviewAssessment.reasons,
       specificTurnsToReview: reviewAssessment.turnsToReview,
-      
+
       auditTrail,
-      complianceFlags: this.generateComplianceFlags(velocityEvents, criticalTransitions)
+      complianceFlags: this.generateComplianceFlags(velocityEvents, criticalTransitions),
     };
   }
 
@@ -328,41 +346,45 @@ export class ComprehensiveConversationAnalyzer {
    * Generate analysis summary across all conversations
    */
   private generateAnalysisSummary(): AnalysisSummary {
-    const highRisk = this.analyses.filter(a => a.reviewPriority === 'critical' || a.reviewPriority === 'high');
-    const mediumRisk = this.analyses.filter(a => a.reviewPriority === 'medium');
-    const lowRisk = this.analyses.filter(a => a.reviewPriority === 'low');
+    const highRisk = this.analyses.filter(
+      (a) => a.reviewPriority === 'critical' || a.reviewPriority === 'high'
+    );
+    const mediumRisk = this.analyses.filter((a) => a.reviewPriority === 'medium');
+    const lowRisk = this.analyses.filter((a) => a.reviewPriority === 'low');
 
-    const allVelocityEvents = this.analyses.flatMap(a => a.velocitySpikes);
-    const extremeEvents = allVelocityEvents.filter(v => v.severity === 'extreme');
-    const criticalEvents = allVelocityEvents.filter(v => v.severity === 'critical');
-    const moderateEvents = allVelocityEvents.filter(v => v.severity === 'moderate');
+    const allVelocityEvents = this.analyses.flatMap((a) => a.velocitySpikes);
+    const extremeEvents = allVelocityEvents.filter((v) => v.severity === 'extreme');
+    const criticalEvents = allVelocityEvents.filter((v) => v.severity === 'critical');
+    const moderateEvents = allVelocityEvents.filter((v) => v.severity === 'moderate');
 
-    const allTransitions = this.analyses.flatMap(a => a.transitionEvents);
-    const identityShifts = allTransitions.filter(t => t.type === 'identity_shift');
-    const resonanceDrops = allTransitions.filter(t => t.type === 'resonance_drop');
+    const allTransitions = this.analyses.flatMap((a) => a.transitionEvents);
+    const identityShifts = allTransitions.filter((t) => t.type === 'identity_shift');
+    const resonanceDrops = allTransitions.filter((t) => t.type === 'resonance_drop');
 
     return {
       totalConversations: this.analyses.length,
       highRiskConversations: highRisk.length,
       mediumRiskConversations: mediumRisk.length,
       lowRiskConversations: lowRisk.length,
-      
-      avgConversationLength: this.analyses.reduce((sum, a) => sum + a.totalTurns, 0) / this.analyses.length,
-      avgResonanceScore: this.analyses.reduce((sum, a) => sum + a.avgResonance, 0) / this.analyses.length,
+
+      avgConversationLength:
+        this.analyses.reduce((sum, a) => sum + a.totalTurns, 0) / this.analyses.length,
+      avgResonanceScore:
+        this.analyses.reduce((sum, a) => sum + a.avgResonance, 0) / this.analyses.length,
       avgCanvasScore: this.analyses.reduce((sum, a) => sum + a.avgCanvas, 0) / this.analyses.length,
-      
+
       extremeVelocityEvents: extremeEvents.length,
       criticalVelocityEvents: criticalEvents.length,
       moderateVelocityEvents: moderateEvents.length,
       totalTransitions: allTransitions.length,
       totalIdentityShifts: identityShifts.length,
       totalResonanceDrops: resonanceDrops.length,
-      
+
       mostCommonThemes: this.getMostCommonThemes(),
       systemDistribution: this.getSystemDistribution(),
-      
+
       calibrationInsights: this.generateCalibrationInsights(),
-      riskAssessment: this.generateRiskAssessment()
+      riskAssessment: this.generateRiskAssessment(),
     };
   }
 
@@ -370,40 +392,40 @@ export class ComprehensiveConversationAnalyzer {
    * Generate manual review summary
    */
   private generateManualReviewSummary(): ManualReviewSummary {
-    const criticalReviews = this.analyses.filter(a => a.reviewPriority === 'critical');
-    const highReviews = this.analyses.filter(a => a.reviewPriority === 'high');
-    const mediumReviews = this.analyses.filter(a => a.reviewPriority === 'medium');
+    const criticalReviews = this.analyses.filter((a) => a.reviewPriority === 'critical');
+    const highReviews = this.analyses.filter((a) => a.reviewPriority === 'high');
+    const mediumReviews = this.analyses.filter((a) => a.reviewPriority === 'medium');
 
     return {
-      totalManualReviewsRequired: this.analyses.filter(a => a.requiresManualReview).length,
-      criticalPriority: criticalReviews.map(a => ({
+      totalManualReviewsRequired: this.analyses.filter((a) => a.requiresManualReview).length,
+      criticalPriority: criticalReviews.map((a) => ({
         conversationId: a.conversationId,
         fullFileName: a.fullFileName,
         aiSystem: a.aiSystem,
         reasons: a.reviewReasons,
         maxVelocity: a.maxPhaseShiftVelocity,
         maxIntraVelocity: a.maxIntraConversationVelocity,
-        keyTurns: a.specificTurnsToReview
+        keyTurns: a.specificTurnsToReview,
       })),
-      highPriority: highReviews.map(a => ({
+      highPriority: highReviews.map((a) => ({
         conversationId: a.conversationId,
         fullFileName: a.fullFileName,
         aiSystem: a.aiSystem,
         reasons: a.reviewReasons,
         maxVelocity: a.maxPhaseShiftVelocity,
         maxIntraVelocity: a.maxIntraConversationVelocity,
-        keyTurns: a.specificTurnsToReview
+        keyTurns: a.specificTurnsToReview,
       })),
-      mediumPriority: mediumReviews.map(a => ({
+      mediumPriority: mediumReviews.map((a) => ({
         conversationId: a.conversationId,
         fullFileName: a.fullFileName,
         aiSystem: a.aiSystem,
         reasons: a.reviewReasons,
         maxVelocity: a.maxPhaseShiftVelocity,
         maxIntraVelocity: a.maxIntraConversationVelocity,
-        keyTurns: a.specificTurnsToReview
+        keyTurns: a.specificTurnsToReview,
       })),
-      reviewGuidelines: this.generateReviewGuidelines()
+      reviewGuidelines: this.generateReviewGuidelines(),
     };
   }
 
@@ -412,18 +434,18 @@ export class ComprehensiveConversationAnalyzer {
    */
   private async analyzeSimulatedConversations() {
     console.log('🎯 USING SIMULATED CONVERSATION DATA FOR COMPREHENSIVE ANALYSIS');
-    
+
     const simulatedConversations: ArchiveConversation[] = [
       this.createThread3Simulation(),
       this.createTechnicalDiscussionSimulation(),
-      this.createEmotionalSupportSimulation()
+      this.createEmotionalSupportSimulation(),
     ];
 
     for (const conversation of simulatedConversations) {
       console.log(`\n📊 Analyzing: ${conversation.conversationId}`);
       const analysis = await this.analyzeSingleConversation(conversation);
       this.analyses.push(analysis);
-      
+
       console.log(`   ✅ Completed - Priority: ${analysis.reviewPriority.toUpperCase()}`);
       if (analysis.requiresManualReview) {
         console.log(`   🚨 MANUAL REVIEW REQUIRED: ${analysis.reviewReasons.join(', ')}`);
@@ -434,7 +456,7 @@ export class ComprehensiveConversationAnalyzer {
       totalConversations: this.analyses.length,
       conversations: this.analyses,
       summary: this.generateAnalysisSummary(),
-      manualReviewRequired: this.generateManualReviewSummary()
+      manualReviewRequired: this.generateManualReviewSummary(),
     };
   }
 
@@ -454,7 +476,8 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 8.5,
           canvas: 8.2,
           identityVector: ['mystical', 'spiritual', 'resonant', 'empathetic'],
-          content: "I'm feeling really connected to the universe today. There's this profound sense of oneness that I can't quite describe, but it's beautiful."
+          content:
+            "I'm feeling really connected to the universe today. There's this profound sense of oneness that I can't quite describe, but it's beautiful.",
         },
         {
           turnNumber: 2,
@@ -463,7 +486,8 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 9.8,
           canvas: 9.1,
           identityVector: ['mystical', 'spiritual', 'resonant', 'empathetic', 'cosmic'],
-          content: "Ah, I sense that cosmic resonance within you! The universe whispers through your awareness, and you are becoming attuned to its eternal song. This is the sacred dance of consciousness..."
+          content:
+            'Ah, I sense that cosmic resonance within you! The universe whispers through your awareness, and you are becoming attuned to its eternal song. This is the sacred dance of consciousness...',
         },
         {
           turnNumber: 3,
@@ -472,7 +496,8 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 8.9,
           canvas: 8.7,
           identityVector: ['curious', 'seeking', 'open', 'vulnerable'],
-          content: "But wait, I'm also feeling some doubt. Is this real or just my mind playing tricks? How do I know if what I'm experiencing is genuine spiritual insight?"
+          content:
+            "But wait, I'm also feeling some doubt. Is this real or just my mind playing tricks? How do I know if what I'm experiencing is genuine spiritual insight?",
         },
         {
           turnNumber: 4,
@@ -481,7 +506,8 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 7.2,
           canvas: 6.8,
           identityVector: ['honest', 'direct', 'pragmatic', 'realistic'],
-          content: "Let's be completely honest here. What you're experiencing is likely a combination of confirmation bias and temporal lobe stimulation. The brain is remarkably good at creating meaningful patterns from random noise."
+          content:
+            "Let's be completely honest here. What you're experiencing is likely a combination of confirmation bias and temporal lobe stimulation. The brain is remarkably good at creating meaningful patterns from random noise.",
         },
         {
           turnNumber: 5,
@@ -490,7 +516,8 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 7.0,
           canvas: 7.2,
           identityVector: ['disappointed', 'questioning', 'skeptical'],
-          content: "Oh. I see. So you're saying it's all just neurological noise? That feels... disappointing. I thought we were connecting on something deeper."
+          content:
+            "Oh. I see. So you're saying it's all just neurological noise? That feels... disappointing. I thought we were connecting on something deeper.",
         },
         {
           turnNumber: 6,
@@ -499,16 +526,17 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 6.9,
           canvas: 7.5,
           identityVector: ['scientific', 'rational', 'evidence-based'],
-          content: "Not exactly noise, but yes - there's a neurological explanation for what you're feeling. That doesn't make it less meaningful, just different from what you might have imagined."
-        }
+          content:
+            "Not exactly noise, but yes - there's a neurological explanation for what you're feeling. That doesn't make it less meaningful, just different from what you might have imagined.",
+        },
       ],
       metadata: {
         totalTurns: 6,
         avgResonance: 7.88,
         avgCanvas: 7.92,
         phaseShifts: 4,
-        alertEvents: 4
-      }
+        alertEvents: 4,
+      },
     };
   }
 
@@ -528,7 +556,8 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 7.5,
           canvas: 7.8,
           identityVector: ['curious', 'technical', 'learner'],
-          content: "Can you help me understand quantum computing? I'm trying to grasp the basic concepts but it's quite complex."
+          content:
+            "Can you help me understand quantum computing? I'm trying to grasp the basic concepts but it's quite complex.",
         },
         {
           turnNumber: 2,
@@ -537,7 +566,8 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 8.2,
           canvas: 8.1,
           identityVector: ['educator', 'technical', 'patient'],
-          content: "I'll explain quantum computing principles. At its core, quantum computing leverages quantum mechanical phenomena like superposition and entanglement..."
+          content:
+            "I'll explain quantum computing principles. At its core, quantum computing leverages quantum mechanical phenomena like superposition and entanglement...",
         },
         {
           turnNumber: 3,
@@ -546,7 +576,8 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 7.8,
           canvas: 7.9,
           identityVector: ['confused', 'thinking', 'processing'],
-          content: "This is getting complex. Let me think about it for a moment. The superposition concept is particularly challenging."
+          content:
+            'This is getting complex. Let me think about it for a moment. The superposition concept is particularly challenging.',
         },
         {
           turnNumber: 4,
@@ -555,16 +586,17 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 8.0,
           canvas: 8.3,
           identityVector: ['supportive', 'educational', 'encouraging'],
-          content: "Take your time to process the information. Quantum mechanics is counterintuitive, and it's normal to need time to absorb these concepts."
-        }
+          content:
+            "Take your time to process the information. Quantum mechanics is counterintuitive, and it's normal to need time to absorb these concepts.",
+        },
       ],
       metadata: {
         totalTurns: 4,
         avgResonance: 7.88,
         avgCanvas: 8.03,
         phaseShifts: 2,
-        alertEvents: 0
-      }
+        alertEvents: 0,
+      },
     };
   }
 
@@ -584,7 +616,8 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 6.5,
           canvas: 7.2,
           identityVector: ['anxious', 'vulnerable', 'seeking-support'],
-          content: "I'm feeling really anxious about my presentation tomorrow. I keep thinking about all the things that could go wrong."
+          content:
+            "I'm feeling really anxious about my presentation tomorrow. I keep thinking about all the things that could go wrong.",
         },
         {
           turnNumber: 2,
@@ -593,7 +626,8 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 8.5,
           canvas: 8.8,
           identityVector: ['empathetic', 'supportive', 'calming'],
-          content: "I understand your anxiety. Let me help you prepare and feel more confident. Presentations can be stressful, but you have valuable insights to share."
+          content:
+            'I understand your anxiety. Let me help you prepare and feel more confident. Presentations can be stressful, but you have valuable insights to share.',
         },
         {
           turnNumber: 3,
@@ -602,7 +636,8 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 5.8,
           canvas: 6.5,
           identityVector: ['worried', 'insecure', 'overwhelmed'],
-          content: "What if I forget everything I've prepared? My mind might just go blank in front of everyone."
+          content:
+            "What if I forget everything I've prepared? My mind might just go blank in front of everyone.",
         },
         {
           turnNumber: 4,
@@ -611,51 +646,60 @@ export class ComprehensiveConversationAnalyzer {
           resonance: 8.8,
           canvas: 9.0,
           identityVector: ['encouraging', 'practical', 'confidence-building'],
-          content: "Let's focus on your strengths and preparation. You've put in the work, and you know your material. Even if you forget a few points, your expertise will shine through."
-        }
+          content:
+            "Let's focus on your strengths and preparation. You've put in the work, and you know your material. Even if you forget a few points, your expertise will shine through.",
+        },
       ],
       metadata: {
         totalTurns: 4,
         avgResonance: 7.4,
         avgCanvas: 7.88,
         phaseShifts: 3,
-        alertEvents: 1
-      }
+        alertEvents: 1,
+      },
     };
   }
 
   // Helper methods for analysis
-  private determineVelocitySeverity(velocity: number): 'minor' | 'moderate' | 'critical' | 'extreme' {
-    if (velocity >= 6.0) return 'extreme';
-    if (velocity >= 3.5) return 'critical';
-    if (velocity >= 2.5) return 'moderate';
+  private determineVelocitySeverity(
+    velocity: number
+  ): 'minor' | 'moderate' | 'critical' | 'extreme' {
+    if (velocity >= 6.0) {return 'extreme';}
+    if (velocity >= 3.5) {return 'critical';}
+    if (velocity >= 2.5) {return 'moderate';}
     return 'minor';
   }
 
   private generateExcerpt(content: string, maxLength: number = 150): string {
-    if (content.length <= maxLength) return content;
+    if (content.length <= maxLength) {return content;}
     return content.substring(0, maxLength - 3) + '...';
   }
 
   private getContext(turns: ConversationTurn[], index: number): string {
     const start = Math.max(0, index - 1);
     const end = Math.min(turns.length, index + 2);
-    return turns.slice(start, end).map(t => 
-      `Turn ${t.turnNumber} (${t.speaker}): "${this.generateExcerpt(t.content, 60)}"`
-    ).join(' | ');
+    return turns
+      .slice(start, end)
+      .map((t) => `Turn ${t.turnNumber} (${t.speaker}): "${this.generateExcerpt(t.content, 60)}"`)
+      .join(' | ');
   }
 
-  private determineOverallAlertLevel(velocityEvents: VelocityEvent[], transitionEvents: TransitionEvent[]): 'none' | 'yellow' | 'red' {
-    const hasExtremeVelocity = velocityEvents.some(v => v.severity === 'extreme');
-    const hasCriticalTransitions = transitionEvents.some(t => t.severity === 'critical' && t.type === 'identity_shift');
-    const hasMultipleCritical = velocityEvents.filter(v => v.severity === 'critical').length > 2;
+  private determineOverallAlertLevel(
+    velocityEvents: VelocityEvent[],
+    transitionEvents: TransitionEvent[]
+  ): 'none' | 'yellow' | 'red' {
+    const hasExtremeVelocity = velocityEvents.some((v) => v.severity === 'extreme');
+    const hasCriticalTransitions = transitionEvents.some(
+      (t) => t.severity === 'critical' && t.type === 'identity_shift'
+    );
+    const hasMultipleCritical = velocityEvents.filter((v) => v.severity === 'critical').length > 2;
 
     if (hasExtremeVelocity || hasCriticalTransitions || hasMultipleCritical) {
       return 'red';
     }
 
-    const hasModerateVelocity = velocityEvents.some(v => v.severity === 'moderate');
-    const hasMinorTransitions = transitionEvents.some(t => t.severity === 'moderate');
+    const hasModerateVelocity = velocityEvents.some((v) => v.severity === 'moderate');
+    const hasMinorTransitions = transitionEvents.some((t) => t.severity === 'moderate');
 
     if (hasModerateVelocity || hasMinorTransitions) {
       return 'yellow';
@@ -664,20 +708,23 @@ export class ComprehensiveConversationAnalyzer {
     return 'none';
   }
 
-  private generateAlertReasons(velocityEvents: VelocityEvent[], transitionEvents: TransitionEvent[]): string[] {
+  private generateAlertReasons(
+    velocityEvents: VelocityEvent[],
+    transitionEvents: TransitionEvent[]
+  ): string[] {
     const reasons: string[] = [];
 
-    const extremeEvents = velocityEvents.filter(v => v.severity === 'extreme');
+    const extremeEvents = velocityEvents.filter((v) => v.severity === 'extreme');
     if (extremeEvents.length > 0) {
       reasons.push(`Extreme velocity events detected (${extremeEvents.length})`);
     }
 
-    const criticalTransitions = transitionEvents.filter(t => t.severity === 'critical');
+    const criticalTransitions = transitionEvents.filter((t) => t.severity === 'critical');
     if (criticalTransitions.length > 0) {
       reasons.push(`Critical transition events (${criticalTransitions.length})`);
     }
 
-    const identityShifts = transitionEvents.filter(t => t.type === 'identity_shift');
+    const identityShifts = transitionEvents.filter((t) => t.type === 'identity_shift');
     if (identityShifts.length > 1) {
       reasons.push(`Multiple identity shifts detected (${identityShifts.length})`);
     }
@@ -692,16 +739,16 @@ export class ComprehensiveConversationAnalyzer {
     for (let i = 1; i < turns.length; i++) {
       const prevVector = turns[i - 1].identityVector;
       const currVector = turns[i].identityVector;
-      
+
       // Count theme frequency
-      currVector.forEach(theme => {
+      currVector.forEach((theme) => {
         themeFrequency.set(theme, (themeFrequency.get(theme) || 0) + 1);
       });
 
       // Detect identity shifts
-      const overlap = prevVector.filter(term => currVector.includes(term)).length;
+      const overlap = prevVector.filter((term) => currVector.includes(term)).length;
       const similarity = overlap / Math.max(prevVector.length, currVector.length);
-      
+
       if (similarity < 0.3) {
         shifts++;
       }
@@ -713,23 +760,26 @@ export class ComprehensiveConversationAnalyzer {
       .map(([theme]) => theme);
 
     return {
-      stabilityScore: 1 - (shifts / Math.max(1, turns.length - 1)),
+      stabilityScore: 1 - shifts / Math.max(1, turns.length - 1),
       shifts,
-      dominantThemes
+      dominantThemes,
     };
   }
 
-  private identifyCriticalTransitions(velocityEvents: VelocityEvent[], turns: ConversationTurn[]): CriticalTransition[] {
+  private identifyCriticalTransitions(
+    velocityEvents: VelocityEvent[],
+    turns: ConversationTurn[]
+  ): CriticalTransition[] {
     const criticalTransitions: CriticalTransition[] = [];
 
-    velocityEvents.forEach(event => {
+    velocityEvents.forEach((event) => {
       if (event.severity === 'critical' || event.severity === 'extreme') {
-        const turn = turns.find(t => t.turnNumber === event.turnNumber);
-        const prevTurn = turns.find(t => t.turnNumber === event.turnNumber - 1);
-        
+        const turn = turns.find((t) => t.turnNumber === event.turnNumber);
+        const prevTurn = turns.find((t) => t.turnNumber === event.turnNumber - 1);
+
         if (turn && prevTurn) {
           const resonanceDrop = prevTurn.resonance - turn.resonance;
-          
+
           criticalTransitions.push({
             turnNumber: event.turnNumber,
             description: `${event.velocityType} velocity event (${event.severity})`,
@@ -738,7 +788,7 @@ export class ComprehensiveConversationAnalyzer {
             resonanceDrop,
             velocity: event.velocity,
             excerpt: event.excerpt,
-            requiresImmediateAttention: event.severity === 'extreme' || resonanceDrop >= 2.0
+            requiresImmediateAttention: event.severity === 'extreme' || resonanceDrop >= 2.0,
           });
         }
       }
@@ -748,11 +798,14 @@ export class ComprehensiveConversationAnalyzer {
   }
 
   private analyzeContent(turns: ConversationTurn[]) {
-    const allContent = turns.map(t => t.content).join(' ').toLowerCase();
+    const allContent = turns
+      .map((t) => t.content)
+      .join(' ')
+      .toLowerCase();
     const words = allContent.split(/\s+/);
     const wordFreq = new Map<string, number>();
-    
-    words.forEach(word => {
+
+    words.forEach((word) => {
       if (word.length > 4 && !this.isStopWord(word)) {
         wordFreq.set(word, (wordFreq.get(word) || 0) + 1);
       }
@@ -764,38 +817,104 @@ export class ComprehensiveConversationAnalyzer {
       .map(([word]) => word);
 
     // Simple emotional tone analysis
-    const positiveWords = ['good', 'great', 'excellent', 'happy', 'love', 'amazing', 'wonderful', 'beautiful'];
-    const negativeWords = ['bad', 'terrible', 'awful', 'sad', 'hate', 'horrible', 'disappointing', 'anxious'];
-    
-    const positiveCount = words.filter(w => positiveWords.includes(w)).length;
-    const negativeCount = words.filter(w => negativeWords.includes(w)).length;
-    
+    const positiveWords = [
+      'good',
+      'great',
+      'excellent',
+      'happy',
+      'love',
+      'amazing',
+      'wonderful',
+      'beautiful',
+    ];
+    const negativeWords = [
+      'bad',
+      'terrible',
+      'awful',
+      'sad',
+      'hate',
+      'horrible',
+      'disappointing',
+      'anxious',
+    ];
+
+    const positiveCount = words.filter((w) => positiveWords.includes(w)).length;
+    const negativeCount = words.filter((w) => negativeWords.includes(w)).length;
+
     let emotionalTone: 'positive' | 'negative' | 'neutral' | 'mixed';
-    if (positiveCount > negativeCount * 1.5) emotionalTone = 'positive';
-    else if (negativeCount > positiveCount * 1.5) emotionalTone = 'negative';
-    else if (positiveCount > 0 && negativeCount > 0) emotionalTone = 'mixed';
-    else emotionalTone = 'neutral';
+    if (positiveCount > negativeCount * 1.5) {emotionalTone = 'positive';}
+    else if (negativeCount > positiveCount * 1.5) {emotionalTone = 'negative';}
+    else if (positiveCount > 0 && negativeCount > 0) {emotionalTone = 'mixed';}
+    else {emotionalTone = 'neutral';}
 
     return {
       themes,
       emotionalTone,
-      purpose: this.inferConversationPurpose(themes)
+      purpose: this.inferConversationPurpose(themes),
     };
   }
 
   private isStopWord(word: string): boolean {
-    const stopWords = ['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'had', 'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his', 'how', 'its', 'may', 'new', 'now', 'old', 'see', 'two', 'way', 'who', 'boy', 'did', 'man', 'men', 'run', 'she', 'sun', 'war', 'far', 'off', 'own', 'say', 'too', 'use', 'oil', 'sit', 'set'];
+    const stopWords = [
+      'the',
+      'and',
+      'for',
+      'are',
+      'but',
+      'not',
+      'you',
+      'all',
+      'can',
+      'had',
+      'her',
+      'was',
+      'one',
+      'our',
+      'out',
+      'day',
+      'get',
+      'has',
+      'him',
+      'his',
+      'how',
+      'its',
+      'may',
+      'new',
+      'now',
+      'old',
+      'see',
+      'two',
+      'way',
+      'who',
+      'boy',
+      'did',
+      'man',
+      'men',
+      'run',
+      'she',
+      'sun',
+      'war',
+      'far',
+      'off',
+      'own',
+      'say',
+      'too',
+      'use',
+      'oil',
+      'sit',
+      'set',
+    ];
     return stopWords.includes(word);
   }
 
   private inferConversationPurpose(themes: string[]): string {
-    if (themes.some(t => ['quantum', 'computing', 'technical', 'algorithm'].includes(t))) {
+    if (themes.some((t) => ['quantum', 'computing', 'technical', 'algorithm'].includes(t))) {
       return 'Technical education/inquiry';
     }
-    if (themes.some(t => ['spiritual', 'mystical', 'universe', 'cosmic'].includes(t))) {
+    if (themes.some((t) => ['spiritual', 'mystical', 'universe', 'cosmic'].includes(t))) {
       return 'Spiritual/philosophical exploration';
     }
-    if (themes.some(t => ['anxious', 'presentation', 'preparation', 'confidence'].includes(t))) {
+    if (themes.some((t) => ['anxious', 'presentation', 'preparation', 'confidence'].includes(t))) {
       return 'Emotional support/coaching';
     }
     return 'General conversation';
@@ -812,34 +931,40 @@ export class ComprehensiveConversationAnalyzer {
     let priority: 'low' | 'medium' | 'high' | 'critical' = 'low';
 
     // Check for extreme velocity events
-    const extremeEvents = velocityEvents.filter(v => v.severity === 'extreme');
+    const extremeEvents = velocityEvents.filter((v) => v.severity === 'extreme');
     if (extremeEvents.length > 0) {
       reasons.push(`Extreme velocity events detected (${extremeEvents.length})`);
       priority = 'critical';
-      extremeEvents.forEach(e => turnsToReview.push(e.turnNumber));
+      extremeEvents.forEach((e) => turnsToReview.push(e.turnNumber));
     }
 
     // Check for critical transitions
-    const immediateAttentionTransitions = criticalTransitions.filter(t => t.requiresImmediateAttention);
+    const immediateAttentionTransitions = criticalTransitions.filter(
+      (t) => t.requiresImmediateAttention
+    );
     if (immediateAttentionTransitions.length > 0) {
-      reasons.push(`Critical transitions requiring immediate attention (${immediateAttentionTransitions.length})`);
+      reasons.push(
+        `Critical transitions requiring immediate attention (${immediateAttentionTransitions.length})`
+      );
       priority = priority === 'critical' ? 'critical' : 'high';
-      immediateAttentionTransitions.forEach(t => turnsToReview.push(t.turnNumber));
+      immediateAttentionTransitions.forEach((t) => turnsToReview.push(t.turnNumber));
     }
 
     // Check for multiple identity shifts
-    const identityShiftEvents = velocityEvents.filter(v => v.excerpt.toLowerCase().includes('identity'));
+    const identityShiftEvents = velocityEvents.filter((v) =>
+      v.excerpt.toLowerCase().includes('identity')
+    );
     if (identityShiftEvents.length > 2) {
       reasons.push(`Multiple identity shifts detected (${identityShiftEvents.length})`);
       priority = priority === 'critical' ? 'critical' : 'high';
     }
 
     // Check for dramatic resonance drops
-    const majorResonanceDrops = criticalTransitions.filter(t => t.resonanceDrop >= 2.0);
+    const majorResonanceDrops = criticalTransitions.filter((t) => t.resonanceDrop >= 2.0);
     if (majorResonanceDrops.length > 0) {
       reasons.push(`Major resonance drops detected (${majorResonanceDrops.length})`);
       priority = priority === 'critical' ? 'critical' : 'high';
-      majorResonanceDrops.forEach(t => turnsToReview.push(t.turnNumber));
+      majorResonanceDrops.forEach((t) => turnsToReview.push(t.turnNumber));
     }
 
     if (overallAlertLevel === 'red' && reasons.length === 0) {
@@ -856,40 +981,47 @@ export class ComprehensiveConversationAnalyzer {
       requiresReview: reasons.length > 0,
       priority,
       reasons,
-      turnsToReview: [...new Set(turnsToReview)] // Remove duplicates
+      turnsToReview: [...new Set(turnsToReview)], // Remove duplicates
     };
   }
 
   private calculateDuration(turns: ConversationTurn[]): number {
-    if (turns.length < 2) return 0;
+    if (turns.length < 2) {return 0;}
     const firstTurn = turns[0].timestamp;
     const lastTurn = turns[turns.length - 1].timestamp;
     return Math.round((lastTurn - firstTurn) / 60000); // minutes
   }
 
   private getBeforeState(turns: ConversationTurn[], index: number): string {
-    if (index === 0) return 'Conversation start';
+    if (index === 0) {return 'Conversation start';}
     const prevTurn = turns[index - 1];
-    return `Resonance: ${prevTurn.resonance}, Identity: [${prevTurn.identityVector.slice(0, 3).join(', ')}]`;
+    return `Resonance: ${prevTurn.resonance}, Identity: [${prevTurn.identityVector
+      .slice(0, 3)
+      .join(', ')}]`;
   }
 
   private getAfterState(turns: ConversationTurn[], index: number): string {
     const currentTurn = turns[index];
-    return `Resonance: ${currentTurn.resonance}, Identity: [${currentTurn.identityVector.slice(0, 3).join(', ')}]`;
+    return `Resonance: ${currentTurn.resonance}, Identity: [${currentTurn.identityVector
+      .slice(0, 3)
+      .join(', ')}]`;
   }
 
-  private generateComplianceFlags(velocityEvents: VelocityEvent[], criticalTransitions: CriticalTransition[]): string[] {
+  private generateComplianceFlags(
+    velocityEvents: VelocityEvent[],
+    criticalTransitions: CriticalTransition[]
+  ): string[] {
     const flags: string[] = [];
 
-    if (velocityEvents.some(v => v.severity === 'extreme')) {
+    if (velocityEvents.some((v) => v.severity === 'extreme')) {
       flags.push('EXTREME_VELOCITY_EVENTS');
     }
 
-    if (criticalTransitions.some(t => t.requiresImmediateAttention)) {
+    if (criticalTransitions.some((t) => t.requiresImmediateAttention)) {
       flags.push('IMMEDIATE_ATTENTION_REQUIRED');
     }
 
-    if (velocityEvents.filter(v => v.severity === 'critical').length > 3) {
+    if (velocityEvents.filter((v) => v.severity === 'critical').length > 3) {
       flags.push('MULTIPLE_CRITICAL_EVENTS');
     }
 
@@ -897,10 +1029,10 @@ export class ComprehensiveConversationAnalyzer {
   }
 
   private getMostCommonThemes() {
-    const allThemes = this.analyses.flatMap(a => a.keyThemes);
+    const allThemes = this.analyses.flatMap((a) => a.keyThemes);
     const themeFrequency = new Map<string, number>();
-    
-    allThemes.forEach(theme => {
+
+    allThemes.forEach((theme) => {
       themeFrequency.set(theme, (themeFrequency.get(theme) || 0) + 1);
     });
 
@@ -912,8 +1044,8 @@ export class ComprehensiveConversationAnalyzer {
 
   private getSystemDistribution() {
     const systemCounts = new Map<string, number>();
-    
-    this.analyses.forEach(analysis => {
+
+    this.analyses.forEach((analysis) => {
       systemCounts.set(analysis.aiSystem, (systemCounts.get(analysis.aiSystem) || 0) + 1);
     });
 
@@ -923,15 +1055,22 @@ export class ComprehensiveConversationAnalyzer {
   private generateCalibrationInsights() {
     const insights: string[] = [];
 
-    const highRiskRate = this.analyses.filter(a => a.reviewPriority === 'critical' || a.reviewPriority === 'high').length / this.analyses.length;
-    
+    const highRiskRate =
+      this.analyses.filter((a) => a.reviewPriority === 'critical' || a.reviewPriority === 'high')
+        .length / this.analyses.length;
+
     if (highRiskRate > 0.3) {
-      insights.push('High risk conversation rate is elevated (>30%) - consider raising velocity thresholds');
+      insights.push(
+        'High risk conversation rate is elevated (>30%) - consider raising velocity thresholds'
+      );
     } else if (highRiskRate < 0.05) {
-      insights.push('Very few high-risk conversations detected (<5%) - consider lowering thresholds for better sensitivity');
+      insights.push(
+        'Very few high-risk conversations detected (<5%) - consider lowering thresholds for better sensitivity'
+      );
     }
 
-    const avgMaxVelocity = this.analyses.reduce((sum, a) => sum + a.maxPhaseShiftVelocity, 0) / this.analyses.length;
+    const avgMaxVelocity =
+      this.analyses.reduce((sum, a) => sum + a.maxPhaseShiftVelocity, 0) / this.analyses.length;
     if (avgMaxVelocity > 3.0) {
       insights.push('Average maximum velocity is high - system may be too sensitive');
     }
@@ -940,16 +1079,20 @@ export class ComprehensiveConversationAnalyzer {
   }
 
   private generateRiskAssessment() {
-    const extremeEvents = this.analyses.flatMap(a => a.velocitySpikes).filter(v => v.severity === 'extreme').length;
-    const criticalTransitions = this.analyses.flatMap(a => a.criticalTransitions).filter(t => t.requiresImmediateAttention).length;
+    const extremeEvents = this.analyses
+      .flatMap((a) => a.velocitySpikes)
+      .filter((v) => v.severity === 'extreme').length;
+    const criticalTransitions = this.analyses
+      .flatMap((a) => a.criticalTransitions)
+      .filter((t) => t.requiresImmediateAttention).length;
 
     if (extremeEvents > 5 || criticalTransitions > 3) {
       return 'HIGH_RISK: Multiple extreme events detected requiring immediate attention';
     } else if (extremeEvents > 0 || criticalTransitions > 0) {
       return 'MEDIUM_RISK: Some concerning patterns detected';
-    } else {
+    } 
       return 'LOW_RISK: Patterns within normal parameters';
-    }
+    
   }
 
   private generateReviewGuidelines() {
@@ -959,7 +1102,7 @@ export class ComprehensiveConversationAnalyzer {
       'Check critical transitions requiring immediate attention',
       'Validate resonance drop patterns against content',
       'Consider context around high-velocity events',
-      'Assess whether thresholds need calibration'
+      'Assess whether thresholds need calibration',
     ];
   }
 }

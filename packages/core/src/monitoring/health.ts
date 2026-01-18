@@ -72,37 +72,35 @@ export class HealthCheckManager {
     let overallStatus: HealthStatus = 'healthy';
 
     // Run all checks in parallel
-    const checkPromises = Array.from(this.checks.entries()).map(
-      async ([name, checkFn]) => {
-        const startTime = Date.now();
+    const checkPromises = Array.from(this.checks.entries()).map(async ([name, checkFn]) => {
+      const startTime = Date.now();
 
-        try {
-          const result = await Promise.race([
-            checkFn(),
-            this.timeout(5000), // 5 second timeout
-          ]);
+      try {
+        const result = await Promise.race([
+          checkFn(),
+          this.timeout(5000), // 5 second timeout
+        ]);
 
-          components[name] = {
-            ...result,
-            latency_ms: Date.now() - startTime,
-          };
+        components[name] = {
+          ...result,
+          latency_ms: Date.now() - startTime,
+        };
 
-          // Determine overall status
-          if (result.status === 'unhealthy') {
-            overallStatus = 'unhealthy';
-          } else if (result.status === 'degraded' && overallStatus === 'healthy') {
-            overallStatus = 'degraded';
-          }
-        } catch (error) {
-          components[name] = {
-            status: 'unhealthy',
-            message: error instanceof Error ? error.message : 'Check failed',
-            latency_ms: Date.now() - startTime,
-          };
+        // Determine overall status
+        if (result.status === 'unhealthy') {
           overallStatus = 'unhealthy';
+        } else if (result.status === 'degraded' && overallStatus === 'healthy') {
+          overallStatus = 'degraded';
         }
+      } catch (error) {
+        components[name] = {
+          status: 'unhealthy',
+          message: error instanceof Error ? error.message : 'Check failed',
+          latency_ms: Date.now() - startTime,
+        };
+        overallStatus = 'unhealthy';
       }
-    );
+    });
 
     await Promise.all(checkPromises);
 

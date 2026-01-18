@@ -1,10 +1,10 @@
 /**
  * DIDVCManager - W3C Decentralized Identifiers and Verifiable Credentials
- * 
+ *
  * Manages agent identities using W3C standards:
  * - DID (Decentralized Identifier)
  * - VC (Verifiable Credential)
- * 
+ *
  * This ensures cryptographic proof of agent capabilities.
  */
 
@@ -13,7 +13,7 @@ import { VerifiableCredential, CredentialProof as Proof } from './agent-types-en
 export class DIDVCManager {
   /**
    * Create DID for agent
-   * 
+   *
    * Uses did:key method (Ed25519)
    */
   async createDID(agentId: string): Promise<string> {
@@ -25,7 +25,7 @@ export class DIDVCManager {
 
   /**
    * Issue verifiable credentials for agent capabilities
-   * 
+   *
    * @param did - Agent's DID
    * @param capabilities - List of capabilities (e.g., ['chat', 'analyze', 'summarize'])
    * @returns Array of VCs
@@ -48,8 +48,7 @@ export class DIDVCManager {
     // In production, use @digitalbazaar/vc.verify()
     // For now, simple validation
     return (
-      credential.proof !== undefined &&
-      credential.proof.proofValue !== undefined &&
+      credential.proof?.proofValue !== undefined &&
       credential.credentialSubject !== undefined
     );
   }

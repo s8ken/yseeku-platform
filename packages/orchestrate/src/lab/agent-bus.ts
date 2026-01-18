@@ -15,7 +15,7 @@ export function createAgentBus(): AgentBus {
     },
     async unsubscribe(topic) {
       console.log(`Mock unsubscribe from ${topic}`);
-    }
+    },
   };
 }
 
@@ -24,7 +24,7 @@ export class AgentOrchestrator {
   async start(): Promise<void> {
     console.log('Mock AgentOrchestrator started');
   }
-  
+
   async stop(): Promise<void> {
     console.log('Mock AgentOrchestrator stopped');
   }

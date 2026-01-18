@@ -40,8 +40,7 @@ const productionFormat = winston.format.combine(
 );
 
 // Determine format based on environment
-const logFormat =
-  process.env.NODE_ENV === 'production' ? productionFormat : developmentFormat;
+const logFormat = process.env.NODE_ENV === 'production' ? productionFormat : developmentFormat;
 
 // Create the logger instance
 export const logger = winston.createLogger({
@@ -125,8 +124,7 @@ export const log = {
     performanceLogger.info(message, meta),
 
   // API logging
-  api: (message: string, meta?: Record<string, any>) =>
-    apiLogger.http(message, meta),
+  api: (message: string, meta?: Record<string, any>) => apiLogger.http(message, meta),
 };
 
 // Default export

@@ -53,9 +53,14 @@ describe('Migrations', () => {
       applied_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
-      expect(mockPool.query).toHaveBeenCalledWith('SELECT version FROM schema_migrations ORDER BY version');
+      expect(mockPool.query).toHaveBeenCalledWith(
+        'SELECT version FROM schema_migrations ORDER BY version'
+      );
       expect(mockPool.query).toHaveBeenCalledWith('CREATE TABLE test;');
-      expect(mockPool.query).toHaveBeenCalledWith('INSERT INTO schema_migrations (version) VALUES ($1)', ['002']);
+      expect(mockPool.query).toHaveBeenCalledWith(
+        'INSERT INTO schema_migrations (version) VALUES ($1)',
+        ['002']
+      );
     });
   });
 

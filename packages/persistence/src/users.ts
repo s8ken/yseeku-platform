@@ -1,5 +1,6 @@
-import { getPool } from './db';
 import bcrypt from 'bcryptjs';
+
+import { getPool } from './db';
 
 export interface UserRecord {
   id: string;
@@ -10,7 +11,7 @@ export interface UserRecord {
 
 export async function upsertUser(user: UserRecord): Promise<boolean> {
   const pool = getPool();
-  if (!pool) return false;
+  if (!pool) {return false;}
   await pool.query(
     `INSERT INTO users(id, email, name, password_hash)
      VALUES($1,$2,$3,$4)
@@ -22,18 +23,18 @@ export async function upsertUser(user: UserRecord): Promise<boolean> {
 
 export async function getUserByUsername(username: string): Promise<UserRecord | null> {
   const pool = getPool();
-  if (!pool) return null;
+  if (!pool) {return null;}
   const result = await pool.query(
     'SELECT id, email, name, password_hash FROM users WHERE id = $1',
     [username]
   );
-  if (result.rows.length === 0) return null;
+  if (result.rows.length === 0) {return null;}
   const row = result.rows[0];
   return {
     id: row.id,
     email: row.email,
     name: row.name,
-    passwordHash: row.password_hash
+    passwordHash: row.password_hash,
   };
 }
 

@@ -1,15 +1,11 @@
 /**
  * Chaos Testing Framework
- * 
+ *
  * Provides automated chaos testing to validate system resilience
  * under failure conditions and stress scenarios
  */
 
-import {
-  SystemError,
-  NetworkError,
-  DatabaseError
-} from '@sonate/core';
+import { SystemError, NetworkError, DatabaseError } from '@sonate/core';
 
 export interface ChaosTest {
   id: string;
@@ -25,7 +21,13 @@ export interface ChaosTest {
 }
 
 export interface ChaosScenario {
-  type: 'network_failure' | 'database_failure' | 'service_failure' | 'resource_exhaustion' | 'latency_spike' | 'data_corruption';
+  type:
+    | 'network_failure'
+    | 'database_failure'
+    | 'service_failure'
+    | 'resource_exhaustion'
+    | 'latency_spike'
+    | 'data_corruption';
   target: string;
   config: Record<string, any>;
 }
@@ -92,9 +94,9 @@ export class ChaosTestingFramework {
         config: {
           failureMode: 'timeout',
           latency: 10000,
-          packetLoss: 0.5
-        }
-      }
+          packetLoss: 0.5,
+        },
+      },
     });
 
     // Database failure test
@@ -111,9 +113,9 @@ export class ChaosTestingFramework {
         target: 'primary_db',
         config: {
           failureMode: 'connection_refused',
-          duration: 15000
-        }
-      }
+          duration: 15000,
+        },
+      },
     });
 
     // Service failure test
@@ -130,9 +132,9 @@ export class ChaosTestingFramework {
         target: 'trust_protocol_service',
         config: {
           failureMode: 'crash',
-          restartDelay: 5000
-        }
-      }
+          restartDelay: 5000,
+        },
+      },
     });
 
     // Resource exhaustion test
@@ -150,9 +152,9 @@ export class ChaosTestingFramework {
         config: {
           resource: 'memory',
           targetUsage: 0.9, // 90% usage
-          duration: 45000
-        }
-      }
+          duration: 45000,
+        },
+      },
     });
 
     // Latency spike test
@@ -170,9 +172,9 @@ export class ChaosTestingFramework {
         config: {
           spikeDuration: 15000,
           spikeMultiplier: 10,
-          affectedEndpoints: ['/*']
-        }
-      }
+          affectedEndpoints: ['/*'],
+        },
+      },
     });
 
     // Data corruption test
@@ -190,9 +192,9 @@ export class ChaosTestingFramework {
         config: {
           corruptionType: 'hash_mismatch',
           detectionRequired: true,
-          autoRecovery: true
-        }
-      }
+          autoRecovery: true,
+        },
+      },
     });
   }
 
@@ -239,10 +241,10 @@ export class ChaosTestingFramework {
         errorRate: 0,
         availability: 1,
         latency: 0,
-        dataLoss: false
+        dataLoss: false,
       },
       observations: [],
-      recommendations: []
+      recommendations: [],
     };
 
     // Mark test as active
@@ -275,7 +277,6 @@ export class ChaosTestingFramework {
       test.lastRun = Date.now();
       test.results = test.results || [];
       test.results.push(result);
-
     } catch (error) {
       result.status = 'error';
       result.observations.push(`Test error: ${(error as Error).message}`);
@@ -287,12 +288,12 @@ export class ChaosTestingFramework {
       // Store result
       const results = this.results.get(testId) || [];
       results.push(result);
-      
+
       // Maintain size limit
       if (results.length > this.MAX_RESULTS) {
         results.shift();
       }
-      
+
       this.results.set(testId, results);
     }
 
@@ -302,15 +303,12 @@ export class ChaosTestingFramework {
   /**
    * Run network failure scenario
    */
-  private async runNetworkFailure(
-    scenario: ChaosScenario,
-    result: ChaosTestResult
-  ): Promise<void> {
+  private async runNetworkFailure(scenario: ChaosScenario, result: ChaosTestResult): Promise<void> {
     const { failureMode, latency, packetLoss } = scenario.config;
-    
+
     result.observations.push(`Simulating network failure: ${failureMode}`);
     result.observations.push(`Target: ${scenario.target}`);
-    
+
     const startTime = Date.now();
     const initialMetrics = await this.collectMetrics();
 
@@ -320,7 +318,7 @@ export class ChaosTestingFramework {
         failureMode,
         latency,
         packetLoss,
-        duration: 10000
+        duration: 10000,
       });
 
       // Wait for recovery
@@ -328,7 +326,7 @@ export class ChaosTestingFramework {
 
       // Collect recovery metrics
       const recoveryMetrics = await this.collectMetrics();
-      
+
       result.metrics.recoveryTime = Date.now() - startTime;
       result.metrics.errorRate = this.calculateErrorRate(initialMetrics, recoveryMetrics);
       result.metrics.availability = this.calculateAvailability(initialMetrics, recoveryMetrics);
@@ -347,7 +345,6 @@ export class ChaosTestingFramework {
       if (result.metrics.errorRate > 0.1) {
         result.recommendations.push('Implement better error handling for network failures');
       }
-
     } catch (error) {
       result.status = 'error';
       result.observations.push(`Network failure simulation error: ${(error as Error).message}`);
@@ -362,10 +359,10 @@ export class ChaosTestingFramework {
     result: ChaosTestResult
   ): Promise<void> {
     const { failureMode, duration } = scenario.config;
-    
+
     result.observations.push(`Simulating database failure: ${failureMode}`);
     result.observations.push(`Target: ${scenario.target}`);
-    
+
     const startTime = Date.now();
     const initialMetrics = await this.collectMetrics();
 
@@ -373,7 +370,7 @@ export class ChaosTestingFramework {
       // Simulate database failure
       await this.simulateDatabaseFailure(scenario.target, {
         failureMode,
-        duration
+        duration,
       });
 
       // Wait for recovery
@@ -381,7 +378,7 @@ export class ChaosTestingFramework {
 
       // Collect recovery metrics
       const recoveryMetrics = await this.collectMetrics();
-      
+
       result.metrics.recoveryTime = Date.now() - startTime;
       result.metrics.errorRate = this.calculateErrorRate(initialMetrics, recoveryMetrics);
       result.metrics.availability = this.calculateAvailability(initialMetrics, recoveryMetrics);
@@ -399,7 +396,6 @@ export class ChaosTestingFramework {
       if (result.metrics.availability < 0.9) {
         result.recommendations.push('Improve database high availability setup');
       }
-
     } catch (error) {
       result.status = 'error';
       result.observations.push(`Database failure simulation error: ${(error as Error).message}`);
@@ -409,15 +405,12 @@ export class ChaosTestingFramework {
   /**
    * Run service failure scenario
    */
-  private async runServiceFailure(
-    scenario: ChaosScenario,
-    result: ChaosTestResult
-  ): Promise<void> {
+  private async runServiceFailure(scenario: ChaosScenario, result: ChaosTestResult): Promise<void> {
     const { failureMode, restartDelay } = scenario.config;
-    
+
     result.observations.push(`Simulating service failure: ${failureMode}`);
     result.observations.push(`Target: ${scenario.target}`);
-    
+
     const startTime = Date.now();
     const initialMetrics = await this.collectMetrics();
 
@@ -425,7 +418,7 @@ export class ChaosTestingFramework {
       // Simulate service failure
       await this.simulateServiceFailure(scenario.target, {
         failureMode,
-        restartDelay
+        restartDelay,
       });
 
       // Wait for recovery
@@ -433,7 +426,7 @@ export class ChaosTestingFramework {
 
       // Collect recovery metrics
       const recoveryMetrics = await this.collectMetrics();
-      
+
       result.metrics.recoveryTime = Date.now() - startTime;
       result.metrics.errorRate = this.calculateErrorRate(initialMetrics, recoveryMetrics);
       result.metrics.availability = this.calculateAvailability(initialMetrics, recoveryMetrics);
@@ -447,7 +440,6 @@ export class ChaosTestingFramework {
         result.observations.push('Service recovery time exceeded threshold');
         result.recommendations.push('Optimize service restart and recovery procedures');
       }
-
     } catch (error) {
       result.status = 'error';
       result.observations.push(`Service failure simulation error: ${(error as Error).message}`);
@@ -462,10 +454,10 @@ export class ChaosTestingFramework {
     result: ChaosTestResult
   ): Promise<void> {
     const { resource, targetUsage, duration } = scenario.config;
-    
+
     result.observations.push(`Simulating ${resource} exhaustion: ${targetUsage * 100}%`);
     result.observations.push(`Target: ${scenario.target}`);
-    
+
     const startTime = Date.now();
     const initialMetrics = await this.collectMetrics();
 
@@ -474,7 +466,7 @@ export class ChaosTestingFramework {
       await this.simulateResourceExhaustion(scenario.target, {
         resource,
         targetUsage,
-        duration
+        duration,
       });
 
       // Wait for recovery
@@ -482,7 +474,7 @@ export class ChaosTestingFramework {
 
       // Collect recovery metrics
       const recoveryMetrics = await this.collectMetrics();
-      
+
       result.metrics.recoveryTime = Date.now() - startTime;
       result.metrics.errorRate = this.calculateErrorRate(initialMetrics, recoveryMetrics);
       result.metrics.availability = this.calculateAvailability(initialMetrics, recoveryMetrics);
@@ -490,13 +482,14 @@ export class ChaosTestingFramework {
       // Analyze results
       if (result.metrics.availability > 0.7) {
         result.status = 'passed';
-        result.observations.push('System maintained acceptable availability under resource pressure');
+        result.observations.push(
+          'System maintained acceptable availability under resource pressure'
+        );
       } else {
         result.status = 'failed';
         result.observations.push('System availability degraded significantly');
         result.recommendations.push('Implement better resource management and autoscaling');
       }
-
     } catch (error) {
       result.status = 'error';
       result.observations.push(`Resource exhaustion simulation error: ${(error as Error).message}`);
@@ -506,15 +499,12 @@ export class ChaosTestingFramework {
   /**
    * Run latency spike scenario
    */
-  private async runLatencySpike(
-    scenario: ChaosScenario,
-    result: ChaosTestResult
-  ): Promise<void> {
+  private async runLatencySpike(scenario: ChaosScenario, result: ChaosTestResult): Promise<void> {
     const { spikeDuration, spikeMultiplier, affectedEndpoints } = scenario.config;
-    
+
     result.observations.push(`Simulating latency spike: ${spikeMultiplier}x`);
     result.observations.push(`Target: ${scenario.target}`);
-    
+
     const startTime = Date.now();
     const initialMetrics = await this.collectMetrics();
 
@@ -523,7 +513,7 @@ export class ChaosTestingFramework {
       await this.simulateLatencySpike(scenario.target, {
         spikeDuration,
         spikeMultiplier,
-        affectedEndpoints
+        affectedEndpoints,
       });
 
       // Wait for recovery
@@ -531,7 +521,7 @@ export class ChaosTestingFramework {
 
       // Collect recovery metrics
       const recoveryMetrics = await this.collectMetrics();
-      
+
       result.metrics.recoveryTime = Date.now() - startTime;
       result.metrics.errorRate = this.calculateErrorRate(initialMetrics, recoveryMetrics);
       result.metrics.latency = recoveryMetrics.avgLatency;
@@ -545,7 +535,6 @@ export class ChaosTestingFramework {
         result.observations.push('Latency remained elevated after spike');
         result.recommendations.push('Implement better latency management and caching');
       }
-
     } catch (error) {
       result.status = 'error';
       result.observations.push(`Latency spike simulation error: ${(error as Error).message}`);
@@ -555,15 +544,12 @@ export class ChaosTestingFramework {
   /**
    * Run data corruption scenario
    */
-  private async runDataCorruption(
-    scenario: ChaosScenario,
-    result: ChaosTestResult
-  ): Promise<void> {
+  private async runDataCorruption(scenario: ChaosScenario, result: ChaosTestResult): Promise<void> {
     const { corruptionType, detectionRequired, autoRecovery } = scenario.config;
-    
+
     result.observations.push(`Simulating data corruption: ${corruptionType}`);
     result.observations.push(`Target: ${scenario.target}`);
-    
+
     const startTime = Date.now();
 
     try {
@@ -571,7 +557,7 @@ export class ChaosTestingFramework {
       const corruptionResult = await this.simulateDataCorruption(scenario.target, {
         corruptionType,
         detectionRequired,
-        autoRecovery
+        autoRecovery,
       });
 
       result.metrics.dataLoss = corruptionResult.dataLoss;
@@ -580,7 +566,7 @@ export class ChaosTestingFramework {
       // Analyze results
       if (corruptionResult.detected) {
         result.observations.push('Data corruption was detected');
-        
+
         if (autoRecovery && corruptionResult.recovered) {
           result.status = 'passed';
           result.observations.push('Data corruption was automatically recovered');
@@ -597,7 +583,6 @@ export class ChaosTestingFramework {
         result.observations.push('Data corruption was not detected');
         result.recommendations.push('Improve data corruption detection');
       }
-
     } catch (error) {
       result.status = 'error';
       result.observations.push(`Data corruption simulation error: ${(error as Error).message}`);
@@ -607,10 +592,7 @@ export class ChaosTestingFramework {
   /**
    * Simulate network failure
    */
-  private async simulateNetworkFailure(
-    target: string,
-    config: Record<string, any>
-  ): Promise<void> {
+  private async simulateNetworkFailure(target: string, config: Record<string, any>): Promise<void> {
     // In production, this would use network simulation tools
     // For now, we'll simulate by logging
     console.log(`[CHAOS] Simulating network failure for ${target}:`, config);
@@ -631,10 +613,7 @@ export class ChaosTestingFramework {
   /**
    * Simulate service failure
    */
-  private async simulateServiceFailure(
-    target: string,
-    config: Record<string, any>
-  ): Promise<void> {
+  private async simulateServiceFailure(target: string, config: Record<string, any>): Promise<void> {
     console.log(`[CHAOS] Simulating service failure for ${target}:`, config);
     await this.sleep(config.restartDelay || 5000);
   }
@@ -653,10 +632,7 @@ export class ChaosTestingFramework {
   /**
    * Simulate latency spike
    */
-  private async simulateLatencySpike(
-    target: string,
-    config: Record<string, any>
-  ): Promise<void> {
+  private async simulateLatencySpike(target: string, config: Record<string, any>): Promise<void> {
     console.log(`[CHAOS] Simulating latency spike for ${target}:`, config);
     await this.sleep(config.spikeDuration || 15000);
   }
@@ -669,16 +645,16 @@ export class ChaosTestingFramework {
     config: Record<string, any>
   ): Promise<{ detected: boolean; recovered: boolean; dataLoss: boolean }> {
     console.log(`[CHAOS] Simulating data corruption for ${target}:`, config);
-    
+
     // Simulate detection
     const detected = config.detectionRequired;
-    
+
     // Simulate recovery
     const recovered = config.autoRecovery && detected;
-    
+
     // Simulate data loss
     const dataLoss = detected && !recovered;
-    
+
     return { detected, recovered, dataLoss };
   }
 
@@ -697,28 +673,22 @@ export class ChaosTestingFramework {
       totalRequests: 1000,
       errorCount: 10,
       avgLatency: 100,
-      availability: 0.99
+      availability: 0.99,
     };
   }
 
   /**
    * Calculate error rate
    */
-  private calculateErrorRate(
-    initial: any,
-    recovery: any
-  ): number {
-    if (recovery.totalRequests === 0) return 0;
+  private calculateErrorRate(initial: any, recovery: any): number {
+    if (recovery.totalRequests === 0) {return 0;}
     return recovery.errorCount / recovery.totalRequests;
   }
 
   /**
    * Calculate availability
    */
-  private calculateAvailability(
-    initial: any,
-    recovery: any
-  ): number {
+  private calculateAvailability(initial: any, recovery: any): number {
     return recovery.availability;
   }
 
@@ -726,7 +696,7 @@ export class ChaosTestingFramework {
    * Sleep utility
    */
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -739,7 +709,7 @@ export class ChaosTestingFramework {
     }
 
     const results = this.results.get(testId) || [];
-    
+
     if (results.length === 0) {
       return {
         testId,
@@ -751,13 +721,14 @@ export class ChaosTestingFramework {
         avgRecoveryTime: 0,
         avgErrorRate: 0,
         overallHealth: 'HEALTHY',
-        recommendations: ['Run chaos tests to assess system resilience']
+        recommendations: ['Run chaos tests to assess system resilience'],
       };
     }
 
-    const passed = results.filter(r => r.status === 'passed').length;
+    const passed = results.filter((r) => r.status === 'passed').length;
     const successRate = passed / results.length;
-    const avgRecoveryTime = results.reduce((sum, r) => sum + r.metrics.recoveryTime, 0) / results.length;
+    const avgRecoveryTime =
+      results.reduce((sum, r) => sum + r.metrics.recoveryTime, 0) / results.length;
     const avgErrorRate = results.reduce((sum, r) => sum + r.metrics.errorRate, 0) / results.length;
 
     let overallHealth: 'HEALTHY' | 'DEGRADED' | 'UNHEALTHY';
@@ -769,7 +740,7 @@ export class ChaosTestingFramework {
       overallHealth = 'UNHEALTHY';
     }
 
-    const recommendations = results.flatMap(r => r.recommendations);
+    const recommendations = results.flatMap((r) => r.recommendations);
     const uniqueRecommendations = [...new Set(recommendations)];
 
     return {
@@ -778,14 +749,14 @@ export class ChaosTestingFramework {
       timestamp: Date.now(),
       period: {
         start: results[0].timestamp,
-        end: results[results.length - 1].timestamp
+        end: results[results.length - 1].timestamp,
       },
       totalRuns: results.length,
       successRate,
       avgRecoveryTime,
       avgErrorRate,
       overallHealth,
-      recommendations: uniqueRecommendations
+      recommendations: uniqueRecommendations,
     };
   }
 

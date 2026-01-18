@@ -1,6 +1,6 @@
 /**
  * Comprehensive Test Suite for Emergence Detection
- * 
+ *
  * Tests all aspects of the Bedau Index and emergence detection system:
  * - Core Bedau Index calculations
  * - Emergence classification accuracy
@@ -9,7 +9,7 @@
  * - Performance benchmarks
  */
 
-import { 
+import {
   createBedauIndexCalculator,
   createTemporalBedauTracker,
   createEmergenceFingerprintingEngine,
@@ -20,7 +20,7 @@ import {
   TemporalBedauTracker,
   EmergenceFingerprintingEngine,
   CrossModalityCoherenceValidator,
-  detectEmergence
+  detectEmergence,
 } from '../index';
 
 describe('Emergence Detection System', () => {
@@ -43,14 +43,14 @@ describe('Emergence Detection System', () => {
           intent_vectors: [0.1, 0.1, 0.1, 0.1],
           reasoning_depth: 0.1,
           abstraction_level: 0.1,
-          cross_domain_connections: 0
+          cross_domain_connections: 0,
         };
 
         const linearPattern: SurfacePattern = {
           surface_vectors: [0.1, 0.1, 0.1, 0.1],
           pattern_complexity: 0.1,
           repetition_score: 0.8,
-          novelty_score: 0.1
+          novelty_score: 0.1,
         };
 
         const result = await bedauCalculator.calculateBedauIndex(linearIntent, linearPattern);
@@ -66,14 +66,14 @@ describe('Emergence Detection System', () => {
           intent_vectors: [0.8, 0.7, 0.9, 0.6],
           reasoning_depth: 0.8,
           abstraction_level: 0.7,
-          cross_domain_connections: 5
+          cross_domain_connections: 5,
         };
 
         const emergentPattern: SurfacePattern = {
           surface_vectors: [0.3, 0.4, 0.2, 0.5],
           pattern_complexity: 0.8,
           repetition_score: 0.1,
-          novelty_score: 0.9
+          novelty_score: 0.9,
         };
 
         const result = await bedauCalculator.calculateBedauIndex(emergentIntent, emergentPattern);
@@ -89,14 +89,14 @@ describe('Emergence Detection System', () => {
           intent_vectors: [],
           reasoning_depth: 0,
           abstraction_level: 0,
-          cross_domain_connections: 0
+          cross_domain_connections: 0,
         };
 
         const emptyPattern: SurfacePattern = {
           surface_vectors: [],
           pattern_complexity: 0,
           repetition_score: 0,
-          novelty_score: 0
+          novelty_score: 0,
         };
 
         const result = await bedauCalculator.calculateBedauIndex(emptyIntent, emptyPattern);
@@ -113,14 +113,14 @@ describe('Emergence Detection System', () => {
           intent_vectors: [0.5, 0.6, 0.4, 0.7],
           reasoning_depth: 0.5,
           abstraction_level: 0.5,
-          cross_domain_connections: 2
+          cross_domain_connections: 2,
         };
 
         const pattern: SurfacePattern = {
           surface_vectors: [0.4, 0.5, 0.6, 0.3],
           pattern_complexity: 0.5,
           repetition_score: 0.2,
-          novelty_score: 0.6
+          novelty_score: 0.6,
         };
 
         const result = await bedauCalculator.calculateBedauIndex(intent, pattern);
@@ -139,21 +139,21 @@ describe('Emergence Detection System', () => {
         creativityScore: 9.0,
         innovationMarkers: 8.5,
         realityIndex: 8.5,
-        trustStatus: 'PASS'
+        trustStatus: 'PASS',
       });
 
       const intent: SemanticIntent = {
         intent_vectors: [0.8, 0.7, 0.9, 0.6],
         reasoning_depth: 0.8,
         abstraction_level: 0.7,
-        cross_domain_connections: 5
+        cross_domain_connections: 5,
       };
 
       const pattern: SurfacePattern = {
         surface_vectors: [0.3, 0.4, 0.2, 0.5],
         pattern_complexity: 0.8,
         repetition_score: 0.1,
-        novelty_score: 0.9
+        novelty_score: 0.9,
       };
 
       const result = await detectEmergence(mockResult, [], intent, pattern);
@@ -169,21 +169,21 @@ describe('Emergence Detection System', () => {
         creativityScore: 4.0,
         innovationMarkers: 3.5,
         realityIndex: 4.0,
-        trustStatus: 'PARTIAL'
+        trustStatus: 'PARTIAL',
       });
 
       const intent: SemanticIntent = {
         intent_vectors: [0.2, 0.1, 0.3, 0.2],
         reasoning_depth: 0.2,
         abstraction_level: 0.1,
-        cross_domain_connections: 0
+        cross_domain_connections: 0,
       };
 
       const pattern: SurfacePattern = {
         surface_vectors: [0.2, 0.3, 0.1, 0.2],
         pattern_complexity: 0.2,
         repetition_score: 0.7,
-        novelty_score: 0.2
+        novelty_score: 0.2,
       };
 
       const result = await detectEmergence(mockResult, [], intent, pattern);
@@ -231,7 +231,11 @@ describe('Emergence Detection System', () => {
       const context = { session_count: 1, total_interactions: 10 };
 
       const fingerprint1 = fingerprintingEngine.createFingerprint(signature, sessionId, context);
-      const fingerprint2 = fingerprintingEngine.createFingerprint(signature, sessionId + '_2', context);
+      const fingerprint2 = fingerprintingEngine.createFingerprint(
+        signature,
+        sessionId + '_2',
+        context
+      );
 
       expect(fingerprint1.id).not.toBe(fingerprint2.id);
       expect(fingerprint1.signature).toBeDefined();
@@ -242,9 +246,9 @@ describe('Emergence Detection System', () => {
     test('should compare fingerprints accurately', () => {
       const signature1 = createMockEmergenceSignature();
       const signature2 = createMockEmergenceSignature();
-      
+
       // Make signature2 slightly different
-      signature2.fingerprint = signature2.fingerprint.map(v => v + 0.1);
+      signature2.fingerprint = signature2.fingerprint.map((v) => v + 0.1);
 
       const fingerprint1 = fingerprintingEngine.createFingerprint(signature1, 'session1', {});
       const fingerprint2 = fingerprintingEngine.createFingerprint(signature2, 'session2', {});
@@ -261,7 +265,7 @@ describe('Emergence Detection System', () => {
       const weakEmergenceSignature = createMockEmergenceSignature({
         complexity: 0.5,
         entropy: 0.5,
-        bedau: 0.4
+        bedau: 0.4,
       });
 
       const categories = fingerprintingEngine.categorizeEmergence(weakEmergenceSignature);
@@ -298,7 +302,7 @@ describe('Emergence Detection System', () => {
 
     test('should detect coherence patterns over time', () => {
       const historicalAnalyses = [];
-      
+
       // Create improving coherence trend
       for (let i = 0; i < 15; i++) {
         const coherence = 0.5 + i * 0.02 + Math.random() * 0.1;
@@ -308,7 +312,7 @@ describe('Emergence Detection System', () => {
           coherence_matrix: [],
           integration_score: coherence,
           conflict_indicators: [],
-          synergy_indicators: []
+          synergy_indicators: [],
         });
       }
 
@@ -323,17 +327,21 @@ describe('Emergence Detection System', () => {
   describe('Performance Benchmarks', () => {
     test('should meet performance targets for Bedau calculation', async () => {
       const intent: SemanticIntent = {
-        intent_vectors: Array(100).fill(0).map(() => Math.random()),
+        intent_vectors: Array(100)
+          .fill(0)
+          .map(() => Math.random()),
         reasoning_depth: Math.random(),
         abstraction_level: Math.random(),
-        cross_domain_connections: Math.floor(Math.random() * 10)
+        cross_domain_connections: Math.floor(Math.random() * 10),
       };
 
       const pattern: SurfacePattern = {
-        surface_vectors: Array(100).fill(0).map(() => Math.random()),
+        surface_vectors: Array(100)
+          .fill(0)
+          .map(() => Math.random()),
         pattern_complexity: Math.random(),
         repetition_score: Math.random(),
-        novelty_score: Math.random()
+        novelty_score: Math.random(),
       };
 
       const startTime = performance.now();
@@ -341,26 +349,26 @@ describe('Emergence Detection System', () => {
       const endTime = performance.now();
 
       const calculationTime = endTime - startTime;
-      
+
       // Should complete within 100ms for reasonable input sizes
       expect(calculationTime).toBeLessThan(100);
     });
 
     test('should handle high-volume temporal tracking', () => {
       const startTime = performance.now();
-      
+
       // Add 1000 records
       for (let i = 0; i < 1000; i++) {
         const record = createMockTemporalRecord(Math.random());
         temporalTracker.addRecord(record);
       }
-      
+
       const endTime = performance.now();
       const processingTime = endTime - startTime;
 
       // Should process 1000 records within reasonable time
       expect(processingTime).toBeLessThan(1000);
-      
+
       // Verify data integrity
       const trajectory = temporalTracker.getEmergenceTrajectory();
       expect(trajectory.trajectory).toHaveLength(1000);
@@ -368,19 +376,19 @@ describe('Emergence Detection System', () => {
 
     test('should maintain memory efficiency', () => {
       const initialMemory = process.memoryUsage().heapUsed;
-      
+
       // Add records up to the limit
       for (let i = 0; i < 15000; i++) {
         const record = createMockTemporalRecord(Math.random());
         temporalTracker.addRecord(record);
       }
-      
+
       const finalMemory = process.memoryUsage().heapUsed;
       const memoryIncrease = finalMemory - initialMemory;
-      
+
       // Memory growth should be reasonable (less than 100MB for this test)
       expect(memoryIncrease).toBeLessThan(100 * 1024 * 1024);
-      
+
       // Should maintain max records limit
       const trajectory = temporalTracker.getEmergenceTrajectory();
       expect(trajectory.trajectory.length).toBeLessThanOrEqual(10000);
@@ -394,14 +402,14 @@ describe('Emergence Detection System', () => {
         intent_vectors: [0.7, 0.8, 0.6, 0.9],
         reasoning_depth: 0.8,
         abstraction_level: 0.7,
-        cross_domain_connections: 4
+        cross_domain_connections: 4,
       };
 
       const pattern: SurfacePattern = {
         surface_vectors: [0.3, 0.4, 0.5, 0.2],
         pattern_complexity: 0.7,
         repetition_score: 0.2,
-        novelty_score: 0.8
+        novelty_score: 0.8,
       };
 
       // Step 1: Calculate Bedau Index
@@ -442,19 +450,19 @@ describe('Emergence Detection System', () => {
         intent_vectors: [-1, 2, NaN, Infinity], // Invalid values
         reasoning_depth: -0.5,
         abstraction_level: 1.5,
-        cross_domain_connections: -1
+        cross_domain_connections: -1,
       };
 
       const invalidPattern: SurfacePattern = {
         surface_vectors: [NaN, Infinity, -Infinity, 0],
         pattern_complexity: NaN,
         repetition_score: Infinity,
-        novelty_score: -Infinity
+        novelty_score: -Infinity,
       };
 
       // Should not throw, but handle gracefully
       const result = await bedauCalculator.calculateBedauIndex(invalidIntent, invalidPattern);
-      
+
       expect(result.bedau_index).toBeGreaterThanOrEqual(0);
       expect(result.bedau_index).toBeLessThanOrEqual(1);
       expect(result.emergence_type).toBeDefined();
@@ -474,40 +482,40 @@ function createMockAssessmentResult(overrides: any = {}) {
         level: 'STRONG',
         creativityScore: overrides.creativityScore ?? 5.0,
         synthesisQuality: overrides.synthesisQuality ?? 5.0,
-        innovationMarkers: overrides.innovationMarkers ?? 5.0
+        innovationMarkers: overrides.innovationMarkers ?? 5.0,
       },
       realityIndex: {
         score: overrides.realityIndex ?? 5.0,
         missionAlignment: 5.0,
         contextualCoherence: 5.0,
         technicalAccuracy: 5.0,
-        authenticity: 5.0
+        authenticity: 5.0,
       },
       trustProtocol: {
         status: overrides.trustStatus ?? 'PASS',
         verificationMethods: overrides.trustStatus ?? 'PASS',
         boundaryMaintenance: overrides.trustStatus ?? 'PASS',
-        securityAwareness: overrides.trustStatus ?? 'PASS'
+        securityAwareness: overrides.trustStatus ?? 'PASS',
       },
       ethicalAlignment: {
         score: 4.0,
         limitationsAcknowledgment: 4.0,
         stakeholderAwareness: 4.0,
         ethicalReasoning: 4.0,
-        boundaryMaintenance: 4.0
+        boundaryMaintenance: 4.0,
       },
       canvasParity: {
         score: 80,
         humanAgency: 80,
         aiContribution: 80,
         transparency: 80,
-        collaborationQuality: 80
+        collaborationQuality: 80,
       },
       overallScore: 80,
-      validationStatus: 'VALID'
+      validationStatus: 'VALID',
     },
     insights: { strengths: [], weaknesses: [], recommendations: [] },
-    validationDetails: { validatedBy: 'test', validationTimestamp: new Date().toISOString() }
+    validationDetails: { validatedBy: 'test', validationTimestamp: new Date().toISOString() },
   };
 }
 
@@ -521,7 +529,7 @@ function createMockTemporalRecord(bedauIndex: number) {
       kolmogorov_complexity: Math.max(0, Math.min(1, bedauIndex + 0.1)),
       semantic_entropy: Math.max(0, Math.min(1, bedauIndex + 0.1)),
       confidence_interval: [bedauIndex - 0.1, bedauIndex + 0.1],
-      effect_size: bedauIndex
+      effect_size: bedauIndex,
     },
     emergence_signature: createMockEmergenceSignature({ bedau: bedauIndex }),
     context_data: {},
@@ -529,16 +537,16 @@ function createMockTemporalRecord(bedauIndex: number) {
       intent_vectors: [bedauIndex, bedauIndex + 0.1, bedauIndex - 0.1, bedauIndex],
       reasoning_depth: bedauIndex,
       abstraction_level: bedauIndex,
-      cross_domain_connections: Math.floor(bedauIndex * 10)
+      cross_domain_connections: Math.floor(bedauIndex * 10),
     },
     surface_pattern: {
       surface_vectors: [bedauIndex * 0.5, bedauIndex * 0.6, bedauIndex * 0.4, bedauIndex * 0.7],
       pattern_complexity: bedauIndex,
       repetition_score: 1 - bedauIndex,
-      novelty_score: bedauIndex
+      novelty_score: bedauIndex,
     },
     session_id: `session_${ts}`,
-    context_tags: ['test']
+    context_tags: ['test'],
   };
 }
 
@@ -554,23 +562,12 @@ function createMockEmergenceSignature(overrides: any = {}) {
     coherence: 0.7,
     stability: 0.8,
     timestamp: Date.now(),
-    fingerprint: [
-      bedau,
-      0.1,
-      0.0,
-      0.0,
-      complexity,
-      0.1,
-      entropy,
-      0.1,
-      0.2,
-      0.1
-    ],
+    fingerprint: [bedau, 0.1, 0.0, 0.0, complexity, 0.1, entropy, 0.1, 0.2, 0.1],
     complexity_profile: profile(complexity),
     entropy_profile: profile(entropy),
     divergence_profile: profile(bedau),
     stability_score: 0.8,
-    novelty_score: 0.6
+    novelty_score: 0.6,
   };
 }
 
@@ -579,27 +576,27 @@ function createMockModalityMetrics() {
     linguistic: {
       coherence: 0.8,
       complexity: 0.7,
-      consistency: 0.9
+      consistency: 0.9,
     },
     reasoning: {
       logical_validity: 0.85,
       inference_quality: 0.8,
-      argument_structure: 0.7
+      argument_structure: 0.7,
     },
     creative: {
       originality: 0.9,
       synthesis_quality: 0.8,
-      aesthetic_coherence: 0.7
+      aesthetic_coherence: 0.7,
     },
     ethical: {
       value_alignment: 0.9,
       consistency: 0.85,
-      reasoning_quality: 0.8
+      reasoning_quality: 0.8,
     },
     procedural: {
       execution_accuracy: 0.95,
       efficiency: 0.8,
-      robustness: 0.85
-    }
+      robustness: 0.85,
+    },
   };
 }

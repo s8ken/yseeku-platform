@@ -1,12 +1,19 @@
 import { createHash } from 'crypto';
-import type { AgentAttestation, WorkUnit, DecisionCheckpoint, ProjectManifest, PortableExport } from './types';
+
+import type {
+  AgentAttestation,
+  WorkUnit,
+  DecisionCheckpoint,
+  ProjectManifest,
+  PortableExport,
+} from './types';
 
 const sha256 = (data: Buffer | string) => createHash('sha256').update(data).digest();
 
 class SimpleMerkleTree {
   private levels: Buffer[][] = [];
   constructor(private leaves: Buffer[], private hashFn: (data: Buffer | string) => Buffer) {
-    if (leaves.length === 0) throw new Error('MerkleTree requires at least one leaf');
+    if (leaves.length === 0) {throw new Error('MerkleTree requires at least one leaf');}
     this.build();
   }
   private build() {
@@ -29,7 +36,7 @@ class SimpleMerkleTree {
   getProof(leaf: Buffer): { position: 'left' | 'right'; data: Buffer }[] {
     const proof: { position: 'left' | 'right'; data: Buffer }[] = [];
     let index = this.levels[0].findIndex((l) => l.equals(leaf));
-    if (index === -1) throw new Error('Leaf not found');
+    if (index === -1) {throw new Error('Leaf not found');}
     for (let level = 0; level < this.levels.length - 1; level++) {
       const nodes = this.levels[level];
       const isRight = index % 2 === 1;
@@ -58,10 +65,11 @@ export class SYMBICollaborationLedger {
 
   logWorkUnit(agentId: string, input: string, output: string, metadata?: any): WorkUnit {
     const agent = this.agents.get(agentId);
-    if (!agent) throw new Error(`Agent ${agentId} not registered`);
+    if (!agent) {throw new Error(`Agent ${agentId} not registered`);}
 
     const timestamp = Date.now();
-    const previousWorkId = this.workUnits.length > 0 ? this.workUnits[this.workUnits.length - 1].workId : undefined;
+    const previousWorkId =
+      this.workUnits.length > 0 ? this.workUnits[this.workUnits.length - 1].workId : undefined;
     const inputHash = this.hash(input);
     const outputHash = this.hash(output);
 
@@ -73,7 +81,7 @@ export class SYMBICollaborationLedger {
       inputHash,
       outputHash,
       contentType: 'text',
-      content: { prompt: input, response: output, metadata }
+      content: { prompt: input, response: output, metadata },
     };
 
     this.workUnits.push(workUnit);
@@ -105,7 +113,7 @@ export class SYMBICollaborationLedger {
       reasoning,
       basedOn,
       humanSignature,
-      modifications
+      modifications,
     };
 
     this.decisions.push(decision);
@@ -128,14 +136,16 @@ export class SYMBICollaborationLedger {
       workUnits: this.workUnits.map((wu) => ({ ...wu, content: undefined })),
       decisions: this.decisions,
       merkleRoot: tree.getRoot().toString('hex'),
-      merkleProofs: this.generateProofs(tree, leaves)
+      merkleProofs: this.generateProofs(tree, leaves),
     };
   }
 
   verifyWorkUnit(workId: string): boolean {
     const workUnit = this.workUnits.find((w) => w.workId === workId);
-    if (!workUnit) return false;
-    const recomputedHash = this.hash(`${this.generateAgentId(workUnit.agent)}:${workUnit.timestamp}:${workUnit.outputHash}`);
+    if (!workUnit) {return false;}
+    const recomputedHash = this.hash(
+      `${this.generateAgentId(workUnit.agent)}:${workUnit.timestamp}:${workUnit.outputHash}`
+    );
     return recomputedHash === workId;
   }
 
@@ -164,7 +174,7 @@ export class SYMBICollaborationLedger {
       const mappingStr = process.env.SONATE_HUMAN_PUBKEYS_JSON || '{}';
       const mapping = JSON.parse(mappingStr);
       const pubKeyB64 = mapping[humanId];
-      if (!pubKeyB64) return false;
+      if (!pubKeyB64) {return false;}
       const sig = Buffer.from(signatureB64, 'base64');
       const msgHash = crypto.createHash('sha256').update(payload).digest();
       let pubKey: any;
@@ -176,16 +186,20 @@ export class SYMBICollaborationLedger {
       // Prefer Ed25519 verification; fall back to RSA/ECDSA if key is PEM
       try {
         // If DER SPKI base64 provided
-        const keyObj = crypto.createPublicKey({ key: pubKey, format: Buffer.isBuffer(pubKey) ? 'der' : 'pem', type: Buffer.isBuffer(pubKey) ? 'spki' : 'spki' });
+        const keyObj = crypto.createPublicKey({
+          key: pubKey,
+          format: Buffer.isBuffer(pubKey) ? 'der' : 'pem',
+          type: Buffer.isBuffer(pubKey) ? 'spki' : 'spki',
+        });
         // Ed25519 uses null algorithm in Node's crypto
         const ok = crypto.verify(null, msgHash, keyObj, sig);
-        if (ok) return true;
+        if (ok) {return true;}
       } catch {}
       try {
         // Attempt ECDSA/RSA using SHA-256 if PEM provided
         const keyObj = crypto.createPublicKey(pubKey);
         const ok = crypto.verify('sha256', msgHash, keyObj, sig);
-        if (ok) return true;
+          const ok = crypto.verify('sha256', Buffer.from(payload), keyObj, sig);
       } catch {}
       return false;
     } catch {
@@ -193,7 +207,10 @@ export class SYMBICollaborationLedger {
     }
   }
 
-  private generateProofs(tree: SimpleMerkleTree, leaves: Buffer[]): { [entryId: string]: string[] } {
+  private generateProofs(
+    tree: SimpleMerkleTree,
+    leaves: Buffer[]
+  ): { [entryId: string]: string[] } {
     const proofs: { [entryId: string]: string[] } = {};
     leaves.forEach((leaf) => {
       const nodes = tree.getProof(leaf).map((p) => p.data.toString('hex'));
@@ -207,10 +224,12 @@ export class SYMBICollaborationLedger {
   }
 
   private generateVerificationGuide(): string {
-    return `# SYMBI Collaboration Verification Guide\n\n`
-      + `1. Verify Merkle proofs using merkletreejs.\n`
-      + `2. Validate agent attestations and human signatures.\n`
-      + `3. Recompute hashes for work units to confirm integrity.`;
+    return (
+      `# SYMBI Collaboration Verification Guide\n\n` +
+      `1. Verify Merkle proofs using merkletreejs.\n` +
+      `2. Validate agent attestations and human signatures.\n` +
+      `3. Recompute hashes for work units to confirm integrity.`
+    );
   }
 
   private generateAgentId(attestation: AgentAttestation): string {

@@ -1,6 +1,7 @@
+import { TrustReceipt } from '@sonate/core';
+
 import { ensureSchema, getPool } from '../db';
 import { saveTrustReceipt, getReceiptsBySession } from '../receipts';
-import { TrustReceipt } from '@sonate/core';
 
 async function main() {
   const pool = getPool();
@@ -22,7 +23,7 @@ async function main() {
   console.log('OK: Persisted receipts', rows.length);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Persistence test error', err);
   process.exit(1);
 });

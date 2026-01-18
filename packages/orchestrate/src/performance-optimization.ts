@@ -4,6 +4,7 @@
  */
 
 import { EventEmitter } from 'events';
+
 import { ProductionMonitoring } from './production-monitoring';
 
 export interface PerformanceMetrics {
@@ -109,7 +110,14 @@ export interface OptimizationRule {
 }
 
 export interface OptimizationAction {
-  type: 'scale' | 'restart' | 'cache-clear' | 'config-change' | 'alert' | 'script' | 'traffic-shift';
+  type:
+    | 'scale'
+    | 'restart'
+    | 'cache-clear'
+    | 'config-change'
+    | 'alert'
+    | 'script'
+    | 'traffic-shift';
   target: string;
   parameters: Record<string, any>;
   rollback: {
@@ -205,51 +213,51 @@ export class PerformanceOptimization extends EventEmitter {
           usage: 0,
           load: [0, 0, 0],
           cores: 16,
-          frequency: 2400
+          frequency: 2400,
         },
         memory: {
           usage: 0,
           fragmentation: 0,
           swap: 0,
-          cache: 0
+          cache: 0,
         },
         disk: {
           readSpeed: 0,
           writeSpeed: 0,
           iops: 0,
-          latency: 0
+          latency: 0,
         },
         network: {
           bandwidth: {
             inbound: 0,
-            outbound: 0
+            outbound: 0,
           },
           latency: 0,
-          packetLoss: 0
-        }
+          packetLoss: 0,
+        },
       },
       application: {
         responseTime: {
           p50: 0,
           p95: 0,
-          p99: 0
+          p99: 0,
         },
         throughput: {
           requests: 0,
-          bytes: 0
+          bytes: 0,
         },
         errorRate: 0,
         cacheHitRate: 0,
         databaseQueries: {
           avgTime: 0,
           slowQueries: 0,
-          connections: 0
+          connections: 0,
         },
         memoryUsage: {
           heap: 0,
           external: 0,
-          rss: 0
-        }
+          rss: 0,
+        },
       },
       business: {
         userExperience: {
@@ -258,20 +266,20 @@ export class PerformanceOptimization extends EventEmitter {
           coreWebVitals: {
             lcp: 0,
             fid: 0,
-            cls: 0
-          }
+            cls: 0,
+          },
         },
         conversion: {
           rate: 0,
           abandonment: 0,
-          funnelCompletion: 0
+          funnelCompletion: 0,
         },
         engagement: {
           sessionDuration: 0,
           bounceRate: 0,
-          pagesPerSession: 0
-        }
-      }
+          pagesPerSession: 0,
+        },
+      },
     };
   }
 
@@ -284,7 +292,7 @@ export class PerformanceOptimization extends EventEmitter {
         critical: 90,
         unit: '%',
         direction: 'lower-is-better',
-        enabled: true
+        enabled: true,
       },
       {
         metric: 'system.memory.usage',
@@ -292,7 +300,7 @@ export class PerformanceOptimization extends EventEmitter {
         critical: 90,
         unit: '%',
         direction: 'lower-is-better',
-        enabled: true
+        enabled: true,
       },
       {
         metric: 'system.disk.latency',
@@ -300,7 +308,7 @@ export class PerformanceOptimization extends EventEmitter {
         critical: 25,
         unit: 'ms',
         direction: 'lower-is-better',
-        enabled: true
+        enabled: true,
       },
       {
         metric: 'system.network.latency',
@@ -308,7 +316,7 @@ export class PerformanceOptimization extends EventEmitter {
         critical: 100,
         unit: 'ms',
         direction: 'lower-is-better',
-        enabled: true
+        enabled: true,
       },
 
       // Application thresholds
@@ -318,7 +326,7 @@ export class PerformanceOptimization extends EventEmitter {
         critical: 1000,
         unit: 'ms',
         direction: 'lower-is-better',
-        enabled: true
+        enabled: true,
       },
       {
         metric: 'application.responseTime.p99',
@@ -326,7 +334,7 @@ export class PerformanceOptimization extends EventEmitter {
         critical: 2000,
         unit: 'ms',
         direction: 'lower-is-better',
-        enabled: true
+        enabled: true,
       },
       {
         metric: 'application.errorRate',
@@ -334,7 +342,7 @@ export class PerformanceOptimization extends EventEmitter {
         critical: 5,
         unit: '%',
         direction: 'lower-is-better',
-        enabled: true
+        enabled: true,
       },
       {
         metric: 'application.cacheHitRate',
@@ -342,7 +350,7 @@ export class PerformanceOptimization extends EventEmitter {
         critical: 70,
         unit: '%',
         direction: 'higher-is-better',
-        enabled: true
+        enabled: true,
       },
       {
         metric: 'application.databaseQueries.avgTime',
@@ -350,7 +358,7 @@ export class PerformanceOptimization extends EventEmitter {
         critical: 500,
         unit: 'ms',
         direction: 'lower-is-better',
-        enabled: true
+        enabled: true,
       },
 
       // Business thresholds
@@ -360,7 +368,7 @@ export class PerformanceOptimization extends EventEmitter {
         critical: 4000,
         unit: 'ms',
         direction: 'lower-is-better',
-        enabled: true
+        enabled: true,
       },
       {
         metric: 'business.userExperience.coreWebVitals.lcp',
@@ -368,7 +376,7 @@ export class PerformanceOptimization extends EventEmitter {
         critical: 4000,
         unit: 'ms',
         direction: 'lower-is-better',
-        enabled: true
+        enabled: true,
       },
       {
         metric: 'business.conversion.rate',
@@ -376,8 +384,8 @@ export class PerformanceOptimization extends EventEmitter {
         critical: 1,
         unit: '%',
         direction: 'higher-is-better',
-        enabled: true
-      }
+        enabled: true,
+      },
     ];
 
     for (const threshold of defaultThresholds) {
@@ -399,24 +407,24 @@ export class PerformanceOptimization extends EventEmitter {
           metric: 'system.cpu.usage',
           operator: '>',
           threshold: 80,
-          duration: 300 // 5 minutes
+          duration: 300, // 5 minutes
         },
         action: {
           type: 'scale',
           target: 'application',
           parameters: {
             direction: 'up',
-            percentage: 25
+            percentage: 25,
           },
           rollback: {
             enabled: true,
             conditions: ['cpu_usage < 50'],
-            timeout: 600
-          }
+            timeout: 600,
+          },
         },
         priority: 'high',
         enabled: true,
-        cooldown: 900 // 15 minutes
+        cooldown: 900, // 15 minutes
       },
 
       // Memory optimization rules
@@ -429,23 +437,23 @@ export class PerformanceOptimization extends EventEmitter {
           metric: 'system.memory.usage',
           operator: '>',
           threshold: 85,
-          duration: 120 // 2 minutes
+          duration: 120, // 2 minutes
         },
         action: {
           type: 'cache-clear',
           target: 'application',
           parameters: {
-            type: 'all'
+            type: 'all',
           },
           rollback: {
             enabled: false,
             conditions: [],
-            timeout: 0
-          }
+            timeout: 0,
+          },
         },
         priority: 'medium',
         enabled: true,
-        cooldown: 300 // 5 minutes
+        cooldown: 300, // 5 minutes
       },
 
       // Response time optimization
@@ -458,24 +466,24 @@ export class PerformanceOptimization extends EventEmitter {
           metric: 'application.responseTime.p95',
           operator: '>',
           threshold: 800,
-          duration: 180 // 3 minutes
+          duration: 180, // 3 minutes
         },
         action: {
           type: 'scale',
           target: 'application',
           parameters: {
             direction: 'up',
-            percentage: 50
+            percentage: 50,
           },
           rollback: {
             enabled: true,
             conditions: ['response_time_p95 < 400'],
-            timeout: 900
-          }
+            timeout: 900,
+          },
         },
         priority: 'high',
         enabled: true,
-        cooldown: 600 // 10 minutes
+        cooldown: 600, // 10 minutes
       },
 
       // Database optimization
@@ -488,24 +496,24 @@ export class PerformanceOptimization extends EventEmitter {
           metric: 'application.databaseQueries.avgTime',
           operator: '>',
           threshold: 200,
-          duration: 240 // 4 minutes
+          duration: 240, // 4 minutes
         },
         action: {
           type: 'config-change',
           target: 'database',
           parameters: {
             property: 'connectionPoolSize',
-            value: 20
+            value: 20,
           },
           rollback: {
             enabled: true,
             conditions: ['db_avg_time < 100'],
-            timeout: 300
-          }
+            timeout: 300,
+          },
         },
         priority: 'medium',
         enabled: true,
-        cooldown: 600 // 10 minutes
+        cooldown: 600, // 10 minutes
       },
 
       // Cache optimization
@@ -518,24 +526,24 @@ export class PerformanceOptimization extends EventEmitter {
           metric: 'application.cacheHitRate',
           operator: '<',
           threshold: 75,
-          duration: 600 // 10 minutes
+          duration: 600, // 10 minutes
         },
         action: {
           type: 'config-change',
           target: 'cache',
           parameters: {
-            ttlMultiplier: 2
+            ttlMultiplier: 2,
           },
           rollback: {
             enabled: true,
             conditions: ['cache_hit_rate > 85'],
-            timeout: 900
-          }
+            timeout: 900,
+          },
         },
         priority: 'low',
         enabled: true,
-        cooldown: 1200 // 20 minutes
-      }
+        cooldown: 1200, // 20 minutes
+      },
     ];
 
     this.rules = defaultRules;
@@ -589,48 +597,44 @@ export class PerformanceOptimization extends EventEmitter {
     // System metrics
     this.metrics.system.cpu = {
       usage: 20 + Math.random() * 60,
-      load: [
-        0.5 + Math.random() * 2,
-        0.5 + Math.random() * 2,
-        0.5 + Math.random() * 2
-      ],
+      load: [0.5 + Math.random() * 2, 0.5 + Math.random() * 2, 0.5 + Math.random() * 2],
       cores: 16,
-      frequency: 2400
+      frequency: 2400,
     };
 
     this.metrics.system.memory = {
       usage: 30 + Math.random() * 50,
       fragmentation: Math.random() * 20,
       swap: Math.random() * 10,
-      cache: 20 + Math.random() * 30
+      cache: 20 + Math.random() * 30,
     };
 
     this.metrics.system.disk = {
       readSpeed: 100 + Math.random() * 400,
       writeSpeed: 80 + Math.random() * 320,
       iops: 1000 + Math.random() * 4000,
-      latency: 1 + Math.random() * 9
+      latency: 1 + Math.random() * 9,
     };
 
     this.metrics.system.network = {
       bandwidth: {
         inbound: 100 + Math.random() * 900,
-        outbound: 50 + Math.random() * 450
+        outbound: 50 + Math.random() * 450,
       },
       latency: 5 + Math.random() * 45,
-      packetLoss: Math.random() * 0.1
+      packetLoss: Math.random() * 0.1,
     };
 
     // Application metrics
     this.metrics.application.responseTime = {
       p50: 50 + Math.random() * 100,
       p95: 100 + Math.random() * 400,
-      p99: 200 + Math.random() * 800
+      p99: 200 + Math.random() * 800,
     };
 
     this.metrics.application.throughput = {
       requests: 1000 + Math.random() * 4000,
-      bytes: (1000 + Math.random() * 4000) * 1024
+      bytes: (1000 + Math.random() * 4000) * 1024,
     };
 
     this.metrics.application.errorRate = Math.random() * 5;
@@ -639,13 +643,13 @@ export class PerformanceOptimization extends EventEmitter {
     this.metrics.application.databaseQueries = {
       avgTime: 50 + Math.random() * 150,
       slowQueries: Math.floor(Math.random() * 10),
-      connections: 10 + Math.floor(Math.random() * 40)
+      connections: 10 + Math.floor(Math.random() * 40),
     };
 
     this.metrics.application.memoryUsage = {
       heap: 100 + Math.random() * 400,
       external: 50 + Math.random() * 200,
-      rss: 200 + Math.random() * 800
+      rss: 200 + Math.random() * 800,
     };
 
     // Business metrics
@@ -655,20 +659,20 @@ export class PerformanceOptimization extends EventEmitter {
       coreWebVitals: {
         lcp: 1500 + Math.random() * 2500,
         fid: 50 + Math.random() * 150,
-        cls: 0.1 + Math.random() * 0.4
-      }
+        cls: 0.1 + Math.random() * 0.4,
+      },
     };
 
     this.metrics.business.conversion = {
       rate: 2 + Math.random() * 4,
       abandonment: 20 + Math.random() * 30,
-      funnelCompletion: 60 + Math.random() * 35
+      funnelCompletion: 60 + Math.random() * 35,
     };
 
     this.metrics.business.engagement = {
       sessionDuration: 120 + Math.random() * 480,
       bounceRate: 20 + Math.random() * 40,
-      pagesPerSession: 2 + Math.random() * 4
+      pagesPerSession: 2 + Math.random() * 4,
     };
 
     this.emit('metricsUpdated', this.metrics);
@@ -676,13 +680,13 @@ export class PerformanceOptimization extends EventEmitter {
 
   private evaluateThresholds(): void {
     for (const [metricName, threshold] of this.thresholds.entries()) {
-      if (!threshold.enabled) continue;
+      if (!threshold.enabled) {continue;}
 
       const currentValue = this.getMetricValue(metricName);
-      if (currentValue === null) continue;
+      if (currentValue === null) {continue;}
 
       let alertTriggered = false;
-      
+
       if (threshold.direction === 'lower-is-better') {
         alertTriggered = currentValue > threshold.critical;
       } else {
@@ -694,7 +698,7 @@ export class PerformanceOptimization extends EventEmitter {
           metric: metricName,
           value: currentValue,
           threshold: threshold.critical,
-          severity: 'critical'
+          severity: 'critical',
         });
       }
     }
@@ -717,7 +721,7 @@ export class PerformanceOptimization extends EventEmitter {
 
   private evaluateRules(): void {
     for (const rule of this.rules) {
-      if (!rule.enabled) continue;
+      if (!rule.enabled) {continue;}
 
       // Check cooldown
       const lastExecution = this.lastOptimization.get(rule.id);
@@ -727,10 +731,10 @@ export class PerformanceOptimization extends EventEmitter {
 
       // Check condition
       const currentValue = this.getMetricValue(rule.condition.metric);
-      if (currentValue === null) continue;
+      if (currentValue === null) {continue;}
 
       let conditionMet = false;
-      
+
       switch (rule.condition.operator) {
         case '>':
           conditionMet = currentValue > rule.condition.threshold;
@@ -757,7 +761,7 @@ export class PerformanceOptimization extends EventEmitter {
 
   private queueOptimization(rule: OptimizationRule): void {
     console.log(`🤖 Queueing optimization: ${rule.name}`);
-    
+
     const optimization: OptimizationResult = {
       id: `opt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       ruleId: rule.id,
@@ -769,24 +773,24 @@ export class PerformanceOptimization extends EventEmitter {
         before: this.getMetricValue(rule.condition.metric) || 0,
         after: 0,
         improvement: 0,
-        unit: this.thresholds.get(rule.condition.metric)?.unit || ''
+        unit: this.thresholds.get(rule.condition.metric)?.unit || '',
       },
       details: {
         message: `Executing ${rule.name} optimization`,
         logs: [`Optimization triggered at ${new Date().toISOString()}`],
-        errors: []
-      }
+        errors: [],
+      },
     };
 
     this.optimizations.push(optimization);
     this.lastOptimization.set(rule.id, new Date());
-    
+
     this.emit('optimizationQueued', optimization);
   }
 
   private executePendingOptimizations(): void {
-    const pendingOptimizations = this.optimizations.filter(o => o.status === 'executing');
-    
+    const pendingOptimizations = this.optimizations.filter((o) => o.status === 'executing');
+
     for (const optimization of pendingOptimizations) {
       this.executeOptimization(optimization);
     }
@@ -798,23 +802,23 @@ export class PerformanceOptimization extends EventEmitter {
     try {
       // Mock optimization execution
       await this.mockOptimizationExecution(optimization);
-      
+
       optimization.status = 'completed';
       optimization.completedAt = new Date();
-      optimization.metrics.after = this.getMetricValue(this.getRuleById(optimization.ruleId)?.condition.metric || '') || 0;
+      optimization.metrics.after =
+        this.getMetricValue(this.getRuleById(optimization.ruleId)?.condition.metric || '') || 0;
       optimization.metrics.improvement = optimization.metrics.before - optimization.metrics.after;
-      
+
       optimization.details.message = `Optimization completed successfully`;
       optimization.details.logs.push(`Optimization completed at ${new Date().toISOString()}`);
 
       console.log(`✅ Optimization completed: ${optimization.ruleName}`);
       this.emit('optimizationCompleted', optimization);
-
     } catch (error) {
       optimization.status = 'failed';
       optimization.completedAt = new Date();
       optimization.details.errors.push((error as Error).message);
-      
+
       console.error(`❌ Optimization failed: ${optimization.ruleName}`, error);
       this.emit('optimizationFailed', { optimization, error: (error as Error).message });
     }
@@ -822,12 +826,12 @@ export class PerformanceOptimization extends EventEmitter {
 
   private async mockOptimizationExecution(optimization: OptimizationResult): Promise<void> {
     const executionTime = 2000 + Math.random() * 8000; // 2-10 seconds
-    
+
     optimization.details.logs.push(`Executing ${optimization.action.type} action...`);
-    await new Promise(resolve => setTimeout(resolve, executionTime / 2));
-    
+    await new Promise((resolve) => setTimeout(resolve, executionTime / 2));
+
     optimization.details.logs.push(`Applying changes to ${optimization.action.target}...`);
-    await new Promise(resolve => setTimeout(resolve, executionTime / 2));
+    await new Promise((resolve) => setTimeout(resolve, executionTime / 2));
 
     // Simulate occasional failures (5% chance)
     if (Math.random() < 0.05) {
@@ -836,7 +840,7 @@ export class PerformanceOptimization extends EventEmitter {
   }
 
   private getRuleById(ruleId: string): OptimizationRule | undefined {
-    return this.rules.find(r => r.id === ruleId);
+    return this.rules.find((r) => r.id === ruleId);
   }
 
   async generatePerformanceReport(): Promise<PerformanceReport> {
@@ -846,7 +850,7 @@ export class PerformanceOptimization extends EventEmitter {
       id: `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       period: {
         start: new Date(Date.now() - 3600000), // 1 hour ago
-        end: new Date()
+        end: new Date(),
       },
       summary: this.calculatePerformanceSummary(),
       metrics: { ...this.metrics },
@@ -854,7 +858,7 @@ export class PerformanceOptimization extends EventEmitter {
       optimizations: this.optimizations.slice(-10), // Last 10 optimizations
       recommendations: this.generateRecommendations(),
       trends: this.generatePerformanceTrends(),
-      generatedAt: new Date()
+      generatedAt: new Date(),
     };
 
     this.emit('reportGenerated', report);
@@ -862,19 +866,18 @@ export class PerformanceOptimization extends EventEmitter {
   }
 
   private calculatePerformanceSummary(): PerformanceReport['summary'] {
-    const recentOptimizations = this.optimizations.filter(o => 
-      o.status === 'completed' && 
-      o.triggeredAt > new Date(Date.now() - 3600000)
+    const recentOptimizations = this.optimizations.filter(
+      (o) => o.status === 'completed' && o.triggeredAt > new Date(Date.now() - 3600000)
     );
 
-    const improvements = recentOptimizations.filter(o => o.metrics.improvement > 0).length;
-    const degradations = recentOptimizations.filter(o => o.metrics.improvement < 0).length;
+    const improvements = recentOptimizations.filter((o) => o.metrics.improvement > 0).length;
+    const degradations = recentOptimizations.filter((o) => o.metrics.improvement < 0).length;
 
     return {
       overallScore: this.calculateOverallScore(),
       improvements,
       degradations,
-      optimizations: recentOptimizations.length
+      optimizations: recentOptimizations.length,
     };
   }
 
@@ -883,22 +886,25 @@ export class PerformanceOptimization extends EventEmitter {
     let metricCount = 0;
 
     // System score (40% weight)
-    const systemScore = (100 - this.metrics.system.cpu.usage) * 0.3 +
-                       (100 - this.metrics.system.memory.usage) * 0.4 +
-                       Math.max(0, 100 - this.metrics.system.disk.latency) * 0.3;
+    const systemScore =
+      (100 - this.metrics.system.cpu.usage) * 0.3 +
+      (100 - this.metrics.system.memory.usage) * 0.4 +
+      Math.max(0, 100 - this.metrics.system.disk.latency) * 0.3;
     totalScore += systemScore * 0.4;
     metricCount++;
 
     // Application score (40% weight)
-    const appScore = Math.max(0, 100 - this.metrics.application.responseTime.p95 / 10) * 0.4 +
-                    Math.max(0, 100 - this.metrics.application.errorRate * 20) * 0.3 +
-                    this.metrics.application.cacheHitRate * 0.3;
+    const appScore =
+      Math.max(0, 100 - this.metrics.application.responseTime.p95 / 10) * 0.4 +
+      Math.max(0, 100 - this.metrics.application.errorRate * 20) * 0.3 +
+      this.metrics.application.cacheHitRate * 0.3;
     totalScore += appScore * 0.4;
     metricCount++;
 
     // Business score (20% weight)
-    const businessScore = Math.max(0, 100 - this.metrics.business.userExperience.pageLoadTime / 50) * 0.4 +
-                         this.metrics.business.conversion.rate * 10 * 0.6;
+    const businessScore =
+      Math.max(0, 100 - this.metrics.business.userExperience.pageLoadTime / 50) * 0.4 +
+      this.metrics.business.conversion.rate * 10 * 0.6;
     totalScore += businessScore * 0.2;
     metricCount++;
 
@@ -915,18 +921,19 @@ export class PerformanceOptimization extends EventEmitter {
         category: 'cpu',
         priority: 'high',
         title: 'Optimize CPU Usage',
-        description: 'CPU usage is above optimal threshold. Consider scaling up or optimizing CPU-intensive processes.',
+        description:
+          'CPU usage is above optimal threshold. Consider scaling up or optimizing CPU-intensive processes.',
         impact: {
           expectedImprovement: 25,
           confidence: 80,
-          effort: 'medium'
+          effort: 'medium',
         },
         actions: [
           'Scale up resources',
           'Profile CPU-intensive operations',
-          'Implement caching for frequent computations'
+          'Implement caching for frequent computations',
         ],
-        metrics: ['system.cpu.usage', 'application.responseTime.p95']
+        metrics: ['system.cpu.usage', 'application.responseTime.p95'],
       });
     }
 
@@ -941,14 +948,10 @@ export class PerformanceOptimization extends EventEmitter {
         impact: {
           expectedImprovement: 20,
           confidence: 75,
-          effort: 'low'
+          effort: 'low',
         },
-        actions: [
-          'Clear unused caches',
-          'Optimize data structures',
-          'Implement memory pooling'
-        ],
-        metrics: ['system.memory.usage', 'application.memoryUsage.heap']
+        actions: ['Clear unused caches', 'Optimize data structures', 'Implement memory pooling'],
+        metrics: ['system.memory.usage', 'application.memoryUsage.heap'],
       });
     }
 
@@ -963,14 +966,14 @@ export class PerformanceOptimization extends EventEmitter {
         impact: {
           expectedImprovement: 30,
           confidence: 85,
-          effort: 'high'
+          effort: 'high',
         },
         actions: [
           'Profile slow endpoints',
           'Optimize database queries',
-          'Implement response caching'
+          'Implement response caching',
         ],
-        metrics: ['application.responseTime.p95', 'application.databaseQueries.avgTime']
+        metrics: ['application.responseTime.p95', 'application.databaseQueries.avgTime'],
       });
     }
 
@@ -981,13 +984,13 @@ export class PerformanceOptimization extends EventEmitter {
     const generateTrendData = (baseValue: number, variance: number, points: number = 12) => {
       const trends = [];
       const now = Date.now();
-      
+
       for (let i = points - 1; i >= 0; i--) {
-        const timestamp = new Date(now - (i * 300000)); // 5-minute intervals
+        const timestamp = new Date(now - i * 300000); // 5-minute intervals
         const value = baseValue + (Math.random() - 0.5) * variance;
         trends.push({ timestamp, value });
       }
-      
+
       return trends;
     };
 
@@ -995,7 +998,7 @@ export class PerformanceOptimization extends EventEmitter {
       cpu: generateTrendData(this.metrics.system.cpu.usage, 20),
       memory: generateTrendData(this.metrics.system.memory.usage, 15),
       responseTime: generateTrendData(this.metrics.application.responseTime.p95, 200),
-      throughput: generateTrendData(this.metrics.application.throughput.requests, 1000)
+      throughput: generateTrendData(this.metrics.application.throughput.requests, 1000),
     };
   }
 
@@ -1024,11 +1027,11 @@ export class PerformanceOptimization extends EventEmitter {
     let filtered = [...this.optimizations];
 
     if (filter?.status) {
-      filtered = filtered.filter(o => o.status === filter.status);
+      filtered = filtered.filter((o) => o.status === filter.status);
     }
 
     if (filter?.ruleId) {
-      filtered = filtered.filter(o => o.ruleId === filter.ruleId);
+      filtered = filtered.filter((o) => o.ruleId === filter.ruleId);
     }
 
     return filtered.sort((a, b) => b.triggeredAt.getTime() - a.triggeredAt.getTime());
@@ -1052,7 +1055,7 @@ export class PerformanceOptimization extends EventEmitter {
   }
 
   updateRule(ruleId: string, updates: Partial<OptimizationRule>): void {
-    const rule = this.rules.find(r => r.id === ruleId);
+    const rule = this.rules.find((r) => r.id === ruleId);
     if (!rule) {
       throw new Error(`Rule not found: ${ruleId}`);
     }

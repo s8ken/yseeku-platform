@@ -21,20 +21,20 @@ export class WebhookIntegration {
   }
 
   async sendAlert(alert: any): Promise<boolean> {
-    if (!this.config.enabled) return true;
+    if (!this.config.enabled) {return true;}
 
     try {
       const response = await fetch(this.config.config.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...this.config.config.headers
+          ...this.config.config.headers,
         },
         body: JSON.stringify({
           alert,
           timestamp: new Date().toISOString(),
-          source: 'sonate-monitoring'
-        })
+          source: 'sonate-monitoring',
+        }),
       });
 
       return response.ok;
@@ -45,20 +45,20 @@ export class WebhookIntegration {
   }
 
   async sendMetrics(metrics: any): Promise<boolean> {
-    if (!this.config.enabled) return true;
+    if (!this.config.enabled) {return true;}
 
     try {
       const response = await fetch(this.config.config.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...this.config.config.headers
+          ...this.config.config.headers,
         },
         body: JSON.stringify({
           metrics,
           timestamp: new Date().toISOString(),
-          source: 'sonate-monitoring'
-        })
+          source: 'sonate-monitoring',
+        }),
       });
 
       return response.ok;
@@ -81,13 +81,13 @@ export class SlackIntegration {
   }
 
   async sendAlert(alert: any): Promise<boolean> {
-    if (!this.config.enabled) return true;
+    if (!this.config.enabled) {return true;}
 
     const severityEmojis: Record<string, string> = {
       low: 'ℹ️',
       medium: '⚠️',
       high: '🚨',
-      critical: '🔴'
+      critical: '🔴',
     };
     const severityEmoji = severityEmojis[alert.severity] || '❓';
 
@@ -99,35 +99,35 @@ export class SlackIntegration {
           type: 'header',
           text: {
             type: 'plain_text',
-            text: `${severityEmoji} ${alert.title}`
-          }
+            text: `${severityEmoji} ${alert.title}`,
+          },
         },
         {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `*${alert.description}*\n\nMetric: \`${alert.metric}\`\nValue: \`${alert.value}\`\nThreshold: \`${alert.threshold}\``
-          }
+            text: `*${alert.description}*\n\nMetric: \`${alert.metric}\`\nValue: \`${alert.value}\`\nThreshold: \`${alert.threshold}\``,
+          },
         },
         {
           type: 'context',
           elements: [
             {
               type: 'mrkdwn',
-              text: `Severity: ${alert.severity.toUpperCase()} | Timestamp: ${alert.timestamp.toISOString()}`
-            }
-          ]
-        }
-      ]
+              text: `Severity: ${alert.severity.toUpperCase()} | Timestamp: ${alert.timestamp.toISOString()}`,
+            },
+          ],
+        },
+      ],
     };
 
     try {
       const response = await fetch(this.config.config.webhookUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(message)
+        body: JSON.stringify(message),
       });
 
       return response.ok;
@@ -150,7 +150,7 @@ export class EmailIntegration {
   }
 
   async sendAlert(alert: any): Promise<boolean> {
-    if (!this.config.enabled) return true;
+    if (!this.config.enabled) {return true;}
 
     // Note: In production, you would integrate with an email service like SendGrid, SES, etc.
     // This is a placeholder implementation
@@ -171,7 +171,7 @@ Threshold: ${alert.threshold}
 Timestamp: ${alert.timestamp.toISOString()}
 
 Please check the SONATE monitoring dashboard for more details.
-      `.trim()
+      `.trim(),
     });
 
     return true;
@@ -190,22 +190,25 @@ export class DataDogIntegration {
   }
 
   async sendMetrics(metrics: any): Promise<boolean> {
-    if (!this.config.enabled) return true;
+    if (!this.config.enabled) {return true;}
 
     const series = Object.entries(metrics).map(([name, value]: [string, any]) => ({
       metric: name,
       points: [[Date.now() / 1000, value]],
-      tags: [`service:sonate`, `env:${this.config.config.env || 'production'}`]
+      tags: [`service:sonate`, `env:${this.config.config.env || 'production'}`],
     }));
 
     try {
-      const response = await fetch(`https://api.datadoghq.com/api/v1/series?api_key=${this.config.config.apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ series })
-      });
+      const response = await fetch(
+        `https://api.datadoghq.com/api/v1/series?api_key=${this.config.config.apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ series }),
+        }
+      );
 
       return response.ok;
     } catch (error) {
@@ -246,16 +249,16 @@ export class IntegrationManager {
   }
 
   async sendAlertToAll(alert: any): Promise<void> {
-    const promises = Array.from(this.integrations.values()).map(integration =>
-      integration.sendAlert?.(alert) ?? Promise.resolve(true)
+    const promises = Array.from(this.integrations.values()).map(
+      (integration) => integration.sendAlert?.(alert) ?? Promise.resolve(true)
     );
 
     await Promise.allSettled(promises);
   }
 
   async sendMetricsToAll(metrics: any): Promise<void> {
-    const promises = Array.from(this.integrations.values()).map(integration =>
-      integration.sendMetrics?.(metrics) ?? Promise.resolve(true)
+    const promises = Array.from(this.integrations.values()).map(
+      (integration) => integration.sendMetrics?.(metrics) ?? Promise.resolve(true)
     );
 
     await Promise.allSettled(promises);
@@ -284,8 +287,8 @@ export const integrationTemplates = {
     enabled: false,
     config: {
       webhookUrl: '',
-      channel: '#alerts'
-    }
+      channel: '#alerts',
+    },
   },
 
   email: {
@@ -293,8 +296,8 @@ export const integrationTemplates = {
     enabled: false,
     config: {
       recipients: [],
-      smtpConfig: {}
-    }
+      smtpConfig: {},
+    },
   },
 
   webhook: {
@@ -302,8 +305,8 @@ export const integrationTemplates = {
     enabled: false,
     config: {
       url: '',
-      headers: {}
-    }
+      headers: {},
+    },
   },
 
   datadog: {
@@ -311,7 +314,7 @@ export const integrationTemplates = {
     enabled: false,
     config: {
       apiKey: '',
-      env: 'production'
-    }
-  }
+      env: 'production',
+    },
+  },
 };

@@ -1,10 +1,49 @@
-import { TrustProtocol, TRUST_PRINCIPLES, SymbiScorer, hashChain, generateKeyPair, signPayload, verifySignature, TrustReceipt, canonicalizeJSON, verifySecp256k1Signature, verifyRSASignature, verifyEd25519Signature, timingSafeEqual, generateSecureRandom, verifyCredentialProof, calculateResonanceMetrics, log } from '../index';
-import { PerformanceTimer, timeAsync, getMemoryUsage, getCPUUsage, PerformanceBenchmark, timeDbQuery, timeExternalApi } from '../monitoring/performance';
-import { ErrorFactory, createErrorHandler, AuthenticationError, ValidationError, ErrorSeverity } from '../errors';
+import {
+  ErrorFactory,
+  createErrorHandler,
+  AuthenticationError,
+  ValidationError,
+  ErrorSeverity,
+} from '../errors';
+import {
+  TrustProtocol,
+  TRUST_PRINCIPLES,
+  SymbiScorer,
+  hashChain,
+  generateKeyPair,
+  signPayload,
+  verifySignature,
+  TrustReceipt,
+  canonicalizeJSON,
+  verifySecp256k1Signature,
+  verifyRSASignature,
+  verifyEd25519Signature,
+  timingSafeEqual,
+  generateSecureRandom,
+  verifyCredentialProof,
+  calculateResonanceMetrics,
+  log,
+} from '../index';
 import { validator, validateInput, InputValidator, Schemas } from '../input-validator';
-import { DEFAULT_LVS_SCAFFOLDING, generateLVSPrompt, applyLVS, evaluateLVSEffectiveness, createCustomScaffolding, getLVSTemplate } from '../linguistic-vector-steering';
-import { tenantContext } from '../tenant-context';
+import {
+  DEFAULT_LVS_SCAFFOLDING,
+  generateLVSPrompt,
+  applyLVS,
+  evaluateLVSEffectiveness,
+  createCustomScaffolding,
+  getLVSTemplate,
+} from '../linguistic-vector-steering';
+import {
+  PerformanceTimer,
+  timeAsync,
+  getMemoryUsage,
+  getCPUUsage,
+  PerformanceBenchmark,
+  timeDbQuery,
+  timeExternalApi,
+} from '../monitoring/performance';
 import { createProbabilisticTrustProtocol } from '../probabilistic-trust-protocol';
+import { tenantContext } from '../tenant-context';
 import { EnhancedTrustProtocol } from '../trust-protocol-enhanced';
 
 function assert(condition: boolean, message: string) {
@@ -26,7 +65,10 @@ async function testTrustProtocolCriticalCap() {
 
   const result = protocol.calculateTrustScore(scores);
   assert(result.overall === 0, 'Critical cap failed: overall should be 0');
-  assert(result.violations.includes('CONSENT_ARCHITECTURE'), 'Violation list missing CONSENT_ARCHITECTURE');
+  assert(
+    result.violations.includes('CONSENT_ARCHITECTURE'),
+    'Violation list missing CONSENT_ARCHITECTURE'
+  );
 }
 
 async function testTrustProtocolWeightedSum() {
@@ -53,7 +95,7 @@ async function testSymbiScorerEndToEnd() {
     disconnect_option_available: true,
     moral_agency_respected: true,
     reasoning_transparency: 9,
-    ethical_considerations: ['privacy', 'fairness']
+    ethical_considerations: ['privacy', 'fairness'],
   });
   assert(score.overall >= 8, `End-to-end scoring too low: ${score.overall}`);
 }
@@ -103,6 +145,50 @@ async function testTrustReceiptChainAndVerify() {
   assert(r2copy.self_hash === r2.self_hash, 'fromJSON/toJSON mismatch');
 }
 
+async function testTrustReceiptCanonicalization() {
+  const k1 = { clarity: 0.9, integrity: 0.9, quality: 0.9 };
+  const k2 = { quality: 0.9, integrity: 0.9, clarity: 0.9 };
+  const r1 = new TrustReceipt({
+    version: '1.0',
+    session_id: 'can1',
+    timestamp: 1600000000000,
+    mode: 'constitutional',
+    ciq_metrics: k1,
+  });
+  const r2 = new TrustReceipt({
+    version: '1.0',
+    session_id: 'can1',
+    timestamp: 1600000000000,
+    mode: 'constitutional',
+    ciq_metrics: k2,
+  });
+  assert(
+    r1.self_hash === r2.self_hash,
+    'TrustReceipt hash should be canonicalized and deterministic'
+  );
+}
+
+async function testSignBoundVerifyBound() {
+  const { privateKey, publicKey } = await generateKeyPair();
+  const r = new TrustReceipt({
+    version: '1.0',
+    session_id: 'sbind',
+    timestamp: Date.now(),
+    mode: 'directive',
+    ciq_metrics: { clarity: 0.6, integrity: 0.6, quality: 0.6 },
+    session_nonce: 'nonce123',
+  });
+
+  await r.signBound(privateKey);
+  assert(await r.verifyBound(publicKey), 'signBound/verifyBound should succeed');
+
+  // Tamper signature should fail
+  const original = r.signature;
+  r.signature = r.signature.length > 2 ? '00' + r.signature.substring(2) : '00';
+  assert(!(await r.verifyBound(publicKey)), 'verifyBound should fail on tampered signature');
+  r.signature = original;
+}
+
 async function testCanonicalizeJSON() {
   const a = { b: 2, a: 1 };
   const b = { a: 1, b: 2 };
@@ -110,7 +196,11 @@ async function testCanonicalizeJSON() {
   const cb = canonicalizeJSON(b);
   assert(ca === cb, 'JCS canonicalization should be deterministic');
   let threw = false;
-  try { canonicalizeJSON(a, { method: 'URDNA2015' }); } catch { threw = true; }
+  try {
+    canonicalizeJSON(a, { method: 'URDNA2015' });
+  } catch {
+    threw = true;
+  }
   assert(threw, 'URDNA2015 should throw (not implemented)');
 }
 
@@ -133,8 +223,16 @@ async function testRSASignatureVerification() {
   const data = { demo: true };
   const canonical = canonicalizeJSON(data);
   const message = Buffer.from(canonical, 'utf8');
-  const sig = crypto.sign('sha256', message, { key: privateKey, padding: crypto.constants.RSA_PKCS1_PSS_PADDING, saltLength: crypto.constants.RSA_PSS_SALTLEN_DIGEST });
-  const res = await verifyRSASignature(data, sig.toString('base64'), publicKey.export({ type: 'pkcs1', format: 'pem' }).toString());
+  const sig = crypto.sign('sha256', message, {
+    key: privateKey,
+    padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+    saltLength: crypto.constants.RSA_PSS_SALTLEN_DIGEST,
+  });
+  const res = await verifyRSASignature(
+    data,
+    sig.toString('base64'),
+    publicKey.export({ type: 'pkcs1', format: 'pem' }).toString()
+  );
   assert(res.valid, 'RSA verification failed');
 }
 
@@ -172,25 +270,38 @@ async function testVerifyCredentialProofUnsupported() {
   const credential = {
     id: 'cred-1',
     subject: { foo: 'bar' },
-    proof: { type: 'UnknownSignature2025', proofValue: 'abc', verificationMethod: 'xyz' }
+    proof: { type: 'UnknownSignature2025', proofValue: 'abc', verificationMethod: 'xyz' },
   };
   const res = await verifyCredentialProof(credential);
-  assert(!res.valid && (res.error || '').includes('Unsupported'), 'verifyCredentialProof should fail for unsupported type');
+  assert(
+    !res.valid && (res.error || '').includes('Unsupported'),
+    'verifyCredentialProof should fail for unsupported type'
+  );
 }
 
 async function testResonanceMetricsSmoke() {
   const metrics = calculateResonanceMetrics({
     userInput: 'How do I reset my password?',
-    aiResponse: 'To reset your password, open Settings, choose Security, and select Reset Password. If you forgot it, use the “Forgot password” link to receive an email.',
+    aiResponse:
+      'To reset your password, open Settings, choose Security, and select Reset Password. If you forgot it, use the “Forgot password” link to receive an email.',
     conversationHistory: [
       { role: 'user', content: 'Hi', timestamp: new Date() },
-      { role: 'assistant', content: 'Hello! How can I help?', timestamp: new Date() }
-    ]
+      { role: 'assistant', content: 'Hello! How can I help?', timestamp: new Date() },
+    ],
   });
   assert(metrics.R_m >= 0, 'Resonance metrics should produce non-negative R_m');
-  assert(metrics.vectorAlignment >= 0 && metrics.vectorAlignment <= 1, 'vectorAlignment should be 0-1');
-  assert(metrics.contextualContinuity >= 0 && metrics.contextualContinuity <= 1, 'contextualContinuity should be 0-1');
-  assert(metrics.semanticMirroring >= 0 && metrics.semanticMirroring <= 1, 'semanticMirroring should be 0-1');
+  assert(
+    metrics.vectorAlignment >= 0 && metrics.vectorAlignment <= 1,
+    'vectorAlignment should be 0-1'
+  );
+  assert(
+    metrics.contextualContinuity >= 0 && metrics.contextualContinuity <= 1,
+    'contextualContinuity should be 0-1'
+  );
+  assert(
+    metrics.semanticMirroring >= 0 && metrics.semanticMirroring <= 1,
+    'semanticMirroring should be 0-1'
+  );
   assert(metrics.entropyDelta >= 0 && metrics.entropyDelta <= 1, 'entropyDelta should be 0-1');
 }
 
@@ -201,17 +312,40 @@ async function testErrorFactoryAndHandler() {
   const j = e1.toJSON();
   assert(j.code === 'AUTH_001', 'ErrorFactory AUTH code mismatch');
   let notified = false;
-  const handler = createErrorHandler({ logErrors: true, sendStackTrace: true, notifyOnError: () => { notified = true; } });
+  const handler = createErrorHandler({
+    logErrors: true,
+    sendStackTrace: true,
+    notifyOnError: () => {
+      notified = true;
+    },
+  });
   const res: any = {
     statusCode: 0,
     body: null,
-    status(code: number) { this.statusCode = code; return this; },
-    json(obj: any) { this.body = obj; return this; }
+    status(code: number) {
+      this.statusCode = code;
+      return this;
+    },
+    json(obj: any) {
+      this.body = obj;
+      return this;
+    },
   };
   handler(e3 as any, {} as any, res, () => {});
   assert(res.statusCode === 500, 'Error handler status mismatch');
-  assert(!!notified, 'Notify not called');
-  const res2: any = { statusCode: 0, body: null, status(code: number) { this.statusCode = code; return this; }, json(obj: any) { this.body = obj; return this; } };
+  assert(Boolean(notified), 'Notify not called');
+  const res2: any = {
+    statusCode: 0,
+    body: null,
+    status(code: number) {
+      this.statusCode = code;
+      return this;
+    },
+    json(obj: any) {
+      this.body = obj;
+      return this;
+    },
+  };
   handler(new ValidationError('bad'), {} as any, res2, () => {});
   assert(res2.statusCode === 200 || res2.statusCode === 400, 'Validation error status unexpected');
 }
@@ -227,13 +361,27 @@ async function testLoggerCalls() {
 }
 
 async function testInputValidatorSchemas() {
-  const ok = await validator.validate('trustProtocol', { trustScore: 8, sessionId: 's', userId: 'u', timestamp: Date.now() });
+  const ok = await validator.validate('trustProtocol', {
+    trustScore: 8,
+    sessionId: 's',
+    userId: 'u',
+    timestamp: Date.now(),
+  });
   assert(ok.valid, 'Validator trustProtocol valid expected');
   let threw = false;
-  try { await validateInput('trustProtocol', { trustScore: -1, sessionId: '', userId: '', timestamp: -5 }); } catch { threw = true; }
+  try {
+    await validateInput('trustProtocol', {
+      trustScore: -1,
+      sessionId: '',
+      userId: '',
+      timestamp: -5,
+    });
+  } catch {
+    threw = true;
+  }
   assert(threw, 'validateInput should throw on invalid');
   const iv = new InputValidator();
-  iv.registerRules('simple', [ { field: 'x', type: 'number', min: 1, max: 5, required: true } ]);
+  iv.registerRules('simple', [{ field: 'x', type: 'number', min: 1, max: 5, required: true }]);
   const res = await iv.validate('simple', { x: 3 });
   assert(res.valid, 'InputValidator simple valid expected');
 }
@@ -244,25 +392,45 @@ async function testTenantContextManager() {
   });
   assert(result === 't1', 'Tenant ID mismatch');
   let threw = false;
-  try { tenantContext.getTenantId(true); } catch { threw = true; }
+  try {
+    tenantContext.getTenantId(true);
+  } catch {
+    threw = true;
+  }
   assert(threw, 'getTenantId should throw without context');
 }
 
 async function testTimeDbAndExternalApi() {
-  const dbRes = await timeDbQuery('find', 'users', async () => { return { ok: true }; });
+  const dbRes = await timeDbQuery('find', 'users', async () => {
+    return { ok: true };
+  });
   assert((dbRes as any).ok === true, 'timeDbQuery result mismatch');
-  const apiRes = await timeExternalApi('svc', '/endpoint', async () => { return { ok: true }; });
+  const apiRes = await timeExternalApi('svc', '/endpoint', async () => {
+    return { ok: true };
+  });
   assert((apiRes as any).ok === true, 'timeExternalApi result mismatch');
 }
 
 async function testProbabilisticTrust() {
   const proto = createProbabilisticTrustProtocol();
-  const s = { CONSENT_ARCHITECTURE: 8, INSPECTION_MANDATE: 8, CONTINUOUS_VALIDATION: 8, ETHICAL_OVERRIDE: 8, RIGHT_TO_DISCONNECT: 8, MORAL_RECOGNITION: 8 };
+  const s = {
+    CONSENT_ARCHITECTURE: 8,
+    INSPECTION_MANDATE: 8,
+    CONTINUOUS_VALIDATION: 8,
+    ETHICAL_OVERRIDE: 8,
+    RIGHT_TO_DISCONNECT: 8,
+    MORAL_RECOGNITION: 8,
+  };
   const r = proto.calculateProbabilisticTrustScore(s, [s, s, s, s, s]);
-  assert(r.confidence.level === 'HIGH' || r.confidence.level === 'MEDIUM' || r.confidence.level === 'LOW', 'Confidence level missing');
+  assert(
+    r.confidence.level === 'HIGH' ||
+      r.confidence.level === 'MEDIUM' ||
+      r.confidence.level === 'LOW',
+    'Confidence level missing'
+  );
   proto.calibrateConfidence('sess', r, 8);
   const c = proto.getCalibration('sess');
-  assert(!!c, 'Calibration missing');
+  assert(Boolean(c), 'Calibration missing');
   proto.clearCalibration();
   assert(!proto.getCalibration('sess'), 'Calibration not cleared');
 }
@@ -270,36 +438,68 @@ async function testProbabilisticTrust() {
 async function testLVS() {
   const prompt = generateLVSPrompt(DEFAULT_LVS_SCAFFOLDING);
   assert(typeof prompt === 'string' && prompt.length > 0, 'Prompt empty');
-  const enhanced = applyLVS('Help me', { enabled: true, scaffolding: DEFAULT_LVS_SCAFFOLDING, contextAwareness: { conversationFlow: true, domainSpecific: false, userPreferences: false } }, [{ role: 'user', content: 'Hi' }]);
+  const enhanced = applyLVS(
+    'Help me',
+    {
+      enabled: true,
+      scaffolding: DEFAULT_LVS_SCAFFOLDING,
+      contextAwareness: { conversationFlow: true, domainSpecific: false, userPreferences: false },
+    },
+    [{ role: 'user', content: 'Hi' }]
+  );
   assert(typeof enhanced === 'string' && enhanced.includes('Help me'), 'applyLVS failed');
-  const baseline = calculateResonanceMetrics({ userInput: 'How to reset password?', aiResponse: 'Reset in settings.', conversationHistory: [] }).R_m;
-  const lvsScore = calculateResonanceMetrics({ userInput: 'How to reset password?', aiResponse: enhanced, conversationHistory: [] }).R_m;
+  const baseline = calculateResonanceMetrics({
+    userInput: 'How to reset password?',
+    aiResponse: 'Reset in settings.',
+    conversationHistory: [],
+  }).R_m;
+  const lvsScore = calculateResonanceMetrics({
+    userInput: 'How to reset password?',
+    aiResponse: enhanced,
+    conversationHistory: [],
+  }).R_m;
   const eff = evaluateLVSEffectiveness(baseline, lvsScore);
   assert(typeof eff.recommendation === 'string', 'LVS effectiveness invalid');
   const tmpl = getLVSTemplate('customerSupport');
-  const custom = createCustomScaffolding(tmpl.identity, tmpl.principles, tmpl.constraints, tmpl.objectives);
+  const custom = createCustomScaffolding(
+    tmpl.identity,
+    tmpl.principles,
+    tmpl.constraints,
+    tmpl.objectives
+  );
   assert(custom.identity.length > 0, 'Custom scaffolding invalid');
 }
 
 async function testEnhancedTrustProtocol() {
   const etp = new EnhancedTrustProtocol({ enabled: true, scaffolding: DEFAULT_LVS_SCAFFOLDING });
-  const interaction = { userInput: 'Reset password', aiResponse: 'Go to settings to reset your password.', conversationHistory: [] };
+  const interaction = {
+    userInput: 'Reset password',
+    aiResponse: 'Go to settings to reset your password.',
+    conversationHistory: [],
+  };
   const score = etp.calculateEnhancedTrustScore(interaction);
   assert(score.resonanceMetrics.R_m >= 0, 'EnhancedTrustProtocol R_m invalid');
   const applied = etp.applyLVSToInput('Hello', []);
   assert(typeof applied === 'string' && applied.length > 0, 'applyLVSToInput invalid');
   const receipt = etp.generateEnhancedTrustReceipt(interaction);
-  assert(typeof receipt.signature === 'string' && receipt.signature.length > 0, 'Enhanced receipt signature invalid');
+  assert(
+    typeof receipt.signature === 'string' && receipt.signature.length > 0,
+    'Enhanced receipt signature invalid'
+  );
 }
 async function testPerformanceTimerAndAsync() {
   const t = new PerformanceTimer('core_unit_test', { scope: 'core' });
-  await new Promise(res => setTimeout(res, 5));
+  await new Promise((res) => setTimeout(res, 5));
   const seconds = t.end();
   assert(seconds > 0, 'PerformanceTimer should return positive seconds');
-  const value = await timeAsync('async_core', async () => {
-    await new Promise(res => setTimeout(res, 3));
-    return 7;
-  }, { scope: 'core' });
+  const value = await timeAsync(
+    'async_core',
+    async () => {
+      await new Promise((res) => setTimeout(res, 3));
+      return 7;
+    },
+    { scope: 'core' }
+  );
   assert(value === 7, 'timeAsync should return inner function value');
 }
 
@@ -308,7 +508,7 @@ async function testMemoryAndCPUUsage() {
   assert(mem.rss > 0 && mem.heapUsed > 0, 'Memory usage should be non-zero');
   // Burn a little CPU
   let acc = 0;
-  for (let i = 0; i < 5000; i++) acc += Math.sqrt(i);
+  for (let i = 0; i < 5000; i++) {acc += Math.sqrt(i);}
   const cpu = getCPUUsage();
   assert(cpu.user >= 0 && cpu.system >= 0, 'CPU usage should be non-negative');
 }
@@ -319,8 +519,8 @@ async function testPerformanceBenchmarkStats() {
   bench.record('op', 0.2);
   bench.record('op', 0.3);
   const stats = bench.getStats('op');
-  assert(!!stats && stats.count === 3, 'Benchmark stats should have count 3');
-  assert(!!stats && stats.min === 0.1, 'Benchmark min should be 0.1');
+  assert(Boolean(stats) && stats.count === 3, 'Benchmark stats should have count 3');
+  assert(Boolean(stats) && stats.min === 0.1, 'Benchmark min should be 0.1');
 }
 
 async function main() {
@@ -331,6 +531,8 @@ async function main() {
     ['HashChain output format', testHashChain],
     ['Ed25519 sign/verify', testSignAndVerify],
     ['TrustReceipt chain/sign/verify', testTrustReceiptChainAndVerify],
+    ['TrustReceipt canonicalization deterministic', testTrustReceiptCanonicalization],
+    ['TrustReceipt signBound/verifyBound', testSignBoundVerifyBound],
     ['Canonicalize JSON JCS and URDNA error', testCanonicalizeJSON],
     ['secp256k1 signature verify', testSecp256k1Verification],
     ['RSA signature verify', testRSASignatureVerification],

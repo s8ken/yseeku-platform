@@ -52,7 +52,18 @@ describe('Receipts', () => {
         `INSERT INTO trust_receipts(self_hash, session_id, version, timestamp, mode, ciq, previous_hash, signature, session_nonce, tenant_id)
      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
      ON CONFLICT (self_hash) DO NOTHING`,
-        ['hash', 'session', '1.0', 123456, 'test', '{"clarity":0.8}', 'prev', 'sig', 'nonce', 'tenant']
+        [
+          'hash',
+          'session',
+          '1.0',
+          123456,
+          'test',
+          '{"clarity":0.8}',
+          'prev',
+          'sig',
+          'nonce',
+          'tenant',
+        ]
       );
     });
   });
@@ -68,17 +79,19 @@ describe('Receipts', () => {
       const mockReceipt = { self_hash: 'hash' };
       mockTrustReceipt.fromJSON.mockReturnValue(mockReceipt);
       mockPool.query.mockResolvedValue({
-        rows: [{
-          version: '1.0',
-          session_id: sessionId,
-          timestamp: '123456',
-          mode: 'test',
-          ciq: { clarity: 0.8 },
-          previous_hash: 'prev',
-          self_hash: 'hash',
-          signature: 'sig',
-          session_nonce: 'nonce',
-        }],
+        rows: [
+          {
+            version: '1.0',
+            session_id: sessionId,
+            timestamp: '123456',
+            mode: 'test',
+            ciq: { clarity: 0.8 },
+            previous_hash: 'prev',
+            self_hash: 'hash',
+            signature: 'sig',
+            session_nonce: 'nonce',
+          },
+        ],
       });
       const result = await getReceiptsBySession(sessionId, 'tenant');
       expect(result).toEqual([mockReceipt]);

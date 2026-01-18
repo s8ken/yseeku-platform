@@ -5,6 +5,7 @@
  */
 
 import { performanceLogger } from '../logger';
+
 import {
   workflowDurationHistogram,
   workflowStepDurationHistogram,
@@ -60,11 +61,7 @@ export class PerformanceTimer {
  * Decorator for timing workflow operations
  */
 export function timeworkflow(workflowName: string) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
@@ -77,14 +74,20 @@ export function timeworkflow(workflowName: string) {
         const duration = timer.endWithMetric(workflowDurationHistogram);
 
         // Record success
-        workflowDurationHistogram.observe({ workflow_name: workflowName, status: 'success' }, duration);
+        workflowDurationHistogram.observe(
+          { workflow_name: workflowName, status: 'success' },
+          duration
+        );
 
         return result;
       } catch (error) {
         const duration = timer.end();
 
         // Record failure
-        workflowDurationHistogram.observe({ workflow_name: workflowName, status: 'failure' }, duration);
+        workflowDurationHistogram.observe(
+          { workflow_name: workflowName, status: 'failure' },
+          duration
+        );
 
         throw error;
       }
@@ -98,11 +101,7 @@ export function timeworkflow(workflowName: string) {
  * Decorator for timing agent operations
  */
 export function timeAgentOperation(agentId: string, action: string) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
@@ -311,7 +310,7 @@ export class PerformanceBenchmark {
     median: number;
   } | null {
     const values = this.measurements.get(name);
-    if (!values || values.length === 0) return null;
+    if (!values || values.length === 0) {return null;}
 
     const sorted = [...values].sort((a, b) => a - b);
     const sum = values.reduce((a, b) => a + b, 0);

@@ -1,5 +1,5 @@
-import { AssessmentInput } from './symbi-types';
 import { computeTextMetrics } from './metrics';
+import { AssessmentInput } from './symbi-types';
 
 export interface DriftResult {
   driftScore: number; // 0-100
@@ -24,7 +24,10 @@ export class DriftDetector {
     const vocabDelta = parseFloat((current.uniqueTokenRatio - prev.uniqueTokenRatio).toFixed(3));
     const numericDelta = parseFloat((current.numericDensity - prev.numericDensity).toFixed(3));
 
-    const driftScore = Math.min(100, Math.abs(tokenDelta) * 0.1 + Math.abs(vocabDelta) * 100 + Math.abs(numericDelta) * 300);
+    const driftScore = Math.min(
+      100,
+      Math.abs(tokenDelta) * 0.1 + Math.abs(vocabDelta) * 100 + Math.abs(numericDelta) * 300
+    );
     return { driftScore: Math.round(driftScore), tokenDelta, vocabDelta, numericDelta };
   }
 }

@@ -23,11 +23,14 @@ export interface StatisticalAnalyzer {
  */
 export class BasicStatisticalAnalyzer implements StatisticalAnalyzer {
   calculateWinRates(trials: any[]): StatisticalResult[] {
-    const variantStats: Record<string, { wins: number; losses: number; ties: number; total: number }> = {};
+    const variantStats: Record<
+      string,
+      { wins: number; losses: number; ties: number; total: number }
+    > = {};
 
     // Initialize stats for each variant
     for (const trial of trials) {
-      if (!trial.slotMapping || !trial.evaluations?.[0]?.winnerSlot) continue;
+      if (!trial.slotMapping || !trial.evaluations?.[0]?.winnerSlot) {continue;}
 
       for (const [slot, variantId] of Object.entries(trial.slotMapping)) {
         if (!variantStats[variantId]) {
@@ -38,7 +41,7 @@ export class BasicStatisticalAnalyzer implements StatisticalAnalyzer {
 
     // Count wins/losses
     for (const trial of trials) {
-      if (!trial.slotMapping || !trial.evaluations?.[0]?.winnerSlot) continue;
+      if (!trial.slotMapping || !trial.evaluations?.[0]?.winnerSlot) {continue;}
 
       const evaluation = trial.evaluations[0];
       const winnerVariant = trial.slotMapping[evaluation.winnerSlot];
@@ -70,13 +73,13 @@ export class BasicStatisticalAnalyzer implements StatisticalAnalyzer {
         winRate,
         confidenceInterval,
         pValue,
-        significance: this.isSignificant(pValue, 0.05) ? "SIGNIFICANT" : "NOT_SIGNIFICANT",
+        significance: this.isSignificant(pValue, 0.05) ? 'SIGNIFICANT' : 'NOT_SIGNIFICANT',
       };
     });
   }
 
   calculateConfidenceInterval(wins: number, total: number, confidence: number): [number, number] {
-    if (total === 0) return [0, 0];
+    if (total === 0) {return [0, 0];}
 
     const p = wins / total;
     const z = this.getZScore(confidence);
@@ -86,7 +89,7 @@ export class BasicStatisticalAnalyzer implements StatisticalAnalyzer {
   }
 
   calculatePValue(observedWins: number, total: number, expectedWinRate: number): number {
-    if (total === 0) return 1;
+    if (total === 0) {return 1;}
 
     const observedRate = observedWins / total;
     const standardError = Math.sqrt((expectedWinRate * (1 - expectedWinRate)) / total);
@@ -97,14 +100,14 @@ export class BasicStatisticalAnalyzer implements StatisticalAnalyzer {
   }
 
   calculateEffectSize(winsA: number, totalA: number, winsB: number, totalB: number): number {
-    if (totalA === 0 || totalB === 0) return 0;
+    if (totalA === 0 || totalB === 0) {return 0;}
 
     const rateA = winsA / totalA;
     const rateB = winsB / totalB;
     const pooledRate = (winsA + winsB) / (totalA + totalB);
     const pooledStdDev = Math.sqrt(pooledRate * (1 - pooledRate));
 
-    if (pooledStdDev === 0) return 0;
+    if (pooledStdDev === 0) {return 0;}
 
     return (rateA - rateB) / pooledStdDev;
   }
@@ -152,7 +155,7 @@ export class BasicStatisticalAnalyzer implements StatisticalAnalyzer {
     x = Math.abs(x);
 
     const t = 1 / (1 + p * x);
-    const y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+    const y = 1 - ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
 
     return sign * y;
   }
@@ -163,7 +166,10 @@ export class BasicStatisticalAnalyzer implements StatisticalAnalyzer {
  * Includes more sophisticated tests and power analysis
  */
 export class AdvancedStatisticalAnalyzer extends BasicStatisticalAnalyzer {
-  calculateChiSquareTest(observed: number[][], expected: number[][]): {
+  calculateChiSquareTest(
+    observed: number[][],
+    expected: number[][]
+  ): {
     chiSquare: number;
     pValue: number;
     degreesOfFreedom: number;
@@ -177,11 +183,11 @@ export class AdvancedStatisticalAnalyzer extends BasicStatisticalAnalyzer {
       for (let j = 0; j < observed[i].length; j++) {
         const obs = observed[i][j];
         const exp = expected[i][j];
-        
+
         if (exp > 0) {
           chiSquare += Math.pow(obs - exp, 2) / exp;
         }
-        
+
         totalObserved += obs;
         totalExpected += exp;
       }
@@ -210,19 +216,26 @@ export class AdvancedStatisticalAnalyzer extends BasicStatisticalAnalyzer {
     // Simplified power calculation for proportions
     const zAlpha = this.getZScore(1 - alpha / 2);
     const zBeta = this.getZScore(power);
-    
+
     const p1 = baselineRate;
     const p2 = baselineRate + minimumDetectableEffect;
     const p = (p1 + p2) / 2;
-    
-    const numerator = Math.pow(zAlpha * Math.sqrt(2 * p * (1 - p)) + zBeta * Math.sqrt(p1 * (1 - p1) + p2 * (1 - p2)), 2);
+
+    const numerator = Math.pow(
+      zAlpha * Math.sqrt(2 * p * (1 - p)) + zBeta * Math.sqrt(p1 * (1 - p1) + p2 * (1 - p2)),
+      2
+    );
     const denominator = Math.pow(p1 - p2, 2);
-    
+
     const requiredSampleSize = Math.ceil(numerator / denominator);
-    
+
     // Calculate actual power with the sample size
-    const standardError = Math.sqrt(p1 * (1 - p1) / requiredSampleSize + p2 * (1 - p2) / requiredSampleSize);
-    const actualPower = this.normalCDF((Math.abs(p1 - p2) - zAlpha * standardError) / standardError);
+    const standardError = Math.sqrt(
+      (p1 * (1 - p1)) / requiredSampleSize + (p2 * (1 - p2)) / requiredSampleSize
+    );
+    const actualPower = this.normalCDF(
+      (Math.abs(p1 - p2) - zAlpha * standardError) / standardError
+    );
 
     return {
       requiredSampleSize,
@@ -239,7 +252,7 @@ export class AdvancedStatisticalAnalyzer extends BasicStatisticalAnalyzer {
       const z = (x - df) / Math.sqrt(2 * df);
       return this.normalCDF(z);
     }
-    
+
     // For small df, use gamma function approximation
     // This is a simplified version - in production, use a proper chi-square library
     return this.gammaCDF(x / 2, df / 2);
@@ -256,7 +269,7 @@ export class AdvancedStatisticalAnalyzer extends BasicStatisticalAnalyzer {
       const z = (x - mean) / stdDev;
       return this.normalCDF(z);
     }
-    
+
     // For small shape, return a rough approximation
     return 1 - Math.exp(-x);
   }
@@ -268,23 +281,22 @@ export class AdvancedStatisticalAnalyzer extends BasicStatisticalAnalyzer {
 export class StatisticalReportGenerator {
   constructor(private analyzer: StatisticalAnalyzer) {}
 
-  generateReport(trials: any[], options: {
-    confidenceLevel?: number;
-    alpha?: number;
-    includePowerAnalysis?: boolean;
-  } = {}): {
+  generateReport(
+    trials: any[],
+    options: {
+      confidenceLevel?: number;
+      alpha?: number;
+      includePowerAnalysis?: boolean;
+    } = {}
+  ): {
     summary: any;
     detailedResults: StatisticalResult[];
     recommendations: string[];
   } {
-    const {
-      confidenceLevel = 0.95,
-      alpha = 0.05,
-      includePowerAnalysis = false,
-    } = options;
+    const { confidenceLevel = 0.95, alpha = 0.05, includePowerAnalysis = false } = options;
 
     const results = this.analyzer.calculateWinRates(trials);
-    
+
     const summary = {
       totalTrials: trials.length,
       totalVariants: results.length,
@@ -304,25 +316,26 @@ export class StatisticalReportGenerator {
   }
 
   private getTopPerformer(results: StatisticalResult[]): StatisticalResult | null {
-    if (results.length === 0) return null;
-    
-    return results.reduce((best, current) => 
-      current.winRate > best.winRate ? current : best
-    );
+    if (results.length === 0) {return null;}
+
+    return results.reduce((best, current) => (current.winRate > best.winRate ? current : best));
   }
 
-  private getSignificanceSummary(results: StatisticalResult[], alpha: number): {
+  private getSignificanceSummary(
+    results: StatisticalResult[],
+    alpha: number
+  ): {
     significantVariants: number;
     totalVariants: number;
     confidence: string;
   } {
-    const significant = results.filter(r => 
-      r.significance === "SIGNIFICANT" || (r.pValue && r.pValue < alpha)
+    const significant = results.filter(
+      (r) => r.significance === 'SIGNIFICANT' || (r.pValue && r.pValue < alpha)
     ).length;
 
-    let confidence = "Low";
-    if (significant / results.length > 0.8) confidence = "High";
-    else if (significant / results.length > 0.5) confidence = "Medium";
+    let confidence = 'Low';
+    if (significant / results.length > 0.8) {confidence = 'High';}
+    else if (significant / results.length > 0.5) {confidence = 'Medium';}
 
     return {
       significantVariants: significant,
@@ -333,27 +346,31 @@ export class StatisticalReportGenerator {
 
   private generateRecommendations(results: StatisticalResult[], alpha: number): string[] {
     const recommendations: string[] = [];
-    
+
     const topPerformer = this.getTopPerformer(results);
-    if (topPerformer && topPerformer.significance === "SIGNIFICANT") {
+    if (topPerformer && topPerformer.significance === 'SIGNIFICANT') {
       recommendations.push(
-        `${topPerformer.variantId} shows statistically significant superior performance with a win rate of ${(topPerformer.winRate * 100).toFixed(1)}%`
+        `${
+          topPerformer.variantId
+        } shows statistically significant superior performance with a win rate of ${(
+          topPerformer.winRate * 100
+        ).toFixed(1)}%`
       );
     }
 
-    const significantResults = results.filter(r => 
-      r.significance === "SIGNIFICANT" || (r.pValue && r.pValue < alpha)
+    const significantResults = results.filter(
+      (r) => r.significance === 'SIGNIFICANT' || (r.pValue && r.pValue < alpha)
     );
 
     if (significantResults.length === 0) {
       recommendations.push(
-        "No statistically significant differences detected. Consider increasing sample size or extending experiment duration."
+        'No statistically significant differences detected. Consider increasing sample size or extending experiment duration.'
       );
     }
 
-    if (results.some(r => !r.confidenceInterval)) {
+    if (results.some((r) => !r.confidenceInterval)) {
       recommendations.push(
-        "Some variants have insufficient data for reliable confidence intervals."
+        'Some variants have insufficient data for reliable confidence intervals.'
       );
     }
 
@@ -375,7 +392,8 @@ export const StatisticalUtils = {
     power: number = 0.8
   ): number => {
     const analyzer = new AdvancedStatisticalAnalyzer();
-    return analyzer.calculatePowerAnalysis(baselineRate, effectSize, alpha, power).requiredSampleSize;
+    return analyzer.calculatePowerAnalysis(baselineRate, effectSize, alpha, power)
+      .requiredSampleSize;
   },
 
   /**
@@ -400,10 +418,12 @@ export const StatisticalUtils = {
    */
   formatStatisticalResult: (result: StatisticalResult): string => {
     const winRatePercent = (result.winRate * 100).toFixed(1);
-    const confidenceInterval = result.confidenceInterval 
-      ? `[${(result.confidenceInterval[0] * 100).toFixed(1)}%, ${(result.confidenceInterval[1] * 100).toFixed(1)}%]`
-      : "N/A";
-    
+    const confidenceInterval = result.confidenceInterval
+      ? `[${(result.confidenceInterval[0] * 100).toFixed(1)}%, ${(
+          result.confidenceInterval[1] * 100
+        ).toFixed(1)}%]`
+      : 'N/A';
+
     return `${result.variantId}: ${winRatePercent}% win rate (CI: ${confidenceInterval})`;
   },
 };

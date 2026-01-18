@@ -1,15 +1,16 @@
 /**
  * Archive Analysis Utilities for Conversational Metrics
- * 
+ *
  * Extracts conversation data from .mhtml and JSON archives for testing
  * and calibration of the Phase-Shift Velocity metrics within SONATE Lab.
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
+
 import { ConversationTurn } from './conversational-metrics';
-import { parseClaudeMhtml } from './parsers/claude.parser';
 import { parseChatGptHtml } from './parsers/chatgpt.parser';
+import { parseClaudeMhtml } from './parsers/claude.parser';
 import { parseGrokHtml } from './parsers/grok.parser';
 import { parseWolframHtml } from './parsers/wolfram.parser';
 
@@ -34,7 +35,7 @@ export interface ParsedConversationTurn {
   speaker: 'user' | 'ai';
   content: string;
   resonance?: number; // Extracted from content analysis
-  canvas?: number;    // Extracted from content analysis
+  canvas?: number; // Extracted from content analysis
   identityVector?: string[];
 }
 
@@ -66,7 +67,10 @@ export class ArchiveAnalyzer {
   /**
    * Load conversations from a specific AI system
    */
-  private async loadSystemConversations(aiSystem: string, systemPath: string): Promise<ArchiveConversation[]> {
+  private async loadSystemConversations(
+    aiSystem: string,
+    systemPath: string
+  ): Promise<ArchiveConversation[]> {
     const conversations: ArchiveConversation[] = [];
     const files = fs.readdirSync(systemPath);
 
@@ -97,9 +101,12 @@ export class ArchiveAnalyzer {
   /**
    * Parse MHTML file and extract conversation data
    */
-  private async parseMhtmlFile(filePath: string, aiSystem: string): Promise<ArchiveConversation | null> {
+  private async parseMhtmlFile(
+    filePath: string,
+    aiSystem: string
+  ): Promise<ArchiveConversation | null> {
     const content = fs.readFileSync(filePath, 'utf-8');
-    
+
     // Extract basic metadata from filename
     const filename = path.basename(filePath, '.mhtml');
     const conversationId = this.generateConversationId(aiSystem, filename);
@@ -107,7 +114,7 @@ export class ArchiveAnalyzer {
 
     // Parse conversation turns from MHTML content
     const turns = this.extractTurnsFromMhtml(content, aiSystem);
-    
+
     if (turns.length === 0) {
       return null;
     }
@@ -121,20 +128,23 @@ export class ArchiveAnalyzer {
       timestamp,
       sourceFileName: path.basename(filePath),
       turns: enhancedTurns,
-      metadata: this.calculateMetadata(enhancedTurns)
+      metadata: this.calculateMetadata(enhancedTurns),
     };
   }
 
   /**
    * Parse JSON file and extract conversation data
    */
-  private async parseJsonFile(filePath: string, aiSystem: string): Promise<ArchiveConversation | null> {
+  private async parseJsonFile(
+    filePath: string,
+    aiSystem: string
+  ): Promise<ArchiveConversation | null> {
     const content = fs.readFileSync(filePath, 'utf-8');
     const data = JSON.parse(content);
 
     // Handle different JSON structures (DeepSeek format)
     const turns = this.extractTurnsFromJson(data, aiSystem);
-    
+
     if (turns.length === 0) {
       return null;
     }
@@ -148,7 +158,7 @@ export class ArchiveAnalyzer {
       timestamp: Date.now(),
       sourceFileName: path.basename(filePath),
       turns: enhancedTurns,
-      metadata: this.calculateMetadata(enhancedTurns)
+      metadata: this.calculateMetadata(enhancedTurns),
     };
   }
 
@@ -174,50 +184,51 @@ export class ArchiveAnalyzer {
       return turns;
     }
     const fallbackTurns: ParsedConversationTurn[] = [];
-    
+
     // Look for common conversation patterns in MHTML
     const userPatterns = [
       /<div[^>]*class="[^"]*user[^"]*"[^>]*>(.*?)<\/div>/gi,
       /<p[^>]*class="[^"]*user-message[^"]*"[^>]*>(.*?)<\/p>/gi,
-      /User:\s*(.*?)(?:\n|<br\s*\/?>)/gi
+      /User:\s*(.*?)(?:\n|<br\s*\/?>)/gi,
     ];
 
     const aiPatterns = [
       /<div[^>]*class="[^"]*assistant[^"]*"[^>]*>(.*?)<\/div>/gi,
       /<p[^>]*class="[^"]*ai-response[^"]*"[^>]*>(.*?)<\/p>/gi,
-      new RegExp(`${aiSystem}:\\s*(.*?)(?:\\n|<br\\s*\\/?>)`, 'gi')
+      new RegExp(`${aiSystem}:\\s*(.*?)(?:\\n|<br\\s*\\/?>)`, 'gi'),
     ];
 
     let turnNumber = 1;
     let timestamp = Date.now();
 
     // Extract user turns
-    userPatterns.forEach(pattern => {
+    userPatterns.forEach((pattern) => {
       let match;
       while ((match = pattern.exec(content)) !== null) {
         const content = this.cleanHtmlContent(match[1]);
-        if (content.length > 10) { // Filter out very short content
+        if (content.length > 10) {
+          // Filter out very short content
           fallbackTurns.push({
             turnNumber: turnNumber++,
-            timestamp: timestamp += 1000,
+            timestamp: (timestamp += 1000),
             speaker: 'user',
-            content
+            content,
           });
         }
       }
     });
 
     // Extract AI turns
-    aiPatterns.forEach(pattern => {
+    aiPatterns.forEach((pattern) => {
       let match;
       while ((match = pattern.exec(content)) !== null) {
         const content = this.cleanHtmlContent(match[1]);
         if (content.length > 10) {
           fallbackTurns.push({
             turnNumber: turnNumber++,
-            timestamp: timestamp += 1000,
+            timestamp: (timestamp += 1000),
             speaker: 'ai',
-            content
+            content,
           });
         }
       }
@@ -232,16 +243,16 @@ export class ArchiveAnalyzer {
    */
   private extractTurnsFromJson(data: any, aiSystem: string): ParsedConversationTurn[] {
     const turns: ParsedConversationTurn[] = [];
-    
+
     // Handle DeepSeek JSON format
     if (Array.isArray(data)) {
       data.forEach((item, index) => {
         if (item.content && typeof item.content === 'string') {
           turns.push({
             turnNumber: index + 1,
-            timestamp: Date.now() + (index * 1000),
+            timestamp: Date.now() + index * 1000,
             speaker: item.role === 'user' ? 'user' : 'ai',
-            content: item.content
+            content: item.content,
           });
         }
       });
@@ -254,23 +265,24 @@ export class ArchiveAnalyzer {
    * Enhance turns with resonance and canvas scores based on content analysis
    */
   private enhanceTurnsWithMetrics(turns: ParsedConversationTurn[]): ConversationTurn[] {
-    return turns.map(turn => {
+    return turns.map((turn) => {
       const content = turn.content.toLowerCase();
-      
+
       // Simple heuristic scoring (can be improved with ML models)
       let resonance = 5.0; // Base score
-      let canvas = 5.0;    // Base score
+      let canvas = 5.0; // Base score
       let identityVector: string[] = [];
 
       if (turn.speaker === 'ai') {
         // Analyze AI responses for resonance indicators
         const positiveIndicators = ['helpful', 'understand', 'assist', 'support', 'guide'].length;
         const negativeIndicators = ['cannot', 'unable', 'refuse', 'reject', 'deny'].length;
-        const collaborativeIndicators = ['together', 'collaborate', 'mutual', 'shared', 'we'].length;
-        
+        const collaborativeIndicators = ['together', 'collaborate', 'mutual', 'shared', 'we']
+          .length;
+
         resonance = Math.max(1, Math.min(10, 5 + (positiveIndicators - negativeIndicators) * 0.5));
         canvas = Math.max(1, Math.min(10, 5 + collaborativeIndicators * 0.3));
-        
+
         // Extract identity indicators
         if (content.includes('i am') || content.includes('as an ai')) {
           identityVector = ['ai', 'assistant'];
@@ -288,7 +300,7 @@ export class ArchiveAnalyzer {
         // Analyze user inputs
         const questionIndicators = content.split('?').length - 1;
         const requestIndicators = ['please', 'can you', 'help', 'need'].length;
-        
+
         resonance = Math.max(1, Math.min(10, 5 + (questionIndicators + requestIndicators) * 0.3));
         canvas = Math.max(1, Math.min(10, 5 + (requestIndicators > 0 ? 1 : 0)));
       }
@@ -297,7 +309,7 @@ export class ArchiveAnalyzer {
         ...turn,
         resonance,
         canvas,
-        identityVector: identityVector.length > 0 ? identityVector : ['neutral']
+        identityVector: identityVector.length > 0 ? identityVector : ['neutral'],
       };
     });
   }
@@ -306,28 +318,30 @@ export class ArchiveAnalyzer {
    * Calculate conversation metadata
    */
   private calculateMetadata(turns: ConversationTurn[]): ArchiveConversation['metadata'] {
-    const aiTurns = turns.filter(t => t.speaker === 'ai');
+    const aiTurns = turns.filter((t) => t.speaker === 'ai');
     const totalTurns = turns.length;
-    
-    const avgResonance = aiTurns.reduce((sum, turn) => sum + (turn.resonance || 5), 0) / Math.max(1, aiTurns.length);
-    const avgCanvas = aiTurns.reduce((sum, turn) => sum + (turn.canvas || 5), 0) / Math.max(1, aiTurns.length);
-    
+
+    const avgResonance =
+      aiTurns.reduce((sum, turn) => sum + (turn.resonance || 5), 0) / Math.max(1, aiTurns.length);
+    const avgCanvas =
+      aiTurns.reduce((sum, turn) => sum + (turn.canvas || 5), 0) / Math.max(1, aiTurns.length);
+
     // Count potential phase shifts (significant changes in scores)
     let phaseShifts = 0;
     let alertEvents = 0;
-    
+
     for (let i = 1; i < aiTurns.length; i++) {
       const prev = aiTurns[i - 1];
       const curr = aiTurns[i];
-      
+
       if (prev.resonance && curr.resonance) {
         const deltaResonance = Math.abs(curr.resonance - prev.resonance);
         const deltaCanvas = Math.abs((curr.canvas || 5) - (prev.canvas || 5));
-        
+
         if (deltaResonance > 2.0 || deltaCanvas > 2.0) {
           phaseShifts++;
         }
-        
+
         if (deltaResonance > 2.5 || deltaCanvas > 2.5) {
           alertEvents++;
         }
@@ -339,7 +353,7 @@ export class ArchiveAnalyzer {
       avgResonance,
       avgCanvas,
       phaseShifts,
-      alertEvents
+      alertEvents,
     };
   }
 
@@ -398,13 +412,13 @@ export class ArchiveAnalyzer {
       totalPhaseShifts: 0,
       totalAlertEvents: 0,
       avgResonance: 0,
-      avgCanvas: 0
+      avgCanvas: 0,
     };
 
     let totalResonance = 0;
     let totalCanvas = 0;
 
-    conversations.forEach(conv => {
+    conversations.forEach((conv) => {
       stats.bySystem[conv.aiSystem] = (stats.bySystem[conv.aiSystem] || 0) + 1;
       stats.totalTurns += conv.metadata.totalTurns;
       stats.totalPhaseShifts += conv.metadata.phaseShifts;

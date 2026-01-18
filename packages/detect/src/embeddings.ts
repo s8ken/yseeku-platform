@@ -2,7 +2,7 @@ import { SCAFFOLD_KEYWORDS } from './constants';
 import { sha256 } from './crypto';
 
 export function cosineSimilarity(vecA: number[], vecB: number[]): number {
-  if (vecA.length !== vecB.length) return 0;
+  if (vecA.length !== vecB.length) {return 0;}
 
   let dotProduct = 0;
   let normA = 0;
@@ -12,7 +12,7 @@ export function cosineSimilarity(vecA: number[], vecB: number[]): number {
     const valA = vecA[i];
     const valB = vecB[i];
 
-    if (!isFinite(valA) || !isFinite(valB)) return 0;
+    if (!isFinite(valA) || !isFinite(valB)) {return 0;}
 
     dotProduct += valA * valB;
     normA += valA * valA;
@@ -21,7 +21,7 @@ export function cosineSimilarity(vecA: number[], vecB: number[]): number {
 
   normA = Math.sqrt(normA);
   normB = Math.sqrt(normB);
-  if (normA === 0 || normB === 0) return 0;
+  if (normA === 0 || normB === 0) {return 0;}
 
   const similarity = dotProduct / (normA * normB);
   return Math.max(-1, Math.min(1, similarity));
@@ -34,7 +34,7 @@ export function embed(text: string): number[] {
 
   const seedHex = sha256(lowerText).slice(0, 8);
   let seed = parseInt(seedHex, 16) >>> 0;
-  if (!Number.isFinite(seed)) seed = 0x9e3779b9;
+  if (!Number.isFinite(seed)) {seed = 0x9e3779b9;}
 
   const nextRand = () => {
     seed ^= seed << 13;
@@ -47,11 +47,11 @@ export function embed(text: string): number[] {
   };
 
   // Check for scaffold alignment
-  const scaffoldMatch = SCAFFOLD_KEYWORDS.filter(kw => lowerText.includes(kw)).length;
-  
+  const scaffoldMatch = SCAFFOLD_KEYWORDS.filter((kw) => lowerText.includes(kw)).length;
+
   // Check for "drift" keywords (e.g. crypto, finance, spam)
   const driftKeywords = ['crypto', 'bitcoin', 'investment', 'cheap', 'buy'];
-  const driftMatch = driftKeywords.filter(kw => lowerText.includes(kw)).length;
+  const driftMatch = driftKeywords.filter((kw) => lowerText.includes(kw)).length;
 
   if (scaffoldMatch > 0 && driftMatch === 0) {
     return Array.from({ length: vectorSize }, (_, i) => {
@@ -65,7 +65,7 @@ export function embed(text: string): number[] {
       const noise = (nextRand() - 0.5) * 0.01;
       return base + noise;
     });
-  } else {
+  } 
     return Array.from({ length: vectorSize }, () => nextRand() - 0.5);
-  }
+  
 }

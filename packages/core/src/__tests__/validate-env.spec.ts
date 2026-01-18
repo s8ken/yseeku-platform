@@ -3,7 +3,9 @@ import { logger } from '../logger';
 
 describe('validateEnvironment', () => {
   const originalEnv = { ...process.env };
-  const mockExit = jest.spyOn(process, 'exit').mockImplementation(((code?: number) => { throw new Error(`process.exit(${code})`); }) as any);
+  const mockExit = jest.spyOn(process, 'exit').mockImplementation(((code?: number) => {
+    throw new Error(`process.exit(${code})`);
+  }) as any);
   const mockError = jest.spyOn(logger, 'error').mockImplementation(() => logger);
   const mockWarn = jest.spyOn(logger, 'warn').mockImplementation(() => logger);
   const mockLog = jest.spyOn(logger, 'info').mockImplementation(() => logger);
