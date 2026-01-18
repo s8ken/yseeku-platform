@@ -5,9 +5,11 @@
  */
 
 import { createHash } from 'crypto';
-import { HashChain, HashChainLink } from './hash-chain';
-import { EnhancedCryptoManager, EnhancedKeyPair } from './crypto-enhanced';
+
 import { TrustReceipt } from '../trust-receipt';
+
+import { EnhancedCryptoManager, EnhancedKeyPair } from './crypto-enhanced';
+import { HashChain, HashChainLink } from './hash-chain';
 
 export interface AuditEvent {
   id: string;
@@ -67,7 +69,7 @@ export class EnhancedAuditSystem {
       enableChaining: config.enableChaining ?? true,
       retentionDays: config.retentionDays ?? 90,
       maxChainLength: config.maxChainLength ?? 10000,
-      autoVerify: config.autoVerify ?? true
+      autoVerify: config.autoVerify ?? true,
     };
 
     this.hashChain = new HashChain({ algorithm: 'sha256', encoding: 'hex' });
@@ -113,9 +115,10 @@ export class EnhancedAuditSystem {
         hash: chainLink.hash,
         previousHash: chainLink.previousHash,
         signature: this.config.enableSigning ? await this.signEvent(event, chainLink) : undefined,
-        chainSignature: this.config.enableChaining && previousEvent 
-          ? await this.signChain(chainLink.hash, previousEvent) 
-          : undefined
+        chainSignature:
+          this.config.enableChaining && previousEvent
+            ? await this.signChain(chainLink.hash, previousEvent)
+            : undefined,
       };
 
       // Store the event
@@ -131,7 +134,9 @@ export class EnhancedAuditSystem {
 
       return signedEvent;
     } catch (error) {
-      throw new Error(`Failed to log audit event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to log audit event: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -179,12 +184,12 @@ export class EnhancedAuditSystem {
         valid: true,
         event,
         chainValid,
-        signatureValid
+        signatureValid,
       };
     } catch (error) {
       return {
         valid: false,
-        reason: `Verification error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        reason: `Verification error: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   }
@@ -251,21 +256,21 @@ export class EnhancedAuditSystem {
     };
   } {
     const events = Array.from(this.events.values());
-    
+
     const stats = {
       totalEvents: events.length,
       eventsByCategory: {} as Record<string, number>,
       eventsByLevel: {} as Record<string, number>,
       eventsByResult: {} as Record<string, number>,
       timeRange: {
-        earliest: events.length > 0 ? Math.min(...events.map(e => e.timestamp)) : null,
-        latest: events.length > 0 ? Math.max(...events.map(e => e.timestamp)) : null
+        earliest: events.length > 0 ? Math.min(...events.map((e) => e.timestamp)) : null,
+        latest: events.length > 0 ? Math.max(...events.map((e) => e.timestamp)) : null,
       },
-      chainIntegrity: this.verifyAuditChain()
+      chainIntegrity: this.verifyAuditChain(),
     };
 
     // Count by category
-    events.forEach(event => {
+    events.forEach((event) => {
       stats.eventsByCategory[event.category] = (stats.eventsByCategory[event.category] || 0) + 1;
       stats.eventsByLevel[event.level] = (stats.eventsByLevel[event.level] || 0) + 1;
       stats.eventsByResult[event.result] = (stats.eventsByResult[event.result] || 0) + 1;
@@ -297,8 +302,8 @@ export class EnhancedAuditSystem {
       exportTimestamp: Date.now(),
       integrity: {
         valid: chainIntegrity.valid,
-        issues: chainIntegrity.issues
-      }
+        issues: chainIntegrity.issues,
+      },
     };
   }
 
@@ -337,20 +342,24 @@ export class EnhancedAuditSystem {
           this.events.set(event.id, event);
           imported++;
         } catch (error) {
-          issues.push(`Failed to import event ${event.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          issues.push(
+            `Failed to import event ${event.id}: ${
+              error instanceof Error ? error.message : 'Unknown error'
+            }`
+          );
         }
       }
 
       return {
         success: issues.length === 0,
         imported,
-        issues
+        issues,
       };
     } catch (error) {
       return {
         success: false,
         imported: 0,
-        issues: [`Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`]
+        issues: [`Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`],
       };
     }
   }
@@ -367,9 +376,9 @@ export class EnhancedAuditSystem {
    */
   getLatestEvent(): SignedAuditEvent | undefined {
     const events = Array.from(this.events.values());
-    if (events.length === 0) return undefined;
-    
-    return events.reduce((latest, current) => 
+    if (events.length === 0) {return undefined;}
+
+    return events.reduce((latest, current) =>
       current.timestamp > latest.timestamp ? current : latest
     );
   }
@@ -377,48 +386,56 @@ export class EnhancedAuditSystem {
   /**
    * Query events with filtering
    */
-  queryEvents(filters: {
-    category?: string;
-    level?: string;
-    actorId?: string;
-    resourceType?: string;
-    result?: string;
-    timeRange?: { start: number; end: number };
-    tenant?: string;
-  } = {}): SignedAuditEvent[] {
+  queryEvents(
+    filters: {
+      category?: string;
+      level?: string;
+      actorId?: string;
+      resourceType?: string;
+      result?: string;
+      timeRange?: { start: number; end: number };
+      tenant?: string;
+    } = {}
+  ): SignedAuditEvent[] {
     const events = Array.from(this.events.values());
-    
-    return events.filter(event => {
-      if (filters.category && event.category !== filters.category) return false;
-      if (filters.level && event.level !== filters.level) return false;
-      if (filters.actorId && event.actor.id !== filters.actorId) return false;
-      if (filters.resourceType && event.resource.type !== filters.resourceType) return false;
-      if (filters.result && event.result !== filters.result) return false;
-      if (filters.tenant && event.actor.tenant !== filters.tenant) return false;
-      if (filters.timeRange) {
-        if (event.timestamp < filters.timeRange.start || event.timestamp > filters.timeRange.end) return false;
-      }
-      return true;
-    }).sort((a, b) => a.timestamp - b.timestamp);
+
+    return events
+      .filter((event) => {
+        if (filters.category && event.category !== filters.category) {return false;}
+        if (filters.level && event.level !== filters.level) {return false;}
+        if (filters.actorId && event.actor.id !== filters.actorId) {return false;}
+        if (filters.resourceType && event.resource.type !== filters.resourceType) {return false;}
+        if (filters.result && event.result !== filters.result) {return false;}
+        if (filters.tenant && event.actor.tenant !== filters.tenant) {return false;}
+        if (filters.timeRange) {
+          if (event.timestamp < filters.timeRange.start || event.timestamp > filters.timeRange.end)
+            {return false;}
+        }
+        return true;
+      })
+      .sort((a, b) => a.timestamp - b.timestamp);
   }
 
   /**
    * Serialize event for hashing
    */
   private serializeEvent(event: AuditEvent): string {
-    return JSON.stringify({
-      id: event.id,
-      timestamp: event.timestamp,
-      level: event.level,
-      category: event.category,
-      action: event.action,
-      actor: event.actor,
-      resource: event.resource,
-      context: event.context,
-      result: event.result,
-      reason: event.reason,
-      metadata: event.metadata
-    }, Object.keys(event).sort()); // Sort keys for consistent serialization
+    return JSON.stringify(
+      {
+        id: event.id,
+        timestamp: event.timestamp,
+        level: event.level,
+        category: event.category,
+        action: event.action,
+        actor: event.actor,
+        resource: event.resource,
+        context: event.context,
+        result: event.result,
+        reason: event.reason,
+        metadata: event.metadata,
+      },
+      Object.keys(event).sort()
+    ); // Sort keys for consistent serialization
   }
 
   /**
@@ -442,7 +459,7 @@ export class EnhancedAuditSystem {
       Buffer.from(dataToSign, 'utf8'),
       this.keyPair.privateKeyUint8Array
     );
-    
+
     return Buffer.from(signature).toString('hex');
   }
 
@@ -457,14 +474,14 @@ export class EnhancedAuditSystem {
     const chainData = JSON.stringify({
       currentHash,
       previousHash: previousEvent.hash,
-      previousTimestamp: previousEvent.timestamp
+      previousTimestamp: previousEvent.timestamp,
     });
 
     const signature = await ed25519.sign(
       Buffer.from(chainData, 'utf8'),
       this.keyPair.privateKeyUint8Array
     );
-    
+
     return Buffer.from(signature).toString('hex');
   }
 
@@ -479,7 +496,7 @@ export class EnhancedAuditSystem {
     try {
       const dataToVerify = this.serializeEvent(event) + event.hash;
       const signature = Buffer.from(event.signature, 'hex');
-      
+
       return await ed25519.verify(
         signature,
         Buffer.from(dataToVerify, 'utf8'),

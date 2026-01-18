@@ -2,6 +2,7 @@ import { writeAuditLog, queryAuditLogs } from '../audit';
 
 jest.mock('../db', () => ({
   getPool: jest.fn(),
+  resolveTenantId: jest.fn((tenantId?: string) => tenantId ?? null),
 }));
 
 const mockPool = {
@@ -52,26 +53,30 @@ describe('Audit', () => {
 
     it('should return audit logs', async () => {
       mockPool.query.mockResolvedValue({
-        rows: [{
+        rows: [
+          {
+            id: 'test',
+            user_id: 'user',
+            event: 'login',
+            status: 'success',
+            details: { ip: '127.0.0.1' },
+            tenant_id: 'tenant',
+            created_at: new Date(),
+          },
+        ],
+      });
+      const result = await queryAuditLogs('tenant', 10);
+      expect(result).toEqual([
+        {
           id: 'test',
           user_id: 'user',
           event: 'login',
           status: 'success',
           details: { ip: '127.0.0.1' },
           tenant_id: 'tenant',
-          created_at: new Date(),
-        }],
-      });
-      const result = await queryAuditLogs('tenant', 10);
-      expect(result).toEqual([{
-        id: 'test',
-        user_id: 'user',
-        event: 'login',
-        status: 'success',
-        details: { ip: '127.0.0.1' },
-        tenant_id: 'tenant',
-        created_at: expect.any(Date),
-      }]);
+          created_at: expect.any(Date),
+        },
+      ]);
       expect(mockPool.query).toHaveBeenCalledWith(
         `SELECT id, user_id, event, status, details, tenant_id, created_at FROM audit_logs WHERE (tenant_id = $1 OR $1 IS NULL) ORDER BY created_at DESC LIMIT $2`,
         ['tenant', 10]

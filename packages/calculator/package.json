@@ -1,0 +1,35 @@
+{
+  "name": "@sonate/calculator",
+  "version": "1.4.0",
+  "description": "Canonical Calculator V2 - Single source of truth for resonance calculations",
+  "main": "src/v2.ts",
+  "types": "src/v2.ts",
+  "exports": {
+    ".": {
+      "types": "./src/v2.ts",
+      "default": "./src/v2.ts"
+    },
+    "./v2": {
+      "types": "./src/v2.ts",
+      "default": "./src/v2.ts"
+    }
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "build": "tsc",
+    "lint": "npm --workspace @sonate/detect run build && tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@sonate/detect": "file:../detect"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "jest": "^29.5.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@sonate/detect": "workspace:*"
+  }
+}

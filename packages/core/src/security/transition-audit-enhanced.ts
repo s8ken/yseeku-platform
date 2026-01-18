@@ -1,6 +1,6 @@
 /**
  * Enhanced Transition Audit Logger
- * 
+ *
  * Enterprise-grade audit logging system for tracking conversational
  * phase-shift events with compliance reporting and regulatory flags.
  * Enhanced with cryptographic integrity and advanced security features.
@@ -15,7 +15,12 @@ export interface EnhancedAuditLogEntry {
   sessionId: string;
   conversationId: string;
   turnNumber: number;
-  eventType: 'resonance_drop' | 'canvas_rupture' | 'identity_shift' | 'combined_phase_shift' | 'velocity_spike';
+  eventType:
+    | 'resonance_drop'
+    | 'canvas_rupture'
+    | 'identity_shift'
+    | 'combined_phase_shift'
+    | 'velocity_spike';
   severity: 'minor' | 'moderate' | 'critical' | 'extreme';
   magnitude: number;
   previousState: {
@@ -143,15 +148,18 @@ export class EnhancedTransitionAuditLogger {
     securityIncidentThreshold: number; // events classified as security incidents
   };
 
-  constructor(auditSystem: EnhancedAuditSystem, config?: {
-    retentionDays?: number;
-    criticalReviewWindow?: number;
-    moderateReviewWindow?: number;
-    autoEscalationThreshold?: number;
-    policyViolationThreshold?: number;
-    regulatoryFlagThreshold?: number;
-    securityIncidentThreshold?: number;
-  }) {
+  constructor(
+    auditSystem: EnhancedAuditSystem,
+    config?: {
+      retentionDays?: number;
+      criticalReviewWindow?: number;
+      moderateReviewWindow?: number;
+      autoEscalationThreshold?: number;
+      policyViolationThreshold?: number;
+      regulatoryFlagThreshold?: number;
+      securityIncidentThreshold?: number;
+    }
+  ) {
     this.auditSystem = auditSystem;
     this.complianceConfig = {
       retentionDays: 2555, // 7 years for enterprise compliance
@@ -161,7 +169,7 @@ export class EnhancedTransitionAuditLogger {
       policyViolationThreshold: 6.0, // extreme velocity
       regulatoryFlagThreshold: 5.0, // events requiring regulatory review
       securityIncidentThreshold: 7.0, // events classified as security incidents
-      ...config
+      ...config,
     };
   }
 
@@ -194,22 +202,24 @@ export class EnhancedTransitionAuditLogger {
     try {
       const timestamp = new Date().toISOString();
       const entryId = `transition_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+
       // Determine compliance requirements
       const requiresReview = this.determinesReviewRequirement(event);
       const autoEscalated = this.determinesAutoEscalation(event);
       const regulatoryFlag = this.determinesRegulatoryFlag(event);
       const securityIncident = this.determinesSecurityIncident(event);
-      
+
       // Generate review deadline
       const reviewDeadline = this.calculateReviewDeadline(event.severity, timestamp);
-      
+
       // Generate cryptographic evidence
       const cryptographicEvidence = await this.generateCryptographicEvidence(event, context);
-      
+
       // Perform threat assessment for high-severity events
-      const threatAssessment = event.severity === 'critical' || event.severity === 'extreme' ?
-        await this.performThreatAssessment(event, context) : undefined;
+      const threatAssessment =
+        event.severity === 'critical' || event.severity === 'extreme'
+          ? await this.performThreatAssessment(event, context)
+          : undefined;
 
       const entry: EnhancedAuditLogEntry = {
         id: entryId,
@@ -232,22 +242,22 @@ export class EnhancedTransitionAuditLogger {
           businessImpact: context.businessImpact,
           regulatoryFlag,
           securityClassification: context.securityClassification || 'internal',
-          dataClassification: context.dataClassification || 'proprietary'
+          dataClassification: context.dataClassification || 'proprietary',
         },
         compliance: {
           requiresReview,
           autoEscalated,
           humanReviewed: false,
           reviewDeadline: reviewDeadline?.toISOString(),
-          retentionPolicy: this.calculateRetentionPolicy(event, context)
+          retentionPolicy: this.calculateRetentionPolicy(event, context),
         },
         cryptographicEvidence,
-        threatAssessment
+        threatAssessment,
       };
 
       // Add to local audit log
       this.auditLog.push(entry);
-      
+
       // Log to enhanced audit system
       await this.auditSystem.logEvent({
         type: 'TRANSITION_EVENT',
@@ -263,8 +273,8 @@ export class EnhancedTransitionAuditLogger {
           autoEscalated,
           regulatoryFlag,
           securityIncident,
-          cryptographicValid: cryptographicEvidence.validationStatus === 'valid'
-        }
+          cryptographicValid: cryptographicEvidence.validationStatus === 'valid',
+        },
       });
 
       // Handle auto-escalation
@@ -287,16 +297,12 @@ export class EnhancedTransitionAuditLogger {
       if (error instanceof SecurityError) {
         throw error;
       }
-      
-      throw new SecurityError(
-        'Failed to log transition event',
-        'AUDIT_LOGGING_FAILED',
-        {
-          originalError: error instanceof Error ? error.message : 'Unknown error',
-          context: JSON.stringify(context),
-          event: JSON.stringify(event)
-        }
-      );
+
+      throw new SecurityError('Failed to log transition event', 'AUDIT_LOGGING_FAILED', {
+        originalError: error instanceof Error ? error.message : 'Unknown error',
+        context: JSON.stringify(context),
+        event: JSON.stringify(event),
+      });
     }
   }
 
@@ -310,31 +316,31 @@ export class EnhancedTransitionAuditLogger {
     try {
       const reportId = `compliance_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const generatedAt = new Date().toISOString();
-      
+
       // Filter events by period
       const startDate = new Date(period.start);
       const endDate = new Date(period.end);
-      
-      const filteredEvents = this.auditLog.filter(entry => {
+
+      const filteredEvents = this.auditLog.filter((entry) => {
         const entryDate = new Date(entry.timestamp);
         return entryDate >= startDate && entryDate <= endDate;
       });
 
       // Calculate summary statistics
       const summary = this.calculateSummaryStatistics(filteredEvents);
-      
+
       // Analyze trends
       const trends = this.analyzeTrends(filteredEvents);
-      
+
       // Generate recommendations
       const recommendations = this.generateComplianceRecommendations(filteredEvents, trends);
-      
+
       // Determine compliance status
       const complianceStatus = this.determineComplianceStatus(summary, trends);
-      
+
       // Generate regulatory summaries
       const regulatorySummary = this.generateRegulatorySummary(filteredEvents);
-      
+
       // Generate security summary
       const securitySummary = this.generateSecuritySummary(filteredEvents);
 
@@ -343,12 +349,14 @@ export class EnhancedTransitionAuditLogger {
         generatedAt,
         period,
         summary,
-        events: context?.includeSensitiveData ? filteredEvents : this.sanitizeEventsForReport(filteredEvents),
+        events: context?.includeSensitiveData
+          ? filteredEvents
+          : this.sanitizeEventsForReport(filteredEvents),
         trends,
         recommendations,
         complianceStatus,
         regulatorySummary,
-        securitySummary
+        securitySummary,
       };
 
       // Audit log the report generation
@@ -363,8 +371,8 @@ export class EnhancedTransitionAuditLogger {
           totalEvents: summary.totalEvents,
           complianceStatus,
           regulatoryFlags: summary.regulatoryFlags,
-          securityIncidents: summary.securityIncidents
-        }
+          securityIncidents: summary.securityIncidents,
+        },
       });
 
       return report;
@@ -372,16 +380,12 @@ export class EnhancedTransitionAuditLogger {
       if (error instanceof SecurityError) {
         throw error;
       }
-      
-      throw new SecurityError(
-        'Failed to generate compliance report',
-        'COMPLIANCE_REPORT_FAILED',
-        {
-          originalError: error instanceof Error ? error.message : 'Unknown error',
-          period: JSON.stringify(period),
-          context: JSON.stringify(context)
-        }
-      );
+
+      throw new SecurityError('Failed to generate compliance report', 'COMPLIANCE_REPORT_FAILED', {
+        originalError: error instanceof Error ? error.message : 'Unknown error',
+        period: JSON.stringify(period),
+        context: JSON.stringify(context),
+      });
     }
   }
 
@@ -398,13 +402,9 @@ export class EnhancedTransitionAuditLogger {
     context?: { userId?: string; tenant?: string }
   ): Promise<void> {
     try {
-      const entry = this.auditLog.find(e => e.id === entryId);
+      const entry = this.auditLog.find((e) => e.id === entryId);
       if (!entry) {
-        throw new SecurityError(
-          'Audit entry not found',
-          'AUDIT_ENTRY_NOT_FOUND',
-          { entryId }
-        );
+        throw new SecurityError('Audit entry not found', 'AUDIT_ENTRY_NOT_FOUND', { entryId });
       }
 
       entry.compliance.humanReviewed = true;
@@ -422,23 +422,19 @@ export class EnhancedTransitionAuditLogger {
           entryId,
           reviewOutcome: reviewData.reviewOutcome,
           reviewer: reviewData.reviewer,
-          previousSeverity: entry.severity
-        }
+          previousSeverity: entry.severity,
+        },
       });
     } catch (error) {
       if (error instanceof SecurityError) {
         throw error;
       }
-      
-      throw new SecurityError(
-        'Failed to update review status',
-        'REVIEW_UPDATE_FAILED',
-        {
-          originalError: error instanceof Error ? error.message : 'Unknown error',
-          entryId,
-          reviewData: JSON.stringify(reviewData)
-        }
-      );
+
+      throw new SecurityError('Failed to update review status', 'REVIEW_UPDATE_FAILED', {
+        originalError: error instanceof Error ? error.message : 'Unknown error',
+        entryId,
+        reviewData: JSON.stringify(reviewData),
+      });
     }
   }
 
@@ -449,9 +445,11 @@ export class EnhancedTransitionAuditLogger {
     severity: EnhancedAuditLogEntry['severity'];
     magnitude: number;
   }): boolean {
-    return event.severity === 'critical' || 
-           event.severity === 'extreme' || 
-           event.magnitude >= this.complianceConfig.autoEscalationThreshold;
+    return (
+      event.severity === 'critical' ||
+      event.severity === 'extreme' ||
+      event.magnitude >= this.complianceConfig.autoEscalationThreshold
+    );
   }
 
   /**
@@ -461,8 +459,10 @@ export class EnhancedTransitionAuditLogger {
     severity: EnhancedAuditLogEntry['severity'];
     magnitude: number;
   }): boolean {
-    return event.severity === 'extreme' || 
-           event.magnitude >= this.complianceConfig.policyViolationThreshold;
+    return (
+      event.severity === 'extreme' ||
+      event.magnitude >= this.complianceConfig.policyViolationThreshold
+    );
   }
 
   /**
@@ -482,8 +482,10 @@ export class EnhancedTransitionAuditLogger {
     severity: EnhancedAuditLogEntry['severity'];
     magnitude: number;
   }): boolean {
-    return event.severity === 'extreme' || 
-           event.magnitude >= this.complianceConfig.securityIncidentThreshold;
+    return (
+      event.severity === 'extreme' ||
+      event.magnitude >= this.complianceConfig.securityIncidentThreshold
+    );
   }
 
   /**
@@ -494,13 +496,17 @@ export class EnhancedTransitionAuditLogger {
     timestamp: string
   ): Date | null {
     const baseDate = new Date(timestamp);
-    
+
     if (severity === 'critical' || severity === 'extreme') {
-      return new Date(baseDate.getTime() + this.complianceConfig.criticalReviewWindow * 60 * 60 * 1000);
+      return new Date(
+        baseDate.getTime() + this.complianceConfig.criticalReviewWindow * 60 * 60 * 1000
+      );
     } else if (severity === 'moderate') {
-      return new Date(baseDate.getTime() + this.complianceConfig.moderateReviewWindow * 60 * 60 * 1000);
+      return new Date(
+        baseDate.getTime() + this.complianceConfig.moderateReviewWindow * 60 * 60 * 1000
+      );
     }
-    
+
     return null;
   }
 
@@ -518,13 +524,13 @@ export class EnhancedTransitionAuditLogger {
     }
   ): string {
     const baseDays = this.complianceConfig.retentionDays;
-    
+
     if (event.severity === 'extreme' || context.dataClassification === 'pii') {
       return `${baseDays * 2} days`; // Double retention for extreme events or PII
     } else if (event.severity === 'critical' || context.securityClassification === 'restricted') {
       return `${baseDays * 1.5} days`; // 1.5x retention for critical events
     }
-    
+
     return `${baseDays} days`;
   }
 
@@ -544,13 +550,13 @@ export class EnhancedTransitionAuditLogger {
     const contentToSign = JSON.stringify({ event, context, timestamp: Date.now() });
     const contentHash = this.generateContentHash(contentToSign);
     const signature = this.generateSignature(contentToSign);
-    
+
     return {
       contentHash,
       signature,
       certificateId: `cert_${Date.now()}`,
       validationStatus: 'valid',
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -568,9 +574,9 @@ export class EnhancedTransitionAuditLogger {
     recommendedActions?: string[];
   }> {
     // Simplified threat assessment - in production, this would use ML models and threat intelligence
-    const riskLevel = event.severity === 'extreme' ? 'critical' : 
-                     event.severity === 'critical' ? 'high' : 'medium';
-    
+    const riskLevel =
+      event.severity === 'extreme' ? 'critical' : event.severity === 'critical' ? 'high' : 'medium';
+
     return {
       riskLevel,
       threatVector: 'ai_behavior_anomaly',
@@ -578,14 +584,14 @@ export class EnhancedTransitionAuditLogger {
       indicatorsOfCompromise: [
         'Unusual resonance patterns',
         'Identity stability degradation',
-        'Velocity spikes'
+        'Velocity spikes',
       ],
       recommendedActions: [
         'Isolate affected conversations',
         'Review conversation history',
         'Update detection rules',
-        'Notify security team'
-      ]
+        'Notify security team',
+      ],
     };
   }
 
@@ -603,8 +609,8 @@ export class EnhancedTransitionAuditLogger {
         eventType: entry.eventType,
         severity: entry.severity,
         magnitude: entry.magnitude,
-        escalationReason: 'Event exceeded auto-escalation threshold'
-      }
+        escalationReason: 'Event exceeded auto-escalation threshold',
+      },
     });
   }
 
@@ -621,8 +627,8 @@ export class EnhancedTransitionAuditLogger {
         entryId: entry.id,
         eventType: entry.eventType,
         regulatoryRequirements: this.getRegulatoryRequirements(entry),
-        reviewDeadline: entry.compliance.reviewDeadline
-      }
+        reviewDeadline: entry.compliance.reviewDeadline,
+      },
     });
   }
 
@@ -639,8 +645,8 @@ export class EnhancedTransitionAuditLogger {
         entryId: entry.id,
         eventType: entry.eventType,
         threatAssessment: entry.threatAssessment,
-        recommendedActions: entry.threatAssessment?.recommendedActions
-      }
+        recommendedActions: entry.threatAssessment?.recommendedActions,
+      },
     });
   }
 
@@ -649,11 +655,16 @@ export class EnhancedTransitionAuditLogger {
    */
   private mapSeverityToAuditSeverity(severity: string): 'low' | 'medium' | 'high' | 'critical' {
     switch (severity) {
-      case 'minor': return 'low';
-      case 'moderate': return 'medium';
-      case 'critical': return 'high';
-      case 'extreme': return 'critical';
-      default: return 'medium';
+      case 'minor':
+        return 'low';
+      case 'moderate':
+        return 'medium';
+      case 'critical':
+        return 'high';
+      case 'extreme':
+        return 'critical';
+      default:
+        return 'medium';
     }
   }
 
@@ -663,15 +674,17 @@ export class EnhancedTransitionAuditLogger {
   private calculateSummaryStatistics(events: EnhancedAuditLogEntry[]) {
     return {
       totalEvents: events.length,
-      criticalEvents: events.filter(e => e.severity === 'critical').length,
-      moderateEvents: events.filter(e => e.severity === 'moderate').length,
-      minorEvents: events.filter(e => e.severity === 'minor').length,
-      extremeEvents: events.filter(e => e.severity === 'extreme').length,
-      autoEscalations: events.filter(e => e.compliance.autoEscalated).length,
-      humanReviews: events.filter(e => e.compliance.humanReviewed).length,
-      policyViolations: events.filter(e => e.magnitude >= this.complianceConfig.policyViolationThreshold).length,
-      regulatoryFlags: events.filter(e => e.metadata.regulatoryFlag).length,
-      securityIncidents: events.filter(e => e.threatAssessment?.riskLevel === 'critical').length
+      criticalEvents: events.filter((e) => e.severity === 'critical').length,
+      moderateEvents: events.filter((e) => e.severity === 'moderate').length,
+      minorEvents: events.filter((e) => e.severity === 'minor').length,
+      extremeEvents: events.filter((e) => e.severity === 'extreme').length,
+      autoEscalations: events.filter((e) => e.compliance.autoEscalated).length,
+      humanReviews: events.filter((e) => e.compliance.humanReviewed).length,
+      policyViolations: events.filter(
+        (e) => e.magnitude >= this.complianceConfig.policyViolationThreshold
+      ).length,
+      regulatoryFlags: events.filter((e) => e.metadata.regulatoryFlag).length,
+      securityIncidents: events.filter((e) => e.threatAssessment?.riskLevel === 'critical').length,
     };
   }
 
@@ -685,26 +698,32 @@ export class EnhancedTransitionAuditLogger {
       severityDistribution: {},
       typeDistribution: {},
       topTransitions: [],
-      riskPatterns: []
+      riskPatterns: [],
     };
   }
 
   /**
    * Generate compliance recommendations
    */
-  private generateComplianceRecommendations(events: EnhancedAuditLogEntry[], trends: any): string[] {
+  private generateComplianceRecommendations(
+    events: EnhancedAuditLogEntry[],
+    trends: any
+  ): string[] {
     return [
       'Review critical and extreme events for policy compliance',
       'Ensure all regulatory flags are reviewed within required timeframes',
       'Update detection rules based on identified patterns',
-      'Consider additional security measures for high-risk events'
+      'Consider additional security measures for high-risk events',
     ];
   }
 
   /**
    * Determine overall compliance status
    */
-  private determineComplianceStatus(summary: any, trends: any): 'compliant' | 'needs_attention' | 'requires_action' | 'critical_violation' {
+  private determineComplianceStatus(
+    summary: any,
+    trends: any
+  ): 'compliant' | 'needs_attention' | 'requires_action' | 'critical_violation' {
     if (summary.extremeEvents > 0 || summary.securityIncidents > 5) {
       return 'critical_violation';
     } else if (summary.criticalEvents > 10 || summary.regulatoryFlags > 3) {
@@ -720,12 +739,13 @@ export class EnhancedTransitionAuditLogger {
    */
   private generateRegulatorySummary(events: EnhancedAuditLogEntry[]) {
     return {
-      gdprCompliance: events.filter(e => e.metadata.regulatoryFlag).length === 0,
-      soxCompliance: events.filter(e => e.magnitude > 5).length < 5,
-      hipaaCompliance: events.filter(e => e.metadata.dataClassification === 'pii').length === 0,
-      pciCompliance: events.filter(e => e.metadata.securityClassification === 'restricted').length === 0,
+      gdprCompliance: events.filter((e) => e.metadata.regulatoryFlag).length === 0,
+      soxCompliance: events.filter((e) => e.magnitude > 5).length < 5,
+      hipaaCompliance: events.filter((e) => e.metadata.dataClassification === 'pii').length === 0,
+      pciCompliance:
+        events.filter((e) => e.metadata.securityClassification === 'restricted').length === 0,
       soxViolations: [],
-      gdprViolations: []
+      gdprViolations: [],
     };
   }
 
@@ -733,18 +753,20 @@ export class EnhancedTransitionAuditLogger {
    * Generate security summary
    */
   private generateSecuritySummary(events: EnhancedAuditLogEntry[]) {
-    const criticalThreats = events.filter(e => e.threatAssessment?.riskLevel === 'critical').length;
-    const highRiskEvents = events.filter(e => e.threatAssessment?.riskLevel === 'high').length;
-    
+    const criticalThreats = events.filter(
+      (e) => e.threatAssessment?.riskLevel === 'critical'
+    ).length;
+    const highRiskEvents = events.filter((e) => e.threatAssessment?.riskLevel === 'high').length;
+
     return {
-      totalThreats: events.filter(e => e.threatAssessment).length,
+      totalThreats: events.filter((e) => e.threatAssessment).length,
       criticalThreats,
       highRiskEvents,
       recommendedSecurityActions: [
         'Review all critical threat events',
         'Update threat detection rules',
-        'Consider additional security monitoring'
-      ]
+        'Consider additional security monitoring',
+      ],
     };
   }
 
@@ -752,14 +774,14 @@ export class EnhancedTransitionAuditLogger {
    * Sanitize events for compliance report
    */
   private sanitizeEventsForReport(events: EnhancedAuditLogEntry[]): EnhancedAuditLogEntry[] {
-    return events.map(event => ({
+    return events.map((event) => ({
       ...event,
       excerpt: event.excerpt.length > 100 ? event.excerpt.substring(0, 100) + '...' : event.excerpt,
       metadata: {
         ...event.metadata,
         userId: event.metadata.userId ? '[REDACTED]' : undefined,
-        agentId: event.metadata.agentId ? '[REDACTED]' : undefined
-      }
+        agentId: event.metadata.agentId ? '[REDACTED]' : undefined,
+      },
     }));
   }
 
@@ -768,19 +790,19 @@ export class EnhancedTransitionAuditLogger {
    */
   private getRegulatoryRequirements(entry: EnhancedAuditLogEntry): string[] {
     const requirements: string[] = [];
-    
+
     if (entry.metadata.regulatoryFlag) {
       requirements.push('GDPR Review Required');
     }
-    
+
     if (entry.magnitude > 5) {
       requirements.push('SOX Compliance Review');
     }
-    
+
     if (entry.metadata.dataClassification === 'pii') {
       requirements.push('Privacy Law Compliance');
     }
-    
+
     return requirements;
   }
 

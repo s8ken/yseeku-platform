@@ -30,7 +30,12 @@ describe('Users', () => {
 
     it('should upsert user and return true', async () => {
       mockPool.query.mockResolvedValue({});
-      const user = { id: 'test', email: 'test@example.com', name: 'Test User', passwordHash: 'hash' };
+      const user = {
+        id: 'test',
+        email: 'test@example.com',
+        name: 'Test User',
+        passwordHash: 'hash',
+      };
       const result = await upsertUser(user);
       expect(result).toBe(true);
       expect(mockPool.query).toHaveBeenCalledWith(

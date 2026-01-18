@@ -1,15 +1,16 @@
 /**
  * Emergence Hypothesis Testing Framework
- * 
+ *
  * Provides systematic scientific methodology for testing emergence hypotheses
- * in AI systems using controlled experiments, statistical validation, and 
+ * in AI systems using controlled experiments, statistical validation, and
  * evidence-based reasoning protocols.
- * 
+ *
  * This framework enables rigorous investigation of emergence phenomena
  * with proper experimental design and statistical validation.
  */
 
 import { BedauMetrics, EmergenceSignal } from '@sonate/detect';
+
 import { ConsciousnessAssessment, ConsciousnessMarker } from './consciousness-markers';
 
 export interface Hypothesis {
@@ -25,7 +26,7 @@ export interface Hypothesis {
   alternativeHypothesis: string;
 }
 
-export type HypothesisType = 
+export type HypothesisType =
   | 'weak_emergence'
   | 'strong_emergence'
   | 'consciousness_emergence'
@@ -53,7 +54,7 @@ export interface ExperimentDesign {
   statisticalTests: StatisticalTest[];
 }
 
-export type ExperimentMethodology = 
+export type ExperimentMethodology =
   | 'controlled_experiment'
   | 'observational_study'
   | 'longitudinal_study'
@@ -84,7 +85,7 @@ export interface StatisticalTest {
   description: string;
 }
 
-export type StatisticalTestType = 
+export type StatisticalTestType =
   | 't_test'
   | 'anova'
   | 'chi_square'
@@ -153,16 +154,16 @@ export class EmergenceHypothesisTester {
   private experiments = new Map<string, ExperimentDesign>();
   private results = new Map<string, ExperimentResult>();
   private hypotheses = new Map<string, Hypothesis>();
-  
+
   /**
    * Create a new emergence hypothesis
    */
   createHypothesis(hypothesis: Omit<Hypothesis, 'id'>): Hypothesis {
     const newHypothesis: Hypothesis = {
       id: this.generateId('hypothesis'),
-      ...hypothesis
+      ...hypothesis,
     };
-    
+
     this.hypotheses.set(newHypothesis.id, newHypothesis);
     return newHypothesis;
   }
@@ -173,12 +174,12 @@ export class EmergenceHypothesisTester {
   designExperiment(design: Omit<ExperimentDesign, 'id'>): ExperimentDesign {
     const experiment: ExperimentDesign = {
       id: this.generateId('experiment'),
-      ...design
+      ...design,
     };
-    
+
     // Validate experimental design
     this.validateExperimentDesign(experiment);
-    
+
     this.experiments.set(experiment.id, experiment);
     return experiment;
   }
@@ -205,14 +206,14 @@ export class EmergenceHypothesisTester {
         bedauMetrics: [],
         consciousnessMarkers: [],
         environmentalConditions: {},
-        systemState: {}
+        systemState: {},
       },
       analysis: {
         testResults: [],
         effectSizes: {},
         confidenceIntervals: {},
         pValues: {},
-        significantResults: []
+        significantResults: [],
       },
       conclusion: {
         hypothesisAccepted: false,
@@ -221,15 +222,15 @@ export class EmergenceHypothesisTester {
         practicalSignificance: '',
         limitations: [],
         recommendations: [],
-        nextSteps: []
-      }
+        nextSteps: [],
+      },
     };
 
     try {
       // Run experimental conditions
       for (const condition of experiment.conditions) {
         const conditionData = await dataCollectionFunction(condition);
-        
+
         // Merge condition data into result
         result.data.observations.push(...conditionData.observations);
         result.data.bedauMetrics.push(...conditionData.bedauMetrics);
@@ -240,13 +241,12 @@ export class EmergenceHypothesisTester {
 
       // Perform statistical analysis
       result.analysis = await this.performStatisticalAnalysis(experiment, result.data);
-      
+
       // Draw conclusions
       result.conclusion = this.drawConclusion(experiment, result.analysis);
-      
+
       result.status = 'completed';
       result.endTime = new Date();
-      
     } catch (error) {
       result.status = 'failed';
       result.endTime = new Date();
@@ -269,7 +269,7 @@ export class EmergenceHypothesisTester {
       effectSizes: {},
       confidenceIntervals: {},
       pValues: {},
-      significantResults: []
+      significantResults: [],
     };
 
     // Perform each statistical test
@@ -277,7 +277,7 @@ export class EmergenceHypothesisTester {
       const testResult = await this.runStatisticalTest(test, data);
       analysis.testResults.push(testResult);
       analysis.pValues[testResult.testName] = testResult.pValue;
-      
+
       if (testResult.significant) {
         analysis.significantResults.push(testResult.testName);
       }
@@ -285,7 +285,7 @@ export class EmergenceHypothesisTester {
 
     // Calculate effect sizes
     analysis.effectSizes = this.calculateEffectSizes(experiment, data);
-    
+
     // Calculate confidence intervals
     analysis.confidenceIntervals = this.calculateConfidenceIntervals(experiment, data);
 
@@ -319,16 +319,17 @@ export class EmergenceHypothesisTester {
     const mockStatistic = 2.45;
     const mockPValue = 0.018;
     const criticalValue = 1.96; // For alpha = 0.05
-    
+
     return {
       testName: `t_test_${test.alpha}`,
       statistic: mockStatistic,
       pValue: mockPValue,
       criticalValue,
       significant: mockPValue < test.alpha,
-      interpretation: mockPValue < test.alpha 
-        ? 'Significant difference detected between groups'
-        : 'No significant difference detected'
+      interpretation:
+        mockPValue < test.alpha
+          ? 'Significant difference detected between groups'
+          : 'No significant difference detected',
     };
   }
 
@@ -339,38 +340,43 @@ export class EmergenceHypothesisTester {
     // Mock implementation
     const mockStatistic = 5.67;
     const mockPValue = 0.004;
-    const criticalValue = 3.00; // Approximate for alpha = 0.05
-    
+    const criticalValue = 3.0; // Approximate for alpha = 0.05
+
     return {
       testName: `anova_${test.alpha}`,
       statistic: mockStatistic,
       pValue: mockPValue,
       criticalValue,
       significant: mockPValue < test.alpha,
-      interpretation: mockPValue < test.alpha 
-        ? 'Significant differences detected across conditions'
-        : 'No significant differences detected across conditions'
+      interpretation:
+        mockPValue < test.alpha
+          ? 'Significant differences detected across conditions'
+          : 'No significant differences detected across conditions',
     };
   }
 
   /**
    * Perform correlation analysis
    */
-  private async performCorrelation(test: StatisticalTest, data: ExperimentData): Promise<TestResult> {
+  private async performCorrelation(
+    test: StatisticalTest,
+    data: ExperimentData
+  ): Promise<TestResult> {
     // Mock implementation
     const mockStatistic = 0.73; // Correlation coefficient
     const mockPValue = 0.002;
     const criticalValue = 0.5; // Threshold for significance
-    
+
     return {
       testName: `correlation_${test.alpha}`,
       statistic: mockStatistic,
       pValue: mockPValue,
       criticalValue,
       significant: mockPValue < test.alpha && Math.abs(mockStatistic) > criticalValue,
-      interpretation: mockPValue < test.alpha 
-        ? 'Significant correlation detected'
-        : 'No significant correlation detected'
+      interpretation:
+        mockPValue < test.alpha
+          ? 'Significant correlation detected'
+          : 'No significant correlation detected',
     };
   }
 
@@ -383,9 +389,9 @@ export class EmergenceHypothesisTester {
   ): Record<string, number> {
     // Mock implementation - would calculate Cohen's d, eta-squared, etc.
     return {
-      'bedau_index': 0.8,
-      'consciousness_score': 0.6,
-      'integration_complexity': 0.4
+      bedau_index: 0.8,
+      consciousness_score: 0.6,
+      integration_complexity: 0.4,
     };
   }
 
@@ -398,9 +404,9 @@ export class EmergenceHypothesisTester {
   ): Record<string, [number, number]> {
     // Mock implementation - would calculate proper confidence intervals
     return {
-      'bedau_index': [0.65, 0.95],
-      'consciousness_score': [0.45, 0.75],
-      'integration_complexity': [0.25, 0.55]
+      bedau_index: [0.65, 0.95],
+      consciousness_score: [0.45, 0.75],
+      integration_complexity: [0.25, 0.55],
     };
   }
 
@@ -419,22 +425,24 @@ export class EmergenceHypothesisTester {
     const significantResults = analysis.significantResults.length;
     const totalTests = analysis.testResults.length;
     const significanceRatio = significantResults / totalTests;
-    
+
     // Determine if hypothesis is accepted
     const hypothesisAccepted = significanceRatio >= 0.6; // At least 60% of tests significant
-    
+
     // Calculate effect size
     const effectSizes = Object.values(analysis.effectSizes);
     const avgEffectSize = effectSizes.reduce((sum, size) => sum + size, 0) / effectSizes.length;
-    
+
     let effectSize: 'none' | 'small' | 'medium' | 'large';
-    if (avgEffectSize >= 0.8) effectSize = 'large';
-    else if (avgEffectSize >= 0.5) effectSize = 'medium';
-    else if (avgEffectSize >= 0.2) effectSize = 'small';
-    else effectSize = 'none';
+    if (avgEffectSize >= 0.8) {effectSize = 'large';}
+    else if (avgEffectSize >= 0.5) {effectSize = 'medium';}
+    else if (avgEffectSize >= 0.2) {effectSize = 'small';}
+    else {effectSize = 'none';}
 
     // Calculate confidence level
-    const confidenceLevel = hypothesisAccepted ? Math.min(0.95, 0.5 + significanceRatio * 0.4) : 0.05;
+    const confidenceLevel = hypothesisAccepted
+      ? Math.min(0.95, 0.5 + significanceRatio * 0.4)
+      : 0.05;
 
     return {
       hypothesisAccepted,
@@ -443,7 +451,7 @@ export class EmergenceHypothesisTester {
       practicalSignificance: this.assessPracticalSignificance(avgEffectSize, hypothesis),
       limitations: this.identifyLimitations(experiment, analysis),
       recommendations: this.generateRecommendations(experiment, analysis, hypothesisAccepted),
-      nextSteps: this.suggestNextSteps(experiment, analysis, hypothesisAccepted)
+      nextSteps: this.suggestNextSteps(experiment, analysis, hypothesisAccepted),
     };
   }
 
@@ -457,32 +465,35 @@ export class EmergenceHypothesisTester {
       return `Moderate practical significance for ${hypothesis.type} hypothesis`;
     } else if (effectSize >= 0.2) {
       return `Small but meaningful practical significance for ${hypothesis.type} hypothesis`;
-    } else {
+    } 
       return `Limited practical significance for ${hypothesis.type} hypothesis`;
-    }
+    
   }
 
   /**
    * Identify experimental limitations
    */
-  private identifyLimitations(experiment: ExperimentDesign, analysis: StatisticalAnalysis): string[] {
+  private identifyLimitations(
+    experiment: ExperimentDesign,
+    analysis: StatisticalAnalysis
+  ): string[] {
     const limitations: string[] = [];
-    
+
     if (experiment.sampleSize < 30) {
       limitations.push('Small sample size may limit statistical power');
     }
-    
+
     if (experiment.duration < 24) {
       limitations.push('Short experiment duration may not capture long-term emergence patterns');
     }
-    
+
     if (analysis.significantResults.length === 0) {
       limitations.push('No significant results detected - may need more sensitive measures');
     }
-    
+
     limitations.push('AI system behavior may be influenced by environmental factors');
     limitations.push('Emergence phenomena may be context-dependent');
-    
+
     return limitations;
   }
 
@@ -495,7 +506,7 @@ export class EmergenceHypothesisTester {
     hypothesisAccepted: boolean
   ): string[] {
     const recommendations: string[] = [];
-    
+
     if (hypothesisAccepted) {
       recommendations.push('Hypothesis supported - proceed to validation phase');
       recommendations.push('Expand sample size to increase confidence');
@@ -507,10 +518,10 @@ export class EmergenceHypothesisTester {
       recommendations.push('Increase measurement sensitivity');
       recommendations.push('Review variable operationalization');
     }
-    
+
     recommendations.push('Implement replication study to validate findings');
     recommendations.push('Consider Third Mind protocol for human-AI collaborative investigation');
-    
+
     return recommendations;
   }
 
@@ -523,7 +534,7 @@ export class EmergenceHypothesisTester {
     hypothesisAccepted: boolean
   ): string[] {
     const nextSteps: string[] = [];
-    
+
     if (hypothesisAccepted) {
       nextSteps.push('Design confirmatory experiment with larger sample');
       nextSteps.push('Investigate underlying mechanisms of observed emergence');
@@ -535,10 +546,10 @@ export class EmergenceHypothesisTester {
       nextSteps.push('Consider alternative emergence indicators');
       nextSteps.push('Modify experimental conditions to facilitate emergence');
     }
-    
+
     nextSteps.push('Publish findings for peer review');
     nextSteps.push('Collaborate with other research groups for validation');
-    
+
     return nextSteps;
   }
 
@@ -549,20 +560,20 @@ export class EmergenceHypothesisTester {
     if (!this.hypotheses.has(experiment.hypothesisId)) {
       throw new Error(`Hypothesis not found: ${experiment.hypothesisId}`);
     }
-    
+
     if (experiment.conditions.length < 2) {
       throw new Error('Experiment must have at least 2 conditions (control + experimental)');
     }
-    
-    const hasControl = experiment.conditions.some(c => c.isControl);
+
+    const hasControl = experiment.conditions.some((c) => c.isControl);
     if (!hasControl) {
       throw new Error('Experiment must have at least one control condition');
     }
-    
+
     if (experiment.sampleSize < 10) {
       throw new Error('Sample size too small - minimum 10 observations required');
     }
-    
+
     if (experiment.measurements.length === 0) {
       throw new Error('Experiment must include at least one measurement');
     }

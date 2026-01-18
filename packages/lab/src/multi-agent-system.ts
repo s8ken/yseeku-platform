@@ -1,6 +1,6 @@
 /**
  * Multi-Agent System - CONDUCTOR, VARIANT, EVALUATOR, OVERSEER roles
- * 
+ *
  * Implements the 4-agent architecture from symbi-resonate Lab:
  * - CONDUCTOR: Manages experiment flow
  * - VARIANT: Executes AI model responses
@@ -8,8 +8,9 @@
  * - OVERSEER: Monitors for anomalies
  */
 
-import { VariantConfig, TestCase, VariantResult, TestCaseResult } from './index';
 import { SymbiFrameworkDetector } from '@sonate/detect';
+
+import { VariantConfig, TestCase, VariantResult, TestCaseResult } from './index';
 
 export class MultiAgentSystem {
   private detector: SymbiFrameworkDetector;
@@ -101,10 +102,10 @@ export class MultiAgentSystem {
    * Calculate aggregate scores across test cases
    */
   private calculateAggregates(results: TestCaseResult[]): any {
-    const reality_indices = results.map(r => r.detection_result.reality_index);
-    const trust_passes = results.filter(r => r.detection_result.trust_protocol === 'PASS').length;
-    const ethical_scores = results.map(r => r.detection_result.ethical_alignment);
-    const canvas_scores = results.map(r => r.detection_result.canvas_parity);
+    const reality_indices = results.map((r) => r.detection_result.reality_index);
+    const trust_passes = results.filter((r) => r.detection_result.trust_protocol === 'PASS').length;
+    const ethical_scores = results.map((r) => r.detection_result.ethical_alignment);
+    const canvas_scores = results.map((r) => r.detection_result.canvas_parity);
 
     return {
       reality_index: this.average(reality_indices),

@@ -4,11 +4,12 @@
  */
 
 import { EventEmitter } from 'events';
+
+import { APIGateway } from './api-gateway';
+import { AuditTrails } from './audit-trails';
+import { ComplianceReporting } from './compliance-reporting';
 import { EnterpriseIntegration } from './enterprise-integration';
 import { MultiTenantIsolation } from './multi-tenant-isolation';
-import { APIGateway } from './api-gateway';
-import { ComplianceReporting } from './compliance-reporting';
-import { AuditTrails } from './audit-trails';
 
 export interface ProductionMetrics {
   system: {
@@ -85,7 +86,7 @@ export interface ProductionAlert {
 export interface ProductionDashboard {
   id: string;
   name: string;
-  widgets: DashboardWidget[];
+  widgets: ProductionDashboardWidget[];
   refreshInterval: number;
   autoRefresh: boolean;
   filters: Record<string, any>;
@@ -94,9 +95,9 @@ export interface ProductionDashboard {
   createdBy: string;
 }
 
-export interface DashboardWidget {
+export interface ProductionDashboardWidget {
   id: string;
-  type: 'metric' | 'chart' | 'table' | 'alert' | 'status';
+  type: 'metric' | 'chart' | 'table' | 'alert' | 'status' | 'gauge';
   title: string;
   position: {
     x: number;
@@ -121,55 +122,6 @@ export interface HealthCheck {
   lastCheck: Date;
   details: Record<string, any>;
   dependencies: string[];
-}
-
-export interface ProductionMetrics {
-  system: {
-    uptime: number;
-    cpu: {
-      usage: number;
-      load: number[];
-      cores: number;
-    };
-    memory: {
-      total: number;
-      used: number;
-      free: number;
-      usage: number;
-    };
-    disk: {
-      total: number;
-      used: number;
-      free: number;
-      usage: number;
-    };
-    network: {
-      inbound: number;
-      outbound: number;
-      connections: number;
-    };
-  };
-  application: {
-    responseTime: number;
-    throughput: number;
-    errorRate: number;
-    activeConnections: number;
-    queueSize: number;
-    cacheHitRate: number;
-  };
-  business: {
-    activeUsers: number;
-    requestsPerMinute: number;
-    conversionRate: number;
-    revenue: number;
-    retention: number;
-  };
-  compliance: {
-    auditCoverage: number;
-    securityScore: number;
-    complianceScore: number;
-    dataResidency: boolean;
-  };
 }
 
 export class ProductionMonitoring extends EventEmitter {
@@ -208,25 +160,25 @@ export class ProductionMonitoring extends EventEmitter {
         cpu: {
           usage: 0,
           load: [0, 0, 0],
-          cores: 16
+          cores: 16,
         },
         memory: {
           total: 64000,
           used: 0,
           free: 64000,
-          usage: 0
+          usage: 0,
         },
         disk: {
           total: 1000000,
           used: 0,
           free: 1000000,
-          usage: 0
+          usage: 0,
         },
         network: {
           inbound: 0,
           outbound: 0,
-          connections: 0
-        }
+          connections: 0,
+        },
       },
       application: {
         responseTime: 0,
@@ -234,21 +186,21 @@ export class ProductionMonitoring extends EventEmitter {
         errorRate: 0,
         activeConnections: 0,
         queueSize: 0,
-        cacheHitRate: 95
+        cacheHitRate: 95,
       },
       business: {
         activeUsers: 0,
         requestsPerMinute: 0,
         conversionRate: 0,
         revenue: 0,
-        retention: 85
+        retention: 85,
       },
       compliance: {
         auditCoverage: 100,
         securityScore: 100,
         complianceScore: 100,
-        dataResidency: true
-      }
+        dataResidency: true,
+      },
     };
   }
 
@@ -275,9 +227,9 @@ export class ProductionMonitoring extends EventEmitter {
           position: { x: 0, y: 0, width: 4, height: 2 },
           config: {
             metric: 'system.uptime',
-            refreshInterval: 60000
+            refreshInterval: 60000,
           },
-          dataSource: 'system'
+          dataSource: 'system',
         },
         {
           id: 'widget-cpu',
@@ -286,9 +238,9 @@ export class ProductionMonitoring extends EventEmitter {
           position: { x: 4, y: 0, width: 4, height: 2 },
           config: {
             metric: 'system.cpu.usage',
-            refreshInterval: 30000
+            refreshInterval: 30000,
           },
-          dataSource: 'system'
+          dataSource: 'system',
         },
         {
           id: 'widget-memory',
@@ -297,9 +249,9 @@ export class ProductionMonitoring extends EventEmitter {
           position: { x: 8, y: 0, width: 4, height: 2 },
           config: {
             metric: 'system.memory.usage',
-            refreshInterval: 30000
+            refreshInterval: 30000,
           },
-          dataSource: 'system'
+          dataSource: 'system',
         },
         {
           id: 'widget-response-time',
@@ -310,9 +262,9 @@ export class ProductionMonitoring extends EventEmitter {
             chartType: 'line',
             metric: 'application.responseTime',
             timeRange: '1h',
-            refreshInterval: 60000
+            refreshInterval: 60000,
           },
-          dataSource: 'application'
+          dataSource: 'application',
         },
         {
           id: 'widget-throughput',
@@ -323,9 +275,9 @@ export class ProductionMonitoring extends EventEmitter {
             chartType: 'line',
             metric: 'application.throughput',
             timeRange: '1h',
-            refreshInterval: 60000
+            refreshInterval: 60000,
           },
-          dataSource: 'application'
+          dataSource: 'application',
         },
         {
           id: 'widget-alerts',
@@ -333,9 +285,9 @@ export class ProductionMonitoring extends EventEmitter {
           title: 'Active Alerts',
           position: { x: 0, y: 5, width: 12, height: 2 },
           config: {
-            refreshInterval: 30000
+            refreshInterval: 30000,
           },
-          dataSource: 'alerts'
+          dataSource: 'alerts',
         },
         {
           id: 'widget-compliance',
@@ -344,9 +296,9 @@ export class ProductionMonitoring extends EventEmitter {
           position: { x: 0, y: 7, width: 4, height: 2 },
           config: {
             metric: 'compliance.complianceScore',
-            refreshInterval: 300000
+            refreshInterval: 300000,
           },
-          dataSource: 'compliance'
+          dataSource: 'compliance',
         },
         {
           id: 'widget-security',
@@ -355,9 +307,9 @@ export class ProductionMonitoring extends EventEmitter {
           position: { x: 4, y: 7, width: 4, height: 2 },
           config: {
             metric: 'compliance.securityScore',
-            refreshInterval: 300000
+            refreshInterval: 300000,
           },
-          dataSource: 'compliance'
+          dataSource: 'compliance',
         },
         {
           id: 'widget-users',
@@ -366,17 +318,17 @@ export class ProductionMonitoring extends EventEmitter {
           position: { x: 8, y: 7, width: 4, height: 2 },
           config: {
             metric: 'business.activeUsers',
-            refreshInterval: 60000
+            refreshInterval: 60000,
           },
-          dataSource: 'business'
-        }
+          dataSource: 'business',
+        },
       ],
       refreshInterval: 60000,
       autoRefresh: true,
       filters: {},
       createdAt: new Date(),
       updatedAt: new Date(),
-      createdBy: 'system'
+      createdBy: 'system',
     };
 
     this.dashboards.push(defaultDashboard);
@@ -444,15 +396,11 @@ export class ProductionMonitoring extends EventEmitter {
   private updateSystemMetrics(): void {
     // Mock system metrics collection
     this.metrics.system.uptime = process.uptime();
-    
+
     this.metrics.system.cpu = {
       usage: 20 + Math.random() * 60,
-      load: [
-        0.5 + Math.random() * 2,
-        0.5 + Math.random() * 2,
-        0.5 + Math.random() * 2
-      ],
-      cores: 16
+      load: [0.5 + Math.random() * 2, 0.5 + Math.random() * 2, 0.5 + Math.random() * 2],
+      cores: 16,
     };
 
     const memoryUsage = Math.random() * 0.8;
@@ -460,7 +408,7 @@ export class ProductionMonitoring extends EventEmitter {
       total: 64000,
       used: 64000 * memoryUsage,
       free: 64000 * (1 - memoryUsage),
-      usage: memoryUsage * 100
+      usage: memoryUsage * 100,
     };
 
     const diskUsage = Math.random() * 0.7;
@@ -468,13 +416,13 @@ export class ProductionMonitoring extends EventEmitter {
       total: 1000000,
       used: 1000000 * diskUsage,
       free: 1000000 * (1 - diskUsage),
-      usage: diskUsage * 100
+      usage: diskUsage * 100,
     };
 
     this.metrics.system.network = {
       inbound: 100 + Math.random() * 900,
       outbound: 50 + Math.random() * 450,
-      connections: 50 + Math.floor(Math.random() * 200)
+      connections: 50 + Math.floor(Math.random() * 200),
     };
 
     this.emit('systemMetricsUpdated', this.metrics.system);
@@ -491,7 +439,7 @@ export class ProductionMonitoring extends EventEmitter {
       errorRate: gatewayMetrics.errorRate,
       activeConnections: gatewayMetrics.activeConnections,
       queueSize: Math.floor(Math.random() * 100),
-      cacheHitRate: 90 + Math.random() * 10
+      cacheHitRate: 90 + Math.random() * 10,
     };
 
     this.emit('applicationMetricsUpdated', this.metrics.application);
@@ -504,7 +452,7 @@ export class ProductionMonitoring extends EventEmitter {
       requestsPerMinute: 1000 + Math.floor(Math.random() * 4000),
       conversionRate: 2 + Math.random() * 8,
       revenue: 10000 + Math.random() * 90000,
-      retention: 85 + Math.random() * 15
+      retention: 85 + Math.random() * 15,
     };
 
     this.emit('businessMetricsUpdated', this.metrics.business);
@@ -519,7 +467,7 @@ export class ProductionMonitoring extends EventEmitter {
       auditCoverage: 95 + Math.random() * 5,
       securityScore: enterpriseMetrics.compliance.securityScore,
       complianceScore: 90 + Math.random() * 10,
-      dataResidency: enterpriseMetrics.compliance.dataResidency
+      dataResidency: enterpriseMetrics.compliance.dataResidency,
     };
 
     this.emit('complianceMetricsUpdated', this.metrics.compliance);
@@ -537,14 +485,14 @@ export class ProductionMonitoring extends EventEmitter {
         metrics: {
           current: this.metrics.system.cpu.usage,
           threshold: this.alertThresholds.get('cpu_usage')!,
-          unit: '%'
+          unit: '%',
         },
         affectedSystems: ['cpu'],
         actions: [
           'Investigate CPU-intensive processes',
           'Consider scaling resources',
-          'Monitor for continued high usage'
-        ]
+          'Monitor for continued high usage',
+        ],
       });
     }
 
@@ -559,14 +507,14 @@ export class ProductionMonitoring extends EventEmitter {
         metrics: {
           current: this.metrics.system.memory.usage,
           threshold: this.alertThresholds.get('memory_usage')!,
-          unit: '%'
+          unit: '%',
         },
         affectedSystems: ['memory'],
         actions: [
           'Investigate memory leaks',
           'Restart affected services',
-          'Consider scaling memory'
-        ]
+          'Consider scaling memory',
+        ],
       });
     }
 
@@ -581,14 +529,10 @@ export class ProductionMonitoring extends EventEmitter {
         metrics: {
           current: this.metrics.system.disk.usage,
           threshold: this.alertThresholds.get('disk_usage')!,
-          unit: '%'
+          unit: '%',
         },
         affectedSystems: ['disk'],
-        actions: [
-          'Clean up unnecessary files',
-          'Archive old data',
-          'Expand disk capacity'
-        ]
+        actions: ['Clean up unnecessary files', 'Archive old data', 'Expand disk capacity'],
       });
     }
   }
@@ -605,14 +549,14 @@ export class ProductionMonitoring extends EventEmitter {
         metrics: {
           current: this.metrics.application.errorRate,
           threshold: this.alertThresholds.get('error_rate')!,
-          unit: '%'
+          unit: '%',
         },
         affectedSystems: ['application'],
         actions: [
           'Review application logs',
           'Check for recent deployments',
-          'Investigate error patterns'
-        ]
+          'Investigate error patterns',
+        ],
       });
     }
 
@@ -627,14 +571,14 @@ export class ProductionMonitoring extends EventEmitter {
         metrics: {
           current: this.metrics.application.responseTime,
           threshold: this.alertThresholds.get('response_time')!,
-          unit: 'ms'
+          unit: 'ms',
         },
         affectedSystems: ['application'],
         actions: [
           'Profile application performance',
           'Check database queries',
-          'Optimize critical paths'
-        ]
+          'Optimize critical paths',
+        ],
       });
     }
   }
@@ -651,14 +595,14 @@ export class ProductionMonitoring extends EventEmitter {
         metrics: {
           current: this.metrics.business.activeUsers,
           threshold: 100,
-          unit: 'users'
+          unit: 'users',
         },
         affectedSystems: ['business'],
         actions: [
           'Check user authentication systems',
           'Verify service availability',
-          'Review recent changes'
-        ]
+          'Review recent changes',
+        ],
       });
     }
   }
@@ -675,14 +619,14 @@ export class ProductionMonitoring extends EventEmitter {
         metrics: {
           current: this.metrics.compliance.securityScore,
           threshold: this.alertThresholds.get('security_score')!,
-          unit: 'points'
+          unit: 'points',
         },
         affectedSystems: ['security'],
         actions: [
           'Review security incidents',
           'Update security policies',
-          'Run security assessment'
-        ]
+          'Run security assessment',
+        ],
       });
     }
 
@@ -697,26 +641,29 @@ export class ProductionMonitoring extends EventEmitter {
         metrics: {
           current: this.metrics.compliance.complianceScore,
           threshold: this.alertThresholds.get('compliance_score')!,
-          unit: 'points'
+          unit: 'points',
         },
         affectedSystems: ['compliance'],
         actions: [
           'Review compliance gaps',
           'Update compliance documentation',
-          'Schedule compliance audit'
-        ]
+          'Schedule compliance audit',
+        ],
       });
     }
   }
 
-  private createAlert(alertData: Omit<ProductionAlert, 'id' | 'timestamp' | 'acknowledged' | 'resolved' | 'actions'>): void {
+  private createAlert(
+    alertData: Omit<ProductionAlert, 'id' | 'timestamp' | 'acknowledged' | 'resolved'> & {
+      actions: string[];
+    }
+  ): void {
     const alert: ProductionAlert = {
       id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: new Date(),
       acknowledged: false,
       resolved: false,
-      actions: alertData.actions,
-      ...alertData
+      ...alertData,
     };
 
     this.alerts.push(alert);
@@ -739,9 +686,9 @@ export class ProductionMonitoring extends EventEmitter {
       lastCheck: new Date(),
       details: {
         tenantCount: this.components.enterprise.getAllTenants().length,
-        monitoringActive: true
+        monitoringActive: true,
       },
-      dependencies: []
+      dependencies: [],
     };
     this.healthChecks.set('enterprise-integration', enterpriseHealth);
 
@@ -753,9 +700,9 @@ export class ProductionMonitoring extends EventEmitter {
       lastCheck: new Date(),
       details: {
         activeConnections: this.components.gateway.getMetrics().activeConnections,
-        uptime: process.uptime()
+        uptime: process.uptime(),
       },
-      dependencies: ['enterprise-integration']
+      dependencies: ['enterprise-integration'],
     };
     this.healthChecks.set('api-gateway', gatewayHealth);
 
@@ -767,9 +714,9 @@ export class ProductionMonitoring extends EventEmitter {
       lastCheck: new Date(),
       details: {
         totalEvents: this.components.audit.getMetrics().totalEvents,
-        storageUsed: this.components.audit.getMetrics().storageUsed
+        storageUsed: this.components.audit.getMetrics().storageUsed,
       },
-      dependencies: ['enterprise-integration']
+      dependencies: ['enterprise-integration'],
     };
     this.healthChecks.set('audit-trails', auditHealth);
 
@@ -778,7 +725,7 @@ export class ProductionMonitoring extends EventEmitter {
 
   async stopMonitoring(): Promise<void> {
     this.monitoringActive = false;
-    
+
     // Stop all enterprise components
     await this.components.enterprise.stopMonitoring();
     await this.components.isolation.stopIsolationMonitoring();
@@ -801,43 +748,43 @@ export class ProductionMonitoring extends EventEmitter {
     let filtered = [...this.alerts];
 
     if (filter?.severity) {
-      filtered = filtered.filter(a => a.severity === filter.severity);
+      filtered = filtered.filter((a) => a.severity === filter.severity);
     }
 
     if (filter?.category) {
-      filtered = filtered.filter(a => a.category === filter.category);
+      filtered = filtered.filter((a) => a.category === filter.category);
     }
 
     if (filter?.acknowledged !== undefined) {
-      filtered = filtered.filter(a => a.acknowledged === filter.acknowledged);
+      filtered = filtered.filter((a) => a.acknowledged === filter.acknowledged);
     }
 
     if (filter?.resolved !== undefined) {
-      filtered = filtered.filter(a => a.resolved === filter.resolved);
+      filtered = filtered.filter((a) => a.resolved === filter.resolved);
     }
 
     return filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
 
   acknowledgeAlert(alertId: string, acknowledgedBy: string): void {
-    const alert = this.alerts.find(a => a.id === alertId);
+    const alert = this.alerts.find((a) => a.id === alertId);
     if (alert && !alert.acknowledged) {
       alert.acknowledged = true;
       alert.acknowledgedBy = acknowledgedBy;
       alert.acknowledgedAt = new Date();
-      
+
       this.emit('alertAcknowledged', { alertId, acknowledgedBy });
       console.log(`✅ Alert ${alertId} acknowledged by ${acknowledgedBy}`);
     }
   }
 
   resolveAlert(alertId: string, resolvedBy: string): void {
-    const alert = this.alerts.find(a => a.id === alertId);
+    const alert = this.alerts.find((a) => a.id === alertId);
     if (alert && !alert.resolved) {
       alert.resolved = true;
       alert.resolvedBy = resolvedBy;
       alert.resolvedAt = new Date();
-      
+
       this.emit('alertResolved', { alertId, resolvedBy });
       console.log(`✅ Alert ${alertId} resolved by ${resolvedBy}`);
     }
@@ -848,20 +795,22 @@ export class ProductionMonitoring extends EventEmitter {
   }
 
   getDashboard(id: string): ProductionDashboard | undefined {
-    return this.dashboards.find(d => d.id === id);
+    return this.dashboards.find((d) => d.id === id);
   }
 
-  createDashboard(dashboard: Omit<ProductionDashboard, 'id' | 'createdAt' | 'updatedAt'>): ProductionDashboard {
+  createDashboard(
+    dashboard: Omit<ProductionDashboard, 'id' | 'createdAt' | 'updatedAt'>
+  ): ProductionDashboard {
     const newDashboard: ProductionDashboard = {
       id: `dashboard_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date(),
       updatedAt: new Date(),
-      ...dashboard
+      ...dashboard,
     };
 
     this.dashboards.push(newDashboard);
     this.emit('dashboardCreated', newDashboard);
-    
+
     return newDashboard;
   }
 

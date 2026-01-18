@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Shield, 
-  Activity, 
   Users, 
   TrendingUp, 
   TrendingDown,
@@ -19,6 +18,8 @@ import {
   BarChart3
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
+import { OverseerWidget } from '@/components/overseer-widget';
+import { api } from '@/lib/api';
 
 interface KPIData {
   tenant: string;
@@ -73,18 +74,15 @@ interface ExperimentData {
     name: string;
     status: string;
     progress: number;
-    results: {
-      variants: Array<{
-        variantName: string;
-        averageScore: number;
-        sampleSize: number;
-      }>;
-      statisticalAnalysis: {
-        significantDifference: boolean;
-        effectSize: number;
-        confidenceInterval: [number, number];
-        pValue: number;
-      };
+    variants: Array<{
+      name: string;
+      avgScore: number;
+      sampleSize: number;
+    }>;
+    metrics: {
+      significant: boolean;
+      effectSize?: number;
+      pValue?: number;
     };
   }>;
   summary: {
@@ -154,17 +152,17 @@ export default function DashboardPage() {
 
   const { data: kpiData, isLoading: kpiLoading } = useQuery({
     queryKey: ['kpis', tenant],
-    queryFn: async () => {
-      const response = await fetch(`/api/dashboard/kpis?tenant=${tenant}`);
-      if (!response.ok) throw new Error('Failed to fetch KPIs');
-      return response.json() as Promise<{ success: boolean; data: KPIData }>;
-    },
+    queryFn: () => api.getKPIs(tenant),
   });
 
   const { data: policyStatus } = useQuery({
     queryKey: ['policy-status'],
     queryFn: async () => {
-      const response = await fetch(`/api/dashboard/policy-status`);
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      
+      const response = await fetch(`/api/dashboard/policy-status`, { headers });
       if (!response.ok) throw new Error('Failed to fetch policy status');
       return response.json() as Promise<{ overallPass: boolean; violations: string[] }>;
     },
@@ -172,25 +170,17 @@ export default function DashboardPage() {
 
   const { data: alertData, isLoading: alertLoading } = useQuery({
     queryKey: ['alerts', tenant],
-    queryFn: async () => {
-      const response = await fetch(`/api/dashboard/alerts?tenant=${tenant}`);
-      if (!response.ok) throw new Error('Failed to fetch alerts');
-      return response.json() as Promise<{ success: boolean; data: AlertData }>;
-    },
+    queryFn: () => api.getAlerts(tenant),
   });
 
   const { data: experimentData, isLoading: experimentLoading } = useQuery({
     queryKey: ['experiments', tenant],
-    queryFn: async () => {
-      const response = await fetch(`/api/lab/experiments?tenant=${tenant}`);
-      if (!response.ok) throw new Error('Failed to fetch experiments');
-      return response.json() as Promise<{ success: boolean; data: ExperimentData }>;
-    },
+    queryFn: () => api.getExperiments(),
   });
 
-  const kpis = kpiData?.data;
-  const alerts = alertData?.data;
-  const experiments = experimentData?.data;
+  const kpis = kpiData;
+  const alerts = (alertData as any)?.data || alertData;
+  const experiments = (experimentData as any)?.data || experimentData;
 
   if (kpiLoading) {
     return (
@@ -220,11 +210,15 @@ export default function DashboardPage() {
             Real-time AI trust monitoring
           </p>
         </div>
-        <div className="data-source-badge data-source-live">
-          <span className="h-1.5 w-1.5 rounded-full bg-current" />
-          Production Data
+        <div className="flex items-center gap-4">
+          <div className="data-source-badge data-source-live">
+            <span className="h-1.5 w-1.5 rounded-full bg-current" />
+            Production Data
+          </div>
         </div>
       </div>
+
+      <OverseerWidget />
 
       {kpis && (
         <>
@@ -244,7 +238,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-xs text-muted-foreground">Overall platform trust</p>
-                  <TrendIndicator {...kpis.trends.trustScore} />
+                  {kpis.trends?.trustScore && <TrendIndicator {...kpis.trends.trustScore} />}
                 </div>
                 <div className="mt-3 h-2 w-full bg-muted rounded-full overflow-hidden">
                   <div 
@@ -265,10 +259,10 @@ export default function DashboardPage() {
                   <span className="text-3xl font-bold">{kpis.activeAgents}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {kpis.totalInteractions.toLocaleString()} total interactions
+                  {kpis.totalInteractions?.toLocaleString() || 0} total interactions
                 </p>
                 <div className="flex items-center justify-between mt-2">
-                  <TrendIndicator {...kpis.trends.interactions} />
+                  {kpis.trends?.interactions && <TrendIndicator {...kpis.trends.interactions} />}
                 </div>
               </CardContent>
             </Card>
@@ -298,17 +292,17 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className={kpis.alertsCount > 5 ? 'border-l-4 border-l-amber-500' : ''}>
+            <Card className={(alerts?.summary?.total || kpis.alertsCount) > 5 ? 'border-l-4 border-l-amber-500' : ''}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">Active Alerts</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{kpis.alertsCount}</span>
+                  <span className="text-3xl font-bold">{alerts?.summary?.total ?? kpis.alertsCount}</span>
                 </div>
                 <div className="flex gap-2 mt-2">
-                  {alerts && (
+                  {alerts?.summary && (
                     <>
                       <span className="text-xs px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
                         {alerts.summary.critical} critical
@@ -342,28 +336,28 @@ export default function DashboardPage() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   <SymbiDimensionCard 
                     title="Reality Index" 
-                    value={kpis.symbiDimensions.realityIndex} 
+                    value={kpis.symbiDimensions?.realityIndex ?? 0} 
                     type="score"
                     icon={Fingerprint}
                     tooltipTerm="Reality Index"
                   />
                   <SymbiDimensionCard 
                     title="Trust Protocol" 
-                    value={kpis.symbiDimensions.trustProtocol} 
+                    value={kpis.symbiDimensions?.trustProtocol ?? 'UNKNOWN'} 
                     type="status"
                     icon={Shield}
                     tooltipTerm="Trust Protocol"
                   />
                   <SymbiDimensionCard 
                     title="Ethical Alignment" 
-                    value={kpis.symbiDimensions.ethicalAlignment} 
+                    value={kpis.symbiDimensions?.ethicalAlignment ?? 0} 
                     type="score"
                     icon={CheckCircle2}
                     tooltipTerm="Ethical Alignment"
                   />
                   <SymbiDimensionCard 
                     title="Canvas Parity" 
-                    value={kpis.symbiDimensions.canvasParity} 
+                    value={kpis.symbiDimensions?.canvasParity ?? 0} 
                     type="percent"
                     icon={BarChart3}
                     tooltipTerm="Canvas Parity"
@@ -374,7 +368,7 @@ export default function DashboardPage() {
                     <Zap className="h-5 w-5 text-[var(--detect-primary)]" />
                     <div>
                       <p className="text-xs text-muted-foreground flex items-center gap-1">Resonance Quality <InfoTooltip term="Resonance" /></p>
-                      <p className="font-semibold">{kpis.symbiDimensions.resonanceQuality}</p>
+                      <p className="font-semibold">{kpis.symbiDimensions?.resonanceQuality ?? 'UNKNOWN'}</p>
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -382,7 +376,7 @@ export default function DashboardPage() {
                       <div 
                         key={level}
                         className={`h-2 w-8 rounded-full ${
-                          ['STRONG', 'ADVANCED', 'BREAKTHROUGH'].indexOf(kpis.symbiDimensions.resonanceQuality) >= i
+                          ['STRONG', 'ADVANCED', 'BREAKTHROUGH'].indexOf(kpis.symbiDimensions?.resonanceQuality || '') >= i
                             ? 'bg-[var(--detect-primary)]'
                             : 'bg-muted'
                         }`}
@@ -407,19 +401,22 @@ export default function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {experiments ? (
+                {experiments && experiments.experiments && experiments.experiments.length > 0 ? (
                   <div className="space-y-4">
-                    {experiments.experiments.slice(0, 3).map((exp) => (
+                    {experiments.experiments.slice(0, 3).map((exp) => {
+                      if (!exp) return null;
+                      return (
                       <div key={exp.id} className="p-3 rounded-lg border bg-card">
                         <div className="flex items-start justify-between mb-2">
                           <div>
                             <p className="font-medium text-sm">{exp.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {exp.results.variants.length} variants
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              {(exp && exp.variants && exp.variants.length) || 0} variants
+                              <InfoTooltip term="Variants" />
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
-                            {exp.results.statisticalAnalysis.significantDifference && (
+                            {exp.metrics?.significant && (
                               <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                                 SIGNIFICANT
                               </span>
@@ -434,13 +431,13 @@ export default function DashboardPage() {
                           />
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
-                          p-value <InfoTooltip term="p-value" />: {exp.results.statisticalAnalysis.pValue.toFixed(4)} | 
-                          Effect <InfoTooltip term="Effect Size" />: {exp.results.statisticalAnalysis.effectSize.toFixed(2)}
+                          p-value <InfoTooltip term="p-value" />: {exp.metrics?.pValue?.toFixed(4) ?? 'N/A'} | 
+                          Effect <InfoTooltip term="Effect Size" />: {exp.metrics?.effectSize?.toFixed(2) ?? 'N/A'}
                         </p>
                       </div>
-                    ))}
+                    )})}
                     <div className="text-center">
-                      <a href="/demo/lab" className="text-sm text-[var(--lab-primary)] hover:underline">
+                      <a href="/dashboard/experiments" className="text-sm text-[var(--lab-primary)] hover:underline">
                         View all {experiments.summary.total} experiments →
                       </a>
                     </div>

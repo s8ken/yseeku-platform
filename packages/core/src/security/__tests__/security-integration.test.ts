@@ -23,7 +23,7 @@ describe('Security Components Integration Tests', () => {
       enableCryptographicSigning: true,
       enableHashChaining: true,
       enableIntegrityVerification: true,
-      autoVerify: true
+      autoVerify: true,
     });
     await trustReceiptManager.initialize();
   });
@@ -50,7 +50,7 @@ describe('Security Components Integration Tests', () => {
       const ciqMetrics: CIQMetrics = {
         clarity: 0.8,
         integrity: 0.9,
-        quality: 0.85
+        quality: 0.85,
       };
 
       const receiptData: TrustReceiptData = {
@@ -58,7 +58,7 @@ describe('Security Components Integration Tests', () => {
         session_id: 'test-session-123',
         timestamp: Date.now(),
         mode: 'constitutional',
-        ciq_metrics: ciqMetrics
+        ciq_metrics: ciqMetrics,
       };
 
       // Create signed receipt
@@ -89,7 +89,7 @@ describe('Security Components Integration Tests', () => {
       const ciqMetrics: CIQMetrics = {
         clarity: 0.8,
         integrity: 0.9,
-        quality: 0.85
+        quality: 0.85,
       };
 
       const receiptData: TrustReceiptData = {
@@ -97,7 +97,7 @@ describe('Security Components Integration Tests', () => {
         session_id: 'test-session-123',
         timestamp: Date.now(),
         mode: 'constitutional',
-        ciq_metrics: ciqMetrics
+        ciq_metrics: ciqMetrics,
       };
 
       const signedReceipt = await cryptoManager.createSignedReceipt(
@@ -130,9 +130,9 @@ describe('Security Components Integration Tests', () => {
 
       for (let i = 0; i < 3; i++) {
         const ciqMetrics: CIQMetrics = {
-          clarity: 0.8 + (i * 0.05),
-          integrity: 0.9 + (i * 0.02),
-          quality: 0.85 + (i * 0.03)
+          clarity: 0.8 + i * 0.05,
+          integrity: 0.9 + i * 0.02,
+          quality: 0.85 + i * 0.03,
         };
 
         const receiptData: TrustReceiptData = {
@@ -140,7 +140,7 @@ describe('Security Components Integration Tests', () => {
           session_id: 'test-session-123',
           timestamp: Date.now() + i,
           mode: 'constitutional',
-          ciq_metrics: ciqMetrics
+          ciq_metrics: ciqMetrics,
         };
 
         const signedReceipt = await cryptoManager.createSignedReceipt(
@@ -174,7 +174,7 @@ describe('Security Components Integration Tests', () => {
       const ciqMetrics1: CIQMetrics = {
         clarity: 0.8,
         integrity: 0.9,
-        quality: 0.85
+        quality: 0.85,
       };
 
       const receiptData1: TrustReceiptData = {
@@ -182,7 +182,7 @@ describe('Security Components Integration Tests', () => {
         session_id: 'test-session-123',
         timestamp: Date.now(),
         mode: 'constitutional',
-        ciq_metrics: ciqMetrics1
+        ciq_metrics: ciqMetrics1,
       };
 
       const receipt1 = await cryptoManager.createSignedReceipt(
@@ -194,7 +194,7 @@ describe('Security Components Integration Tests', () => {
       const ciqMetrics2: CIQMetrics = {
         clarity: 0.85,
         integrity: 0.92,
-        quality: 0.88
+        quality: 0.88,
       };
 
       const receiptData2: TrustReceiptData = {
@@ -202,7 +202,7 @@ describe('Security Components Integration Tests', () => {
         session_id: 'test-session-123',
         timestamp: Date.now() + 1,
         mode: 'constitutional',
-        ciq_metrics: ciqMetrics2
+        ciq_metrics: ciqMetrics2,
       };
 
       const receipt2 = await cryptoManager.createSignedReceipt(
@@ -238,19 +238,19 @@ describe('Security Components Integration Tests', () => {
         actor: {
           id: 'user-123',
           type: 'user',
-          tenant: 'default'
+          tenant: 'default',
         },
         resource: {
           type: 'authentication',
           id: 'auth-session-123',
-          tenant: 'default'
+          tenant: 'default',
         },
         context: {
           ip: '192.168.1.1',
           userAgent: 'Mozilla/5.0',
-          sessionId: 'session-123'
+          sessionId: 'session-123',
         },
-        result: 'success'
+        result: 'success',
       };
 
       const signedEvent = await auditSystem.logEvent(auditEvent);
@@ -280,18 +280,18 @@ describe('Security Components Integration Tests', () => {
           actor: {
             id: 'user-123',
             type: 'user',
-            tenant: 'default'
+            tenant: 'default',
           },
           resource: {
             type: 'system',
             id: `resource-${i}`,
-            tenant: 'default'
+            tenant: 'default',
           },
           context: {
             ip: '192.168.1.1',
-            userAgent: 'Mozilla/5.0'
+            userAgent: 'Mozilla/5.0',
           },
-          result: 'success'
+          result: 'success',
         });
       }
 
@@ -320,7 +320,7 @@ describe('Security Components Integration Tests', () => {
         actor: { id: 'user-123', type: 'user', tenant: 'default' },
         resource: { type: 'authentication', id: 'auth-123', tenant: 'default' },
         context: { ip: '192.168.1.1', userAgent: 'Mozilla/5.0' },
-        result: 'success'
+        result: 'success',
       };
 
       const event2: AuditEvent = {
@@ -332,7 +332,7 @@ describe('Security Components Integration Tests', () => {
         actor: { id: 'user-123', type: 'user', tenant: 'default' },
         resource: { type: 'data', id: 'data-123', tenant: 'default' },
         context: { ip: '192.168.1.1', userAgent: 'Mozilla/5.0' },
-        result: 'failure'
+        result: 'failure',
       };
 
       await auditSystem.logEvent(event1);
@@ -359,7 +359,7 @@ describe('Security Components Integration Tests', () => {
       const ciqMetrics: CIQMetrics = {
         clarity: 0.85,
         integrity: 0.92,
-        quality: 0.88
+        quality: 0.88,
       };
 
       const receiptData: TrustReceiptData = {
@@ -367,7 +367,7 @@ describe('Security Components Integration Tests', () => {
         session_id: 'test-session-integration',
         timestamp: Date.now(),
         mode: 'constitutional',
-        ciq_metrics: ciqMetrics
+        ciq_metrics: ciqMetrics,
       };
 
       const auditContext = {
@@ -376,7 +376,7 @@ describe('Security Components Integration Tests', () => {
         tenantId: 'default',
         requestId: 'test-request-123',
         ipAddress: '192.168.1.1',
-        userAgent: 'Mozilla/5.0 (Test Browser)'
+        userAgent: 'Mozilla/5.0 (Test Browser)',
       };
 
       const result = await trustReceiptManager.createEnhancedReceipt(receiptData, auditContext);
@@ -402,9 +402,9 @@ describe('Security Components Integration Tests', () => {
       const receipts: any[] = [];
       for (let i = 0; i < 3; i++) {
         const ciqMetrics: CIQMetrics = {
-          clarity: 0.8 + (i * 0.05),
-          integrity: 0.9 + (i * 0.02),
-          quality: 0.85 + (i * 0.03)
+          clarity: 0.8 + i * 0.05,
+          integrity: 0.9 + i * 0.02,
+          quality: 0.85 + i * 0.03,
         };
 
         const receiptData: TrustReceiptData = {
@@ -412,13 +412,13 @@ describe('Security Components Integration Tests', () => {
           session_id: 'export-test-session',
           timestamp: Date.now() + i,
           mode: 'constitutional',
-          ciq_metrics: ciqMetrics
+          ciq_metrics: ciqMetrics,
         };
 
         const auditContext = {
           sessionId: 'export-test-session',
           userId: 'test-user-123',
-          tenantId: 'default'
+          tenantId: 'default',
         };
 
         const result = await trustReceiptManager.createEnhancedReceipt(receiptData, auditContext);
@@ -447,13 +447,10 @@ describe('Security Components Integration Tests', () => {
         integrityHash: 'invalid',
         chainSignature: 'invalid',
         signature: 'invalid',
-        verify: async () => false
+        verify: async () => false,
       } as any;
 
-      const verification = await cryptoManager.verifySignedReceipt(
-        invalidReceipt,
-        invalidKey
-      );
+      const verification = await cryptoManager.verifySignedReceipt(invalidReceipt, invalidKey);
 
       expect(verification.valid).toBe(false);
       expect(verification.reason).toBeTruthy();
@@ -491,7 +488,7 @@ describe('Security Components Integration Tests', () => {
           actor: { id: 'user-123', type: 'user', tenant: 'default' },
           resource: { type: 'system', id: `resource-${i}`, tenant: 'default' },
           context: { ip: '192.168.1.1', userAgent: 'Mozilla/5.0' },
-          result: i % 4 === 0 ? 'failure' : 'success'
+          result: i % 4 === 0 ? 'failure' : 'success',
         });
       }
 
@@ -523,9 +520,9 @@ export const SecurityTestUtils = {
     ciq_metrics: {
       clarity: 0.8,
       integrity: 0.9,
-      quality: 0.85
+      quality: 0.85,
     },
-    ...overrides
+    ...overrides,
   }),
 
   createMockAuditContext: (overrides?: any) => ({
@@ -535,6 +532,6 @@ export const SecurityTestUtils = {
     requestId: 'test-request-123',
     ipAddress: '192.168.1.1',
     userAgent: 'Mozilla/5.0 (Test Browser)',
-    ...overrides
-  })
+    ...overrides,
+  }),
 };

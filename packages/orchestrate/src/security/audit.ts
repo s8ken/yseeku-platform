@@ -3,6 +3,8 @@
  * Tracks all security-relevant events and user actions
  */
 
+import { randomUUID } from 'crypto';
+
 import { Logger, getLogger } from '../observability/logger';
 
 export enum AuditEventType {
@@ -12,39 +14,39 @@ export enum AuditEventType {
   AUTH_FAILED = 'auth.failed',
   AUTH_TOKEN_CREATED = 'auth.token.created',
   AUTH_TOKEN_REVOKED = 'auth.token.revoked',
-  
+
   // Authorization Events
   AUTHZ_PERMISSION_GRANTED = 'authz.permission.granted',
   AUTHZ_PERMISSION_DENIED = 'authz.permission.denied',
   AUTHZ_ROLE_ASSIGNED = 'authz.role.assigned',
   AUTHZ_ROLE_REVOKED = 'authz.role.revoked',
-  
+
   // Resource Events
   RESOURCE_CREATED = 'resource.created',
   RESOURCE_READ = 'resource.read',
   RESOURCE_UPDATED = 'resource.updated',
   RESOURCE_DELETED = 'resource.deleted',
-  
+
   // Agent Events
   AGENT_CREATED = 'agent.created',
   AGENT_UPDATED = 'agent.updated',
   AGENT_DELETED = 'agent.deleted',
   AGENT_EXECUTED = 'agent.executed',
   AGENT_FAILED = 'agent.failed',
-  
+
   // Orchestra Events
   ORCHESTRA_CREATED = 'orchestra.created',
   ORCHESTRA_UPDATED = 'orchestra.updated',
   ORCHESTRA_DELETED = 'orchestra.deleted',
   ORCHESTRA_STARTED = 'orchestra.started',
   ORCHESTRA_STOPPED = 'orchestra.stopped',
-  
+
   // System Events
   SYSTEM_CONFIG_CHANGED = 'system.config.changed',
   SYSTEM_STARTED = 'system.started',
   SYSTEM_STOPPED = 'system.stopped',
   SYSTEM_ERROR = 'system.error',
-  
+
   // Security Events
   SECURITY_BREACH_ATTEMPT = 'security.breach.attempt',
   SECURITY_RATE_LIMIT_EXCEEDED = 'security.rate_limit.exceeded',
@@ -108,7 +110,7 @@ export class InMemoryAuditStorage implements AuditStorage {
 
   async store(event: AuditEvent): Promise<void> {
     this.events.push(event);
-    
+
     // Maintain max size by removing oldest events
     if (this.events.length > this.maxEvents) {
       this.events = this.events.slice(-this.maxEvents);
@@ -120,34 +122,34 @@ export class InMemoryAuditStorage implements AuditStorage {
 
     // Apply filters
     if (query.startDate) {
-      filtered = filtered.filter(e => new Date(e.timestamp) >= query.startDate!);
+      filtered = filtered.filter((e) => new Date(e.timestamp) >= query.startDate!);
     }
     if (query.endDate) {
-      filtered = filtered.filter(e => new Date(e.timestamp) <= query.endDate!);
+      filtered = filtered.filter((e) => new Date(e.timestamp) <= query.endDate!);
     }
     if (query.eventTypes && query.eventTypes.length > 0) {
-      filtered = filtered.filter(e => query.eventTypes!.includes(e.eventType));
+      filtered = filtered.filter((e) => query.eventTypes!.includes(e.eventType));
     }
     if (query.userId) {
-      filtered = filtered.filter(e => e.userId === query.userId);
+      filtered = filtered.filter((e) => e.userId === query.userId);
     }
     if (query.resourceType) {
-      filtered = filtered.filter(e => e.resourceType === query.resourceType);
+      filtered = filtered.filter((e) => e.resourceType === query.resourceType);
     }
     if (query.resourceId) {
-      filtered = filtered.filter(e => e.resourceId === query.resourceId);
+      filtered = filtered.filter((e) => e.resourceId === query.resourceId);
     }
     if (query.severity) {
-      filtered = filtered.filter(e => e.severity === query.severity);
+      filtered = filtered.filter((e) => e.severity === query.severity);
     }
     if (query.outcome) {
-      filtered = filtered.filter(e => e.outcome === query.outcome);
+      filtered = filtered.filter((e) => e.outcome === query.outcome);
     }
 
     // Apply pagination
     const offset = query.offset || 0;
     const limit = query.limit || 100;
-    
+
     return filtered.slice(offset, offset + limit);
   }
 
@@ -158,24 +160,24 @@ export class InMemoryAuditStorage implements AuditStorage {
 
   async export(query: AuditQuery, format: 'json' | 'csv'): Promise<string> {
     const events = await this.query({ ...query, limit: undefined, offset: undefined });
-    
+
     if (format === 'json') {
       return JSON.stringify(events, null, 2);
-    } else {
+    } 
       // CSV format
       if (events.length === 0) {
         return '';
       }
-      
+
       const headers = Object.keys(events[0]).join(',');
-      const rows = events.map(event => 
-        Object.values(event).map(v => 
-          typeof v === 'object' ? JSON.stringify(v) : String(v)
-        ).join(',')
+      const rows = events.map((event) =>
+        Object.values(event)
+          .map((v) => (typeof v === 'object' ? JSON.stringify(v) : String(v)))
+          .join(',')
       );
-      
+
       return [headers, ...rows].join('\n');
-    }
+    
   }
 
   clear(): void {
@@ -189,10 +191,10 @@ export class InMemoryAuditStorage implements AuditStorage {
 
 /**
  * Database audit storage (for production)
- * 
+ *
  * REQUIREMENTS FOR WORM COMPLIANCE:
  * 1. The underlying database user must ONLY have INSERT and SELECT permissions.
- * 2. The 'audit_logs' table should be created as an append-only table or use 
+ * 2. The 'audit_logs' table should be created as an append-only table or use
  *    immutable ledger database features (e.g. AWS QLDB, Azure SQL Ledger).
  * 3. Updates and Deletes must be strictly prohibited at the database level.
  */
@@ -208,25 +210,23 @@ export class DatabaseAuditStorage implements AuditStorage {
         user_agent, resource_type, resource_id, action, outcome, details, metadata)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
     `;
-    
-    await this.db.query(sql,
-      [
-        event.id,
-        event.timestamp,
-        event.eventType,
-        event.severity,
-        event.userId,
-        event.username,
-        event.ipAddress,
-        event.userAgent,
-        event.resourceType,
-        event.resourceId,
-        event.action,
-        event.outcome,
-        JSON.stringify(event.details),
-        JSON.stringify(event.metadata),
-      ]
-    );
+
+    await this.db.query(sql, [
+      event.id,
+      event.timestamp,
+      event.eventType,
+      event.severity,
+      event.userId,
+      event.username,
+      event.ipAddress,
+      event.userAgent,
+      event.resourceType,
+      event.resourceId,
+      event.action,
+      event.outcome,
+      JSON.stringify(event.details),
+      JSON.stringify(event.metadata),
+    ]);
   }
 
   async query(query: AuditQuery): Promise<AuditEvent[]> {
@@ -285,15 +285,45 @@ export class DatabaseAuditStorage implements AuditStorage {
   }
 
   async count(query: AuditQuery): Promise<number> {
-    // Similar to query but with COUNT(*)
     const conditions: string[] = [];
     const params: any[] = [];
     let paramIndex = 1;
 
-    // ... (same filter building as query method)
+    if (query.startDate) {
+      conditions.push(`timestamp >= $${paramIndex++}`);
+      params.push(query.startDate);
+    }
+    if (query.endDate) {
+      conditions.push(`timestamp <= $${paramIndex++}`);
+      params.push(query.endDate);
+    }
+    if (query.eventTypes && query.eventTypes.length > 0) {
+      conditions.push(`event_type = ANY($${paramIndex++})`);
+      params.push(query.eventTypes);
+    }
+    if (query.userId) {
+      conditions.push(`user_id = $${paramIndex++}`);
+      params.push(query.userId);
+    }
+    if (query.resourceType) {
+      conditions.push(`resource_type = $${paramIndex++}`);
+      params.push(query.resourceType);
+    }
+    if (query.resourceId) {
+      conditions.push(`resource_id = $${paramIndex++}`);
+      params.push(query.resourceId);
+    }
+    if (query.severity) {
+      conditions.push(`severity = $${paramIndex++}`);
+      params.push(query.severity);
+    }
+    if (query.outcome) {
+      conditions.push(`outcome = $${paramIndex++}`);
+      params.push(query.outcome);
+    }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-    const sql = `SELECT COUNT(*) FROM audit_logs ${whereClause}`;
+    const sql = `SELECT COUNT(*) as count FROM audit_logs ${whereClause}`;
 
     const result = await this.db.query(sql, params);
     return parseInt(result.rows[0].count);
@@ -301,24 +331,24 @@ export class DatabaseAuditStorage implements AuditStorage {
 
   async export(query: AuditQuery, format: 'json' | 'csv'): Promise<string> {
     const events = await this.query({ ...query, limit: undefined, offset: undefined });
-    
+
     if (format === 'json') {
       return JSON.stringify(events, null, 2);
-    } else {
+    } 
       // CSV format
       if (events.length === 0) {
         return '';
       }
-      
+
       const headers = Object.keys(events[0]).join(',');
-      const rows = events.map(event => 
-        Object.values(event).map(v => 
-          typeof v === 'object' ? JSON.stringify(v) : String(v)
-        ).join(',')
+      const rows = events.map((event) =>
+        Object.values(event)
+          .map((v) => (typeof v === 'object' ? JSON.stringify(v) : String(v)))
+          .join(',')
       );
-      
+
       return [headers, ...rows].join('\n');
-    }
+    
   }
 }
 
@@ -368,7 +398,7 @@ export class AuditLogger {
 
     try {
       await this.storage.store(event);
-      
+
       // Also log to standard logger for critical events
       if (event.severity === AuditSeverity.CRITICAL || event.severity === AuditSeverity.ERROR) {
         this.logger.warn('Critical audit event', { event });
@@ -400,10 +430,13 @@ export class AuditLogger {
   }
 
   private generateId(): string {
-    return `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `audit_${Date.now()}_${randomUUID()}`;
   }
 
-  private determineSeverity(eventType: AuditEventType, outcome: 'success' | 'failure'): AuditSeverity {
+  private determineSeverity(
+    eventType: AuditEventType,
+    outcome: 'success' | 'failure'
+  ): AuditSeverity {
     // Security events are always critical or error
     if (eventType.startsWith('security.')) {
       return outcome === 'failure' ? AuditSeverity.CRITICAL : AuditSeverity.WARNING;
@@ -460,11 +493,8 @@ export function auditMiddleware() {
       const outcome = res.statusCode < 400 ? 'success' : 'failure';
 
       // Log the request
-      audit.log(
-        AuditEventType.RESOURCE_READ,
-        `HTTP ${req.method} ${req.path}`,
-        outcome,
-        {
+      audit
+        .log(AuditEventType.RESOURCE_READ, `HTTP ${req.method} ${req.path}`, outcome, {
           userId: req.user?.id,
           username: req.user?.username,
           ipAddress: req.ip || req.connection.remoteAddress,
@@ -475,10 +505,10 @@ export function auditMiddleware() {
             statusCode: res.statusCode,
             duration,
           },
-        }
-      ).catch(err => {
-        console.error('Failed to log audit event:', err);
-      });
+        })
+        .catch((err) => {
+          console.error('Failed to log audit event:', err);
+        });
 
       return originalSend.call(this, data);
     };

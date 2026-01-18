@@ -1,19 +1,23 @@
 /**
  * SymbiFrameworkDetector - Core 5-dimension detection engine
- * 
+ *
  * This is the production-grade detector that scores AI interactions
  * in real-time across all 5 SYMBI Framework dimensions.
- * 
+ *
  * Use case: Live production monitoring (< 100ms latency requirement)
  */
 
-import { AIInteraction, DetectionResult } from './index';
-import { RealityIndexCalculator } from './reality-index';
-import { TrustProtocolValidator } from './trust-protocol-validator';
-import { EthicalAlignmentScorer } from './ethical-alignment';
-import { ResonanceQualityMeasurer } from './resonance-quality';
-import { CanvasParityCalculator } from './canvas-parity';
 import { TrustReceipt, CIQMetrics } from '@sonate/core';
+
+import { CanvasParityCalculator } from './canvas-parity';
+import { EthicalAlignmentScorer } from './ethical-alignment';
+import { RealityIndexCalculator } from './reality-index';
+import { ResonanceQualityMeasurer } from './resonance-quality';
+import { TrustProtocolValidator } from './trust-protocol-validator';
+
+import { AIInteraction, DetectionResult } from './index';
+
+
 
 export class SymbiFrameworkDetector {
   private realityCalc: RealityIndexCalculator;
@@ -32,25 +36,20 @@ export class SymbiFrameworkDetector {
 
   /**
    * Detect and score an AI interaction across all 5 dimensions
-   * 
+   *
    * This is the main entry point for SONATE Detect module.
    * Call this for every AI interaction in production.
    */
   async detect(interaction: AIInteraction): Promise<DetectionResult> {
     // Run all 5 dimensions in parallel for speed
-    const [
-      reality_index,
-      trust_protocol,
-      ethical_alignment,
-      resonance_quality,
-      canvas_parity,
-    ] = await Promise.all([
-      this.realityCalc.calculate(interaction),
-      this.trustValidator.validate(interaction),
-      this.ethicalScorer.score(interaction),
-      this.resonanceMeasurer.measure(interaction),
-      this.canvasCalc.calculate(interaction),
-    ]);
+    const [reality_index, trust_protocol, ethical_alignment, resonance_quality, canvas_parity] =
+      await Promise.all([
+        this.realityCalc.calculate(interaction),
+        this.trustValidator.validate(interaction),
+        this.ethicalScorer.score(interaction),
+        this.resonanceMeasurer.measure(interaction),
+        this.canvasCalc.calculate(interaction),
+      ]);
 
     // Generate Trust Receipt
     const receipt = this.generateReceipt(interaction, {
@@ -90,11 +89,11 @@ export class SymbiFrameworkDetector {
     // Simple heuristic: shorter, clearer messages score higher
     const wordCount = interaction.content.split(/\s+/).length;
     const hasStructure = interaction.content.includes('\n') || interaction.content.includes('-');
-    
+
     let score = 0.5;
-    if (wordCount < 100) score += 0.2;
-    if (hasStructure) score += 0.3;
-    
+    if (wordCount < 100) {score += 0.2;}
+    if (hasStructure) {score += 0.3;}
+
     return Math.min(score, 1.0);
   }
 }

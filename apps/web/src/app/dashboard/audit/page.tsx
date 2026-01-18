@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Search, Filter, Calendar, User, FileText } from 'lucide-react';
+import { api } from '@/lib/api';
 
 interface AuditLog {
   id: string;
@@ -69,9 +70,10 @@ export default function AuditTrailsPage() {
         if (value) params.append(key, value);
       });
 
-      const response = await fetch(`/api/audit/logs?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch audit logs');
-      return response.json() as Promise<AuditResponse>;
+      // Use the API client instead of raw fetch if possible, or keep fetch but handle auth
+      // For now, we'll use the api helper which handles auth headers automatically
+      const response = await api.getAuditLogs(params);
+      return response;
     },
   });
 
@@ -237,7 +239,7 @@ export default function AuditTrailsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {logs.map((log) => (
+                {logs.map((log: AuditLog) => (
                   <TableRow key={log.id}>
                     <TableCell className="font-mono text-xs">
                       {new Date(log.timestamp).toLocaleString('en-US')}

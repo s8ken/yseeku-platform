@@ -4,12 +4,12 @@
  */
 
 // Agent Roles
-export type AgentRole = "CONDUCTOR" | "VARIANT" | "EVALUATOR" | "OVERSEER";
+export type AgentRole = 'CONDUCTOR' | 'VARIANT' | 'EVALUATOR' | 'OVERSEER';
 
 // Experiment States
-export type ExperimentStatus = "DRAFT" | "RUNNING" | "COMPLETED" | "FAILED" | "CANCELLED";
-export type RunStatus = "QUEUED" | "RUNNING" | "COMPLETED" | "FAILED" | "CANCELLED";
-export type TrialStatus = "PENDING" | "RUNNING" | "COMPLETED" | "FAILED";
+export type ExperimentStatus = 'DRAFT' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+export type RunStatus = 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+export type TrialStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 
 // Core Identifiers
 export interface Identifiers {
@@ -37,29 +37,29 @@ export interface ExperimentConfig {
   description?: string;
   orgId: string;
   departmentId?: string;
-  
+
   // Double-blind configuration
   variants: VariantConfig[];
   tasks: Task[];
-  
+
   // Evaluation configuration
   evaluationCriteria: EvaluationCriteria[];
   humanEvaluation?: boolean;
-  
+
   // SYMBI Framework integration
   symbiDimensions: SymbiDimension[];
-  
+
   // Sampling configuration
   sampleSize?: number;
   randomSeed?: number;
-  
+
   // Privacy settings
   containsPII: boolean;
-  piiPolicy?: "ANONYMIZE" | "PSEUDONYMIZE" | "RAW_RESEARCH";
-  
+  piiPolicy?: 'ANONYMIZE' | 'PSEUDONYMIZE' | 'RAW_RESEARCH';
+
   // Cost controls
   maxCostUsd?: number;
-  
+
   // Metadata
   createdBy: string;
   createdAt: string;
@@ -71,7 +71,7 @@ export interface VariantConfig {
   id: string;
   name: string;
   description?: string;
-  
+
   // Model configuration
   provider: string;
   model: string;
@@ -79,13 +79,13 @@ export interface VariantConfig {
   temperature?: number;
   maxTokens?: number;
   topP?: number;
-  
+
   // Rate limiting
   rateLimit?: {
     maxRequestsPerMin: number;
     maxTokensPerMin: number;
   };
-  
+
   // Cost tracking
   estimatedCostPer1kTokens?: number;
 }
@@ -96,7 +96,7 @@ export interface Task {
   content: string;
   context?: string;
   category?: string;
-  difficulty?: "EASY" | "MEDIUM" | "HARD";
+  difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
   tags?: string[];
 }
 
@@ -105,7 +105,7 @@ export interface EvaluationCriteria {
   id: string;
   name: string;
   description: string;
-  type: "SCALE" | "BINARY" | "CHOICE";
+  type: 'SCALE' | 'BINARY' | 'CHOICE';
   scale?: {
     min: number;
     max: number;
@@ -115,36 +115,36 @@ export interface EvaluationCriteria {
 }
 
 // SYMBI Framework Dimensions
-export type SymbiDimension = 
-  | "REALITY_INDEX"
-  | "TRUST_PROTOCOL" 
-  | "ETHICAL_ALIGNMENT"
-  | "RESONANCE_QUALITY"
-  | "CANVAS_PARITY";
+export type SymbiDimension =
+  | 'REALITY_INDEX'
+  | 'TRUST_PROTOCOL'
+  | 'ETHICAL_ALIGNMENT'
+  | 'RESONANCE_QUALITY'
+  | 'CANVAS_PARITY';
 
 // Experiment Run
 export interface ExperimentRun {
   id: string;
   experimentId: string;
   status: RunStatus;
-  
+
   // Execution metadata
   startedAt?: string;
   completedAt?: string;
   workerId?: string;
-  
+
   // Progress tracking
   totalTrials: number;
   completedTrials: number;
   failedTrials: number;
-  
+
   // Integrity
   integrityHash?: string;
   randomSeed: number;
-  
+
   // Cost tracking
   totalCostUsd: number;
-  
+
   createdAt: string;
 }
 
@@ -155,24 +155,24 @@ export interface Trial {
   experimentId: string;
   taskId: string;
   status: TrialStatus;
-  
+
   // Double-blind mapping
   slotMapping: Record<string, string>; // slot -> variantId
-  
+
   // Results
   outputs?: Record<string, string>; // slot -> output
   evaluations?: Evaluation[];
-  
+
   // SYMBI scores
   symbiScores?: Record<string, Record<SymbiDimension, number>>; // slot -> dimension scores
-  
+
   // Timing
   startedAt?: string;
   completedAt?: string;
-  
+
   // Integrity
   integrityHash?: string;
-  
+
   createdAt: string;
 }
 
@@ -180,23 +180,23 @@ export interface Trial {
 export interface Evaluation {
   id: string;
   trialId: string;
-  evaluatorType: "HUMAN" | "AI" | "HYBRID";
+  evaluatorType: 'HUMAN' | 'AI' | 'HYBRID';
   evaluatorId?: string;
-  
+
   // Evaluation results
   winnerSlot?: string;
   scores?: Record<string, number>; // slot -> score
   criteriaScores?: Record<string, Record<string, number>>; // slot -> criteria -> score
-  
+
   // Resonance measurement
   resonanceScores?: Record<string, number>; // slot -> resonance score
-  
+
   // Comments/feedback
   comments?: string;
-  
+
   // Timing
   evaluatedAt: string;
-  
+
   // Quality metrics
   confidence?: number;
   timeSpentMs?: number;
@@ -207,8 +207,8 @@ export interface ResonanceMeasurement {
   trialId: string;
   slot: string;
   score: number; // 0-10
-  method: "HUMAN_RATING" | "AI_JUDGE" | "HYBRID";
-  
+  method: 'HUMAN_RATING' | 'AI_JUDGE' | 'HYBRID';
+
   // Measurement details
   criteria: {
     understood: number;
@@ -216,11 +216,11 @@ export interface ResonanceMeasurement {
     trustworthy: number;
     motivating: number;
   };
-  
+
   // Validation
   humanCorrelation?: number;
   confidence?: number;
-  
+
   measuredAt: string;
 }
 
@@ -246,9 +246,9 @@ export interface RateLimitStatus {
 // Privacy & Compliance
 export interface PrivacyConfig {
   containsPII: boolean;
-  piiPolicy?: "ANONYMIZE" | "PSEUDONYMIZE" | "RAW_RESEARCH";
+  piiPolicy?: 'ANONYMIZE' | 'PSEUDONYMIZE' | 'RAW_RESEARCH';
   retentionDays?: number;
-  anonymizationLevel?: "LIGHT" | "FULL";
+  anonymizationLevel?: 'LIGHT' | 'FULL';
 }
 
 // Cost Tracking
@@ -271,12 +271,12 @@ export interface StatisticalResult {
   confidenceInterval?: [number, number];
   pValue?: number;
   effectSize?: number;
-  significance: "SIGNIFICANT" | "NOT_SIGNIFICANT" | "INCONCLUSIVE";
+  significance: 'SIGNIFICANT' | 'NOT_SIGNIFICANT' | 'INCONCLUSIVE';
 }
 
 // Export Formats
 export interface ExportConfig {
-  format: "CSV" | "JSONL" | "JSON";
+  format: 'CSV' | 'JSONL' | 'JSON';
   includeRawData: boolean;
   includeEvaluations: boolean;
   includeSymbiScores: boolean;
@@ -294,28 +294,20 @@ export class ExperimentError extends Error {
     public trialId?: string
   ) {
     super(message);
-    this.name = "ExperimentError";
+    this.name = 'ExperimentError';
   }
 }
 
 export class RateLimitError extends ExperimentError {
-  constructor(
-    message: string,
-    public provider: string,
-    public resetAt: string
-  ) {
-    super(message, "RATE_LIMIT_EXCEEDED");
-    this.name = "RateLimitError";
+  constructor(message: string, public provider: string, public resetAt: string) {
+    super(message, 'RATE_LIMIT_EXCEEDED');
+    this.name = 'RateLimitError';
   }
 }
 
 export class IntegrityError extends ExperimentError {
-  constructor(
-    message: string,
-    public expectedHash: string,
-    public actualHash: string
-  ) {
-    super(message, "INTEGRITY_MISMATCH");
-    this.name = "IntegrityError";
+  constructor(message: string, public expectedHash: string, public actualHash: string) {
+    super(message, 'INTEGRITY_MISMATCH');
+    this.name = 'IntegrityError';
   }
 }

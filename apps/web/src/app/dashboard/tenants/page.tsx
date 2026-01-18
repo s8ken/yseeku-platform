@@ -27,8 +27,11 @@ import {
   Trash2,
   Edit,
   CheckCircle,
-  AlertTriangle
+  AlertTriangle,
+  FileX
 } from 'lucide-react';
+import { api } from '@/lib/api';
+import { useDemo } from '@/hooks/use-demo';
 
 interface Tenant {
   id: string;
@@ -52,6 +55,26 @@ interface TenantResponse {
   };
 }
 
+// Empty state component
+function EmptyState() {
+  return (
+    <Card className="p-12 text-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+          <FileX className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold">No Tenants Configured</h3>
+          <p className="text-muted-foreground max-w-md mx-auto mt-2">
+            Create your first tenant to start managing multi-tenant configurations
+            for your AI governance platform.
+          </p>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export default function TenantManagementPage() {
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -61,15 +84,28 @@ export default function TenantManagementPage() {
   });
 
   const queryClient = useQueryClient();
+  const { isDemo, isLoaded } = useDemo();
 
-  const { data, isLoading, refetch } = useQuery({
+  // Fetch real tenants from API
+  const { data, isLoading: isLoadingReal } = useQuery({
     queryKey: ['tenants'],
     queryFn: async () => {
       const response = await fetch('/api/tenants');
       if (!response.ok) throw new Error('Failed to fetch tenants');
       return response.json() as Promise<TenantResponse>;
     },
+    enabled: !isDemo && isLoaded,
   });
+
+  // Fetch demo tenants when in demo mode
+  const { data: demoData, isLoading: isLoadingDemo } = useQuery({
+    queryKey: ['demo-tenants'],
+    queryFn: () => api.getDemoTenants(),
+    staleTime: 60000,
+    enabled: isDemo && isLoaded,
+  });
+
+  const isLoading = !isLoaded || (isDemo ? isLoadingDemo : isLoadingReal);
 
   const createTenantMutation = useMutation({
     mutationFn: async (tenantData: { name: string; description: string }) => {
@@ -148,50 +184,47 @@ export default function TenantManagementPage() {
     }
   };
 
-  // Mock data for demonstration
-  const mockTenants: Tenant[] = [
-    {
-      id: 'default',
-      name: 'Default Tenant',
-      description: 'Default tenant configuration',
-      status: 'active',
-      createdAt: '2024-01-01T00:00:00Z',
-      userCount: 5,
-      complianceStatus: 'compliant',
-      trustScore: 87,
-      lastActivity: '2024-12-01T10:30:00Z'
-    },
-    {
-      id: 'corp1',
-      name: 'Corporation One',
-      description: 'Enterprise client with high compliance requirements',
-      status: 'active',
-      createdAt: '2024-06-15T00:00:00Z',
-      userCount: 25,
-      complianceStatus: 'compliant',
-      trustScore: 94,
-      lastActivity: '2024-12-01T09:15:00Z'
-    },
-    {
-      id: 'startup1',
-      name: 'Startup Inc',
-      description: 'Growing startup with basic compliance needs',
-      status: 'active',
-      createdAt: '2024-09-01T00:00:00Z',
-      userCount: 8,
-      complianceStatus: 'warning',
-      trustScore: 76,
-      lastActivity: '2024-11-28T14:20:00Z'
-    }
-  ];
+  // Map demo tenants to match Tenant interface
+  const demoTenants: Tenant[] = (demoData?.data || []).map((t: any) => ({
+    id: t._id || t.id,
+    name: t.name,
+    description: t.description || '',
+    status: t.status || 'active',
+    createdAt: t.createdAt || new Date().toISOString(),
+    userCount: t.userCount || 0,
+    complianceStatus: t.complianceStatus || 'compliant',
+    trustScore: t.trustScore || 80,
+    lastActivity: t.lastActivity || new Date().toISOString()
+  }));
 
-  const tenants = data?.data?.tenants || mockTenants;
+  // Use demo tenants when in demo mode, real tenants otherwise
+  const tenants = isDemo ? demoTenants : (data?.data?.tenants || []);
+  const dataSource = isDemo ? 'demo' : 'live';
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+      {isDemo && (
+        <div className="demo-notice mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-amber-800 dark:text-amber-200">Demo Mode</strong>
+            <p className="text-sm text-amber-700 dark:text-amber-300">Showing sample tenants for demonstration. Create your own tenants for production use.</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between space-y-2">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Tenant Management</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-3xl font-bold tracking-tight">Tenant Management</h2>
+            <span className={`data-source-badge px-2 py-1 text-xs rounded-full ${
+              dataSource === 'live'
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+            }`}>
+              {dataSource === 'live' ? 'Live Data' : 'Demo Data'}
+            </span>
+          </div>
           <p className="text-muted-foreground">
             Manage multi-tenant configurations and settings
           </p>
@@ -310,6 +343,8 @@ export default function TenantManagementPage() {
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center py-8">Loading tenants...</div>
+          ) : tenants.length === 0 ? (
+            <EmptyState />
           ) : (
             <Table>
               <TableHeader>

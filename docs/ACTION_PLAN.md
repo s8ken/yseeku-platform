@@ -20,7 +20,7 @@
   
 - [ ] Update `packages/detect/src/bedau-index.ts`
   - Change: `emergence_type: 'LINEAR' | 'WEAK_EMERGENCE'`
-  - To: `emergence_type: 'LINEAR' | 'WEAK_EMERGENCE' | 'POTENTIAL_STRONG_EMERGENCE'`
+  - To: `emergence_type: 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE'`
   - Add: `strong_emergence_indicators?: StrongEmergenceIndicators`
 
 - [ ] Update `apps/web/src/components/ui/info-tooltip.tsx`

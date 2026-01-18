@@ -5,10 +5,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "npm run clean && tsc",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist",
-    "test": "npm run build && c8 --check-coverage --branches 40 --functions 40 --lines 40 --statements 40 node dist/tests/run-tests.js",
+    "clean": "node -e \"const fs=require('fs'); try{fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('tsconfig.tsbuildinfo',{force:true})}catch(e){console.error(e);process.exit(1)}\"",
+    "test": "npm run build && c8 --check-coverage --branches 55 --functions 55 --lines 60 --statements 60 node dist/tests/run-tests.js",
     "test:adversarial": "jest",
     "test:stakes": "jest src/__tests__/stakes.spec.ts",
     "test:explainable": "jest src/__tests__/explainable.spec.ts",
@@ -25,6 +25,7 @@
   "dependencies": {
     "@sonate/core": "file:../core",
     "axios": "^1.6.0",
+    "ioredis": "^5.8.2",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

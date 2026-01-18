@@ -1,3 +1,5 @@
+"use client"
+
 export default function VerdictBadge({ score, velocity }: { score: string; velocity: string }) {
   const numScore = parseFloat(score)
   const numVel = parseFloat(velocity)

@@ -144,3 +144,14 @@ MIT
 - Import Example: `import { TrustProtocol, hashChain } from '@sonate/core'`
 
 All SONATE trust scores MUST use `TrustProtocol` with 0–10 inputs and weights from `TRUST_PRINCIPLES`.
+
+## Testing
+
+- Core tests use a custom runner with coverage enforcement:
+  - Run: `npm run test` from `packages/core`
+  - Builds TypeScript and executes `dist/tests/run-tests.js` under `c8` with thresholds:
+    - Lines ≥ 90%, Statements ≥ 90%, Functions ≥ 80%, Branches ≥ 80%
+- Focused Jest tests can be run for specific suites:
+  - Crypto (Ed25519 via Node crypto):  
+    `npx jest --config jest.config.js --runTestsByPath src/__tests__/crypto.spec.ts`
+- Coverage configuration is defined in `packages/core/package.json` and targets the custom runner execution paths to ensure deterministic, fast coverage checks across core modules (errors, validators, signatures, performance, trust protocol, trust receipts, resonance metrics, and enhanced trust scoring).

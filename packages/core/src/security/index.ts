@@ -1,9 +1,9 @@
 /**
  * YSEEKU Security Module - Enhanced Security Components
- * 
+ *
  * This module consolidates all security components ported from symbi-symphony
  * and enhanced for enterprise-grade security in YSEEKU platform.
- * 
+ *
  * Components:
  * - Enhanced Cryptography (Ed25519, Hash Chains)
  * - Tamper-evident Audit Trails
@@ -11,17 +11,53 @@
  * - Enterprise Security Patterns
  */
 
-import { EnhancedCryptoManager, EnhancedCryptoUtils, type EnhancedKeyPair, type EnhancedSignatureResult, type EnhancedVerificationResult, type SignedReceipt } from './crypto-enhanced';
-export { EnhancedCryptoManager, EnhancedCryptoUtils, type EnhancedKeyPair, type EnhancedSignatureResult, type EnhancedVerificationResult, type SignedReceipt } from './crypto-enhanced';
+import {
+  HashChain,
+  type HashChainLink,
+  type HashChainConfig,
+  type ChainVerificationResult,
+} from './hash-chain';
 
-import { HashChain, type HashChainLink, type HashChainConfig, type ChainVerificationResult } from './hash-chain';
-export { HashChain, type HashChainLink, type HashChainConfig, type ChainVerificationResult } from './hash-chain';
+export {
+  HashChain,
+  type HashChainLink,
+  type HashChainConfig,
+  type ChainVerificationResult,
+} from './hash-chain';
 
-import { EnhancedAuditSystem, type AuditEvent, type SignedAuditEvent, type AuditChainConfig } from './audit-enhanced';
-export { EnhancedAuditSystem, type AuditEvent, type SignedAuditEvent, type AuditChainConfig } from './audit-enhanced';
+import {
+  EnhancedSecurityError,
+  AuthenticationError,
+  AuthorizationError,
+  SecurityError,
+  CryptographicError,
+  DataIntegrityError,
+  ValidationError,
+  NetworkSecurityError,
+  SystemSecurityError,
+  BusinessLogicSecurityError,
+  SecurityErrorHandler,
+  type ErrorContext,
+  type ErrorDetails,
+  type SecurityErrorReport,
+} from './error-taxonomy';
 
-import { EnhancedSecurityError, AuthenticationError, AuthorizationError, SecurityError, CryptographicError, DataIntegrityError, ValidationError, NetworkSecurityError, SystemSecurityError, BusinessLogicSecurityError, SecurityErrorHandler, type ErrorContext, type ErrorDetails, type SecurityErrorReport } from './error-taxonomy';
-export { EnhancedSecurityError, AuthenticationError, AuthorizationError, SecurityError, CryptographicError, DataIntegrityError, ValidationError, NetworkSecurityError, SystemSecurityError, BusinessLogicSecurityError, SecurityErrorHandler, type ErrorContext, type ErrorDetails, type SecurityErrorReport } from './error-taxonomy';
+export {
+  EnhancedSecurityError,
+  AuthenticationError,
+  AuthorizationError,
+  SecurityError,
+  CryptographicError,
+  DataIntegrityError,
+  ValidationError,
+  NetworkSecurityError,
+  SystemSecurityError,
+  BusinessLogicSecurityError,
+  SecurityErrorHandler,
+  type ErrorContext,
+  type ErrorDetails,
+  type SecurityErrorReport,
+} from './error-taxonomy';
 
 // Security Constants
 export const SECURITY_CONSTANTS = {
@@ -29,17 +65,17 @@ export const SECURITY_CONSTANTS = {
   DEFAULT_HASH_ALGORITHM: 'sha256',
   DEFAULT_SIGNATURE_ALGORITHM: 'ed25519',
   DEFAULT_KEY_SIZE: 32,
-  
+
   // Audit constants
   DEFAULT_AUDIT_RETENTION_DAYS: 90,
   DEFAULT_MAX_CHAIN_LENGTH: 10000,
-  
+
   // Error severity levels
   SEVERITY_CRITICAL: 'critical' as const,
   SEVERITY_HIGH: 'high' as const,
   SEVERITY_MEDIUM: 'medium' as const,
   SEVERITY_LOW: 'low' as const,
-  
+
   // Error categories
   CATEGORY_AUTHENTICATION: 'authentication' as const,
   CATEGORY_AUTHORIZATION: 'authorization' as const,
@@ -49,7 +85,7 @@ export const SECURITY_CONSTANTS = {
   CATEGORY_NETWORK: 'network' as const,
   CATEGORY_SYSTEM: 'system' as const,
   CATEGORY_BUSINESS_LOGIC: 'business_logic' as const,
-  
+
   // Security headers
   SECURITY_HEADERS: {
     CSP: 'Content-Security-Policy',
@@ -57,17 +93,17 @@ export const SECURITY_CONSTANTS = {
     X_FRAME_OPTIONS: 'X-Frame-Options',
     X_CONTENT_TYPE_OPTIONS: 'X-Content-Type-Options',
     REFERRER_POLICY: 'Referrer-Policy',
-    X_XSS_PROTECTION: 'X-XSS-Protection'
+    X_XSS_PROTECTION: 'X-XSS-Protection',
   },
-  
+
   // Rate limiting defaults
   RATE_LIMIT_WINDOW_MS: 15 * 60 * 1000, // 15 minutes
   RATE_LIMIT_MAX_REQUESTS: 100,
-  
+
   // JWT constants
   JWT_EXPIRATION_TIME: '1h',
   JWT_REFRESH_EXPIRATION_TIME: '7d',
-  JWT_ISSUER: 'yseeku-platform'
+  JWT_ISSUER: 'yseeku-platform',
 } as const;
 
 // Security Utilities
@@ -103,7 +139,7 @@ export class SecurityUtils {
       critical: 1.0,
       high: 0.8,
       medium: 0.5,
-      low: 0.2
+      low: 0.2,
     };
 
     const categoryWeights = {
@@ -114,19 +150,20 @@ export class SecurityUtils {
       validation: 0.6,
       network: 0.5,
       system: 0.4,
-      business_logic: 0.3
+      business_logic: 0.3,
     };
 
     const severityWeight = severityWeights[factors.severity as keyof typeof severityWeights] || 0.1;
     const categoryWeight = categoryWeights[factors.category as keyof typeof categoryWeights] || 0.1;
-    
+
     // Risk score calculation (0-100)
-    const riskScore = Math.min(100, 
-      (severityWeight * 40) +
-      (categoryWeight * 30) +
-      (Math.min(factors.frequency / 10, 1) * 10) +
-      (factors.impact * 10) +
-      (factors.exploitability * 10)
+    const riskScore = Math.min(
+      100,
+      severityWeight * 40 +
+        categoryWeight * 30 +
+        Math.min(factors.frequency / 10, 1) * 10 +
+        factors.impact * 10 +
+        factors.exploitability * 10
     );
 
     return Math.round(riskScore);
@@ -171,7 +208,10 @@ export class SecurityUtils {
     }
 
     const validSignatureAlgorithms = ['ed25519', 'rsa', 'ecdsa'];
-    if (config.signatureAlgorithm && !validSignatureAlgorithms.includes(config.signatureAlgorithm)) {
+    if (
+      config.signatureAlgorithm &&
+      !validSignatureAlgorithms.includes(config.signatureAlgorithm)
+    ) {
       errors.push(`Invalid signature algorithm: ${config.signatureAlgorithm}`);
     }
 
@@ -182,104 +222,50 @@ export class SecurityUtils {
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 }
 
+/*
 // Security Manager - Main entry point for security operations
 export class SecurityManager {
-  private cryptoManager: EnhancedCryptoManager;
-  private auditSystem: EnhancedAuditSystem;
+  private cryptoManager: any;
+  private auditSystem: any;
   private initialized: boolean = false;
 
   constructor() {
-    this.cryptoManager = new EnhancedCryptoManager();
-    this.auditSystem = new EnhancedAuditSystem({
-      enableSigning: true,
-      enableChaining: true,
-      autoVerify: true
-    });
+    // These are disabled for now as they depend on excluded enhanced files
+    this.cryptoManager = null;
+    this.auditSystem = null;
   }
 
-  /**
-   * Initialize security manager with key pair
-   */
   async initialize(keyPair?: any): Promise<void> {
-    if (this.initialized) {
-      return;
-    }
-
-    try {
-      // Initialize crypto manager
-      if (keyPair) {
-        // Use provided key pair
-        await this.auditSystem.initialize(keyPair);
-      } else {
-        // Generate new key pair
-        const generatedKeyPair = this.cryptoManager.generateEnhancedKeyPair();
-        await this.auditSystem.initialize(generatedKeyPair);
-      }
-
-      this.initialized = true;
-
-      // Log initialization
-      await this.auditSystem.logEvent({
-        id: SecurityUtils.generateSecureId('sec-init'),
-        timestamp: Date.now(),
-        level: 'info',
-        category: 'system',
-        action: 'security_manager_initialized',
-        actor: {
-          id: 'system',
-          type: 'system'
-        },
-        resource: {
-          type: 'security_manager',
-          id: 'main'
-        },
-        context: {
-          requestId: SecurityUtils.generateSecureId('req')
-        },
-        result: 'success'
-      });
-    } catch (error) {
-      throw new Error(`Failed to initialize security manager: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    this.initialized = true;
   }
 
-  /**
-   * Get crypto manager
-   */
-  getCryptoManager(): EnhancedCryptoManager {
+  getCryptoManager(): any {
     return this.cryptoManager;
   }
 
-  /**
-   * Get audit system
-   */
-  getAuditSystem(): EnhancedAuditSystem {
+  getAuditSystem(): any {
     return this.auditSystem;
   }
 
-  /**
-   * Check if security manager is initialized
-   */
   isInitialized(): boolean {
     return this.initialized;
   }
 }
+*/
 
 // Default export
 const SecurityModule = {
   // Managers
-  SecurityManager,
-  
+  // SecurityManager,
+
   // Core classes
-  EnhancedCryptoManager,
   HashChain,
-  EnhancedAuditSystem,
-  
+
   // Error classes
   EnhancedSecurityError,
   AuthenticationError,
@@ -290,13 +276,13 @@ const SecurityModule = {
   NetworkSecurityError,
   SystemSecurityError,
   BusinessLogicSecurityError,
-  
+
   // Utilities
   SecurityUtils,
   SecurityErrorHandler,
-  
+
   // Constants
-  SECURITY_CONSTANTS
+  SECURITY_CONSTANTS,
 };
 
 export default SecurityModule;

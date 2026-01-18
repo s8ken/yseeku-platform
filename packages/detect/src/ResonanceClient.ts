@@ -29,7 +29,7 @@ export class ResonanceClient {
   private engineUrl: string;
 
   constructor(engineUrl: string = 'http://localhost:8000') {
-    this.engineUrl = engineUrl;
+    this.engineUrl = engineUrl || process.env.RESONANCE_ENGINE_URL || 'http://localhost:8000';
   }
 
   /**
@@ -40,13 +40,11 @@ export class ResonanceClient {
       const response = await axios.post(`${this.engineUrl}/v1/analyze`, {
         user_input: data.user_input,
         ai_response: data.ai_response,
-        history: data.history || []
+        history: data.history || [],
       });
 
       return response.data;
     } catch (error) {
-      console.error('❌ Failed to connect to Resonance Engine:', error);
-      // Fallback logic could go here (e.g. return a "Pending" receipt)
       throw new Error('Resonance Engine unavailable');
     }
   }

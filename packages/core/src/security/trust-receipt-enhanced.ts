@@ -5,9 +5,17 @@
  */
 
 import { TrustReceipt, TrustReceiptData } from '../trust-receipt';
-import { EnhancedCryptoManager, EnhancedKeyPair, SignedReceipt } from './crypto-enhanced';
+
 import { EnhancedAuditSystem, AuditEvent } from './audit-enhanced';
-import { AuthenticationError, AuthorizationError, CryptographicError, DataIntegrityError } from './error-taxonomy';
+import { EnhancedCryptoManager, EnhancedKeyPair, SignedReceipt } from './crypto-enhanced';
+import {
+  AuthenticationError,
+  AuthorizationError,
+  CryptographicError,
+  DataIntegrityError,
+} from './error-taxonomy';
+import { SystemSecurityError, EnhancedSecurityError } from './errors';
+
 import { SecurityUtils } from './index';
 
 export interface EnhancedTrustReceiptConfig {
@@ -55,14 +63,14 @@ export class EnhancedTrustReceiptManager {
       enableCryptographicSigning: config.enableCryptographicSigning ?? true,
       enableHashChaining: config.enableHashChaining ?? true,
       enableIntegrityVerification: config.enableIntegrityVerification ?? true,
-      autoVerify: config.autoVerify ?? true
+      autoVerify: config.autoVerify ?? true,
     };
 
     this.cryptoManager = new EnhancedCryptoManager();
     this.auditSystem = new EnhancedAuditSystem({
       enableSigning: true,
       enableChaining: true,
-      autoVerify: true
+      autoVerify: true,
     });
   }
 
@@ -92,20 +100,20 @@ export class EnhancedTrustReceiptManager {
           action: 'trust_receipt_manager_initialized',
           actor: {
             id: 'system',
-            type: 'system'
+            type: 'system',
           },
           resource: {
             type: 'trust_receipt_manager',
-            id: 'main'
+            id: 'main',
           },
           context: {
-            requestId: SecurityUtils.generateSecureId('req')
+            requestId: SecurityUtils.generateSecureId('req'),
           },
           result: 'success',
           metadata: {
             config: this.config,
-            hasKeyPair: !!this.keyPair
-          }
+            hasKeyPair: Boolean(this.keyPair),
+          },
         });
       }
     } catch (error) {
@@ -116,11 +124,11 @@ export class EnhancedTrustReceiptManager {
           operation: 'initialize',
           severity: 'critical',
           userId: undefined,
-          tenantId: undefined
+          tenantId: undefined,
         },
         {
           originalError: error instanceof Error ? error : new Error(String(error)),
-          metadata: { config: this.config }
+          metadata: { config: this.config },
         }
       );
     }
@@ -136,17 +144,14 @@ export class EnhancedTrustReceiptManager {
     try {
       // Validate configuration
       if (this.config.enableCryptographicSigning && !this.keyPair) {
-        throw new CryptographicError(
-          'Cryptographic signing enabled but no key pair available',
-          {
-            component: 'EnhancedTrustReceiptManager',
-            operation: 'createEnhancedReceipt',
-            severity: 'critical',
-            userId: auditContext.userId,
-            tenantId: auditContext.tenantId,
-            requestId: auditContext.requestId
-          }
-        );
+        throw new CryptographicError('Cryptographic signing enabled but no key pair available', {
+          component: 'EnhancedTrustReceiptManager',
+          operation: 'createEnhancedReceipt',
+          severity: 'critical',
+          userId: auditContext.userId,
+          tenantId: auditContext.tenantId,
+          requestId: auditContext.requestId,
+        });
       }
 
       // Create enhanced receipt with cryptographic signing
@@ -161,7 +166,7 @@ export class EnhancedTrustReceiptManager {
         signatureValid: false,
         integrityValid: false,
         chainValid: false,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       if (this.config.autoVerify && this.keyPair) {
@@ -180,12 +185,12 @@ export class EnhancedTrustReceiptManager {
               severity: 'high',
               userId: auditContext.userId,
               tenantId: auditContext.tenantId,
-              requestId: auditContext.requestId
+              requestId: auditContext.requestId,
             },
             {
               expectedHash: signedReceipt.integrityHash,
               actualHash: verificationResult.hash,
-              dataType: 'trust_receipt'
+              dataType: 'trust_receipt',
             }
           );
         }
@@ -193,8 +198,8 @@ export class EnhancedTrustReceiptManager {
         verification = {
           signatureValid: true,
           integrityValid: true,
-          chainValid: !!signedReceipt.chainSignature,
-          timestamp: verificationResult.timestamp
+          chainValid: Boolean(signedReceipt.chainSignature),
+          timestamp: verificationResult.timestamp,
         };
       }
 
@@ -210,27 +215,27 @@ export class EnhancedTrustReceiptManager {
           actor: {
             id: auditContext.userId || 'system',
             type: auditContext.userId ? 'user' : 'system',
-            tenant: auditContext.tenantId
+            tenant: auditContext.tenantId,
           },
           resource: {
             type: 'trust_receipt',
             id: signedReceipt.self_hash,
-            tenant: auditContext.tenantId
+            tenant: auditContext.tenantId,
           },
           context: {
             ip: auditContext.ipAddress,
             userAgent: auditContext.userAgent,
             sessionId: auditContext.sessionId,
-            requestId: auditContext.requestId
+            requestId: auditContext.requestId,
           },
           result: 'success',
           metadata: {
             receiptVersion: signedReceipt.version,
             sessionId: signedReceipt.session_id,
             mode: signedReceipt.mode,
-            hasChainSignature: !!signedReceipt.chainSignature,
-            verification: verification
-          }
+            hasChainSignature: Boolean(signedReceipt.chainSignature),
+            verification: verification,
+          },
         });
       }
 
@@ -242,9 +247,8 @@ export class EnhancedTrustReceiptManager {
       return {
         receipt: signedReceipt,
         auditEvent,
-        verification
+        verification,
       };
-
     } catch (error) {
       // Log error to audit system
       if (this.config.enableAuditTrail) {
@@ -258,25 +262,25 @@ export class EnhancedTrustReceiptManager {
             actor: {
               id: auditContext.userId || 'system',
               type: auditContext.userId ? 'user' : 'system',
-              tenant: auditContext.tenantId
+              tenant: auditContext.tenantId,
             },
             resource: {
               type: 'trust_receipt_manager',
               id: 'main',
-              tenant: auditContext.tenantId
+              tenant: auditContext.tenantId,
             },
             context: {
               ip: auditContext.ipAddress,
               userAgent: auditContext.userAgent,
               sessionId: auditContext.sessionId,
-              requestId: auditContext.requestId
+              requestId: auditContext.requestId,
             },
             result: 'failure',
             reason: error instanceof Error ? error.message : 'Unknown error',
             metadata: {
               receiptData: receiptData,
-              config: this.config
-            }
+              config: this.config,
+            },
           });
         } catch (auditError) {
           console.error('Failed to log trust receipt error to audit system:', auditError);
@@ -296,14 +300,14 @@ export class EnhancedTrustReceiptManager {
           severity: 'high',
           userId: auditContext.userId,
           tenantId: auditContext.tenantId,
-          requestId: auditContext.requestId
+          requestId: auditContext.requestId,
         },
         {
           originalError: error instanceof Error ? error : new Error(String(error)),
           metadata: {
             receiptData,
-            config: this.config
-          }
+            config: this.config,
+          },
         }
       );
     }
@@ -319,17 +323,14 @@ export class EnhancedTrustReceiptManager {
   ): Promise<EnhancedTrustReceiptResult> {
     try {
       if (!this.keyPair) {
-        throw new CryptographicError(
-          'No key pair available for verification',
-          {
-            component: 'EnhancedTrustReceiptManager',
-            operation: 'verifyEnhancedReceipt',
-            severity: 'critical',
-            userId: auditContext.userId,
-            tenantId: auditContext.tenantId,
-            requestId: auditContext.requestId
-          }
-        );
+        throw new CryptographicError('No key pair available for verification', {
+          component: 'EnhancedTrustReceiptManager',
+          operation: 'verifyEnhancedReceipt',
+          severity: 'critical',
+          userId: auditContext.userId,
+          tenantId: auditContext.tenantId,
+          requestId: auditContext.requestId,
+        });
       }
 
       // Verify receipt
@@ -348,12 +349,12 @@ export class EnhancedTrustReceiptManager {
             severity: 'high',
             userId: auditContext.userId,
             tenantId: auditContext.tenantId,
-            requestId: auditContext.requestId
+            requestId: auditContext.requestId,
           },
           {
             expectedHash: receipt.integrityHash,
             actualHash: verificationResult.hash,
-            dataType: 'trust_receipt'
+            dataType: 'trust_receipt',
           }
         );
       }
@@ -361,8 +362,8 @@ export class EnhancedTrustReceiptManager {
       const verification = {
         signatureValid: true,
         integrityValid: true,
-        chainValid: !!receipt.chainSignature,
-        timestamp: verificationResult.timestamp
+        chainValid: Boolean(receipt.chainSignature),
+        timestamp: verificationResult.timestamp,
       };
 
       // Log verification success
@@ -377,35 +378,34 @@ export class EnhancedTrustReceiptManager {
           actor: {
             id: auditContext.userId || 'system',
             type: auditContext.userId ? 'user' : 'system',
-            tenant: auditContext.tenantId
+            tenant: auditContext.tenantId,
           },
           resource: {
             type: 'trust_receipt',
             id: receipt.self_hash,
-            tenant: auditContext.tenantId
+            tenant: auditContext.tenantId,
           },
           context: {
             ip: auditContext.ipAddress,
             userAgent: auditContext.userAgent,
             sessionId: auditContext.sessionId,
-            requestId: auditContext.requestId
+            requestId: auditContext.requestId,
           },
           result: 'success',
           metadata: {
             receiptVersion: receipt.version,
             sessionId: receipt.session_id,
             mode: receipt.mode,
-            verification: verification
-          }
+            verification: verification,
+          },
         });
       }
 
       return {
         receipt,
         auditEvent,
-        verification
+        verification,
       };
-
     } catch (error) {
       // Log verification failure
       if (this.config.enableAuditTrail) {
@@ -419,25 +419,25 @@ export class EnhancedTrustReceiptManager {
             actor: {
               id: auditContext.userId || 'system',
               type: auditContext.userId ? 'user' : 'system',
-              tenant: auditContext.tenantId
+              tenant: auditContext.tenantId,
             },
             resource: {
               type: 'trust_receipt',
               id: receipt.self_hash,
-              tenant: auditContext.tenantId
+              tenant: auditContext.tenantId,
             },
             context: {
               ip: auditContext.ipAddress,
               userAgent: auditContext.userAgent,
               sessionId: auditContext.sessionId,
-              requestId: auditContext.requestId
+              requestId: auditContext.requestId,
             },
             result: 'failure',
             reason: error instanceof Error ? error.message : 'Unknown error',
             metadata: {
               receipt: receipt.toJSON(),
-              config: this.config
-            }
+              config: this.config,
+            },
           });
         } catch (auditError) {
           console.error('Failed to log verification failure to audit system:', auditError);
@@ -469,7 +469,7 @@ export class EnhancedTrustReceiptManager {
         category: 'data',
         actorId: filters?.userId,
         tenant: filters?.tenantId,
-        timeRange: filters?.timeRange
+        timeRange: filters?.timeRange,
       };
 
       const events = this.auditSystem.queryEvents(queryFilters);
@@ -478,7 +478,7 @@ export class EnhancedTrustReceiptManager {
       return {
         events,
         total: events.length,
-        integrity
+        integrity,
       };
     } catch (error) {
       throw new SystemSecurityError(
@@ -488,11 +488,11 @@ export class EnhancedTrustReceiptManager {
           operation: 'getAuditTrail',
           severity: 'medium',
           userId: filters?.userId,
-          tenantId: filters?.tenantId
+          tenantId: filters?.tenantId,
         },
         {
           originalError: error instanceof Error ? error : new Error(String(error)),
-          metadata: { filters }
+          metadata: { filters },
         }
       );
     }
@@ -513,14 +513,11 @@ export class EnhancedTrustReceiptManager {
   }> {
     try {
       if (!this.keyPair) {
-        throw new CryptographicError(
-          'No key pair available for export verification',
-          {
-            component: 'EnhancedTrustReceiptManager',
-            operation: 'exportReceipts',
-            severity: 'critical'
-          }
-        );
+        throw new CryptographicError('No key pair available for export verification', {
+          component: 'EnhancedTrustReceiptManager',
+          operation: 'exportReceipts',
+          severity: 'critical',
+        });
       }
 
       const issues: string[] = [];
@@ -535,12 +532,18 @@ export class EnhancedTrustReceiptManager {
           );
 
           if (!verificationResult.valid) {
-            issues.push(`Receipt ${receipt.self_hash} verification failed: ${verificationResult.reason}`);
+            issues.push(
+              `Receipt ${receipt.self_hash} verification failed: ${verificationResult.reason}`
+            );
           } else {
             verifiedCount++;
           }
         } catch (error) {
-          issues.push(`Receipt ${receipt.self_hash} verification error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          issues.push(
+            `Receipt ${receipt.self_hash} verification error: ${
+              error instanceof Error ? error.message : 'Unknown error'
+            }`
+          );
         }
       }
 
@@ -551,8 +554,8 @@ export class EnhancedTrustReceiptManager {
           valid: issues.length === 0,
           issues,
           verifiedCount,
-          totalCount: receipts.length
-        }
+          totalCount: receipts.length,
+        },
       };
     } catch (error) {
       throw new SystemSecurityError(
@@ -560,13 +563,19 @@ export class EnhancedTrustReceiptManager {
         {
           component: 'EnhancedTrustReceiptManager',
           operation: 'exportReceipts',
-          severity: 'high'
+          severity: 'high',
         },
         {
           originalError: error instanceof Error ? error : new Error(String(error)),
-          metadata: { receiptCount: receipts.length }
+          metadata: { receiptCount: receipts.length },
         }
       );
     }
   }
+}
+
+// Export missing types for compatibility
+export interface SignedTrustReceipt extends SignedReceipt {
+  trustReceipt: TrustReceiptData;
+  auditEvent?: AuditEvent;
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
   Server,
   Key,
   Copy,
@@ -27,20 +37,12 @@ import {
   Shield,
   Activity,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
-
-interface ApiKey {
-  id: string;
-  name: string;
-  key: string;
-  createdAt: string;
-  lastUsed: string | null;
-  requests24h: number;
-  status: 'active' | 'revoked' | 'expired';
-  scopes: string[];
-}
+import { api } from '@/lib/api';
+import { toast } from 'sonner';
 
 interface RateLimitConfig {
   endpoint: string;
@@ -48,39 +50,6 @@ interface RateLimitConfig {
   burstLimit: number;
   enabled: boolean;
 }
-
-const mockApiKeys: ApiKey[] = [
-  {
-    id: 'key-001',
-    name: 'Production API Key',
-    key: 'snt_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-    createdAt: '2025-01-15T10:00:00Z',
-    lastUsed: '2025-12-25T08:30:00Z',
-    requests24h: 15420,
-    status: 'active',
-    scopes: ['read:agents', 'write:agents', 'read:trust', 'read:audit']
-  },
-  {
-    id: 'key-002',
-    name: 'Development Key',
-    key: 'snt_test_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy',
-    createdAt: '2025-02-20T14:00:00Z',
-    lastUsed: '2025-12-24T16:45:00Z',
-    requests24h: 3240,
-    status: 'active',
-    scopes: ['read:agents', 'read:trust']
-  },
-  {
-    id: 'key-003',
-    name: 'Legacy Integration',
-    key: 'snt_live_zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz',
-    createdAt: '2024-06-10T09:00:00Z',
-    lastUsed: '2025-11-01T12:00:00Z',
-    requests24h: 0,
-    status: 'expired',
-    scopes: ['read:agents']
-  }
-];
 
 const rateLimits: RateLimitConfig[] = [
   { endpoint: '/api/v1/agents', requestsPerMinute: 100, burstLimit: 150, enabled: true },
@@ -91,29 +60,26 @@ const rateLimits: RateLimitConfig[] = [
 ];
 
 const apiMetrics = {
-  totalRequests24h: 142580,
+  totalRequests24h: 0,
   avgLatency: 45,
-  errorRate: 0.12,
-  activeKeys: 2
+  errorRate: 0.0,
+  activeKeys: 0
 };
 
-function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
+function ApiKeyRow({ apiKey, onRevoke }: { apiKey: any, onRevoke: (id: string) => void }) {
   const [showKey, setShowKey] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const copyKey = async () => {
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(apiKey.key);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
-    } catch (err) {
-      console.warn('Clipboard not available');
-    }
-  };
+  // We only have the prefix usually, unless it's just created (handled elsewhere)
+  // But for this row, we display the prefix or mask
+  const displayKey = apiKey.prefix || 'sk_live_...';
+  const maskedKey = displayKey.substring(0, 10) + '••••••••••••••••••••••••••••';
 
-  const maskedKey = apiKey.key.slice(0, 7) + '••••••••••••••••••••••••••••';
+  const copyKey = async () => {
+    // You can't copy the full key from the list view usually for security
+    // But we'll allow copying the prefix if that's all we have
+    toast.info("For security, full keys are only shown once upon creation.");
+  };
 
   return (
     <TableRow>
@@ -121,7 +87,7 @@ function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
         <div>
           <div className="font-medium">{apiKey.name}</div>
           <div className="text-xs text-muted-foreground font-mono">
-            {showKey ? apiKey.key : maskedKey}
+            {maskedKey}
           </div>
         </div>
       </TableCell>
@@ -135,31 +101,25 @@ function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
       </TableCell>
       <TableCell>
         <div className="flex flex-wrap gap-1">
-          {apiKey.scopes.slice(0, 2).map((scope) => (
+          {apiKey.scopes?.slice(0, 2).map((scope: string) => (
             <Badge key={scope} variant="outline" className="text-xs">
               {scope}
             </Badge>
           ))}
-          {apiKey.scopes.length > 2 && (
+          {apiKey.scopes?.length > 2 && (
             <Badge variant="outline" className="text-xs">
               +{apiKey.scopes.length - 2}
             </Badge>
           )}
         </div>
       </TableCell>
-      <TableCell className="text-right">{apiKey.requests24h.toLocaleString('en-US')}</TableCell>
+      <TableCell className="text-right">{apiKey.requests24h?.toLocaleString('en-US') || 0}</TableCell>
       <TableCell className="text-sm text-muted-foreground">
         {apiKey.lastUsed ? new Date(apiKey.lastUsed).toLocaleDateString('en-US') : 'Never'}
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={() => setShowKey(!showKey)}>
-            {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={copyKey}>
-            {copied ? <span className="text-xs text-green-600">Copied!</span> : <Copy className="h-4 w-4" />}
-          </Button>
-          <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600">
+          <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => onRevoke(apiKey.id)}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -170,6 +130,53 @@ function ApiKeyRow({ apiKey }: { apiKey: ApiKey }) {
 
 export default function ApiGatewayPage() {
   const [rateLimitConfigs, setRateLimitConfigs] = useState(rateLimits);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [newKeyName, setNewKeyName] = useState('');
+  const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: apiKeys = [], isLoading } = useQuery({
+    queryKey: ['platformApiKeys'],
+    queryFn: () => api.getPlatformApiKeys(),
+  });
+
+  const createKeyMutation = useMutation({
+    mutationFn: async (name: string) => {
+      return api.createPlatformApiKey(name);
+    },
+    onSuccess: (data) => {
+      setCreatedKey(data.fullKey);
+      toast.success('API Key created successfully');
+      queryClient.invalidateQueries({ queryKey: ['platformApiKeys'] });
+    },
+    onError: (error: any) => {
+      toast.error('Failed to create API Key', { description: error.message });
+    }
+  });
+
+  const revokeKeyMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return api.revokePlatformApiKey(id);
+    },
+    onSuccess: () => {
+      toast.success('API Key revoked');
+      queryClient.invalidateQueries({ queryKey: ['platformApiKeys'] });
+    },
+    onError: (error: any) => {
+      toast.error('Failed to revoke API Key', { description: error.message });
+    }
+  });
+
+  const handleCreateKey = () => {
+    if (!newKeyName) return;
+    createKeyMutation.mutate(newKeyName);
+  };
+
+  const handleCloseDialog = () => {
+    setIsCreateDialogOpen(false);
+    setCreatedKey(null);
+    setNewKeyName('');
+  };
 
   const toggleRateLimit = (endpoint: string) => {
     setRateLimitConfigs(prev => 
@@ -179,6 +186,7 @@ export default function ApiGatewayPage() {
           : config
       )
     );
+    toast.success('Rate limit configuration updated');
   };
 
   return (
@@ -193,8 +201,8 @@ export default function ApiGatewayPage() {
           </p>
         </div>
         <div className="data-source-badge data-source-live">
-          <span className="h-1.5 w-1.5 rounded-full bg-current" />
-          Admin Access
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          Live System
         </div>
       </div>
 
@@ -207,7 +215,9 @@ export default function ApiGatewayPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{apiMetrics.totalRequests24h.toLocaleString('en-US')}</div>
+            <div className="text-2xl font-bold">
+              {apiKeys.reduce((acc: number, key: any) => acc + (key.requests24h || 0), 0).toLocaleString('en-US')}
+            </div>
           </CardContent>
         </Card>
 
@@ -243,7 +253,7 @@ export default function ApiGatewayPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{apiMetrics.activeKeys}</div>
+            <div className="text-2xl font-bold">{apiKeys.filter((k: any) => k.status === 'active').length}</div>
           </CardContent>
         </Card>
       </div>
@@ -260,10 +270,72 @@ export default function ApiGatewayPage() {
                 Manage authentication keys for API access
               </CardDescription>
             </div>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Key
-            </Button>
+            
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Key
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New API Key</DialogTitle>
+                  <DialogDescription>
+                    Generate a new key to access the SONATE platform API.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                {!createdKey ? (
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="name">Key Name</Label>
+                      <Input 
+                        id="name" 
+                        placeholder="e.g. Production Server" 
+                        value={newKeyName}
+                        onChange={(e) => setNewKeyName(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-4 space-y-4">
+                    <div className="p-4 bg-muted rounded-md border break-all font-mono text-sm relative">
+                      {createdKey}
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="absolute top-2 right-2 h-6 w-6 p-0"
+                        onClick={() => {
+                          navigator.clipboard.writeText(createdKey);
+                          toast.success('Copied to clipboard');
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="flex items-start gap-2 text-sm text-amber-600 bg-amber-50 p-3 rounded-md">
+                      <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                      <p>Copy this key now. You won't be able to see it again!</p>
+                    </div>
+                  </div>
+                )}
+
+                <DialogFooter>
+                  {!createdKey ? (
+                    <>
+                      <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancel</Button>
+                      <Button onClick={handleCreateKey} disabled={createKeyMutation.isPending || !newKeyName}>
+                        {createKeyMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Create
+                      </Button>
+                    </>
+                  ) : (
+                    <Button onClick={handleCloseDialog}>Done</Button>
+                  )}
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardHeader>
         <CardContent>
@@ -279,9 +351,27 @@ export default function ApiGatewayPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockApiKeys.map((key) => (
-                <ApiKeyRow key={key.id} apiKey={key} />
-              ))}
+              {isLoading ? (
+                 <TableRow>
+                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                     Loading keys...
+                   </TableCell>
+                 </TableRow>
+              ) : apiKeys.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    No API keys found. Create one to get started.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                apiKeys.map((key: any) => (
+                  <ApiKeyRow 
+                    key={key.id} 
+                    apiKey={key} 
+                    onRevoke={(id) => revokeKeyMutation.mutate(id)} 
+                  />
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

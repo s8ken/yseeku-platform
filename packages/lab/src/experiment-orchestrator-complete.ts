@@ -4,8 +4,11 @@
  * Implements double-blind protocols and integrity verification
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
+
+import { v4 as uuidv4 } from 'uuid';
+
+import { AgentBus } from './agent-bus';
 import {
   ExperimentConfig,
   ExperimentRun,
@@ -20,7 +23,6 @@ import {
   IntegrityError,
   SymbiDimension,
 } from './types';
-import { AgentBus } from './agent-bus';
 
 /**
  * Experiment Orchestrator
@@ -42,11 +44,11 @@ export class ExperimentOrchestrator {
   async startExperiment(config: ExperimentConfig): Promise<ExperimentRun> {
     const runId = uuidv4();
     const randomSeed = this.generateSecureRandomSeed();
-    
+
     const run: ExperimentRun = {
       id: runId,
       experimentId: config.name, // Using name as experiment ID for now
-      status: "QUEUED",
+      status: 'QUEUED',
       totalTrials: config.tasks.length,
       completedTrials: 0,
       failedTrials: 0,
@@ -62,8 +64,8 @@ export class ExperimentOrchestrator {
     this.slotMappings.set(runId, slotMapping);
 
     // Notify agents of experiment start
-    const startMessage = new MessageBuilder("CONDUCTOR")
-      .to("OVERSEER")
+    const startMessage = new MessageBuilder('CONDUCTOR')
+      .to('OVERSEER')
       .type(MessageTypes.EXPERIMENT_START)
       .payload({ config, run, slotMapping })
       .experiment(config.name)
@@ -81,9 +83,13 @@ export class ExperimentOrchestrator {
   /**
    * Queue a run for execution
    */
-  private async queueRun(run: ExperimentRun, config: ExperimentConfig, slotMapping: Record<string, string>): Promise<void> {
+  private async queueRun(
+    run: ExperimentRun,
+    config: ExperimentConfig,
+    slotMapping: Record<string, string>
+  ): Promise<void> {
     // Update run status
-    run.status = "RUNNING";
+    run.status = 'RUNNING';
     run.startedAt = new Date().toISOString();
 
     // Process trials sequentially for v1 (can be made parallel later)
@@ -97,10 +103,10 @@ export class ExperimentOrchestrator {
       } catch (error) {
         console.error(`Trial ${trialId} failed:`, error);
         run.failedTrials++;
-        
+
         // Notify overseer of failure
-        const failureMessage = new MessageBuilder("CONDUCTOR")
-          .to("OVERSEER")
+        const failureMessage = new MessageBuilder('CONDUCTOR')
+          .to('OVERSEER')
           .type(MessageTypes.TRIAL_FAILED)
           .payload({ trialId, taskId: task.id, error: error.message })
           .experiment(config.name)
@@ -120,10 +126,10 @@ export class ExperimentOrchestrator {
    * Execute a single trial with double-blind integrity
    */
   private async executeTrial(
-    runId: string, 
-    config: ExperimentConfig, 
-    task: any, 
-    trialId: string, 
+    runId: string,
+    config: ExperimentConfig,
+    task: any,
+    trialId: string,
     slotMapping: Record<string, string>
   ): Promise<void> {
     // Create trial record
@@ -132,23 +138,23 @@ export class ExperimentOrchestrator {
       runId,
       experimentId: config.name,
       taskId: task.id,
-      status: "PENDING",
+      status: 'PENDING',
       slotMapping,
       createdAt: new Date().toISOString(),
     };
 
     // Notify variants to generate responses
     const outputs: Record<string, string> = {};
-    
+
     for (const [slot, variantId] of Object.entries(slotMapping)) {
-      const variant = config.variants.find(v => v.id === variantId);
+      const variant = config.variants.find((v) => v.id === variantId);
       if (!variant) {
         throw new Error(`Variant ${variantId} not found`);
       }
 
       // Request response from variant
-      const requestMessage = new MessageBuilder("CONDUCTOR")
-        .to("VARIANT")
+      const requestMessage = new MessageBuilder('CONDUCTOR')
+        .to('VARIANT')
         .type(MessageTypes.TRIAL_REQUEST)
         .payload({
           task,
@@ -169,7 +175,7 @@ export class ExperimentOrchestrator {
     }
 
     trial.outputs = outputs;
-    trial.status = "COMPLETED";
+    trial.status = 'COMPLETED';
 
     // Request evaluation
     await this.requestEvaluation(trial, config, outputs);
@@ -182,15 +188,15 @@ export class ExperimentOrchestrator {
    * Request evaluation of trial outputs
    */
   private async requestEvaluation(
-    trial: Trial, 
-    config: ExperimentConfig, 
+    trial: Trial,
+    config: ExperimentConfig,
     outputs: Record<string, string>
   ): Promise<void> {
-    const evaluationMessage = new MessageBuilder("CONDUCTOR")
-      .to("EVALUATOR")
+    const evaluationMessage = new MessageBuilder('CONDUCTOR')
+      .to('EVALUATOR')
       .type(MessageTypes.EVALUATION_REQUEST)
       .payload({
-        task: config.tasks.find(t => t.id === trial.taskId),
+        task: config.tasks.find((t) => t.id === trial.taskId),
         outputs,
         evaluationCriteria: config.evaluationCriteria,
         symbiDimensions: config.symbiDimensions,
@@ -211,15 +217,15 @@ export class ExperimentOrchestrator {
    * Complete a run and calculate final integrity
    */
   private async completeRun(run: ExperimentRun, config: ExperimentConfig): Promise<void> {
-    run.status = "COMPLETED";
+    run.status = 'COMPLETED';
     run.completedAt = new Date().toISOString();
 
     // Calculate run-level integrity hash
     run.integrityHash = this.calculateRunIntegrityHash(run, config);
 
     // Notify overseer of completion
-    const completionMessage = new MessageBuilder("CONDUCTOR")
-      .to("OVERSEER")
+    const completionMessage = new MessageBuilder('CONDUCTOR')
+      .to('OVERSEER')
       .type(MessageTypes.EXPERIMENT_END)
       .payload({ run, config })
       .experiment(config.name)
@@ -238,7 +244,7 @@ export class ExperimentOrchestrator {
   private generateSlotMapping(variants: any[], randomSeed: number): Record<string, string> {
     const slots = ['A', 'B', 'C', 'D'].slice(0, variants.length);
     const shuffled = this.secureShuffle([...variants], randomSeed);
-    
+
     const mapping: Record<string, string> = {};
     slots.forEach((slot, index) => {
       mapping[slot] = shuffled[index].id;
@@ -252,11 +258,11 @@ export class ExperimentOrchestrator {
    */
   private secureShuffle<T>(array: T[], seed: number): T[] {
     const shuffled = [...array];
-    
+
     // Use crypto for v1, can be enhanced with better CSPRNG later
     for (let i = shuffled.length - 1; i > 0; i--) {
       const randomBytes = crypto.randomBytes(4);
-      const randomValue = randomBytes.readUInt32BE(0) / 0xFFFFFFFF;
+      const randomValue = randomBytes.readUInt32BE(0) / 0xffffffff;
       const j = Math.floor(randomValue * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
@@ -278,15 +284,15 @@ export class ExperimentOrchestrator {
     const hashInput = {
       experimentConfig: {
         name: config.name,
-        variants: config.variants.map(v => ({ id: v.id, name: v.name })),
-        tasks: config.tasks.map(t => ({ id: t.id, content: t.content })),
+        variants: config.variants.map((v) => ({ id: v.id, name: v.name })),
+        tasks: config.tasks.map((t) => ({ id: t.id, content: t.content })),
       },
       trial: {
         id: trial.id,
         taskId: trial.taskId,
         slotMapping: trial.slotMapping,
         outputs: trial.outputs,
-        evaluations: trial.evaluations?.map(e => ({
+        evaluations: trial.evaluations?.map((e) => ({
           winnerSlot: e.winnerSlot,
           scores: e.scores,
         })),
@@ -322,19 +328,19 @@ export class ExperimentOrchestrator {
    */
   private setupMessageHandlers(): void {
     // Variant handler
-    this.bus.subscribe("VARIANT", async (message: AgentMessage) => {
+    this.bus.subscribe('VARIANT', async (message: AgentMessage) => {
       // Handle trial requests and generate responses
       console.log(`Variant received: ${message.type}`);
     });
 
     // Evaluator handler
-    this.bus.subscribe("EVALUATOR", async (message: AgentMessage) => {
+    this.bus.subscribe('EVALUATOR', async (message: AgentMessage) => {
       // Handle evaluation requests
       console.log(`Evaluator received: ${message.type}`);
     });
 
     // Overseer handler
-    this.bus.subscribe("OVERSEER", async (message: AgentMessage) => {
+    this.bus.subscribe('OVERSEER', async (message: AgentMessage) => {
       // Handle experiment lifecycle events
       console.log(`Overseer received: ${message.type}`);
     });
@@ -359,7 +365,11 @@ export class ExperimentOrchestrator {
   /**
    * Simulate evaluation (for v1 development)
    */
-  private async simulateEvaluation(trial: Trial, config: any, outputs: Record<string, string>): Promise<any> {
+  private async simulateEvaluation(
+    trial: Trial,
+    config: any,
+    outputs: Record<string, string>
+  ): Promise<any> {
     const slots = Object.keys(outputs);
     const winnerIndex = Math.floor(Math.random() * slots.length);
     const winnerSlot = slots[winnerIndex];
@@ -367,7 +377,7 @@ export class ExperimentOrchestrator {
     return {
       id: uuidv4(),
       trialId: trial.id,
-      evaluatorType: "AI",
+      evaluatorType: 'AI',
       winnerSlot,
       scores: {
         A: Math.random() * 10,
@@ -398,18 +408,18 @@ export class ExperimentOrchestrator {
   async cancelRun(runId: string): Promise<void> {
     const run = this.activeRuns.get(runId);
     if (!run) {
-      throw new ExperimentError("Run not found", "RUN_NOT_FOUND", undefined, runId);
+      throw new ExperimentError('Run not found', 'RUN_NOT_FOUND', undefined, runId);
     }
 
-    if (run.status === "RUNNING") {
-      run.status = "CANCELLED";
+    if (run.status === 'RUNNING') {
+      run.status = 'CANCELLED';
       run.completedAt = new Date().toISOString();
-      
+
       // Notify overseer
-      const cancelMessage = new MessageBuilder("CONDUCTOR")
-        .to("OVERSEER")
+      const cancelMessage = new MessageBuilder('CONDUCTOR')
+        .to('OVERSEER')
         .type(MessageTypes.EXPERIMENT_END)
-        .payload({ run, reason: "CANCELLED" })
+        .payload({ run, reason: 'CANCELLED' })
         .experiment(run.experimentId)
         .run(runId)
         .build();

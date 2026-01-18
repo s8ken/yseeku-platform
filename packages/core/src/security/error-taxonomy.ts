@@ -15,7 +15,15 @@ export interface ErrorContext {
   userAgent?: string;
   timestamp: number;
   severity: 'low' | 'medium' | 'high' | 'critical';
-  category: 'authentication' | 'authorization' | 'validation' | 'cryptographic' | 'data_integrity' | 'network' | 'system' | 'business_logic';
+  category:
+    | 'authentication'
+    | 'authorization'
+    | 'validation'
+    | 'cryptographic'
+    | 'data_integrity'
+    | 'network'
+    | 'system'
+    | 'business_logic';
 }
 
 export interface ErrorDetails {
@@ -68,7 +76,10 @@ export class EnhancedSecurityError extends Error {
   private generateErrorId(): string {
     const timestamp = Date.now().toString(36);
     const random = Math.random().toString(36).substr(2, 6);
-    const component = this.context.component.toUpperCase().replace(/[^A-Z0-9]/g, '').substr(0, 4);
+    const component = this.context.component
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .substr(0, 4);
     return `${component}-${timestamp}-${random}`;
   }
 
@@ -86,7 +97,7 @@ export class EnhancedSecurityError extends Error {
       remediation: this.remediation,
       documentationUrl: this.documentationUrl,
       stack: this.stack,
-      originalError: this.originalError?.message
+      originalError: this.originalError?.message,
     };
   }
 
@@ -98,7 +109,7 @@ export class EnhancedSecurityError extends Error {
       error: this,
       auditRequired: this.isAuditRequired(),
       alertLevel: this.determineAlertLevel(),
-      recommendedActions: this.getRecommendedActions()
+      recommendedActions: this.getRecommendedActions(),
     };
   }
 
@@ -106,15 +117,17 @@ export class EnhancedSecurityError extends Error {
    * Determine if this error requires audit logging
    */
   protected isAuditRequired(): boolean {
-    return ['authentication', 'authorization', 'cryptographic', 'data_integrity'].includes(this.context.category);
+    return ['authentication', 'authorization', 'cryptographic', 'data_integrity'].includes(
+      this.context.category
+    );
   }
 
   /**
    * Determine alert level for this error
    */
   protected determineAlertLevel(): 'info' | 'warning' | 'critical' {
-    if (this.context.severity === 'critical') return 'critical';
-    if (this.context.severity === 'high') return 'warning';
+    if (this.context.severity === 'critical') {return 'critical';}
+    if (this.context.severity === 'high') {return 'warning';}
     return 'info';
   }
 
@@ -123,16 +136,16 @@ export class EnhancedSecurityError extends Error {
    */
   protected getRecommendedActions(): string[] {
     const actions: string[] = [];
-    
+
     if (this.isAuditRequired()) {
       actions.push('Log this error to security audit trail');
     }
-    
+
     if (this.context.severity === 'critical') {
       actions.push('Immediately review security controls');
       actions.push('Consider temporary access restrictions');
     }
-    
+
     if (this.remediation) {
       actions.push(this.remediation);
     }
@@ -148,11 +161,13 @@ export class AuthenticationError extends EnhancedSecurityError {
   constructor(
     message: string,
     contextOrCode: Omit<ErrorContext, 'category' | 'timestamp'> | string,
-    optionsOrMetadata?: {
-      originalError?: Error;
-      metadata?: Record<string, any>;
-      remediation?: string;
-    } | Record<string, any>
+    optionsOrMetadata?:
+      | {
+          originalError?: Error;
+          metadata?: Record<string, any>;
+          remediation?: string;
+        }
+      | Record<string, any>
   ) {
     if (typeof contextOrCode === 'string') {
       const metadata = (optionsOrMetadata as Record<string, any>) || {};
@@ -173,22 +188,24 @@ export class AuthenticationError extends EnhancedSecurityError {
           ipAddress: metadata.ipAddress,
           userAgent: metadata.userAgent,
           category: 'authentication',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         },
         originalError: metadata.originalError instanceof Error ? metadata.originalError : undefined,
         metadata,
         remediation: 'Verify authentication credentials and try again',
-        documentationUrl: '/docs/security/authentication'
+        documentationUrl: '/docs/security/authentication',
       });
       return;
     }
 
-    const context = contextOrCode as Omit<ErrorContext, 'category' | 'timestamp'>;
-    const options = optionsOrMetadata as {
-      originalError?: Error;
-      metadata?: Record<string, any>;
-      remediation?: string;
-    } | undefined;
+    const context = contextOrCode;
+    const options = optionsOrMetadata as
+      | {
+          originalError?: Error;
+          metadata?: Record<string, any>;
+          remediation?: string;
+        }
+      | undefined;
 
     super({
       code: 'AUTH_ERROR',
@@ -196,12 +213,12 @@ export class AuthenticationError extends EnhancedSecurityError {
       context: {
         ...context,
         category: 'authentication',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       },
       originalError: options?.originalError,
       metadata: options?.metadata,
       remediation: options?.remediation || 'Verify authentication credentials and try again',
-      documentationUrl: '/docs/security/authentication'
+      documentationUrl: '/docs/security/authentication',
     });
   }
 }
@@ -224,7 +241,7 @@ export class AuthorizationError extends EnhancedSecurityError {
     const metadata = {
       ...options?.metadata,
       requiredPermissions: options?.requiredPermissions,
-      userPermissions: options?.userPermissions
+      userPermissions: options?.userPermissions,
     };
 
     super({
@@ -233,12 +250,12 @@ export class AuthorizationError extends EnhancedSecurityError {
       context: {
         ...context,
         category: 'authorization',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       },
       originalError: options?.originalError,
       metadata,
       remediation: options?.remediation || 'Contact administrator for appropriate permissions',
-      documentationUrl: '/docs/security/authorization'
+      documentationUrl: '/docs/security/authorization',
     });
   }
 }
@@ -247,11 +264,13 @@ export class SecurityError extends EnhancedSecurityError {
   constructor(
     message: string,
     codeOrContext: string | Omit<ErrorContext, 'category' | 'timestamp'>,
-    optionsOrMetadata?: {
-      originalError?: Error;
-      metadata?: Record<string, any>;
-      remediation?: string;
-    } | Record<string, any>
+    optionsOrMetadata?:
+      | {
+          originalError?: Error;
+          metadata?: Record<string, any>;
+          remediation?: string;
+        }
+      | Record<string, any>
   ) {
     if (typeof codeOrContext === 'string') {
       const metadata = (optionsOrMetadata as Record<string, any>) || {};
@@ -272,22 +291,24 @@ export class SecurityError extends EnhancedSecurityError {
           ipAddress: metadata.ipAddress,
           userAgent: metadata.userAgent,
           category: 'authorization',
-          timestamp: Date.now()
+          timestamp: Date.now(),
         },
         originalError: metadata.originalError instanceof Error ? metadata.originalError : undefined,
         metadata,
         remediation: 'Contact administrator for appropriate permissions',
-        documentationUrl: '/docs/security/authorization'
+        documentationUrl: '/docs/security/authorization',
       });
       return;
     }
 
-    const context = codeOrContext as Omit<ErrorContext, 'category' | 'timestamp'>;
-    const options = optionsOrMetadata as {
-      originalError?: Error;
-      metadata?: Record<string, any>;
-      remediation?: string;
-    } | undefined;
+    const context = codeOrContext;
+    const options = optionsOrMetadata as
+      | {
+          originalError?: Error;
+          metadata?: Record<string, any>;
+          remediation?: string;
+        }
+      | undefined;
 
     super({
       code: 'SECURITY_ERROR',
@@ -295,12 +316,12 @@ export class SecurityError extends EnhancedSecurityError {
       context: {
         ...context,
         category: 'authorization',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       },
       originalError: options?.originalError,
       metadata: options?.metadata,
       remediation: options?.remediation || 'Contact administrator for appropriate permissions',
-      documentationUrl: '/docs/security/authorization'
+      documentationUrl: '/docs/security/authorization',
     });
   }
 }
@@ -323,7 +344,7 @@ export class CryptographicError extends EnhancedSecurityError {
     const metadata = {
       ...options?.metadata,
       operation: options?.operation,
-      algorithm: options?.algorithm
+      algorithm: options?.algorithm,
     };
 
     super({
@@ -332,12 +353,12 @@ export class CryptographicError extends EnhancedSecurityError {
       context: {
         ...context,
         category: 'cryptographic',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       },
       originalError: options?.originalError,
       metadata,
       remediation: options?.remediation || 'Verify cryptographic configuration and key validity',
-      documentationUrl: '/docs/security/cryptography'
+      documentationUrl: '/docs/security/cryptography',
     });
   }
 }
@@ -362,7 +383,7 @@ export class DataIntegrityError extends EnhancedSecurityError {
       ...options?.metadata,
       expectedHash: options?.expectedHash,
       actualHash: options?.actualHash,
-      dataType: options?.dataType
+      dataType: options?.dataType,
     };
 
     super({
@@ -371,12 +392,13 @@ export class DataIntegrityError extends EnhancedSecurityError {
       context: {
         ...context,
         category: 'data_integrity',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       },
       originalError: options?.originalError,
       metadata,
-      remediation: options?.remediation || 'Data may be corrupted - verify data source and integrity',
-      documentationUrl: '/docs/security/data-integrity'
+      remediation:
+        options?.remediation || 'Data may be corrupted - verify data source and integrity',
+      documentationUrl: '/docs/security/data-integrity',
     });
   }
 }
@@ -401,7 +423,7 @@ export class ValidationError extends EnhancedSecurityError {
       ...options?.metadata,
       field: options?.field,
       value: options?.value,
-      constraints: options?.constraints
+      constraints: options?.constraints,
     };
 
     super({
@@ -410,12 +432,12 @@ export class ValidationError extends EnhancedSecurityError {
       context: {
         ...context,
         category: 'validation',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       },
       originalError: options?.originalError,
       metadata,
       remediation: options?.remediation || 'Correct input data according to validation constraints',
-      documentationUrl: '/docs/api/validation'
+      documentationUrl: '/docs/api/validation',
     });
   }
 }
@@ -440,7 +462,7 @@ export class NetworkSecurityError extends EnhancedSecurityError {
       ...options?.metadata,
       endpoint: options?.endpoint,
       statusCode: options?.statusCode,
-      timeout: options?.timeout
+      timeout: options?.timeout,
     };
 
     super({
@@ -449,12 +471,12 @@ export class NetworkSecurityError extends EnhancedSecurityError {
       context: {
         ...context,
         category: 'network',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       },
       originalError: options?.originalError,
       metadata,
       remediation: options?.remediation || 'Check network connectivity and service availability',
-      documentationUrl: '/docs/security/network'
+      documentationUrl: '/docs/security/network',
     });
   }
 }
@@ -477,7 +499,7 @@ export class SystemSecurityError extends EnhancedSecurityError {
     const metadata = {
       ...options?.metadata,
       systemComponent: options?.systemComponent,
-      errorType: options?.errorType
+      errorType: options?.errorType,
     };
 
     super({
@@ -486,12 +508,12 @@ export class SystemSecurityError extends EnhancedSecurityError {
       context: {
         ...context,
         category: 'system',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       },
       originalError: options?.originalError,
       metadata,
       remediation: options?.remediation || 'Review system configuration and security settings',
-      documentationUrl: '/docs/security/system'
+      documentationUrl: '/docs/security/system',
     });
   }
 }
@@ -514,7 +536,7 @@ export class BusinessLogicSecurityError extends EnhancedSecurityError {
     const metadata = {
       ...options?.metadata,
       ruleName: options?.ruleName,
-      ruleId: options?.ruleId
+      ruleId: options?.ruleId,
     };
 
     super({
@@ -523,12 +545,12 @@ export class BusinessLogicSecurityError extends EnhancedSecurityError {
       context: {
         ...context,
         category: 'business_logic',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       },
       originalError: options?.originalError,
       metadata,
       remediation: options?.remediation || 'Review business logic constraints and data validity',
-      documentationUrl: '/docs/security/business-logic'
+      documentationUrl: '/docs/security/business-logic',
     });
   }
 }
@@ -551,11 +573,11 @@ export class SecurityErrorHandler {
       {
         component: context.component || 'unknown',
         operation: context.operation || 'unknown',
-        severity: context.severity || 'medium'
+        severity: context.severity || 'medium',
       },
       {
         originalError: error,
-        metadata: { errorType: error.constructor.name }
+        metadata: { errorType: error.constructor.name },
       }
     );
 
@@ -567,7 +589,7 @@ export class SecurityErrorHandler {
    */
   static logError(report: SecurityErrorReport): void {
     const { error, auditRequired, alertLevel, recommendedActions } = report;
-    
+
     const logEntry = {
       timestamp: new Date().toISOString(),
       errorId: error.errorId,
@@ -578,7 +600,7 @@ export class SecurityErrorHandler {
       alertLevel,
       auditRequired,
       recommendedActions,
-      context: error.context
+      context: error.context,
     };
 
     // Log based on severity
@@ -606,16 +628,16 @@ export class SecurityErrorHandler {
       bySeverity: {} as Record<string, number>,
       byCategory: {} as Record<string, number>,
       requiresAudit: 0,
-      criticalErrors: 0
+      criticalErrors: 0,
     };
 
-    errors.forEach(error => {
+    errors.forEach((error) => {
       // Count by severity
-      summary.bySeverity[error.context.severity] = 
+      summary.bySeverity[error.context.severity] =
         (summary.bySeverity[error.context.severity] || 0) + 1;
 
       // Count by category
-      summary.byCategory[error.context.category] = 
+      summary.byCategory[error.context.category] =
         (summary.byCategory[error.context.category] || 0) + 1;
 
       // Count audit requirements

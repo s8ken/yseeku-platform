@@ -3,6 +3,11 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/?(*.)+(spec|test).ts'],
+  moduleNameMapper: {
+    '^@noble/ed25519$': '<rootDir>/src/__tests__/mocks/ed25519.js',
+    '^@noble/secp256k1$': '<rootDir>/src/__tests__/mocks/secp256k1.js',
+    '^isomorphic-dompurify$': '<rootDir>/src/__tests__/mocks/isomorphic-dompurify.js',
+  },
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',

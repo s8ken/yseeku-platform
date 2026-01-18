@@ -28,7 +28,7 @@ export class ResonanceEngineClient {
   private baseUrl: string;
 
   constructor(baseUrl: string = 'http://localhost:8000') {
-    this.baseUrl = baseUrl;
+    this.baseUrl = baseUrl || process.env.RESONANCE_ENGINE_URL || 'http://localhost:8000';
   }
 
   async calculateResonance(
@@ -52,13 +52,11 @@ export class ResonanceEngineClient {
       });
 
       if (!response.ok) {
-        console.warn(`Resonance Engine API error: ${response.statusText}`);
         return null;
       }
 
-      return await response.json() as ResonanceResult;
+      return (await response.json()) as ResonanceResult;
     } catch (error) {
-      console.warn('Failed to connect to Resonance Engine:', error);
       return null;
     }
   }
@@ -79,7 +77,7 @@ export class ResonanceEngineClient {
         return false;
       }
 
-      const data = await response.json() as { drift_detected: boolean };
+      const data = (await response.json()) as { drift_detected: boolean };
       return data.drift_detected;
     } catch (error) {
       return false;
@@ -90,10 +88,10 @@ export class ResonanceEngineClient {
   static toResonanceQuality(result: ResonanceResult): ResonanceQuality {
     const score = result.resonance_metrics.R_m;
     let level: ResonanceLevel = 'STRONG';
-    
+
     if (score >= 0.85) {
       level = 'BREAKTHROUGH';
-    } else if (score >= 0.70) {
+    } else if (score >= 0.7) {
       level = 'ADVANCED';
     }
 

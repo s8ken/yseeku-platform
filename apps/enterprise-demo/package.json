@@ -1,6 +1,6 @@
 {
   "name": "@sonate/enterprise-demo",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "description": "Enterprise-grade SONATE platform demo with React + Tailwind + TypeScript",
   "private": true,
   "scripts": {

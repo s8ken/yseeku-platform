@@ -3,8 +3,16 @@
  * Centralized API management with rate limiting, authentication, and monitoring
  */
 
+import { randomUUID } from 'crypto';
 import { EventEmitter } from 'events';
+
+import { tenantContext, SecureAuthService } from '@sonate/core';
+
 import { EnterpriseIntegration } from './enterprise-integration';
+import { getLogger } from './observability/logger';
+import { getAPIKeyManager } from './security/api-keys';
+
+const logger = getLogger('APIGateway');
 
 export interface APIRoute {
   path: string;
@@ -74,12 +82,15 @@ export class APIGateway extends EventEmitter {
   private routes = new Map<string, APIRoute>();
   private middleware: APIMiddleware[] = [];
   private metrics: APIMetrics;
+  private tenantMetrics = new Map<string, APIMetrics>();
   private rateLimitStore = new Map<string, { count: number; resetTime: number }>();
   private enterprise: EnterpriseIntegration;
+  private authService: SecureAuthService;
 
   constructor(enterprise: EnterpriseIntegration) {
     super();
     this.enterprise = enterprise;
+    this.authService = new SecureAuthService();
     this.metrics = this.initializeMetrics();
     this.setupDefaultMiddleware();
   }
@@ -93,7 +104,7 @@ export class APIGateway extends EventEmitter {
       errorRate: 0,
       activeConnections: 0,
       rateLimitHits: 0,
-      authFailures: 0
+      authFailures: 0,
     };
   }
 
@@ -102,11 +113,14 @@ export class APIGateway extends EventEmitter {
     this.addMiddleware({
       name: 'request-logger',
       execute: async (req, next) => {
-        console.log(`📥 ${req.method} ${req.path} - Request ID: ${req.id}`);
+        logger.http(`📥 ${req.method} ${req.path}`, { requestId: req.id });
         const response = await next();
-        console.log(`📤 ${req.method} ${req.path} - ${response.status} - ${response.metadata?.processingTime}ms`);
+        logger.http(`📤 ${req.method} ${req.path} - ${response.status}`, {
+          requestId: req.id,
+          processingTime: response.metadata?.processingTime,
+        });
         return response;
-      }
+      },
     });
 
     // Metrics collection middleware
@@ -116,10 +130,24 @@ export class APIGateway extends EventEmitter {
         const startTime = Date.now();
         const response = await next();
         const processingTime = Date.now() - startTime;
-        
+
         this.updateMetrics(req, response, processingTime);
         return response;
-      }
+      },
+    });
+
+    // CORS middleware
+    this.addMiddleware({
+      name: 'security-headers',
+      execute: async (req, next) => {
+        const response = await next();
+        response.headers['X-Content-Type-Options'] = 'nosniff';
+        response.headers['X-Frame-Options'] = 'DENY';
+        response.headers['X-XSS-Protection'] = '1; mode=block';
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains';
+        response.headers['Content-Security-Policy'] = "default-src 'self'";
+        return response;
+      },
     });
 
     // CORS middleware
@@ -131,24 +159,25 @@ export class APIGateway extends EventEmitter {
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS';
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-API-Key';
         return response;
-      }
+      },
     });
   }
 
   addRoute(route: APIRoute): void {
     const key = `${route.method}:${route.path}`;
     this.routes.set(key, route);
-    console.log(`🛣️ Route registered: ${route.method} ${route.path}`);
+    logger.info(`🛣️ Route registered: ${route.method} ${route.path}`);
   }
 
   addMiddleware(middleware: APIMiddleware): void {
     this.middleware.push(middleware);
-    console.log(`🔧 Middleware added: ${middleware.name}`);
+    logger.info(`🔧 Middleware added: ${middleware.name}`);
   }
 
   async handleRequest(request: Partial<APIRequest>): Promise<APIResponse> {
+    const requestId = request.metadata?.requestId || `req_${randomUUID()}`;
     const req: APIRequest = {
-      id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: requestId,
       path: request.path || '/',
       method: request.method || 'GET',
       headers: request.headers || {},
@@ -158,43 +187,67 @@ export class APIGateway extends EventEmitter {
       metadata: {
         ip: request.metadata?.ip || 'unknown',
         userAgent: request.metadata?.userAgent || 'unknown',
-        requestId: request.metadata?.requestId || req.id
-      }
+        requestId: requestId,
+      },
     };
 
-    try {
-      this.metrics.activeConnections++;
-      this.metrics.totalRequests++;
+    // Try to extract tenant from token if present to initialize context early
+    const authHeader = req.headers.authorization;
+    let initialTenantId: string | undefined;
 
-      // Find route
-      const route = this.findRoute(req.method as any, req.path);
-      if (!route) {
-        return this.createErrorResponse(404, 'Route not found', req.id);
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.substring(7);
+        const payload = this.authService.verifyToken(token);
+        initialTenantId = payload.tenant;
+        req.user = {
+          id: payload.userId,
+          tenantId: payload.tenant,
+          roles: payload.roles || [],
+          permissions: (payload as any).permissions || [],
+        };
+      } catch (e) {
+        // Ignore token errors here, they will be caught in authenticateRequest
       }
-
-      // Apply rate limiting
-      if (route.rateLimit && !this.checkRateLimit(req, route.rateLimit)) {
-        this.metrics.rateLimitHits++;
-        return this.createErrorResponse(429, 'Rate limit exceeded', req.id);
-      }
-
-      // Apply authentication
-      if (route.auth?.required && !await this.authenticateRequest(req, route.auth)) {
-        this.metrics.authFailures++;
-        return this.createErrorResponse(401, 'Authentication required', req.id);
-      }
-
-      // Apply middleware chain
-      const response = await this.executeMiddleware(req, route);
-
-      this.metrics.activeConnections--;
-      return response;
-
-    } catch (error) {
-      this.metrics.activeConnections--;
-      console.error(`❌ Request handling error:`, error);
-      return this.createErrorResponse(500, 'Internal server error', req.id);
     }
+
+    return tenantContext.run({ tenantId: initialTenantId, userId: req.user?.id }, async () => {
+      try {
+        this.metrics.activeConnections++;
+
+        // Find route
+        const route = this.findRoute(req.method as any, req.path);
+        if (!route) {
+          return this.createErrorResponse(404, 'Route not found', req.id);
+        }
+
+        // Apply rate limiting
+        if (route.rateLimit && !this.checkRateLimit(req, route.rateLimit)) {
+          this.metrics.rateLimitHits++;
+          return this.createErrorResponse(429, 'Rate limit exceeded', req.id);
+        }
+
+        // Apply authentication
+        if (route.auth?.required && !(await this.authenticateRequest(req, route.auth))) {
+          this.metrics.authFailures++;
+          return this.createErrorResponse(401, 'Authentication required', req.id);
+        }
+
+        // If authentication succeeded but we didn't have a tenant context yet,
+        // we might need to re-run in a new context if the tenant changed.
+        // However, for simplicity we assume the initial context is enough or updated.
+
+        // Apply middleware chain
+        const response = await this.executeMiddleware(req, route);
+
+        this.metrics.activeConnections--;
+        return response;
+      } catch (error: any) {
+        this.metrics.activeConnections--;
+        logger.error('❌ Middleware execution error', { error: String(error) });
+        return this.createErrorResponse(500, 'Internal server error', req.id);
+      }
+    });
   }
 
   private findRoute(method: string, path: string): APIRoute | undefined {
@@ -203,13 +256,19 @@ export class APIGateway extends EventEmitter {
   }
 
   private checkRateLimit(req: APIRequest, limit: { requests: number; window: number }): boolean {
-    const key = `${req.metadata.ip}:${req.path}`;
+    // Priority: tenantId > userId > IP
+    const key = req.user?.tenantId
+      ? `tenant:${req.user.tenantId}:${req.path}`
+      : req.user?.id
+      ? `user:${req.user.id}:${req.path}`
+      : `ip:${req.metadata.ip}:${req.path}`;
+
     const now = Date.now();
-    const windowStart = now - (limit.window * 1000);
+    const windowStart = now - limit.window * 1000;
 
     let stored = this.rateLimitStore.get(key);
     if (!stored || stored.resetTime < now) {
-      stored = { count: 0, resetTime: now + (limit.window * 1000) };
+      stored = { count: 0, resetTime: now + limit.window * 1000 };
       this.rateLimitStore.set(key, stored);
     }
 
@@ -218,43 +277,59 @@ export class APIGateway extends EventEmitter {
   }
 
   private async authenticateRequest(req: APIRequest, auth: APIRoute['auth']): Promise<boolean> {
-    if (!auth?.required) return true;
+    if (!auth?.required) {return true;}
 
-    // Mock authentication - in production would:
-    // - Validate JWT tokens
-    // - Check API keys
-    // - Verify user roles and permissions
-    
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers.authorization;
     const apiKey = req.headers['x-api-key'];
 
     if (!authHeader && !apiKey) {
       return false;
     }
 
-    // Mock user validation
-    req.user = {
-      id: 'user_123',
-      tenantId: 'tenant_456',
-      roles: ['user'],
-      permissions: ['read']
-    };
+    try {
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        const payload = this.authService.verifyToken(token);
 
-    // Check role requirements
-    if (auth.roles && auth.roles.length > 0) {
-      if (!auth.roles.some(role => req.user!.roles.includes(role))) {
-        return false;
+        req.user = {
+          id: payload.userId,
+          tenantId: payload.tenant,
+          roles: payload.roles || [],
+          permissions: (payload as any).permissions || [],
+        };
+      } else if (apiKey) {
+        const keyResult = await getAPIKeyManager().validateKey(apiKey);
+        if (!keyResult.valid || !keyResult.key) {return false;}
+        const tenantId = (keyResult.key.metadata?.tenantId ??
+          keyResult.key.metadata?.tenant ??
+          'tenant_api') as string;
+        req.user = {
+          id: keyResult.key.userId,
+          tenantId,
+          roles: ['api_user'],
+          permissions: keyResult.key.scopes || [],
+        };
       }
-    }
 
-    // Check permission requirements
-    if (auth.permissions && auth.permissions.length > 0) {
-      if (!auth.permissions.some(perm => req.user!.permissions.includes(perm))) {
-        return false;
+      // Check role requirements
+      if (auth.roles && auth.roles.length > 0) {
+        if (!req.user || !auth.roles.some((role) => req.user!.roles.includes(role))) {
+          return false;
+        }
       }
-    }
 
-    return true;
+      // Check permission requirements
+      if (auth.permissions && auth.permissions.length > 0) {
+        if (!req.user || !auth.permissions.some((perm) => req.user!.permissions.includes(perm))) {
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      logger.error('Auth failure', { error: String(error) });
+      return false;
+    }
   }
 
   private async executeMiddleware(req: APIRequest, route: APIRoute): Promise<APIResponse> {
@@ -275,49 +350,87 @@ export class APIGateway extends EventEmitter {
   }
 
   private createErrorResponse(status: number, message: string, requestId: string): APIResponse {
-    return {
+    const response: APIResponse = {
       status,
       headers: {
         'Content-Type': 'application/json',
-        'X-Request-ID': requestId
+        'X-Request-ID': requestId,
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Content-Security-Policy': "default-src 'none'",
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
       },
       body: {
         error: true,
         message,
         requestId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       metadata: {
         requestId,
         timestamp: new Date(),
-        processingTime: 0
-      }
+        processingTime: 0,
+      },
     };
+
+    return response;
   }
 
   private updateMetrics(req: APIRequest, response: APIResponse, processingTime: number): void {
-    // Update path metrics
-    this.metrics.requestsByPath[req.path] = (this.metrics.requestsByPath[req.path] || 0) + 1;
+    // Update global metrics
+    this.updateMetricsObject(this.metrics, req, response, processingTime);
 
-    // Update status metrics
-    this.metrics.requestsByStatus[response.status] = (this.metrics.requestsByStatus[response.status] || 0) + 1;
-
-    // Update average response time
-    const totalTime = this.metrics.averageResponseTime * (this.metrics.totalRequests - 1) + processingTime;
-    this.metrics.averageResponseTime = totalTime / this.metrics.totalRequests;
-
-    // Update error rate
-    const errorCount = Object.entries(this.metrics.requestsByStatus)
-      .filter(([status]) => parseInt(status) >= 400)
-      .reduce((sum, [, count]) => sum + count, 0);
-    this.metrics.errorRate = (errorCount / this.metrics.totalRequests) * 100;
+    // Update tenant-specific metrics if available
+    const tenantId = req.user?.tenantId;
+    if (tenantId) {
+      let tMetrics = this.tenantMetrics.get(tenantId);
+      if (!tMetrics) {
+        tMetrics = this.initializeMetrics();
+        this.tenantMetrics.set(tenantId, tMetrics);
+      }
+      this.updateMetricsObject(tMetrics, req, response, processingTime);
+    }
 
     // Emit metrics update
-    this.emit('metricsUpdated', this.metrics);
+    this.emit('metricsUpdated', {
+      global: this.metrics,
+      tenant: tenantId ? this.tenantMetrics.get(tenantId) : null,
+    });
+  }
+
+  private updateMetricsObject(
+    metrics: APIMetrics,
+    req: APIRequest,
+    response: APIResponse,
+    processingTime: number
+  ): void {
+    metrics.totalRequests++;
+
+    // Update path metrics
+    metrics.requestsByPath[req.path] = (metrics.requestsByPath[req.path] || 0) + 1;
+
+    // Update status metrics
+    metrics.requestsByStatus[response.status] =
+      (metrics.requestsByStatus[response.status] || 0) + 1;
+
+    // Update average response time
+    const totalTime = metrics.averageResponseTime * (metrics.totalRequests - 1) + processingTime;
+    metrics.averageResponseTime = totalTime / metrics.totalRequests;
+
+    // Update error rate
+    const errorCount = Object.entries(metrics.requestsByStatus)
+      .filter(([status]) => parseInt(status) >= 400)
+      .reduce((sum, [, count]) => sum + count, 0);
+    metrics.errorRate = (errorCount / metrics.totalRequests) * 100;
   }
 
   getMetrics(): APIMetrics {
     return { ...this.metrics };
+  }
+
+  getTenantMetrics(tenantId: string): APIMetrics | undefined {
+    const metrics = this.tenantMetrics.get(tenantId);
+    return metrics ? { ...metrics } : undefined;
   }
 
   getRoutes(): APIRoute[] {
@@ -337,9 +450,33 @@ export class APIGateway extends EventEmitter {
           status: 'healthy',
           timestamp: new Date().toISOString(),
           uptime: process.uptime(),
-          metrics: this.getMetrics()
+          metrics: this.getMetrics(),
+        },
+      }),
+    });
+
+    // Tenant metrics
+    this.addRoute({
+      path: '/metrics/tenant',
+      method: 'GET',
+      auth: { required: true },
+      handler: async (req) => {
+        const tenantId = req.user?.tenantId;
+        if (!tenantId) {
+          return this.createErrorResponse(400, 'Tenant context required', req.id);
         }
-      })
+
+        const metrics = this.getTenantMetrics(tenantId);
+        return {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+          body: {
+            tenantId,
+            metrics: metrics || this.initializeMetrics(),
+            timestamp: new Date().toISOString(),
+          },
+        };
+      },
     });
 
     // Metrics endpoint
@@ -350,8 +487,8 @@ export class APIGateway extends EventEmitter {
       handler: async (req) => ({
         status: 200,
         headers: { 'Content-Type': 'application/json' },
-        body: this.getMetrics()
-      })
+        body: this.getMetrics(),
+      }),
     });
 
     // Tenant endpoints
@@ -362,8 +499,8 @@ export class APIGateway extends EventEmitter {
       handler: async (req) => ({
         status: 200,
         headers: { 'Content-Type': 'application/json' },
-        body: this.enterprise.getAllTenants()
-      })
+        body: this.enterprise.getAllTenants(),
+      }),
     });
 
     this.addRoute({
@@ -376,16 +513,16 @@ export class APIGateway extends EventEmitter {
           return {
             status: 201,
             headers: { 'Content-Type': 'application/json' },
-            body: { message: 'Tenant created successfully', tenant: req.body }
+            body: { message: 'Tenant created successfully', tenant: req.body },
           };
-        } catch (error) {
+        } catch (error: any) {
           return {
             status: 400,
             headers: { 'Content-Type': 'application/json' },
-            body: { error: error.message }
+            body: { error: error.message },
           };
         }
-      }
+      },
     });
 
     // Compliance reports
@@ -402,43 +539,43 @@ export class APIGateway extends EventEmitter {
           return {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
-            body: report
+            body: report,
           };
-        } catch (error) {
+        } catch (error: any) {
           return {
             status: 400,
             headers: { 'Content-Type': 'application/json' },
-            body: { error: error.message }
+            body: { error: error.message },
           };
         }
-      }
+      },
     });
 
-    console.log('🏢 Enterprise API endpoints configured');
+    logger.info('🏢 Enterprise API endpoints configured');
   }
 
   async start(port: number = 3000): Promise<void> {
-    console.log(`🚀 Starting API Gateway on port ${port}`);
-    
+    logger.info(`🚀 Starting API Gateway on port ${port}`);
+
     // Start enterprise monitoring
     await this.enterprise.startMonitoring();
-    
+
     // Mock server start - in production would start actual HTTP server
-    console.log(`✅ API Gateway running on http://localhost:${port}`);
-    console.log(`📊 Enterprise metrics available at /metrics`);
-    console.log(`🏥 Health check available at /health`);
-    
+    logger.info(`✅ API Gateway running on http://localhost:${port}`);
+    logger.info(`📊 Enterprise metrics available at /metrics`);
+    logger.info(`🏥 Health check available at /health`);
+
     this.emit('started', { port });
   }
 
   async stop(): Promise<void> {
-    console.log('⏹️ Stopping API Gateway...');
-    
+    logger.info('⏹️ Stopping API Gateway...');
+
     // Stop enterprise monitoring
     await this.enterprise.stopMonitoring();
-    
+
     this.emit('stopped');
-    console.log('✅ API Gateway stopped');
+    logger.info('✅ API Gateway stopped');
   }
 
   // Cleanup old rate limit entries

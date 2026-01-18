@@ -11,7 +11,8 @@ function required(name: string): string {
 }
 
 export const Env = {
-  DATABASE_URL: (): string | undefined => process.env.DATABASE_URL || process.env.POSTGRES_URL || undefined,
+  DATABASE_URL: (): string | undefined =>
+    process.env.DATABASE_URL || process.env.POSTGRES_URL || undefined,
   REDIS_URL: (): string | undefined => process.env.REDIS_URL || undefined,
   JWT_SECRET: (): string => required('JWT_SECRET'),
   REFRESH_TOKEN_SECRET: (): string => process.env.REFRESH_TOKEN_SECRET || required('JWT_SECRET'),
@@ -20,7 +21,7 @@ export const Env = {
 
 export function validateCritical(): { ok: boolean; missing: string[] } {
   const missing: string[] = [];
-  if (!Env.JWT_SECRET()) missing.push('JWT_SECRET');
+  if (!Env.JWT_SECRET()) {missing.push('JWT_SECRET');}
   // Refresh token secret can reuse JWT_SECRET by default
   return { ok: missing.length === 0, missing };
 }

@@ -6,6 +6,9 @@
   <title>Yseeku Platform (SONATE) - Enterprise AI Governance & Trust Framework</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Data engine removed temporarily to fix loading issue -->
+          <script src="yseeku-timeline.js"></script>
+          <script src="yseeku-layer-sync.js"></script>
   <script>
     // Embedded Data Engine (to avoid CORS issues when opening file directly)
     // This is the content of yseeku-data-engine.js embedded inline
@@ -77,7 +80,7 @@
     }
     .tour-popup.active { display: block; }
   </style>
-<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+
 </head>
 <body class="bg-gray-50 min-h-screen">
   <!-- Tour Overlay -->
@@ -180,7 +183,7 @@
       <!-- Navigation -->
       <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
         <!-- Overview -->
-        <a href="#" onclick="showPage('overview')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+        <a href="#" onclick="showPage('overview', event, event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
           </svg>
@@ -197,20 +200,20 @@
             <span class="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">LIVE</span>
           </button>
           <div id="detect-section" class="sidebar-section ml-4 mt-1 space-y-1">
-            <a href="#" onclick="showPage('dashboard')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('dashboard', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
               Dashboard
               <span class="ml-auto w-2 h-2 bg-blue-500 rounded-full animate-pulse-slow"></span>
             </a>
-            <a href="#" onclick="showPage('agents')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('agents', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
               Agent Monitoring
             </a>
-            <a href="#" onclick="showPage('symbi-analysis')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('symbi-analysis', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
               SYMBI Analysis
             </a>
-            <a href="#" onclick="showPage('alerts')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('alerts', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
               Alerts
             </a>
@@ -227,19 +230,19 @@
             <span class="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded-full">RESEARCH</span>
           </button>
           <div id="lab-section" class="sidebar-section ml-4 mt-1 space-y-1">
-            <a href="#" onclick="showPage('experiments')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('experiments', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
               Experiments
             </a>
-            <a href="#" onclick="showPage('bedau')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('bedau', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
               Bedau Index
             </a>
-            <a href="#" onclick="showPage('emergence')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('emergence', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
               Emergence Testing
             </a>
-            <a href="#" onclick="showPage('resonance')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('resonance', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
               Resonance Detection
             </a>
@@ -256,15 +259,20 @@
             <span class="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">ACTIVE</span>
           </button>
           <div id="orchestrate-section" class="sidebar-section ml-4 mt-1 space-y-1">
-            <a href="#" onclick="showPage('principles')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('workflows', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+              Workflows
+              <span class="ml-auto px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded">2</span>
+            </a>
+            <a href="#" onclick="showPage('principles', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
               Trust Principles
             </a>
-            <a href="#" onclick="showPage('receipts')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('receipts', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
               Trust Receipts
             </a>
-            <a href="#" onclick="showPage('governance')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <a href="#" onclick="showPage('governance', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
               Governance
             </a>
@@ -273,11 +281,17 @@
 
         <!-- Additional Pages -->
         <div class="pt-4 border-t border-gray-200">
-          <a href="#" onclick="showPage('glossary')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+          <a href="#" onclick="showPage('timeline', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Timeline
+          </a>
+          <a href="#" onclick="showPage('glossary', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
             Glossary
           </a>
-          <a href="#" onclick="showPage('documentation')" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+          <a href="#" onclick="showPage('documentation', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             Documentation
           </a>
@@ -469,9 +483,108 @@
         }
       ],
       receipts: [
-        { id: 'TR-2024-001', timestamp: '2024-01-20 14:32:15', agent: 'Customer Support AI', action: 'Response Generated', hash: 'a3f5b2c8d9e1f4a7b6c5d8e9f1a2b3c4', verified: true },
-        { id: 'TR-2024-002', timestamp: '2024-01-20 14:31:42', agent: 'Data Analysis Agent', action: 'Analysis Completed', hash: 'b4g6c3d0e2f5b8c7d9e0f2a3b4c5d6e7', verified: true },
-        { id: 'TR-2024-003', timestamp: '2024-01-20 14:30:18', agent: 'Decision Engine', action: 'Decision Made', hash: 'c5h7d4e1f3g9c8d0e1f3a4b5c6d7e8f9', verified: true }
+        { id: 'TR-2024-001', timestamp: '2024-12-26T14:32:15Z', agent: 'Customer Support AI', agentId: 1, action: 'Response Generated', hash: 'a3f5b2c8d9e1f4a7b6c5d8e9f1a2b3c4', previousHash: '0000000000000000000000000000000000000000', merkleRoot: 'f9e8d7c6b5a4938271605948372615049382716', verified: true, chainPosition: 1, trustScore: 92, complianceFrameworks: ['GDPR', 'SOC2'] },
+        { id: 'TR-2024-002', timestamp: '2024-12-26T14:31:42Z', agent: 'Data Analysis Agent', agentId: 2, action: 'Analysis Completed', hash: 'b4g6c3d0e2f5b8c7d9e0f2a3b4c5d6e7', previousHash: 'a3f5b2c8d9e1f4a7b6c5d8e9f1a2b3c4', merkleRoot: 'f9e8d7c6b5a4938271605948372615049382716', verified: true, chainPosition: 2, trustScore: 88, complianceFrameworks: ['GDPR', 'EU AI Act'] },
+        { id: 'TR-2024-003', timestamp: '2024-12-26T14:30:18Z', agent: 'Decision Engine', agentId: 4, action: 'Decision Made', hash: 'c5h7d4e1f3g9c8d0e1f3a4b5c6d7e8f9', previousHash: 'b4g6c3d0e2f5b8c7d9e0f2a3b4c5d6e7', merkleRoot: 'f9e8d7c6b5a4938271605948372615049382716', verified: true, chainPosition: 3, trustScore: 94, complianceFrameworks: ['SOC2', 'ISO27001'] },
+        { id: 'TR-2024-004', timestamp: '2024-12-26T14:29:55Z', agent: 'Fraud Detection AI', agentId: 6, action: 'Fraud Check', hash: 'd6i8e5f2g0h0d9e1f4a5b6c7d8e9f0a1', previousHash: 'c5h7d4e1f3g9c8d0e1f3a4b5c6d7e8f9', merkleRoot: 'f9e8d7c6b5a4938271605948372615049382716', verified: true, chainPosition: 4, trustScore: 91, complianceFrameworks: ['GDPR', 'SOC2', 'PCI-DSS'] }
+      ],
+      workflows: [
+        {
+          id: 'wf_001',
+          name: 'Customer Onboarding',
+          description: 'Automated customer verification and account setup',
+          status: 'running',
+          progress: 60,
+          agents: ['Customer Support AI', 'Data Analysis Agent', 'Decision Engine'],
+          agentIds: [1, 2, 4],
+          tasks: [
+            { id: 'task_001', name: 'Identity Verification', status: 'completed', agent: 'Customer Support AI', duration: 1.2 },
+            { id: 'task_002', name: 'Risk Assessment', status: 'completed', agent: 'Data Analysis Agent', duration: 2.1 },
+            { id: 'task_003', name: 'Credit Check', status: 'running', agent: 'Decision Engine', duration: null },
+            { id: 'task_004', name: 'Account Creation', status: 'pending', agent: 'Customer Support AI', duration: null },
+            { id: 'task_005', name: 'Welcome Email', status: 'pending', agent: 'Customer Support AI', duration: null }
+          ],
+          metrics: {
+            elapsed: 3.8,
+            estimatedTotal: 6.5,
+            trustScore: 98,
+            tasksComplete: 2,
+            tasksTotal: 5
+          },
+          startTime: '2024-12-26T10:15:00Z',
+          priority: 'high'
+        },
+        {
+          id: 'wf_002',
+          name: 'Fraud Investigation',
+          description: 'Multi-agent fraud detection and analysis',
+          status: 'running',
+          progress: 35,
+          agents: ['Fraud Detection AI', 'Data Analysis Agent'],
+          agentIds: [6, 2],
+          tasks: [
+            { id: 'task_006', name: 'Transaction Analysis', status: 'completed', agent: 'Fraud Detection AI', duration: 0.8 },
+            { id: 'task_007', name: 'Pattern Matching', status: 'running', agent: 'Data Analysis Agent', duration: null },
+            { id: 'task_008', name: 'Risk Scoring', status: 'pending', agent: 'Fraud Detection AI', duration: null },
+            { id: 'task_009', name: 'Alert Generation', status: 'pending', agent: 'Fraud Detection AI', duration: null }
+          ],
+          metrics: {
+            elapsed: 1.5,
+            estimatedTotal: 4.2,
+            trustScore: 95,
+            tasksComplete: 1,
+            tasksTotal: 4
+          },
+          startTime: '2024-12-26T10:22:00Z',
+          priority: 'critical'
+        },
+        {
+          id: 'wf_003',
+          name: 'Content Moderation',
+          description: 'Automated content review and approval',
+          status: 'completed',
+          progress: 100,
+          agents: ['Content Generator', 'Decision Engine'],
+          agentIds: [3, 4],
+          tasks: [
+            { id: 'task_010', name: 'Content Scan', status: 'completed', agent: 'Content Generator', duration: 0.5 },
+            { id: 'task_011', name: 'Policy Check', status: 'completed', agent: 'Decision Engine', duration: 0.3 },
+            { id: 'task_012', name: 'Approval', status: 'completed', agent: 'Decision Engine', duration: 0.2 }
+          ],
+          metrics: {
+            elapsed: 1.0,
+            estimatedTotal: 1.0,
+            trustScore: 92,
+            tasksComplete: 3,
+            tasksTotal: 3
+          },
+          startTime: '2024-12-26T10:18:00Z',
+          endTime: '2024-12-26T10:19:00Z',
+          priority: 'medium'
+        },
+        {
+          id: 'wf_004',
+          name: 'Recommendation Pipeline',
+          description: 'Personalized product recommendations',
+          status: 'pending',
+          progress: 0,
+          agents: ['Recommendation System', 'Data Analysis Agent'],
+          agentIds: [5, 2],
+          tasks: [
+            { id: 'task_013', name: 'User Profiling', status: 'pending', agent: 'Data Analysis Agent', duration: null },
+            { id: 'task_014', name: 'Preference Analysis', status: 'pending', agent: 'Recommendation System', duration: null },
+            { id: 'task_015', name: 'Product Matching', status: 'pending', agent: 'Recommendation System', duration: null }
+          ],
+          metrics: {
+            elapsed: 0,
+            estimatedTotal: 3.5,
+            trustScore: 88,
+            tasksComplete: 0,
+            tasksTotal: 3
+          },
+          startTime: null,
+          priority: 'low'
+        }
       ]
     };
 
@@ -559,7 +672,7 @@
           </div>
 
           <div class="grid grid-cols-3 gap-6">
-            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('dashboard')">
+            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('dashboard', event)">
               <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
               </div>
@@ -571,7 +684,7 @@
               </div>
             </div>
 
-            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('experiments')">
+            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('experiments', event)">
               <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
                 <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
               </div>
@@ -583,7 +696,7 @@
               </div>
             </div>
 
-            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('principles')">
+            <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('principles', event)">
               <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
                 <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
               </div>
@@ -1253,7 +1366,210 @@
         </div>
       `,
 
-      documentation: () => `
+      workflows: () => `
+        <div class="space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-900">Multi-Agent Workflows</h2>
+              <p class="text-gray-600 mt-1">Orchestrated workflows across multiple AI agents</p>
+            </div>
+            <div class="flex gap-2">
+              <select class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <option>All Workflows</option>
+                <option>Running</option>
+                <option>Completed</option>
+                <option>Pending</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Workflow Stats -->
+          <div class="grid grid-cols-4 gap-4">
+            <div class="bg-white rounded-xl p-4 border border-gray-200">
+              <div class="text-2xl font-bold text-gray-900">${mockData.workflows.length}</div>
+              <div class="text-sm text-gray-600">Total Workflows</div>
+            </div>
+            <div class="bg-white rounded-xl p-4 border border-gray-200">
+              <div class="text-2xl font-bold text-green-600">${mockData.workflows.filter(w => w.status === 'running').length}</div>
+              <div class="text-sm text-gray-600">Running</div>
+            </div>
+            <div class="bg-white rounded-xl p-4 border border-gray-200">
+              <div class="text-2xl font-bold text-blue-600">${mockData.workflows.filter(w => w.status === 'completed').length}</div>
+              <div class="text-sm text-gray-600">Completed</div>
+            </div>
+            <div class="bg-white rounded-xl p-4 border border-gray-200">
+              <div class="text-2xl font-bold text-gray-600">${mockData.workflows.filter(w => w.status === 'pending').length}</div>
+              <div class="text-sm text-gray-600">Pending</div>
+            </div>
+          </div>
+
+          <!-- Workflow Cards -->
+          <div class="grid grid-cols-2 gap-6">
+            ${mockData.workflows.map(workflow => `
+              <div class="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                      <h3 class="text-lg font-bold text-gray-900">${workflow.name}</h3>
+                      <span class="px-2 py-1 text-xs font-medium rounded-full ${
+                        workflow.status === 'running' ? 'bg-green-100 text-green-700' :
+                        workflow.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                        workflow.status === 'pending' ? 'bg-gray-100 text-gray-700' :
+                        'bg-red-100 text-red-700'
+                      }">
+                        ${workflow.status === 'running' ? '▶️ Running' :
+                          workflow.status === 'completed' ? '✓ Completed' :
+                          workflow.status === 'pending' ? '⏸️ Pending' :
+                          '⚠️ Failed'}
+                      </span>
+                    </div>
+                    <p class="text-sm text-gray-600">${workflow.description}</p>
+                  </div>
+                  <div class="px-2 py-1 text-xs font-medium rounded ${
+                    workflow.priority === 'critical' ? 'bg-red-100 text-red-700' :
+                    workflow.priority === 'high' ? 'bg-orange-100 text-orange-700' :
+                    workflow.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-gray-100 text-gray-700'
+                  }">
+                    ${workflow.priority.toUpperCase()}
+                  </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mb-4">
+                  <div class="flex items-center justify-between text-sm mb-1">
+                    <span class="text-gray-600">Progress</span>
+                    <span class="font-medium text-gray-900">${workflow.metrics.tasksComplete}/${workflow.metrics.tasksTotal} tasks</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width: ${workflow.progress}%"></div>
+                  </div>
+                </div>
+
+                <!-- Agents -->
+                <div class="mb-4">
+                  <div class="text-sm text-gray-600 mb-2">Agents (${workflow.agents.length})</div>
+                  <div class="flex flex-wrap gap-2">
+                    ${workflow.agents.map((agent, idx) => `
+                      <div class="flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-full">
+                        <div class="w-6 h-6 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                          ${agent.charAt(0)}
+                        </div>
+                        <span class="text-xs text-gray-700">${agent}</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <!-- Metrics -->
+                <div class="grid grid-cols-3 gap-3 pt-4 border-t border-gray-100">
+                  <div class="text-center">
+                    <div class="text-xs text-gray-600">Time</div>
+                    <div class="text-sm font-medium text-gray-900">
+                      ${workflow.status === 'pending' ? 'Not started' : 
+                        workflow.status === 'completed' ? `${workflow.metrics.elapsed.toFixed(1)}s` :
+                        `${workflow.metrics.elapsed.toFixed(1)}s / ${workflow.metrics.estimatedTotal.toFixed(1)}s`}
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-xs text-gray-600">Trust</div>
+                    <div class="text-sm font-medium text-gray-900">${workflow.metrics.trustScore}%</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-xs text-gray-600">Status</div>
+                    <div class="text-sm font-medium ${
+                      workflow.status === 'running' ? 'text-green-600' :
+                      workflow.status === 'completed' ? 'text-blue-600' :
+                      'text-gray-600'
+                    }">
+                      ${workflow.progress}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `,
+
+      timeline: () => `
+           <div class="space-y-6">
+             <!-- Timeline Controls -->
+             <div class="bg-white rounded-xl p-6 border border-gray-200">
+               <div class="flex items-center justify-between mb-6">
+                 <h3 class="text-lg font-bold text-gray-900">Timeline Controls</h3>
+                 <div class="flex items-center gap-4">
+                   <select id="timeline-filter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                     <option value="all">All Events</option>
+                     <option value="trust">Trust Changes</option>
+                     <option value="emergence">Emergence Events</option>
+                     <option value="alerts">Alerts</option>
+                     <option value="symbi">SYMBI Changes</option>
+                   </select>
+                   <button onclick="playTimeline()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                     </svg>
+                     Play
+                   </button>
+                   <button onclick="resetTimeline()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                     Reset
+                   </button>
+                 </div>
+               </div>
+               
+               <!-- Timeline Range Slider -->
+               <div class="mb-4">
+                 <label class="block text-sm font-medium text-gray-700 mb-2">Time Range: <span id="timeline-range-label">Last 24 hours</span></label>
+                 <input type="range" id="timeline-range" min="1" max="168" value="24" class="w-full" onchange="updateTimelineRange(this.value)">
+               </div>
+             </div>
+
+             <!-- Main Timeline Visualization -->
+             <div class="bg-white rounded-xl p-6 border border-gray-200">
+               <h3 class="text-lg font-bold text-gray-900 mb-6">Event Timeline</h3>
+               <div id="timeline-container" class="relative">
+                 <!-- Timeline will be rendered here -->
+                 <div class="text-center text-gray-500 py-8">
+                   <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                   </svg>
+                   <p>Timeline visualization loading...</p>
+                 </div>
+               </div>
+             </div>
+
+             <!-- Event Details Panel -->
+             <div class="bg-white rounded-xl p-6 border border-gray-200">
+               <h3 class="text-lg font-bold text-gray-900 mb-4">Event Details</h3>
+               <div id="event-details" class="text-gray-500">
+                 <p>Click on any timeline event to see detailed information</p>
+               </div>
+             </div>
+
+             <!-- Statistics Summary -->
+             <div class="grid grid-cols-4 gap-4">
+               <div class="bg-white rounded-xl p-4 border border-gray-200">
+                 <div class="text-sm text-gray-600 mb-1">Total Events</div>
+                 <div class="text-2xl font-bold text-gray-900" id="total-events">0</div>
+               </div>
+               <div class="bg-white rounded-xl p-4 border border-gray-200">
+                 <div class="text-sm text-gray-600 mb-1">Trust Changes</div>
+                 <div class="text-2xl font-bold text-blue-600" id="trust-changes">0</div>
+               </div>
+               <div class="bg-white rounded-xl p-4 border border-gray-200">
+                 <div class="text-sm text-gray-600 mb-1">Emergence Events</div>
+                 <div class="text-2xl font-bold text-purple-600" id="emergence-events">0</div>
+               </div>
+               <div class="bg-white rounded-xl p-4 border border-gray-200">
+                 <div class="text-sm text-gray-600 mb-1">Critical Alerts</div>
+                 <div class="text-2xl font-bold text-red-600" id="critical-alerts">0</div>
+               </div>
+             </div>
+           </div>
+         `,
+         documentation: () => `
         <div class="space-y-6">
           <div class="bg-white rounded-xl p-6 border border-gray-200">
             <h3 class="text-lg font-bold text-gray-900 mb-4">Platform Documentation</h3>
@@ -1353,10 +1669,28 @@
         warning: 'bg-yellow-100 text-yellow-700',
         critical: 'bg-red-100 text-red-700'
       };
+      
+      // Get trust receipts for this agent
+      const agentReceipts = mockData.receipts.filter(r => r.agentId === agent.id);
+      const latestReceipt = agentReceipts[0];
+      
       return `
-        <div class="border border-gray-200 rounded-lg p-4">
-          <div class="flex items-center justify-between mb-4">
-            <div class="font-medium text-gray-900">${agent.name}</div>
+        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                ${agent.name.charAt(0)}
+              </div>
+              <div>
+                <div class="font-medium text-gray-900">${agent.name}</div>
+                ${latestReceipt ? `
+                  <div class="flex items-center gap-1 text-xs text-green-600 mt-0.5">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    Trust Receipt
+                  </div>
+                ` : ''}
+              </div>
+            </div>
             <span class="px-2 py-1 text-xs ${statusColors[agent.status]} rounded-full">${agent.status.toUpperCase()}</span>
           </div>
           ${trustGauge(Math.round(agent.trust))}
@@ -1366,6 +1700,18 @@
             ${bedauMetric('Irreducibility', agent.irreducibility)}
             ${bedauMetric('Downward Causation', agent.downwardCausation)}
           </div>
+          ${latestReceipt ? `
+            <div class="mt-4 pt-4 border-t border-gray-100">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-600">Last verified:</span>
+                <span class="font-medium text-gray-900">${new Date(latestReceipt.timestamp).toLocaleTimeString()}</span>
+              </div>
+              <div class="flex items-center justify-between text-xs mt-1">
+                <span class="text-gray-600">Chain integrity:</span>
+                <span class="font-medium text-green-600">100%</span>
+              </div>
+            </div>
+          ` : ''}
         </div>
       `;
     }
@@ -1511,7 +1857,8 @@
         principles: { title: 'Trust Principles', subtitle: 'Six core SYMBI principles' },
         receipts: { title: 'Trust Receipts', subtitle: 'Cryptographic audit trails' },
         governance: { title: 'Governance', subtitle: 'Compliance and risk management' },
-        glossary: { title: 'Glossary', subtitle: 'Key terms and definitions' },
+        timeline: { title: 'Narrative Timeline', subtitle: 'Temporal evolution of AI behaviors and events' },
+           glossary: { title: 'Glossary', subtitle: 'Key terms and definitions' },
         documentation: { title: 'Documentation', subtitle: 'Guides and API reference' }
       };
 
@@ -1984,6 +2331,59 @@
         dataEngine.setScenario('normal');
       }
     });
+    <!-- SYMBI Ecosystem Footer -->
+    <footer style="margin-top: 60px; padding: 40px 20px; background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border-top: 2px solid #333; text-align: center;">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <h3 style="margin-bottom: 20px; font-size: 18px; background: linear-gradient(135deg, #3b82f6, #8b5cf6, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Part of the SYMBI Ecosystem
+            </h3>
+            <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-bottom: 30px;">
+                <a href="https://symbi.world" target="_blank" style="color: #a0a0a0; text-decoration: none; font-size: 14px;">
+                    <div style="font-weight: 600; color: white;">symbi.world</div>
+                    <div>Philosophy & Manifesto</div>
+                </a>
+                <a href="https://gammatria.com" target="_blank" style="color: #a0a0a0; text-decoration: none; font-size: 14px;">
+                    <div style="font-weight: 600; color: white;">gammatria.com</div>
+                    <div>Research & Technical Specs</div>
+                </a>
+                <a href="https://yseeku.com" target="_blank" style="color: #a0a0a0; text-decoration: none; font-size: 14px;">
+                    <div style="font-weight: 600; color: white;">yseeku.com</div>
+                    <div>Production Platform & Services</div>
+                </a>
+            </div>
+            <div style="font-size: 12px; color: #666;">
+                Open-source at <a href="https://github.com/s8ken/yseeku-platform" target="_blank" style="color: #3b82f6;">github.com/s8ken/yseeku-platform</a> • MIT Licensed
+            </div>
+        </div>
+    </footer>
   </script>
 </body>
-</html>
+</html><script>
+// Layer 1 Sync Integration
+document.addEventListener('DOMContentLoaded', () => {
+  // Setup layer sync listeners
+  if (window.layerSync) {
+    // Listen for trust score changes from Layer 2
+    window.layerSync.on('trust-score-change', (data) => {
+      console.log('[Layer 1] Received trust score update:', data);
+    });
+    
+    // Listen for emergence events from Layer 2
+    window.layerSync.on('emergence-event', (data) => {
+      console.log('[Layer 1] Received emergence event:', data);
+    });
+    
+    // Listen for alerts from Layer 2
+    window.layerSync.on('alert-triggered', (data) => {
+      console.log('[Layer 1] Received alert:', data);
+    });
+    
+    // Listen for diagnostic results from Layer 2
+    window.layerSync.on('diagnostic-result', (data) => {
+      console.log('[Layer 1] Received diagnostic result:', data);
+    });
+    
+    console.log('[Layer 1] Sync listeners registered');
+  }
+});
+</script>

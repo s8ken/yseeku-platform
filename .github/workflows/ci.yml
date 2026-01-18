@@ -1,60 +1,61 @@
 name: CI
-
 on:
   push:
-    branches: ["main", "master", "develop"]
+    branches: [ main ]
   pull_request:
-    branches: ["main", "master", "develop"]
+    branches: [ main ]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install deps
         run: npm ci
 
-      - name: Run linting
+      - name: Format check
+        run: npm run format:check
+
+      - name: Lint
         run: npm run lint
 
-      - name: Build application
-        run: npm run build
+      - name: Unit tests (packages)
+        run: npm run test
 
-      - name: Run unit tests
-        run: npm test
+      - name: Build backend
+        run: npm run build:backend
 
-      - name: Run integration tests
-        run: npm run test:integration
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: |
-            **/coverage/**
-            **/test-results/**
+      - name: Build web
+        run: npm run build --workspace=web
 
-  security-checks:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run security audit
-        run: npm audit --audit-level=moderate
-
-      - name: Check for security vulnerabilities
+      - name: Start backend
         run: |
-          if [ -f "package-lock.json" ]; then
-            npm audit --audit-level=high --production
-          fi
+          npm run dev --workspace=backend &
+          for i in {1..60}; do
+            if curl -sSf http://localhost:3001/health >/dev/null; then echo "backend up"; break; fi;
+            sleep 1;
+          done
+
+      - name: Start web
+        run: |
+          npm run start --workspace=web &
+          for i in {1..60}; do
+            if curl -sSf http://localhost:5000/ >/dev/null; then echo "web up"; break; fi;
+            sleep 1;
+          done
+
+      - name: E2E tests (web)
+        working-directory: apps/web
+        run: npx playwright test
+

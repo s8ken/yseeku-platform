@@ -1,74 +1,98 @@
 /**
- * Temporal Bedau Tracker - Historical Analysis & Pattern Recognition
- * 
- * Tracks Bedau Index evolution over time to identify:
- * - Emergence trajectories and patterns
- * - Long-term cognitive development trends
- * - Phase transitions in system behavior
- * - Predictive emergence indicators
+ * Production Temporal Bedau Tracker
+ *
+ * Complete implementation for tracking emergence patterns over time
+ * Replaces mock implementation with production-grade algorithms
  */
 
-import { BedauMetrics, SemanticIntent, SurfacePattern } from './bedau-index';
-import { EmergenceTrajectory } from './emergence-detection';
+import { BedauMetrics, EmergenceTrajectory } from './bedau-index';
 
 export interface TemporalBedauRecord {
   timestamp: number;
   bedau_metrics: BedauMetrics;
-  semantic_intent: SemanticIntent;
-  surface_pattern: SurfacePattern;
-  session_id: string;
-  context_tags: string[];
+  emergence_signature: EmergenceSignature;
+  context_data: Record<string, any>;
+  semantic_intent?: SemanticIntent;
+  surface_pattern?: SurfacePattern;
+  session_id?: string;
+  context_tags?: string[];
+}
+
+export interface SemanticIntent {
+  embedding: number[];
+  intent_class: string;
+  confidence: number;
+}
+
+export interface SurfacePattern {
+  embedding: number[];
+  pattern_class: string;
+  confidence: number;
 }
 
 export interface EmergencePattern {
-  pattern_id: string;
-  name: string;
-  description: string;
-  detection_signature: number[];  // Characteristic Bedau signature
-  confidence: number;            // 0-1
-  phase_transitions: PhaseTransition[];
+  type: 'LINEAR' | 'EXPONENTIAL' | 'OSCILLATORY' | 'CHAOTIC';
+  confidence: number;
+  characteristics: {
+    slope?: number;
+    correlation?: number;
+    periodicity?: number;
+    entropy?: number;
+    lyapunov_exponent?: number;
+    [key: string]: any;
+  };
 }
 
 export interface PhaseTransition {
-  from_type: 'LINEAR' | 'WEAK_EMERGENCE';
-  to_type: 'LINEAR' | 'WEAK_EMERGENCE';
-  transition_point: number;      // Timestamp index
-  transition_duration: number;   // Duration in samples
-  catalyst_factors: string[];    // Factors that triggered transition
+  timestamp: number;
+  type: 'LOW_TO_HIGH' | 'HIGH_TO_LOW' | 'OSCILLATION' | 'STABILIZATION';
+  confidence: number;
+  context: Record<string, any>;
 }
 
 export interface EmergenceSignature {
-  fingerprint: number[];         // Multi-dimensional emergence profile
-  complexity_profile: number[];  // Kolmogorov complexity over time
-  entropy_profile: number[];     // Semantic entropy over time
-  divergence_profile: number[];  // Semantic-surface divergence over time
-  stability_score: number;       // 0-1: How stable the emergence pattern is
-  novelty_score: number;         // 0-1: How novel the pattern is
+  complexity: number;
+  novelty: number;
+  coherence: number;
+  stability: number;
+  timestamp: number;
+  complexity_profile?: number[];
+  entropy_profile?: number[];
+  fingerprint?: number[];
+  divergence_profile?: number[];
+  stability_score?: number;
+  novelty_score?: number;
 }
 
 /**
- * Temporal Bedau Tracker
- * 
- * Manages historical Bedau Index data and provides temporal analysis
- * capabilities for emergence research.
+ * Production-grade Temporal Bedau Tracker
+ * Implements sophisticated temporal analysis of emergence patterns
  */
 export class TemporalBedauTracker {
   private records: TemporalBedauRecord[] = [];
   private patterns: Map<string, EmergencePattern> = new Map();
-  private readonly MAX_RECORDS = 10000;  // Maximum records to keep in memory
-  private readonly MIN_SAMPLES_FOR_PATTERN = 10;  // Minimum samples for pattern detection
+  private readonly MAX_RECORDS = 10000;
+  private readonly MIN_SAMPLES_FOR_PATTERN = 30;
+  private readonly PATTERN_LEARNING_RATE = 0.1;
+
+  constructor() {
+    this.initializeDefaultPatterns();
+  }
 
   /**
    * Add a new Bedau record to the temporal tracker
    */
   addRecord(record: TemporalBedauRecord): void {
+    // Validate input
+    this.validateRecord(record);
+
     this.records.push(record);
-    
+
     // Maintain memory limit
     if (this.records.length > this.MAX_RECORDS) {
       this.records = this.records.slice(-this.MAX_RECORDS);
     }
-    
+
     // Update patterns if we have enough data
     if (this.records.length >= this.MIN_SAMPLES_FOR_PATTERN) {
       this.updatePatterns();
@@ -76,629 +100,725 @@ export class TemporalBedauTracker {
   }
 
   /**
+   * Validate a Bedau record before adding it
+   */
+  private validateRecord(record: TemporalBedauRecord): void {
+    if (!record.timestamp || typeof record.timestamp !== 'number') {
+      throw new Error('Invalid timestamp in Bedau record');
+    }
+
+    if (!record.bedau_metrics) {
+      throw new Error('Missing bedau_metrics in record');
+    }
+
+    if (
+      typeof record.bedau_metrics.bedau_index !== 'number' ||
+      record.bedau_metrics.bedau_index < 0 ||
+      record.bedau_metrics.bedau_index > 1
+    ) {
+      throw new Error('Invalid bedau_index: must be between 0 and 1');
+    }
+
+    if (record.emergence_signature) {
+      this.validateEmergenceSignature(record.emergence_signature);
+    }
+  }
+
+  /**
+   * Validate emergence signature
+   */
+  private validateEmergenceSignature(signature: EmergenceSignature): void {
+    const fields: (keyof EmergenceSignature)[] = [
+      'complexity',
+      'novelty',
+      'coherence',
+      'stability',
+    ];
+    for (const field of fields) {
+      const value = signature[field];
+      if (typeof value !== 'number' || value < 0 || value > 1) {
+        throw new Error(`Invalid ${field} in emergence signature: must be between 0 and 1`);
+      }
+    }
+  }
+
+  /**
    * Get emergence trajectory with enhanced temporal analysis
    */
-  getEmergenceTrajectory(sessionId?: string): EmergenceTrajectory & {
+  getEmergenceTrajectory(
+    startTime?: number,
+    endTime?: number
+  ): EmergenceTrajectory & {
     pattern_signature: EmergenceSignature;
     predicted_trajectory: number[];
     confidence_in_prediction: number;
     detectedPatterns: EmergencePattern[];
+    phase_transitions: PhaseTransition[];
   } {
-    const relevantRecords = sessionId 
-      ? this.records.filter(r => r.session_id === sessionId)
-      : this.records;
+    const relevantRecords = this.filterRecordsByTime(startTime, endTime);
 
     if (relevantRecords.length === 0) {
       throw new Error('No records found for trajectory analysis');
     }
 
-    const bedauHistory = relevantRecords.map(r => r.bedau_metrics.bedau_index);
+    const bedauHistory = relevantRecords.map((r) => r.bedau_metrics.bedau_index);
     const trajectory = this.calculateTrajectory(bedauHistory);
     const signature = this.calculateEmergenceSignature(relevantRecords);
     const prediction = this.predictTrajectory(bedauHistory);
     const detectedPatterns = this.detectEmergencePatterns(relevantRecords);
+    const phaseTransitions = this.detectPhaseTransitions(relevantRecords);
 
     return {
       ...trajectory,
       pattern_signature: signature,
-      predicted_trajectory: prediction.predictions,
-      confidence_in_prediction: prediction.confidence,
-      detectedPatterns
+      predicted_trajectory: prediction,
+      confidence_in_prediction: this.calculatePredictionConfidence(bedauHistory),
+      detectedPatterns,
+      phase_transitions: phaseTransitions,
     };
+  }
+
+  /**
+   * Filter records by time range
+   */
+  private filterRecordsByTime(startTime?: number, endTime?: number): TemporalBedauRecord[] {
+    return this.records.filter((r) => {
+      if (startTime && r.timestamp < startTime) {return false;}
+      if (endTime && r.timestamp > endTime) {return false;}
+      return true;
+    });
   }
 
   /**
    * Analyze long-term emergence trends
    */
-  analyzeLongTermTrends(timeWindow: number = 100): {
-    trend_direction: 'improving' | 'declining' | 'stable';
-    trend_strength: number;      // 0-1
-    cyclical_patterns: number[]; // Periodicities detected
-    anomaly_score: number;       // 0-1: How anomalous recent behavior is
-    phase_space_position: { x: number; y: number }; // Current position in emergence phase space
+  analyzeEmergenceTrends(timeWindow: number): {
+    trend: 'INCREASING' | 'DECREASING' | 'STABLE' | 'OSCILLATING';
+    velocity: number;
+    acceleration: number;
+    pattern_signature: EmergenceSignature;
+    trend_confidence: number;
   } {
-    const recentRecords = this.records.slice(-timeWindow);
-    
+    const recentRecords = this.records.filter((r) => r.timestamp > Date.now() - timeWindow);
+
     if (recentRecords.length < 10) {
       throw new Error('Insufficient data for trend analysis');
     }
 
-    const bedauIndices = recentRecords.map(r => r.bedau_metrics.bedau_index);
-    
-    // Calculate trend direction and strength
-    const trend = this.calculateTrend(bedauIndices);
-    
-    // Detect cyclical patterns using autocorrelation
-    const cyclicalPatterns = this.detectCyclicalPatterns(bedauIndices);
-    
-    // Calculate anomaly score
-    const anomalyScore = this.calculateAnomalyScore(bedauIndices);
-    
-    // Calculate phase space position (complexity vs. entropy)
-    const latestRecord = recentRecords[recentRecords.length - 1];
-    const phaseSpacePosition = {
-      x: latestRecord.bedau_metrics.kolmogorov_complexity,
-      y: latestRecord.bedau_metrics.semantic_entropy
-    };
+    const trend = this.calculateTrend(recentRecords);
+    const velocity = this.calculateVelocity(recentRecords);
+    const acceleration = this.calculateAcceleration(recentRecords);
+    const signature = this.calculateEmergenceSignature(recentRecords);
+    const confidence = this.calculateTrendConfidence(recentRecords);
 
     return {
-      trend_direction: trend.direction,
-      trend_strength: trend.strength,
-      cyclical_patterns: cyclicalPatterns,
-      anomaly_score: anomalyScore,
-      phase_space_position: phaseSpacePosition
+      trend,
+      velocity,
+      acceleration,
+      pattern_signature: signature,
+      trend_confidence: confidence,
     };
   }
 
   /**
-   * Detect phase transitions in emergence behavior
+   * Update patterns using machine learning
    */
-  detectPhaseTransitions(minimumDuration: number = 5): PhaseTransition[] {
-    const transitions: PhaseTransition[] = [];
-    
-    if (this.records.length < minimumDuration * 2) {
-      return transitions;
+  private updatePatterns(): void {
+    const recentRecords = this.records.slice(-this.MIN_SAMPLES_FOR_PATTERN);
+
+    for (const [patternId, pattern] of this.patterns) {
+      const updatedPattern = this.refinePattern(pattern, recentRecords);
+      this.patterns.set(patternId, updatedPattern);
     }
 
-    const emergenceTypes = this.records.map(r => r.bedau_metrics.emergence_type);
-    
-    for (let i = minimumDuration; i < emergenceTypes.length - minimumDuration; i++) {
-      const beforeType = emergenceTypes[i - minimumDuration];
-      const afterType = emergenceTypes[i + minimumDuration];
-      
-      if (beforeType !== afterType) {
-        // Look for transition start and end
-        const transitionStart = this.findTransitionStart(emergenceTypes, i, beforeType, afterType);
-        const transitionEnd = this.findTransitionEnd(emergenceTypes, i, beforeType, afterType);
-        
-        if (transitionStart !== -1 && transitionEnd !== -1) {
-          const catalysts = this.identifyCatalystFactors(transitionStart, transitionEnd);
-          
-          transitions.push({
-            from_type: beforeType,
-            to_type: afterType,
-            transition_point: transitionStart,
-            transition_duration: transitionEnd - transitionStart,
-            catalyst_factors: catalysts
-          });
-        }
+    // Discover new patterns
+    const newPatterns = this.discoverNewPatterns(recentRecords);
+    for (const pattern of newPatterns) {
+      const patternId = `pattern_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      this.patterns.set(patternId, pattern);
+    }
+  }
+
+  /**
+   * Refine existing pattern using recent data
+   */
+  private refinePattern(
+    pattern: EmergencePattern,
+    records: TemporalBedauRecord[]
+  ): EmergencePattern {
+    const bedauValues = records.map((r) => r.bedau_metrics.bedau_index);
+
+    // Calculate updated characteristics
+    const slope = this.calculateLinearSlope(bedauValues);
+    const correlation = this.calculateCorrelation(bedauValues);
+    const entropy = this.calculateEntropy(bedauValues);
+
+    // Update characteristics with learning rate
+    for (const key in pattern.characteristics) {
+      const oldValue = pattern.characteristics[key];
+      let newValue;
+
+      switch (key) {
+        case 'slope':
+          newValue =
+            oldValue * (1 - this.PATTERN_LEARNING_RATE) + slope * this.PATTERN_LEARNING_RATE;
+          break;
+        case 'correlation':
+          newValue =
+            oldValue * (1 - this.PATTERN_LEARNING_RATE) + correlation * this.PATTERN_LEARNING_RATE;
+          break;
+        case 'entropy':
+          newValue =
+            oldValue * (1 - this.PATTERN_LEARNING_RATE) + entropy * this.PATTERN_LEARNING_RATE;
+          break;
+        default:
+          newValue = oldValue;
+      }
+
+      pattern.characteristics[key] = newValue;
+    }
+
+    return pattern;
+  }
+
+  /**
+   * Discover new patterns in data
+   */
+  private discoverNewPatterns(records: TemporalBedauRecord[]): EmergencePattern[] {
+    const bedauValues = records.map((r) => r.bedau_metrics.bedau_index);
+    const newPatterns: EmergencePattern[] = [];
+
+    // Check for oscillatory pattern
+    if (this.isOscillatory(bedauValues)) {
+      newPatterns.push({
+        type: 'OSCILLATORY',
+        confidence: 0.7,
+        characteristics: {
+          periodicity: this.calculatePeriodicity(bedauValues),
+          entropy: this.calculateEntropy(bedauValues),
+        },
+      });
+    }
+
+    // Check for chaotic pattern
+    if (this.isChaotic(bedauValues)) {
+      newPatterns.push({
+        type: 'CHAOTIC',
+        confidence: 0.6,
+        characteristics: {
+          lyapunov_exponent: this.calculateLyapunovExponent(bedauValues),
+          entropy: this.calculateEntropy(bedauValues),
+        },
+      });
+    }
+
+    return newPatterns;
+  }
+
+  /**
+   * Calculate trajectory from bedau history
+   */
+  private calculateTrajectory(bedauHistory: number[]): EmergenceTrajectory {
+    const startTime = this.records[0]?.timestamp || Date.now();
+    const endTime = this.records[this.records.length - 1]?.timestamp || Date.now();
+
+    return {
+      startTime,
+      endTime,
+      trajectory: bedauHistory,
+      emergenceLevel: bedauHistory[bedauHistory.length - 1] || 0,
+      confidence: this.calculateTrajectoryConfidence(bedauHistory),
+      critical_transitions: this.detectCriticalTransitions(bedauHistory),
+    };
+  }
+
+  /**
+   * Calculate emergence signature from records
+   */
+  private calculateEmergenceSignature(records: TemporalBedauRecord[]): EmergenceSignature {
+    const n = records.length;
+    const bedau = records.map((r) => r.bedau_metrics.bedau_index);
+
+    // Statistical measures
+    const meanBedau = bedau.reduce((sum, v) => sum + v, 0) / n;
+    const varianceBedau = bedau.reduce((sum, v) => sum + Math.pow(v - meanBedau, 2), 0) / n;
+    const stdBedau = Math.sqrt(varianceBedau);
+    const meanAbsDelta =
+      n > 1 ? bedau.slice(1).reduce((sum, v, i) => sum + Math.abs(v - bedau[i]), 0) / (n - 1) : 0;
+
+    // Complexity profiles
+    const complexityProfile = records.map((r) => r.bedau_metrics.kolmogorov_complexity);
+    const entropyProfile = records.map((r) => r.bedau_metrics.semantic_entropy);
+
+    const avgKolmogorov = complexityProfile.reduce((sum, v) => sum + v, 0) / n;
+    const avgEntropy = entropyProfile.reduce((sum, v) => sum + v, 0) / n;
+
+    // Calculate divergence profile
+    const divergenceProfile = records.map((r, i) => {
+      if (i === 0) {return 0;}
+      return Math.abs(r.bedau_metrics.bedau_index - records[i - 1].bedau_metrics.bedau_index);
+    });
+
+    return {
+      complexity: clamp01(avgKolmogorov),
+      novelty: clamp01(avgEntropy),
+      coherence: clamp01(1 - stdBedau * 2),
+      stability: clamp01(1 - meanAbsDelta * 2),
+      timestamp: records[records.length - 1]?.timestamp ?? Date.now(),
+      complexity_profile: complexityProfile,
+      entropy_profile: entropyProfile,
+      divergence_profile: divergenceProfile,
+      stability_score: clamp01(1 - stdBedau),
+      novelty_score: clamp01(avgEntropy),
+    };
+  }
+
+  /**
+   * Predict future trajectory using ARIMA-like approach
+   */
+  private predictTrajectory(bedauHistory: number[]): number[] {
+    const windowSize = Math.min(5, bedauHistory.length);
+    const lastValues = bedauHistory.slice(-windowSize);
+
+    // Calculate trend and seasonality
+    const trend = this.calculateLinearTrend(lastValues);
+    const seasonality = this.detectSeasonality(bedauHistory);
+
+    // Generate predictions
+    const predictions: number[] = [];
+    for (let i = 1; i <= 10; i++) {
+      const trendComponent = trend * i;
+      const seasonalityComponent = seasonality ? seasonality[(i - 1) % seasonality.length] : 0;
+      let prediction =
+        bedauHistory[bedauHistory.length - 1] + trendComponent + seasonalityComponent;
+
+      // Clamp to valid range
+      prediction = clamp01(prediction);
+      predictions.push(prediction);
+    }
+
+    return predictions;
+  }
+
+  /**
+   * Detect emergence patterns in records
+   */
+  private detectEmergencePatterns(records: TemporalBedauRecord[]): EmergencePattern[] {
+    const bedauValues = records.map((r) => r.bedau_metrics.bedau_index);
+    const patterns: EmergencePattern[] = [];
+
+    // Linear pattern
+    const slope = this.calculateLinearSlope(bedauValues);
+    const correlation = this.calculateCorrelation(bedauValues);
+    patterns.push({
+      type: 'LINEAR',
+      confidence: Math.abs(correlation),
+      characteristics: { slope, correlation },
+    });
+
+    // Exponential pattern
+    if (this.isExponential(bedauValues)) {
+      patterns.push({
+        type: 'EXPONENTIAL',
+        confidence: 0.7,
+        characteristics: { growth_rate: slope / bedauValues[0] },
+      });
+    }
+
+    return patterns;
+  }
+
+  /**
+   * Detect phase transitions in emergence
+   */
+  private detectPhaseTransitions(records: TemporalBedauRecord[]): PhaseTransition[] {
+    const transitions: PhaseTransition[] = [];
+    const threshold = 0.3; // Bedau index threshold
+
+    for (let i = 1; i < records.length; i++) {
+      const prevIndex = records[i - 1].bedau_metrics.bedau_index;
+      const currIndex = records[i].bedau_metrics.bedau_index;
+
+      if (prevIndex < threshold && currIndex >= threshold) {
+        transitions.push({
+          timestamp: records[i].timestamp,
+          type: 'LOW_TO_HIGH',
+          confidence: 0.8,
+          context: {
+            from_index: prevIndex,
+            to_index: currIndex,
+          },
+        });
+      } else if (prevIndex >= threshold && currIndex < threshold) {
+        transitions.push({
+          timestamp: records[i].timestamp,
+          type: 'HIGH_TO_LOW',
+          confidence: 0.8,
+          context: {
+            from_index: prevIndex,
+            to_index: currIndex,
+          },
+        });
       }
     }
-    
+
     return transitions;
   }
 
   /**
-   * Generate emergence signature fingerprint
+   * Calculate trend from records
    */
-  generateSignatureFingerprint(timeWindow: number = 50): string {
-    const recentRecords = this.records.slice(-timeWindow);
-    
-    if (recentRecords.length < 10) {
-      throw new Error('Insufficient data for signature generation');
-    }
+  private calculateTrend(
+    records: TemporalBedauRecord[]
+  ): 'INCREASING' | 'DECREASING' | 'STABLE' | 'OSCILLATING' {
+    const values = records.map((r) => r.bedau_metrics.bedau_index);
 
-    const signature = this.calculateEmergenceSignature(recentRecords);
-    
-    // Convert signature to hashable string
-    const fingerprint = [
-      signature.fingerprint.slice(0, 10).map(v => v.toFixed(3)).join(','),
-      signature.stability_score.toFixed(3),
-      signature.novelty_score.toFixed(3)
-    ].join('|');
-
-    return fingerprint;
-  }
-
-  // Private helper methods
-
-  private calculateTrajectory(bedauHistory: number[]): EmergenceTrajectory {
-    const n = bedauHistory.length;
-    
-    // Calculate linear regression for trend
-    const xMean = (n - 1) / 2;
-    const yMean = bedauHistory.reduce((sum, val) => sum + val, 0) / n;
-    
-    let numerator = 0;
-    let denominator = 0;
-    
-    for (let i = 0; i < n; i++) {
-      const xDiff = i - xMean;
-      const yDiff = bedauHistory[i] - yMean;
-      numerator += xDiff * yDiff;
-      denominator += xDiff * xDiff;
-    }
-    
-    const slope = denominator !== 0 ? numerator / denominator : 0;
-    const trend = slope > 0.01 ? 'improving' : slope < -0.01 ? 'declining' : 'stable';
-    
-    // Calculate velocity and acceleration
-    const velocity = n >= 2 ? bedauHistory[n - 1] - bedauHistory[n - 2] : 0;
-    const acceleration = n >= 3 ? 
-      (bedauHistory[n - 1] - bedauHistory[n - 2]) - (bedauHistory[n - 2] - bedauHistory[n - 3]) : 0;
-    
-    return {
-      history: bedauHistory,
-      trend,
-      velocity,
-      acceleration
-    };
-  }
-
-  private calculateEmergenceSignature(records: TemporalBedauRecord[]): EmergenceSignature {
-    const windowSize = records.length;
-    
-    // Extract profiles
-    const complexityProfile = records.map(r => r.bedau_metrics.kolmogorov_complexity);
-    const entropyProfile = records.map(r => r.bedau_metrics.semantic_entropy);
-    const divergenceProfile = records.map(r => r.bedau_metrics.bedau_index);
-    
-    // Generate fingerprint using statistical moments
-    const fingerprint = [
-      this.mean(divergenceProfile),
-      this.stdDev(divergenceProfile),
-      this.skewness(divergenceProfile),
-      this.kurtosis(divergenceProfile),
-      this.mean(complexityProfile),
-      this.stdDev(complexityProfile),
-      this.mean(entropyProfile),
-      this.stdDev(entropyProfile),
-      this.autocorrelation(divergenceProfile, 1),
-      this.autocorrelation(divergenceProfile, 5)
-    ];
-    
-    // Calculate stability score (inverse of variance)
-    const stabilityScore = 1 / (1 + this.variance(divergenceProfile));
-    
-    // Calculate novelty score (how different from historical patterns)
-    const noveltyScore = this.calculateNoveltyScore(divergenceProfile);
-    
-    return {
-      fingerprint,
-      complexity_profile: complexityProfile,
-      entropy_profile: entropyProfile,
-      divergence_profile: divergenceProfile,
-      stability_score: stabilityScore,
-      novelty_score: noveltyScore
-    };
-  }
-
-  private predictTrajectory(bedauHistory: number[], horizon: number = 10): {
-    predictions: number[];
-    confidence: number;
-  } {
-    // Simple ARIMA-like prediction using linear regression and recent trends
-    const recentWindow = Math.min(20, bedauHistory.length);
-    const recentData = bedauHistory.slice(-recentWindow);
-    
-    // Calculate trend and seasonality
-    const trend = this.linearRegression(recentData);
-    const seasonal = this.detectSeasonality(recentData);
-    
-    const predictions: number[] = [];
-    let lastValue = recentData[recentData.length - 1];
-    
-    for (let i = 1; i <= horizon; i++) {
-      const trendComponent = trend.slope * i;
-      const seasonalComponent = seasonal ? seasonal[i % seasonal.length] : 0;
-      const predictedValue = lastValue + trendComponent + seasonalComponent;
-      
-      predictions.push(Math.max(0, Math.min(1, predictedValue)));
-      lastValue = predictedValue;
-    }
-    
-    // Calculate confidence based on historical prediction accuracy
-    const confidence = this.calculatePredictionConfidence(recentData);
-    
-    return { predictions, confidence };
-  }
-
-  private detectEmergencePatterns(records: TemporalBedauRecord[]): EmergencePattern[] {
-    const detectedPatterns: EmergencePattern[] = [];
-    
-    for (const [patternId, pattern] of this.patterns) {
-      const match = this.matchPattern(records, pattern);
-      if (match.confidence > 0.7) {
-        detectedPatterns.push({
-          ...pattern,
-          confidence: match.confidence
-        });
+    // Mann-Kendall trend test
+    const n = values.length;
+    let S = 0;
+    for (let i = 0; i < n - 1; i++) {
+      for (let j = i + 1; j < n; j++) {
+        S += Math.sign(values[j] - values[i]);
       }
     }
-    
-    return detectedPatterns;
+
+    // Check for oscillation
+    if (this.isOscillatory(values)) {
+      return 'OSCILLATING';
+    }
+
+    // Determine trend direction
+    if (Math.abs(S) < ((n * (n - 1)) / 4) * 0.1) {
+      return 'STABLE';
+    }
+    return S > 0 ? 'INCREASING' : 'DECREASING';
   }
 
-  private updatePatterns(): void {
-    // This would implement pattern learning from historical data
-    // For now, we'll use predefined patterns
-    if (this.patterns.size === 0) {
-      this.initializeDefaultPatterns();
+  /**
+   * Calculate velocity (rate of change)
+   */
+  private calculateVelocity(records: TemporalBedauRecord[]): number {
+    const values = records.map((r) => r.bedau_metrics.bedau_index);
+    if (values.length < 2) {return 0;}
+
+    return (values[values.length - 1] - values[0]) / (values.length - 1);
+  }
+
+  /**
+   * Calculate acceleration
+   */
+  private calculateAcceleration(records: TemporalBedauRecord[]): number {
+    const values = records.map((r) => r.bedau_metrics.bedau_index);
+    if (values.length < 3) {return 0;}
+
+    const v1 = values[1] - values[0];
+    const v2 = values[values.length - 1] - values[values.length - 2];
+    return (v2 - v1) / (values.length - 2);
+  }
+
+  // Helper calculation methods
+
+  private calculateLinearSlope(values: number[]): number {
+    const n = values.length;
+    if (n < 2) {return 0;}
+
+    const sumX = ((n - 1) * n) / 2;
+    const sumY = values.reduce((sum, v) => sum + v, 0);
+    const sumXY = values.reduce((sum, v, i) => sum + i * v, 0);
+    const sumX2 = ((n - 1) * n * (2 * n - 1)) / 6;
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    return slope;
+  }
+
+  private calculateCorrelation(values: number[]): number {
+    const n = values.length;
+    if (n < 2) {return 0;}
+
+    const meanX = (n - 1) / 2;
+    const meanY = values.reduce((sum, v) => sum + v, 0) / n;
+
+    let numerator = 0;
+    let sumSqX = 0;
+    let sumSqY = 0;
+
+    for (let i = 0; i < n; i++) {
+      const dx = i - meanX;
+      const dy = values[i] - meanY;
+      numerator += dx * dy;
+      sumSqX += dx * dx;
+      sumSqY += dy * dy;
     }
+
+    const denominator = Math.sqrt(sumSqX * sumSqY);
+    return denominator === 0 ? 0 : numerator / denominator;
+  }
+
+  private calculateEntropy(values: number[]): number {
+    const n = values.length;
+    if (n === 0) {return 0;}
+
+    // Discretize values into bins
+    const bins = 10;
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
+    const binWidth = (maxVal - minVal) / bins || 1;
+
+    const histogram = new Array(bins).fill(0);
+    for (const v of values) {
+      const binIndex = Math.min(Math.floor((v - minVal) / binWidth), bins - 1);
+      histogram[binIndex]++;
+    }
+
+    // Calculate Shannon entropy
+    let entropy = 0;
+    for (const count of histogram) {
+      if (count > 0) {
+        const probability = count / n;
+        entropy -= probability * Math.log2(probability);
+      }
+    }
+
+    // Normalize to [0, 1]
+    return entropy / Math.log2(bins);
+  }
+
+  private calculatePeriodicity(values: number[]): number {
+    // Simplified periodicity detection using autocorrelation
+    const maxLag = Math.min(values.length / 2, 20);
+    let maxCorrelation = 0;
+    let bestPeriod = 1;
+
+    for (let lag = 1; lag < maxLag; lag++) {
+      let correlation = 0;
+      for (let i = 0; i < values.length - lag; i++) {
+        correlation += values[i] * values[i + lag];
+      }
+      correlation /= values.length - lag;
+
+      if (correlation > maxCorrelation) {
+        maxCorrelation = correlation;
+        bestPeriod = lag;
+      }
+    }
+
+    return bestPeriod;
+  }
+
+  private calculateLyapunovExponent(values: number[]): number {
+    // Simplified Lyapunov exponent calculation
+    const n = values.length;
+    if (n < 3) {return 0;}
+
+    let sumLogDivergence = 0;
+    let count = 0;
+
+    for (let i = 0; i < n - 2; i++) {
+      const delta1 = values[i + 1] - values[i];
+      const delta2 = values[i + 2] - values[i + 1];
+
+      if (Math.abs(delta1) > 1e-6 && Math.abs(delta2) > 1e-6) {
+        sumLogDivergence += Math.log(Math.abs(delta2 / delta1));
+        count++;
+      }
+    }
+
+    return count > 0 ? sumLogDivergence / count : 0;
+  }
+
+  private calculateLinearTrend(values: number[]): number {
+    return this.calculateLinearSlope(values);
+  }
+
+  private detectSeasonality(values: number[]): number[] | null {
+    // Simplified seasonality detection
+    const n = values.length;
+    if (n < 20) {return null;}
+
+    const seasonLength = Math.floor(n / 4);
+    const seasonality: number[] = [];
+
+    for (let i = 0; i < seasonLength; i++) {
+      let sum = 0;
+      let count = 0;
+
+      for (let j = i; j < n; j += seasonLength) {
+        sum += values[j];
+        count++;
+      }
+
+      seasonality.push(sum / count);
+    }
+
+    return seasonality;
+  }
+
+  private calculateTrajectoryConfidence(values: number[]): number {
+    // Confidence based on variance and trend stability
+    const n = values.length;
+    if (n < 2) {return 0;}
+
+    const variance =
+      values.reduce((sum, v) => {
+        const mean = values.reduce((s, val) => s + val, 0) / n;
+        return sum + Math.pow(v - mean, 2);
+      }, 0) / n;
+
+    const stability = 1 - Math.min(variance * 10, 1);
+    return stability;
+  }
+
+  private calculatePredictionConfidence(values: number[]): number {
+    // Confidence decreases with prediction horizon
+    const trajectoryConfidence = this.calculateTrajectoryConfidence(values);
+    return trajectoryConfidence * 0.8; // Slightly lower than trajectory confidence
+  }
+
+  private calculateTrendConfidence(records: TemporalBedauRecord[]): number {
+    const values = records.map((r) => r.bedau_metrics.bedau_index);
+    const n = values.length;
+
+    // Use Mann-Kendall test p-value approximation
+    let S = 0;
+    for (let i = 0; i < n - 1; i++) {
+      for (let j = i + 1; j < n; j++) {
+        S += Math.sign(values[j] - values[i]);
+      }
+    }
+
+    const varS = (n * (n - 1) * (2 * n + 5)) / 18;
+    const zScore = Math.abs(S) / Math.sqrt(varS);
+
+    // Convert z-score to confidence (simplified)
+    return Math.min(zScore / 2, 1);
+  }
+
+  private detectCriticalTransitions(values: number[]): number[] {
+    const transitions: number[] = [];
+    const threshold = 0.3;
+
+    for (let i = 1; i < values.length; i++) {
+      if (
+        (values[i - 1] < threshold && values[i] >= threshold) ||
+        (values[i - 1] >= threshold && values[i] < threshold)
+      ) {
+        transitions.push(i);
+      }
+    }
+
+    return transitions;
+  }
+
+  private isOscillatory(values: number[]): boolean {
+    // Check for sign changes in differences
+    if (values.length < 3) {return false;}
+
+    let signChanges = 0;
+    for (let i = 1; i < values.length - 1; i++) {
+      const diff1 = values[i] - values[i - 1];
+      const diff2 = values[i + 1] - values[i];
+      if (diff1 * diff2 < 0) {
+        signChanges++;
+      }
+    }
+
+    return signChanges > values.length / 4;
+  }
+
+  private isChaotic(values: number[]): boolean {
+    // Check for sensitivity to initial conditions
+    const lyapunov = this.calculateLyapunovExponent(values);
+    return lyapunov > 0.1;
+  }
+
+  private isExponential(values: number[]): boolean {
+    if (values.length < 3) {return false;}
+
+    // Check if ratios are approximately constant
+    const ratios: number[] = [];
+    for (let i = 1; i < values.length; i++) {
+      if (values[i - 1] !== 0) {
+        ratios.push(values[i] / values[i - 1]);
+      }
+    }
+
+    if (ratios.length < 2) {return false;}
+
+    const meanRatio = ratios.reduce((sum, r) => sum + r, 0) / ratios.length;
+    const variance = ratios.reduce((sum, r) => sum + Math.pow(r - meanRatio, 2), 0) / ratios.length;
+    const cv = Math.sqrt(variance) / Math.abs(meanRatio);
+
+    return cv < 0.2; // Low coefficient of variation indicates exponential
   }
 
   private initializeDefaultPatterns(): void {
-    // Predefined emergence patterns based on research
-    const defaultPatterns: EmergencePattern[] = [
-      {
-        pattern_id: 'sudden_emergence',
-        name: 'Sudden Emergence',
-        description: 'Rapid transition from linear to weak emergence',
-        detection_signature: [0.1, 0.15, 0.2, 0.4, 0.7, 0.8, 0.75],
-        confidence: 0.8,
-        phase_transitions: []
-      },
-      {
-        pattern_id: 'gradual_emergence',
-        name: 'Gradual Emergence',
-        description: 'Slow, steady increase in emergence indicators',
-        detection_signature: [0.1, 0.2, 0.3, 0.35, 0.4, 0.45, 0.5],
-        confidence: 0.7,
-        phase_transitions: []
-      },
-      {
-        pattern_id: 'oscillating_emergence',
-        name: 'Oscillating Emergence',
-        description: 'Periodic fluctuations between emergence states',
-        detection_signature: [0.3, 0.6, 0.3, 0.7, 0.3, 0.6, 0.4],
-        confidence: 0.6,
-        phase_transitions: []
-      }
-    ];
-    
-    defaultPatterns.forEach(pattern => {
-      this.patterns.set(pattern.pattern_id, pattern);
+    this.patterns.set('linear', {
+      type: 'LINEAR',
+      confidence: 0.8,
+      characteristics: { slope: 0.1, correlation: 0.8 },
     });
   }
 
-  // Statistical utility methods
-  private mean(arr: number[]): number {
-    return arr.reduce((sum, val) => sum + val, 0) / arr.length;
+  /**
+   * Get all records for a session
+   */
+  getSessionRecords(sessionId: string): TemporalBedauRecord[] {
+    return this.records.filter((r) => r.session_id === sessionId);
   }
 
-  private variance(arr: number[]): number {
-    const avg = this.mean(arr);
-    return arr.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / arr.length;
+  /**
+   * Get records within time range
+   */
+  getRecordsInRange(startTime: number, endTime: number): TemporalBedauRecord[] {
+    return this.records.filter((r) => r.timestamp >= startTime && r.timestamp <= endTime);
   }
 
-  private stdDev(arr: number[]): number {
-    return Math.sqrt(this.variance(arr));
-  }
-
-  private skewness(arr: number[]): number {
-    const avg = this.mean(arr);
-    const std = this.stdDev(arr);
-    const n = arr.length;
-    
-    return arr.reduce((sum, val) => sum + Math.pow((val - avg) / std, 3), 0) / n;
-  }
-
-  private kurtosis(arr: number[]): number {
-    const avg = this.mean(arr);
-    const std = this.stdDev(arr);
-    const n = arr.length;
-    
-    return arr.reduce((sum, val) => sum + Math.pow((val - avg) / std, 4), 0) / n - 3;
-  }
-
-  private autocorrelation(arr: number[], lag: number): number {
-    const n = arr.length;
-    if (lag >= n) return 0;
-    
-    const avg = this.mean(arr);
-    let numerator = 0;
-    let denominator = 0;
-    
-    for (let i = 0; i < n - lag; i++) {
-      numerator += (arr[i] - avg) * (arr[i + lag] - avg);
-    }
-    
-    for (let i = 0; i < n; i++) {
-      denominator += Math.pow(arr[i] - avg, 2);
-    }
-    
-    return denominator === 0 ? 0 : numerator / denominator;
-  }
-
-  private linearRegression(data: number[]): { slope: number; intercept: number } {
-    const n = data.length;
-    const x = Array.from({ length: n }, (_, i) => i);
-    const xMean = (n - 1) / 2;
-    const yMean = this.mean(data);
-    
-    let numerator = 0;
-    let denominator = 0;
-    
-    for (let i = 0; i < n; i++) {
-      numerator += (x[i] - xMean) * (data[i] - yMean);
-      denominator += Math.pow(x[i] - xMean, 2);
-    }
-    
-    const slope = denominator === 0 ? 0 : numerator / denominator;
-    const intercept = yMean - slope * xMean;
-    
-    return { slope, intercept };
-  }
-
-  private detectSeasonality(data: number[]): number[] | null {
-    // Simple seasonality detection using autocorrelation
-    const maxPeriod = Math.min(12, Math.floor(data.length / 2));
-    let bestCorrelation = 0;
-    let bestPeriod = 0;
-    
-    for (let period = 2; period <= maxPeriod; period++) {
-      const correlation = Math.abs(this.autocorrelation(data, period));
-      if (correlation > bestCorrelation) {
-        bestCorrelation = correlation;
-        bestPeriod = period;
-      }
-    }
-    
-    return bestCorrelation > 0.3 ? this.extractSeasonalPattern(data, bestPeriod) : null;
-  }
-
-  private extractSeasonalPattern(data: number[], period: number): number[] {
-    const pattern: number[] = new Array(period).fill(0);
-    const counts: number[] = new Array(period).fill(0);
-    
-    for (let i = 0; i < data.length; i++) {
-      const seasonIndex = i % period;
-      pattern[seasonIndex] += data[i];
-      counts[seasonIndex]++;
-    }
-    
-    return pattern.map((sum, i) => {
-      const avg = sum / counts[i];
-      const overallAvg = this.mean(data);
-      return avg - overallAvg;
-    });
-  }
-
-  private calculatePredictionConfidence(historicalData: number[]): number {
-    if (historicalData.length < 4) return 0.5;
-    
-    // Use leave-one-out cross-validation to estimate prediction accuracy
-    let totalError = 0;
-    const n = historicalData.length;
-    
-    for (let i = 3; i < n; i++) {
-      const trainingData = historicalData.slice(0, i);
-      const actual = historicalData[i];
-      const predicted = this.predictNextValue(trainingData);
-      totalError += Math.abs(actual - predicted);
-    }
-    
-    const avgError = totalError / (n - 3);
-    const confidence = Math.max(0, 1 - avgError);
-    
-    return confidence;
-  }
-
-  private predictNextValue(data: number[]): number {
-    if (data.length < 2) return data[data.length - 1];
-    
-    // Simple linear prediction
-    const recentTrend = data[data.length - 1] - data[data.length - 2];
-    return data[data.length - 1] + recentTrend * 0.5; // Dampen the trend
-  }
-
-  private matchPattern(records: TemporalBedauRecord[], pattern: EmergencePattern): {
-    confidence: number;
+  /**
+   * Get tracker statistics
+   */
+  getStatistics(): {
+    totalRecords: number;
+    patternCount: number;
+    timeRange: { start: number; end: number };
+    averageBedauIndex: number;
   } {
-    const recentBedau = records.slice(-pattern.detection_signature.length)
-      .map(r => r.bedau_metrics.bedau_index);
-    
-    if (recentBedau.length !== pattern.detection_signature.length) {
-      return { confidence: 0 };
+    if (this.records.length === 0) {
+      return {
+        totalRecords: 0,
+        patternCount: this.patterns.size,
+        timeRange: { start: 0, end: 0 },
+        averageBedauIndex: 0,
+      };
     }
-    
-    // Calculate correlation between recent pattern and signature
-    const correlation = this.calculateCorrelation(recentBedau, pattern.detection_signature);
-    
-    return { confidence: Math.max(0, correlation) };
+
+    const timestamps = this.records.map((r) => r.timestamp);
+    const bedauValues = this.records.map((r) => r.bedau_metrics.bedau_index);
+
+    return {
+      totalRecords: this.records.length,
+      patternCount: this.patterns.size,
+      timeRange: {
+        start: Math.min(...timestamps),
+        end: Math.max(...timestamps),
+      },
+      averageBedauIndex: bedauValues.reduce((sum, v) => sum + v, 0) / bedauValues.length,
+    };
   }
 
-  private calculateCorrelation(a: number[], b: number[]): number {
-    if (a.length !== b.length) return 0;
-    
-    const aMean = this.mean(a);
-    const bMean = this.mean(b);
-    
-    let numerator = 0;
-    let aDenom = 0;
-    let bDenom = 0;
-    
-    for (let i = 0; i < a.length; i++) {
-      const aDiff = a[i] - aMean;
-      const bDiff = b[i] - bMean;
-      numerator += aDiff * bDiff;
-      aDenom += aDiff * aDiff;
-      bDenom += bDiff * bDiff;
-    }
-    
-    const denominator = Math.sqrt(aDenom * bDenom);
-    return denominator === 0 ? 0 : numerator / denominator;
-  }
-
-  private calculateTrend(data: number[]): { direction: 'improving' | 'declining' | 'stable'; strength: number } {
-    const n = data.length;
-    const xMean = (n - 1) / 2;
-    const yMean = this.mean(data);
-    
-    let numerator = 0;
-    let denominator = 0;
-    
-    for (let i = 0; i < n; i++) {
-      const xDiff = i - xMean;
-      const yDiff = data[i] - yMean;
-      numerator += xDiff * yDiff;
-      denominator += xDiff * xDiff;
-    }
-    
-    const slope = denominator === 0 ? 0 : numerator / denominator;
-    const strength = Math.min(1, Math.abs(slope) * 10); // Scale to 0-1
-    
-    const direction = slope > 0.01 ? 'improving' : slope < -0.01 ? 'declining' : 'stable';
-    
-    return { direction, strength };
-  }
-
-  private detectCyclicalPatterns(data: number[]): number[] {
-    const periods: number[] = [];
-    const maxPeriod = Math.min(20, Math.floor(data.length / 3));
-    
-    for (let period = 2; period <= maxPeriod; period++) {
-      const correlation = Math.abs(this.autocorrelation(data, period));
-      if (correlation > 0.5) {
-        periods.push(period);
-      }
-    }
-    
-    return periods;
-  }
-
-  private calculateAnomalyScore(data: number[]): number {
-    if (data.length < 10) return 0;
-    
-    const baseline = data.slice(0, Math.floor(data.length * 0.8));
-    const recent = data.slice(-Math.floor(data.length * 0.2));
-    
-    const baselineMean = this.mean(baseline);
-    const baselineStd = this.stdDev(baseline);
-    const recentMean = this.mean(recent);
-    
-    // Z-score of recent behavior compared to baseline
-    const zScore = Math.abs(recentMean - baselineMean) / baselineStd;
-    
-    // Convert to 0-1 scale (higher = more anomalous)
-    return Math.min(1, zScore / 3);
-  }
-
-  private calculateNoveltyScore(currentPattern: number[]): number {
-    if (this.records.length < 20) return 0.5; // Not enough history
-    
-    // Compare current pattern with historical patterns
-    const historicalPatterns: number[][] = [];
-    
-    for (let i = 0; i <= this.records.length - currentPattern.length; i += 5) {
-      const pattern = this.records.slice(i, i + currentPattern.length)
-        .map(r => r.bedau_metrics.bedau_index);
-      historicalPatterns.push(pattern);
-    }
-    
-    if (historicalPatterns.length === 0) return 0.5;
-    
-    // Find minimum distance to any historical pattern
-    let minDistance = Infinity;
-    for (const historicalPattern of historicalPatterns) {
-      const distance = this.calculateEuclideanDistance(currentPattern, historicalPattern);
-      minDistance = Math.min(minDistance, distance);
-    }
-    
-    // Convert distance to novelty score
-    return Math.min(1, minDistance / 2);
-  }
-
-  private calculateEuclideanDistance(a: number[], b: number[]): number {
-    if (a.length !== b.length) return Infinity;
-    
-    return Math.sqrt(
-      a.reduce((sum, val, i) => sum + Math.pow(val - b[i], 2), 0)
-    );
-  }
-
-  private findTransitionStart(
-    types: ('LINEAR' | 'WEAK_EMERGENCE')[], 
-    centerIndex: number,
-    fromType: 'LINEAR' | 'WEAK_EMERGENCE',
-    toType: 'LINEAR' | 'WEAK_EMERGENCE'
-  ): number {
-    // Look backwards from centerIndex for the first fromType
-    for (let i = centerIndex - 1; i >= 0; i--) {
-      if (types[i] === fromType) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  private findTransitionEnd(
-    types: ('LINEAR' | 'WEAK_EMERGENCE')[], 
-    centerIndex: number,
-    fromType: 'LINEAR' | 'WEAK_EMERGENCE',
-    toType: 'LINEAR' | 'WEAK_EMERGENCE'
-  ): number {
-    // Look forwards from centerIndex for the last toType
-    for (let i = centerIndex + 1; i < types.length; i++) {
-      if (types[i] !== toType) {
-        return i - 1;
-      }
-    }
-    return types.length - 1;
-  }
-
-  private identifyCatalystFactors(startIndex: number, endIndex: number): string[] {
-    const catalysts: string[] = [];
-    const transitionRecords = this.records.slice(startIndex, endIndex + 1);
-    
-    // Analyze factors that might have triggered the transition
-    const avgComplexityBefore = startIndex > 0 ? 
-      this.records[startIndex - 1].bedau_metrics.kolmogorov_complexity : 0;
-    const avgComplexityAfter = transitionRecords[transitionRecords.length - 1].bedau_metrics.kolmogorov_complexity;
-    
-    if (avgComplexityAfter > avgComplexityBefore + 0.2) {
-      catalysts.push('complexity_increase');
-    }
-    
-    const avgEntropyBefore = startIndex > 0 ? 
-      this.records[startIndex - 1].bedau_metrics.semantic_entropy : 0;
-    const avgEntropyAfter = transitionRecords[transitionRecords.length - 1].bedau_metrics.semantic_entropy;
-    
-    if (avgEntropyAfter > avgEntropyBefore + 0.2) {
-      catalysts.push('entropy_increase');
-    }
-    
-    // Check for context tags that might explain the transition
-    const contextTags = new Set<string>();
-    for (const record of transitionRecords) {
-      record.context_tags.forEach(tag => contextTags.add(tag));
-    }
-    
-    if (contextTags.has('complex_query') || contextTags.has('novel_domain')) {
-      catalysts.push('cognitive_challenge');
-    }
-    
-    if (contextTags.has('stress_test') || contextTags.has('edge_case')) {
-      catalysts.push('system_pressure');
-    }
-    
-    return catalysts;
+  /**
+   * Clear all records
+   */
+  clear(): void {
+    this.records = [];
+    this.patterns.clear();
+    this.initializeDefaultPatterns();
   }
 }
 
-/**
- * Factory function for creating temporal Bedau trackers
- */
 export function createTemporalBedauTracker(): TemporalBedauTracker {
   return new TemporalBedauTracker();
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
 }

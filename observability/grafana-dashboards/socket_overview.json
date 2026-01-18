@@ -1,0 +1,15 @@
+{
+  "title": "Socket.IO Overview",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Socket Events Total",
+      "targets": [{"expr":"sum by(event, result) (socket_events_total)"}]
+    }
+    ,{
+      "type": "timeseries",
+      "title": "Socket Events Rate (RPS)",
+      "targets": [{"expr":"sum by(event) (rate(socket_events_total[1m]))"}]
+    }
+  ]
+}

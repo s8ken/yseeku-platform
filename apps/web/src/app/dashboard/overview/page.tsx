@@ -3,13 +3,18 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Shield, 
+import {
+  Shield,
   TrendingUp,
   Clock,
-  Activity
+  Activity,
+  AlertTriangle,
+  FileX
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
+import { ConstitutionalPrinciples } from '@/components/ConstitutionalPrinciples';
+import { api } from '@/lib/api';
+import { useDemo } from '@/hooks/use-demo';
 
 interface AgentTrustData {
   id: string;
@@ -85,9 +90,31 @@ function DimensionBadge({ label, value, type, tooltipTerm }: { label: string; va
   );
 }
 
+// Empty state component
+function EmptyState() {
+  return (
+    <Card className="p-12 text-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+          <FileX className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold">No Agents Configured</h3>
+          <p className="text-muted-foreground max-w-md mx-auto mt-2">
+            Add AI agents to your platform to start monitoring trust scores
+            and ethical compliance.
+          </p>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export default function TrustScoresPage() {
   const [agents, setAgents] = useState<AgentTrustData[]>([]);
-  
+  const { isDemo, isLoaded } = useDemo();
+
+  // Fetch real KPIs
   const { data: kpiData } = useQuery<KPIResponse>({
     queryKey: ['kpis', 'default'],
     queryFn: async () => {
@@ -95,49 +122,108 @@ export default function TrustScoresPage() {
       if (!response.ok) throw new Error('Failed to fetch KPIs');
       return response.json();
     },
+    enabled: !isDemo && isLoaded,
   });
 
-  useEffect(() => {
-    setAgents([
-      {
-        id: 'agent-001', name: 'GPT-4 Assistant', model: 'gpt-4-turbo',
-        trustScore: 89,
-        symbiDimensions: { realityIndex: 8.7, trustProtocol: 'PASS', ethicalAlignment: 4.3, resonanceQuality: 'ADVANCED', canvasParity: 92 },
-        lastInteraction: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
-        interactions24h: 2456, status: 'healthy'
-      },
-      {
-        id: 'agent-002', name: 'Claude Analyst', model: 'claude-3-opus',
-        trustScore: 94,
-        symbiDimensions: { realityIndex: 9.2, trustProtocol: 'PASS', ethicalAlignment: 4.7, resonanceQuality: 'BREAKTHROUGH', canvasParity: 96 },
-        lastInteraction: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-        interactions24h: 1823, status: 'healthy'
-      },
-      {
-        id: 'agent-003', name: 'Mistral Coder', model: 'mistral-large',
-        trustScore: 73,
-        symbiDimensions: { realityIndex: 7.1, trustProtocol: 'PARTIAL', ethicalAlignment: 3.8, resonanceQuality: 'STRONG', canvasParity: 78 },
-        lastInteraction: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-        interactions24h: 987, status: 'warning'
-      },
-      {
-        id: 'agent-004', name: 'Gemini Pro', model: 'gemini-1.5-pro',
-        trustScore: 85,
-        symbiDimensions: { realityIndex: 8.3, trustProtocol: 'PASS', ethicalAlignment: 4.1, resonanceQuality: 'ADVANCED', canvasParity: 88 },
-        lastInteraction: new Date(Date.now() - 1000 * 60 * 8).toISOString(),
-        interactions24h: 1567, status: 'healthy'
-      }
-    ]);
-  }, []);
+  // Fetch demo KPIs when in demo mode
+  const { data: demoKpiData } = useQuery({
+    queryKey: ['demo-kpis'],
+    queryFn: () => api.getDemoKpis(),
+    staleTime: 60000,
+    enabled: isDemo && isLoaded,
+  });
 
-  const kpis = kpiData?.data;
-  const avgTrust = kpis?.trustScore ?? 85.3;
+  // Fetch real agents
+  const { data: agentsData, isLoading: agentsLoadingReal, isError: agentsError } = useQuery({
+    queryKey: ['agents'],
+    queryFn: async () => {
+      const response = await fetch('/api/agents');
+      if (!response.ok) throw new Error('Failed to fetch agents');
+      return response.json() as Promise<{ success: boolean; data: { agents: any[]; summary: any }; source: string }>;
+    },
+    enabled: !isDemo && isLoaded,
+  });
+
+  // Fetch demo agents when in demo mode
+  const { data: demoAgentsData, isLoading: agentsLoadingDemo } = useQuery({
+    queryKey: ['demo-agents'],
+    queryFn: () => api.getDemoAgents(),
+    staleTime: 60000,
+    enabled: isDemo && isLoaded,
+  });
+
+  const isLoading = !isLoaded || (isDemo ? agentsLoadingDemo : agentsLoadingReal);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    if (isDemo && demoAgentsData?.data) {
+      // Use demo agents
+      const demoAgents = demoAgentsData.data.map((agent: any) => ({
+        id: agent._id || agent.id,
+        name: agent.name,
+        model: agent.model || 'unknown',
+        trustScore: agent.traits?.ethical_alignment ? Math.round(agent.traits.ethical_alignment * 20) : 85,
+        symbiDimensions: {
+          realityIndex: 8.5,
+          trustProtocol: 'PASS',
+          ethicalAlignment: agent.traits?.ethical_alignment || 4.2,
+          resonanceQuality: 'ADVANCED',
+          canvasParity: 90,
+        },
+        lastInteraction: agent.lastActive || new Date().toISOString(),
+        interactions24h: Math.floor(Math.random() * 2000) + 500,
+        status: 'healthy' as const
+      }));
+      setAgents(demoAgents);
+      return;
+    }
+
+    if (!isDemo && agentsData?.data?.agents?.length) {
+      // Use real agents
+      const apiAgents = agentsData.data.agents.map((agent: any) => ({
+        id: agent.id,
+        name: agent.name,
+        model: agent.type || 'unknown',
+        trustScore: agent.trustScore,
+        symbiDimensions: {
+          realityIndex: Number(agent.symbiDimensions?.realityIndex) || 8.0,
+          trustProtocol: agent.symbiDimensions?.trustProtocol || 'PARTIAL',
+          ethicalAlignment: Number(agent.symbiDimensions?.ethicalAlignment) || 4.0,
+          resonanceQuality: agent.symbiDimensions?.resonanceQuality || 'STRONG',
+          canvasParity: Number(agent.symbiDimensions?.canvasParity) || 85,
+        },
+        lastInteraction: agent.lastInteraction || new Date().toISOString(),
+        interactions24h: agent.interactionCount || 0,
+        status: (agent.trustScore >= 85 ? 'healthy' : agent.trustScore >= 70 ? 'warning' : 'critical') as 'healthy' | 'warning' | 'critical'
+      }));
+      setAgents(apiAgents);
+      return;
+    }
+
+    // No data available - leave agents empty
+    setAgents([]);
+  }, [isDemo, isLoaded, agentsData, demoAgentsData]);
+
+  const kpis = isDemo ? demoKpiData?.data : kpiData?.data;
+  const avgTrust = kpis?.trustScore ?? (agents.length > 0 ? Math.round(agents.reduce((sum, a) => sum + a.trustScore, 0) / agents.length) : 0);
   const healthyCount = agents.filter(a => a.status === 'healthy').length;
-  const totalInteractions = agents.reduce((sum, a) => sum + a.interactions24h, 0);
-  const passRate = Math.round((agents.filter(a => a.symbiDimensions.trustProtocol === 'PASS').length / agents.length) * 100) || 75;
+  const totalInteractions = kpis?.totalInteractions ?? agents.reduce((sum, a) => sum + a.interactions24h, 0);
+  const passRate = agents.length > 0 ? Math.round((agents.filter(a => a.symbiDimensions.trustProtocol === 'PASS').length / agents.length) * 100) : 0;
+  const dataSource = isDemo ? 'demo' : 'live';
 
   return (
     <div className="space-y-6">
+      {isDemo && (
+        <div className="demo-notice mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-amber-800 dark:text-amber-200">Demo Mode</strong>
+            <p className="text-sm text-amber-700 dark:text-amber-300">Showing sample agent data for demonstration. Connect your AI agents for real trust monitoring.</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -149,10 +235,14 @@ export default function TrustScoresPage() {
             Agent trust monitoring across all deployments
           </p>
         </div>
-        <div className="data-source-badge data-source-live">
+        <span className={`data-source-badge px-2 py-1 text-xs rounded-full flex items-center gap-2 ${
+          dataSource === 'live'
+            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+        }`}>
           <span className="h-1.5 w-1.5 rounded-full bg-current" />
-          Production Data
-        </div>
+          {dataSource === 'live' ? 'Production Data' : 'Demo Data'}
+        </span>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -203,8 +293,14 @@ export default function TrustScoresPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {agents.map((agent) => (
+      {/* Constitutional Principles Section */}
+      <ConstitutionalPrinciples compact={true} />
+
+      {!isLoading && agents.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {agents.map((agent) => (
           <Card key={agent.id} className={`${
             agent.status === 'warning' ? 'border-l-4 border-l-amber-500' : 
             agent.status === 'critical' ? 'border-l-4 border-l-red-500' : ''
@@ -261,8 +357,9 @@ export default function TrustScoresPage() {
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

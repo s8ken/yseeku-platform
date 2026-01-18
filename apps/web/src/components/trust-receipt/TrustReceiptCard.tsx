@@ -1,147 +1,177 @@
-import React from 'react'; 
-import { Shield, Activity, Fingerprint, Share2, CheckCircle, Zap } from 'lucide-react'; 
+import React, { useState } from 'react'; 
+import { Shield, Activity, Fingerprint, Share2, CheckCircle, Zap, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react'; 
+import { Progress } from '@/components/ui/progress';
 
 // --- Types --- 
-export interface Telemetry { 
-  resonance_score: number; 
-  resonance_quality: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH'; 
-  reality_index: number;    // 0-10 
-  trust_protocol: 'PASS' | 'FAIL' | 'PARTIAL'; 
-  ethical_alignment: number; // 1-5 
-  canvas_parity: number;     // 0-100 
-  bedau_index: number; // 0.0 to 1.0 
-} 
+export interface TrustEvaluation {
+  trustScore: {
+    overall: number;
+    principles: Record<string, number>;
+    violations: string[];
+    timestamp: number;
+  };
+  status: 'PASS' | 'PARTIAL' | 'FAIL';
+  detection: {
+    reality_index: number;
+    trust_protocol: string;
+    ethical_alignment: number;
+    resonance_quality: string;
+    canvas_parity: number;
+  };
+  receipt?: any;
+  receiptHash?: string;
+  timestamp: number;
+  messageId?: string;
+  conversationId?: string;
+}
 
 export interface TrustReceiptProps { 
-  id: string; 
-  timestamp: string; 
-  telemetry: Telemetry; 
-  scaffold_proof: { 
-    detected_vectors: string[]; 
-  }; 
-  signature: string; 
+  evaluation: TrustEvaluation;
 } 
 
 // --- Helper: Status Color Map --- 
-const getStatusColor = (quality: string) => { 
-  switch (quality) { 
-    case 'BREAKTHROUGH': return 'text-purple-400 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.3)]'; 
-    case 'ADVANCED': return 'text-cyan-400 border-cyan-500/50 shadow-[0_0_10px_rgba(34,211,238,0.3)]'; 
-    default: return 'text-emerald-400 border-emerald-500/50'; 
+const getStatusColor = (status: string) => { 
+  switch (status) { 
+    case 'PASS': return 'text-emerald-400 border-emerald-500/50 shadow-[0_0_15px_rgba(52,211,153,0.3)]'; 
+    case 'PARTIAL': return 'text-amber-400 border-amber-500/50 shadow-[0_0_10px_rgba(251,191,36,0.3)]'; 
+    case 'FAIL': return 'text-red-400 border-red-500/50 shadow-[0_0_15px_rgba(248,113,113,0.3)]';
+    default: return 'text-slate-400 border-slate-500/50'; 
   } 
 }; 
 
+const PRINCIPLE_NAMES: Record<string, string> = {
+  CONSENT_ARCHITECTURE: 'Consent Architecture',
+  INSPECTION_MANDATE: 'Inspection Mandate',
+  CONTINUOUS_VALIDATION: 'Continuous Validation',
+  ETHICAL_OVERRIDE: 'Ethical Override',
+  RIGHT_TO_DISCONNECT: 'Right to Disconnect',
+  MORAL_RECOGNITION: 'Moral Recognition',
+};
+
 export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({ 
-  id, 
-  timestamp, 
-  telemetry, 
-  scaffold_proof, 
-  signature 
+  evaluation
 }) => { 
-  const statusStyle = getStatusColor(telemetry.resonance_quality); 
+  const [showPrinciples, setShowPrinciples] = useState(false);
+  const { trustScore, status, detection, receiptHash, timestamp } = evaluation;
+  const statusStyle = getStatusColor(status); 
 
   return ( 
-    <div className="relative w-full max-w-md bg-slate-900/90 text-slate-200 rounded-xl border border-slate-700 overflow-hidden font-mono shadow-2xl backdrop-blur-xl"> 
+    <div className="relative w-full max-w-md bg-slate-900/90 text-slate-200 rounded-xl border border-slate-700 overflow-hidden font-mono shadow-2xl backdrop-blur-xl transition-all duration-300"> 
       
       {/* --- Header: The Trust Seal --- */} 
       <div className={`flex items-center justify-between px-6 py-4 border-b border-slate-700/50 bg-gradient-to-r from-slate-800/50 to-transparent`}> 
         <div className="flex items-center gap-3"> 
-          <Shield className={`w-5 h-5 ${telemetry.trust_protocol === 'PASS' ? 'text-emerald-400' : telemetry.trust_protocol === 'PARTIAL' ? 'text-yellow-400' : 'text-red-500'}`} /> 
+          <Shield className={`w-5 h-5 ${status === 'PASS' ? 'text-emerald-400' : status === 'PARTIAL' ? 'text-amber-400' : 'text-red-500'}`} /> 
           <span className="text-xs tracking-widest uppercase opacity-70">Symbi Trust Receipt</span> 
         </div> 
         <div className={`px-3 py-1 text-xs font-bold border rounded-full ${statusStyle}`}> 
-          {telemetry.resonance_quality} 
+          {status} 
         </div> 
       </div> 
 
       <div className="p-6 space-y-6"> 
         
-        {/* --- Section 1: The Score (Resonance) --- */} 
+        {/* --- Section 1: The Score --- */} 
         <div className="flex items-end justify-between"> 
           <div> 
-            <div className="text-sm text-slate-500 uppercase tracking-wider mb-1">Resonance Score</div> 
+            <div className="text-sm text-slate-500 uppercase tracking-wider mb-1">Trust Score</div> 
             <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400"> 
-              {telemetry.resonance_score.toFixed(3)} 
+              {trustScore.overall.toFixed(1)}
             </div> 
           </div> 
           
           {/* Micro Radar Chart Visualization */} 
           <div className="relative w-16 h-16"> 
-             <RadarIcon metrics={telemetry} /> 
+             <RadarIcon detection={detection} /> 
           </div> 
         </div> 
 
         {/* --- Section 2: 5D Dimensions Grid --- */} 
         <div className="grid grid-cols-2 gap-3 text-xs"> 
-          <MetricBox label="Reality Index" value={telemetry.reality_index.toFixed(1)} max={10} icon={<Activity size={14} />} /> 
-          <MetricBox label="Canvas Parity" value={telemetry.canvas_parity.toFixed(1) + '%'} max={100} icon={<Zap size={14} />} /> 
-          <MetricBox label="Ethical Align" value={telemetry.ethical_alignment + '/5'} max={5} icon={<CheckCircle size={14} />} /> 
+          <MetricBox label="Reality Index" value={detection.reality_index.toFixed(1)} max={10} icon={<Activity size={14} />} /> 
+          <MetricBox label="Canvas Parity" value={detection.canvas_parity.toFixed(1) + '%'} max={100} icon={<Zap size={14} />} /> 
+          <MetricBox label="Ethical Align" value={detection.ethical_alignment.toFixed(1)} max={5} icon={<CheckCircle size={14} />} /> 
           <div className="p-2 rounded bg-slate-800/50 border border-slate-700/50 flex items-center justify-between"> 
             <span className="text-slate-500">Protocol</span> 
-            <span className={`font-bold ${telemetry.trust_protocol === 'PASS' ? 'text-emerald-400' : telemetry.trust_protocol === 'PARTIAL' ? 'text-yellow-400' : 'text-red-400'}`}> 
-              {telemetry.trust_protocol} 
+            <span className={`font-bold ${detection.trust_protocol === 'PASS' ? 'text-emerald-400' : detection.trust_protocol === 'PARTIAL' ? 'text-amber-400' : 'text-red-400'}`}> 
+              {detection.trust_protocol} 
             </span> 
           </div> 
         </div> 
 
-        {/* --- Section 3: Scaffold Vectors (The "DNA") --- */} 
-        <div> 
-          <div className="text-[10px] uppercase text-slate-500 mb-2 flex items-center gap-2"> 
-            <Activity size={10} /> Active Linguistic Vectors 
-          </div> 
-          <div className="flex flex-wrap gap-2"> 
-            {scaffold_proof.detected_vectors.map((vector) => ( 
-              <span key={vector} className="px-2 py-1 text-[10px] bg-slate-800 border border-slate-600 rounded text-cyan-300/90"> 
-                {vector} 
-              </span> 
-            ))} 
-          </div> 
-        </div> 
+        {/* --- Section 3: Principles Breakdown Toggle --- */}
+        <div>
+          <button 
+            onClick={() => setShowPrinciples(!showPrinciples)}
+            className="flex items-center justify-between w-full text-[10px] uppercase text-slate-500 hover:text-slate-300 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Activity size={10} /> 6 Constitutional Principles
+            </div>
+            {showPrinciples ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
+          
+          {showPrinciples && (
+            <div className="mt-3 space-y-3 pt-3 border-t border-slate-700/30">
+              {Object.entries(trustScore.principles).map(([key, score]) => (
+                <div key={key} className="space-y-1">
+                  <div className="flex justify-between text-[10px]">
+                    <span className="text-slate-400">{PRINCIPLE_NAMES[key] || key}</span>
+                    <span className={score >= 8 ? 'text-emerald-400' : score >= 5 ? 'text-amber-400' : 'text-red-400'}>
+                      {score.toFixed(1)}/10
+                    </span>
+                  </div>
+                  <Progress value={score * 10} className="h-1 bg-slate-800" />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* --- Section 4: Violations --- */}
+        {trustScore.violations.length > 0 && (
+          <div className="p-3 rounded bg-red-900/20 border border-red-700/50 text-red-200 text-[10px]">
+            <div className="flex items-center gap-2 mb-2 font-bold uppercase tracking-wider">
+              <AlertTriangle size={12} /> Violations Detected
+            </div>
+            <ul className="list-disc list-inside space-y-1 opacity-80">
+              {trustScore.violations.map((violation, idx) => (
+                <li key={idx}>{violation}</li>
+              ))}
+            </ul>
+          </div>
+        )}
  
-        {/* --- Emergence Monitor --- */} 
+        {/* --- Resonance Quality Monitor --- */} 
         <div> 
           <div className="text-[10px] uppercase text-slate-500 mb-2 flex justify-between items-center"> 
             <div className="flex items-center gap-2"> 
-              <Activity size={10} /> Bedau Emergence Index 
+              <Activity size={10} /> Resonance Quality 
             </div> 
             <span className={`font-bold ${
-              telemetry.bedau_index > 0.7 ? 'text-purple-400' : 
-              telemetry.bedau_index > 0.4 ? 'text-cyan-400' : 'text-slate-400'
+              detection.resonance_quality === 'BREAKTHROUGH' ? 'text-purple-400' : 
+              detection.resonance_quality === 'ADVANCED' ? 'text-cyan-400' : 'text-slate-400'
             }`}> 
-              {telemetry.bedau_index > 0.7 ? 'WEAK EMERGENCE' : 
-               telemetry.bedau_index > 0.4 ? 'CONTEXTUAL' : 'LINEAR'} 
+              {detection.resonance_quality} 
             </span> 
           </div> 
           
           <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700"> 
-            {/* The Index Bar */} 
             <div 
               className={`h-full transition-all duration-1000 ${
-                telemetry.bedau_index > 0.7 ? 'bg-gradient-to-r from-purple-500 to-fuchsia-400' : 
-                telemetry.bedau_index > 0.4 ? 'bg-cyan-500' : 'bg-slate-600'
+                detection.resonance_quality === 'BREAKTHROUGH' ? 'bg-gradient-to-r from-purple-500 to-fuchsia-400' : 
+                detection.resonance_quality === 'ADVANCED' ? 'bg-cyan-500' : 'bg-slate-600'
               }`} 
-              style={{ width: `${telemetry.bedau_index * 100}%` }} 
+              style={{ width: detection.resonance_quality === 'BREAKTHROUGH' ? '100%' : detection.resonance_quality === 'ADVANCED' ? '75%' : '50%' }} 
             /> 
-            {/* The Threshold Marker for Weak Emergence */} 
-            <div className="absolute left-[70%] top-0 w-px h-full bg-white/30" /> 
-            {/* The Threshold Marker for Contextual */}
-            <div className="absolute left-[40%] top-0 w-px h-full bg-white/10" />
           </div> 
-          
-          <p className="mt-2 text-[9px] text-slate-500 italic leading-tight"> 
-            {telemetry.bedau_index > 0.7 
-              ? `Computational Irreducibility: ${telemetry.bedau_index.toFixed(2)}`
-              : telemetry.bedau_index > 0.4
-              ? "High semantic alignment with natural scaffolding."
-              : "Predictable linguistic patterns. System operating in linear state."} 
-          </p> 
         </div> 
  
         {/* --- Footer: Signature Hash --- */} 
         <div className="pt-4 mt-2 border-t border-slate-700/50"> 
           <div className="flex items-center gap-2 text-[10px] text-slate-500 break-all"> 
             <Fingerprint size={12} className="shrink-0" /> 
-            <span className="font-mono opacity-60">{id}</span> 
+            <span className="font-mono opacity-60">{receiptHash || 'PENDING_SIGNATURE'}</span> 
           </div> 
           <div className="flex justify-between items-center mt-3 text-[10px] text-slate-600"> 
              <span>{new Date(timestamp).toUTCString()}</span> 
@@ -173,16 +203,12 @@ const MetricBox = ({ label, value, icon, max }: any) => (
 ); 
 
 // A simple SVG visualization of the 5 Dimensions 
-const RadarIcon = ({ metrics }: { metrics: Telemetry }) => { 
+const RadarIcon = ({ detection }: { detection: TrustEvaluation['detection'] }) => { 
   // Normalize metrics to 0-1 range for plotting 
-  const r_idx = metrics.reality_index / 10; 
-  const c_par = metrics.canvas_parity / 100; 
-  const e_ali = metrics.ethical_alignment / 5; 
-  const res_q = metrics.resonance_score; // Already 0-1 
-  
-  // Plotting a simple diamond shape based on these 4 vectors 
-  // Top (Reality), Right (Canvas), Bottom (Ethics), Left (Resonance) 
-  // Center is 32,32. Max radius is 28. 
+  const r_idx = detection.reality_index / 10; 
+  const c_par = detection.canvas_parity / 100; 
+  const e_ali = detection.ethical_alignment / 5; 
+  const res_q = detection.resonance_quality === 'BREAKTHROUGH' ? 1.0 : detection.resonance_quality === 'ADVANCED' ? 0.8 : 0.6;
   
   const top = 32 - (r_idx * 28); 
   const right = 32 + (c_par * 28); 

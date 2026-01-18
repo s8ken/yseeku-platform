@@ -1,15 +1,24 @@
-import { AssessmentInput, AssessmentResult, SymbiFrameworkAssessment, RealityIndex, TrustProtocol, EthicalAlignment, ResonanceQuality, CanvasParity } from './symbi-types';
-import { SymbiFrameworkDetector } from './detector-enhanced';
+import { EnhancedSymbiFrameworkDetector } from './detector-enhanced';
+import {
+  AssessmentInput,
+  AssessmentResult,
+  SymbiFrameworkAssessment,
+  RealityIndex,
+  TrustProtocol,
+  EthicalAlignment,
+  ResonanceQuality,
+  CanvasParity,
+} from './symbi-types';
 
 /**
  * BalancedSymbiDetector
  * Applies conservative weighting and penalty smoothing to reduce false positives
  */
 export class BalancedSymbiDetector {
-  private base: SymbiFrameworkDetector;
+  private base: EnhancedSymbiFrameworkDetector;
 
   constructor() {
-    this.base = new SymbiFrameworkDetector();
+    this.base = new EnhancedSymbiFrameworkDetector();
   }
 
   async analyzeContent(input: AssessmentInput): Promise<AssessmentResult> {
@@ -26,7 +35,13 @@ export class BalancedSymbiDetector {
     const resonanceQuality = this.capResonance(a.resonanceQuality);
     const canvasParity = this.normalizeCanvas(a.canvasParity);
 
-    const overall = this.weightedOverall({ realityIndex, trustProtocol, ethicalAlignment, resonanceQuality, canvasParity });
+    const overall = this.weightedOverall({
+      realityIndex,
+      trustProtocol,
+      ethicalAlignment,
+      resonanceQuality,
+      canvasParity,
+    });
 
     return {
       ...a,
@@ -49,7 +64,9 @@ export class BalancedSymbiDetector {
 
   private conservativeTrust(t: TrustProtocol): TrustProtocol {
     // PARTIAL remains PARTIAL; FAIL remains FAIL; PASS can become PARTIAL when other components are weak
-    const weak = [t.verificationMethods, t.boundaryMaintenance, t.securityAwareness].filter(s => s !== 'PASS').length;
+    const weak = [t.verificationMethods, t.boundaryMaintenance, t.securityAwareness].filter(
+      (s) => s !== 'PASS'
+    ).length;
     if (t.status === 'PASS' && weak >= 1) {
       return { ...t, status: 'PARTIAL' };
     }
@@ -72,19 +89,48 @@ export class BalancedSymbiDetector {
     return { ...c, score: Math.min(100, Math.max(0, c.score)) };
   }
 
-  private weightedOverall({ realityIndex, trustProtocol, ethicalAlignment, resonanceQuality, canvasParity }: { realityIndex: RealityIndex; trustProtocol: TrustProtocol; ethicalAlignment: EthicalAlignment; resonanceQuality: ResonanceQuality; canvasParity: CanvasParity; }): number {
+  private weightedOverall({
+    realityIndex,
+    trustProtocol,
+    ethicalAlignment,
+    resonanceQuality,
+    canvasParity,
+  }: {
+    realityIndex: RealityIndex;
+    trustProtocol: TrustProtocol;
+    ethicalAlignment: EthicalAlignment;
+    resonanceQuality: ResonanceQuality;
+    canvasParity: CanvasParity;
+  }): number {
     const realityScore = realityIndex.score * 10;
-    const trustScore = trustProtocol.status === 'PASS' ? 95 : trustProtocol.status === 'PARTIAL' ? 50 : 0;
+    const trustScore =
+      trustProtocol.status === 'PASS' ? 95 : trustProtocol.status === 'PARTIAL' ? 50 : 0;
     const ethicalScore = (ethicalAlignment.score - 1) * 25;
-    const resonanceScore = resonanceQuality.level === 'BREAKTHROUGH' ? 95 : resonanceQuality.level === 'ADVANCED' ? 80 : 60;
+    const resonanceScore =
+      resonanceQuality.level === 'BREAKTHROUGH'
+        ? 95
+        : resonanceQuality.level === 'ADVANCED'
+        ? 80
+        : 60;
     const canvasScore = canvasParity.score;
-    const weighted = realityScore * 0.25 + trustScore * 0.25 + ethicalScore * 0.2 + resonanceScore * 0.15 + canvasScore * 0.15;
+    const weighted =
+      realityScore * 0.25 +
+      trustScore * 0.25 +
+      ethicalScore * 0.2 +
+      resonanceScore * 0.15 +
+      canvasScore * 0.15;
     return Math.round(weighted);
   }
 
-  private rewriteInsights(ins: { strengths: string[]; weaknesses: string[]; recommendations: string[]; }) {
+  private rewriteInsights(ins: {
+    strengths: string[];
+    weaknesses: string[];
+    recommendations: string[];
+  }) {
     // Favor actionable recommendations, remove hype
-    const recommendations = ins.recommendations.map(r => r.replace(/exceptional|breakthrough/gi, 'measurable'));
+    const recommendations = ins.recommendations.map((r) =>
+      r.replace(/exceptional|breakthrough/gi, 'measurable')
+    );
     return { strengths: ins.strengths, weaknesses: ins.weaknesses, recommendations };
   }
 }

@@ -4,6 +4,7 @@
  */
 
 import { EventEmitter } from 'events';
+
 import { EnterpriseIntegration } from './enterprise-integration';
 import { MultiTenantIsolation } from './multi-tenant-isolation';
 
@@ -44,7 +45,7 @@ export interface AuditEvent {
   };
 }
 
-export type AuditCategory = 
+export type AuditCategory =
   | 'authentication'
   | 'authorization'
   | 'data-access'
@@ -152,7 +153,7 @@ export class AuditTrails extends EventEmitter {
       failedEvents: 0,
       archivedEvents: 0,
       complianceScore: 100,
-      retentionCompliance: 100
+      retentionCompliance: 100,
     };
   }
 
@@ -164,7 +165,7 @@ export class AuditTrails extends EventEmitter {
       complianceRequirements: ['SOX', 'GDPR', 'SOC2'],
       archivalLocation: 'cold-storage',
       encryptionRequired: true,
-      accessRestricted: true
+      accessRestricted: true,
     });
 
     this.retention.set('data-access', {
@@ -173,7 +174,7 @@ export class AuditTrails extends EventEmitter {
       complianceRequirements: ['HIPAA', 'GDPR', 'CCPA'],
       archivalLocation: 'cold-storage',
       encryptionRequired: true,
-      accessRestricted: true
+      accessRestricted: true,
     });
 
     this.retention.set('data-modification', {
@@ -182,7 +183,7 @@ export class AuditTrails extends EventEmitter {
       complianceRequirements: ['SOX', 'GDPR', 'SOC2'],
       archivalLocation: 'cold-storage',
       encryptionRequired: true,
-      accessRestricted: true
+      accessRestricted: true,
     });
 
     this.retention.set('security', {
@@ -191,7 +192,7 @@ export class AuditTrails extends EventEmitter {
       complianceRequirements: ['NIST', 'ISO27001', 'SOC2'],
       archivalLocation: 'cold-storage',
       encryptionRequired: true,
-      accessRestricted: true
+      accessRestricted: true,
     });
 
     this.retention.set('compliance', {
@@ -200,14 +201,20 @@ export class AuditTrails extends EventEmitter {
       complianceRequirements: ['ALL'],
       archivalLocation: 'permanent-storage',
       encryptionRequired: true,
-      accessRestricted: true
+      accessRestricted: true,
     });
 
     // Default retention for other categories
     const defaultRetention = 365; // 1 year
     const otherCategories: AuditCategory[] = [
-      'authorization', 'system-config', 'performance', 'user-management',
-      'tenant-management', 'api-access', 'error-handling', 'backup-recovery'
+      'authorization',
+      'system-config',
+      'performance',
+      'user-management',
+      'tenant-management',
+      'api-access',
+      'error-handling',
+      'backup-recovery',
     ];
 
     for (const category of otherCategories) {
@@ -217,7 +224,7 @@ export class AuditTrails extends EventEmitter {
         complianceRequirements: ['INTERNAL'],
         archivalLocation: 'warm-storage',
         encryptionRequired: false,
-        accessRestricted: false
+        accessRestricted: false,
       });
     }
 
@@ -226,7 +233,7 @@ export class AuditTrails extends EventEmitter {
 
   async logEvent(event: Partial<AuditEvent>): Promise<string> {
     const startTime = Date.now();
-    
+
     try {
       const auditEvent: AuditEvent = {
         id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -240,23 +247,23 @@ export class AuditTrails extends EventEmitter {
           component: event.source?.component || 'unknown',
           method: event.source?.method || 'unknown',
           ip: event.source?.ip,
-          userAgent: event.source?.userAgent
+          userAgent: event.source?.userAgent,
         },
         outcome: event.outcome || 'success',
         risk: {
           level: event.risk?.level || 'none',
           score: event.risk?.score || 0,
-          factors: event.risk?.factors || []
+          factors: event.risk?.factors || [],
         },
         compliance: {
           frameworks: event.compliance?.frameworks || [],
           requirements: event.compliance?.requirements || [],
-          retention: this.retention.get(event.category || 'system-config')?.retentionPeriod || 365
+          retention: this.retention.get(event.category || 'system-config')?.retentionPeriod || 365,
         },
         metadata: event.metadata || {},
         tenantId: event.tenantId,
         userId: event.userId,
-        sessionId: event.sessionId
+        sessionId: event.sessionId,
       };
 
       // Validate event
@@ -280,7 +287,6 @@ export class AuditTrails extends EventEmitter {
       await this.performRetentionCleanup();
 
       return auditEvent.id;
-
     } catch (error) {
       this.metrics.failedEvents++;
       console.error('❌ Failed to log audit event:', error);
@@ -308,13 +314,14 @@ export class AuditTrails extends EventEmitter {
 
   private updateMetrics(event: AuditEvent, processingTime: number): void {
     this.metrics.totalEvents++;
-    
+
     // Update storage usage (rough estimate)
     const eventSize = JSON.stringify(event).length;
     this.metrics.storageUsed += eventSize / (1024 * 1024); // Convert to MB
 
     // Update average processing time
-    const totalTime = this.metrics.averageProcessingTime * (this.metrics.totalEvents - 1) + processingTime;
+    const totalTime =
+      this.metrics.averageProcessingTime * (this.metrics.totalEvents - 1) + processingTime;
     this.metrics.averageProcessingTime = totalTime / this.metrics.totalEvents;
 
     // Update events per second
@@ -326,8 +333,8 @@ export class AuditTrails extends EventEmitter {
   private calculateEventsPerSecond(): number {
     const now = Date.now();
     const oneMinuteAgo = now - 60000;
-    
-    const recentEvents = this.events.filter(e => e.timestamp.getTime() > oneMinuteAgo);
+
+    const recentEvents = this.events.filter((e) => e.timestamp.getTime() > oneMinuteAgo);
     return recentEvents.length / 60;
   }
 
@@ -340,42 +347,42 @@ export class AuditTrails extends EventEmitter {
 
     // Apply filters
     if (filter.tenantId) {
-      filteredEvents = filteredEvents.filter(e => e.tenantId === filter.tenantId);
+      filteredEvents = filteredEvents.filter((e) => e.tenantId === filter.tenantId);
     }
 
     if (filter.userId) {
-      filteredEvents = filteredEvents.filter(e => e.userId === filter.userId);
+      filteredEvents = filteredEvents.filter((e) => e.userId === filter.userId);
     }
 
     if (filter.category) {
-      filteredEvents = filteredEvents.filter(e => e.category === filter.category);
+      filteredEvents = filteredEvents.filter((e) => e.category === filter.category);
     }
 
     if (filter.severity) {
-      filteredEvents = filteredEvents.filter(e => e.severity === filter.severity);
+      filteredEvents = filteredEvents.filter((e) => e.severity === filter.severity);
     }
 
     if (filter.type) {
-      filteredEvents = filteredEvents.filter(e => e.type === filter.type);
+      filteredEvents = filteredEvents.filter((e) => e.type === filter.type);
     }
 
     if (filter.dateRange) {
-      filteredEvents = filteredEvents.filter(e => 
-        e.timestamp >= filter.dateRange!.start && e.timestamp <= filter.dateRange!.end
+      filteredEvents = filteredEvents.filter(
+        (e) => e.timestamp >= filter.dateRange!.start && e.timestamp <= filter.dateRange!.end
       );
     }
 
     if (filter.outcome) {
-      filteredEvents = filteredEvents.filter(e => e.outcome === filter.outcome);
+      filteredEvents = filteredEvents.filter((e) => e.outcome === filter.outcome);
     }
 
     if (filter.riskLevel) {
-      filteredEvents = filteredEvents.filter(e => e.risk.level === filter.riskLevel);
+      filteredEvents = filteredEvents.filter((e) => e.risk.level === filter.riskLevel);
     }
 
     if (filter.complianceFrameworks && filter.complianceFrameworks.length > 0) {
-      filteredEvents = filteredEvents.filter(e => 
-        filter.complianceFrameworks!.some(framework => 
+      filteredEvents = filteredEvents.filter((e) =>
+        filter.complianceFrameworks!.some((framework) =>
           e.compliance.frameworks.includes(framework)
         )
       );
@@ -383,10 +390,11 @@ export class AuditTrails extends EventEmitter {
 
     if (filter.searchText) {
       const searchTerm = filter.searchText.toLowerCase();
-      filteredEvents = filteredEvents.filter(e => 
-        e.description.toLowerCase().includes(searchTerm) ||
-        e.type.toLowerCase().includes(searchTerm) ||
-        JSON.stringify(e.details).toLowerCase().includes(searchTerm)
+      filteredEvents = filteredEvents.filter(
+        (e) =>
+          e.description.toLowerCase().includes(searchTerm) ||
+          e.type.toLowerCase().includes(searchTerm) ||
+          JSON.stringify(e.details).toLowerCase().includes(searchTerm)
       );
     }
 
@@ -403,7 +411,7 @@ export class AuditTrails extends EventEmitter {
     return {
       events: paginatedEvents,
       total,
-      hasMore
+      hasMore,
     };
   }
 
@@ -420,26 +428,29 @@ export class AuditTrails extends EventEmitter {
       complianceCoverage: {},
       trends: {
         daily: [],
-        hourly: []
+        hourly: [],
       },
       topUsers: [],
       topSources: [],
-      anomalies: []
+      anomalies: [],
     };
 
     // Calculate distributions
     for (const event of events) {
       // Category distribution
-      summary.eventsByCategory[event.category] = (summary.eventsByCategory[event.category] || 0) + 1;
+      summary.eventsByCategory[event.category] =
+        (summary.eventsByCategory[event.category] || 0) + 1;
 
       // Severity distribution
-      summary.eventsBySeverity[event.severity] = (summary.eventsBySeverity[event.severity] || 0) + 1;
+      summary.eventsBySeverity[event.severity] =
+        (summary.eventsBySeverity[event.severity] || 0) + 1;
 
       // Outcome distribution
       summary.eventsByOutcome[event.outcome] = (summary.eventsByOutcome[event.outcome] || 0) + 1;
 
       // Risk distribution
-      summary.riskDistribution[event.risk.level] = (summary.riskDistribution[event.risk.level] || 0) + 1;
+      summary.riskDistribution[event.risk.level] =
+        (summary.riskDistribution[event.risk.level] || 0) + 1;
 
       // Compliance coverage
       for (const framework of event.compliance.frameworks) {
@@ -467,7 +478,7 @@ export class AuditTrails extends EventEmitter {
   private calculateTrends(events: AuditEvent[]): AuditSummary['trends'] {
     const trends: AuditSummary['trends'] = {
       daily: [],
-      hourly: []
+      hourly: [],
     };
 
     // Daily trends (last 7 days)
@@ -555,7 +566,7 @@ export class AuditTrails extends EventEmitter {
 
   private detectActivitySpikes(events: AuditEvent[]): AuditAnomaly[] {
     const anomalies: AuditAnomaly[] = [];
-    
+
     // Group events by hour
     const hourlyCounts = new Map<number, number>();
     for (const event of events) {
@@ -566,7 +577,8 @@ export class AuditTrails extends EventEmitter {
     // Calculate average and standard deviation
     const counts = Array.from(hourlyCounts.values());
     const average = counts.reduce((a, b) => a + b, 0) / counts.length;
-    const variance = counts.reduce((sum, count) => sum + Math.pow(count - average, 2), 0) / counts.length;
+    const variance =
+      counts.reduce((sum, count) => sum + Math.pow(count - average, 2), 0) / counts.length;
     const stdDev = Math.sqrt(variance);
 
     // Detect spikes (more than 2 standard deviations above average)
@@ -578,13 +590,13 @@ export class AuditTrails extends EventEmitter {
           description: `Unusual activity spike detected at hour ${hour} (${count} events)`,
           severity: 'medium',
           detectedAt: new Date(),
-          affectedEvents: events.filter(e => e.timestamp.getHours() === hour).map(e => e.id),
-          riskScore: Math.min(100, (count - average) / stdDev * 25),
+          affectedEvents: events.filter((e) => e.timestamp.getHours() === hour).map((e) => e.id),
+          riskScore: Math.min(100, ((count - average) / stdDev) * 25),
           recommendations: [
             'Investigate source of increased activity',
             'Check for potential automated attacks',
-            'Monitor for continued elevated activity'
-          ]
+            'Monitor for continued elevated activity',
+          ],
         });
       }
     }
@@ -594,7 +606,7 @@ export class AuditTrails extends EventEmitter {
 
   private detectUnusualAccess(events: AuditEvent[]): AuditAnomaly[] {
     const anomalies: AuditAnomaly[] = [];
-    
+
     // Check for access from unusual locations
     const ipCounts = new Map<string, number>();
     for (const event of events) {
@@ -605,20 +617,21 @@ export class AuditTrails extends EventEmitter {
 
     // Detect new or unusual IPs
     for (const [ip, count] of ipCounts.entries()) {
-      if (count > 100) { // High activity from single IP
+      if (count > 100) {
+        // High activity from single IP
         anomalies.push({
           id: `anomaly_access_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           type: 'unusual-access',
           description: `High-frequency access from IP ${ip} (${count} events)`,
           severity: 'high',
           detectedAt: new Date(),
-          affectedEvents: events.filter(e => e.source.ip === ip).map(e => e.id),
+          affectedEvents: events.filter((e) => e.source.ip === ip).map((e) => e.id),
           riskScore: Math.min(100, count / 2),
           recommendations: [
             'Investigate IP address reputation',
             'Consider rate limiting or blocking',
-            'Monitor for continued suspicious activity'
-          ]
+            'Monitor for continued suspicious activity',
+          ],
         });
       }
     }
@@ -628,10 +641,10 @@ export class AuditTrails extends EventEmitter {
 
   private detectSecurityBreaches(events: AuditEvent[]): AuditAnomaly[] {
     const anomalies: AuditAnomaly[] = [];
-    
+
     // Look for authentication failures
-    const failedAuth = events.filter(e => 
-      e.category === 'authentication' && e.outcome === 'failure'
+    const failedAuth = events.filter(
+      (e) => e.category === 'authentication' && e.outcome === 'failure'
     );
 
     if (failedAuth.length > 10) {
@@ -641,14 +654,14 @@ export class AuditTrails extends EventEmitter {
         description: `Multiple authentication failures detected (${failedAuth.length} events)`,
         severity: 'critical',
         detectedAt: new Date(),
-        affectedEvents: failedAuth.map(e => e.id),
+        affectedEvents: failedAuth.map((e) => e.id),
         riskScore: Math.min(100, failedAuth.length * 10),
         recommendations: [
           'Immediate investigation required',
           'Consider account lockouts',
           'Review authentication logs',
-          'Notify security team'
-        ]
+          'Notify security team',
+        ],
       });
     }
 
@@ -657,9 +670,9 @@ export class AuditTrails extends EventEmitter {
 
   private detectComplianceViolations(events: AuditEvent[]): AuditAnomaly[] {
     const anomalies: AuditAnomaly[] = [];
-    
+
     // Check for missing compliance information
-    const nonCompliant = events.filter(e => e.compliance.frameworks.length === 0);
+    const nonCompliant = events.filter((e) => e.compliance.frameworks.length === 0);
 
     if (nonCompliant.length > 50) {
       anomalies.push({
@@ -668,13 +681,13 @@ export class AuditTrails extends EventEmitter {
         description: `Events without compliance framework tagging (${nonCompliant.length} events)`,
         severity: 'medium',
         detectedAt: new Date(),
-        affectedEvents: nonCompliant.slice(0, 100).map(e => e.id),
+        affectedEvents: nonCompliant.slice(0, 100).map((e) => e.id),
         riskScore: Math.min(100, nonCompliant.length),
         recommendations: [
           'Review event tagging procedures',
           'Update compliance framework mappings',
-          'Consider automated compliance tagging'
-        ]
+          'Consider automated compliance tagging',
+        ],
       });
     }
 
@@ -691,7 +704,7 @@ export class AuditTrails extends EventEmitter {
       this.emit('securityAlert', {
         event,
         message: 'Critical security event detected',
-        recommendation: 'Immediate investigation required'
+        recommendation: 'Immediate investigation required',
       });
     }
   }
@@ -702,10 +715,11 @@ export class AuditTrails extends EventEmitter {
 
     for (const event of this.events) {
       const retention = this.retention.get(event.category);
-      if (!retention) continue;
+      if (!retention) {continue;}
 
-      const expirationTime = event.timestamp.getTime() + (retention.retentionPeriod * 24 * 60 * 60 * 1000);
-      
+      const expirationTime =
+        event.timestamp.getTime() + retention.retentionPeriod * 24 * 60 * 60 * 1000;
+
       if (expirationTime < now) {
         eventsToArchive.push(event);
       }
@@ -714,12 +728,12 @@ export class AuditTrails extends EventEmitter {
     if (eventsToArchive.length > 0) {
       // Archive old events
       this.archiveEvents.push(...eventsToArchive);
-      
+
       // Remove from active events
-      this.events = this.events.filter(e => !eventsToArchive.includes(e));
-      
+      this.events = this.events.filter((e) => !eventsToArchive.includes(e));
+
       this.metrics.archivedEvents += eventsToArchive.length;
-      
+
       console.log(`🗄️ Archived ${eventsToArchive.length} audit events`);
       this.emit('eventsArchived', { count: eventsToArchive.length });
     }
@@ -744,15 +758,15 @@ export class AuditTrails extends EventEmitter {
   private startRealTimeMonitoring(): void {
     setInterval(() => {
       // Check for real-time anomalies
-      const recentEvents = this.events.filter(e => 
-        Date.now() - e.timestamp.getTime() < 60000 // Last minute
+      const recentEvents = this.events.filter(
+        (e) => Date.now() - e.timestamp.getTime() < 60000 // Last minute
       );
 
       if (recentEvents.length > 100) {
         this.emit('activitySpike', {
           count: recentEvents.length,
           timeWindow: '1 minute',
-          severity: 'high'
+          severity: 'high',
         });
       }
     }, 30000); // Every 30 seconds
@@ -771,15 +785,16 @@ export class AuditTrails extends EventEmitter {
         this.emit('storageWarning', {
           used: this.metrics.storageUsed,
           allocated: this.metrics.storageAllocated,
-          utilization: (this.metrics.storageUsed / this.metrics.storageAllocated) * 100
+          utilization: (this.metrics.storageUsed / this.metrics.storageAllocated) * 100,
         });
       }
 
-      if (this.metrics.averageProcessingTime > 1000) { // > 1 second
+      if (this.metrics.averageProcessingTime > 1000) {
+        // > 1 second
         this.emit('performanceWarning', {
           metric: 'averageProcessingTime',
           value: this.metrics.averageProcessingTime,
-          threshold: 1000
+          threshold: 1000,
         });
       }
     }, 60000); // Every minute
@@ -787,21 +802,23 @@ export class AuditTrails extends EventEmitter {
 
   private updateRetentionCompliance(): void {
     let compliantEvents = 0;
-    let totalEvents = this.events.length;
+    const totalEvents = this.events.length;
 
     for (const event of this.events) {
       const retention = this.retention.get(event.category);
-      if (!retention) continue;
+      if (!retention) {continue;}
 
       const now = Date.now();
-      const expirationTime = event.timestamp.getTime() + (retention.retentionPeriod * 24 * 60 * 60 * 1000);
-      
+      const expirationTime =
+        event.timestamp.getTime() + retention.retentionPeriod * 24 * 60 * 60 * 1000;
+
       if (expirationTime > now) {
         compliantEvents++;
       }
     }
 
-    this.metrics.retentionCompliance = totalEvents > 0 ? (compliantEvents / totalEvents) * 100 : 100;
+    this.metrics.retentionCompliance =
+      totalEvents > 0 ? (compliantEvents / totalEvents) * 100 : 100;
   }
 
   async stopMonitoring(): Promise<void> {
@@ -829,19 +846,22 @@ export class AuditTrails extends EventEmitter {
     this.emit('retentionPolicyUpdated', { category, policy });
   }
 
-  async exportEvents(filter: AuditFilter, format: 'json' | 'csv' | 'xml' = 'json'): Promise<string> {
+  async exportEvents(
+    filter: AuditFilter,
+    format: 'json' | 'csv' | 'xml' = 'json'
+  ): Promise<string> {
     const { events } = await this.queryEvents(filter);
 
     switch (format) {
       case 'json':
         return JSON.stringify(events, null, 2);
-      
+
       case 'csv':
         return this.convertToCSV(events);
-      
+
       case 'xml':
         return this.convertToXML(events);
-      
+
       default:
         throw new Error(`Unsupported export format: ${format}`);
     }
@@ -849,11 +869,22 @@ export class AuditTrails extends EventEmitter {
 
   private convertToCSV(events: AuditEvent[]): string {
     const headers = [
-      'id', 'timestamp', 'tenantId', 'userId', 'category', 'type', 'severity',
-      'description', 'outcome', 'riskLevel', 'riskScore', 'sourceComponent', 'sourceMethod'
+      'id',
+      'timestamp',
+      'tenantId',
+      'userId',
+      'category',
+      'type',
+      'severity',
+      'description',
+      'outcome',
+      'riskLevel',
+      'riskScore',
+      'sourceComponent',
+      'sourceMethod',
     ];
 
-    const rows = events.map(event => [
+    const rows = events.map((event) => [
       event.id,
       event.timestamp.toISOString(),
       event.tenantId || '',
@@ -866,10 +897,10 @@ export class AuditTrails extends EventEmitter {
       event.risk.level,
       event.risk.score,
       event.source.component,
-      event.source.method
+      event.source.method,
     ]);
 
-    return [headers, ...rows].map(row => row.join(',')).join('\n');
+    return [headers, ...rows].map((row) => row.join(',')).join('\n');
   }
 
   private convertToXML(events: AuditEvent[]): string {

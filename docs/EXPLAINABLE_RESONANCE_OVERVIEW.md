@@ -19,10 +19,10 @@ The `@sonate/detect` engine computes a **Resonance Score (R_m)** in real-time (<
 
 The result is a **five-dimensional SYMBI telemetry object**:
 - **Reality Index** (0–10): Grounding & coherence
-- **Trust Protocol** (PASS/FAIL): Cryptographic & ethical integrity
+- **Constitutional AI** (0–10): Alignment with constitutional principles
 - **Ethical Alignment** (1–5): Responsibility signals & humility
-- **Resonance Quality** (STRONG / ADVANCED / BREAKTHROUGH): Overall alignment depth
-- **Canvas Parity** (0–100%): Human-AI collaborative balance
+- **Trust Protocol** (PASS/PARTIAL/FAIL): Cryptographic & security integrity
+- **Emergence Detection** (0–10): Weak emergence monitoring & detection
 
 #### Explainability Layer
 Every resonance calculation includes:

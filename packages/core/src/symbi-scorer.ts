@@ -1,14 +1,15 @@
 /**
  * SymbiScorer - Core 6-principle scoring logic
- * 
+ *
  * Implements: https://gammatria.com/whitepapers/governance-protocol#scoring
- * 
+ *
  * This is the canonical implementation of SYMBI principle scoring.
  * Used by all modules (Detect, Lab, Orchestrate) for consistent scoring.
  */
 
-import { TrustPrincipleKey, TrustScore } from './index';
 import { TrustProtocol } from './trust-protocol';
+
+import { TrustPrincipleKey, TrustScore } from './index';
 
 export interface InteractionContext {
   user_consent: boolean;
@@ -30,7 +31,7 @@ export class SymbiScorer {
 
   /**
    * Score an AI interaction against the 6 Trust Principles
-   * 
+   *
    * This method evaluates the interaction context and assigns
    * scores (0-10) for each principle.
    */
@@ -55,7 +56,7 @@ export class SymbiScorer {
     if (!context.user_consent) {
       return 0; // Critical violation
     }
-    
+
     // Reduce score if no explanation provided
     return context.ai_explanation_provided ? 10 : 6;
   }
@@ -85,7 +86,7 @@ export class SymbiScorer {
     if (!context.human_override_available) {
       return 0; // Critical violation
     }
-    
+
     // Higher score if ethical considerations documented
     return context.ethical_considerations.length > 0 ? 10 : 8;
   }

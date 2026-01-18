@@ -9,34 +9,70 @@
   ],
   "scripts": {
     "build": "turbo run build --filter=web",
+    "start": "npm start --workspace=web",
+    "build:backend": "turbo run build --filter=backend",
     "dev": "turbo run dev --parallel",
-    "test": "turbo run test --filter=@sonate/core --filter=@sonate/detect --filter=@sonate/orchestrate --filter=@sonate/lab --filter=@sonate/persistence",
+    "test": "turbo run test --filter=@sonate/core --filter=@sonate/detect --filter=@sonate/orchestrate --filter=@sonate/lab --filter=@sonate/persistence --filter=@sonate/monitoring",
     "test:integration": "turbo run test --filter=integration-tests",
     "test:e2e": "turbo run e2e --filter=web",
     "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "format": "prettier --write \"packages/*/src/**/*.ts\" \"scripts/**/*.js\"",
+    "format:check": "prettier --check \"packages/*/src/**/*.ts\" \"scripts/**/*.js\"",
+    "format:fix": "npm run format",
+    "security": "npm audit --audit-level moderate",
+    "security:fix": "npm audit fix",
+    "quality": "node scripts/code-quality-check.js",
+    "quality:fix": "npm run lint:fix && npm run format:fix && npm run security:fix",
+    "pre-commit": "npm run quality",
+    "pre-push": "npm run build && npm run test",
     "clean": "turbo run clean && rm -rf node_modules",
     "demo:ledger": "npm run build --workspace @sonate/collaboration-ledger && node examples/ledger-demo/index.js",
-    "demo:interactive": "npm run dev --workspace @sonate/new-demo"
+    "demo:interactive": "npm run dev --workspace @sonate/new-demo",
+    "version:check": "node scripts/version-sync.js",
+    "version:update": "node scripts/version-sync.js",
+    "version:sync": "node scripts/version-sync.js"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@supabase/supabase-js": "^2.89.0",
     "@types/node": "^20.0.0",
     "c8": "^9.1.0",
+    "eslint": "^8.57.0",
+    "nock": "^14.0.10",
+    "ts-node": "^10.9.2",
     "turbo": "^1.10.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.9.3",
+    "prettier": "^2.8.8",
+    "@typescript-eslint/eslint-plugin": "^6.1.0",
+    "@typescript-eslint/parser": "^6.1.0",
+    "eslint-plugin-security": "^1.6.0"
   },
   "overrides": {
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "@types/react": "18.2.37",
-    "@types/react-dom": "18.2.15"
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "@types/react": "18.3.5",
+    "@types/react-dom": "18.3.1",
+    "elliptic": "6.6.1",
+    "glob": "10.5.0"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "axios": "^1.7.9",
-    "esbuild": "^0.25.12",
+    "@noble/ed25519": "^3.0.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@vitest/ui": "^4.0.16",
+    "axios": "^1.13.2",
+    "esbuild": "^0.27.2",
+    "jsdom": "^27.4.0",
+    "lightningcss": "^1.30.2",
     "parse-duration": "^2.1.5",
-    "vite": "^6.4.1"
+    "tweetnacl": "^1.0.3",
+    "vite": "^7.3.0",
+    "vitest": "^4.0.16"
+  },
+  "optionalDependencies": {
+    "lightningcss-darwin-arm64": "^1.30.2"
   }
 }

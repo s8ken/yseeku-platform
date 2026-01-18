@@ -7,15 +7,10 @@ export * from './rbac';
 export * from './audit';
 export * from './rate-limiter';
 export * from './api-keys';
+export * from './secrets-manager';
 
 // Re-export commonly used types and functions
-export {
-  getRBACManager,
-  Permission,
-  Role,
-  requirePermission,
-  requireRole,
-} from './rbac';
+export { getRBACManager, Permission, Role, requirePermission, requireRole } from './rbac';
 
 export {
   getAuditLogger,
@@ -34,7 +29,4 @@ export {
   RedisRateLimitStore,
 } from './rate-limiter';
 
-export {
-  getAPIKeyManager,
-  APIKeyManager,
-} from './api-keys';
+export { getAPIKeyManager, APIKeyManager } from './api-keys';
