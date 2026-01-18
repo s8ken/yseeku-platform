@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
       summary: {
         total: agents?.length || 0,
         active: agents?.filter((a: any) => a.status === 'active')?.length || 0,
+        inactive: agents?.filter((a: any) => a.status !== 'active')?.length || 0,
         avgTrustScore: 0
       }
     },
