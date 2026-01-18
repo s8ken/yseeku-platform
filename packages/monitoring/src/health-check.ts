@@ -5,7 +5,7 @@
  * circuit breakers, and automated recovery suggestions
  */
 
-import { SystemError, NetworkError, DatabaseError, CryptographicError } from '@sonate/core/errors';
+import { SystemError, NetworkError, DatabaseError, CryptographicError } from '@sonate/core';
 
 export interface HealthCheck {
   id: string;
@@ -330,7 +330,7 @@ export class HealthCheckSystem {
         status: 'unhealthy',
         timestamp: Date.now(),
         duration: Date.now() - startTime,
-        message: `Health check failed: ${error.message}`,
+        message: `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
         recommendations: ['Review error logs and system status'],
       };
 

@@ -1,6 +1,6 @@
 import { upsertUser, getUserByUsername, hashPassword, verifyPassword } from '../users';
 
-jest.mock('bcrypt', () => ({
+jest.mock('bcryptjs', () => ({
   hash: jest.fn(),
   compare: jest.fn(),
 }));
@@ -76,7 +76,7 @@ describe('Users', () => {
 
   describe('hashPassword', () => {
     it('should hash password with salt rounds 12', async () => {
-      const mockHash = require('bcrypt').hash;
+      const mockHash = require('bcryptjs').hash;
       mockHash.mockResolvedValue('hashed');
       const result = await hashPassword('password');
       expect(result).toBe('hashed');
@@ -86,7 +86,7 @@ describe('Users', () => {
 
   describe('verifyPassword', () => {
     it('should verify password', async () => {
-      const mockCompare = require('bcrypt').compare;
+      const mockCompare = require('bcryptjs').compare;
       mockCompare.mockResolvedValue(true);
       const result = await verifyPassword('password', 'hash');
       expect(result).toBe(true);

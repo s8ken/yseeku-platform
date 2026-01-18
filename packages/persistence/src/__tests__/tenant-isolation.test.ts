@@ -1,6 +1,4 @@
-import { tenantContext } from '@sonate/core';
 import { writeAuditLog, queryAuditLogs } from '../audit';
-import * as db from '../db';
 
 // Mock the pool
 const mockPool = {
@@ -13,19 +11,29 @@ jest.mock('../db', () => ({
 }));
 
 describe('Tenant Isolation', () => {
+  const originalEnv = process.env.TENANT_ID;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    delete process.env.TENANT_ID;
   });
 
-  it('should use tenantId from context when not provided explicitly', async () => {
-    const tenantId = 'test-tenant-123';
+  afterAll(() => {
+    if (originalEnv) {
+      process.env.TENANT_ID = originalEnv;
+    } else {
+      delete process.env.TENANT_ID;
+    }
+  });
 
-    await tenantContext.run({ tenantId }, async () => {
-      await writeAuditLog({
-        id: 'log-1',
-        event: 'test-event',
-        status: 'success',
-      });
+  it('should use tenantId from environment when not provided explicitly', async () => {
+    const tenantId = 'test-tenant-123';
+    process.env.TENANT_ID = tenantId;
+
+    await writeAuditLog({
+      id: 'log-1',
+      event: 'test-event',
+      status: 'success',
     });
 
     expect(mockPool.query).toHaveBeenCalledWith(
@@ -34,20 +42,19 @@ describe('Tenant Isolation', () => {
     );
   });
 
-  it('should use explicitly provided tenantId instead of context', async () => {
-    const contextTenantId = 'context-tenant';
+  it('should use explicitly provided tenantId instead of environment', async () => {
+    const envTenantId = 'env-tenant';
     const explicitTenantId = 'explicit-tenant';
+    process.env.TENANT_ID = envTenantId;
 
-    await tenantContext.run({ tenantId: contextTenantId }, async () => {
-      await writeAuditLog(
-        {
-          id: 'log-2',
-          event: 'test-event',
-          status: 'success',
-        },
-        explicitTenantId
-      );
-    });
+    await writeAuditLog(
+      {
+        id: 'log-2',
+        event: 'test-event',
+        status: 'success',
+      },
+      explicitTenantId
+    );
 
     expect(mockPool.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO audit_logs'),
@@ -55,14 +62,13 @@ describe('Tenant Isolation', () => {
     );
   });
 
-  it('should filter query results by tenantId from context', async () => {
+  it('should filter query results by tenantId from environment', async () => {
     const tenantId = 'query-tenant';
+    process.env.TENANT_ID = tenantId;
 
     mockPool.query.mockResolvedValueOnce({ rows: [] });
 
-    await tenantContext.run({ tenantId }, async () => {
-      await queryAuditLogs();
-    });
+    await queryAuditLogs();
 
     expect(mockPool.query).toHaveBeenCalledWith(
       expect.stringContaining('WHERE (tenant_id = $1 OR $1 IS NULL)'),
@@ -70,7 +76,8 @@ describe('Tenant Isolation', () => {
     );
   });
 
-  it('should allow querying all tenants if no context is set (admin case)', async () => {
+  it('should allow querying all tenants if no environment is set (admin case)', async () => {
+    delete process.env.TENANT_ID;
     mockPool.query.mockResolvedValueOnce({ rows: [] });
 
     await queryAuditLogs();

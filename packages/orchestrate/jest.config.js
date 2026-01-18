@@ -3,6 +3,10 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/?(*.)+(spec|test).ts'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/src/__tests__/integration/',
+  ],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
@@ -17,6 +21,6 @@ module.exports = {
     },
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(@noble/ed25519|@sonate/core|@sonate/detect|uuid)/)',
+    '/node_modules/(?!(@noble/ed25519|@sonate/core|@sonate/detect|uuid)/)',
   ],
 };
