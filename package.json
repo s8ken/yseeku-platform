@@ -54,8 +54,7 @@
     "@types/react": "18.3.5",
     "@types/react-dom": "18.3.1",
     "elliptic": "6.6.1",
-    "glob": "10.5.0",
-    "esbuild": "0.27.51"
+    "glob": "10.5.0"
   },
   "engines": {
     "node": ">=20.0.0"
