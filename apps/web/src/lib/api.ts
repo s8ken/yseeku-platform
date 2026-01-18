@@ -560,6 +560,17 @@ export const api = {
     });
   },
 
+  async getConversation(conversationId: string): Promise<any> {
+    const res = await fetchAPI<{ success: boolean; data: { conversation: any } }>(`/api/conversations/${conversationId}`);
+    return res.data?.conversation || res.data;
+  },
+
+  async getMessages(conversationId: string, threadId?: string): Promise<any[]> {
+    const query = threadId ? `?threadId=${threadId}` : '';
+    const res = await fetchAPI<{ success: boolean; data: { messages: any[] } }>(`/api/conversations/${conversationId}/messages${query}`);
+    return res.data?.messages || [];
+  },
+
   async createAgent(data: {
     name: string;
     description: string;
