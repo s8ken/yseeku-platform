@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ChatContainer } from '@/components/chat/ChatContainer';
+import { EnhancedChatContainer } from '@/components/chat/EnhancedChatContainer';
 import { Shield, Info } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -20,7 +20,7 @@ export default function ChatPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
-          <ChatContainer />
+          <EnhancedChatContainer conversationId="default" />
         </div>
         
         <div className="space-y-6">
