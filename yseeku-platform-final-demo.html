@@ -10,6 +10,11 @@
           <script src="yseeku-timeline.js"></script>
           <script src="yseeku-layer-sync.js"></script>
   <script>
+    // Embedded Data Engine (to avoid CORS issues when opening file directly)
+    // This is the content of yseeku-data-engine.js embedded inline
+  </script>
+  <script src="yseeku-data-engine.js"></script>
+  <script>
     tailwind.config = {
       theme: {
         extend: {
@@ -1817,29 +1822,26 @@
       }
     }
 
-    function showPage(page, event) {
-         console.log('showPage called with:', page, event);
-         
-         // Prevent default link behavior
-         if (event) {
-           event.preventDefault();
-         }
-         
-         // Debug: Check if pages object exists
-         console.log('Pages object exists:', typeof pages !== 'undefined');
-         console.log('Available pages:', Object.keys(pages || {}));
+    function showPage(page) {
+      console.log('showPage called with page:', page);
+      
+      // Prevent default link behavior
+      if (window.event) {
+        window.event.preventDefault();
+      }
+      
       // Update navigation
       document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('bg-gray-100', 'text-blue-600');
       });
-      // Prevent default link behavior
-         if (event) {
-           event.preventDefault();
-         }
-         
-         if (event && event.target) {
-           event.target.closest('.nav-link')?.classList.add('bg-gray-100', 'text-blue-600');
-         }
+      
+      // Find and highlight the clicked link
+      const clickedLink = window.event?.target?.closest('.nav-link');
+      if (clickedLink) {
+        clickedLink.classList.add('bg-gray-100', 'text-blue-600');
+      }
+      
+      console.log('Navigation updated for:', page);
 
       // Update page title
       const titles = {
@@ -1866,21 +1868,25 @@
       }
 
       // Load page content
-      // Load page content with error handling
-         try {
-           console.log('Trying to load page:', page);
-           if (pages && pages[page]) {
-             const content = pages[page]();
-             console.log('Page content generated successfully');
-             document.getElementById('page-content').innerHTML = content;
-           } else {
-             console.error('Page function not found:', page);
-             document.getElementById('page-content').innerHTML = `<div class="p-6 text-red-600">Error: Page '${page}' not found</div>`;
-           }
-         } catch (error) {
-           console.error('Error loading page:', error);
-           document.getElementById('page-content').innerHTML = `<div class="p-6 text-red-600">Error loading page: ${error.message}</div>`;
-         }
+      const contentDiv = document.getElementById('page-content');
+      if (!contentDiv) {
+        console.error('page-content div not found!');
+        return;
+      }
+      
+      if (!pages[page]) {
+        console.error('Page not found:', page, 'Available pages:', Object.keys(pages));
+        contentDiv.innerHTML = '<div class="p-8"><h1 class="text-2xl font-bold text-red-600">Error: Page not found</h1></div>';
+        return;
+      }
+      
+      try {
+        contentDiv.innerHTML = pages[page]();
+        console.log('Content loaded successfully for:', page);
+      } catch (error) {
+        console.error('Error rendering page:', error);
+        contentDiv.innerHTML = '<div class="p-8"><h1 class="text-2xl font-bold text-red-600">Error rendering page</h1><pre>' + error.message + '</pre></div>';
+      }
       
       // Initialize charts if dashboard
       if (page === 'dashboard') {
@@ -2120,9 +2126,6 @@
     });
     
     function updateUIFromEngine(engineData) {
-      // Data engine disabled temporarily
-      console.log('updateUIFromEngine called with:', engineData);
-      return;
       // Update scenario time display
       const timeEl = document.getElementById('scenario-time');
       if (timeEl && engineData.scenarioTime !== undefined) {
@@ -2210,11 +2213,11 @@
       }
       
       // Update emergence dwell ring
-      if (engineData && engineData.emergenceDwellTime !== undefined) {
+      if (engineData.emergenceDwellTime !== undefined) {
         const ring = document.getElementById('emergence-ring');
         const percent = document.getElementById('emergence-percent');
         
-        if (ring && percent) {
+        if (ring &amp;&amp; percent) {
           // Calculate progress (0-30 seconds = 0-100%)
           const progress = Math.min(1, engineData.emergenceDwellTime / 30);
           const circumference = 87.96; // 2 * PI * 14
@@ -2236,8 +2239,14 @@
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
       // Get reference to data engine
-      // dataEngine = window.yseekuDataEngine;
-        dataEngine = null;
+      dataEngine = window.yseekuDataEngine;
+      
+      // Check if data engine loaded
+      if (!dataEngine) {
+        console.error('Data engine failed to load!');
+        alert('Warning: Data engine not loaded. Scenario features will not work.');
+        return;
+      }
       
       // Setup scenario controls
       const scenarioSelector = document.getElementById('scenario-selector');
@@ -2247,7 +2256,7 @@
       
       if (scenarioSelector) {
         scenarioSelector.addEventListener('change', (e) => {
-          // dataEngine.setScenario(e.target.value);
+          dataEngine.setScenario(e.target.value);
           playBtn.classList.add('hidden');
           pauseBtn.classList.remove('hidden');
         });
@@ -2255,7 +2264,7 @@
       
       if (playBtn) {
         playBtn.addEventListener('click', () => {
-          // dataEngine.play();
+          dataEngine.play();
           playBtn.classList.add('hidden');
           pauseBtn.classList.remove('hidden');
         });
@@ -2263,7 +2272,7 @@
       
       if (pauseBtn) {
         pauseBtn.addEventListener('click', () => {
-          // dataEngine.pause();
+          dataEngine.pause();
           pauseBtn.classList.add('hidden');
           playBtn.classList.remove('hidden');
         });
@@ -2271,7 +2280,7 @@
       
       if (restartBtn) {
         restartBtn.addEventListener('click', () => {
-          // dataEngine.restart();
+          dataEngine.restart();
           playBtn.classList.add('hidden');
           pauseBtn.classList.remove('hidden');
         });
@@ -2312,86 +2321,15 @@
       if (overviewEl) {
         overviewEl.style.maxHeight = overviewEl.scrollHeight + 'px';
       }
+      console.log('DOM loaded, calling showPage(overview)');
       showPage('overview');
+      console.log('showPage(overview) completed');
       
       // Start with normal scenario
-      // dataEngine.setScenario('normal');
-      
-      // Real-time updates for workflows and trust receipts
-      setInterval(() => {
-        // Update running workflows
-        mockData.workflows.forEach(workflow => {
-          if (workflow.status === 'running') {
-            // Increment progress
-            workflow.progress = Math.min(100, workflow.progress + Math.random() * 5);
-            workflow.metrics.elapsed += 0.3;
-            
-            // Update task statuses
-            workflow.tasks.forEach((task, idx) => {
-              if (task.status === 'running' && Math.random() > 0.7) {
-                task.status = 'completed';
-                task.duration = (Math.random() * 2 + 0.5).toFixed(1);
-                workflow.metrics.tasksComplete++;
-                
-                // Start next task
-                if (idx + 1 < workflow.tasks.length) {
-                  workflow.tasks[idx + 1].status = 'running';
-                }
-              }
-            });
-            
-            // Complete workflow if all tasks done
-            if (workflow.metrics.tasksComplete === workflow.metrics.tasksTotal) {
-              workflow.status = 'completed';
-              workflow.progress = 100;
-              workflow.endTime = new Date().toISOString();
-            }
-          }
-        });
-        
-        // Generate new trust receipts occasionally
-        if (Math.random() < 0.1) {
-          const randomAgent = mockData.agents[Math.floor(Math.random() * mockData.agents.length)];
-          const newReceipt = {
-            id: `TR-2024-${String(mockData.receipts.length + 1).padStart(3, '0')}`,
-            timestamp: new Date().toISOString(),
-            agent: randomAgent.name,
-            agentId: randomAgent.id,
-            action: ['Response Generated', 'Analysis Completed', 'Decision Made', 'Check Performed'][Math.floor(Math.random() * 4)],
-            hash: Math.random().toString(16).substr(2, 32),
-            previousHash: mockData.receipts[0]?.hash || '0'.repeat(32),
-            merkleRoot: 'f9e8d7c6b5a4938271605948372615049382716',
-            verified: true,
-            chainPosition: mockData.receipts.length + 1,
-            trustScore: randomAgent.trust,
-            complianceFrameworks: ['GDPR', 'SOC2']
-          };
-          mockData.receipts.unshift(newReceipt);
-          
-          // Keep only last 10 receipts
-          if (mockData.receipts.length > 10) {
-            mockData.receipts = mockData.receipts.slice(0, 10);
-          }
-        }
-        
-        // Update workflow count badge
-        const workflowBadge = document.querySelector('a[onclick*="workflows"] .bg-green-100');
-        if (workflowBadge) {
-          const runningCount = mockData.workflows.filter(w => w.status === 'running').length;
-          workflowBadge.textContent = runningCount;
-        }
-        
-        // Refresh current page if it's workflows or agents
-        const currentPage = document.querySelector('.nav-link.active')?.getAttribute('onclick');
-        if (currentPage && (currentPage.includes('workflows') || currentPage.includes('agents'))) {
-          const pageName = currentPage.match(/showPage\('([^']+)'/)?.[1];
-          if (pageName) {
-            const content = pages[pageName]();
-            document.getElementById('main-content').innerHTML = content;
-            initCharts();
-          }
-        }
-      }, 3000);
+      if (dataEngine) {
+        console.log('Starting normal scenario');
+        dataEngine.setScenario('normal');
+      }
     });
     <!-- SYMBI Ecosystem Footer -->
     <footer style="margin-top: 60px; padding: 40px 20px; background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border-top: 2px solid #333; text-align: center;">
