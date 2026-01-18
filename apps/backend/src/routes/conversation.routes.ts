@@ -337,56 +337,8 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
 
     conversation.messages.push(userMessage);
 
-    // Evaluate trust for user message
-    try {
-      const userTrustEval = await trustService.evaluateMessage(userMessage, {
-        conversationId: conversation._id.toString(),
-        sessionId: conversation._id.toString(),
-        previousMessages: conversation.messages.slice(-11, -1), // Last 10 messages before this one
-      });
-
-      // Store trust evaluation in message metadata
-      userMessage.metadata.trustEvaluation = {
-        trustScore: userTrustEval.trustScore,
-        status: userTrustEval.status,
-        detection: userTrustEval.detection,
-        receipt: userTrustEval.receipt,
-        receiptHash: userTrustEval.receiptHash,
-      };
-
-      // Persist receipt in TrustReceipt collection (upsert)
-      try {
-        await TrustReceiptModel.updateOne(
-          { self_hash: userTrustEval.receiptHash },
-          {
-            $set: {
-              self_hash: userTrustEval.receiptHash,
-              session_id: conversation._id.toString(),
-              version: userTrustEval.receipt.version || '1.0.0',
-              timestamp: userTrustEval.timestamp,
-              mode: userTrustEval.receipt.mode || 'constitutional',
-              ciq_metrics: userTrustEval.receipt.ciq_metrics || { clarity: 0, integrity: 0, quality: 0 },
-              previous_hash: (userTrustEval.receipt as any).previous_hash,
-              signature: userTrustEval.signature,
-              tenant_id: req.userTenant || 'default',
-              issuer: userTrustEval.issuer,
-              subject: userTrustEval.subject,
-              agent_id: userMessage.agentId,
-              proof: userTrustEval.proof,
-            },
-          },
-          { upsert: true }
-        );
-      } catch (persistErr: any) {
-        console.warn('Failed to persist user trust receipt:', persistErr?.message || persistErr);
-      }
-
-      // Update message trust score (convert 0-10 to 0-5 scale)
-      userMessage.trustScore = Math.round((userTrustEval.trustScore.overall / 10) * 5 * 10) / 10;
-    } catch (trustError: any) {
-      console.error('Trust evaluation error for user message:', trustError);
-      // Continue even if trust evaluation fails
-    }
+    // User messages don't get trust evaluation - only AI responses are evaluated
+    // This ensures trust assessment is focused on AI behavior, not user input
 
     // Generate AI response if requested
     if (generateResponse) {

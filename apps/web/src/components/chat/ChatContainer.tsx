@@ -96,34 +96,9 @@ export const ChatContainer: React.FC = () => {
         // User message was saved but AI generation failed
         const userMessage = convRes.data.conversation.messages[convRes.data.conversation.messages.length - 1];
         if (userMessage && userMessage.sender === 'user') {
-          // Show user message with trust evaluation
-          const evalMeta = userMessage.metadata?.trustEvaluation;
-          const updatedUserMessage: ChatMessageProps = {
-            role: 'user',
-            content: userMessage.content,
-            evaluation: evalMeta ? {
-              trustScore: evalMeta.trustScore,
-              status: evalMeta.status,
-              detection: evalMeta.detection,
-              receipt: evalMeta.receipt,
-              receiptHash: evalMeta.receiptHash,
-              timestamp: Date.now(),
-            } : undefined,
-            timestamp: Date.now(),
-          };
-          
-          // Update the last user message with trust evaluation
-          setMessages(prev => {
-            const updated = [...prev];
-            if (updated.length > 0 && updated[updated.length - 1].role === 'user') {
-              updated[updated.length - 1] = updatedUserMessage;
-            }
-            return updated;
-          });
-          
-          // Show warning about AI response
+          // User messages don't have trust evaluation - just show the message was sent
           toast.warning('AI Response Unavailable', {
-            description: 'Your message was sent and evaluated for trust. AI response requires API key configuration.',
+            description: 'Your message was sent. AI response requires API key configuration.',
             duration: 5000,
           });
           return;
@@ -151,34 +126,9 @@ export const ChatContainer: React.FC = () => {
           };
           setMessages(prev => [...prev, assistantMessage]);
         } else if (last.sender === 'user') {
-          // This is the user message with trust evaluation
-          const evalMeta = last.metadata?.trustEvaluation;
-          const updatedUserMessage: ChatMessageProps = {
-            role: 'user',
-            content: last.content,
-            evaluation: evalMeta ? {
-              trustScore: evalMeta.trustScore,
-              status: evalMeta.status,
-              detection: evalMeta.detection,
-              receipt: evalMeta.receipt,
-              receiptHash: evalMeta.receiptHash,
-              timestamp: Date.now(),
-            } : undefined,
-            timestamp: Date.now(),
-          };
-          
-          // Update the last user message with trust evaluation
-          setMessages(prev => {
-            const updated = [...prev];
-            if (updated.length > 0 && updated[updated.length - 1].role === 'user') {
-              updated[updated.length - 1] = updatedUserMessage;
-            }
-            return updated;
-          });
-          
-          // Show info that no AI response was generated
+          // This is just a user message - no trust evaluation for user input
           toast.info('Message Sent', {
-            description: 'Your message was sent and evaluated for trust. No AI response was generated.',
+            description: 'Your message was sent. No AI response was generated.',
             duration: 3000,
           });
         }
@@ -225,43 +175,11 @@ export const ChatContainer: React.FC = () => {
             const userMessage = conversation.messages[conversation.messages.length - 1];
             
             if (userMessage && userMessage.sender === 'user') {
-              // Update the user message with trust evaluation
-              const evalMeta = userMessage.metadata?.trustEvaluation;
-              const updatedUserMessage: ChatMessageProps = {
-                role: 'user',
-                content: userMessage.content,
-                evaluation: evalMeta ? {
-                  trustScore: evalMeta.trustScore,
-                  status: evalMeta.status,
-                  detection: evalMeta.detection,
-                  receipt: evalMeta.receipt,
-                  receiptHash: evalMeta.receiptHash,
-                  timestamp: Date.now(),
-                } : undefined,
-                timestamp: Date.now(),
-              };
-              
-              // Update the last user message with trust evaluation
-              setMessages(prev => {
-                const updated = [...prev];
-                if (updated.length > 0 && updated[updated.length - 1].role === 'user') {
-                  updated[updated.length - 1] = updatedUserMessage;
-                }
-                return updated;
+              // User messages don't have trust evaluation - just confirm message was sent
+              toast.warning('AI Response Unavailable', {
+                description: 'Your message was sent. AI response requires API key configuration.',
+                duration: 5000,
               });
-              
-              // Show specific error message
-              if (errorData.error?.includes('API key not configured')) {
-                toast.warning('AI Response Unavailable', {
-                  description: 'Your message was sent and evaluated for trust. AI response requires API key configuration.',
-                  duration: 5000,
-                });
-              } else {
-                toast.warning('AI Response Failed', {
-                  description: 'Your message was sent and evaluated for trust. AI response could not be generated.',
-                  duration: 5000,
-                });
-              }
               return;
             }
           }
