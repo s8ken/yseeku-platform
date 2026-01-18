@@ -320,6 +320,15 @@ export class LLMService {
       throw new Error('Anthropic API key not configured. Please add your API key in settings.');
     }
 
+    // Map old model names to new ones for compatibility
+    const modelMapping: Record<string, string> = {
+      'claude-3-5-sonnet-20241022': 'claude-sonnet-4-20250514',
+      'claude-3-opus-20240229': 'claude-opus-4-20250514',
+      'claude-3-haiku-20240307': 'claude-3-haiku-20240307',
+    };
+    
+    const resolvedModel = modelMapping[model] || model;
+
     try {
       // Convert OpenAI format to Anthropic format
       const systemMessage = messages.find(msg => msg.role === 'system');
@@ -331,7 +340,7 @@ export class LLMService {
         }));
 
       const response = await client.messages.create({
-        model,
+        model: resolvedModel,
         max_tokens: maxTokens,
         temperature,
         system: systemMessage?.content || '',
