@@ -258,7 +258,7 @@ export default function OverridesHistoryPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item) => (
+                  {items.map((item: OverrideHistoryItem) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">
                         <Badge variant="outline">{item.actionType}</Badge>
