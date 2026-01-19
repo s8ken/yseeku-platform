@@ -1,5 +1,6 @@
 import { TrustReceiptModel } from '../models/trust-receipt.model';
 import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 // Types from Bedau Index Implementation
 export interface BedauMetrics {
@@ -218,8 +219,8 @@ export const bedauService = {
         trajectory
       };
 
-    } catch (error: any) {
-      logger.error('Error calculating Bedau metrics', { error: error.message });
+    } catch (error: unknown) {
+      logger.error('Error calculating Bedau metrics', { error: getErrorMessage(error) });
       throw error;
     }
   }

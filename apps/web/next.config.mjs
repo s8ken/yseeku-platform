@@ -7,10 +7,12 @@ const nextConfig = {
     '*.replit.dev',
   ],
   typescript: {
-    ignoreBuildErrors: true,
+    // Type checking enabled - fix errors instead of ignoring them
+    ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    // Linting enabled - fix warnings instead of ignoring them
+    ignoreDuringBuilds: false,
   },
   async headers() {
     return [

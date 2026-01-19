@@ -5,6 +5,7 @@ import { llmService } from './llm.service';
 import { trustService } from './trust.service';
 import logger from '../utils/logger';
 import { Types } from 'mongoose';
+import { getErrorMessage } from '../utils/error-utils';
 
 export class OrchestrationService {
   
@@ -122,9 +123,9 @@ export class OrchestrationService {
               // Step failed
               throw new Error(result.error || 'Step failed unknown');
             }
-          } catch (error: any) {
+          } catch (error: unknown) {
             execution.status = 'failed';
-            execution.error = `Step ${step.name} failed: ${error.message}`;
+            execution.error = `Step ${step.name} failed: ${getErrorMessage(error)}`;
             execution.endTime = new Date();
             await execution.save();
             return; // Stop execution
@@ -132,11 +133,11 @@ export class OrchestrationService {
         }
       }
 
-    } catch (error: any) {
-      logger.error(`Workflow execution error: ${error.message}`);
+    } catch (error: unknown) {
+      logger.error(`Workflow execution error: ${getErrorMessage(error)}`);
       await WorkflowExecution.findByIdAndUpdate(executionId, {
         status: 'failed',
-        error: error.message,
+        error: getErrorMessage(error),
         endTime: new Date()
       });
     }
@@ -229,14 +230,14 @@ export class OrchestrationService {
         trustScore
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         stepId: step.id,
         agentId: step.agentId,
         status: 'failed',
         input: 'error',
         output: null,
-        error: error.message,
+        error: getErrorMessage(error),
         startTime,
         endTime: new Date()
       };

@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import logger from '../utils/logger';
 import { getMetrics } from '../observability/metrics';
 import { trace } from '@opentelemetry/api';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -61,9 +62,9 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const output = await getMetrics();
     res.set('Content-Type', 'text/plain; version=0.0.4');
     res.send(output);
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Metrics generation error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
     });
     res.status(500).send('# Error generating metrics\n');
@@ -94,8 +95,8 @@ router.get('/health', async (req: Request, res: Response): Promise<void> => {
       } else {
         databaseError = 'Database not connected';
       }
-    } catch (err: any) {
-      databaseError = err.message || 'Database ping failed';
+    } catch (err: unknown) {
+      databaseError = getErrorMessage(err) || 'Database ping failed';
     }
 
     // Get memory usage
@@ -133,9 +134,9 @@ router.get('/health', async (req: Request, res: Response): Promise<void> => {
         },
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Health check error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
     });
     res.status(500).json({
@@ -146,7 +147,7 @@ router.get('/health', async (req: Request, res: Response): Promise<void> => {
       checks: {
         database: {
           status: 'down',
-          error: error.message,
+          error: getErrorMessage(error),
         },
         memory: {
           status: 'critical',
@@ -178,8 +179,8 @@ router.get('/observability/test-trace', async (req: Request, res: Response): Pro
     span.addEvent('sanity_trace_end');
     span.end();
     res.json({ success: true, message: 'Trace emitted' });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: 'Failed to emit trace', error: error.message });
+  } catch (error: unknown) {
+    res.status(500).json({ success: false, message: 'Failed to emit trace', error: getErrorMessage(error) });
   }
 });
 

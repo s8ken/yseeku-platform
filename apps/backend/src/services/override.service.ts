@@ -4,6 +4,7 @@ import { Agent } from '../models/agent.model';
 import { settingsService } from './settings.service';
 import { logAudit } from '../utils/audit-logger';
 import { Types } from 'mongoose';
+import { getErrorMessage } from '../utils/error-utils';
 
 export interface OverrideQueueItem {
   id: string;
@@ -252,7 +253,7 @@ export const overrideService = {
 
       return { success: true, reverted, details };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Log failure
       await logAudit({
         action: 'config_update',
@@ -265,7 +266,7 @@ export const overrideService = {
         details: { 
           overrideOf: action.type, 
           target: action.target, 
-          error: error.message 
+          error: getErrorMessage(error) 
         }
       });
 

@@ -14,6 +14,7 @@ import { Agent } from '../models/agent.model';
 import didService from '../services/did.service';
 import { keysService } from '../services/keys.service';
 import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -42,12 +43,12 @@ router.get('/did.json', async (req: Request, res: Response) => {
 
     return res.json(didDocument);
 
-  } catch (error: any) {
-    logger.error('Failed to generate platform DID Document', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Failed to generate platform DID Document', { error: getErrorMessage(error) });
     return res.status(500).json({
       success: false,
       error: 'Failed to generate DID Document',
-      message: error.message
+      message: getErrorMessage(error)
     });
   }
 });
@@ -104,15 +105,15 @@ router.get('/did/agents/:agentId/did.json', async (req: Request, res: Response) 
 
     return res.json(didDocument);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Failed to generate agent DID Document', {
       agentId: req.params.agentId,
-      error: error.message
+      error: getErrorMessage(error)
     });
     return res.status(500).json({
       success: false,
       error: 'Failed to generate DID Document',
-      message: error.message
+      message: getErrorMessage(error)
     });
   }
 });
@@ -166,12 +167,12 @@ router.get('/did-configuration.json', async (req: Request, res: Response) => {
 
     return res.json(configuration);
 
-  } catch (error: any) {
-    logger.error('Failed to generate DID configuration', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Failed to generate DID configuration', { error: getErrorMessage(error) });
     return res.status(500).json({
       success: false,
       error: 'Failed to generate DID configuration',
-      message: error.message
+      message: getErrorMessage(error)
     });
   }
 });
@@ -219,15 +220,15 @@ router.get('/resolve/:did', async (req: Request, res: Response) => {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('DID resolution failed', {
       did: req.params.did,
-      error: error.message
+      error: getErrorMessage(error)
     });
     return res.status(500).json({
       success: false,
       error: 'DID resolution failed',
-      message: error.message
+      message: getErrorMessage(error)
     });
   }
 });
@@ -270,12 +271,12 @@ router.get('/info', async (req: Request, res: Response) => {
       }
     });
 
-  } catch (error: any) {
-    logger.error('Failed to get DID info', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Failed to get DID info', { error: getErrorMessage(error) });
     return res.status(500).json({
       success: false,
       error: 'Failed to get DID info',
-      message: error.message
+      message: getErrorMessage(error)
     });
   }
 });

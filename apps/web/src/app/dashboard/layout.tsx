@@ -41,7 +41,8 @@ import {
   ShieldCheck,
   Bot,
   Play,
-  Brain
+  Brain,
+  Webhook
 } from 'lucide-react';
 import { useTutorialStore } from '@/store/useTutorialStore';
 import { dashboardTutorialSteps } from '@/components/tutorial/steps';
@@ -77,6 +78,7 @@ const moduleSections: ModuleSection[] = [
     badge: 'LIVE',
     items: [
       { title: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'user', 'viewer'], module: 'detect' },
+      { title: 'Live Monitor', href: '/dashboard/monitoring/live', icon: Activity, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Trust Session', href: '/dashboard/chat', icon: Sparkles, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Agents', href: '/dashboard/agents', icon: Bot, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Trust Analytics', href: '/dashboard/trust', icon: BarChart3, roles: ['admin', 'user', 'viewer'], module: 'detect' },
@@ -84,6 +86,7 @@ const moduleSections: ModuleSection[] = [
       { title: 'Agent Trust', href: '/dashboard/overview', icon: Shield, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Risk Monitor', href: '/dashboard/risk', icon: Waves, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Alerts', href: '/dashboard/alerts', icon: AlertTriangle, roles: ['admin', 'user'], module: 'detect' },
+      { title: 'Webhooks', href: '/dashboard/webhooks', icon: Webhook, roles: ['admin'], module: 'detect' },
     ]
   },
   {
@@ -93,9 +96,11 @@ const moduleSections: ModuleSection[] = [
     badge: 'SANDBOX',
     items: [
       { title: 'Experiments', href: '/dashboard/lab/experiments', icon: FlaskConical, roles: ['admin', 'user'], module: 'lab' },
+      { title: 'Model Compare', href: '/dashboard/compare', icon: Beaker, roles: ['admin', 'user'], module: 'lab' },
       { title: 'SYMBI Analysis', href: '/dashboard/lab/symbi', icon: Sparkles, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Emergence Testing', href: '/dashboard/lab/emergence', icon: TestTube2, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Bedau Index', href: '/dashboard/lab/bedau', icon: BarChart3, roles: ['admin', 'user'], module: 'lab' },
+      { title: 'Safety Scanner', href: '/dashboard/safety', icon: Shield, roles: ['admin', 'user'], module: 'lab' },
     ]
   },
   {
@@ -107,6 +112,7 @@ const moduleSections: ModuleSection[] = [
       { title: 'System Brain', href: '/dashboard/brain', icon: Brain, roles: ['admin'], module: 'orchestrate' },
       { title: 'Tenants', href: '/dashboard/tenants', icon: Building2, roles: ['admin'], module: 'orchestrate' },
       { title: 'Audit Trails', href: '/dashboard/audit', icon: FileText, roles: ['admin', 'user'], module: 'orchestrate' },
+      { title: 'Compliance Reports', href: '/dashboard/reports', icon: ClipboardList, roles: ['admin'], module: 'orchestrate' },
       { title: 'Trust Receipts', href: '/dashboard/receipts', icon: Fingerprint, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'API Gateway', href: '/dashboard/api', icon: Server, roles: ['admin'], module: 'orchestrate' },
       { title: 'Documentation', href: '/dashboard/docs', icon: Book, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },

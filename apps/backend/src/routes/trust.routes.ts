@@ -11,6 +11,7 @@ import { Conversation } from '../models/conversation.model';
 import { TrustReceipt } from '@sonate/core';
 import { didService } from '../services/did.service';
 import { llmLimiter, apiGatewayLimiter } from '../middleware/rate-limiters';
+import { getErrorMessage } from '../utils/error-utils';
 
 function validateReceiptPayload(data: any) {
   if (!data || typeof data !== 'object') return 'Payload must be an object';
@@ -89,12 +90,12 @@ router.post('/receipts', protect, llmLimiter, async (req: Request, res: Response
       saved: true,
       data: receipt,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Save receipt error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to save receipt',
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 });
@@ -172,12 +173,12 @@ router.get('/analytics', protect, apiGatewayLimiter, async (req: Request, res: R
         evaluationsCount: evaluations.length,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Trust analytics error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve trust analytics',
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 });
@@ -254,12 +255,12 @@ router.post('/evaluate', protect, llmLimiter, async (req: Request, res: Response
         principles: trustService.getPrinciples(),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Trust evaluation error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to evaluate message',
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 });
@@ -324,12 +325,12 @@ router.get('/receipts', protect, async (req: Request, res: Response): Promise<vo
         conversationId: conversation._id,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get receipts error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve trust receipts',
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 });
@@ -484,12 +485,12 @@ router.post('/receipts/:receiptHash/verify', protect, llmLimiter, async (req: Re
         },
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Verify receipt error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to verify trust receipt',
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 });
@@ -510,12 +511,12 @@ router.get('/principles', protect, async (req: Request, res: Response): Promise<
         totalWeight: Object.values(principles).reduce((sum, p) => sum + p.weight, 0),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get principles error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve principles',
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 });
@@ -540,12 +541,12 @@ router.get('/signing-key', async (req: Request, res: Response): Promise<void> =>
         format: 'hex',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get signing key error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve signing key',
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 });
@@ -608,12 +609,12 @@ router.get('/health', protect, apiGatewayLimiter, async (req: Request, res: Resp
         recommendations: generateRecommendations(avgEthicalScore, lowTrustConversations, totalConversations),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Trust health error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve trust health',
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 });
@@ -688,12 +689,12 @@ router.get('/receipts/by-did/:did', protect, async (req: Request, res: Response)
         offset: Number(offset),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get receipts by DID error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve receipts by DID',
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 });
@@ -716,12 +717,12 @@ router.get('/did-info', async (req: Request, res: Response): Promise<void> => {
         description: 'Platform DID for signing trust receipts as Verifiable Credentials',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get DID info error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve DID info',
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 });
@@ -746,9 +747,9 @@ router.get('/receipts/list', protect, apiGatewayLimiter, async (req: Request, re
       data: receipts,
       pagination: { total, limit: Number(limit), offset: Number(offset) },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('List receipts error:', error);
-    res.status(500).json({ success: false, error: 'Failed to list receipts', message: error.message });
+    res.status(500).json({ success: false, error: 'Failed to list receipts', message: getErrorMessage(error) });
   }
 });
 
@@ -769,9 +770,9 @@ router.get('/receipts/:receiptHash', protect, apiGatewayLimiter, async (req: Req
       return;
     }
     res.json({ success: true, data: receipt });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get receipt by hash error:', error);
-    res.status(500).json({ success: false, error: 'Failed to fetch receipt', message: error.message });
+    res.status(500).json({ success: false, error: 'Failed to fetch receipt', message: getErrorMessage(error) });
   }
 });
 

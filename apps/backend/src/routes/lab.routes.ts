@@ -10,6 +10,7 @@ import { twoSampleTTest, stdDev, mean } from '../utils/statistics';
 import { bedauService } from '../services/bedau.service';
 import { logSuccess, logFailure } from '../utils/audit-logger';
 import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -26,15 +27,15 @@ router.get('/bedau-metrics', protect, async (req: Request, res: Response): Promi
       success: true,
       data: metrics
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Get Bedau metrics error', {
-      error: error.message,
+      error: getErrorMessage(error),
       userId: req.userId,
     });
     res.status(500).json({
       success: false,
       message: 'Failed to calculate Bedau metrics',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -116,16 +117,16 @@ router.get('/experiments', protect, async (req: Request, res: Response): Promise
         hasMore: offsetNum + limitNum < total,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Get experiments error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
       userId: req.userId,
     });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch experiments',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -178,9 +179,9 @@ router.get('/experiments/:id', protect, async (req: Request, res: Response): Pro
         },
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Get experiment error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
       experimentId: req.params.id,
       userId: req.userId,
@@ -188,7 +189,7 @@ router.get('/experiments/:id', protect, async (req: Request, res: Response): Pro
     res.status(500).json({
       success: false,
       message: 'Failed to fetch experiment',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -298,9 +299,9 @@ router.post('/experiments', protect, async (req: Request, res: Response): Promis
         },
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Create experiment error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
       userId: req.userId,
     });
@@ -308,7 +309,7 @@ router.post('/experiments', protect, async (req: Request, res: Response): Promis
     res.status(500).json({
       success: false,
       message: 'Failed to create experiment',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -441,9 +442,9 @@ router.patch('/experiments/:id', protect, async (req: Request, res: Response): P
         },
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Update experiment error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
       experimentId: req.params.id,
       userId: req.userId,
@@ -452,7 +453,7 @@ router.patch('/experiments/:id', protect, async (req: Request, res: Response): P
     res.status(500).json({
       success: false,
       message: 'Failed to update experiment',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -565,9 +566,9 @@ router.post('/experiments/:id/record', protect, async (req: Request, res: Respon
         metrics: experiment.metrics,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Record experiment data error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
       experimentId: req.params.id,
       userId: req.userId,
@@ -575,7 +576,7 @@ router.post('/experiments/:id/record', protect, async (req: Request, res: Respon
     res.status(500).json({
       success: false,
       message: 'Failed to record data point',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -628,9 +629,9 @@ router.get('/experiments/:id/results', protect, async (req: Request, res: Respon
           : null,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Get experiment results error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
       experimentId: req.params.id,
       userId: req.userId,
@@ -638,7 +639,7 @@ router.get('/experiments/:id/results', protect, async (req: Request, res: Respon
     res.status(500).json({
       success: false,
       message: 'Failed to fetch experiment results',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -680,9 +681,9 @@ router.delete('/experiments/:id', protect, async (req: Request, res: Response): 
       success: true,
       message: 'Experiment deleted successfully',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Delete experiment error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
       experimentId: req.params.id,
       userId: req.userId,
@@ -691,7 +692,7 @@ router.delete('/experiments/:id', protect, async (req: Request, res: Response): 
     res.status(500).json({
       success: false,
       message: 'Failed to delete experiment',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });

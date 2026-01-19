@@ -4,6 +4,7 @@ import { requireScopes } from '../middleware/rbac.middleware';
 import { bindTenantContext } from '../middleware/tenant-context.middleware';
 import { overrideService } from '../services/override.service';
 import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -43,12 +44,12 @@ router.get('/queue', protect, bindTenantContext, requireTenant, requireScopes(['
       success: true,
       data: result
     });
-  } catch (error: any) {
-    logger.error('Get override queue error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Get override queue error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch override queue',
-      error: error.message
+      error: getErrorMessage(error)
     });
   }
 });
@@ -89,12 +90,12 @@ router.get('/history', protect, bindTenantContext, requireTenant, requireScopes(
       success: true,
       data: result
     });
-  } catch (error: any) {
-    logger.error('Get override history error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Get override history error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch override history',
-      error: error.message
+      error: getErrorMessage(error)
     });
   }
 });
@@ -148,12 +149,12 @@ router.post('/decide', protect, bindTenantContext, requireTenant, requireScopes(
       success: true,
       data: result
     });
-  } catch (error: any) {
-    logger.error('Process override decision error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Process override decision error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to process override decision',
-      error: error.message
+      error: getErrorMessage(error)
     });
   }
 });
@@ -171,12 +172,12 @@ router.get('/stats', protect, bindTenantContext, requireTenant, requireScopes(['
       success: true,
       data: stats
     });
-  } catch (error: any) {
-    logger.error('Get override stats error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Get override stats error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch override statistics',
-      error: error.message
+      error: getErrorMessage(error)
     });
   }
 });
@@ -230,8 +231,8 @@ router.post('/bulk', protect, bindTenantContext, requireTenant, requireScopes(['
           tenantId
         });
         results.push({ actionId, ...result, processed: true });
-      } catch (error: any) {
-        errors.push({ actionId, error: error.message });
+      } catch (error: unknown) {
+        errors.push({ actionId, error: getErrorMessage(error) });
       }
     }
 
@@ -244,12 +245,12 @@ router.post('/bulk', protect, bindTenantContext, requireTenant, requireScopes(['
         errors
       }
     });
-  } catch (error: any) {
-    logger.error('Bulk override error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Bulk override error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to process bulk overrides',
-      error: error.message
+      error: getErrorMessage(error)
     });
   }
 });

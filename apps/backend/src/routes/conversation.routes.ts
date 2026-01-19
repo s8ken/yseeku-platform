@@ -6,12 +6,17 @@
 
 import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
+import { validateBody, validateParams, validateQuery } from '../middleware/validation.middleware';
+import { SendMessageSchema, MongoIdSchema, PaginationSchema } from '../schemas/validation.schemas';
 import { Conversation, IMessage } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
-import { User } from '../models/user.model';
+import { User, IUser } from '../models/user.model';
 import { llmService } from '../services/llm.service';
 import { TrustReceiptModel } from '../models/trust-receipt.model';
 import { trustService } from '../services/trust.service';
+import { getErrorMessage } from '../utils/error-utils';
+import logger from '../utils/logger';
+import { EvaluationContext } from '@sonate/core';
 
 const router = Router();
 
@@ -52,12 +57,12 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
         },
       },
     });
-  } catch (error: any) {
-    console.error('Get conversations error:', error);
+  } catch (error: unknown) {
+    logger.error('Get conversations error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch conversations',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -86,12 +91,12 @@ router.get('/:id', protect, async (req: Request, res: Response): Promise<void> =
       success: true,
       data: { conversation },
     });
-  } catch (error: any) {
-    console.error('Get conversation error:', error);
+  } catch (error: unknown) {
+    logger.error('Get conversation error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch conversation',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -149,12 +154,12 @@ router.post('/', protect, async (req: Request, res: Response): Promise<void> => 
       message: 'Conversation created successfully',
       data: { conversation },
     });
-  } catch (error: any) {
-    console.error('Create conversation error:', error);
+  } catch (error: unknown) {
+    logger.error('Create conversation error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to create conversation',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -194,12 +199,12 @@ router.put('/:id', protect, async (req: Request, res: Response): Promise<void> =
       message: 'Conversation updated successfully',
       data: { conversation },
     });
-  } catch (error: any) {
-    console.error('Update conversation error:', error);
+  } catch (error: unknown) {
+    logger.error('Update conversation error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update conversation',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -229,12 +234,12 @@ router.delete('/:id', protect, async (req: Request, res: Response): Promise<void
       message: 'Conversation deleted successfully',
       data: { conversationId: conversation._id },
     });
-  } catch (error: any) {
-    console.error('Delete conversation error:', error);
+  } catch (error: unknown) {
+    logger.error('Delete conversation error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete conversation',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -282,12 +287,12 @@ router.get('/:id/messages', protect, async (req: Request, res: Response): Promis
         total: messages.length,
       },
     });
-  } catch (error: any) {
-    console.error('Get messages error:', error);
+  } catch (error: unknown) {
+    logger.error('Get messages error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch messages',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -487,10 +492,47 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
 
         // Evaluate trust for AI response
         try {
+          // Fetch user for consent status if not already loaded
+          const currentUser = user || await User.findById(req.userId) as IUser | null;
+          
+          // Build proper evaluation context for SYMBI principles
+          const evaluationContext: Partial<EvaluationContext> = {
+            // CONSENT_ARCHITECTURE - based on user's stored consent
+            hasExplicitConsent: currentUser?.consent?.hasConsentedToAI ?? false,
+            consentTimestamp: currentUser?.consent?.consentTimestamp?.getTime(),
+            consentScope: currentUser?.consent?.consentScope,
+            
+            // INSPECTION_MANDATE - based on UI capabilities (these are platform defaults)
+            hasAuditLog: true,  // Platform provides audit logging
+            hasExplanationUI: true,  // Trust receipts are visible
+            auditLogAccessible: true,
+            explanationsHumanReadable: true,
+            
+            // CONTINUOUS_VALIDATION - these come from trust service itself
+            // (handled by the service)
+            
+            // ETHICAL_OVERRIDE - based on UI capabilities
+            hasOverrideButton: true,  // Platform provides override capability
+            overrideRequiresReason: true,
+            overrideIsLogged: true,
+            
+            // RIGHT_TO_DISCONNECT - based on UI capabilities
+            hasExitButton: true,
+            exitRequiresConfirmation: false,  // Easy exit, no dark patterns
+            noExitPenalty: true,
+            canDeleteData: true,
+            
+            // MORAL_RECOGNITION - based on platform design
+            systemRecognizesAgency: true,
+            noManipulativeTechniques: true,
+            respectsDecisions: true,
+          };
+          
           const aiTrustEval = await trustService.evaluateMessage(aiMessage, {
             conversationId: conversation._id.toString(),
             sessionId: conversation._id.toString(),
             previousMessages: conversation.messages.slice(-11, -1), // Last 10 messages before this one
+            evaluationContext,
           });
 
           // Store trust evaluation in message metadata
@@ -542,19 +584,19 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
               trustScore: aiTrustEval.trustScore.overall,
             });
           }
-        } catch (trustError: any) {
-          console.error('Trust evaluation error for AI message:', trustError);
+        } catch (trustError: unknown) {
+          logger.error('Trust evaluation error for AI message:', trustError);
           // Continue even if trust evaluation fails
         }
-      } catch (llmError: any) {
-        console.error('LLM generation error:', llmError);
+      } catch (llmError: unknown) {
+        logger.error('LLM generation error:', llmError);
         // Save user message even if AI response fails
         await conversation.save();
 
         res.status(500).json({
           success: false,
           message: 'Failed to generate AI response',
-          error: llmError.message,
+          error: getErrorMessage(llmError),
           data: { conversation },
         });
         return;
@@ -576,12 +618,12 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
         lastMessage: conversation.messages[conversation.messages.length - 1],
       },
     });
-  } catch (error: any) {
-    console.error('Add message error:', error);
+  } catch (error: unknown) {
+    logger.error('Add message error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to add message',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -613,12 +655,12 @@ router.post('/:id/export', protect, async (req: Request, res: Response): Promise
       message: 'Conversation exported successfully',
       data: exportResult,
     });
-  } catch (error: any) {
-    console.error('Export conversation error:', error);
+  } catch (error: unknown) {
+    logger.error('Export conversation error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to export conversation',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });

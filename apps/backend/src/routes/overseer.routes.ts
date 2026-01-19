@@ -11,6 +11,7 @@ import { settingsService } from '../services/settings.service';
 import { logAudit } from '../utils/audit-logger';
 import { sonateOverridesTotal } from '../observability/metrics';
 import { bindTenantContext } from '../middleware/tenant-context.middleware';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -29,8 +30,8 @@ router.post('/init', protect, requireTenant, requireScopes(['overseer:plan']), a
       message: 'Overseer initialized',
       data: agent
     });
-  } catch (error: any) {
-    logger.error('Overseer init error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Overseer init error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, message: 'Failed to initialize Overseer' });
   }
 });
@@ -46,7 +47,7 @@ router.post('/think', protect, requireTenant, requireScopes(['overseer:plan']), 
     
     // Fire and forget - don't hold the request
     systemBrain.think(userTenant, mode).catch(err => {
-      logger.error('Background thinking error', { error: err.message });
+      logger.error('Background thinking error', { error: getErrorMessage(err) });
     });
 
     res.json({
@@ -54,8 +55,8 @@ router.post('/think', protect, requireTenant, requireScopes(['overseer:plan']), 
       message: 'Overseer thinking cycle started',
       mode
     });
-  } catch (error: any) {
-    logger.error('Overseer think error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Overseer think error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, message: 'Failed to initialize Overseer' });
   }
 });
@@ -65,8 +66,8 @@ router.get('/cycles', protect, requireTenant, requireScopes(['overseer:read']), 
     const tenant = req.userTenant || 'default';
     const cycles = await BrainCycle.find({ tenantId: tenant }).sort({ startedAt: -1 }).limit(50);
     res.json({ success: true, data: cycles });
-  } catch (error: any) {
-    logger.error('Overseer list cycles error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Overseer list cycles error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, message: 'Failed to list cycles' });
   }
 });
@@ -77,8 +78,8 @@ router.get('/cycles/:id', protect, requireTenant, requireScopes(['overseer:read'
     if (!cycle) { res.status(404).json({ success: false, message: 'Not found' }); return; }
     const actions = await BrainAction.find({ cycleId: cycle._id }).sort({ createdAt: -1 });
     res.json({ success: true, data: { cycle, actions } });
-  } catch (error: any) {
-    logger.error('Overseer get cycle error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Overseer get cycle error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, message: 'Failed to get cycle' });
   }
 });
@@ -88,8 +89,8 @@ router.post('/actions/:id/approve', protect, requireTenant, requireScopes(['over
     const action = await BrainAction.findByIdAndUpdate(req.params.id, { status: 'approved', approvedBy: (req as any).userEmail || 'system' }, { new: true });
     if (!action) { res.status(404).json({ success: false, message: 'Not found' }); return; }
     res.json({ success: true, data: action });
-  } catch (error: any) {
-    logger.error('Overseer approve action error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Overseer approve action error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, message: 'Failed to approve action' });
   }
 });
@@ -161,8 +162,8 @@ router.post('/actions/:id/override', protect, bindTenantContext, requireTenant, 
     sonateOverridesTotal.inc({ status: reverted ? 'approved' : 'partial', tenant_id: tenantId })
 
     res.json({ success: true, data: { overridden: true, reverted, details } });
-  } catch (error: any) {
-    logger.error('Overseer override action error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Overseer override action error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, message: 'Failed to override action' });
   }
 });
@@ -214,8 +215,8 @@ router.get('/status', protect, requireTenant, async (req: Request, res: Response
         lastCycleId: lastCycle?._id?.toString(),
       }
     });
-  } catch (error: any) {
-    logger.error('Overseer status error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Overseer status error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, message: 'Failed to get status' });
   }
 });

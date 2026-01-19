@@ -10,6 +10,8 @@ import { requireScopes } from '../middleware/rbac.middleware';
 import { llmLimiter } from '../middleware/rate-limiters';
 import { cacheGet, cacheSet } from '../services/cache.service';
 import { llmService, LLM_PROVIDERS } from '../services/llm.service';
+import { getErrorMessage } from '../utils/error-utils';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -29,12 +31,12 @@ router.get('/providers', protect, requireScopes(['read:all']), llmLimiter, async
       success: true,
       data: { providers },
     });
-  } catch (error: any) {
-    console.error('Get providers error:', error);
+  } catch (error: unknown) {
+    logger.error('Get providers error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch providers',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -59,11 +61,11 @@ router.get('/models/:provider', protect, requireScopes(['read:all']), llmLimiter
         models,
       },
     });
-  } catch (error: any) {
-    console.error('Get models error:', error);
-    res.status(error.message.includes('not found') ? 404 : 500).json({
+  } catch (error: unknown) {
+    logger.error('Get models error:', error);
+    res.status(getErrorMessage(error).includes('not found') ? 404 : 500).json({
       success: false,
-      message: error.message,
+      message: getErrorMessage(error),
     });
   }
 });
@@ -107,14 +109,14 @@ router.post('/generate', protect, requireScopes(['llm:generate']), llmLimiter, a
         provider: response.provider,
       },
     });
-  } catch (error: any) {
-    console.error('LLM generation error:', error);
+  } catch (error: unknown) {
+    logger.error('LLM generation error:', error);
 
     // Handle specific error types
-    if (error.message.includes('API key not configured')) {
+    if (getErrorMessage(error).includes('API key not configured')) {
       res.status(401).json({
         success: false,
-        message: error.message,
+        message: getErrorMessage(error),
         requiresApiKey: true,
       });
       return;
@@ -123,7 +125,7 @@ router.post('/generate', protect, requireScopes(['llm:generate']), llmLimiter, a
     res.status(500).json({
       success: false,
       message: 'Failed to generate response',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -190,12 +192,12 @@ router.post('/stream', protect, requireScopes(['llm:generate']), llmLimiter, asy
       res.write(`data: ${JSON.stringify({ error: streamError.message })}\n\n`);
       res.end();
     }
-  } catch (error: any) {
-    console.error('LLM streaming error:', error);
+  } catch (error: unknown) {
+    logger.error('LLM streaming error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to initialize stream',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -251,14 +253,14 @@ router.post('/code-review', protect, requireScopes(['llm:code-review']), llmLimi
         timestamp: new Date().toISOString(),
       },
     });
-  } catch (error: any) {
-    console.error('Code review error:', error);
+  } catch (error: unknown) {
+    logger.error('Code review error:', error);
 
     // Handle API key errors
-    if (error.message.includes('API key not configured')) {
+    if (getErrorMessage(error).includes('API key not configured')) {
       res.status(401).json({
         success: false,
-        message: error.message,
+        message: getErrorMessage(error),
         requiresApiKey: true,
       });
       return;
@@ -267,7 +269,7 @@ router.post('/code-review', protect, requireScopes(['llm:code-review']), llmLimi
     res.status(500).json({
       success: false,
       message: 'Failed to perform code review',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -335,12 +337,12 @@ router.post('/chat', protect, requireScopes(['llm:generate']), llmLimiter, async
         provider: response.provider,
       },
     });
-  } catch (error: any) {
-    console.error('Chat error:', error);
+  } catch (error: unknown) {
+    logger.error('Chat error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to process chat message',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });

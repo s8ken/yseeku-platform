@@ -7,6 +7,7 @@ import { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import { SecureAuthService } from '@sonate/core';
 import { User, IUser } from '../models/user.model';
+import { getErrorMessage } from '../utils/error-utils';
 
 // Extend Express Request type to include user
 declare global {
@@ -159,9 +160,9 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
 
     console.log(`[Auth:${requestId}] Auth successful for ${user.email}`);
     next();
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`[Auth:${requestId}] CRITICAL AUTH ERROR:`, {
-      message: error.message,
+      message: getErrorMessage(error),
       stack: error.stack,
       name: error.name
     });
@@ -170,8 +171,8 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     if (!res.headersSent) {
       res.status(500).json({
         success: false,
-        message: `Authentication middleware error: ${error.message}`,
-        error: error.message,
+        message: `Authentication middleware error: ${getErrorMessage(error)}`,
+        error: getErrorMessage(error),
         details: error.stack,
         requestId
       });

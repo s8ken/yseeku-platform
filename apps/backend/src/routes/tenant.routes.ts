@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { protect, requireAdmin } from '../middleware/auth.middleware';
 import { Tenant } from '../models/tenant.model';
 import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -31,12 +32,12 @@ router.get('/', protect, async (req: Request, res: Response) => {
       },
       source: 'database',
     });
-  } catch (error: any) {
-    logger.error('Get tenants error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Get tenants error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch tenants',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -61,12 +62,12 @@ router.get('/:id', protect, async (req: Request, res: Response): Promise<void> =
       success: true,
       data: tenant,
     });
-  } catch (error: any) {
-    logger.error('Get tenant error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Get tenant error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch tenant',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -102,12 +103,12 @@ router.post('/', protect, async (req: Request, res: Response) => {
       data: tenant,
       source: 'database',
     });
-  } catch (error: any) {
-    logger.error('Create tenant error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Create tenant error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to create tenant',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -143,12 +144,12 @@ router.put('/:id', protect, async (req: Request, res: Response): Promise<void> =
       success: true,
       data: tenant,
     });
-  } catch (error: any) {
-    logger.error('Update tenant error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Update tenant error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to update tenant',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -175,12 +176,12 @@ router.delete('/:id', protect, requireAdmin, async (req: Request, res: Response)
       success: true,
       message: 'Tenant deleted successfully',
     });
-  } catch (error: any) {
-    logger.error('Delete tenant error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Delete tenant error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to delete tenant',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });

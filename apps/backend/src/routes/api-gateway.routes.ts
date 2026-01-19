@@ -12,6 +12,7 @@ import { logSuccess, logFailure } from '../utils/audit-logger';
 import logger from '../utils/logger';
 import { requireScopes } from '../middleware/rbac.middleware';
 import { apiGatewayLimiter } from '../middleware/rate-limiters';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -54,12 +55,12 @@ router.get('/keys', protect, requireScopes(['gateway:manage']), apiGatewayLimite
         })),
       },
     });
-  } catch (error: any) {
-    logger.error('List API keys error', { error: error.message, userId: req.userId });
+  } catch (error: unknown) {
+    logger.error('List API keys error', { error: getErrorMessage(error), userId: req.userId });
     res.status(500).json({
       success: false,
       message: 'Failed to list API keys',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -129,12 +130,12 @@ router.post('/keys', protect, requireScopes(['gateway:manage']), apiGatewayLimit
         },
       },
     });
-  } catch (error: any) {
-    logger.error('Create API key error', { error: error.message, userId: req.userId });
+  } catch (error: unknown) {
+    logger.error('Create API key error', { error: getErrorMessage(error), userId: req.userId });
     res.status(500).json({
       success: false,
       message: 'Failed to create API key',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -174,12 +175,12 @@ router.delete('/keys/:id', protect, requireScopes(['gateway:manage']), apiGatewa
       success: true,
       message: 'API Key revoked successfully',
     });
-  } catch (error: any) {
-    logger.error('Revoke API key error', { error: error.message, userId: req.userId });
+  } catch (error: unknown) {
+    logger.error('Revoke API key error', { error: getErrorMessage(error), userId: req.userId });
     res.status(500).json({
       success: false,
       message: 'Failed to revoke API key',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -225,12 +226,12 @@ router.put('/keys/:id', protect, requireScopes(['gateway:manage']), apiGatewayLi
         },
       },
     });
-  } catch (error: any) {
-    logger.error('Update API key error', { error: error.message, userId: req.userId });
+  } catch (error: unknown) {
+    logger.error('Update API key error', { error: getErrorMessage(error), userId: req.userId });
     res.status(500).json({
       success: false,
       message: 'Failed to update API key',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });

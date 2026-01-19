@@ -14,6 +14,8 @@ import { trustService } from '../services/trust.service';
 import { allow } from './rate-limit';
 import { recordSocketEvent } from '../observability/socket-metrics';
 import { tracer, withSpan } from '../observability/tracing';
+import { logger } from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -42,15 +44,15 @@ export function initializeSocket(io: SocketIOServer): void {
       socket.username = payload.username;
 
       next();
-    } catch (error: any) {
-      console.error('Socket authentication error:', error.message);
+    } catch (error: unknown) {
+      logger.error('Socket authentication error', { error: getErrorMessage(error) });
       next(new Error('Authentication failed'));
     }
   });
 
   // Connection handler
   io.on('connection', (socket: AuthenticatedSocket) => {
-    console.log(`🔌 User connected: ${socket.username} (${socket.userId})`);
+    logger.info(`🔌 User connected: ${socket.username} (${socket.userId})`);
 
     // Join user's personal room for private notifications
     socket.join(`user:${socket.userId}`);
@@ -77,9 +79,9 @@ export function initializeSocket(io: SocketIOServer): void {
           messageCount: conversation.messages.length,
         });
 
-        console.log(`User ${socket.username} joined conversation: ${conversationId}`);
-      } catch (error: any) {
-        console.error('Join conversation error:', error);
+        logger.info(`User ${socket.username} joined conversation: ${conversationId}`);
+      } catch (error: unknown) {
+        logger.error('Join conversation error', { error: getErrorMessage(error) });
         socket.emit('error', { message: 'Failed to join conversation' });
       }
     });
@@ -90,7 +92,7 @@ export function initializeSocket(io: SocketIOServer): void {
     socket.on('leave:conversation', (conversationId: string) => {
       socket.leave(`conversation:${conversationId}`);
       socket.emit('left:conversation', { conversationId });
-      console.log(`User ${socket.username} left conversation: ${conversationId}`);
+      logger.info(`User ${socket.username} left conversation: ${conversationId}`);
     });
 
     /**
@@ -156,8 +158,8 @@ export function initializeSocket(io: SocketIOServer): void {
             receiptHash: userTrustEval.receiptHash,
           };
           userMessage.trustScore = Math.round((userTrustEval.trustScore.overall / 10) * 5 * 10) / 10;
-        } catch (trustError: any) {
-          console.error('Trust evaluation error (Socket.IO user message):', trustError);
+        } catch (trustError: unknown) {
+          logger.error('Trust evaluation error (Socket.IO user message)', { error: getErrorMessage(trustError) });
         }
 
         await conversation.save();
@@ -260,8 +262,8 @@ export function initializeSocket(io: SocketIOServer): void {
                   trustScore: aiTrustEval.trustScore.overall,
                 });
               }
-            } catch (trustError: any) {
-              console.error('Trust evaluation error (Socket.IO AI message):', trustError);
+            } catch (trustError: unknown) {
+              logger.error('Trust evaluation error (Socket.IO AI message)', { error: getErrorMessage(trustError) });
             }
 
             conversation.lastActivity = new Date();
@@ -278,8 +280,8 @@ export function initializeSocket(io: SocketIOServer): void {
               conversationId,
               message: aiMessage,
             });
-          } catch (llmError: any) {
-            console.error('LLM generation error:', llmError);
+          } catch (llmError: unknown) {
+            logger.error('LLM generation error', { error: getErrorMessage(llmError) });
 
             // Stop typing indicator
             io.to(`conversation:${conversationId}`).emit('agent:stopped-typing', {
@@ -288,12 +290,12 @@ export function initializeSocket(io: SocketIOServer): void {
 
             socket.emit('error', {
               message: 'Failed to generate AI response',
-              error: llmError.message,
+              error: getErrorMessage(llmError),
             });
           }
         }
-      } catch (error: any) {
-        console.error('Send message error:', error);
+      } catch (error: unknown) {
+        logger.error('Send message error', { error: getErrorMessage(error) });
         socket.emit('error', { message: 'Failed to send message' });
       }
     });
@@ -320,7 +322,7 @@ export function initializeSocket(io: SocketIOServer): void {
      * Disconnect handler
      */
     socket.on('disconnect', () => {
-      console.log(`🔌 User disconnected: ${socket.username} (${socket.userId})`);
+      logger.info(`🔌 User disconnected: ${socket.username} (${socket.userId})`);
     });
   });
 }

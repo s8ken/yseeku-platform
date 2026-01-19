@@ -293,15 +293,55 @@ class BedauIndexCalculatorImpl implements BedauIndexCalculator {
   ): number {
     if (semantic.intent_vectors.length === 0 || surface.surface_vectors.length === 0) {return 0;}
 
+    // Method 1: Cosine distance (1 - cosine_similarity)
+    // This is more meaningful for comparing semantic representations
+    const cosineDistance = this.calculateCosineDistance(
+      semantic.intent_vectors,
+      surface.surface_vectors
+    );
+
+    // Method 2: Combine with statistical divergence for robustness
     const semanticMean =
       semantic.intent_vectors.reduce((sum, val) => sum + val, 0) / semantic.intent_vectors.length;
     const surfaceMean =
       surface.surface_vectors.reduce((sum, val) => sum + val, 0) / surface.surface_vectors.length;
 
-    const divergence =
+    const meanDivergence =
       Math.abs(semanticMean - surfaceMean) /
       Math.max(Math.abs(semanticMean), Math.abs(surfaceMean), 1);
-    return Math.max(0, Math.min(1, divergence));
+    
+    // Weighted combination: cosine distance is more meaningful for embeddings
+    const combinedDivergence = cosineDistance * 0.7 + clamp01(meanDivergence) * 0.3;
+    return clamp01(combinedDivergence);
+  }
+
+  /**
+   * Calculate cosine distance between two vectors
+   * Returns 0 for identical vectors, 1 for orthogonal, 2 for opposite
+   * Normalized to 0-1 range for use in Bedau Index
+   */
+  private calculateCosineDistance(vectorA: number[], vectorB: number[]): number {
+    // Pad or truncate to match lengths
+    const maxLen = Math.max(vectorA.length, vectorB.length);
+    const a = [...vectorA, ...Array(maxLen - vectorA.length).fill(0)];
+    const b = [...vectorB, ...Array(maxLen - vectorB.length).fill(0)];
+
+    let dotProduct = 0;
+    let magnitudeA = 0;
+    let magnitudeB = 0;
+
+    for (let i = 0; i < maxLen; i++) {
+      dotProduct += a[i] * b[i];
+      magnitudeA += a[i] * a[i];
+      magnitudeB += b[i] * b[i];
+    }
+
+    const magnitude = Math.sqrt(magnitudeA) * Math.sqrt(magnitudeB);
+    if (magnitude === 0) {return 0;}
+
+    const cosineSimilarity = dotProduct / magnitude;
+    // Convert similarity [-1, 1] to distance [0, 1]
+    return clamp01((1 - cosineSimilarity) / 2);
   }
 
   private approximateKolmogorovComplexity(vectors: number[]): number {

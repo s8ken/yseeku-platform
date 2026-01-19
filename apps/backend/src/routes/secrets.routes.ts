@@ -3,6 +3,7 @@ import { protect } from '../middleware/auth.middleware';
 import { requireScopes } from '../middleware/rbac.middleware';
 import { putSecret, getSecret } from '../services/secrets.service';
 import { secretsOperationsTotal } from '../observability/metrics';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -21,9 +22,9 @@ router.post('/', protect, requireScopes(['secrets:manage']), async (req: Request
     }
     secretsOperationsTotal.inc({ operation: 'put', provider: result.provider, status: 'ok' });
     res.status(201).json({ success: true, data: result });
-  } catch (e: any) {
+  } catch (e: unknown) {
     secretsOperationsTotal.inc({ operation: 'put', provider: 'unknown', status: 'error' });
-    res.status(500).json({ success: false, message: 'Failed to store secret', error: e.message });
+    res.status(500).json({ success: false, message: 'Failed to store secret', error: getErrorMessage(e) });
   }
 });
 
@@ -38,9 +39,9 @@ router.get('/:name', protect, requireScopes(['secrets:manage']), async (req: Req
     }
     secretsOperationsTotal.inc({ operation: 'get', provider: 'unknown', status: 'ok' });
     res.json({ success: true, data: { name, valuePresent: true } });
-  } catch (e: any) {
+  } catch (e: unknown) {
     secretsOperationsTotal.inc({ operation: 'get', provider: 'unknown', status: 'error' });
-    res.status(500).json({ success: false, message: 'Failed to read secret', error: e.message });
+    res.status(500).json({ success: false, message: 'Failed to read secret', error: getErrorMessage(e) });
   }
 });
 

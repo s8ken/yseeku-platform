@@ -7,6 +7,7 @@ import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import { Conversation } from '../models/conversation.model';
 import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -141,16 +142,16 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
       },
       summary,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Get risk events error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
       userId: req.userId,
     });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch risk events',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -197,9 +198,9 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
         resolvedAt: new Date().toISOString(),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Resolve risk event error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
       userId: req.userId,
       eventId: req.params.id,
@@ -207,7 +208,7 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
     res.status(500).json({
       success: false,
       message: 'Failed to resolve risk event',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });

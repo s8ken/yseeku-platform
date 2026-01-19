@@ -26,6 +26,13 @@ export interface IUser extends Document {
     theme: 'light' | 'dark' | 'system';
     notifications: boolean;
   };
+  // SYMBI Consent tracking for CONSENT_ARCHITECTURE principle
+  consent: {
+    hasConsentedToAI: boolean;
+    consentTimestamp?: Date;
+    consentScope: string[];  // e.g., ['chat', 'analysis', 'recommendations']
+    canWithdrawAnytime: boolean;
+  };
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
   createdAt: Date;
@@ -96,6 +103,24 @@ const UserSchema = new Schema<IUser>({
       default: 'system',
     },
     notifications: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  // SYMBI Consent tracking for CONSENT_ARCHITECTURE principle
+  consent: {
+    hasConsentedToAI: {
+      type: Boolean,
+      default: false,
+    },
+    consentTimestamp: {
+      type: Date,
+    },
+    consentScope: {
+      type: [String],
+      default: [],
+    },
+    canWithdrawAnytime: {
       type: Boolean,
       default: true,
     },

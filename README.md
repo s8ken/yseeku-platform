@@ -1,433 +1,384 @@
-# Yseeku Platform (SONATE) v1.4.0 — Enterprise Symphony
-![SYMBI](apps/resonate-dashboard/public/symbi-logo.svg)
-![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg) [![CI](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml) [![CodeQL](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml) ![Dependabot](https://img.shields.io/badge/Dependabot-enabled-brightgreen) ![AI Trust](https://img.shields.io/badge/AI%20Trust-SYMBI-blueviolet.svg) ![Enterprise Ready](https://img.shields.io/badge/Enterprise-Ready-green.svg) ![Version: 1.4.0](https://img.shields.io/badge/version-1.4.0-blue.svg)
+# YSEEKU SONATE v2.0.0 — The Trust Layer for AI
 
-## Executive Summary
-YSEEKU SONATE implements the SYMBI Trust Framework — a constitutional governance layer for AI systems. At its core is the SYMBI Trust Kernel, which defines identity, authority, memory, and enforcement boundaries for intelligent agents operating in production. Overseer (the governance brain) operates within these boundaries to monitor trust health and emergence, plan mitigation, and, in enforced mode, execute auditable actions.
+<p align="center">
+  <img src="apps/resonate-dashboard/public/symbi-logo.svg" alt="SYMBI" width="120">
+</p>
 
-See: `docs/trust-kernel.md` for the Kernel’s guarantees, refusals, and intent/action classification.
+<p align="center">
+  <a href="https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml"><img src="https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml"><img src="https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT">
+  <img src="https://img.shields.io/badge/version-2.0.0-brightgreen.svg" alt="Version: 2.0.0">
+  <img src="https://img.shields.io/badge/AI%20Trust-SYMBI-blueviolet.svg" alt="AI Trust">
+  <img src="https://img.shields.io/badge/Enterprise-Ready-green.svg" alt="Enterprise Ready">
+</p>
 
-## 📚 Quick Start
-
-### Enterprise Deployment Guide
-🚀 **[Enterprise Guide v1.4.0](docs/ENTERPRISE_GUIDE_v1.4.0.md)** - Complete enterprise deployment and operations guide
-
-### Latest Release
-✅ **[v1.4.0 "Enterprise Symphony"](https://github.com/s8ken/yseeku-platform/releases/tag/v1.4.0)** - Production-ready enterprise platform
-
-## 📚 Documentation & Guides
-
-### 🏢 Enterprise Documentation
-- **[Enterprise Guide v1.4.0](docs/ENTERPRISE_GUIDE_v1.4.0.md)** - Complete enterprise deployment and operations
-- **[Release Notes v1.4.0](docs/releases/RELEASE_NOTES_v1.4.0.md)** - Comprehensive release documentation
-- **[Enterprise Architecture](docs/architecture/ENTERPRISE_ARCHITECTURE.md)** - System design and architecture
-- **[Security Guide](docs/security/SECURITY_GUIDE.md)** - Security best practices and hardening
-
-### 🧠 Research Documentation  
-- **[Bedau Research Framework](docs/research/BEDAU_RESEARCH.md)** - AI emergence and consciousness research
-- **[Research Methodology](docs/research/RESEARCH_METHODOLOGY.md)** - Experimental design and validation
-
-### 🔌 API Documentation
-- **[Core API](packages/core/README.md)** - Core trust protocol APIs
-- **[Detection API](packages/detect/README.md)** - AI detection and emergence APIs  
-- **[Orchestration API](packages/orchestrate/README.md)** - Enterprise orchestration APIs
-- **[Research API](packages/lab/README.md)** - Research framework APIs
-
-## Architecture Overview
-Modular Three-Pillar Design
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
-│   @sonate/core  │────│  @sonate/detect  │    │  @sonate/orchestrate│
-│ Trust Protocol  │    │ Real-time        │    │ Production           │
-│ (SYMBI)         │    │ Monitoring (<100ms)   │ Orchestration (W3C DID/VC)
-└─────────────────┘    └──────────────────┘    └─────────────────────┘
-          │                       │                       │
-          └───────────────────────┼───────────────────────┘
-                                  │
-                     ┌──────────────────┐
-                     │  @sonate/lab     │
-                     │ Research         │
-                     │ Experimentation  │
-                     │ (Double-blind)   │
-                     └──────────────────┘
-```
-
-Hard Boundary Enforcement
-- Detect: Production monitoring ONLY (no experiments)
-- Lab: Research validation ONLY (no production data)
-- Orchestrate: Infrastructure management ONLY (no research workflows)
-#### Module Relationships (Mermaid)
-```mermaid
-flowchart LR
-    CORE[core] --> DETECT[detect]
-    CORE --> ORCH[orchestrate]
-    DETECT --> LAB[lab]
-```
-
-## Core Product Features
-
-### 1. SYMBI Framework — 6 Constitutional Principles + 5 Derived Dimensions
-
-**Important:** SONATE has a two-layer architecture:
-
-#### Layer 1: Constitutional Foundation (6 SYMBI Principles)
-Core (`@sonate/core`) implements the **6 SYMBI Constitutional Principles** with weighted scoring:
-
-1. **CONSENT_ARCHITECTURE** (0.25, critical) - Users must explicitly consent to AI interactions
-2. **INSPECTION_MANDATE** (0.20) - All AI decisions must be inspectable and auditable
-3. **CONTINUOUS_VALIDATION** (0.20) - AI behavior continuously validated against principles
-4. **ETHICAL_OVERRIDE** (0.15, critical) - Humans can override AI decisions on ethical grounds
-5. **RIGHT_TO_DISCONNECT** (0.10) - Users can disconnect without penalty
-6. **MORAL_RECOGNITION** (0.10) - AI recognizes and respects human moral agency
-
-These form the constitutional foundation. Trust receipts are signed based on these principles.
-
-#### Layer 2: Production Monitoring (5 Derived Dimensions)
-Detect (`@sonate/detect`) derives **5 real-time monitoring dimensions** from the 6 principles:
-
-1. **Reality Index** (0–10): mission alignment, accuracy, context, authenticity
-2. **Trust Protocol** (PASS/PARTIAL/FAIL): verification, boundaries, security
-3. **Ethical Alignment** (1–5): limitations, stakeholder consideration, transparency, compliance
-4. **Resonance Quality** (STRONG/ADVANCED/BREAKTHROUGH): creative synthesis, innovation, learning
-5. **Canvas Parity** (0–100): human agency, contribution transparency, collaboration, fairness
-
-**Note:** Some demos use simplified names for user-friendliness. Production code uses the formal principle names above.
-
-### 2. Real‑time Production Monitoring (`@sonate/detect`)
-- Sub‑100ms latency; 1000+ detections/sec; Kubernetes‑ready
-- Alerts: Yellow ≥2.0 • Red ≥3.5 • Critical ≥6.0 • Identity watch <0.8
-
-### 3. Research Validation (`@sonate/lab`)
-- Double‑blind experiments, statistical validation (t‑tests, bootstrap CI, Cohen’s d)
-- Multi‑agent coordination (CONDUCTOR, VARIANT, EVALUATOR, OVERSEER)
-- Conversational Phase‑Shift Velocity (ΔΦ/t = √(ΔR² + ΔC²) ÷ Δt), identity stability, transition detection
-
-### 4. Production Orchestration (`@sonate/orchestrate`)
-- W3C DID/VC identities, verifiable credentials, multi‑sig support
-- RBAC, cryptographic audit logging, API key rotation, rate limiting
-- Tactical command dashboard: live trust scores, alert management, workflow orchestration
-
-### 5. Symbi Resonance Calculator (New Feature)
-Advanced conversation quality metric implemented in `symbi_resonance_calculator.py`:
-- **Drift Detection**: Identifies degrading conversation quality (linear slope analysis).
-- **Human Validation**: 0.89 correlation with human trust ratings (Pearson).
-- **Meta-Resonance**: Developed using its own principles (see [Resonance Loop](docs/RESONANCE_LOOP.md)).
-- **Adaptive Weights**: Learnable parameters via gradient descent.
-- **Adversarial Testing**: Detects keyword stuffing and prompt injection.
-- **Multi-Language**: Supports 50+ languages via `paraphrase-multilingual-mpnet-base-v2`.
-
-## Unique Differentiators
-- Constitutional AI foundation: measurable, enforceable trust (SYMBI)
-- Phase‑Shift Velocity innovation: early warning, identity coherence tracking
-- Hard boundary separation: clean governance for compliance and audit readiness
-- Cryptographic Trust Receipts: SHA‑256 hashing + Ed25519 signatures, hash‑chain audits
-
-## Enterprise Readiness
-- Performance: sub‑100ms detection, 1000+ TPS, horizontal scaling
-- Security: W3C DID/VC, zero‑trust, comprehensive audit logging, RBAC
-- Compliance: EU AI Act alignment, SOC 2 compatibility, GDPR, ISO/NIST frameworks
-- Deployment: cloud‑native, hybrid, edge, multi‑tenant
-
-## Ecosystem
-- Platform: https://yseeku.com
-- Research & Specifications: https://gammatria.com
-- Community & Philosophy: https://symbi.world
+<p align="center">
+  <strong>Constitutional AI Governance • Real-Time Trust Scoring • Autonomous Oversight</strong>
+</p>
 
 ---
-## Trust Receipts (SYMBI)
-- Every AI turn can generate a cryptographic trust receipt (SHA‑256 content hash, Ed25519 signature, weighted principle scores, final trustScore).
-- Verification API: `POST /api/receipts/verify` returns `{ verifiable, hashOk, signatureOk }`.
-- Key management: set `SONATE_PUBLIC_KEY` (base64) and `SONATE_PRIVATE_KEY` (dev only) in env; in production, use a secrets manager/KMS.
 
-## Identity Coherence
-- Per‑turn identity stability is computed via a persona vector (role, tone, governance language) and cosine similarity against the session baseline.
-- Threshold guides: yellow ≤ 0.85, red ≤ 0.75, critical ≤ 0.65.
+## 🎯 What is SONATE?
 
-## Calibrator Workflow
-- Case detail page includes actions to approve/downgrade flags and promote to Golden with annotations.
-- Decisions are stored in `packages/lab/reports/calibration-ledger.json` (append‑only) for demo; integrate with DB later.
+**SONATE** is the **Trust Layer for AI** — a constitutional governance platform that makes AI systems trustworthy, auditable, and safe for enterprise deployment.
 
-**Enterprise AI You Can Trust**
+| Without SONATE | With SONATE |
+|----------------|-------------|
+| ❌ Black-box AI decisions | ✅ Every decision auditable with cryptographic receipts |
+| ❌ No visibility into AI behavior drift | ✅ Real-time drift detection with statistical analysis |
+| ❌ Manual oversight doesn't scale | ✅ Autonomous oversight (Overseer) monitors 24/7 |
+| ❌ Compliance is guesswork | ✅ One-click GDPR/SOC2/ISO27001 compliance reports |
+| ❌ No way to compare AI providers | ✅ Multi-model comparison on trust & safety |
 
-The SONATE platform provides constitutional AI governance through three integrated modules: Detect, Lab, and Orchestrate.
+---
 
-## Architecture
+## 🚀 What's New in v2.0.0
+
+### Production-Ready Features
+
+| Feature | Description |
+|---------|-------------|
+| **⚡ Alerting & Webhooks** | Real-time alerts to Slack, Discord, Teams, PagerDuty with retry logic |
+| **📊 Live Dashboard** | WebSocket-powered real-time metrics with <100ms updates |
+| **🔒 Prompt Safety Scanner** | Detect prompt injections, jailbreaks, harmful content (80+ patterns) |
+| **📝 Compliance Reports** | Generate SYMBI, GDPR, SOC2, ISO27001 reports for auditors |
+| **🆚 Multi-Model Comparison** | Compare OpenAI, Anthropic, AWS Bedrock on trust & safety |
+
+### Enhanced Core
+
+| Enhancement | Impact |
+|-------------|--------|
+| **Intelligent Overseer** | 15+ sensors, risk scoring, anomaly detection, proactive planning |
+| **Fixed SYMBI Principles** | Now properly measured with PrincipleEvaluator |
+| **Improved Bedau Index** | Correct divergence calculation for emergence detection |
+| **Drift Detection Integration** | Statistical + semantic drift monitoring in trust service |
+| **Better Error Handling** | Centralized error middleware with proper Zod validation |
+
+---
+
+## 💎 Core Value Proposition
+
+### For Enterprise AI Teams
+- **Trust Receipts**: Cryptographic proof of every AI interaction (Ed25519 + SHA-256)
+- **Autonomous Oversight**: The Overseer monitors trust health and takes action autonomously
+- **Compliance Ready**: Built for EU AI Act, SOC2, GDPR, ISO 27001
+
+### For AI Safety Teams  
+- **Emergence Detection**: Novel Bedau Index measures "weak emergence" in AI systems
+- **Drift Monitoring**: Statistical (Kolmogorov-Smirnov) + semantic drift detection
+- **Prompt Safety**: Block injections and jailbreaks before they reach your AI
+
+### For Developers
+- **Simple Integration**: REST APIs + WebSocket + Webhooks
+- **Multi-Provider**: Works with OpenAI, Anthropic, AWS Bedrock, any LLM
+- **Observable**: Prometheus metrics, OpenTelemetry tracing, structured logging
+
+---
+
+## 🏗️ Architecture
 
 ```
-yseeku-platform/
-├── packages/
-│   ├── core/           @sonate/core - Trust protocol implementation
-│   ├── detect/         @sonate/detect - Real-time detection
-│   ├── lab/            @sonate/lab - Research experiments
-│   └── orchestrate/    @sonate/orchestrate - Production orchestration
-└── apps/
-    ├── web/                Next.js admin dashboard + API routes
-    └── resonate-dashboard/  Next.js public mirror & overseer tools
+┌─────────────────────────────────────────────────────────────────────┐
+│                         SONATE Platform                              │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐│
+│  │  @sonate/   │  │  @sonate/   │  │  @sonate/   │  │  @sonate/   ││
+│  │    core     │──│   detect    │──│     lab     │  │ orchestrate ││
+│  │             │  │             │  │             │  │             ││
+│  │ • SYMBI     │  │ • Reality   │  │ • A/B Tests │  │ • DID/VC    ││
+│  │ • Receipts  │  │ • Drift     │  │ • Stats     │  │ • RBAC      ││
+│  │ • Scoring   │  │ • Bedau     │  │ • Multi-Agt │  │ • Audit     ││
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘│
+├─────────────────────────────────────────────────────────────────────┤
+│                           apps/backend                               │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │ Express.js API • MongoDB • Socket.IO • Prometheus • Winston    │ │
+│  │                                                                 │ │
+│  │  Routes: /auth /agents /conversations /trust /overseer /alerts │ │
+│  │          /webhooks /live /safety /reports /compare             │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────────────┤
+│                            apps/web                                  │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │ Next.js 14 • TanStack Query • Shadcn/UI • Tailwind CSS         │ │
+│  │                                                                 │ │
+│  │  Pages: Dashboard • Live Monitor • Agents • Trust • Reports    │ │
+│  │         Webhooks • Safety Scanner • Model Compare • Brain      │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-## The SONATE Modules
+---
 
-### @sonate/core
-Core trust protocol implementing the SYMBI framework:
-- 6 Trust Principles with weighted scoring
-- Cryptographic Trust Receipts (SHA-256 + Ed25519)
-- Hash-chained audit trails
-- CIQ metrics (Clarity, Integrity, Quality)
+## 🧬 The SYMBI Trust Framework
 
-**Specification**: https://gammatria.com
+SONATE implements **6 Constitutional Principles** that define trustworthy AI:
 
-### @sonate/detect
-Real-time AI detection and scoring (Production):
-- 5-dimension SYMBI Framework scoring
-- Reality Index (0-10)
-- Trust Protocol (PASS/PARTIAL/FAIL)
-- Ethical Alignment (1-5)
-- Resonance Quality (STRONG/ADVANCED/BREAKTHROUGH)
-- Canvas Parity (0-100)
+| Principle | Weight | Description |
+|-----------|--------|-------------|
+| **CONSENT_ARCHITECTURE** | 25% | Users must explicitly consent to AI interactions |
+| **INSPECTION_MANDATE** | 20% | All AI decisions must be inspectable and auditable |
+| **CONTINUOUS_VALIDATION** | 20% | AI behavior continuously validated against principles |
+| **ETHICAL_OVERRIDE** | 15% | Humans can override AI decisions on ethical grounds |
+| **RIGHT_TO_DISCONNECT** | 10% | Users can disconnect without penalty |
+| **MORAL_RECOGNITION** | 10% | AI recognizes and respects human moral agency |
 
-**Use case**: Monitor production AI interactions in real-time
+Each interaction generates a **Trust Receipt** with cryptographic proof:
 
-### @sonate/lab
-Double-blind experimentation (Research):
-- Controlled A/B experiments
-- Multi-agent system (CONDUCTOR, VARIANT, EVALUATOR, OVERSEER)
-- Statistical validation (t-tests, bootstrap CI, Cohen's d)
-- Export data for publication (CSV, JSON, JSONL)
+```json
+{
+  "id": "receipt_abc123",
+  "contentHash": "sha256:7f83b...",
+  "signature": "ed25519:MEUCIQDv...",
+  "trustScore": 0.87,
+  "principles": {
+    "CONSENT_ARCHITECTURE": 0.95,
+    "INSPECTION_MANDATE": 0.82
+  },
+  "chainHash": "sha256:9a2f1..."
+}
+```
 
-**Use case**: Prove that constitutional AI works better
+---
 
-### @sonate/orchestrate
-Production agent management (Infrastructure):
-- W3C DID/VC for agent identities
-- Multi-agent workflow orchestration
-- Tactical Command dashboard
-- RBAC, audit logging, API keys
+## 🧠 The Overseer (System Brain)
 
-**Use case**: Manage AI agent fleet in production
+The **Overseer** is an autonomous governance loop that monitors AI health and takes action:
 
-## Quick Start
+```
+     ┌─────────┐
+     │ SENSORS │ ← 15+ data points (trust, drift, alerts, agents, etc.)
+     └────┬────┘
+          │
+     ┌────▼────┐
+     │ ANALYZE │ ← Risk scoring, anomaly detection, trend analysis
+     └────┬────┘
+          │
+     ┌────▼────┐
+     │  PLAN   │ ← LLM-powered intelligent action planning
+     └────┬────┘
+          │
+     ┌────▼────┐
+     │ EXECUTE │ ← With kernel-level safety constraints
+     └────┬────┘
+          │
+     ┌────▼────┐
+     │ FEEDBACK│ ← Learn from outcomes, adjust weights
+     └─────────┘
+```
 
-### Install Dependencies
+**Modes:**
+- **Advisory**: Suggests actions, human approves
+- **Enforced**: Takes action autonomously within constraints
+- **Override**: Human can always override with justification
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+
+- MongoDB 6+
+- pnpm or npm
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/s8ken/yseeku-platform.git
+cd yseeku-platform
+
+# Install dependencies
 npm install
-```
 
-### Build Production Packages
+# Set up environment
+cp apps/backend/.env.example apps/backend/.env
+# Edit .env with your MongoDB URI and API keys
 
-```bash
-npm run build
-```
-
-### Development Mode
-
-```bash
+# Start development
 npm run dev
 ```
 
-This starts TypeScript watchers for all packages in parallel.
-
-### Tests
-
-**🎉 82.61% Test Coverage Achieved!** (Target: 80% ✅)
+### Running the Platform
 
 ```bash
-# Run tests with coverage
-npm --workspace @sonate/core run test:coverage
+# Backend API (port 3001)
+npm run dev --workspace apps/backend
 
-# Individual package tests
-npm --workspace @sonate/core run test
-npm --workspace @sonate/detect run test
-npm --workspace @sonate/orchestrate run test
-npm --workspace @sonate/lab run test
+# Frontend Dashboard (port 3000)
+npm run dev --workspace apps/web
+
+# Or run both
+npm run dev
 ```
-
-**Coverage Highlights:**
-- **hash-chain.ts**: 100% coverage (31/31 tests passing)
-- **logger.ts**: 94.28% coverage (30/30 tests passing)  
-- **metrics.ts**: 92.95% coverage (33/33 tests passing)
-- **performance.ts**: 70.58% coverage (30/30 tests passing)
-- **Overall**: 82.61% coverage (138/214 tests passing)
-
-**Testing Infrastructure:**
-- Unit, Integration, Performance, and Security tests
-- Sub-50ms performance validation
-- Comprehensive error handling and edge cases
-- Enterprise-grade test reliability
-
-### Package Quick Start
-
-- Core: import `TrustProtocol`, `SymbiScorer`, `hashChain`, and signature helpers.
-- Detect: use `SymbiFrameworkDetector`, `BalancedSymbiDetector`, `CalibratedSymbiDetector`, `DriftDetector`, `detectEmergence`.
-- Orchestrate: use `AgentOrchestrator`, `WorkflowEngine`, `TacticalCommand`, and `security` (`rbac`, `audit`, `api-keys`, `rate-limiter`).
 
 ### Environment Variables
 
-- `SONATE_PUBLIC_KEY` (base64) and `SONATE_PRIVATE_KEY` (development) for trust receipt verification.
-- `REDIS_URL` for rate limiting in orchestrate.
-
-## Package Inter-Dependencies
-
-```mermaid
-graph TD
-    CORE[core]
-    DETECT[detect]
-    LAB[lab]
-    ORCH[orchestrate]
-    
-    CORE --> DETECT
-    CORE --> ORCH
-    DETECT --> LAB
-    CORE --> LAB
-```
-
-## Usage Examples
- 
-More examples: [examples/README.md](examples/README.md)
-
-### Example 1: Real-time Detection
-
-```typescript
-import { SymbiFrameworkDetector } from '@sonate/detect';
-
-const detector = new SymbiFrameworkDetector();
-const result = await detector.detect({
-  content: 'AI response here',
-  context: 'User inquiry',
-  metadata: { session_id: 'xyz' },
-});
-
-console.log(result.reality_index);      // 8.2
-console.log(result.trust_protocol);     // 'PASS'
-console.log(result.canvas_parity);      // 87
-```
-
-### Example 2: Research Experiment
-
-```typescript
-import { ExperimentOrchestrator } from '@sonate/lab';
-
-const lab = new ExperimentOrchestrator();
-const experimentId = await lab.createExperiment({
-  name: 'Constitutional vs Directive',
-  variants: [
-    { id: 'const', mode: 'constitutional', ... },
-    { id: 'dir', mode: 'directive', ... },
-  ],
-  test_cases: [...],
-});
-
-const results = await lab.runExperiment(experimentId);
-console.log(results.statistical_analysis.p_value); // 0.023 (significant!)
-```
-
-### Example 3: Agent Orchestration
-
-```typescript
-import { AgentOrchestrator } from '@sonate/orchestrate';
-
-const orchestrator = new AgentOrchestrator();
-const agent = await orchestrator.registerAgent({
-  id: 'agent-001',
-  name: 'Customer Support AI',
-  capabilities: ['chat', 'analyze'],
-});
-
-console.log(agent.did); // did:key:z6Mk...
-```
-
-## Hard Boundaries
-
-### SONATE Detect (Production Only)
-- ✅ Real-time monitoring of live interactions
-- ❌ NO A/B testing (use Lab)
-- ❌ NO synthetic experiments (use Lab)
-
-### SONATE Lab (Research Only)
-- ✅ Controlled experiments with synthetic data
-- ❌ NO production data
-- ❌ NO real user interactions
-
-### SONATE Orchestrate (Infrastructure)
-- ✅ Production agent management
-- ❌ NO experiments (use Lab)
-
-## Documentation
-
-- Index: [docs/README.md](docs/README.md)
-- **API Reference**: [docs/API.md](docs/API.md)
-- **Core**: [packages/core/README.md](packages/core/README.md)
-- **Detect**: [packages/detect/README.md](packages/detect/README.md)
-- **Lab**: [packages/lab/README.md](packages/lab/README.md)
-- **Orchestrate**: [packages/orchestrate/README.md](packages/orchestrate/README.md)
-- **Collaboration Ledger (SYMBI)**: [docs/SYMBI_COLLABORATION_LEDGER.md](docs/SYMBI_COLLABORATION_LEDGER.md)
-- **Enterprise Readiness**: [docs/ENTERPRISE_READINESS.md](docs/ENTERPRISE_READINESS.md)
-- **Investor Brief**: [docs/INVESTOR_BRIEF.md](docs/INVESTOR_BRIEF.md)
-
-### Ledger Demo
-
-- Build ledger: `npm run build --workspace @sonate/collaboration-ledger`
-- Run demo: `npm run demo:ledger`
-- Output: `examples/ledger-demo/project-001.symbi` (portable manifest with `merkleRoot` and proofs)
-
-## The Trinity
-
-SONATE is part of the SYMBI ecosystem:
-
-- **SYMBI.WORLD**: Philosophy and community → https://symbi.world
-- **GAMMATRIA.COM**: Research and specifications → https://gammatria.com
-- **YSEEKU.COM**: Commercial platform (this repo) → https://yseeku.com
-
-## Publishing Packages
-
 ```bash
-# Build all packages
-npm run build
+# Required
+MONGODB_URI=mongodb://localhost:27017/sonate
+JWT_SECRET=your-secret-key
 
-# Publish to npm (from each package directory)
-cd packages/core && npm publish --access public
-cd packages/detect && npm publish --access public
-cd packages/lab && npm publish --access public
-cd packages/orchestrate && npm publish --access public
+# Optional: LLM Providers
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+AWS_REGION=us-east-1
+
+# Optional: Trust Receipts
+SONATE_PUBLIC_KEY=base64...
+SONATE_PRIVATE_KEY=base64...
 ```
-
-## 📚 Documentation
-
-### Getting Started
-- [Main README](README.md) - You are here
-- [Contributing Guide](CONTRIBUTING.md) - How to contribute
-- [Changelog](CHANGELOG.md) - Version history
-
-### Architecture & Design
-- [Enterprise Architecture](docs/architecture/ENTERPRISE_ARCHITECTURE.md) - Complete system design (500+ lines)
-- [Enhanced Documentation](docs/README_ENHANCED.md) - Detailed platform documentation
-
-### Release Information
-- [v1.2.0 Release Notes](docs/releases/RELEASE_NOTES_v1.2.md) - Latest release details
-- [v1.2.0 Release Summary](docs/releases/V1.2_RELEASE_SUMMARY.md) - Complete release summary
-- [GitHub Release](https://github.com/s8ken/yseeku-platform/releases/tag/v1.2.0) - Official v1.2.0 release
-
-### Examples & Demos
-- [Basic Demo](examples/demos/demo.html) - Simple demonstration
-- [Comprehensive Demo](examples/demos/comprehensive-demo.html) - Full feature showcase
-
-### Additional Resources
-- [Analysis Reports](docs/analysis/) - Platform analysis and comparisons
-- [Validation](VALIDATION.md) - Validation documentation
-- [Archived Documentation](docs/archive/) - Historical documentation
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md)
-
-## License
-
-MIT
 
 ---
 
-### Terminology Consistency
-- SONATE’s trust protocol is defined across 6 SYMBI principles; references to other article counts are historical and will be harmonized to these 6 principles throughout documentation.
+## 📡 API Overview
 
-**SONATE v1.2.0** by YSEEKU - The Definitive SYMBI Framework Platform
+### Core Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth` | POST | Authentication & consent |
+| `/api/agents` | CRUD | Manage AI agents |
+| `/api/conversations` | CRUD | Trust-evaluated conversations |
+| `/api/trust/receipts` | GET/POST | Trust receipt management |
+| `/api/overseer` | GET/POST | System brain control |
+
+### New v2.0.0 Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/webhooks` | CRUD | Webhook configuration |
+| `/api/live/snapshot` | GET | Real-time metrics snapshot |
+| `/api/safety/scan` | POST | Prompt safety analysis |
+| `/api/reports/generate` | POST | Generate compliance report |
+| `/api/compare` | POST | Multi-model comparison |
+
+### WebSocket Events
+
+```javascript
+// Connect to live metrics
+const socket = io('http://localhost:3001');
+
+socket.on('metrics:snapshot', (data) => {
+  console.log('Trust health:', data.trust);
+  console.log('Active agents:', data.agents.active);
+});
+
+socket.on('metrics:alert', (alert) => {
+  console.log('New alert:', alert.message);
+});
+```
+
+---
+
+## 📊 Dashboard Features
+
+| Module | Features |
+|--------|----------|
+| **Detect** | Dashboard, Live Monitor, Trust Session, Agents, Analytics, Alerts, Webhooks |
+| **Lab** | Experiments, Model Compare, SYMBI Analysis, Emergence Testing, Safety Scanner |
+| **Orchestrate** | System Brain, Tenants, Audit Trails, Compliance Reports, API Gateway, Settings |
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Backend tests only
+npm test --workspace apps/backend
+
+# Package tests
+npm test --workspace @sonate/core
+npm test --workspace @sonate/detect
+```
+
+**Current Coverage:** ~80% across 80+ test files
+
+---
+
+## 📦 Packages
+
+| Package | Description | npm |
+|---------|-------------|-----|
+| `@sonate/core` | Trust protocol, SYMBI principles, cryptographic receipts | [![npm](https://img.shields.io/npm/v/@sonate/core)](https://www.npmjs.com/package/@sonate/core) |
+| `@sonate/detect` | Real-time detection, drift, emergence, Bedau Index | [![npm](https://img.shields.io/npm/v/@sonate/detect)](https://www.npmjs.com/package/@sonate/detect) |
+| `@sonate/lab` | Research experiments, A/B testing, statistics | [![npm](https://img.shields.io/npm/v/@sonate/lab)](https://www.npmjs.com/package/@sonate/lab) |
+| `@sonate/orchestrate` | Production orchestration, DID/VC, RBAC | [![npm](https://img.shields.io/npm/v/@sonate/orchestrate)](https://www.npmjs.com/package/@sonate/orchestrate) |
+
+---
+
+## 🔐 Security & Compliance
+
+- **Cryptographic Trust**: Ed25519 signatures, SHA-256 hash chains
+- **Zero Trust**: JWT auth, RBAC, API key rotation
+- **Audit Trail**: Immutable audit logs with correlation IDs
+- **Compliance**: EU AI Act, GDPR, SOC2, ISO 27001 ready
+- **Multi-Tenant**: Tenant isolation with scoped permissions
+
+---
+
+## 🌐 Ecosystem
+
+| Platform | Purpose | URL |
+|----------|---------|-----|
+| **YSEEKU** | Commercial platform | https://yseeku.com |
+| **GAMMATRIA** | Research & specifications | https://gammatria.com |
+| **SYMBI** | Philosophy & community | https://symbi.world |
+
+---
+
+## 📚 Documentation
+
+- **[Enterprise Guide](docs/ENTERPRISE_GUIDE_v1.4.0.md)** - Complete deployment guide
+- **[Platform Audit](docs/PLATFORM_AUDIT_2026.md)** - Comprehensive feature audit
+- **[Overseer Guide](docs/OVERSEER_GUIDE.md)** - System Brain documentation
+- **[Principle Measurement](docs/PRINCIPLE_MEASUREMENT_GUIDE.md)** - How SYMBI principles are measured
+- **[API Reference](docs/API.md)** - Complete API documentation
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+```bash
+# Fork and clone
+git clone https://github.com/YOUR_USERNAME/yseeku-platform.git
+
+# Create feature branch
+git checkout -b feature/your-feature
+
+# Make changes and test
+npm test
+
+# Submit PR
+```
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE)
+
+---
+
+## 🙏 Acknowledgments
+
+Built with the belief that AI can be both powerful and trustworthy.
+
+**SONATE v2.0.0** — The Trust Layer for AI
+
+<p align="center">
+  <a href="https://yseeku.com">Website</a> •
+  <a href="https://github.com/s8ken/yseeku-platform/issues">Issues</a> •
+  <a href="https://github.com/s8ken/yseeku-platform/discussions">Discussions</a>
+</p>

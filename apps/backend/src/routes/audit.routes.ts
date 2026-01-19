@@ -8,6 +8,7 @@ import { protect } from '../middleware/auth.middleware';
 import { AuditLog } from '../models/audit.model';
 import { bindTenantContext } from '../middleware/tenant-context.middleware';
 import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -157,16 +158,16 @@ router.get('/logs', protect, bindTenantContext, async (req: Request, res: Respon
         limit: limitNum,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Get audit logs error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
       userId: req.userId,
     });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch audit logs',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -309,16 +310,16 @@ router.get('/trails', protect, bindTenantContext, async (req: Request, res: Resp
         },
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Get audit trails error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
       userId: req.userId,
     });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch audit trails',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -384,16 +385,16 @@ router.get('/summary', protect, bindTenantContext, async (req: Request, res: Res
         topActions,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Get audit summary error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
       userId: req.userId,
     });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch audit summary',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });

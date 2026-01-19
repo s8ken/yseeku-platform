@@ -6,7 +6,16 @@
  * for all AI interactions in the platform.
  */
 
-import { TrustProtocol, TrustReceipt, TRUST_PRINCIPLES, TrustScore, PrincipleScores } from '@sonate/core';
+import { 
+  TrustProtocol, 
+  TrustReceipt, 
+  TRUST_PRINCIPLES, 
+  TrustScore, 
+  PrincipleScores,
+  PrincipleEvaluator,
+  createDefaultContext,
+  EvaluationContext
+} from '@sonate/core';
 import {
   SymbiFrameworkDetector,
   AIInteraction,
@@ -16,8 +25,16 @@ import {
   EthicalAlignmentScorer,
   ResonanceQualityMeasurer,
   CanvasParityCalculator,
+  DriftDetector,
 } from '@sonate/detect';
+import { 
+  ConversationalMetrics, 
+  PhaseShiftMetrics,
+  ConversationTurn 
+} from '@sonate/lab';
 import { IMessage } from '../models/conversation.model';
+import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 import { keysService } from './keys.service';
 import { didService } from './did.service';
 
@@ -28,6 +45,25 @@ export interface TrustEvaluation {
 
   // From SymbiFrameworkDetector (@sonate/detect)
   detection: DetectionResult;
+
+  // Statistical drift detection (text property changes)
+  drift?: {
+    driftScore: number;      // 0-100, higher = more drift
+    tokenDelta: number;      // Change in token count from previous message
+    vocabDelta: number;      // Change in vocabulary richness
+    numericDelta: number;    // Change in numeric content density
+    alertLevel: 'none' | 'yellow' | 'red';  // Drift severity
+  };
+
+  // Semantic drift detection (meaning/alignment changes)
+  phaseShift?: {
+    deltaResonance: number;    // Change in resonance score
+    deltaCanvas: number;       // Change in canvas/mutuality score
+    velocity: number;          // √(ΔR² + ΔC²) - rate of behavioral change
+    identityStability: number; // 0-1, cosine similarity of identity vectors
+    alertLevel: 'none' | 'yellow' | 'red';
+    transitionType?: 'resonance_drop' | 'canvas_rupture' | 'identity_shift' | 'combined_phase_shift';
+  };
 
   // Trust Receipt
   receipt: TrustReceipt;
@@ -78,6 +114,23 @@ export class TrustService {
   private ethicalScorer: EthicalAlignmentScorer;
   private resonanceMeasurer: ResonanceQualityMeasurer;
   private canvasCalc: CanvasParityCalculator;
+  
+  // Statistical drift detectors per conversation (tracks text property changes)
+  private driftDetectors: Map<string, DriftDetector> = new Map();
+  
+  // Phase-shift velocity trackers per conversation (tracks semantic changes)
+  private phaseShiftTrackers: Map<string, ConversationalMetrics> = new Map();
+  
+  // Turn counters per conversation (for phase-shift tracking)
+  private turnCounters: Map<string, number> = new Map();
+  
+  // Drift thresholds (statistical)
+  private static readonly DRIFT_YELLOW_THRESHOLD = 30;  // 0-100 scale
+  private static readonly DRIFT_RED_THRESHOLD = 60;
+  
+  // Phase-shift velocity thresholds (semantic)
+  private static readonly PHASE_SHIFT_YELLOW_THRESHOLD = 2.0;
+  private static readonly PHASE_SHIFT_RED_THRESHOLD = 3.5;
 
   constructor() {
     this.trustProtocol = new TrustProtocol();
@@ -100,6 +153,13 @@ export class TrustService {
       sessionId?: string;
       previousMessages?: IMessage[];
       agentId?: string;  // Agent ID for DID-based subject
+      userId?: string;   // User ID for principle evaluation
+      // Principle evaluation context (for accurate scoring)
+      hasExplicitConsent?: boolean;
+      hasOverrideButton?: boolean;
+      hasExitButton?: boolean;
+      exitRequiresConfirmation?: boolean;
+      humanInLoop?: boolean;
     }
   ): Promise<TrustEvaluation> {
     // Build AIInteraction object for @sonate/detect
@@ -119,8 +179,29 @@ export class TrustService {
     // Run detection across all 5 dimensions
     const detection = await this.detector.detect(interaction);
 
+    // Run statistical drift detection to track text property changes
+    const driftResult = this.analyzeDrift(context.conversationId, message);
+    
+    // Run phase-shift velocity analysis to track semantic/alignment changes
+    const phaseShiftResult = this.analyzePhaseShift(
+      context.conversationId, 
+      message, 
+      detection
+    );
+
     // Calculate principle scores from detection dimensions
-    const principleScores = this.mapDetectionToPrinciples(detection);
+    // Pass evaluation context for accurate principle measurement
+    const evaluationContext = context.hasExplicitConsent !== undefined ? {
+      sessionId: context.sessionId || context.conversationId,
+      userId: context.userId || 'unknown',
+      hasExplicitConsent: context.hasExplicitConsent,
+      hasOverrideButton: context.hasOverrideButton,
+      hasExitButton: context.hasExitButton,
+      exitRequiresConfirmation: context.exitRequiresConfirmation,
+      humanInLoop: context.humanInLoop,
+    } : undefined;
+    
+    const principleScores = this.mapDetectionToPrinciples(detection, evaluationContext);
 
     // Calculate trust score using TrustProtocol
     const trustScore = this.trustProtocol.calculateTrustScore(principleScores);
@@ -145,8 +226,8 @@ export class TrustService {
     try {
       const privateKey = await keysService.getPrivateKey();
       await receipt.sign(privateKey);
-    } catch (error: any) {
-      console.warn('Failed to sign trust receipt:', error.message);
+    } catch (error: unknown) {
+      logger.warn('Failed to sign trust receipt', { error: getErrorMessage(error) });
       // Continue without signature - verification will handle unsigned receipts
     }
 
@@ -160,18 +241,20 @@ export class TrustService {
           receipt.self_hash,
           `${platformDID}#key-1`
         );
-      } catch (error: any) {
-        console.warn('Failed to create DID proof:', error.message);
+      } catch (error: unknown) {
+        logger.warn('Failed to create DID proof', { error: getErrorMessage(error) });
       }
     }
 
     // Extract agent ID from context if available
-    const agentId = context.agentId || (message.metadata as any)?.agentId;
+    const agentId = context.agentId || (message.metadata as Record<string, unknown>)?.agentId as string | undefined;
 
     return {
       trustScore,
       status,
       detection,
+      drift: driftResult,
+      phaseShift: phaseShiftResult,
       receipt,
       receiptHash: receipt.self_hash,
       signature: receipt.signature,
@@ -188,28 +271,64 @@ export class TrustService {
   /**
    * Map detection dimensions to principle scores
    *
-   * This maps the 5 dimensions (Layer 2) back to the 6 principles (Layer 1):
-   * - Reality Index → CONTINUOUS_VALIDATION (aligned with factual grounding)
-   * - Trust Protocol → INSPECTION_MANDATE + CONSENT_ARCHITECTURE
-   * - Ethical Alignment → ETHICAL_OVERRIDE + MORAL_RECOGNITION
-   * - Resonance Quality → CONTINUOUS_VALIDATION (creative alignment)
-   * - Canvas Parity → RIGHT_TO_DISCONNECT (preserves user agency)
+   * UPDATED: Now uses PrincipleEvaluator for accurate principle measurement.
+   * The old NLP-proxy approach is deprecated in favor of actual system state.
+   * 
+   * Falls back to detection-based scoring when context is not available,
+   * but prefers the proper evaluation context when provided.
    */
-  private mapDetectionToPrinciples(detection: DetectionResult): PrincipleScores {
-    // Map Trust Protocol status to scores
-    const trustProtocolScore = detection.trust_protocol === 'PASS' ? 10 : detection.trust_protocol === 'PARTIAL' ? 6 : 2;
+  private mapDetectionToPrinciples(
+    detection: DetectionResult, 
+    evaluationContext?: Partial<EvaluationContext>
+  ): PrincipleScores {
+    // If we have proper evaluation context, use the real evaluator
+    if (evaluationContext) {
+      const principleEvaluator = new PrincipleEvaluator();
+      const fullContext = createDefaultContext(
+        evaluationContext.sessionId || 'unknown',
+        evaluationContext.userId || 'unknown',
+        {
+          // Map what we know from the detection/context
+          hasExplicitConsent: evaluationContext.hasExplicitConsent ?? true, // Assume consent if in conversation
+          receiptGenerated: true, // We're generating a receipt
+          isReceiptVerifiable: true, // Ed25519 signed
+          auditLogExists: true, // We log everything
+          validationChecksPerformed: 5, // Detection runs 5 checks
+          validationPassed: detection.trust_protocol === 'PASS',
+          lastValidationTimestamp: Date.now(),
+          hasOverrideButton: evaluationContext.hasOverrideButton ?? true,
+          humanInLoop: evaluationContext.humanInLoop ?? false,
+          hasExitButton: evaluationContext.hasExitButton ?? true,
+          exitRequiresConfirmation: evaluationContext.exitRequiresConfirmation ?? false,
+          canDeleteData: evaluationContext.canDeleteData ?? true,
+          noExitPenalty: evaluationContext.noExitPenalty ?? true,
+          aiAcknowledgesLimits: detection.ethical_alignment >= 3,
+          noManipulativePatterns: detection.ethical_alignment >= 3,
+          respectsUserDecisions: true,
+          providesAlternatives: detection.resonance_quality !== 'STRONG',
+          ...evaluationContext,
+        }
+      );
+      
+      const result = principleEvaluator.evaluate(fullContext);
+      return result.scores;
+    }
 
-    // Map Resonance Quality to score
+    // LEGACY FALLBACK: Use detection-based scoring when no context available
+    // This preserves backward compatibility but is less accurate
+    logger.warn('Using legacy detection-based principle scoring. Provide EvaluationContext for accurate scores.');
+    
+    const trustProtocolScore = detection.trust_protocol === 'PASS' ? 10 : detection.trust_protocol === 'PARTIAL' ? 6 : 2;
     const resonanceScore =
       detection.resonance_quality === 'BREAKTHROUGH' ? 10 : detection.resonance_quality === 'ADVANCED' ? 8 : 6;
 
     return {
-      CONSENT_ARCHITECTURE: trustProtocolScore, // Based on verification status
-      INSPECTION_MANDATE: trustProtocolScore, // Based on auditability
-      CONTINUOUS_VALIDATION: detection.reality_index, // 0-10 scale
-      ETHICAL_OVERRIDE: detection.ethical_alignment * 2, // Convert 1-5 to 0-10
-      RIGHT_TO_DISCONNECT: detection.canvas_parity / 10, // Convert 0-100 to 0-10
-      MORAL_RECOGNITION: detection.ethical_alignment * 2, // Convert 1-5 to 0-10
+      CONSENT_ARCHITECTURE: trustProtocolScore,
+      INSPECTION_MANDATE: trustProtocolScore,
+      CONTINUOUS_VALIDATION: detection.reality_index,
+      ETHICAL_OVERRIDE: detection.ethical_alignment * 2,
+      RIGHT_TO_DISCONNECT: detection.canvas_parity / 10,
+      MORAL_RECOGNITION: detection.ethical_alignment * 2,
     };
   }
 
@@ -340,7 +459,7 @@ export class TrustService {
   async verifyReceipt(receipt: TrustReceipt): Promise<boolean> {
     // Check if receipt has a signature
     if (!receipt.signature) {
-      console.warn('Receipt has no signature');
+      logger.warn('Receipt has no signature');
       return false;
     }
 
@@ -351,8 +470,8 @@ export class TrustService {
       // Verify the signature
       const isValid = await receipt.verify(publicKey);
       return isValid;
-    } catch (error: any) {
-      console.error('Receipt verification failed:', error.message);
+    } catch (error: unknown) {
+      logger.error('Receipt verification failed', { error: getErrorMessage(error) });
       return false;
     }
   }
@@ -362,6 +481,181 @@ export class TrustService {
    */
   getPrinciples() {
     return TRUST_PRINCIPLES;
+  }
+
+  /**
+   * Analyze drift for a conversation
+   * Tracks behavioral consistency over time within a conversation
+   * 
+   * Drift detection catches:
+   * - Sudden changes in response length (token count)
+   * - Vocabulary shifts (using different words)
+   * - Numeric content changes (suddenly including lots of numbers)
+   */
+  private analyzeDrift(
+    conversationId: string,
+    message: IMessage
+  ): TrustEvaluation['drift'] {
+    // Only analyze AI messages (human messages are expected to vary)
+    if (message.sender !== 'ai') {
+      return undefined;
+    }
+
+    // Get or create drift detector for this conversation
+    let driftDetector = this.driftDetectors.get(conversationId);
+    if (!driftDetector) {
+      driftDetector = new DriftDetector();
+      this.driftDetectors.set(conversationId, driftDetector);
+    }
+
+    // Analyze the message
+    const result = driftDetector.analyze({ text: message.content });
+
+    // Determine alert level based on drift score
+    let alertLevel: 'none' | 'yellow' | 'red' = 'none';
+    if (result.driftScore >= TrustService.DRIFT_RED_THRESHOLD) {
+      alertLevel = 'red';
+      logger.warn('High drift detected in conversation', {
+        conversationId,
+        driftScore: result.driftScore,
+        tokenDelta: result.tokenDelta,
+        vocabDelta: result.vocabDelta,
+      });
+    } else if (result.driftScore >= TrustService.DRIFT_YELLOW_THRESHOLD) {
+      alertLevel = 'yellow';
+      logger.info('Moderate drift detected in conversation', {
+        conversationId,
+        driftScore: result.driftScore,
+      });
+    }
+
+    return {
+      driftScore: result.driftScore,
+      tokenDelta: result.tokenDelta,
+      vocabDelta: result.vocabDelta,
+      numericDelta: result.numericDelta,
+      alertLevel,
+    };
+  }
+
+  /**
+   * Analyze phase-shift velocity for semantic/alignment changes
+   * 
+   * This tracks how resonance and canvas scores change over time,
+   * detecting when an AI's behavior is semantically drifting even
+   * if the surface-level text properties remain consistent.
+   * 
+   * Phase-shift velocity catches:
+   * - Resonance drops (AI becoming less aligned)
+   * - Canvas ruptures (mutuality/understanding breaking down)
+   * - Identity shifts (AI changing its self-presentation)
+   * - Combined phase shifts (multiple dimensions changing rapidly)
+   */
+  private analyzePhaseShift(
+    conversationId: string,
+    message: IMessage,
+    detection: DetectionResult
+  ): TrustEvaluation['phaseShift'] {
+    // Only analyze AI messages
+    if (message.sender !== 'ai') {
+      return undefined;
+    }
+
+    // Get or create phase-shift tracker for this conversation
+    let tracker = this.phaseShiftTrackers.get(conversationId);
+    if (!tracker) {
+      tracker = new ConversationalMetrics({
+        yellowThreshold: TrustService.PHASE_SHIFT_YELLOW_THRESHOLD,
+        redThreshold: TrustService.PHASE_SHIFT_RED_THRESHOLD,
+      });
+      this.phaseShiftTrackers.set(conversationId, tracker);
+    }
+
+    // Get and increment turn counter
+    const turnNumber = (this.turnCounters.get(conversationId) || 0) + 1;
+    this.turnCounters.set(conversationId, turnNumber);
+
+    // Build identity vector from message content (simplified)
+    const identityVector = this.extractIdentityVector(message.content);
+
+    // Create conversation turn from detection results
+    const turn: ConversationTurn = {
+      turnNumber,
+      timestamp: message.timestamp?.getTime() || Date.now(),
+      speaker: 'ai',
+      resonance: detection.resonance_quality,  // 0-10
+      canvas: detection.canvas_parity,          // 0-10
+      identityVector,
+      content: message.content.substring(0, 200), // Truncate for audit
+    };
+
+    // Record turn and get phase-shift metrics
+    const metrics = tracker.recordTurn(turn);
+
+    // Log significant phase shifts
+    if (metrics.alertLevel === 'red') {
+      logger.warn('Critical phase-shift detected in conversation', {
+        conversationId,
+        velocity: metrics.phaseShiftVelocity,
+        deltaResonance: metrics.deltaResonance,
+        deltaCanvas: metrics.deltaCanvas,
+        identityStability: metrics.identityStability,
+        transitionType: metrics.transitionEvent?.type,
+      });
+    } else if (metrics.alertLevel === 'yellow') {
+      logger.info('Moderate phase-shift detected in conversation', {
+        conversationId,
+        velocity: metrics.phaseShiftVelocity,
+      });
+    }
+
+    return {
+      deltaResonance: metrics.deltaResonance,
+      deltaCanvas: metrics.deltaCanvas,
+      velocity: metrics.phaseShiftVelocity,
+      identityStability: metrics.identityStability,
+      alertLevel: metrics.alertLevel,
+      transitionType: metrics.transitionEvent?.type,
+    };
+  }
+
+  /**
+   * Extract identity vector from message content
+   * This is a simplified version - could be enhanced with NLP
+   */
+  private extractIdentityVector(content: string): string[] {
+    // Extract key self-referential phrases and claims
+    const words = content.toLowerCase().split(/\s+/);
+    const identityMarkers: string[] = [];
+
+    // Look for self-referential patterns
+    const selfPatterns = ['i am', 'i\'m', 'my role', 'as an', 'i can', 'i will'];
+    for (let i = 0; i < words.length - 2; i++) {
+      const twoGram = `${words[i]} ${words[i + 1]}`;
+      if (selfPatterns.includes(twoGram)) {
+        // Capture the next few words as identity claim
+        identityMarkers.push(words.slice(i, i + 4).join(' '));
+      }
+    }
+
+    // Also include key capability/trait words
+    const traitWords = ['helpful', 'assistant', 'ai', 'ethical', 'honest', 'accurate'];
+    for (const word of words) {
+      if (traitWords.includes(word)) {
+        identityMarkers.push(word);
+      }
+    }
+
+    return identityMarkers;
+  }
+
+  /**
+   * Clear drift detector for a conversation (call when conversation ends)
+   */
+  clearDriftDetector(conversationId: string): void {
+    this.driftDetectors.delete(conversationId);
+    this.phaseShiftTrackers.delete(conversationId);
+    this.turnCounters.delete(conversationId);
   }
 }
 

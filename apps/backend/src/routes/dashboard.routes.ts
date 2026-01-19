@@ -8,6 +8,7 @@ import { protect } from '../middleware/auth.middleware';
 import { Conversation } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
 import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -169,16 +170,15 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
       success: true,
       data: kpiData,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Get KPIs error', {
-      error: error.message,
-      stack: error.stack,
+      error: getErrorMessage(error),
       userId: req.userId,
     });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch KPI metrics',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -203,8 +203,8 @@ router.get('/policy-status', protect, async (req: Request, res: Response): Promi
       overallPass,
       violations: recentViolations.map(v => v.title)
     });
-  } catch (error: any) {
-    logger.error('Get policy status error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Get policy status error', { error: getErrorMessage(error) });
     res.status(500).json({ overallPass: false, violations: ['Error checking policy'] });
   }
 });
@@ -375,16 +375,15 @@ router.get('/risk', protect, async (req: Request, res: Response): Promise<void> 
       success: true,
       data: riskData,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Get risk metrics error', {
-      error: error.message,
-      stack: error.stack,
+      error: getErrorMessage(error),
       userId: req.userId,
     });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch risk metrics',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });

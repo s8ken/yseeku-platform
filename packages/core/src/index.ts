@@ -12,6 +12,12 @@
 export { TrustProtocol } from './trust-protocol';
 export { TrustReceipt } from './trust-receipt';
 export { SymbiScorer } from './symbi-scorer';
+export { 
+  PrincipleEvaluator, 
+  createDefaultContext,
+  type EvaluationContext,
+  type PrincipleEvaluationResult 
+} from './principle-evaluator';
 
 // Error exports
 export * from './errors';

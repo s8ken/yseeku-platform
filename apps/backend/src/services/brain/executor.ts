@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import logger from '../../utils/logger';
 import { remember } from './memory';
 import { checkKernelConstraints } from './constraints';
+import { getErrorMessage } from '../../utils/error-utils';
 
 export interface PlannedAction {
   type: string;
@@ -128,20 +129,20 @@ export async function executeActions(
             doc.status = 'failed';
             await doc.save();
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         doc.status = 'failed';
-        doc.result = { error: error.message };
+        doc.result = { error: getErrorMessage(error) };
         await doc.save();
         logger.error('Action execution failed', {
           type: a.type,
           target: a.target,
-          error: error.message,
+          error: getErrorMessage(error),
         });
         // Update the result in our array
         const idx = results.findIndex(r => r.id === doc._id.toString());
         if (idx >= 0) {
           results[idx].status = 'failed';
-          results[idx].result = { error: error.message };
+          results[idx].result = { error: getErrorMessage(error) };
         }
       }
     }

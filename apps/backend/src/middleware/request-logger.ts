@@ -6,6 +6,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import logger, { apiLogger } from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 // Extend Express Request type to include requestId
 declare global {
@@ -56,7 +57,7 @@ export function errorLogger(err: any, req: Request, res: Response, next: NextFun
     requestId: req.requestId,
     method: req.method,
     url: req.url,
-    error: err.message,
+    error: getErrorMessage(err),
     stack: err.stack,
     statusCode: err.status || 500,
   });

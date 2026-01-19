@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import { PlatformApiKey } from '../models/platform-api-key.model';
 import { Counter } from 'prom-client';
+import { getErrorMessage } from '../utils/error-utils';
 
 declare global {
   namespace Express {
@@ -55,9 +56,9 @@ export function requireScopes(required: string[]) {
         rbacDenials.inc({ reason: 'api_key_invalid', route: routeId });
         res.status(401).json({ success: false, message: 'Invalid API key' });
         return;
-      } catch (e: any) {
+      } catch (e: unknown) {
         rbacDenials.inc({ reason: 'api_key_error', route: routeId });
-        res.status(500).json({ success: false, message: 'API key validation error', error: e.message });
+        res.status(500).json({ success: false, message: 'API key validation error', error: getErrorMessage(e) });
         return;
       }
     }

@@ -6,8 +6,12 @@
 
 import { Router, Request, Response } from 'express';
 import { authService, protect } from '../middleware/auth.middleware';
+import { validateBody } from '../middleware/validation.middleware';
+import { LoginSchema, RegisterSchema } from '../schemas/validation.schemas';
 import { User, IUser } from '../models/user.model';
 import { logSuccess, logFailure } from '../utils/audit-logger';
+import { getErrorMessage } from '../utils/error-utils';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -37,18 +41,9 @@ router.get('/debug', protect, (req: Request, res: Response) => {
  * @desc    Register new user
  * @access  Public
  */
-router.post('/register', async (req: Request, res: Response): Promise<void> => {
+router.post('/register', validateBody(RegisterSchema), async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, email, password } = req.body;
-
-    // Validation
-    if (!name || !email || !password) {
-      res.status(400).json({
-        success: false,
-        message: 'Please provide all required fields: name, email, password'
-      });
-      return;
-    }
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -56,15 +51,6 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       res.status(400).json({
         success: false,
         message: 'User already exists with this email'
-      });
-      return;
-    }
-
-    // Password strength validation
-    if (password.length < 8) {
-      res.status(400).json({
-        success: false,
-        message: 'Password must be at least 8 characters long'
       });
       return;
     }
@@ -78,7 +64,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 
     // Generate tokens using SecureAuthService
     if (!process.env.JWT_SECRET) {
-      console.warn('⚠️  JWT_SECRET is missing during registration token generation');
+      logger.warn('⚠️  JWT_SECRET is missing during registration token generation');
     }
     const tokens = authService.generateTokens({
       id: user._id.toString(),
@@ -101,12 +87,13 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
         tokens,
       },
     });
-  } catch (error: any) {
-    console.error('Registration error:', error);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    logger.error('Registration error', { error: message });
     res.status(500).json({
       success: false,
       message: 'Registration failed',
-      error: error.message,
+      error: message,
     });
   }
 });
@@ -156,30 +143,23 @@ router.post('/guest', async (req: Request, res: Response): Promise<void> => {
         tokens,
       },
     });
-  } catch (error: any) {
-    console.error('Guest login error:', error);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    logger.error('Guest login error', { error: message });
     res.status(500).json({
       success: false,
       message: 'Server error during guest login',
-      error: error.message,
+      error: message,
     });
   }
 });
 
-router.post('/login', async (req: Request, res: Response): Promise<void> => {
+router.post('/login', validateBody(LoginSchema), async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, username } = req.body;
 
     // Support both email and username login
     const loginIdentifier = email || username;
-
-    if (!loginIdentifier || !password) {
-      res.status(400).json({
-        success: false,
-        message: 'Please provide email/username and password'
-      });
-      return;
-    }
 
     // Find user (need to explicitly select password field)
     const user = await User.findOne({
@@ -219,7 +199,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
     // Generate tokens using SecureAuthService
     if (!process.env.JWT_SECRET) {
-      console.warn('⚠️  JWT_SECRET is missing during login token generation');
+      logger.warn('⚠️  JWT_SECRET is missing during login token generation');
     }
     const tokens = authService.generateTokens({
       id: user._id.toString(),
@@ -249,12 +229,13 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       // Legacy support: also return token at root level
       token: tokens.accessToken,
     });
-  } catch (error: any) {
-    console.error('Login error:', error);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    logger.error('Login error', { error: message });
     res.status(500).json({
       success: false,
       message: 'Login failed',
-      error: error.message,
+      error: message,
     });
   }
 });
@@ -297,9 +278,10 @@ router.post('/admin-reset', async (req: Request, res: Response): Promise<void> =
     });
 
     res.json({ success: true, message: 'Admin reset successful', data: { user: { id: user._id, email: user.email }, tokens } });
-  } catch (error: any) {
-    console.error('Admin reset error:', error);
-    res.status(500).json({ success: false, message: 'Admin reset failed', error: error.message });
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    logger.error('Admin reset error', { error: message });
+    res.status(500).json({ success: false, message: 'Admin reset failed', error: message });
   }
 });
 
@@ -330,12 +312,13 @@ router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
         tokens: newTokens,
       },
     });
-  } catch (error: any) {
-    console.error('Token refresh error:', error);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    logger.error('Token refresh error', { error: message });
     res.status(401).json({
       success: false,
       message: 'Failed to refresh token',
-      error: error.message,
+      error: message,
     });
   }
 });
@@ -374,12 +357,13 @@ router.get('/me', protect, async (req: Request, res: Response): Promise<void> =>
         },
       },
     });
-  } catch (error: any) {
-    console.error('Get profile error:', error);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    logger.error('Get profile error', { error: message });
     res.status(500).json({
       success: false,
       message: 'Failed to get user profile',
-      error: error.message,
+      error: message,
     });
   }
 });
@@ -451,12 +435,13 @@ router.put('/profile', protect, async (req: Request, res: Response): Promise<voi
         },
       },
     });
-  } catch (error: any) {
-    console.error('Update profile error:', error);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    logger.error('Update profile error', { error: message });
     res.status(500).json({
       success: false,
       message: 'Failed to update profile',
-      error: error.message,
+      error: message,
     });
   }
 });
@@ -489,7 +474,7 @@ router.post('/api-keys', protect, async (req: Request, res: Response): Promise<v
       return;
     }
 
-    console.log(`Updating API keys for user ${user.email}, provider: ${provider}`);
+    logger.info(`Updating API keys for user ${user.email}, provider: ${provider}`);
 
     // Check if provider already exists
     const existingKeyIndex = user.apiKeys.findIndex((k: any) => k.provider === provider);
@@ -510,9 +495,9 @@ router.post('/api-keys', protect, async (req: Request, res: Response): Promise<v
       });
     }
 
-    console.log('Saving user with updated API keys...');
+    logger.info('Saving user with updated API keys...');
     await user.save();
-    console.log('User saved successfully');
+    logger.info('User saved successfully');
 
     // Log API key operation
     await logSuccess(req, 'api_key_create', 'api-key', `${user._id.toString()}-${provider}`, {
@@ -533,13 +518,13 @@ router.post('/api-keys', protect, async (req: Request, res: Response): Promise<v
         })),
       },
     });
-  } catch (error: any) {
-    console.error('Update API key error:', error);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    logger.error('Update API key error', { error: message });
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to update API key',
-      error: error.toString(),
-      stack: error.stack,
+      message: message || 'Failed to update API key',
+      error: message,
     });
   }
 });
@@ -583,13 +568,95 @@ router.delete('/api-keys/:provider', protect, async (req: Request, res: Response
         })),
       },
     });
-  } catch (error: any) {
-    console.error('Delete API key error:', error);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    logger.error('Delete API key error', { error: message });
     res.status(500).json({
       success: false,
       message: 'Failed to delete API key',
-      error: error.message,
+      error: message,
     });
+  }
+});
+
+/**
+ * @route   GET /api/auth/consent
+ * @desc    Get current user's AI consent status
+ * @access  Private
+ */
+router.get('/consent', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    res.json({
+      success: true,
+      consent: {
+        hasConsentedToAI: user.consent?.hasConsentedToAI ?? false,
+        consentTimestamp: user.consent?.consentTimestamp,
+        consentScope: user.consent?.consentScope ?? [],
+        canWithdrawAnytime: user.consent?.canWithdrawAnytime ?? true,
+      },
+    });
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    logger.error('Get consent error', { error: message, userId: req.userId });
+    res.status(500).json({ success: false, message: 'Failed to get consent status' });
+  }
+});
+
+/**
+ * @route   PUT /api/auth/consent
+ * @desc    Update user's AI consent (grant or revoke)
+ * @access  Private
+ * @body    { hasConsentedToAI: boolean, consentScope?: string[] }
+ */
+router.put('/consent', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { hasConsentedToAI, consentScope } = req.body;
+    
+    if (typeof hasConsentedToAI !== 'boolean') {
+      res.status(400).json({ 
+        success: false, 
+        message: 'hasConsentedToAI must be a boolean' 
+      });
+      return;
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    // Update consent with proper tracking
+    user.consent = {
+      hasConsentedToAI,
+      consentTimestamp: hasConsentedToAI ? new Date() : user.consent?.consentTimestamp,
+      consentScope: consentScope || ['chat', 'analysis', 'recommendations'],
+      canWithdrawAnytime: true, // SYMBI principle: user can always withdraw
+    };
+
+    await user.save();
+
+    logger.info('User consent updated', { 
+      userId: req.userId, 
+      hasConsentedToAI,
+      consentScope: user.consent.consentScope,
+    });
+
+    res.json({
+      success: true,
+      message: hasConsentedToAI ? 'Consent granted' : 'Consent withdrawn',
+      consent: user.consent,
+    });
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    logger.error('Update consent error', { error: message, userId: req.userId });
+    res.status(500).json({ success: false, message: 'Failed to update consent' });
   }
 });
 
@@ -611,12 +678,13 @@ router.post('/logout', protect, async (req: Request, res: Response): Promise<voi
       success: true,
       message: 'Logged out successfully',
     });
-  } catch (error: any) {
-    console.error('Logout error:', error);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    logger.error('Logout error', { error: message });
     res.status(500).json({
       success: false,
       message: 'Logout failed',
-      error: error.message,
+      error: message,
     });
   }
 });

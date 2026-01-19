@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { ResonanceClient } from '@sonate/detect';
+import logger from '../utils/logger';
 
 // Initialize client (pointing to the Python Sidecar)
 // In production, use process.env.RESONANCE_ENGINE_URL
@@ -17,13 +18,13 @@ export const analyzeInteraction = async (req: Request, res: Response) => {
     // 2. Health Check (Optional, but good for stability)
     const isEngineOnline = await resonanceClient.healthCheck();
     if (!isEngineOnline) {
-      console.warn('⚠️ Resonance Engine is offline. Returning fallback receipt.');
+      logger.warn('⚠️ Resonance Engine is offline. Returning fallback receipt.');
       // You could return a "Standard" non-verified receipt here if needed
       return res.status(503).json({ error: 'Resonance Engine unavailable' });
     }
 
     // 3. The "Heavy Lifting" - Call Python Sidecar
-    console.log(`📡 Requesting Vector Analysis for: "${user_input.substring(0, 20)}..."`);
+    logger.info(`📡 Requesting Vector Analysis for: "${user_input.substring(0, 20)}..."`);
     const receipt = await resonanceClient.generateReceipt({
       user_input,
       ai_response,
@@ -34,11 +35,11 @@ export const analyzeInteraction = async (req: Request, res: Response) => {
     // await db.receipts.create({ ...receipt, userId: req.user.id });
 
     // 5. Return the Trust Receipt to the Frontend
-    console.log(`✅ Receipt Minted: ${receipt.symbi_dimensions.trust_protocol}`);
+    logger.info(`✅ Receipt Minted: ${receipt.symbi_dimensions.trust_protocol}`);
     return res.json(receipt);
 
   } catch (error) {
-    console.error('❌ Interaction Analysis Failed:', error);
+    logger.error('❌ Interaction Analysis Failed:', error);
     return res.status(500).json({ error: 'Internal Trust Protocol Error' });
   }
 };

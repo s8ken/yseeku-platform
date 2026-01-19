@@ -7,6 +7,8 @@
 
 import { AlertModel, IAlert, AlertSeverity, AlertStatus } from '../models/alert.model';
 import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
+import { webhookService } from './webhook.service';
 
 export interface Alert {
   id: string;
@@ -124,8 +126,8 @@ export const alertsService = {
         .lean();
 
       return alerts.map(doc => toAlert(doc as unknown as IAlert));
-    } catch (error: any) {
-      logger.error('Failed to list alerts', { error: error.message, tenantId });
+    } catch (error: unknown) {
+      logger.error('Failed to list alerts', { error: getErrorMessage(error), tenantId });
       return [];
     }
   },
@@ -156,9 +158,15 @@ export const alertsService = {
         tenantId,
       });
 
+      // Trigger webhook delivery asynchronously (don't await to avoid blocking)
+      const alertDoc = alert as unknown as IAlert;
+      webhookService.processAlert(alertDoc, input.details as Record<string, number> | undefined).catch(err => {
+        logger.error('Failed to process alert for webhooks', { alertId: alert._id, error: getErrorMessage(err) });
+      });
+
       return toAlert(alert);
-    } catch (error: any) {
-      logger.error('Failed to create alert', { error: error.message, tenantId });
+    } catch (error: unknown) {
+      logger.error('Failed to create alert', { error: getErrorMessage(error), tenantId });
       throw error;
     }
   },
@@ -182,8 +190,8 @@ export const alertsService = {
 
       logger.info('Alert acknowledged', { alertId: id, by, tenantId });
       return toAlert(alert);
-    } catch (error: any) {
-      logger.error('Failed to acknowledge alert', { error: error.message, id, tenantId });
+    } catch (error: unknown) {
+      logger.error('Failed to acknowledge alert', { error: getErrorMessage(error), id, tenantId });
       return null;
     }
   },
@@ -207,8 +215,8 @@ export const alertsService = {
 
       logger.info('Alert resolved', { alertId: id, by, tenantId });
       return toAlert(alert);
-    } catch (error: any) {
-      logger.error('Failed to resolve alert', { error: error.message, id, tenantId });
+    } catch (error: unknown) {
+      logger.error('Failed to resolve alert', { error: getErrorMessage(error), id, tenantId });
       return null;
     }
   },
@@ -232,8 +240,8 @@ export const alertsService = {
 
       logger.info('Alert suppressed', { alertId: id, by, tenantId });
       return toAlert(alert);
-    } catch (error: any) {
-      logger.error('Failed to suppress alert', { error: error.message, id, tenantId });
+    } catch (error: unknown) {
+      logger.error('Failed to suppress alert', { error: getErrorMessage(error), id, tenantId });
       return null;
     }
   },
@@ -246,8 +254,8 @@ export const alertsService = {
       const alert = await AlertModel.findOne({ _id: id, tenantId }).lean();
       if (!alert) return null;
       return toAlert(alert as unknown as IAlert);
-    } catch (error: any) {
-      logger.error('Failed to get alert', { error: error.message, id, tenantId });
+    } catch (error: unknown) {
+      logger.error('Failed to get alert', { error: getErrorMessage(error), id, tenantId });
       return null;
     }
   },
@@ -270,8 +278,8 @@ export const alertsService = {
 
       await AlertModel.insertMany(alertDocs);
       logger.info('Demo alerts seeded', { tenantId, count: alertDocs.length });
-    } catch (error: any) {
-      logger.error('Failed to seed demo alerts', { error: error.message, tenantId });
+    } catch (error: unknown) {
+      logger.error('Failed to seed demo alerts', { error: getErrorMessage(error), tenantId });
     }
   },
 
@@ -282,8 +290,8 @@ export const alertsService = {
     try {
       const result = await AlertModel.deleteMany({ tenantId });
       logger.info('Alerts cleared', { tenantId, count: result.deletedCount });
-    } catch (error: any) {
-      logger.error('Failed to clear alerts', { error: error.message, tenantId });
+    } catch (error: unknown) {
+      logger.error('Failed to clear alerts', { error: getErrorMessage(error), tenantId });
     }
   },
 
@@ -328,8 +336,8 @@ export const alertsService = {
         acknowledged: 0,
         resolved: 0,
       };
-    } catch (error: any) {
-      logger.error('Failed to get alert summary', { error: error.message, tenantId });
+    } catch (error: unknown) {
+      logger.error('Failed to get alert summary', { error: getErrorMessage(error), tenantId });
       return {
         total: 0,
         critical: 0,
@@ -358,8 +366,8 @@ export const alertsService = {
       if (options?.type) query.type = options.type;
 
       return await AlertModel.countDocuments(query);
-    } catch (error: any) {
-      logger.error('Failed to count alerts', { error: error.message, tenantId });
+    } catch (error: unknown) {
+      logger.error('Failed to count alerts', { error: getErrorMessage(error), tenantId });
       return 0;
     }
   },

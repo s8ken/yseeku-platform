@@ -7,6 +7,7 @@
 
 import { keysService } from './keys.service';
 import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 // Platform domain - configurable via environment
 const PLATFORM_DOMAIN = process.env.PLATFORM_DOMAIN || 'yseeku.com';
@@ -265,8 +266,8 @@ export async function resolveDID(did: string): Promise<DIDDocument | null> {
     logger.warn('Unknown DID path structure', { did, parts });
     return null;
 
-  } catch (error: any) {
-    logger.error('Failed to resolve DID', { did, error: error.message });
+  } catch (error: unknown) {
+    logger.error('Failed to resolve DID', { did, error: getErrorMessage(error) });
     return null;
   }
 }

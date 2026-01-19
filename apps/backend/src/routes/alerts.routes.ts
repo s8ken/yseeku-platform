@@ -7,6 +7,7 @@ import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import logger, { securityLogger } from '../utils/logger';
 import { alertsService, AlertSeverity, AlertStatus } from '../services/alerts.service';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -52,15 +53,15 @@ router.get('/management', protect, async (req: Request, res: Response): Promise<
         summary,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Get alerts error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
     });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch alerts',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -91,16 +92,16 @@ router.post('/:id/acknowledge', protect, async (req: Request, res: Response): Pr
       message: 'Alert acknowledged successfully',
       data: { alert },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     securityLogger.error('Acknowledge alert error', {
       alertId: req.params.id,
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
     });
     res.status(500).json({
       success: false,
       message: 'Failed to acknowledge alert',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -131,16 +132,16 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
       message: 'Alert resolved successfully',
       data: { alert },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     securityLogger.error('Resolve alert error', {
       alertId: req.params.id,
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
     });
     res.status(500).json({
       success: false,
       message: 'Failed to resolve alert',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -180,17 +181,17 @@ router.post('/:id/suppress', protect, async (req: Request, res: Response): Promi
       message: `Alert suppressed for ${duration} hour(s)`,
       data: { alert },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     securityLogger.error('Suppress alert error', {
       alertId: req.params.id,
       duration: req.body.duration,
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
     });
     res.status(500).json({
       success: false,
       message: 'Failed to suppress alert',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -231,15 +232,15 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
         details: alert.details,
       })),
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Get alerts summary error', {
-      error: error.message,
+      error: getErrorMessage(error),
       stack: error.stack,
     });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch alerts summary',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -271,9 +272,9 @@ router.post('/', protect, async (req: Request, res: Response): Promise<void> => 
     }, tenantId);
 
     res.status(201).json({ success: true, data: alert });
-  } catch (error: any) {
-    logger.error('Create alert error', { error: error.message });
-    res.status(500).json({ success: false, message: 'Failed to create alert', error: error.message });
+  } catch (error: unknown) {
+    logger.error('Create alert error', { error: getErrorMessage(error) });
+    res.status(500).json({ success: false, message: 'Failed to create alert', error: getErrorMessage(error) });
   }
 });
 
@@ -301,12 +302,12 @@ router.get('/:id', protect, async (req: Request, res: Response): Promise<void> =
       success: true,
       data: alert,
     });
-  } catch (error: any) {
-    logger.error('Get alert error', { error: error.message, alertId: req.params.id });
+  } catch (error: unknown) {
+    logger.error('Get alert error', { error: getErrorMessage(error), alertId: req.params.id });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch alert',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -326,12 +327,12 @@ router.delete('/clear', protect, async (req: Request, res: Response): Promise<vo
       success: true,
       message: 'All alerts cleared',
     });
-  } catch (error: any) {
-    logger.error('Clear alerts error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Clear alerts error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to clear alerts',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });

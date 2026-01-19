@@ -10,6 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import logger from '../utils/logger';
 import { createSecretsManager } from '@sonate/orchestrate';
+import { getErrorMessage } from '../utils/error-utils';
 
 let ed25519Promise: Promise<any> | null = null;
 
@@ -103,8 +104,8 @@ class KeysService {
       await this.generateNewKeys();
       this.initialized = true;
 
-    } catch (error: any) {
-      logger.error('Failed to initialize keys service', { error: error.message });
+    } catch (error: unknown) {
+      logger.error('Failed to initialize keys service', { error: getErrorMessage(error) });
       throw error;
     }
   }

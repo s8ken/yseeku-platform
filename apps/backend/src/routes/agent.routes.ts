@@ -5,7 +5,11 @@
 
 import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
+import { validateBody, validateParams } from '../middleware/validation.middleware';
+import { CreateAgentSchema, UpdateAgentSchema, MongoIdSchema } from '../schemas/validation.schemas';
 import { Agent, IAgent } from '../models/agent.model';
+import { getErrorMessage } from '../utils/error-utils';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -52,12 +56,12 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
       },
       source: 'database',
     });
-  } catch (error: any) {
-    console.error('Get agents error:', error);
+  } catch (error: unknown) {
+    logger.error('Get agents error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch agents',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -78,12 +82,12 @@ router.get('/public', protect, async (req: Request, res: Response): Promise<void
       success: true,
       data: { agents: publicAgents },
     });
-  } catch (error: any) {
-    console.error('Get public agents error:', error);
+  } catch (error: unknown) {
+    logger.error('Get public agents error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch public agents',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -112,12 +116,12 @@ router.get('/:id', protect, async (req: Request, res: Response): Promise<void> =
       success: true,
       data: { agent },
     });
-  } catch (error: any) {
-    console.error('Get agent error:', error);
+  } catch (error: unknown) {
+    logger.error('Get agent error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch agent',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -127,7 +131,7 @@ router.get('/:id', protect, async (req: Request, res: Response): Promise<void> =
  * @desc    Create new agent
  * @access  Private
  */
-router.post('/', protect, async (req: Request, res: Response): Promise<void> => {
+router.post('/', protect, validateBody(CreateAgentSchema), async (req: Request, res: Response): Promise<void> => {
   try {
     const {
       name,
@@ -142,15 +146,6 @@ router.post('/', protect, async (req: Request, res: Response): Promise<void> => 
       traits,
       ciModel,
     } = req.body;
-
-    // Validation
-    if (!name || !description || !provider || !model || !systemPrompt) {
-      res.status(400).json({
-        success: false,
-        message: 'Please provide all required fields: name, description, provider, model, systemPrompt',
-      });
-      return;
-    }
 
     // Check for duplicate agent name for this user
     const existingAgent = await Agent.findOne({
@@ -192,12 +187,12 @@ router.post('/', protect, async (req: Request, res: Response): Promise<void> => 
       message: 'Agent created successfully',
       data: { agent },
     });
-  } catch (error: any) {
-    console.error('Create agent error:', error);
+  } catch (error: unknown) {
+    logger.error('Create agent error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to create agent',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -242,12 +237,12 @@ router.put('/:id', protect, async (req: Request, res: Response): Promise<void> =
       message: 'Agent updated successfully',
       data: { agent: updatedAgent },
     });
-  } catch (error: any) {
-    console.error('Update agent error:', error);
+  } catch (error: unknown) {
+    logger.error('Update agent error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update agent',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -277,12 +272,12 @@ router.delete('/:id', protect, async (req: Request, res: Response): Promise<void
       message: 'Agent deleted successfully',
       data: { agentId: agent._id },
     });
-  } catch (error: any) {
-    console.error('Delete agent error:', error);
+  } catch (error: unknown) {
+    logger.error('Delete agent error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete agent',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -332,12 +327,12 @@ router.post('/connect', protect, async (req: Request, res: Response): Promise<vo
         targetAgent: targetAgent._id,
       },
     });
-  } catch (error: any) {
-    console.error('Connect agents error:', error);
+  } catch (error: unknown) {
+    logger.error('Connect agents error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to connect agents',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -385,12 +380,12 @@ router.post('/:id/external-systems', protect, async (req: Request, res: Response
       message: 'External system added successfully',
       data: { agent },
     });
-  } catch (error: any) {
-    console.error('Add external system error:', error);
+  } catch (error: unknown) {
+    logger.error('Add external system error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to add external system',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -424,12 +419,12 @@ router.put('/:id/external-systems/:systemName/toggle', protect, async (req: Requ
       message: 'External system status updated',
       data: { agent },
     });
-  } catch (error: any) {
-    console.error('Toggle external system error:', error);
+  } catch (error: unknown) {
+    logger.error('Toggle external system error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to toggle external system',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -461,12 +456,12 @@ router.post('/:id/external-systems/:systemName/sync', protect, async (req: Reque
       message: 'External system synced successfully',
       data: { agent },
     });
-  } catch (error: any) {
-    console.error('Sync external system error:', error);
+  } catch (error: unknown) {
+    logger.error('Sync external system error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to sync external system',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });

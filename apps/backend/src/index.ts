@@ -6,6 +6,11 @@
 import dotenv from 'dotenv';
 // Load environment variables before any other imports
 dotenv.config();
+
+// Validate environment variables early
+import { validateEnvironmentOrExit } from './utils/validate-env';
+validateEnvironmentOrExit();
+
 // Initialize telemetry before other imports when enabled
 import './observability/telemetry';
 
@@ -34,7 +39,13 @@ import secretsRoutes from './routes/secrets.routes';
 import overrideRoutes from './routes/override.routes';
 import demoRoutes from './routes/demo.routes';
 import didRoutes from './routes/did.routes';
+import webhookRoutes from './routes/webhook.routes';
+import liveRoutes from './routes/live.routes';
+import safetyRoutes from './routes/safety.routes';
+import reportsRoutes from './routes/reports.routes';
+import compareRoutes from './routes/compare.routes';
 import { initializeSocket } from './socket';
+import { liveMetricsService } from './services/live-metrics.service';
 import { User } from './models/user.model';
 import { Agent } from './models/agent.model';
 import { Types } from 'mongoose';
@@ -45,6 +56,7 @@ import { rateLimiter } from './middleware/rate-limit';
 import { httpMetrics } from './middleware/http-metrics';
 import { correlationMiddleware } from './middleware/correlation.middleware';
 import { annotateActiveSpan } from './observability/tracing';
+import { globalErrorHandler, notFoundHandler } from './middleware/error-handler';
 
 const app = express();
 const server = http.createServer(app);
@@ -127,6 +139,11 @@ app.use('/api/gateway', apiGatewayRoutes); // API Gateway and Platform Keys
 app.use('/api/orchestrate', orchestrateRoutes); // Multi-Agent Orchestration
 app.use('/api/overseer', overseerRoutes); // System Brain / Overseer
 app.use('/api/overrides', overrideRoutes); // Override management
+app.use('/api/webhooks', webhookRoutes); // Webhook configuration and delivery
+app.use('/api/live', liveRoutes); // Live dashboard metrics
+app.use('/api/safety', safetyRoutes); // Prompt safety scanning
+app.use('/api/reports', reportsRoutes); // Compliance reports
+app.use('/api/compare', compareRoutes); // Multi-model comparison
 app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
 app.use('/api/secrets', secretsRoutes);
 const enableDemo = process.env.DEMO_ROUTES_ENABLED === 'true' || (process.env.NODE_ENV !== 'production');
@@ -136,72 +153,14 @@ if (enableDemo) {
 app.use('/.well-known', didRoutes); // DID resolution at standard .well-known path (no auth required)
 app.use('/api/did', didRoutes); // DID API endpoints
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found',
-    path: req.path,
-  });
-});
+// 404 handler - catch unmatched routes
+app.use(notFoundHandler);
 
 // Error logging middleware
 app.use(errorLogger);
 
-// Error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error('Unhandled error', {
-    error: err.message,
-    stack: err.stack,
-    path: req.path,
-    method: req.method,
-  });
-
-  // Handle Mongoose validation errors
-  if (err.name === 'ValidationError') {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation error',
-      errors: Object.values(err.errors).map((e: any) => e.message),
-    });
-  }
-
-  // Handle Mongoose duplicate key errors
-  if (err.code === 11000) {
-    return res.status(400).json({
-      success: false,
-      message: 'Duplicate entry',
-      field: Object.keys(err.keyPattern)[0],
-    });
-  }
-
-  // Handle JWT errors
-  if (err.name === 'JsonWebTokenError') {
-    return res.status(401).json({
-      success: false,
-      message: 'Invalid token',
-    });
-  }
-
-  if (err.name === 'TokenExpiredError') {
-    return res.status(401).json({
-      success: false,
-      message: 'Token expired',
-    });
-  }
-
-  // Default error
-  const isProd = (process.env.NODE_ENV || 'development') === 'production';
-  const responseBody: any = {
-    success: false,
-    message: err.message || 'Internal server error',
-  };
-  if (!isProd) {
-    responseBody.details = err.stack;
-    responseBody.error = JSON.stringify(err, Object.getOwnPropertyNames(err));
-  }
-  res.status(err.status || 500).json(responseBody);
-});
+// Global error handler - must be last
+app.use(globalErrorHandler);
 
 // Start server
 async function startServer() {
@@ -249,8 +208,9 @@ async function startServer() {
           });
           logger.info('Default Anthropic agent provisioned for admin');
         }
-      } catch (e: any) {
-        logger.warn('Admin provisioning failed', { error: e?.message || String(e) });
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        logger.warn('Admin provisioning failed', { error: msg });
       }
     }
 
@@ -285,8 +245,9 @@ async function startServer() {
       } else {
         logger.warn('Demo user not found during agent provisioning');
       }
-    } catch (e: any) {
-      logger.warn('Demo agent provisioning failed', { error: e?.message || String(e) });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.warn('Demo agent provisioning failed', { error: msg });
     }
 
     // Initialize Socket.IO
@@ -297,8 +258,10 @@ async function startServer() {
       },
     });
     initializeSocket(io);
+    liveMetricsService.initialize(io); // Initialize live metrics broadcasting
     logger.info('Socket.IO server initialized', {
       realtime: 'enabled',
+      liveMetrics: 'enabled',
     });
 
     // Start listening
@@ -334,10 +297,11 @@ async function startServer() {
 
       startOverseerScheduler().catch(() => {});
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
     logger.error('Failed to start server', {
-      error: error.message,
-      stack: error.stack,
+      error: err.message,
+      stack: err.stack,
     });
     process.exit(1);
   }
@@ -346,17 +310,18 @@ async function startServer() {
 startServer();
 
 // Global error handlers
-process.on('unhandledRejection', (reason: any) => {
+process.on('unhandledRejection', (reason: unknown) => {
+  const err = reason instanceof Error ? reason : new Error(String(reason));
   logger.error('Unhandled promise rejection', {
-    error: reason?.message || String(reason),
-    stack: reason?.stack,
+    error: err.message,
+    stack: err.stack,
   });
 });
 
-process.on('uncaughtException', (error: any) => {
+process.on('uncaughtException', (error: Error) => {
   logger.error('Uncaught exception', {
-    error: error?.message || String(error),
-    stack: error?.stack,
+    error: error.message,
+    stack: error.stack,
   });
   // In production, exit to allow a supervisor to restart
   if ((process.env.NODE_ENV || 'development') === 'production') {

@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import { orchestrationService } from '../services/orchestration.service';
 import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -17,8 +18,8 @@ router.get('/workflows', protect, async (req: Request, res: Response): Promise<v
       success: true,
       data: workflows
     });
-  } catch (error: any) {
-    logger.error('List workflows error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('List workflows error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, message: 'Failed to list workflows' });
   }
 });
@@ -38,8 +39,8 @@ router.post('/workflows', protect, async (req: Request, res: Response): Promise<
       success: true,
       data: workflow
     });
-  } catch (error: any) {
-    logger.error('Create workflow error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Create workflow error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, message: 'Failed to create workflow' });
   }
 });
@@ -68,8 +69,8 @@ router.post('/workflows/template/cev', protect, async (req: Request, res: Respon
       success: true,
       data: workflow
     });
-  } catch (error: any) {
-    logger.error('Create CEV template error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Create CEV template error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, message: 'Failed to create template' });
   }
 });
@@ -98,8 +99,8 @@ router.post('/workflows/:id/execute', protect, async (req: Request, res: Respons
       success: true,
       data: execution
     });
-  } catch (error: any) {
-    logger.error('Execute workflow error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Execute workflow error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, message: 'Failed to start execution' });
   }
 });
@@ -125,8 +126,8 @@ router.get('/executions/:id', protect, async (req: Request, res: Response): Prom
       success: true,
       data: execution
     });
-  } catch (error: any) {
-    logger.error('Get execution error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Get execution error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, message: 'Failed to get execution' });
   }
 });

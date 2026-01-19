@@ -8,6 +8,8 @@ import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { tracer } from '../observability/tracing';
 import { User, IUser } from '../models/user.model';
+import { logger } from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 // Message format (OpenAI-compatible)
 export interface ChatMessage {
@@ -295,9 +297,9 @@ export class LLMService {
         model,
         provider: 'openai',
       };
-    } catch (error: any) {
-      console.error('OpenAI API Error:', error);
-      throw new Error(`OpenAI API Error: ${error.message}`);
+    } catch (error: unknown) {
+      logger.error('OpenAI API Error', { error: getErrorMessage(error) });
+      throw new Error(`OpenAI API Error: ${getErrorMessage(error)}`);
     }
   }
 
@@ -359,9 +361,9 @@ export class LLMService {
         model,
         provider: 'anthropic',
       };
-    } catch (error: any) {
-      console.error('Anthropic API Error:', error);
-      throw new Error(`Anthropic API Error: ${error.message}`);
+    } catch (error: unknown) {
+      logger.error('Anthropic API Error', { error: getErrorMessage(error) });
+      throw new Error(`Anthropic API Error: ${getErrorMessage(error)}`);
     }
   }
 
@@ -403,9 +405,9 @@ export class LLMService {
         model,
         provider: 'together',
       };
-    } catch (error: any) {
-      console.error('Together AI API Error:', error);
-      throw new Error(`Together AI API Error: ${error.message}`);
+    } catch (error: unknown) {
+      logger.error('Together AI API Error', { error: getErrorMessage(error) });
+      throw new Error(`Together AI API Error: ${getErrorMessage(error)}`);
     }
   }
 

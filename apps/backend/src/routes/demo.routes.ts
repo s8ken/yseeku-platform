@@ -18,6 +18,7 @@ import { Conversation } from '../models/conversation.model';
 import { Experiment } from '../models/experiment.model';
 import { TrustReceiptModel } from '../models/trust-receipt.model';
 import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
@@ -70,12 +71,12 @@ router.post('/init', async (req: Request, res: Response): Promise<void> => {
         timestamp: new Date().toISOString(),
       },
     });
-  } catch (error: any) {
-    logger.error('Demo init error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Demo init error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to initialize demo mode',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -125,12 +126,12 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
       success: true,
       data: kpiData,
     });
-  } catch (error: any) {
-    logger.error('Demo KPIs error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Demo KPIs error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch demo KPIs',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -159,12 +160,12 @@ router.get('/alerts', async (req: Request, res: Response): Promise<void> => {
         details: alert.details,
       })),
     });
-  } catch (error: any) {
-    logger.error('Demo alerts error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Demo alerts error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch demo alerts',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -228,12 +229,12 @@ router.get('/tenants', async (req: Request, res: Response): Promise<void> => {
       success: true,
       data: tenants,
     });
-  } catch (error: any) {
-    logger.error('Demo tenants error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Demo tenants error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch demo tenants',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -297,12 +298,12 @@ router.get('/agents', async (req: Request, res: Response): Promise<void> => {
         traits: agent.traits instanceof Map ? Object.fromEntries(agent.traits) : agent.traits,
       })),
     });
-  } catch (error: any) {
-    logger.error('Demo agents error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Demo agents error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch demo agents',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -356,12 +357,12 @@ router.get('/experiments', async (req: Request, res: Response): Promise<void> =>
       success: true,
       data: experiments,
     });
-  } catch (error: any) {
-    logger.error('Demo experiments error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Demo experiments error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch demo experiments',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -386,12 +387,12 @@ router.get('/receipts', async (req: Request, res: Response): Promise<void> => {
         tenant: DEMO_TENANT_ID,
       },
     });
-  } catch (error: any) {
-    logger.error('Demo receipts error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Demo receipts error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch demo receipts',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -439,12 +440,12 @@ router.get('/risk', async (req: Request, res: Response): Promise<void> => {
       success: true,
       data: riskData,
     });
-  } catch (error: any) {
-    logger.error('Demo risk error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Demo risk error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch demo risk data',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
@@ -513,12 +514,12 @@ router.get('/overseer', async (req: Request, res: Response): Promise<void> => {
       success: true,
       data: overseerData,
     });
-  } catch (error: any) {
-    logger.error('Demo overseer error', { error: error.message });
+  } catch (error: unknown) {
+    logger.error('Demo overseer error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       message: 'Failed to fetch demo overseer data',
-      error: error.message,
+      error: getErrorMessage(error),
     });
   }
 });
