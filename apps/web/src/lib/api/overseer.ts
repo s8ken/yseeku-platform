@@ -71,8 +71,11 @@ export const overseerApi = {
     return res.data;
   },
 
-  async triggerThink(): Promise<void> {
-    await fetchAPI('/api/overseer/think', { method: 'POST' });
+  async triggerThink(mode?: 'advisory' | 'enforced'): Promise<void> {
+    await fetchAPI('/api/overseer/think', { 
+      method: 'POST',
+      body: mode ? JSON.stringify({ mode }) : undefined,
+    });
   },
 
   async getMemories(kind?: string): Promise<BrainMemory[]> {
