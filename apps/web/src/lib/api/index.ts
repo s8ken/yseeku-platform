@@ -210,6 +210,111 @@ export const api = {
     const queryString = params instanceof URLSearchParams ? params.toString() : new URLSearchParams(params).toString();
     return fetchAPI(`/api/audit/logs?${queryString}`);
   },
+
+  // LLM Keys Management
+  async getLLMKeys(): Promise<Array<{ id: string; name: string; provider: string; createdAt: string }>> {
+    const { fetchAPI } = await import('./client');
+    const res = await fetchAPI<{ success: boolean; data: { keys: Array<any> } }>('/api/llm/keys');
+    return res.data?.keys || [];
+  },
+
+  async addApiKey(data: { name: string; provider: string; apiKey: string }): Promise<{ id: string }> {
+    const { fetchAPI } = await import('./client');
+    const res = await fetchAPI<{ success: boolean; data: { id: string } }>('/api/llm/keys', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return res.data;
+  },
+
+  async deleteApiKey(id: string): Promise<void> {
+    const { fetchAPI } = await import('./client');
+    await fetchAPI(`/api/llm/keys/${id}`, { method: 'DELETE' });
+  },
+
+  // Brain / Memory Features
+  async getBrainMemories(): Promise<Array<any>> {
+    const { fetchAPI } = await import('./client');
+    const res = await fetchAPI<{ success: boolean; data: { memories: Array<any> } }>('/api/brain/memories');
+    return res.data?.memories || [];
+  },
+
+  async getBrainCycles(): Promise<Array<any>> {
+    const { fetchAPI } = await import('./client');
+    const res = await fetchAPI<{ success: boolean; data: { cycles: Array<any> } }>('/api/brain/cycles');
+    return res.data?.cycles || [];
+  },
+
+  async deleteBrainMemory(id: string): Promise<void> {
+    const { fetchAPI } = await import('./client');
+    await fetchAPI(`/api/brain/memories/${id}`, { method: 'DELETE' });
+  },
+
+  async clearBrainMemories(): Promise<void> {
+    const { fetchAPI } = await import('./client');
+    await fetchAPI('/api/brain/memories', { method: 'DELETE' });
+  },
+
+  // LLM Generation
+  async generateLLMResponse(data: { prompt: string; model?: string; maxTokens?: number }): Promise<{ response: string }> {
+    const { fetchAPI } = await import('./client');
+    const res = await fetchAPI<{ success: boolean; data: { response: string } }>('/api/llm/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return res.data;
+  },
+
+  // Action Features
+  async getActionRecommendations(): Promise<Array<any>> {
+    const { fetchAPI } = await import('./client');
+    const res = await fetchAPI<{ success: boolean; data: { recommendations: Array<any> } }>('/api/actions/recommendations');
+    return res.data?.recommendations || [];
+  },
+
+  async getActionEffectiveness(): Promise<Record<string, any>> {
+    const { fetchAPI } = await import('./client');
+    const res = await fetchAPI<{ success: boolean; data: Record<string, any> }>('/api/actions/effectiveness');
+    return res.data || {};
+  },
+
+  // Bedau Metrics (alias for getBedauIndex)
+  async getBedauMetrics(): Promise<Record<string, any>> {
+    const { fetchAPI } = await import('./client');
+    const res = await fetchAPI<{ success: boolean; data: Record<string, any> }>('/api/bedau/metrics');
+    return res.data || {};
+  },
+
+  // Trust Receipts
+  async getTrustReceiptsList(params?: { page?: number; limit?: number }): Promise<{ receipts: Array<any>; total: number }> {
+    const { fetchAPI } = await import('./client');
+    const query = params ? `?page=${params.page || 1}&limit=${params.limit || 20}` : '';
+    const res = await fetchAPI<{ success: boolean; data: { receipts: Array<any>; total: number } }>(`/api/trust/receipts${query}`);
+    return res.data || { receipts: [], total: 0 };
+  },
+
+  async getTrustReceiptByHash(hash: string): Promise<any> {
+    const { fetchAPI } = await import('./client');
+    const res = await fetchAPI<{ success: boolean; data: { receipt: any } }>(`/api/trust/receipts/${hash}`);
+    return res.data?.receipt;
+  },
+
+  async verifyTrustReceipt(hash: string): Promise<{ valid: boolean; receipt?: any }> {
+    const { fetchAPI } = await import('./client');
+    const res = await fetchAPI<{ success: boolean; data: { valid: boolean; receipt?: any } }>(`/api/trust/receipts/${hash}/verify`);
+    return res.data || { valid: false };
+  },
+
+  // Debug
+  async debugAuth(): Promise<{ authenticated: boolean; user?: any }> {
+    const { fetchAPI } = await import('./client');
+    try {
+      const res = await fetchAPI<{ success: boolean; data: { authenticated: boolean; user?: any } }>('/api/auth/debug');
+      return res.data || { authenticated: false };
+    } catch {
+      return { authenticated: false };
+    }
+  },
 };
 
 export default api;
