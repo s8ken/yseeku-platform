@@ -78,7 +78,7 @@ export default function OverridesHistoryPage() {
     }
 
     const headers = ['ID', 'Action Type', 'Target', 'Decision', 'Reason', 'Emergency', 'User', 'Created', 'Impact'];
-    const rows = items.map(item => [
+    const rows = items.map((item: OverrideHistoryItem) => [
       item.id,
       item.actionType,
       item.actionTarget,
