@@ -25,6 +25,8 @@ import {
   Cpu
 } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
+import { useDemo } from '@/hooks/use-demo';
+import { api } from '@/lib/api';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -171,8 +173,9 @@ export default function LiveDashboardPage() {
   const [metrics, setMetrics] = useState<LiveMetrics | null>(null);
   const [events, setEvents] = useState<TrustEvent[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const { isDemo, isLoaded } = useDemo();
 
-  // Fetch initial metrics
+  // Fetch real metrics (when not in demo mode)
   const { data: initialMetrics, refetch } = useQuery({
     queryKey: ['live-metrics'],
     queryFn: async () => {
@@ -181,9 +184,22 @@ export default function LiveDashboardPage() {
       return res.json();
     },
     refetchInterval: connected ? false : 10000, // Only poll if not connected via socket
+    enabled: !isDemo && isLoaded,
   });
 
-  // Fetch events
+  // Fetch demo metrics (when in demo mode)
+  const { data: demoMetrics, refetch: refetchDemo } = useQuery({
+    queryKey: ['demo-live-metrics'],
+    queryFn: async () => {
+      const res = await api.getDemoLiveMetrics();
+      return res as { success: boolean; data: LiveMetrics };
+    },
+    refetchInterval: 5000, // Poll every 5 seconds in demo mode
+    staleTime: 3000,
+    enabled: isDemo && isLoaded,
+  });
+
+  // Fetch real events (when not in demo mode)
   const { data: initialEvents } = useQuery({
     queryKey: ['live-events'],
     queryFn: async () => {
@@ -192,10 +208,25 @@ export default function LiveDashboardPage() {
       const data = await res.json();
       return data.data;
     },
+    enabled: !isDemo && isLoaded,
   });
 
-  // Initialize Socket.IO connection
+  // Fetch demo events (when in demo mode)
+  const { data: demoEvents } = useQuery({
+    queryKey: ['demo-live-events'],
+    queryFn: async () => {
+      const res = await api.getDemoLiveEvents(10);
+      return (res as { success: boolean; data: TrustEvent[] }).data;
+    },
+    staleTime: 10000,
+    enabled: isDemo && isLoaded,
+  });
+
+  // Initialize Socket.IO connection (only in live mode)
   useEffect(() => {
+    // Skip socket in demo mode
+    if (isDemo || !isLoaded) return;
+
     const token = localStorage.getItem('token');
     
     const newSocket = io(API_BASE, {
@@ -237,51 +268,88 @@ export default function LiveDashboardPage() {
     return () => {
       newSocket.disconnect();
     };
-  }, []);
+  }, [isDemo, isLoaded]);
 
-  // Use initial data if no socket data yet
+  // Use initial data if no socket data yet (for live mode)
   useEffect(() => {
-    if (initialEvents && events.length === 0) {
+    if (!isDemo && initialEvents && events.length === 0) {
       setEvents(initialEvents);
     }
-  }, [initialEvents, events.length]);
+  }, [isDemo, initialEvents, events.length]);
 
-  // Display metrics (from socket or API)
-  const displayMetrics = metrics || (initialMetrics?.data ? {
-    timestamp: new Date().toISOString(),
-    trust: {
-      current: initialMetrics.data.trust?.current || 8.5,
-      trend: 'stable' as const,
-      delta: 0,
-    },
-    drift: {
-      score: 0.15,
-      status: 'normal' as const,
-    },
-    emergence: {
-      level: 0.2,
-      active: false,
-    },
-    system: initialMetrics.data.system || {
-      activeAgents: 0,
-      activeConversations: 0,
-      messagesPerMinute: 0,
-      errorRate: 0,
-    },
-    alerts: initialMetrics.data.alerts || {
-      active: 0,
-      critical: 0,
-      warning: 0,
-    },
-    principles: {
-      consent: 8.5,
-      inspection: 8.7,
-      validation: 8.3,
-      override: 9.0,
-      disconnect: 8.8,
-      moral: 8.6,
-    },
-  } : null);
+  // Use demo events when in demo mode
+  useEffect(() => {
+    if (isDemo && demoEvents && demoEvents.length > 0) {
+      setEvents(demoEvents);
+    }
+  }, [isDemo, demoEvents]);
+
+  // Handle refetch based on mode
+  const handleRefresh = () => {
+    if (isDemo) {
+      refetchDemo();
+    } else {
+      refetch();
+    }
+    setLastUpdate(new Date());
+  };
+
+  // Display metrics - prioritize demo data when in demo mode
+  const displayMetrics = isDemo 
+    ? (demoMetrics?.data ? {
+        timestamp: demoMetrics.data.timestamp || new Date().toISOString(),
+        trust: demoMetrics.data.trust || { current: 8.5, trend: 'up' as const, delta: 0.3 },
+        drift: demoMetrics.data.drift || { score: 0.12, status: 'normal' as const },
+        emergence: demoMetrics.data.emergence || { level: 0.15, active: false },
+        system: demoMetrics.data.system || { activeAgents: 5, activeConversations: 3, messagesPerMinute: 12, errorRate: 0.2 },
+        alerts: demoMetrics.data.alerts || { active: 2, critical: 0, warning: 2 },
+        principles: demoMetrics.data.principles || {
+          consent: 8.6,
+          inspection: 9.0,
+          validation: 8.4,
+          override: 9.0,
+          disconnect: 8.5,
+          moral: 8.5,
+        },
+      } : null)
+    : (metrics || (initialMetrics?.data ? {
+        timestamp: new Date().toISOString(),
+        trust: {
+          current: initialMetrics.data.trust?.current || 8.5,
+          trend: 'stable' as const,
+          delta: 0,
+        },
+        drift: {
+          score: 0.15,
+          status: 'normal' as const,
+        },
+        emergence: {
+          level: 0.2,
+          active: false,
+        },
+        system: initialMetrics.data.system || {
+          activeAgents: 0,
+          activeConversations: 0,
+          messagesPerMinute: 0,
+          errorRate: 0,
+        },
+        alerts: initialMetrics.data.alerts || {
+          active: 0,
+          critical: 0,
+          warning: 0,
+        },
+        principles: {
+          consent: 8.5,
+          inspection: 8.7,
+          validation: 8.3,
+          override: 9.0,
+          disconnect: 8.8,
+          moral: 8.6,
+        },
+      } : null));
+
+  // Determine connection status display
+  const connectionStatus = isDemo ? 'demo' : (connected ? 'live' : 'polling');
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -294,28 +362,43 @@ export default function LiveDashboardPage() {
           </h1>
           <p className="text-muted-foreground">
             Real-time trust monitoring and system health
+            {isDemo && <span className="ml-2 text-amber-600">(Demo Mode)</span>}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Badge 
-            variant={connected ? 'default' : 'secondary'} 
-            className="flex items-center gap-1"
+            variant={connectionStatus === 'live' ? 'default' : connectionStatus === 'demo' ? 'secondary' : 'outline'} 
+            className={`flex items-center gap-1 ${connectionStatus === 'demo' ? 'bg-amber-500 text-white' : ''}`}
           >
-            {connected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-            {connected ? 'Live' : 'Polling'}
+            {connectionStatus === 'demo' ? (
+              <>
+                <Zap className="h-3 w-3" />
+                Demo
+              </>
+            ) : connected ? (
+              <>
+                <Wifi className="h-3 w-3" />
+                Live
+              </>
+            ) : (
+              <>
+                <WifiOff className="h-3 w-3" />
+                Polling
+              </>
+            )}
           </Badge>
           {lastUpdate && (
             <span className="text-sm text-muted-foreground">
               Updated {lastUpdate.toLocaleTimeString()}
             </span>
           )}
-          <Button variant="outline" size="sm" onClick={() => refetch()}>
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {!displayMetrics ? (
+      {(!isLoaded || !displayMetrics) ? (
         <Card>
           <CardContent className="p-8 text-center">
             <RefreshCw className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />

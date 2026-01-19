@@ -158,6 +158,16 @@ export const api = {
     return res.json();
   },
 
+  async getDemoLiveMetrics(): Promise<unknown> {
+    const res = await fetch(`${API_BASE}/api/demo/live-metrics`);
+    return res.json();
+  },
+
+  async getDemoLiveEvents(limit = 10): Promise<unknown> {
+    const res = await fetch(`${API_BASE}/api/demo/live-events?limit=${limit}`);
+    return res.json();
+  },
+
   // Orchestration / Workflows
   async getWorkflows(): Promise<unknown[]> {
     const { fetchAPI } = await import('./client');
