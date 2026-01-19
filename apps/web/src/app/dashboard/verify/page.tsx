@@ -152,27 +152,27 @@ export default function VerifyPage() {
       const hashToVerify = receipt.self_hash || receipt.receiptHash || receipt.hash;
 
       // Use real backend verification endpoint
-      const response = await api.verifyTrustReceipt(hashToVerify, receipt);
+      const response = await api.verifyTrustReceipt(hashToVerify);
 
       const result: VerificationResult = {
-        verified: response.data?.valid || false,
-        receipt: receipt,
+        verified: response.valid || false,
+        receipt: response.receipt || receipt,
         receiptHash: hashToVerify,
         trustScore: receipt.ciq_metrics?.overall_trust_score || receipt.trustScore?.overall || receipt.trustScore || 0,
         status: receipt.ciq_metrics?.status || receipt.status || 'UNKNOWN',
         timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
         violations: receipt.ciq_metrics?.violations || receipt.trustScore?.violations || [],
-        signatureValid: response.data?.verification?.signatureValid,
-        hashValid: response.data?.verification?.hashValid,
-        foundInDatabase: response.data?.foundInDatabase,
-        publicKey: response.data?.verification?.publicKey,
+        signatureValid: (response as any).verification?.signatureValid,
+        hashValid: (response as any).verification?.hashValid,
+        foundInDatabase: (response as any).foundInDatabase,
+        publicKey: (response as any).verification?.publicKey,
       };
 
       setVerificationResult(result);
 
       if (result.verified) {
         toast.success('Receipt Verified', {
-          description: response.data?.foundInDatabase
+          description: (response as any).foundInDatabase
             ? 'JSON receipt is valid, cryptographically signed, and found in database.'
             : 'JSON receipt is valid and cryptographically signed.',
         });

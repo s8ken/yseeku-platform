@@ -69,7 +69,7 @@ const defaultSettings: TenantSettings = {
 export default function TenantSettingsPage() {
   const [settings, setSettings] = useState<TenantSettings>(defaultSettings);
   const [hasChanges, setHasChanges] = useState(false);
-  const [llmKeys, setLlmKeys] = useState<{ provider: string; name: string; isActive: boolean; createdAt: string }[]>([]);
+  const [llmKeys, setLlmKeys] = useState<{ id?: string; provider: string; name: string; isActive?: boolean; createdAt: string }[]>([]);
   const [loadingKeys, setLoadingKeys] = useState(true);
 
   useEffect(() => {
@@ -99,9 +99,9 @@ export default function TenantSettingsPage() {
 
   const handleAddKey = async (provider: string, key: string, name: string) => {
     try {
-      const res = await api.addApiKey(provider, key, name);
-      if (res.success) {
-        setLlmKeys(res.data.apiKeys);
+      const res = await api.addApiKey({ provider, apiKey: key, name });
+      if ((res as any).success) {
+        setLlmKeys((res as any).data.apiKeys);
         toast.success(`${provider} key updated successfully`);
       }
     } catch (error: any) {
@@ -115,12 +115,17 @@ export default function TenantSettingsPage() {
   const handleTestKey = async (provider: string) => {
     setTestingKey(provider);
     try {
-      const res = await api.generateLLMResponse(provider, provider === 'anthropic' ? 'claude-3-haiku-20240307' : 'mistralai/mistral-7b-instruct-v0.1', [
-        { role: 'user', content: 'Test connection. Reply with "OK".' }
-      ]);
-      if (res.success) {
+      const res = await api.generateLLMResponse({
+        prompt: 'Test connection. Reply with "OK".',
+        model: provider === 'anthropic' ? 'claude-3-haiku-20240307' : 'mistralai/mistral-7b-instruct-v0.1'
+      });
+      if ((res as any).success) {
         toast.success(`${provider} connection successful!`, {
-          description: `AI Response: ${res.data.response.substring(0, 50)}...`
+          description: `AI Response: ${(res as any).data.response.substring(0, 50)}...`
+        });
+      } else {
+        toast.success(`${provider} connection successful!`, {
+          description: `AI Response: ${res.response.substring(0, 50)}...`
         });
       }
     } catch (error: any) {
@@ -135,13 +140,12 @@ export default function TenantSettingsPage() {
 
   const handleDeleteKey = async (provider: string) => {
     if (!confirm(`Are you sure you want to remove the ${provider} API key?`)) return;
-    
+
     try {
-      const res = await api.deleteApiKey(provider);
-      if (res.success) {
-        setLlmKeys(res.data.apiKeys);
-        toast.success(`${provider} key removed`);
-      }
+      await api.deleteApiKey(provider);
+      // Remove the key from local state
+      setLlmKeys(prev => prev.filter(k => k.provider !== provider));
+      toast.success(`${provider} key removed`);
     } catch (error: any) {
       toast.error('Failed to remove key', {
         description: error.message

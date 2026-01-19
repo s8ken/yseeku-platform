@@ -258,10 +258,11 @@ export default function RiskManagementPage() {
   });
 
   // Use demo data when in demo mode
-  const demoData = demoRiskData?.data;
+  const demoRiskDataTyped = demoRiskData as { data?: { trustPrinciples?: any[]; complianceReports?: any[]; overallRiskScore?: number } } | undefined;
+  const demoData = demoRiskDataTyped?.data;
   const trustPrinciples = isDemo
     ? (demoData?.trustPrinciples || defaultTrustPrinciples)
-    : (riskMetrics?.data?.trustPrinciples || defaultTrustPrinciples);
+    : ((riskMetrics as any)?.data?.trustPrinciples || defaultTrustPrinciples);
   const complianceReports = isDemo
     ? (demoData?.complianceReports?.map((r: any) => ({
         id: r.framework,
@@ -270,13 +271,13 @@ export default function RiskManagementPage() {
         lastChecked: r.lastAudit,
         score: r.score
       })) || defaultComplianceReports)
-    : (riskMetrics?.data?.complianceReports || defaultComplianceReports);
+    : ((riskMetrics as any)?.data?.complianceReports || defaultComplianceReports);
   const riskAlerts = isDemo
     ? []
-    : (riskEventsData?.data?.length ? riskEventsData.data : (riskMetrics?.data?.recentRiskEvents || []));
+    : ((riskEventsData as any)?.data?.length ? (riskEventsData as any).data : ((riskMetrics as any)?.data?.recentRiskEvents || []));
   const dataSource = isDemo ? 'demo' : 'live';
 
-  const overallTrustScore = trustPrinciples.reduce((acc, principle) => {
+  const overallTrustScore = trustPrinciples.reduce((acc: number, principle: TrustPrinciple) => {
     return acc + (principle.score * principle.weight / 100);
   }, 0);
 

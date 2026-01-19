@@ -227,13 +227,13 @@ export function Dashboard() {
                 <div className="flex justify-between items-center">
                   <CardTitle className="text-lg">System Alerts</CardTitle>
                   <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-bold">
-                    {alerts?.summary.critical} CRITICAL
+                    {alerts?.data?.summary.critical} CRITICAL
                   </span>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {alerts?.alerts.slice(0, 5).map((alert) => (
+                  {alerts?.data?.alerts.slice(0, 5).map((alert) => (
                     <div key={alert.id} className="flex items-start gap-3 p-2 rounded hover:bg-gray-100 dark:hover:bg-slate-900 transition-colors">
                       <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${
                         alert.severity === 'critical' ? 'bg-red-500' :

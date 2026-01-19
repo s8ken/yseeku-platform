@@ -97,8 +97,7 @@ describe('API Route Handlers', () => {
   describe('Tenants Endpoint', () => {
     it('should return tenants list', async () => {
       const { GET } = await import('../app/api/tenants/route');
-      const request = new NextRequest('http://localhost:5000/api/tenants');
-      const response = await GET(request);
+      const response = await GET();
       const json = await response.json();
 
       expect(response.status).toBe(200);

@@ -100,7 +100,7 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
     setVerificationResult(null);
     try {
       // Use the real API to verify the receipt
-      const result = await api.verifyTrustReceipt(receipt.hash, receipt.receiptData || {});
+      const result = await api.verifyTrustReceipt(receipt.hash);
       setVerificationResult(result.valid ? 'success' : 'fail');
     } catch (err) {
       console.error('Verification failed', err);
@@ -292,8 +292,8 @@ export default function TrustReceiptsPage() {
   const { data: receiptsData, isLoading: isLoadingReal } = useQuery({
     queryKey: ['trust-receipts', tenant],
     queryFn: async () => {
-      const res = await api.getTrustReceiptsList(50, 0);
-      const rows = res?.data || [];
+      const res = await api.getTrustReceiptsList({ limit: 50 });
+      const rows = (res as any)?.receipts || (res as any)?.data || [];
       const mapped: TrustReceipt[] = rows.map((r: any) => ({
         id: r._id || r.self_hash,
         hash: r.self_hash,
@@ -342,10 +342,11 @@ export default function TrustReceiptsPage() {
 
   const isLoading = !isLoaded || (isDemo ? isLoadingDemo : isLoadingReal);
   const hasRealData = receiptsData?.data && receiptsData.data.length > 0;
-  const hasDemoData = demoData?.data?.receipts && demoData.data.receipts.length > 0;
+  const demoDataTyped = demoData as { data?: { receipts?: any[] } } | undefined;
+  const hasDemoData = demoDataTyped?.data?.receipts && demoDataTyped.data.receipts.length > 0;
 
   // Map demo receipts to match TrustReceipt interface
-  const demoReceipts: TrustReceipt[] = (demoData?.data?.receipts || []).map((r: any) => ({
+  const demoReceipts: TrustReceipt[] = (demoDataTyped?.data?.receipts || []).map((r: any) => ({
     id: r._id || r.id,
     hash: r.hash || r.receipt_hash || '',
     agentId: r.agent_id || '',

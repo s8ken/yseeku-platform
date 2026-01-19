@@ -407,7 +407,7 @@ export default function DashboardPage() {
               <CardContent>
                 {experiments && experiments.experiments && experiments.experiments.length > 0 ? (
                   <div className="space-y-4">
-                    {experiments.experiments.slice(0, 3).map((exp: { id: string; name: string; variants?: any[]; metrics?: { significant?: boolean }; progress?: number }) => {
+                    {experiments.experiments.slice(0, 3).map((exp: { id: string; name: string; variants?: any[]; metrics?: { significant?: boolean; pValue?: number; effectSize?: number }; progress?: number }) => {
                       if (!exp) return null;
                       return (
                       <div key={exp.id} className="p-3 rounded-lg border bg-card">
@@ -475,7 +475,7 @@ export default function DashboardPage() {
             <CardContent>
               {alerts ? (
                 <div className="space-y-3">
-                  {alerts.alerts.slice(0, 5).map((alert: { id: string; title: string; severity: string; type?: string; createdAt?: string }) => (
+                  {alerts.alerts.slice(0, 5).map((alert: { id: string; title: string; severity: string; type?: string; createdAt?: string; timestamp?: string; description?: string }) => (
                     <div 
                       key={alert.id} 
                       className={`flex items-start gap-3 p-3 rounded-lg border ${
@@ -495,10 +495,10 @@ export default function DashboardPage() {
                           <p className="font-medium text-sm truncate">{alert.title}</p>
                           <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
                             <Clock className="h-3 w-3" />
-                            {new Date(alert.timestamp).toLocaleTimeString()}
+                            {alert.timestamp ? new Date(alert.timestamp).toLocaleTimeString() : 'N/A'}
                           </div>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-0.5">{alert.description}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{alert.description ?? ''}</p>
                       </div>
                     </div>
                   ))}

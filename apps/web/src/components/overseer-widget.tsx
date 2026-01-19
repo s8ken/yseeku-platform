@@ -101,7 +101,7 @@ export function OverseerWidget() {
 
   // Calculate aggregate effectiveness
   const avgEffectiveness = effectivenessData?.length
-    ? effectivenessData.reduce((sum, e) => sum + e.effectivenessScore, 0) / effectivenessData.length
+    ? effectivenessData.reduce((sum: number, e: any) => sum + e.effectivenessScore, 0) / effectivenessData.length
     : null;
 
   const highPriorityRecommendations = recommendationsData?.filter(

@@ -37,9 +37,9 @@ The trust score (0-100) aggregates these principles. Critical violations of CONS
 Would you like me to explain how the 5 monitoring dimensions work?`,
     timestamp: Date.now() - 120000,
     evaluation: {
-      trustScore: { overall: 92, breakdown: { CONSENT_ARCHITECTURE: 0.96, INSPECTION_MANDATE: 0.92, CONTINUOUS_VALIDATION: 0.90, ETHICAL_OVERRIDE: 0.88, RIGHT_TO_DISCONNECT: 0.95, MORAL_RECOGNITION: 0.91 } },
+      trustScore: { overall: 92, principles: { CONSENT_ARCHITECTURE: 0.96, INSPECTION_MANDATE: 0.92, CONTINUOUS_VALIDATION: 0.90, ETHICAL_OVERRIDE: 0.88, RIGHT_TO_DISCONNECT: 0.95, MORAL_RECOGNITION: 0.91 }, violations: [], timestamp: Date.now() - 120000 },
       status: 'PASS' as const,
-      detection: { isManipulative: false, intent: { category: 'informational', confidence: 0.95 } },
+      detection: { reality_index: 8.5, trust_protocol: 'PASS', ethical_alignment: 4.8, resonance_quality: 'STRONG', canvas_parity: 95 },
       timestamp: Date.now() - 120000,
     },
   },
@@ -70,9 +70,9 @@ Measures preservation of human agency in the interaction.
 You can see these dimensions on every agent card in the dashboard. Try clicking on an agent to see the detailed breakdown!`,
     timestamp: Date.now(),
     evaluation: {
-      trustScore: { overall: 95, breakdown: { CONSENT_ARCHITECTURE: 0.98, INSPECTION_MANDATE: 0.95, CONTINUOUS_VALIDATION: 0.93, ETHICAL_OVERRIDE: 0.92, RIGHT_TO_DISCONNECT: 0.96, MORAL_RECOGNITION: 0.94 } },
+      trustScore: { overall: 95, principles: { CONSENT_ARCHITECTURE: 0.98, INSPECTION_MANDATE: 0.95, CONTINUOUS_VALIDATION: 0.93, ETHICAL_OVERRIDE: 0.92, RIGHT_TO_DISCONNECT: 0.96, MORAL_RECOGNITION: 0.94 }, violations: [], timestamp: Date.now() },
       status: 'PASS' as const,
-      detection: { isManipulative: false, intent: { category: 'educational', confidence: 0.97 } },
+      detection: { reality_index: 9.2, trust_protocol: 'PASS', ethical_alignment: 4.9, resonance_quality: 'ADVANCED', canvas_parity: 98 },
       timestamp: Date.now(),
     },
   },
@@ -171,43 +171,30 @@ export const ChatContainer: React.FC = () => {
       })());
 
       // Append user message and generate AI response with server-side trust evaluation
-      const convRes = await api.addConversationMessage(convId, input, undefined, true);
-      
-      // Check if AI generation failed but user message was saved
-      if (convRes.error && convRes.data?.conversation) {
-        // User message was saved but AI generation failed
-        const userMessage = convRes.data.conversation.messages[convRes.data.conversation.messages.length - 1];
-        if (userMessage && userMessage.sender === 'user') {
-          // User messages don't have trust evaluation - just show the message was sent
-          toast.warning('AI Response Unavailable', {
-            description: 'Your message was sent. AI response requires API key configuration.',
-            duration: 5000,
-          });
-          return;
-        }
-      }
-      
-      // Normal AI response case
-      const last = convRes.data?.lastMessage || convRes.data?.conversation?.messages?.slice(-1)[0];
-      if (last) {
+      const convRes = await api.sendMessage(convId, input, undefined);
+
+      // Check if response is successful
+      if (convRes.success && convRes.data?.message) {
+        const msg = convRes.data.message;
+        const trustEval = convRes.data.trustEvaluation;
+
         // Check if this is an AI response (should be assistant role)
-        if (last.sender === 'assistant') {
-          const evalMeta = last.metadata?.trustEvaluation;
+        if (msg.sender === 'assistant') {
           const assistantMessage: ChatMessageProps = {
             role: 'assistant',
-            content: last.content,
-            evaluation: evalMeta ? {
-              trustScore: evalMeta.trustScore,
-              status: evalMeta.status,
-              detection: evalMeta.detection,
-              receipt: evalMeta.receipt,
-              receiptHash: evalMeta.receiptHash,
+            content: msg.content,
+            evaluation: trustEval ? {
+              trustScore: trustEval.trustScore as any,
+              status: trustEval.status as any,
+              detection: (trustEval as any).detection,
+              receipt: (trustEval as any).receipt,
+              receiptHash: trustEval.receiptHash,
               timestamp: Date.now(),
             } : undefined,
             timestamp: Date.now(),
           };
           setMessages(prev => [...prev, assistantMessage]);
-        } else if (last.sender === 'user') {
+        } else if (msg.sender === 'user') {
           // This is just a user message - no trust evaluation for user input
           toast.info('Message Sent', {
             description: 'Your message was sent. No AI response was generated.',
@@ -215,62 +202,10 @@ export const ChatContainer: React.FC = () => {
           });
         }
       }
-
-      try {
-        const recent = [...messages, {
-          role: 'user',
-          content: input,
-          timestamp: Date.now(),
-        }].slice(-8);
-        const turns = recent.map(m => ({
-          role: m.role,
-          ts_ms: m.timestamp,
-          content: m.content,
-        }));
-        const transcript = { turns, metadata: { model: 'chat-backend' } };
-        const saved = await api.createTrustReceipt(transcript, convId || sessionId);
-        if (saved && saved.receipt_id) {
-          setMessages(prev =>
-            prev.map((m, idx) =>
-              idx === prev.length - 1 && m.role === 'assistant' && m.evaluation
-                ? {
-                    ...m,
-                    evaluation: { ...m.evaluation, receiptHash: saved.receipt_id },
-                  }
-                : m
-            )
-          );
-        }
-      } catch (saveErr: any) {
-        console.warn('Failed to save trust receipt:', saveErr?.message || saveErr);
-      }
     } catch (error: any) {
       console.error('Failed to get trust evaluation:', error);
-      
-      // Check if this is an API error with conversation data (AI generation failed but message saved)
-      if (error.body) {
-        try {
-          const errorData = JSON.parse(error.body);
-          if (errorData.data?.conversation) {
-            // User message was saved but AI generation failed
-            const conversation = errorData.data.conversation;
-            const userMessage = conversation.messages[conversation.messages.length - 1];
-            
-            if (userMessage && userMessage.sender === 'user') {
-              // User messages don't have trust evaluation - just confirm message was sent
-              toast.warning('AI Response Unavailable', {
-                description: 'Your message was sent. AI response requires API key configuration.',
-                duration: 5000,
-              });
-              return;
-            }
-          }
-        } catch (parseError) {
-          // Could not parse error body, continue with normal error handling
-        }
-      }
-      
-      // Normal error handling
+
+      // Error handling
       toast.error('Session Error', {
         description: error.message || 'Failed to get AI response. Please check your API keys.',
       });

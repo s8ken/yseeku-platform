@@ -1,4 +1,5 @@
 import { api } from './api';
+import { fetchAPI } from './api/client';
 
 export interface OverrideQueueItem {
   id: string;
@@ -125,7 +126,7 @@ export const overridesAPI = {
     }
 
     const query = params.toString() ? `?${params.toString()}` : '';
-    return api.fetchAPI<OverrideQueueResponse>(`/api/overrides/queue${query}`);
+    return fetchAPI<OverrideQueueResponse>(`/api/overrides/queue${query}`);
   },
 
   async getOverrideHistory(filters?: {
@@ -136,7 +137,7 @@ export const overridesAPI = {
     emergency?: boolean;
   }, options?: { limit?: number; offset?: number }) {
     const params = new URLSearchParams();
-    
+
     if (filters?.decision?.length) {
       filters.decision.forEach(decision => params.append('decision', decision));
     }
@@ -160,22 +161,22 @@ export const overridesAPI = {
     }
 
     const query = params.toString() ? `?${params.toString()}` : '';
-    return api.fetchAPI<OverrideHistoryResponse>(`/api/overrides/history${query}`);
+    return fetchAPI<OverrideHistoryResponse>(`/api/overrides/history${query}`);
   },
 
   async processOverride(data: OverrideDecisionRequest) {
-    return api.fetchAPI<OverrideDecisionResponse>('/api/overrides/decide', {
+    return fetchAPI<OverrideDecisionResponse>('/api/overrides/decide', {
       method: 'POST',
       body: JSON.stringify(data)
     });
   },
 
   async getOverrideStats() {
-    return api.fetchAPI<OverrideStatsResponse>('/api/overrides/stats');
+    return fetchAPI<OverrideStatsResponse>('/api/overrides/stats');
   },
 
   async processBulkOverrides(data: BulkOverrideRequest) {
-    return api.fetchAPI<BulkOverrideResponse>('/api/overrides/bulk', {
+    return fetchAPI<BulkOverrideResponse>('/api/overrides/bulk', {
       method: 'POST',
       body: JSON.stringify(data)
     });

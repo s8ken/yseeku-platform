@@ -185,7 +185,7 @@ export default function TenantManagementPage() {
   };
 
   // Map demo tenants to match Tenant interface
-  const demoTenants: Tenant[] = (demoData?.data || []).map((t: any) => ({
+  const demoTenants: Tenant[] = ((demoData as any)?.data || []).map((t: any) => ({
     id: t._id || t.id,
     name: t.name,
     description: t.description || '',
