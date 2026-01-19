@@ -185,7 +185,7 @@ class WebhookService {
       case 'eq': return value === threshold;
       case 'ne': return value !== threshold;
       case 'contains': return String(value).includes(String(condition.value));
-      case 'in': return Array.isArray(condition.value) && condition.value.includes(value);
+      case 'in': return Array.isArray(condition.value) && condition.value.includes(String(value));
       default: return false;
     }
   }
@@ -224,7 +224,7 @@ class WebhookService {
    */
   private async deliverToChannel(
     config: IWebhookConfig,
-    channel: IWebhookConfig['channels'][0],
+    channel: WebhookChannel,
     alert: IAlert,
     rule?: AlertRule,
     metrics?: MetricSnapshot
@@ -295,7 +295,7 @@ class WebhookService {
    * Format payload for specific channel types
    */
   private formatForChannel(
-    channel: IWebhookConfig['channels'][0],
+    channel: WebhookChannel,
     payload: WebhookPayload
   ): Record<string, unknown> {
     const alert = payload.alert;
@@ -383,7 +383,7 @@ class WebhookService {
    */
   private buildHeaders(
     config: IWebhookConfig,
-    channel: IWebhookConfig['channels'][0],
+    channel: WebhookChannel,
     payload: Record<string, unknown>
   ): Record<string, string> {
     const headers: Record<string, string> = {
