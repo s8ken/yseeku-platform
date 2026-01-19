@@ -168,6 +168,16 @@ export const api = {
     return res.json();
   },
 
+  async getDemoInteractions(params?: { type?: string; status?: string; search?: string }): Promise<unknown> {
+    const queryParams = new URLSearchParams();
+    if (params?.type) queryParams.set('type', params.type);
+    if (params?.status) queryParams.set('status', params.status);
+    if (params?.search) queryParams.set('search', params.search);
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    const res = await fetch(`${API_BASE}/api/demo/interactions${query}`);
+    return res.json();
+  },
+
   // Orchestration / Workflows
   async getWorkflows(): Promise<unknown[]> {
     const { fetchAPI } = await import('./client');

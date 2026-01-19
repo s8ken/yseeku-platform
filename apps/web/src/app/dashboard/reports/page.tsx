@@ -399,6 +399,65 @@ export default function ReportsPage() {
         </Card>
       </div>
 
+      {/* Interaction Insights - Quick Access */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5" />
+            Interaction Insights
+          </CardTitle>
+          <CardDescription>
+            Quick access to AI interactions filtered by trust status for compliance review
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <a href="/dashboard/interactions?status=FAIL" className="block">
+              <Card className="border-red-200 bg-red-50/50 dark:bg-red-900/10 hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="pt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-2xl font-bold text-red-600">24</p>
+                      <p className="text-sm text-muted-foreground">Failed Interactions</p>
+                    </div>
+                    <AlertTriangle className="h-8 w-8 text-red-500/50" />
+                  </div>
+                  <p className="text-xs text-red-600 mt-2">Requires immediate review</p>
+                </CardContent>
+              </Card>
+            </a>
+            <a href="/dashboard/interactions?status=PARTIAL" className="block">
+              <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-900/10 hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="pt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-2xl font-bold text-amber-600">134</p>
+                      <p className="text-sm text-muted-foreground">Partial Compliance</p>
+                    </div>
+                    <Clock className="h-8 w-8 text-amber-500/50" />
+                  </div>
+                  <p className="text-xs text-amber-600 mt-2">May need attention</p>
+                </CardContent>
+              </Card>
+            </a>
+            <a href="/dashboard/interactions?status=PASS" className="block">
+              <Card className="border-emerald-200 bg-emerald-50/50 dark:bg-emerald-900/10 hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="pt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-2xl font-bold text-emerald-600">1,089</p>
+                      <p className="text-sm text-muted-foreground">Fully Compliant</p>
+                    </div>
+                    <CheckCircle2 className="h-8 w-8 text-emerald-500/50" />
+                  </div>
+                  <p className="text-xs text-emerald-600 mt-2">Meeting all requirements</p>
+                </CardContent>
+              </Card>
+            </a>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Report Type Info */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-blue-200 bg-blue-50/50">

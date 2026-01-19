@@ -88,6 +88,7 @@ const glossary: Record<string, string> = {
   "Threshold": "Boundary value that triggers alerts or actions when crossed.",
   "Latency": "Time delay between request and response in system operations.",
   "Throughput": "Volume of operations processed per unit of time.",
+  "Interactions": "All AI interactions (AI↔Customer, AI↔Staff, AI↔AI) tracked with constitutional compliance, trust scores, and verifiable receipts for enterprise audit and governance.",
 };
 
 export function InfoTooltip({ 

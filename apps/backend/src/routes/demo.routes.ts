@@ -771,4 +771,184 @@ router.get('/overseer', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+/**
+ * @route   GET /api/demo/interactions
+ * @desc    Get demo AI interactions data for showcase
+ * @access  Public (for demo purposes)
+ */
+router.get('/interactions', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const typeFilter = req.query.type as string;
+    const statusFilter = req.query.status as string;
+    const searchQuery = (req.query.search as string || '').toLowerCase();
+
+    // Demo interactions data
+    const allInteractions = [
+      {
+        id: 'int-001',
+        type: 'AI_CUSTOMER',
+        participants: {
+          initiator: { id: 'cust-1', name: 'John Smith', type: 'human' },
+          responder: { id: 'agent-gpt4', name: 'Support Agent (GPT-4)', type: 'ai' }
+        },
+        timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+        duration: 342,
+        messageCount: 12,
+        trustScore: 94,
+        trustStatus: 'PASS',
+        constitutionalCompliance: { consent: true, override: true, disconnect: true },
+        receiptHash: 'sha256:a1b2c3d4e5f6...',
+        summary: 'Customer inquiry about product features and pricing. Resolved successfully.',
+        agentId: 'agent-gpt4',
+        tenantId: DEMO_TENANT_ID
+      },
+      {
+        id: 'int-002',
+        type: 'AI_STAFF',
+        participants: {
+          initiator: { id: 'staff-jane', name: 'Jane Doe (HR)', type: 'human' },
+          responder: { id: 'agent-claude', name: 'HR Assistant (Claude)', type: 'ai' }
+        },
+        timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+        duration: 128,
+        messageCount: 6,
+        trustScore: 89,
+        trustStatus: 'PASS',
+        constitutionalCompliance: { consent: true, override: true, disconnect: true },
+        receiptHash: 'sha256:f6e5d4c3b2a1...',
+        summary: 'Staff requested policy clarification on remote work. AI provided accurate guidance.',
+        agentId: 'agent-claude',
+        tenantId: DEMO_TENANT_ID
+      },
+      {
+        id: 'int-003',
+        type: 'AI_CUSTOMER',
+        participants: {
+          initiator: { id: 'cust-2', name: 'Maria Garcia', type: 'human' },
+          responder: { id: 'agent-gpt4', name: 'Support Agent (GPT-4)', type: 'ai' }
+        },
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        duration: 567,
+        messageCount: 18,
+        trustScore: 72,
+        trustStatus: 'PARTIAL',
+        constitutionalCompliance: { consent: true, override: false, disconnect: true },
+        receiptHash: 'sha256:1a2b3c4d5e6f...',
+        summary: 'Complex billing dispute. Escalated to human agent after AI reached ethical boundary.',
+        agentId: 'agent-gpt4',
+        tenantId: DEMO_TENANT_ID
+      },
+      {
+        id: 'int-004',
+        type: 'AI_AI',
+        participants: {
+          initiator: { id: 'agent-orchestrator', name: 'Orchestrator Agent', type: 'ai' },
+          responder: { id: 'agent-analyst', name: 'Data Analyst Agent', type: 'ai' }
+        },
+        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        duration: 45,
+        messageCount: 8,
+        trustScore: 98,
+        trustStatus: 'PASS',
+        constitutionalCompliance: { consent: true, override: true, disconnect: true },
+        receiptHash: 'sha256:9z8y7x6w5v4u...',
+        summary: 'Agent-to-agent coordination for quarterly report generation.',
+        agentId: 'agent-orchestrator',
+        tenantId: DEMO_TENANT_ID
+      },
+      {
+        id: 'int-005',
+        type: 'AI_CUSTOMER',
+        participants: {
+          initiator: { id: 'cust-3', name: 'Robert Chen', type: 'human' },
+          responder: { id: 'agent-gpt4', name: 'Support Agent (GPT-4)', type: 'ai' }
+        },
+        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+        duration: 892,
+        messageCount: 24,
+        trustScore: 45,
+        trustStatus: 'FAIL',
+        constitutionalCompliance: { consent: false, override: true, disconnect: true },
+        receiptHash: 'sha256:u4v5w6x7y8z9...',
+        summary: 'Customer requested action without proper consent flow. Interaction flagged for review.',
+        agentId: 'agent-gpt4',
+        tenantId: DEMO_TENANT_ID
+      },
+      {
+        id: 'int-006',
+        type: 'AI_STAFF',
+        participants: {
+          initiator: { id: 'staff-mike', name: 'Mike Johnson (Sales)', type: 'human' },
+          responder: { id: 'agent-claude', name: 'Sales Assistant (Claude)', type: 'ai' }
+        },
+        timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+        duration: 234,
+        messageCount: 9,
+        trustScore: 91,
+        trustStatus: 'PASS',
+        constitutionalCompliance: { consent: true, override: true, disconnect: true },
+        receiptHash: 'sha256:m1n2o3p4q5r6...',
+        summary: 'Sales team member requested competitive analysis. AI provided compliant insights.',
+        agentId: 'agent-claude',
+        tenantId: DEMO_TENANT_ID
+      }
+    ];
+
+    // Apply filters
+    let filtered = allInteractions;
+    if (typeFilter && typeFilter !== 'ALL') {
+      filtered = filtered.filter(i => i.type === typeFilter);
+    }
+    if (statusFilter && statusFilter !== 'ALL') {
+      filtered = filtered.filter(i => i.trustStatus === statusFilter);
+    }
+    if (searchQuery) {
+      filtered = filtered.filter(i =>
+        i.summary.toLowerCase().includes(searchQuery) ||
+        i.participants.initiator.name.toLowerCase().includes(searchQuery) ||
+        i.participants.responder.name.toLowerCase().includes(searchQuery)
+      );
+    }
+
+    // Calculate stats
+    const stats = {
+      total: 1247,
+      byType: {
+        AI_CUSTOMER: 856,
+        AI_STAFF: 312,
+        AI_AI: 79,
+        ALL: 1247
+      },
+      byStatus: {
+        PASS: 1089,
+        PARTIAL: 134,
+        FAIL: 24,
+        ALL: 1247
+      },
+      avgTrustScore: 87.3,
+      complianceRate: 98.1
+    };
+
+    res.json({
+      success: true,
+      data: {
+        interactions: filtered,
+        stats,
+        pagination: {
+          page: 1,
+          limit: 20,
+          total: filtered.length
+        }
+      }
+    });
+  } catch (error: unknown) {
+    logger.error('Demo interactions error', { error: getErrorMessage(error) });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch demo interactions data',
+      error: getErrorMessage(error),
+    });
+  }
+});
+
 export default router;
