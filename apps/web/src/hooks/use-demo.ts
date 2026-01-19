@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 const DEMO_TENANT_ID = 'demo-tenant';
 const DEMO_STORAGE_KEY = 'yseeku-demo-mode';
 const DEMO_INITIALIZED_KEY = 'yseeku-demo-initialized';
+const DEMO_START_TIME_KEY = 'yseeku-demo-start-time';
+const DEMO_FIRST_VISIT_KEY = 'yseeku-demo-first-visit';
+const DEMO_DURATION_MS = 30 * 60 * 1000; // 30 minutes
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 /**
@@ -19,11 +22,17 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
  * - All API calls use the demo tenant
  * - A demo banner is shown
  * - Data is read-only (no destructive operations)
+ * - Auto-expires after 30 minutes
  */
 export function useDemo() {
   const [isDemo, setIsDemo] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [showExpiryWarning, setShowExpiryWarning] = useState(false);
+  const expiryTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize demo mode and seed data if needed
   const initializeDemo = useCallback(async () => {
@@ -56,6 +65,53 @@ export function useDemo() {
     }
   }, []);
 
+  // Start expiry timer
+  const startExpiryTimer = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    // Get or set start time
+    let startTime = localStorage.getItem(DEMO_START_TIME_KEY);
+    if (!startTime) {
+      startTime = Date.now().toString();
+      localStorage.setItem(DEMO_START_TIME_KEY, startTime);
+    }
+
+    const startTimeMs = parseInt(startTime, 10);
+    const expiryTime = startTimeMs + DEMO_DURATION_MS;
+    const now = Date.now();
+    const remaining = expiryTime - now;
+
+    if (remaining <= 0) {
+      // Already expired
+      setTimeRemaining(0);
+      return;
+    }
+
+    setTimeRemaining(remaining);
+
+    // Update countdown every minute
+    countdownRef.current = setInterval(() => {
+      const nowMs = Date.now();
+      const remainingMs = expiryTime - nowMs;
+      setTimeRemaining(Math.max(0, remainingMs));
+
+      // Show warning at 5 minutes
+      if (remainingMs <= 5 * 60 * 1000 && remainingMs > 0) {
+        setShowExpiryWarning(true);
+      }
+
+      if (remainingMs <= 0) {
+        clearInterval(countdownRef.current!);
+      }
+    }, 60000); // Update every minute
+
+    // Auto-expire
+    expiryTimerRef.current = setTimeout(() => {
+      setTimeRemaining(0);
+      setShowExpiryWarning(true);
+    }, remaining);
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -70,6 +126,9 @@ export function useDemo() {
     const tenant = localStorage.getItem('tenant');
     const isDemoTenant = tenant === DEMO_TENANT_ID;
 
+    // Check if first visit to demo
+    const hasVisitedBefore = localStorage.getItem(DEMO_FIRST_VISIT_KEY);
+    
     // Set demo mode if any condition is true
     const shouldBeDemo = demoParam === 'true' || storedDemo === 'true' || isDemoTenant;
     setIsDemo(shouldBeDemo);
@@ -79,24 +138,48 @@ export function useDemo() {
       localStorage.setItem(DEMO_STORAGE_KEY, 'true');
     }
 
+    // Track first visit
+    if (shouldBeDemo && !hasVisitedBefore) {
+      setIsFirstVisit(true);
+      localStorage.setItem(DEMO_FIRST_VISIT_KEY, 'true');
+    }
+
     // Initialize demo data if in demo mode
     if (shouldBeDemo) {
       initializeDemo();
+      startExpiryTimer();
     }
 
     setIsLoaded(true);
-  }, [initializeDemo]);
+
+    return () => {
+      if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [initializeDemo, startExpiryTimer]);
 
   const enableDemo = useCallback(async () => {
     localStorage.setItem(DEMO_STORAGE_KEY, 'true');
+    localStorage.removeItem(DEMO_START_TIME_KEY); // Reset timer
+    localStorage.removeItem(DEMO_FIRST_VISIT_KEY); // Reset first visit
     setIsDemo(true);
+    setIsFirstVisit(true);
     await initializeDemo();
-  }, [initializeDemo]);
+    startExpiryTimer();
+  }, [initializeDemo, startExpiryTimer]);
 
   const disableDemo = useCallback(() => {
     localStorage.removeItem(DEMO_STORAGE_KEY);
+    localStorage.removeItem(DEMO_START_TIME_KEY);
+    localStorage.removeItem(DEMO_FIRST_VISIT_KEY);
     sessionStorage.removeItem(DEMO_INITIALIZED_KEY);
     setIsDemo(false);
+    setIsFirstVisit(false);
+    setTimeRemaining(null);
+    setShowExpiryWarning(false);
+    
+    if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
+    if (countdownRef.current) clearInterval(countdownRef.current);
     
     // Remove demo param from URL if present
     if (typeof window !== 'undefined') {
@@ -114,13 +197,29 @@ export function useDemo() {
     }
   }, [isDemo, enableDemo, disableDemo]);
 
+  const markFirstVisitComplete = useCallback(() => {
+    setIsFirstVisit(false);
+  }, []);
+
+  const extendDemo = useCallback(() => {
+    // Reset timer for another 30 minutes
+    localStorage.setItem(DEMO_START_TIME_KEY, Date.now().toString());
+    setShowExpiryWarning(false);
+    startExpiryTimer();
+  }, [startExpiryTimer]);
+
   return {
     isDemo,
     isLoaded,
     isInitializing,
+    isFirstVisit,
+    timeRemaining,
+    showExpiryWarning,
     enableDemo,
     disableDemo,
     toggleDemo,
+    markFirstVisitComplete,
+    extendDemo,
     DEMO_TENANT_ID,
   };
 }

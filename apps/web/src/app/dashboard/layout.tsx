@@ -49,6 +49,7 @@ import { dashboardTutorialSteps } from '@/components/tutorial/steps';
 import { TutorialTour } from '@/components/tutorial/TutorialTour';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { DemoModeBanner } from '@/components/demo-mode-banner';
+import { DemoInitializer } from '@/components/demo-initializer';
 import { useDemo } from '@/hooks/use-demo';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -473,6 +474,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Demo Mode Banner */}
           <DemoModeBanner />
+          <DemoInitializer />
 
           <main id="main-content" className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/30" role="main">
             {children}

@@ -20,6 +20,7 @@ import {
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { OverseerWidget } from '@/components/overseer-widget';
 import { api } from '@/lib/api';
+import { WithDemoWatermark } from '@/components/demo-watermark';
 
 interface KPIData {
   tenant: string;
@@ -318,6 +319,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
+            <WithDemoWatermark position="top-right" size="sm" opacity={25}>
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -386,7 +388,9 @@ export default function DashboardPage() {
                 </div>
               </CardContent>
             </Card>
+            </WithDemoWatermark>
 
+            <WithDemoWatermark position="top-right" size="sm" opacity={25}>
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -450,6 +454,7 @@ export default function DashboardPage() {
                 )}
               </CardContent>
             </Card>
+            </WithDemoWatermark>
           </div>
 
           <Card>

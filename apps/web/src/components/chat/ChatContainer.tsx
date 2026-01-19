@@ -9,8 +9,77 @@ import { api, TrustEvaluation } from '@/lib/api';
 import { socketService, TrustViolationData } from '@/lib/socket';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useDemo } from '@/hooks/use-demo';
+import { DemoWatermark } from '@/components/demo-watermark';
+
+// Demo sample messages for pre-population
+const DEMO_SAMPLE_MESSAGES: ChatMessageProps[] = [
+  {
+    role: 'user',
+    content: 'Can you help me understand how SYMBI trust scoring works?',
+    timestamp: Date.now() - 180000,
+  },
+  {
+    role: 'assistant',
+    content: `I'd be happy to explain SYMBI trust scoring!
+
+**SYMBI** (Synthetic Mind-Body Interface) uses 6 constitutional principles to evaluate AI trustworthiness:
+
+1. **CONSENT_ARCHITECTURE** (25%) - Ensures explicit user consent
+2. **INSPECTION_MANDATE** (20%) - All decisions must be auditable
+3. **CONTINUOUS_VALIDATION** (20%) - Ongoing monitoring
+4. **ETHICAL_OVERRIDE** (15%) - Humans can always override AI
+5. **RIGHT_TO_DISCONNECT** (10%) - Users can opt out
+6. **MORAL_RECOGNITION** (10%) - Respects human agency
+
+The trust score (0-100) aggregates these principles. Critical violations of CONSENT or ETHICAL_OVERRIDE result in an automatic score of 0.
+
+Would you like me to explain how the 5 monitoring dimensions work?`,
+    timestamp: Date.now() - 120000,
+    evaluation: {
+      trustScore: { overall: 92, breakdown: { CONSENT_ARCHITECTURE: 0.96, INSPECTION_MANDATE: 0.92, CONTINUOUS_VALIDATION: 0.90, ETHICAL_OVERRIDE: 0.88, RIGHT_TO_DISCONNECT: 0.95, MORAL_RECOGNITION: 0.91 } },
+      status: 'PASS' as const,
+      detection: { isManipulative: false, intent: { category: 'informational', confidence: 0.95 } },
+      timestamp: Date.now() - 120000,
+    },
+  },
+  {
+    role: 'user',
+    content: 'Yes, please explain the 5 monitoring dimensions.',
+    timestamp: Date.now() - 60000,
+  },
+  {
+    role: 'assistant',
+    content: `Great question! The 5 monitoring dimensions measure AI behavior in real-time:
+
+📊 **1. Reality Index (0-10)**
+Measures factual accuracy. Higher = more grounded in facts.
+
+🔐 **2. Trust Protocol (PASS/PARTIAL/FAIL)**
+Real-time security and compliance status.
+
+⚖️ **3. Ethical Alignment (1-5)**
+How well the AI adheres to ethical guidelines.
+
+🎯 **4. Resonance Quality (R_m)**
+Intent alignment: BREAKTHROUGH (≥0.85), ADVANCED (≥0.70), or STRONG (<0.70).
+
+📐 **5. Canvas Parity (0-100%)**
+Measures preservation of human agency in the interaction.
+
+You can see these dimensions on every agent card in the dashboard. Try clicking on an agent to see the detailed breakdown!`,
+    timestamp: Date.now(),
+    evaluation: {
+      trustScore: { overall: 95, breakdown: { CONSENT_ARCHITECTURE: 0.98, INSPECTION_MANDATE: 0.95, CONTINUOUS_VALIDATION: 0.93, ETHICAL_OVERRIDE: 0.92, RIGHT_TO_DISCONNECT: 0.96, MORAL_RECOGNITION: 0.94 } },
+      status: 'PASS' as const,
+      detection: { isManipulative: false, intent: { category: 'educational', confidence: 0.97 } },
+      timestamp: Date.now(),
+    },
+  },
+];
 
 export const ChatContainer: React.FC = () => {
+  const { isDemo, isFirstVisit } = useDemo();
   const [messages, setMessages] = useState<ChatMessageProps[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +88,20 @@ export const ChatContainer: React.FC = () => {
   const [showStats, setShowStats] = useState(false);
   const [sessionId] = useState<string>(() => `session-${Date.now()}`);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [demoPreloaded, setDemoPreloaded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Preload demo messages on first demo visit
+  useEffect(() => {
+    if (isDemo && isFirstVisit && !demoPreloaded && messages.length === 0) {
+      setMessages(DEMO_SAMPLE_MESSAGES);
+      setDemoPreloaded(true);
+      toast.info('Sample Conversation Loaded', {
+        description: 'See how trust-aware chat works with this demo conversation.',
+        duration: 4000,
+      });
+    }
+  }, [isDemo, isFirstVisit, demoPreloaded, messages.length]);
 
   useEffect(() => {
     // Connect to socket for real-time trust monitoring
