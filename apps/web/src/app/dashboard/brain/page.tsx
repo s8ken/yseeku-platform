@@ -594,7 +594,7 @@ export default function SystemBrainDashboard() {
                 </div>
               ) : effectiveness && effectiveness.length > 0 ? (
                 <div className="space-y-4">
-                  {effectiveness.map((eff: { actionType: string; trend: string; effectivenessScore: number; totalActions?: number; avgImpact?: number; avgDuration?: number; successRate?: number }, i: number) => (
+                  {effectiveness.map((eff: { actionType: string; trend: 'stable' | 'improving' | 'declining'; effectivenessScore: number; totalActions?: number; avgImpact?: number; avgDuration?: number; successRate?: number }, i: number) => (
                     <div key={i} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
