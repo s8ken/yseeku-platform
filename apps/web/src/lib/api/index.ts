@@ -233,9 +233,14 @@ export const api = {
   },
 
   // Brain / Memory Features
-  async getBrainMemories(): Promise<Array<any>> {
+  async getBrainMemories(tenant?: string, kind?: string, limit?: number): Promise<Array<any>> {
     const { fetchAPI } = await import('./client');
-    const res = await fetchAPI<{ success: boolean; data: { memories: Array<any> } }>('/api/brain/memories');
+    const params = new URLSearchParams();
+    if (tenant) params.set('tenant', tenant);
+    if (kind) params.set('kind', kind);
+    if (limit) params.set('limit', limit.toString());
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await fetchAPI<{ success: boolean; data: { memories: Array<any> } }>(`/api/brain/memories${query}`);
     return res.data?.memories || [];
   },
 
