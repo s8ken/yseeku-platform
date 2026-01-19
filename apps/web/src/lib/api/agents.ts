@@ -119,6 +119,13 @@ export const agentsApi = {
     });
   },
 
+  async quarantineAgent(agentId: string, reason: string): Promise<void> {
+    await fetchAPI<{ success: boolean }>(`/api/agents/${agentId}/quarantine`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  },
+
   async getAgentDID(agentId: string): Promise<{ did: string; document: unknown }> {
     const res = await fetchAPI<{ success: boolean; data: { did: string; document: unknown } }>(
       `/api/agents/${agentId}/did`
