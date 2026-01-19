@@ -19,6 +19,25 @@ export {
   type PrincipleEvaluationResult 
 } from './principle-evaluator';
 
+// Consent Configuration (EU-compliant by default)
+export {
+  DEFAULT_EU_CONFIG,
+  STREAMLINED_CONFIG,
+  STRICT_CONFIG,
+  US_CONFIG,
+  getConsentConfig,
+  validateConsentConfig,
+  mergeWithDefaults,
+  type ConsentConfiguration,
+  type ConsentModel,
+  type ConsentScopes,
+  type EscalationChannel,
+  type EscalationChannelConfig,
+  type DataRequestConfig,
+  type DataRequestMode,
+  type WithdrawalBehavior,
+} from './consent-config';
+
 // Error exports
 export * from './errors';
 

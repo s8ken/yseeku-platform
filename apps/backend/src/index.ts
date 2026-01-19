@@ -44,6 +44,7 @@ import liveRoutes from './routes/live.routes';
 import safetyRoutes from './routes/safety.routes';
 import reportsRoutes from './routes/reports.routes';
 import compareRoutes from './routes/compare.routes';
+import consentRoutes from './routes/consent.routes';
 import { initializeSocket } from './socket';
 import { liveMetricsService } from './services/live-metrics.service';
 import { User } from './models/user.model';
@@ -144,6 +145,7 @@ app.use('/api/live', liveRoutes); // Live dashboard metrics
 app.use('/api/safety', safetyRoutes); // Prompt safety scanning
 app.use('/api/reports', reportsRoutes); // Compliance reports
 app.use('/api/compare', compareRoutes); // Multi-model comparison
+app.use('/api/consent', consentRoutes); // Consent configuration and escalation
 app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
 app.use('/api/secrets', secretsRoutes);
 const enableDemo = process.env.DEMO_ROUTES_ENABLED === 'true' || (process.env.NODE_ENV !== 'production');
