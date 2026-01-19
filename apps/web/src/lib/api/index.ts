@@ -259,9 +259,13 @@ export const api = {
     await fetchAPI(`/api/brain/memories/${id}`, { method: 'DELETE' });
   },
 
-  async clearBrainMemories(): Promise<void> {
+  async clearBrainMemories(tenant?: string, kind?: string): Promise<void> {
     const { fetchAPI } = await import('./client');
-    await fetchAPI('/api/brain/memories', { method: 'DELETE' });
+    const params = new URLSearchParams();
+    if (tenant) params.set('tenant', tenant);
+    if (kind) params.set('kind', kind);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    await fetchAPI(`/api/brain/memories${query}`, { method: 'DELETE' });
   },
 
   // LLM Generation
