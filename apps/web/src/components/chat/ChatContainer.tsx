@@ -615,7 +615,10 @@ export const ChatContainer: React.FC = () => {
           </Button>
         </form>
         <p className="mt-2 text-[9px] text-center text-slate-500 uppercase tracking-widest font-mono">
-          All interactions are cryptographically signed and verified against the 6 constitutional principles.
+          <span className="inline-flex items-center gap-1">
+            <span className="text-emerald-500">✓</span> By sending a message, you consent to AI interaction.
+          </span>
+          {' '}All interactions are cryptographically signed and verified.
         </p>
       </div>
     </div>
