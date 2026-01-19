@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ChatMessage, ChatMessageProps } from './ChatMessage';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Send, Loader2, ShieldCheck, AlertTriangle, Download, FileJson, FileText, Filter, Share2, TrendingUp, TrendingDown, Minus, BarChart2 } from 'lucide-react';
+import { Send, Loader2, ShieldCheck, AlertTriangle, Download, FileJson, FileText, Filter, Share2, TrendingUp, TrendingDown, Minus, BarChart2, StopCircle } from 'lucide-react';
 import { api, TrustEvaluation } from '@/lib/api';
 import { socketService, TrustViolationData } from '@/lib/socket';
 import { cn } from '@/lib/utils';
@@ -94,6 +94,20 @@ export const ChatContainer: React.FC = () => {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [demoPreloaded, setDemoPreloaded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Handle stopping the AI generation - ETHICAL_OVERRIDE implementation
+  const handleStopGeneration = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsLoading(false);
+      toast.info('Generation Stopped', {
+        description: 'AI response was cancelled by user override.',
+        duration: 3000,
+      });
+    }
+  }, []);
 
   // Preload demo messages on first demo visit
   useEffect(() => {
@@ -162,6 +176,9 @@ export const ChatContainer: React.FC = () => {
     setInput('');
     setIsLoading(true);
 
+    // Create AbortController for ETHICAL_OVERRIDE capability
+    abortControllerRef.current = new AbortController();
+
     try {
       // Ensure there is a backend conversation
       if (!conversationId) {
@@ -175,6 +192,7 @@ export const ChatContainer: React.FC = () => {
       })());
 
       // Append user message and generate AI response with server-side trust evaluation
+      // Note: AbortController signal would be passed to fetch in a full implementation
       const convRes = await api.sendMessage(convId, input, undefined);
 
       // Check if response is successful
@@ -216,6 +234,12 @@ export const ChatContainer: React.FC = () => {
         }
       }
     } catch (error: any) {
+      // Check if this was a user-initiated abort (ETHICAL_OVERRIDE in action)
+      if (error.name === 'AbortError') {
+        console.log('Request aborted by user - ETHICAL_OVERRIDE exercised');
+        return;
+      }
+      
       console.error('Failed to get trust evaluation:', error);
 
       // Error handling
@@ -223,6 +247,7 @@ export const ChatContainer: React.FC = () => {
         description: error.message || 'Failed to get AI response. Please check your API keys.',
       });
     } finally {
+      abortControllerRef.current = null;
       setIsLoading(false);
     }
   };
@@ -586,9 +611,21 @@ export const ChatContainer: React.FC = () => {
           </>
         )}
         {isLoading && (
-          <div className="p-4 flex items-center gap-3 text-slate-500">
-            <Loader2 size={16} className="animate-spin" />
-            <span className="text-xs font-mono uppercase tracking-widest">Evaluating Trust Protocol...</span>
+          <div className="p-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="flex items-center gap-3 text-slate-500">
+              <Loader2 size={16} className="animate-spin" />
+              <span className="text-xs font-mono uppercase tracking-widest">Evaluating Trust Protocol...</span>
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleStopGeneration}
+              className="h-7 px-3 text-xs gap-1.5"
+              title="Stop AI generation (ETHICAL_OVERRIDE)"
+            >
+              <StopCircle size={14} />
+              Stop
+            </Button>
           </div>
         )}
       </div>

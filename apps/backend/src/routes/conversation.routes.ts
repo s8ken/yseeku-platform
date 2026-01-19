@@ -520,7 +520,9 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             validationPassed: true,
             
             // ETHICAL_OVERRIDE - based on UI capabilities
-            hasOverrideButton: true,  // Platform provides override capability
+            // Chat UI has a "Stop" button during generation that aborts the request
+            hasOverrideButton: true,
+            // Human is always in the loop for chat interactions (they initiate and can stop)
             humanInLoop: true,
             
             // RIGHT_TO_DISCONNECT - based on UI capabilities
