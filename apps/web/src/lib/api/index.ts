@@ -182,6 +182,27 @@ export const api = {
     });
     return res.data;
   },
+
+  // Platform API Keys
+  async getPlatformApiKeys(): Promise<Array<{ id: string; name: string; prefix: string; createdAt: string; lastUsed?: string; status: string }>> {
+    const { fetchAPI } = await import('./client');
+    const res = await fetchAPI<{ success: boolean; data: { keys: Array<{ id: string; name: string; prefix: string; createdAt: string; lastUsed?: string; status: string }> } }>('/api/platform/api-keys');
+    return res.data?.keys || [];
+  },
+
+  async createPlatformApiKey(name: string): Promise<{ id: string; name: string; fullKey: string; prefix: string }> {
+    const { fetchAPI } = await import('./client');
+    const res = await fetchAPI<{ success: boolean; data: { id: string; name: string; fullKey: string; prefix: string } }>('/api/platform/api-keys', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+    return res.data;
+  },
+
+  async revokePlatformApiKey(id: string): Promise<void> {
+    const { fetchAPI } = await import('./client');
+    await fetchAPI(`/api/platform/api-keys/${id}`, { method: 'DELETE' });
+  },
 };
 
 export default api;
