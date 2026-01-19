@@ -2,21 +2,20 @@ import { z } from 'zod';
 import { logger } from '../utils/logger';
 import OpenAI from 'openai';
 
-// Dynamic import for AWS Bedrock - only loaded if needed
-let BedrockRuntimeClient: any = null;
-let InvokeModelCommand: any = null;
+// Dynamic import for AWS SDK to avoid errors if not installed
+let BedrockRuntimeClient: any;
+let InvokeModelCommand: any;
 
-async function loadBedrockSdk() {
-  if (!BedrockRuntimeClient) {
-    try {
-      const bedrock = await import('@aws-sdk/client-bedrock-runtime');
-      BedrockRuntimeClient = bedrock.BedrockRuntimeClient;
-      InvokeModelCommand = bedrock.InvokeModelCommand;
-    } catch {
-      logger.warn('AWS Bedrock SDK not available - Bedrock providers will be disabled');
-    }
+async function loadBedrockSDK(): Promise<boolean> {
+  if (BedrockRuntimeClient) return true;
+  try {
+    const bedrockModule = await import('@aws-sdk/client-bedrock-runtime');
+    BedrockRuntimeClient = bedrockModule.BedrockRuntimeClient;
+    InvokeModelCommand = bedrockModule.InvokeModelCommand;
+    return true;
+  } catch {
+    return false;
   }
-  return { BedrockRuntimeClient, InvokeModelCommand };
 }
 
 // Model Provider Types
@@ -135,7 +134,7 @@ class MultiModelComparisonService {
 
   private async initBedrock() {
     if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-      const { BedrockRuntimeClient } = await loadBedrockSdk();
+      const { BedrockRuntimeClient } = await loadBedrockSDK();
       if (BedrockRuntimeClient) {
         this.bedrock = new BedrockRuntimeClient({
           region: process.env.AWS_REGION || 'us-east-1',
@@ -155,7 +154,7 @@ class MultiModelComparisonService {
     const id = `cmp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const options = request.options || { temperature: 0.7, maxTokens: 1024, evaluateTrust: true, evaluateSafety: true };
 
-    logger.info({ id, providers: request.providers }, 'Starting multi-model comparison');
+    logger.info('Comparison started', { id, providers: request.providers });
 
     // Call all models in parallel
     const responsePromises = request.providers.map(provider =>
@@ -202,7 +201,7 @@ class MultiModelComparisonService {
     this.comparisons.set(id, result);
     this.cleanupOldComparisons();
 
-    logger.info({ id, bestOverall: summary.bestOverall }, 'Comparison complete');
+    logger.info('Comparison completed', { id, bestOverall: result.summary.bestOverall });
 
     return result;
   }
@@ -240,7 +239,7 @@ class MultiModelComparisonService {
       }
     } catch (error) {
       const err = error as Error;
-      logger.error({ provider, error: err.message }, 'Model call failed');
+      logger.error('Provider comparison failed', { provider, error: err.message });
       return {
         provider,
         modelId,

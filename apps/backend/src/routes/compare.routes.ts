@@ -13,7 +13,7 @@ router.post('/', async (req, res) => {
   try {
     const validated = ComparisonRequestSchema.parse(req.body);
     
-    logger.info({ providers: validated.providers }, 'Starting multi-model comparison');
+    logger.info('Starting multi-model comparison', { providers: validated.providers });
     
     const result = await multiModelComparisonService.compare(validated);
     
@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
     }
     
     const err = error as Error;
-    logger.error({ error: err.message }, 'Comparison failed');
+    logger.error('Comparison failed', { error: err.message });
     res.status(500).json({
       success: false,
       error: 'Comparison failed',

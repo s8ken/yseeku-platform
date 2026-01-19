@@ -263,7 +263,31 @@ router.post('/:id/test', async (req: Request, res: Response, next: NextFunction)
       return;
     }
     
-    const result = await webhookService.testWebhook(req.params.id);
+    // Prepare test event
+    const testEvent: WebhookEvent = {
+      id: `test-${Date.now()}`,
+      eventType: 'risk_alert',
+      timestamp: new Date(),
+      data: {
+        alertType: 'test',
+        severity: 'low',
+        message: 'This is a test webhook event',
+        score: 0.25,
+      },
+      metadata: {
+        source: 'webhook-test',
+        version: '1.0',
+      },
+    };
+
+    // Get first channel URL for testing
+    const channel = config.channels?.[0];
+    if (!channel || channel === 'email') {
+      res.status(400).json({ error: 'No valid channel configured for testing' });
+      return;
+    }
+    
+    const result = await webhookService.testWebhook(req.params.id, testEvent);
     
     res.json({
       message: result.success ? 'Test webhook delivered successfully' : 'Test webhook failed',

@@ -5,20 +5,34 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
  * Stores webhook endpoints and alert routing rules
  */
 
-export type WebhookChannel = 'webhook' | 'slack' | 'discord' | 'pagerduty' | 'email';
+export type WebhookChannelType = 'slack' | 'discord' | 'teams' | 'email' | 'custom';
+
+export interface WebhookChannelConfig {
+  type: WebhookChannelType;
+  url?: string;
+  method?: 'GET' | 'POST' | 'PUT';
+  headers?: Record<string, string>;
+  email?: string;
+}
+
+export type WebhookChannel = WebhookChannelType | WebhookChannelConfig;
+
 export type WebhookStatus = 'active' | 'paused' | 'failed';
 export type AlertSeverity = 'info' | 'warning' | 'error' | 'critical';
 
 export interface RetryConfig {
   maxRetries: number;
-  initialDelayMs: number;
-  maxDelayMs: number;
-  backoffMultiplier: number;
+  backoffMs: number;
+  maxBackoffMs?: number;
+  timeoutMs?: number;
 }
 
 export interface RateLimiting {
-  windowMs: number;
-  maxRequests: number;
+  enabled?: boolean;
+  maxPerMinute?: number;
+  maxPerHour?: number;
+  windowMs?: number;
+  maxRequests?: number;
 }
 
 export interface IWebhookConfig extends Document {
@@ -86,18 +100,10 @@ export interface AlertRule {
 export type AlertRuleCondition = AlertCondition;
 
 export interface AlertCondition {
-  type: 'trust_threshold' | 'drift_threshold' | 'emergence_level' | 'agent_action' | 'overseer_action' | 'custom';
-  
-  // For threshold conditions
-  metric?: string;
-  operator?: 'lt' | 'lte' | 'gt' | 'gte' | 'eq' | 'neq';
-  value?: number | string;
-  
-  // For pattern matching
-  pattern?: string;
-  
-  // For custom conditions (JavaScript expression)
-  expression?: string;
+  field: string;
+  operator: 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte' | 'contains' | 'in';
+  value: string | number | boolean | string[];
+  threshold?: number;
 }
 
 const AlertRuleSchema = new Schema({

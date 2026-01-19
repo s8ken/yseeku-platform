@@ -4,10 +4,10 @@
  */
 
 import { Router, Request, Response } from 'express';
+import logger, { getErrorStack } from '../utils/logger';
 import { protect } from '../middleware/auth.middleware';
 import { AuditLog } from '../models/audit.model';
 import { bindTenantContext } from '../middleware/tenant-context.middleware';
-import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
@@ -158,10 +158,10 @@ router.get('/logs', protect, bindTenantContext, async (req: Request, res: Respon
         limit: limitNum,
       },
     });
-  } catch (error: unknown) {
-    logger.error('Get audit logs error', {
-      error: getErrorMessage(error),
-      stack: error.stack,
+  } catch (error) {
+    logger.error('Failed to query audit logs', {
+      error,
+      stack: getErrorStack(error),
       userId: req.userId,
     });
     res.status(500).json({
@@ -310,10 +310,10 @@ router.get('/trails', protect, bindTenantContext, async (req: Request, res: Resp
         },
       },
     });
-  } catch (error: unknown) {
-    logger.error('Get audit trails error', {
-      error: getErrorMessage(error),
-      stack: error.stack,
+  } catch (error) {
+    logger.error('Failed to export audit logs', {
+      error,
+      stack: getErrorStack(error),
       userId: req.userId,
     });
     res.status(500).json({
@@ -385,10 +385,10 @@ router.get('/summary', protect, bindTenantContext, async (req: Request, res: Res
         topActions,
       },
     });
-  } catch (error: unknown) {
-    logger.error('Get audit summary error', {
-      error: getErrorMessage(error),
-      stack: error.stack,
+  } catch (error) {
+    logger.error('Failed to get audit statistics', {
+      error,
+      stack: getErrorStack(error),
       userId: req.userId,
     });
     res.status(500).json({

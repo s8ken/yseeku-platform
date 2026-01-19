@@ -10,7 +10,7 @@ import { twoSampleTTest, stdDev, mean } from '../utils/statistics';
 import { bedauService } from '../services/bedau.service';
 import { logSuccess, logFailure } from '../utils/audit-logger';
 import logger from '../utils/logger';
-import { getErrorMessage } from '../utils/error-utils';
+import { getErrorMessage, getErrorStack } from '../utils/error-utils';
 
 const router = Router();
 
@@ -120,7 +120,7 @@ router.get('/experiments', protect, async (req: Request, res: Response): Promise
   } catch (error: unknown) {
     logger.error('Get experiments error', {
       error: getErrorMessage(error),
-      stack: error.stack,
+      stack: getErrorStack(error),
       userId: req.userId,
     });
     res.status(500).json({
@@ -182,7 +182,7 @@ router.get('/experiments/:id', protect, async (req: Request, res: Response): Pro
   } catch (error: unknown) {
     logger.error('Get experiment error', {
       error: getErrorMessage(error),
-      stack: error.stack,
+      stack: getErrorStack(error),
       experimentId: req.params.id,
       userId: req.userId,
     });
@@ -302,7 +302,7 @@ router.post('/experiments', protect, async (req: Request, res: Response): Promis
   } catch (error: unknown) {
     logger.error('Create experiment error', {
       error: getErrorMessage(error),
-      stack: error.stack,
+      stack: getErrorStack(error),
       userId: req.userId,
     });
     await logFailure(req, 'experiment_create', 'experiment', 'unknown', error);
@@ -445,7 +445,7 @@ router.patch('/experiments/:id', protect, async (req: Request, res: Response): P
   } catch (error: unknown) {
     logger.error('Update experiment error', {
       error: getErrorMessage(error),
-      stack: error.stack,
+      stack: getErrorStack(error),
       experimentId: req.params.id,
       userId: req.userId,
     });
@@ -569,7 +569,7 @@ router.post('/experiments/:id/record', protect, async (req: Request, res: Respon
   } catch (error: unknown) {
     logger.error('Record experiment data error', {
       error: getErrorMessage(error),
-      stack: error.stack,
+      stack: getErrorStack(error),
       experimentId: req.params.id,
       userId: req.userId,
     });
@@ -632,7 +632,7 @@ router.get('/experiments/:id/results', protect, async (req: Request, res: Respon
   } catch (error: unknown) {
     logger.error('Get experiment results error', {
       error: getErrorMessage(error),
-      stack: error.stack,
+      stack: getErrorStack(error),
       experimentId: req.params.id,
       userId: req.userId,
     });
@@ -684,7 +684,7 @@ router.delete('/experiments/:id', protect, async (req: Request, res: Response): 
   } catch (error: unknown) {
     logger.error('Delete experiment error', {
       error: getErrorMessage(error),
-      stack: error.stack,
+      stack: getErrorStack(error),
       experimentId: req.params.id,
       userId: req.userId,
     });

@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import { Conversation } from '../models/conversation.model';
-import logger from '../utils/logger';
+import logger, { getErrorStack } from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
@@ -142,11 +142,10 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
       },
       summary,
     });
-  } catch (error: unknown) {
-    logger.error('Get risk events error', {
-      error: getErrorMessage(error),
-      stack: error.stack,
-      userId: req.userId,
+  } catch (error) {
+    logger.error('Failed to query risk events', {
+      error,
+      stack: getErrorStack(error),
     });
     res.status(500).json({
       success: false,
@@ -198,12 +197,10 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
         resolvedAt: new Date().toISOString(),
       },
     });
-  } catch (error: unknown) {
-    logger.error('Resolve risk event error', {
-      error: getErrorMessage(error),
-      stack: error.stack,
-      userId: req.userId,
-      eventId: req.params.id,
+  } catch (error) {
+    logger.error('Failed to get risk event by ID', {
+      error,
+      stack: getErrorStack(error),
     });
     res.status(500).json({
       success: false,
