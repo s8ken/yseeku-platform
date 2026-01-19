@@ -4,10 +4,10 @@
  */
 
 import { Router, Request, Response } from 'express';
-import logger, { getErrorStack } from '../utils/logger';
+import logger, { securityLogger } from '../utils/logger';
 import { protect } from '../middleware/auth.middleware';
 import { alertsService, AlertSeverity, AlertStatus } from '../services/alerts.service';
-import { getErrorMessage } from '../utils/error-utils';
+import { getErrorMessage, getErrorStack } from '../utils/error-utils';
 
 const router = Router();
 

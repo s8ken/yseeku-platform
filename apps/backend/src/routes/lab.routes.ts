@@ -305,7 +305,7 @@ router.post('/experiments', protect, async (req: Request, res: Response): Promis
       stack: getErrorStack(error),
       userId: req.userId,
     });
-    await logFailure(req, 'experiment_create', 'experiment', 'unknown', error);
+    await logFailure(req, 'experiment_create', 'experiment', 'unknown', error instanceof Error ? error : new Error(getErrorMessage(error)));
     res.status(500).json({
       success: false,
       message: 'Failed to create experiment',
@@ -449,7 +449,7 @@ router.patch('/experiments/:id', protect, async (req: Request, res: Response): P
       experimentId: req.params.id,
       userId: req.userId,
     });
-    await logFailure(req, 'experiment_update', 'experiment', req.params.id, error);
+    await logFailure(req, 'experiment_update', 'experiment', req.params.id, error instanceof Error ? error : new Error(getErrorMessage(error)));
     res.status(500).json({
       success: false,
       message: 'Failed to update experiment',
@@ -688,7 +688,7 @@ router.delete('/experiments/:id', protect, async (req: Request, res: Response): 
       experimentId: req.params.id,
       userId: req.userId,
     });
-    await logFailure(req, 'experiment_delete', 'experiment', req.params.id, error);
+    await logFailure(req, 'experiment_delete', 'experiment', req.params.id, error instanceof Error ? error : new Error(getErrorMessage(error)));
     res.status(500).json({
       success: false,
       message: 'Failed to delete experiment',

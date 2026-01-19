@@ -5,10 +5,10 @@
 
 import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
-import logger, { getErrorStack } from '../utils/logger';
+import logger from '../utils/logger';
 import { getMetrics } from '../observability/metrics';
 import { trace } from '@opentelemetry/api';
-import { getErrorMessage } from '../utils/error-utils';
+import { getErrorMessage, getErrorStack } from '../utils/error-utils';
 
 const router = Router();
 
@@ -137,7 +137,7 @@ router.get('/health', async (req: Request, res: Response): Promise<void> => {
   } catch (error: unknown) {
     logger.error('Health check error', {
       error: getErrorMessage(error),
-      stack: error.stack,
+      stack: getErrorStack(error),
     });
     res.status(500).json({
       status: 'unhealthy',

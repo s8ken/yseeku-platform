@@ -4,11 +4,11 @@
  */
 
 import { Router, Request, Response } from 'express';
-import logger, { getErrorStack } from '../utils/logger';
+import logger from '../utils/logger';
 import { protect } from '../middleware/auth.middleware';
 import { AuditLog } from '../models/audit.model';
 import { bindTenantContext } from '../middleware/tenant-context.middleware';
-import { getErrorMessage } from '../utils/error-utils';
+import { getErrorMessage, getErrorStack } from '../utils/error-utils';
 
 const router = Router();
 

@@ -4,6 +4,7 @@ import {
   WebhookConfigModel,
   AlertRule,
   AlertCondition,
+  AlertRuleCondition,
   RateLimiting,
   RetryConfig,
   WebhookChannel,
@@ -129,8 +130,10 @@ class WebhookService {
     }
     
     // Deliver to all channels
-    for (const channel of config.channels) {
-      await this.deliverToChannel(config, channel, alert, matchedRule, metrics);
+    if (config.channels) {
+      for (const channel of config.channels) {
+        await this.deliverToChannel(config, channel, alert, matchedRule, metrics);
+      }
     }
   }
   
@@ -148,8 +151,11 @@ class WebhookService {
       // Check if alert severity matches rule severity
       if (rule.severity && rule.severity !== alert.severity) continue;
       
-      // Evaluate all conditions
-      const conditionsMet = rule.conditions.every(condition => 
+      // Evaluate all conditions (handle both conditions array and single condition)
+      const conditions = rule.conditions || (rule.condition ? [rule.condition] : []);
+      if (conditions.length === 0) continue;
+      
+      const conditionsMet = conditions.every(condition => 
         this.evaluateCondition(condition, metrics)
       );
       
@@ -182,7 +188,7 @@ class WebhookService {
   /**
    * Check rate limiting for a config
    */
-  private checkRateLimit(config: IWebhookConfig): boolean {
+  private async checkRateLimit(config: IWebhookConfig): Promise<boolean> {
     const rateLimiting = config.rateLimiting;
     if (!rateLimiting || !(rateLimiting as { enabled?: boolean }).enabled) {
       return true;
@@ -635,7 +641,7 @@ class WebhookService {
     error?: string;
   }> {
     const config = await WebhookConfigModel.findById(configId);
-    if (!config || config.channels.length === 0) {
+    if (!config || !config.channels || config.channels.length === 0) {
       return { success: false, responseTime: 0, error: 'Config not found or no channels' };
     }
     
@@ -662,9 +668,13 @@ class WebhookService {
     
     const startTime = Date.now();
     
+    // Get channel URL - handle both object and string channel types
+    const channelUrl = typeof channel === 'string' ? config.url : (channel as WebhookChannelConfig).url || config.url;
+    const channelMethod = typeof channel === 'string' ? 'POST' : (channel as WebhookChannelConfig).method || 'POST';
+    
     try {
-      const response = await fetch(channel.url, {
-        method: channel.method || 'POST',
+      const response = await fetch(channelUrl, {
+        method: channelMethod,
         headers,
         body: JSON.stringify(formattedPayload),
         signal: AbortSignal.timeout(10000),
@@ -689,6 +699,55 @@ class WebhookService {
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
+  }
+
+  // ==================== Helper Methods ====================
+
+  private getSeverityEmoji(severity: string): string {
+    const emojis: Record<string, string> = {
+      critical: '🚨',
+      error: '❌',
+      warning: '⚠️',
+      info: 'ℹ️',
+    };
+    return emojis[severity] || '📢';
+  }
+
+  private getSeverityColor(severity: string): string {
+    const colors: Record<string, string> = {
+      critical: '#FF0000',
+      error: '#FF4444',
+      warning: '#FFA500',
+      info: '#0088FF',
+    };
+    return colors[severity] || '#808080';
+  }
+
+  private mapToPagerDutySeverity(severity: string): string {
+    const mapping: Record<string, string> = {
+      critical: 'critical',
+      error: 'error',
+      warning: 'warning',
+      info: 'info',
+    };
+    return mapping[severity] || 'info';
+  }
+
+  private buildEmailHtml(payload: WebhookPayload): string {
+    const alert = payload.alert;
+    return `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: ${this.getSeverityColor(alert.severity)}; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+          <h2 style="margin: 0;">${this.getSeverityEmoji(alert.severity)} ${alert.title}</h2>
+        </div>
+        <div style="background: #f5f5f5; padding: 20px; border-radius: 0 0 8px 8px;">
+          <p><strong>Severity:</strong> ${alert.severity}</p>
+          <p><strong>Type:</strong> ${alert.type}</p>
+          <p><strong>Description:</strong> ${alert.description}</p>
+          <p style="color: #666; font-size: 12px;">Timestamp: ${payload.timestamp}</p>
+        </div>
+      </div>
+    `;
   }
 }
 

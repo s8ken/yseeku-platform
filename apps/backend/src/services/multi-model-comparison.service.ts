@@ -134,8 +134,8 @@ class MultiModelComparisonService {
 
   private async initBedrock() {
     if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-      const { BedrockRuntimeClient } = await loadBedrockSDK();
-      if (BedrockRuntimeClient) {
+      const loaded = await loadBedrockSDK();
+      if (loaded && BedrockRuntimeClient) {
         this.bedrock = new BedrockRuntimeClient({
           region: process.env.AWS_REGION || 'us-east-1',
           credentials: {

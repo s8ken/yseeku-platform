@@ -108,7 +108,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         name: config.name,
         description: config.description,
         enabled: config.enabled,
-        channelCount: config.channels.length,
+        channelCount: config.channels?.length || 0,
         ruleCount: config.rules?.length || 0,
         createdAt: config.createdAt,
         updatedAt: config.updatedAt,
@@ -262,32 +262,15 @@ router.post('/:id/test', async (req: Request, res: Response, next: NextFunction)
       res.status(403).json({ error: 'Access denied' });
       return;
     }
-    
-    // Prepare test event
-    const testEvent: WebhookEvent = {
-      id: `test-${Date.now()}`,
-      eventType: 'risk_alert',
-      timestamp: new Date(),
-      data: {
-        alertType: 'test',
-        severity: 'low',
-        message: 'This is a test webhook event',
-        score: 0.25,
-      },
-      metadata: {
-        source: 'webhook-test',
-        version: '1.0',
-      },
-    };
 
-    // Get first channel URL for testing
-    const channel = config.channels?.[0];
+    // Get first channel for testing
+    const channel = existing.channels?.[0];
     if (!channel || channel === 'email') {
       res.status(400).json({ error: 'No valid channel configured for testing' });
       return;
     }
     
-    const result = await webhookService.testWebhook(req.params.id, testEvent);
+    const result = await webhookService.testWebhook(req.params.id);
     
     res.json({
       message: result.success ? 'Test webhook delivered successfully' : 'Test webhook failed',
