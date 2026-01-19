@@ -165,7 +165,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // Determine user and tenants based on mode
   const currentUser = isDemo ? demoUser : defaultUser;
-  const tenants = isDemo ? demoTenants : (tenantsData?.data || [{ id: 'default', name: 'Default Tenant' }]);
+  // tenantsData can be array directly or object with data property
+  const tenantsArray = Array.isArray(tenantsData) 
+    ? tenantsData 
+    : (tenantsData && typeof tenantsData === 'object' && 'data' in tenantsData) 
+      ? (tenantsData as { data: Array<{ id: string; name: string }> }).data 
+      : null;
+  const tenants = isDemo ? demoTenants : (tenantsArray || [{ id: 'default', name: 'Default Tenant' }]);
 
   // Initialize demo mode on first load if URL has ?demo=true
   useEffect(() => {
