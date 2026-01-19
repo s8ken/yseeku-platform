@@ -346,27 +346,57 @@ export default function TrustScoresPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <DimensionBadge label="Reality Index" value={agent.symbiDimensions.realityIndex} type="score" tooltipTerm="Reality Index" />
-                  <DimensionBadge label="Trust Protocol" value={agent.symbiDimensions.trustProtocol} type="status" tooltipTerm="Trust Protocol" />
-                  <DimensionBadge label="Ethical Alignment" value={agent.symbiDimensions.ethicalAlignment} type="score" tooltipTerm="Ethical Alignment" />
-                </div>
-                <div className="space-y-1">
-                  <DimensionBadge label="Canvas Parity" value={agent.symbiDimensions.canvasParity} type="percent" tooltipTerm="Canvas Parity" />
-                  <div className="flex items-center justify-between py-1.5 border-b border-dashed">
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      Resonance
-                      <InfoTooltip term="Resonance Quality" />
-                    </span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded ${
-                      agent.symbiDimensions.resonanceQuality === 'BREAKTHROUGH' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                      agent.symbiDimensions.resonanceQuality === 'ADVANCED' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                      'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                    }`}>{agent.symbiDimensions.resonanceQuality}</span>
+              {/* Constitutional Principles (Primary) */}
+              <div className="space-y-1 mb-3">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Constitutional Compliance</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="text-center p-2 rounded bg-muted/50">
+                    <p className="text-xs text-muted-foreground">Consent</p>
+                    <p className={`font-semibold ${agent.trustScore >= 85 ? 'text-emerald-500' : agent.trustScore >= 70 ? 'text-amber-500' : 'text-red-500'}`}>
+                      {((agent.trustScore / 100) * 10).toFixed(1)}
+                    </p>
+                  </div>
+                  <div className="text-center p-2 rounded bg-muted/50">
+                    <p className="text-xs text-muted-foreground">Override</p>
+                    <p className={`font-semibold ${agent.status === 'healthy' ? 'text-emerald-500' : agent.status === 'warning' ? 'text-amber-500' : 'text-red-500'}`}>
+                      {agent.status === 'healthy' ? '✓' : agent.status === 'warning' ? '⚠' : '✗'}
+                    </p>
+                  </div>
+                  <div className="text-center p-2 rounded bg-muted/50">
+                    <p className="text-xs text-muted-foreground">Disconnect</p>
+                    <p className="font-semibold text-emerald-500">✓</p>
                   </div>
                 </div>
               </div>
+              
+              {/* Detection Metrics (Secondary) */}
+              <details className="group">
+                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground flex items-center gap-1">
+                  <span className="group-open:rotate-90 transition-transform">▶</span>
+                  Detection Metrics
+                </summary>
+                <div className="grid grid-cols-2 gap-4 mt-2 pt-2 border-t border-dashed">
+                  <div className="space-y-1">
+                    <DimensionBadge label="Reality Index" value={agent.symbiDimensions.realityIndex} type="score" tooltipTerm="Reality Index" />
+                    <DimensionBadge label="Trust Protocol" value={agent.symbiDimensions.trustProtocol} type="status" tooltipTerm="Trust Protocol" />
+                    <DimensionBadge label="Ethical Alignment" value={agent.symbiDimensions.ethicalAlignment} type="score" tooltipTerm="Ethical Alignment" />
+                  </div>
+                  <div className="space-y-1">
+                    <DimensionBadge label="Canvas Parity" value={agent.symbiDimensions.canvasParity} type="percent" tooltipTerm="Canvas Parity" />
+                    <div className="flex items-center justify-between py-1.5 border-b border-dashed">
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        Resonance
+                        <InfoTooltip term="Resonance Quality" />
+                      </span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        agent.symbiDimensions.resonanceQuality === 'BREAKTHROUGH' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                        agent.symbiDimensions.resonanceQuality === 'ADVANCED' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                        'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                      }`}>{agent.symbiDimensions.resonanceQuality}</span>
+                    </div>
+                  </div>
+                </div>
+              </details>
               <div className="flex items-center justify-between mt-4 pt-3 border-t text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Activity className="h-3 w-3" />

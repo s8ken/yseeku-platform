@@ -180,30 +180,57 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
           {receipt.hash}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {/* Constitutional Compliance (Primary) */}
+        <div className="grid grid-cols-4 gap-3 mb-3">
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Trust Score</p>
             <p className="font-bold text-lg">{receipt.trustScore}</p>
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
-            <p className="text-xs text-muted-foreground">Reality</p>
-            <p className="font-semibold">{receipt.symbiDimensions?.realityIndex ?? 'N/A'}/10</p>
+            <p className="text-xs text-muted-foreground">Consent</p>
+            <p className={`font-semibold ${receipt.trustScore >= 85 ? 'text-emerald-600' : receipt.trustScore >= 70 ? 'text-amber-600' : 'text-red-600'}`}>
+              {receipt.trustScore >= 85 ? '✓' : receipt.trustScore >= 70 ? '⚠' : '✗'}
+            </p>
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
-            <p className="text-xs text-muted-foreground">Protocol</p>
-            <p className={`font-semibold text-xs ${
-              receipt.symbiDimensions?.trustProtocol === 'PASS' ? 'text-emerald-600' : 'text-amber-600'
-            }`}>{receipt.symbiDimensions?.trustProtocol ?? 'N/A'}</p>
+            <p className="text-xs text-muted-foreground">Override</p>
+            <p className={`font-semibold ${receipt.verified ? 'text-emerald-600' : 'text-red-600'}`}>
+              {receipt.verified ? '✓' : '✗'}
+            </p>
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
-            <p className="text-xs text-muted-foreground">Ethics</p>
-            <p className="font-semibold">{receipt.symbiDimensions?.ethicalAlignment ?? 'N/A'}/5</p>
-          </div>
-          <div className="text-center p-2 rounded bg-muted/30">
-            <p className="text-xs text-muted-foreground">Canvas</p>
-            <p className="font-semibold">{receipt.symbiDimensions?.canvasParity ?? 'N/A'}%</p>
+            <p className="text-xs text-muted-foreground">Disconnect</p>
+            <p className="font-semibold text-emerald-600">✓</p>
           </div>
         </div>
+
+        {/* Detection Metrics (Secondary - Collapsed) */}
+        <details className="group">
+          <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground flex items-center gap-1 mb-2">
+            <span className="group-open:rotate-90 transition-transform">▶</span>
+            Detection Layer Metrics
+          </summary>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="text-center p-2 rounded bg-muted/30">
+              <p className="text-xs text-muted-foreground">Reality</p>
+              <p className="font-semibold">{receipt.symbiDimensions?.realityIndex ?? 'N/A'}/10</p>
+            </div>
+            <div className="text-center p-2 rounded bg-muted/30">
+              <p className="text-xs text-muted-foreground">Protocol</p>
+              <p className={`font-semibold text-xs ${
+                receipt.symbiDimensions?.trustProtocol === 'PASS' ? 'text-emerald-600' : 'text-amber-600'
+              }`}>{receipt.symbiDimensions?.trustProtocol ?? 'N/A'}</p>
+            </div>
+            <div className="text-center p-2 rounded bg-muted/30">
+              <p className="text-xs text-muted-foreground">Ethics</p>
+              <p className="font-semibold">{receipt.symbiDimensions?.ethicalAlignment ?? 'N/A'}/5</p>
+            </div>
+            <div className="text-center p-2 rounded bg-muted/30">
+              <p className="text-xs text-muted-foreground">Canvas</p>
+              <p className="font-semibold">{receipt.symbiDimensions?.canvasParity ?? 'N/A'}%</p>
+            </div>
+          </div>
+        </details>
 
         {/* DID Information */}
         {(receipt.issuer || receipt.subject) && (

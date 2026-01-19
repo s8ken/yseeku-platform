@@ -147,7 +147,7 @@ export function ConstitutionalPrinciples({ principleScores, compact = false }: C
           )}
         </div>
         <CardDescription>
-          The foundational constitution that defines trustworthy AI behavior. These principles derive into the 5 monitoring dimensions.
+          The foundational constitution that defines trustworthy AI behavior. These principles are evaluated based on actual system capabilities.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -190,11 +190,13 @@ export function ConstitutionalPrinciples({ principleScores, compact = false }: C
                 <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <h4 className="text-sm font-semibold text-purple-900 dark:text-purple-100 mb-1">
-                    Layer 1 → Layer 2 Architecture
+                    Two-Layer Trust Architecture
                   </h4>
                   <p className="text-xs text-purple-700 dark:text-purple-300">
-                    These 6 constitutional principles (Layer 1) derive into the 5 monitoring dimensions (Layer 2) you see on agent cards:
-                    Reality Index, Trust Protocol, Ethical Alignment, Resonance Quality, and Canvas Parity.
+                    <strong>Layer 1 (Constitutional):</strong> These 6 principles evaluate actual system capabilities—whether consent flows, override buttons, and disconnect options exist and function.
+                    <br /><br />
+                    <strong>Layer 2 (Detection):</strong> Separate content analysis metrics (Reality Index, Canvas Parity, etc.) analyze AI output quality.
+                    Both layers are evaluated independently.
                   </p>
                 </div>
               </div>

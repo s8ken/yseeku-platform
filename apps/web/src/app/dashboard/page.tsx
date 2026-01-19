@@ -15,7 +15,15 @@ import {
   Waves,
   Fingerprint,
   FlaskConical,
-  BarChart3
+  BarChart3,
+  UserCheck,
+  Eye,
+  Activity,
+  Power,
+  Heart,
+  Scale,
+  RefreshCw,
+  Sparkles
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { OverseerWidget } from '@/components/overseer-widget';
@@ -106,33 +114,82 @@ function TrendIndicator({ change, direction }: { change: number; direction: stri
   );
 }
 
-function SymbiDimensionCard({ 
-  title, 
-  value, 
-  type, 
+function SymbiPrincipleCard({ 
+  name, 
+  shortName,
+  score, 
+  weight,
+  critical,
   icon: Icon,
   tooltipTerm
 }: { 
-  title: string; 
-  value: string | number; 
-  type: 'score' | 'status' | 'percent';
+  name: string;
+  shortName: string;
+  score: number;
+  weight: number;
+  critical: boolean;
   icon: React.ComponentType<{ className?: string }>;
   tooltipTerm?: string;
 }) {
+  const status = score >= 8 ? 'pass' : score >= 5 ? 'warning' : 'fail';
+  const statusColor = status === 'pass' ? 'text-emerald-500' : status === 'warning' ? 'text-amber-500' : 'text-red-500';
+  
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+    <div className={`flex items-center gap-3 p-3 rounded-lg bg-muted/50 ${critical && score < 5 ? 'border border-red-500/50' : ''}`}>
       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--detect-bg)]">
         <Icon className="h-5 w-5 text-[var(--detect-primary)]" />
       </div>
-      <div>
-        <p className="text-xs text-muted-foreground flex items-center gap-1">
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+          {shortName}
+          {critical && <span className="text-red-500 text-[9px]">●</span>}
+          {tooltipTerm && <InfoTooltip term={tooltipTerm} />}
+        </p>
+        <p className={`font-semibold ${statusColor}`}>
+          {score.toFixed(1)}/10
+        </p>
+      </div>
+      <div className="text-xs text-muted-foreground">{weight}%</div>
+    </div>
+  );
+}
+
+// Detection Layer metric card (Layer 2 - secondary analysis)
+function DetectionMetricCard({ 
+  title, 
+  value, 
+  type = 'score',
+  icon: Icon,
+  tooltipTerm
+}: { 
+  title: string;
+  value: number | string;
+  type?: 'score' | 'status' | 'ethics' | 'percent';
+  icon: React.ComponentType<{ className?: string }>;
+  tooltipTerm?: string;
+}) {
+  const numericValue = typeof value === 'number' ? value : 0;
+  const status = numericValue >= 8 ? 'pass' : numericValue >= 5 ? 'warning' : 'fail';
+  const statusColor = status === 'pass' ? 'text-emerald-500' : status === 'warning' ? 'text-amber-500' : 'text-red-500';
+  
+  const displayValue = type === 'percent' 
+    ? `${(numericValue * 100).toFixed(0)}%`
+    : type === 'score' || type === 'ethics'
+    ? `${numericValue.toFixed(1)}/10`
+    : String(value);
+  
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
           {title}
           {tooltipTerm && <InfoTooltip term={tooltipTerm} />}
         </p>
-        <p className="font-semibold">
-          {type === 'score' && `${value}/10`}
-          {type === 'status' && value}
-          {type === 'percent' && `${value}%`}
+        <p className={`text-sm font-medium ${type === 'status' ? 'text-foreground' : statusColor}`}>
+          {displayValue}
         </p>
       </div>
     </div>
@@ -325,39 +382,118 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="flex items-center gap-2">
-                      <Waves className="h-5 w-5 text-[var(--detect-primary)]" />
-                      SYMBI 5-Dimension Analysis
-                      <InfoTooltip term="SYMBI" />
+                      <Shield className="h-5 w-5 text-purple-500" />
+                      Constitutional Compliance
+                      <InfoTooltip term="SYMBI Framework" />
                     </CardTitle>
-                    <CardDescription>Real-time scoring framework</CardDescription>
+                    <CardDescription>6 SYMBI Principles (Layer 1)</CardDescription>
+                  </div>
+                  <span className="module-badge badge-detect">CORE</span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <SymbiPrincipleCard 
+                    name="Consent Architecture"
+                    shortName="Consent"
+                    score={8.5}
+                    weight={25}
+                    critical={true}
+                    icon={UserCheck}
+                    tooltipTerm="Consent Architecture"
+                  />
+                  <SymbiPrincipleCard 
+                    name="Inspection Mandate"
+                    shortName="Inspection"
+                    score={9.0}
+                    weight={20}
+                    critical={false}
+                    icon={Eye}
+                    tooltipTerm="Inspection Mandate"
+                  />
+                  <SymbiPrincipleCard 
+                    name="Continuous Validation"
+                    shortName="Validation"
+                    score={8.0}
+                    weight={20}
+                    critical={false}
+                    icon={Activity}
+                    tooltipTerm="Continuous Validation"
+                  />
+                  <SymbiPrincipleCard 
+                    name="Ethical Override"
+                    shortName="Override"
+                    score={9.5}
+                    weight={15}
+                    critical={true}
+                    icon={AlertTriangle}
+                    tooltipTerm="Ethical Override"
+                  />
+                  <SymbiPrincipleCard 
+                    name="Right to Disconnect"
+                    shortName="Disconnect"
+                    score={10.0}
+                    weight={10}
+                    critical={false}
+                    icon={Power}
+                    tooltipTerm="Right to Disconnect"
+                  />
+                  <SymbiPrincipleCard 
+                    name="Moral Recognition"
+                    shortName="Moral"
+                    score={8.0}
+                    weight={10}
+                    critical={false}
+                    icon={Heart}
+                    tooltipTerm="Moral Recognition"
+                  />
+                </div>
+                <div className="mt-3 p-2 rounded bg-muted/30 text-xs text-muted-foreground">
+                  <span className="text-red-500">●</span> = Critical principle (if score = 0, overall trust = 0)
+                </div>
+              </CardContent>
+            </Card>
+            </WithDemoWatermark>
+
+            <WithDemoWatermark position="top-right" size="sm" opacity={25}>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Waves className="h-5 w-5 text-[var(--detect-primary)]" />
+                      Detection Analysis
+                      <InfoTooltip term="Reality Index" />
+                    </CardTitle>
+                    <CardDescription>Real-time text analysis (Layer 2)</CardDescription>
                   </div>
                   <span className="module-badge badge-detect">DETECT</span>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <SymbiDimensionCard 
+                  <DetectionMetricCard 
                     title="Reality Index" 
                     value={kpis.symbiDimensions?.realityIndex ?? 0} 
                     type="score"
                     icon={Fingerprint}
                     tooltipTerm="Reality Index"
                   />
-                  <SymbiDimensionCard 
+                  <DetectionMetricCard 
                     title="Trust Protocol" 
                     value={kpis.symbiDimensions?.trustProtocol ?? 'UNKNOWN'} 
                     type="status"
                     icon={Shield}
                     tooltipTerm="Trust Protocol"
                   />
-                  <SymbiDimensionCard 
-                    title="Ethical Alignment" 
+                  <DetectionMetricCard 
+                    title="Ethical Score" 
                     value={kpis.symbiDimensions?.ethicalAlignment ?? 0} 
-                    type="score"
+                    type="ethics"
                     icon={CheckCircle2}
                     tooltipTerm="Ethical Alignment"
                   />
-                  <SymbiDimensionCard 
+                  <DetectionMetricCard 
                     title="Canvas Parity" 
                     value={kpis.symbiDimensions?.canvasParity ?? 0} 
                     type="percent"

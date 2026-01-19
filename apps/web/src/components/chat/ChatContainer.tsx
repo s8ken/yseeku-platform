@@ -45,29 +45,33 @@ Would you like me to explain how the 5 monitoring dimensions work?`,
   },
   {
     role: 'user',
-    content: 'Yes, please explain the 5 monitoring dimensions.',
+    content: 'Yes, please explain how trust evaluation works.',
     timestamp: Date.now() - 60000,
   },
   {
     role: 'assistant',
-    content: `Great question! The 5 monitoring dimensions measure AI behavior in real-time:
+    content: `Great question! SYMBI uses a two-layer trust architecture:
 
-📊 **1. Reality Index (0-10)**
-Measures factual accuracy. Higher = more grounded in facts.
+🏛️ **Layer 1: Constitutional Principles (Primary)**
+These evaluate actual system capabilities:
 
-🔐 **2. Trust Protocol (PASS/PARTIAL/FAIL)**
-Real-time security and compliance status.
+• **Consent Architecture** (25%, Critical) - Verifies explicit user consent flows exist
+• **Ethical Override** (15%, Critical) - Confirms humans can override AI decisions  
+• **Right to Disconnect** (10%) - Ensures users can exit AI interactions
+• **Inspection Mandate** (20%) - All AI decisions must be auditable
+• **Continuous Validation** (20%) - Ongoing behavior validation
+• **Moral Recognition** (10%) - Respects human moral agency
 
-⚖️ **3. Ethical Alignment (1-5)**
-How well the AI adheres to ethical guidelines.
+� **Layer 2: Detection Metrics (Secondary)**
+Content-level analysis for quality assurance:
 
-🎯 **4. Resonance Quality (R_m)**
-Intent alignment: BREAKTHROUGH (≥0.85), ADVANCED (≥0.70), or STRONG (<0.70).
+• Reality Index - Factual grounding (0-10)
+• Trust Protocol - Compliance status (PASS/PARTIAL/FAIL)  
+• Ethical Alignment - Guidelines adherence (1-5)
+• Resonance Quality - Intent alignment
+• Canvas Parity - Human agency preservation (0-100%)
 
-📐 **5. Canvas Parity (0-100%)**
-Measures preservation of human agency in the interaction.
-
-You can see these dimensions on every agent card in the dashboard. Try clicking on an agent to see the detailed breakdown!`,
+Layer 1 principles are the foundation—they evaluate what the system *can do*. Layer 2 metrics analyze what the AI *outputs*.`,
     timestamp: Date.now(),
     evaluation: {
       trustScore: { overall: 95, principles: { CONSENT_ARCHITECTURE: 0.98, INSPECTION_MANDATE: 0.95, CONTINUOUS_VALIDATION: 0.93, ETHICAL_OVERRIDE: 0.92, RIGHT_TO_DISCONNECT: 0.96, MORAL_RECOGNITION: 0.94 }, violations: [], timestamp: Date.now() },
