@@ -5,7 +5,7 @@
 import { fetchAPI } from './client';
 
 export type BanSeverity = 'low' | 'medium' | 'high' | 'critical';
-export type BanStatus = 'active' | 'unbanned' | 'expired' | 'none';
+export type BanStatus = 'active' | 'unbanned' | 'expired' | 'none' | 'banned' | 'quarantined' | 'restricted';
 
 export interface BanDetails {
   bannedAt: string;
