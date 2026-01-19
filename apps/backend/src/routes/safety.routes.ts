@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { protect } from '../middleware/auth.middleware';
-import { promptSafetyScanner, SafetyScanResult } from '../services/prompt-safety.service';
+import { promptSafetyScanner, SafetyScanResult, ThreatLevel } from '../services/prompt-safety.service';
 import logger from '../utils/logger';
 
 const router = Router();
@@ -103,10 +103,10 @@ router.post('/batch', protect, async (req: Request, res: Response): Promise<void
       scanned: results.length,
       safe: results.filter(r => r.safe).length,
       blocked,
-      worstThreatLevel: results.reduce((worst, r) => {
-        const order = { safe: 0, low: 1, medium: 2, high: 3, critical: 4 };
+      worstThreatLevel: results.reduce<ThreatLevel>((worst, r) => {
+        const order: Record<ThreatLevel, number> = { safe: 0, low: 1, medium: 2, high: 3, critical: 4 };
         return order[r.threatLevel] > order[worst] ? r.threatLevel : worst;
-      }, 'safe' as const),
+      }, 'safe'),
       totalScanTimeMs: results.reduce((sum, r) => sum + r.scanTimeMs, 0),
     };
     

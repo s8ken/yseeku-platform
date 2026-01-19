@@ -72,4 +72,7 @@ export const securityLogger = logger.child({ context: 'security' });
 export const performanceLogger = logger.child({ context: 'performance' });
 export const apiLogger = logger.child({ context: 'api' });
 
+// Named export for compatibility with both import styles
+export { logger };
+
 export default logger;

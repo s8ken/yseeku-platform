@@ -415,7 +415,7 @@ export async function getHistoricalMetrics(
   
   try {
     // Aggregate conversations by time bucket
-    const pipeline = [
+    const pipeline: any[] = [
       {
         $match: {
           lastActivity: { $gte: startTime },

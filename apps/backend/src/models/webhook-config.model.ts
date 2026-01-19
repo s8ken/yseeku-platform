@@ -7,12 +7,29 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export type WebhookChannel = 'webhook' | 'slack' | 'discord' | 'pagerduty' | 'email';
 export type WebhookStatus = 'active' | 'paused' | 'failed';
+export type AlertSeverity = 'info' | 'warning' | 'error' | 'critical';
+
+export interface RetryConfig {
+  maxRetries: number;
+  initialDelayMs: number;
+  maxDelayMs: number;
+  backoffMultiplier: number;
+}
+
+export interface RateLimiting {
+  windowMs: number;
+  maxRequests: number;
+}
 
 export interface IWebhookConfig extends Document {
   tenantId: string;
   name: string;
   description?: string;
   channel: WebhookChannel;
+  channels?: WebhookChannel[]; // Multiple channels support
+  
+  // Enabled flag
+  enabled: boolean;
   
   // Endpoint configuration
   url: string;
@@ -21,7 +38,9 @@ export interface IWebhookConfig extends Document {
   
   // Alert filtering
   alertTypes: string[]; // Which alert types to send (empty = all)
+  eventTypes?: string[]; // Alternative name for alert types
   severities: string[]; // Which severities to send (empty = all)
+  severityFilter?: AlertSeverity[]; // Alternative severity filter
   
   // Advanced rules
   rules: AlertRule[];
@@ -37,6 +56,10 @@ export interface IWebhookConfig extends Document {
   maxPerMinute: number;
   sentThisMinute: number;
   minuteResetAt: Date;
+  rateLimiting?: RateLimiting;
+  
+  // Retry configuration
+  retryConfig?: RetryConfig;
   
   // Metadata
   createdBy: string;
@@ -48,14 +71,19 @@ export interface AlertRule {
   id: string;
   name: string;
   enabled: boolean;
+  severity?: AlertSeverity;
   
   // Trigger conditions
   condition: AlertCondition;
+  conditions?: AlertCondition[]; // Multiple conditions support
   
   // Throttling
   cooldownMinutes: number;
   lastTriggeredAt?: Date;
 }
+
+// Alias for backwards compatibility
+export type AlertRuleCondition = AlertCondition;
 
 export interface AlertCondition {
   type: 'trust_threshold' | 'drift_threshold' | 'emergence_level' | 'agent_action' | 'overseer_action' | 'custom';
@@ -117,13 +145,35 @@ const WebhookConfigSchema = new Schema<IWebhookConfig>({
     default: {},
   },
   
+  // Enabled flag
+  enabled: {
+    type: Boolean,
+    default: true,
+  },
+  
   // Filtering
   alertTypes: {
     type: [String],
     default: [],
   },
+  eventTypes: {
+    type: [String],
+    default: [],
+  },
   severities: {
     type: [String],
+    default: [],
+  },
+  severityFilter: {
+    type: [String],
+    enum: ['info', 'warning', 'error', 'critical'],
+    default: [],
+  },
+  
+  // Multiple channels
+  channels: {
+    type: [String],
+    enum: ['webhook', 'slack', 'discord', 'pagerduty', 'email'],
     default: [],
   },
   
@@ -148,6 +198,18 @@ const WebhookConfigSchema = new Schema<IWebhookConfig>({
   maxPerMinute: { type: Number, default: 60 },
   sentThisMinute: { type: Number, default: 0 },
   minuteResetAt: { type: Date, default: Date.now },
+  rateLimiting: {
+    windowMs: { type: Number, default: 60000 },
+    maxRequests: { type: Number, default: 100 },
+  },
+  
+  // Retry configuration
+  retryConfig: {
+    maxRetries: { type: Number, default: 3 },
+    initialDelayMs: { type: Number, default: 1000 },
+    maxDelayMs: { type: Number, default: 30000 },
+    backoffMultiplier: { type: Number, default: 2 },
+  },
   
   // Metadata
   createdBy: { type: String, required: true },

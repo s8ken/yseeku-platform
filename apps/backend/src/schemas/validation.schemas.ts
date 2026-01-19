@@ -273,3 +273,12 @@ export default {
   experimentsQuerySchema,
   auditQuerySchema,
 };
+
+// PascalCase aliases for backwards compatibility
+export const LoginSchema = loginSchema;
+export const RegisterSchema = registerSchema;
+export const CreateAgentSchema = createAgentSchema;
+export const UpdateAgentSchema = updateAgentSchema;
+export const MongoIdSchema = objectIdSchema;
+export const SendMessageSchema = sendMessageSchema;
+export const PaginationSchema = paginationSchema;

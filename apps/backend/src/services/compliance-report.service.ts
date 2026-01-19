@@ -6,7 +6,7 @@
 import { Conversation } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
 import { AlertModel } from '../models/alert.model';
-import { AuditLogModel } from '../models/audit-log.model';
+import { AuditLog } from '../models/audit.model';
 import { logger } from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 

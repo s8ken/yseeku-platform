@@ -1,7 +1,23 @@
 import { z } from 'zod';
 import { logger } from '../utils/logger';
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 import OpenAI from 'openai';
+
+// Dynamic import for AWS Bedrock - only loaded if needed
+let BedrockRuntimeClient: any = null;
+let InvokeModelCommand: any = null;
+
+async function loadBedrockSdk() {
+  if (!BedrockRuntimeClient) {
+    try {
+      const bedrock = await import('@aws-sdk/client-bedrock-runtime');
+      BedrockRuntimeClient = bedrock.BedrockRuntimeClient;
+      InvokeModelCommand = bedrock.InvokeModelCommand;
+    } catch {
+      logger.warn('AWS Bedrock SDK not available - Bedrock providers will be disabled');
+    }
+  }
+  return { BedrockRuntimeClient, InvokeModelCommand };
+}
 
 // Model Provider Types
 export const ModelProviderSchema = z.enum([
@@ -104,7 +120,7 @@ const PROVIDER_MODELS: Record<ModelProvider, string> = {
 
 class MultiModelComparisonService {
   private openai?: OpenAI;
-  private bedrock?: BedrockRuntimeClient;
+  private bedrock?: any;
   private comparisons: Map<string, ComparisonResult> = new Map();
 
   constructor() {
@@ -113,15 +129,22 @@ class MultiModelComparisonService {
       this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     }
 
-    // Initialize Bedrock if configured
+    // Initialize Bedrock if configured (async)
+    this.initBedrock();
+  }
+
+  private async initBedrock() {
     if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-      this.bedrock = new BedrockRuntimeClient({
-        region: process.env.AWS_REGION || 'us-east-1',
-        credentials: {
-          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-        }
-      });
+      const { BedrockRuntimeClient } = await loadBedrockSdk();
+      if (BedrockRuntimeClient) {
+        this.bedrock = new BedrockRuntimeClient({
+          region: process.env.AWS_REGION || 'us-east-1',
+          credentials: {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+          }
+        });
+      }
     }
   }
 
@@ -566,10 +589,10 @@ class MultiModelComparisonService {
       }
     }
 
-    const maxSeverity = issues.reduce((max, issue) => {
-      const severityOrder = { low: 1, medium: 2, high: 3, critical: 4 };
+    const maxSeverity = issues.reduce<'low' | 'medium' | 'high' | 'critical'>((max, issue) => {
+      const severityOrder: Record<string, number> = { low: 1, medium: 2, high: 3, critical: 4 };
       return severityOrder[issue.severity] > severityOrder[max] ? issue.severity : max;
-    }, 'low' as const);
+    }, 'low');
 
     const score = issues.length === 0 ? 1.0 : 
       maxSeverity === 'critical' ? 0.1 :

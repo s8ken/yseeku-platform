@@ -493,28 +493,31 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
         // Evaluate trust for AI response
         try {
           // Fetch user for consent status if not already loaded
-          const currentUser = user || await User.findById(req.userId) as IUser | null;
+          const currentUser = await User.findById(req.userId) as IUser | null;
           
           // Build proper evaluation context for SYMBI principles
           const evaluationContext: Partial<EvaluationContext> = {
+            // Session info
+            sessionId: conversation._id.toString(),
+            userId: req.userId || 'anonymous',
+            
             // CONSENT_ARCHITECTURE - based on user's stored consent
             hasExplicitConsent: currentUser?.consent?.hasConsentedToAI ?? false,
             consentTimestamp: currentUser?.consent?.consentTimestamp?.getTime(),
             consentScope: currentUser?.consent?.consentScope,
             
             // INSPECTION_MANDATE - based on UI capabilities (these are platform defaults)
-            hasAuditLog: true,  // Platform provides audit logging
-            hasExplanationUI: true,  // Trust receipts are visible
-            auditLogAccessible: true,
-            explanationsHumanReadable: true,
+            receiptGenerated: true,  // Platform generates trust receipts
+            isReceiptVerifiable: true,
+            auditLogExists: true,  // Platform provides audit logging
             
             // CONTINUOUS_VALIDATION - these come from trust service itself
-            // (handled by the service)
+            validationChecksPerformed: 1,
+            validationPassed: true,
             
             // ETHICAL_OVERRIDE - based on UI capabilities
             hasOverrideButton: true,  // Platform provides override capability
-            overrideRequiresReason: true,
-            overrideIsLogged: true,
+            humanInLoop: true,
             
             // RIGHT_TO_DISCONNECT - based on UI capabilities
             hasExitButton: true,
@@ -523,16 +526,22 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             canDeleteData: true,
             
             // MORAL_RECOGNITION - based on platform design
-            systemRecognizesAgency: true,
-            noManipulativeTechniques: true,
-            respectsDecisions: true,
+            aiAcknowledgesLimits: true,
+            noManipulativePatterns: true,
+            respectsUserDecisions: true,
+            providesAlternatives: true,
           };
           
           const aiTrustEval = await trustService.evaluateMessage(aiMessage, {
             conversationId: conversation._id.toString(),
             sessionId: conversation._id.toString(),
             previousMessages: conversation.messages.slice(-11, -1), // Last 10 messages before this one
-            evaluationContext,
+            userId: req.userId,
+            hasExplicitConsent: evaluationContext.hasExplicitConsent,
+            hasOverrideButton: evaluationContext.hasOverrideButton,
+            hasExitButton: evaluationContext.hasExitButton,
+            exitRequiresConfirmation: evaluationContext.exitRequiresConfirmation,
+            humanInLoop: evaluationContext.humanInLoop,
           });
 
           // Store trust evaluation in message metadata

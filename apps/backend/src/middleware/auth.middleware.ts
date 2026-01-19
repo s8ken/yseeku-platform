@@ -161,10 +161,11 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     console.log(`[Auth:${requestId}] Auth successful for ${user.email}`);
     next();
   } catch (error: unknown) {
+    const err = error as Error;
     console.error(`[Auth:${requestId}] CRITICAL AUTH ERROR:`, {
       message: getErrorMessage(error),
-      stack: error.stack,
-      name: error.name
+      stack: err?.stack,
+      name: err?.name
     });
 
     // Ensure we always return JSON even for 500s
@@ -173,7 +174,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
         success: false,
         message: `Authentication middleware error: ${getErrorMessage(error)}`,
         error: getErrorMessage(error),
-        details: error.stack,
+        details: err?.stack,
         requestId
       });
     }

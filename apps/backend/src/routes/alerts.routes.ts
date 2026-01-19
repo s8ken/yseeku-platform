@@ -7,7 +7,7 @@ import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import logger, { securityLogger } from '../utils/logger';
 import { alertsService, AlertSeverity, AlertStatus } from '../services/alerts.service';
-import { getErrorMessage } from '../utils/error-utils';
+import { getErrorMessage, getErrorStack } from '../utils/error-utils';
 
 const router = Router();
 

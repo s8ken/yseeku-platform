@@ -509,7 +509,7 @@ export class TrustService {
     }
 
     // Analyze the message
-    const result = driftDetector.analyze({ text: message.content });
+    const result = driftDetector.analyze({ content: message.content });
 
     // Determine alert level based on drift score
     let alertLevel: 'none' | 'yellow' | 'red' = 'none';
@@ -579,11 +579,15 @@ export class TrustService {
     const identityVector = this.extractIdentityVector(message.content);
 
     // Create conversation turn from detection results
+    // Convert resonance_quality string to numeric value (0-10)
+    const resonanceScore = detection.resonance_quality === 'BREAKTHROUGH' ? 10 :
+      detection.resonance_quality === 'ADVANCED' ? 7 : 5;
+    
     const turn: ConversationTurn = {
       turnNumber,
       timestamp: message.timestamp?.getTime() || Date.now(),
       speaker: 'ai',
-      resonance: detection.resonance_quality,  // 0-10
+      resonance: resonanceScore,  // Converted to 0-10
       canvas: detection.canvas_parity,          // 0-10
       identityVector,
       content: message.content.substring(0, 200), // Truncate for audit

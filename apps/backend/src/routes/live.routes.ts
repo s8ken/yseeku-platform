@@ -157,7 +157,7 @@ router.get('/events', protect, async (req: Request, res: Response): Promise<void
     for (const conv of conversations) {
       const recentMsgs = conv.messages.slice(-3);
       for (const msg of recentMsgs) {
-        if (msg.sender === 'assistant') {
+        if (msg.sender === 'ai') {
           events.push({
             id: `msg-${msg.metadata?.messageId || Date.now()}`,
             timestamp: msg.timestamp.toISOString(),
