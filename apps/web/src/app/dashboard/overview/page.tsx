@@ -157,9 +157,16 @@ export default function TrustScoresPage() {
   useEffect(() => {
     if (!isLoaded) return;
 
-    if (isDemo && demoAgentsData?.data) {
+    // demoAgentsData can be array directly or object with data property
+    const demoAgentsArray = Array.isArray(demoAgentsData) 
+      ? demoAgentsData 
+      : (demoAgentsData && typeof demoAgentsData === 'object' && 'data' in demoAgentsData) 
+        ? (demoAgentsData as { data: any[] }).data 
+        : null;
+
+    if (isDemo && demoAgentsArray) {
       // Use demo agents
-      const demoAgents = demoAgentsData.data.map((agent: any) => ({
+      const demoAgents = demoAgentsArray.map((agent: any) => ({
         id: agent._id || agent.id,
         name: agent.name,
         model: agent.model || 'unknown',
@@ -205,7 +212,22 @@ export default function TrustScoresPage() {
     setAgents([]);
   }, [isDemo, isLoaded, agentsData, demoAgentsData]);
 
-  const kpis = isDemo ? demoKpiData?.data : kpiData?.data;
+  // Handle both array and {data: ...} response shapes for KPI data
+  const getDemoKpis = () => {
+    if (!demoKpiData) return null;
+    if (typeof demoKpiData === 'object' && 'data' in demoKpiData) {
+      return (demoKpiData as { data: any }).data;
+    }
+    return demoKpiData;
+  };
+  const getRealKpis = () => {
+    if (!kpiData) return null;
+    if (typeof kpiData === 'object' && 'data' in kpiData) {
+      return (kpiData as { data: any }).data;
+    }
+    return kpiData;
+  };
+  const kpis = isDemo ? getDemoKpis() : getRealKpis();
   const avgTrust = kpis?.trustScore ?? (agents.length > 0 ? Math.round(agents.reduce((sum, a) => sum + a.trustScore, 0) / agents.length) : 0);
   const healthyCount = agents.filter(a => a.status === 'healthy').length;
   const totalInteractions = kpis?.totalInteractions ?? agents.reduce((sum, a) => sum + a.interactions24h, 0);

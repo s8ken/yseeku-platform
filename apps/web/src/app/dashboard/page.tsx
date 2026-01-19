@@ -407,7 +407,7 @@ export default function DashboardPage() {
               <CardContent>
                 {experiments && experiments.experiments && experiments.experiments.length > 0 ? (
                   <div className="space-y-4">
-                    {experiments.experiments.slice(0, 3).map((exp) => {
+                    {experiments.experiments.slice(0, 3).map((exp: { id: string; name: string; variants?: any[]; metrics?: { significant?: boolean }; progress?: number }) => {
                       if (!exp) return null;
                       return (
                       <div key={exp.id} className="p-3 rounded-lg border bg-card">
@@ -475,7 +475,7 @@ export default function DashboardPage() {
             <CardContent>
               {alerts ? (
                 <div className="space-y-3">
-                  {alerts.alerts.slice(0, 5).map((alert) => (
+                  {alerts.alerts.slice(0, 5).map((alert: { id: string; title: string; severity: string; type?: string; createdAt?: string }) => (
                     <div 
                       key={alert.id} 
                       className={`flex items-start gap-3 p-3 rounded-lg border ${
