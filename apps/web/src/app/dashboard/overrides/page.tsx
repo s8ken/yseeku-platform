@@ -85,7 +85,7 @@ export default function OverridesQueuePage() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked && data?.data?.items) {
-      const allIds = new Set(data.data.items.map(item => item.id));
+      const allIds = new Set(data.data.items.map((item: OverrideQueueItem) => item.id));
       setSelectedItems(allIds);
       setShowBulkActions(true);
     } else {
