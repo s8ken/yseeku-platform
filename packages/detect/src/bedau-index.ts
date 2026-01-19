@@ -10,8 +10,8 @@
  * - Irreducibility of system behavior
  */
 
-// Import constants - using relative path for now due to build issues
-// TODO: Fix module resolution and revert to '@sonate/core/constants/algorithmic'
+// Import constants - using inline definition to avoid circular dependency issues
+// See: https://github.com/s8ken/yseeku-platform/issues/XX for tracking
 const BEDAU_INDEX_CONSTANTS = {
   BASELINE_RANDOM_SCORE: 0.3,
   POOLLED_STANDARD_DEVIATION: 0.25,

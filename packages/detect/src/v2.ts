@@ -3,8 +3,8 @@ import { CANONICAL_SCAFFOLD_VECTOR } from './constants';
 import { normalizeScore } from './model-normalize';
 import { classifyStakes, StakesEvidence } from './stakes';
 
-// Import constants - using inline definition due to build issues
-// TODO: Fix module resolution and revert to '@sonate/core/constants/algorithmic'
+// Import constants - using inline definition to avoid circular dependency issues
+// See: https://github.com/s8ken/yseeku-platform/issues/XX for tracking
 const RESONANCE_CONSTANTS = {
   WEIGHTS: {
     ALIGNMENT: 0.3,

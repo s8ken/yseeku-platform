@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
 import { Shield, Activity, Eye, Users, FileText } from 'lucide-react';
-import { TrustPillarCard } from './components/TrustPillarCard';
-import { ReceiptChain } from './components/ReceiptChain';
+import { useState, useEffect } from 'react';
+
 import { AgentFleetTable } from './components/AgentFleetTable';
 import { ExperimentViewer } from './components/ExperimentViewer';
+import { ReceiptChain } from './components/ReceiptChain';
 import { TrustDashboard } from './components/TrustDashboard';
+import { TrustPillarCard } from './components/TrustPillarCard';
 import { mockApi } from './services/mockApi';
 import { TrustScore, TrustReceipt, Agent, Experiment, SystemMetrics } from './types';
 

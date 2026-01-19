@@ -1,5 +1,6 @@
-import React from 'react';
 import { CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import React from 'react';
+
 import { TrustPillarCardProps } from '../types';
 
 export const TrustPillarCard: React.FC<TrustPillarCardProps> = ({ 

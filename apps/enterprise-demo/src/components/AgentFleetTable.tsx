@@ -1,5 +1,6 @@
-import React from 'react';
 import { Circle, Activity, AlertTriangle } from 'lucide-react';
+import React from 'react';
+
 import { AgentFleetTableProps } from '../types';
 
 export const AgentFleetTable: React.FC<AgentFleetTableProps> = ({ 

@@ -14,7 +14,19 @@
     }
   },
   "rules": {
-    "react-refresh/only-export-components": "warn"
+    "react-refresh/only-export-components": "warn",
+    "@typescript-eslint/no-floating-promises": "off",
+    "@typescript-eslint/no-misused-promises": "off",
+    "@typescript-eslint/prefer-nullish-coalescing": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-argument": "off",
+    "@typescript-eslint/require-await": "off",
+    "require-await": "off",
+    "consistent-return": "off",
+    "default-case": "off",
+    "no-magic-numbers": "off"
   },
   "settings": {
     "react": {

@@ -1,5 +1,6 @@
-import React from 'react';
 import { CheckCircle, Clock } from 'lucide-react';
+import React from 'react';
+
 import { ReceiptChainProps } from '../types';
 
 export const ReceiptChain: React.FC<ReceiptChainProps> = ({ 

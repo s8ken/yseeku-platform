@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
 import { RefreshCw, Shield, Activity, Zap } from 'lucide-react';
-import { TrustDashboardProps } from '../types';
+import React, { useState, useEffect } from 'react';
+
 import { mockApi } from '../services/mockApi';
+import { TrustDashboardProps } from '../types';
 
 export const TrustDashboard: React.FC<TrustDashboardProps> = ({ 
   onRefresh 

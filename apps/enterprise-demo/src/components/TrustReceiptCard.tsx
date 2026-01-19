@@ -1,6 +1,6 @@
-import React from 'react';
 import { TrustReceipt } from '@sonate/core';
 import { BedauMetrics, EmergenceTrajectory } from '@sonate/detect';
+import React from 'react';
 
 interface TrustReceiptCardProps {
   receipt: TrustReceipt;
@@ -29,19 +29,19 @@ export const TrustReceiptCard: React.FC<TrustReceiptCardProps> = ({
   };
 
   const getBedauColor = (index: number) => {
-    if (index > 0.7) return 'text-purple-600';
-    if (index > 0.3) return 'text-blue-600';
+    if (index > 0.7) {return 'text-purple-600';}
+    if (index > 0.3) {return 'text-blue-600';}
     return 'text-gray-600';
   };
 
   const getBedauBgColor = (index: number) => {
-    if (index > 0.7) return 'bg-purple-100';
-    if (index > 0.3) return 'bg-blue-100';
+    if (index > 0.7) {return 'bg-purple-100';}
+    if (index > 0.3) {return 'bg-blue-100';}
     return 'bg-gray-100';
   };
 
   const getEmergenceTypeColor = (type: BedauMetrics['emergence_type']) => {
-    if (type === 'HIGH_WEAK_EMERGENCE') return 'text-red-600 font-bold';
+    if (type === 'HIGH_WEAK_EMERGENCE') {return 'text-red-600 font-bold';}
     return type === 'WEAK_EMERGENCE' ? 'text-purple-600 font-bold' : 'text-gray-600';
   };
 
