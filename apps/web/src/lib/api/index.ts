@@ -58,6 +58,7 @@ export const api = {
   deleteAgent: agentsApi.deleteAgent,
   banAgent: agentsApi.banAgent,
   unbanAgent: agentsApi.unbanAgent,
+  restrictAgent: agentsApi.restrictAgent,
   getAgentDID: agentsApi.getAgentDID,
   provisionAgentDID: agentsApi.provisionAgentDID,
 

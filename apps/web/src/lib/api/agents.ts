@@ -112,6 +112,13 @@ export const agentsApi = {
     });
   },
 
+  async restrictAgent(agentId: string, restrictions: string[], reason: string): Promise<void> {
+    await fetchAPI<{ success: boolean }>(`/api/agents/${agentId}/restrict`, {
+      method: 'POST',
+      body: JSON.stringify({ restrictions, reason }),
+    });
+  },
+
   async getAgentDID(agentId: string): Promise<{ did: string; document: unknown }> {
     const res = await fetchAPI<{ success: boolean; data: { did: string; document: unknown } }>(
       `/api/agents/${agentId}/did`
