@@ -171,16 +171,21 @@ class WebhookService {
    * Evaluate a single condition
    */
   private evaluateCondition(condition: AlertRuleCondition, metrics: MetricSnapshot): boolean {
-    const value = metrics[condition.metric];
+    const value = metrics[condition.field];
     if (value === undefined) return false;
     
+    // Use threshold if available, otherwise use value from condition
+    const threshold = condition.threshold ?? (typeof condition.value === 'number' ? condition.value : 0);
+    
     switch (condition.operator) {
-      case 'gt': return value > condition.threshold;
-      case 'gte': return value >= condition.threshold;
-      case 'lt': return value < condition.threshold;
-      case 'lte': return value <= condition.threshold;
-      case 'eq': return value === condition.threshold;
-      case 'neq': return value !== condition.threshold;
+      case 'gt': return value > threshold;
+      case 'gte': return value >= threshold;
+      case 'lt': return value < threshold;
+      case 'lte': return value <= threshold;
+      case 'eq': return value === threshold;
+      case 'ne': return value !== threshold;
+      case 'contains': return String(value).includes(String(condition.value));
+      case 'in': return Array.isArray(condition.value) && condition.value.includes(value);
       default: return false;
     }
   }

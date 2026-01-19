@@ -9,7 +9,9 @@ let InvokeModelCommand: any;
 async function loadBedrockSDK(): Promise<boolean> {
   if (BedrockRuntimeClient) return true;
   try {
-    const bedrockModule = await import('@aws-sdk/client-bedrock-runtime');
+    // Use variable to prevent TypeScript from checking this import at compile time
+    const moduleName = '@aws-sdk/client-bedrock-runtime';
+    const bedrockModule = await import(/* webpackIgnore: true */ moduleName);
     BedrockRuntimeClient = bedrockModule.BedrockRuntimeClient;
     InvokeModelCommand = bedrockModule.InvokeModelCommand;
     return true;
