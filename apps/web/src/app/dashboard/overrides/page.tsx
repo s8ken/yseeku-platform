@@ -343,7 +343,7 @@ export default function OverridesQueuePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item) => (
+                  {items.map((item: OverrideQueueItem) => (
                     <TableRow key={item.id}>
                       <TableCell>
                         <Checkbox
