@@ -150,7 +150,7 @@ export default function AlertsManagementPage() {
     acknowledged: 0,
     resolved: 0
   };
-  const alerts = data?.data?.alerts || [];
+  const alerts: Alert[] = data?.data?.alerts || [];
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
