@@ -197,6 +197,28 @@ export const ChatContainer: React.FC = () => {
 
       // Check if response is successful
       if (convRes.success && convRes.data) {
+        // Check for consent withdrawal detection
+        const consentWithdrawal = (convRes.data as any).consentWithdrawal;
+        if (consentWithdrawal?.detected) {
+          // Handle consent withdrawal - show system message and offer options
+          const msg = convRes.data.message || (convRes.data as any).lastMessage;
+          const systemMessage: ChatMessageProps = {
+            role: 'assistant',
+            content: msg?.content || 'Your request has been noted.',
+            timestamp: Date.now(),
+            isConsentWithdrawal: true,
+            consentWithdrawalType: consentWithdrawal.type,
+          };
+          setMessages(prev => [...prev, systemMessage]);
+          
+          // Show toast notification
+          toast.info('Consent Action Detected', {
+            description: `We noticed you may want to ${consentWithdrawal.type === 'HUMAN_ESCALATION' ? 'speak with a human' : 'modify your consent'}. Options are shown in the chat.`,
+            duration: 6000,
+          });
+          return;
+        }
+
         // Handle both new format (message) and legacy format (lastMessage)
         const msg = convRes.data.message || (convRes.data as any).lastMessage;
         const trustEval = convRes.data.trustEvaluation || (msg as any)?.metadata?.trustEvaluation;

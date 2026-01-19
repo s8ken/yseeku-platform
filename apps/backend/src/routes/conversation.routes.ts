@@ -17,6 +17,7 @@ import { trustService } from '../services/trust.service';
 import { getErrorMessage } from '../utils/error-utils';
 import logger from '../utils/logger';
 import { EvaluationContext } from '@sonate/core';
+import { detectConsentWithdrawal, getWithdrawalResponse } from '@sonate/detect';
 
 const router = Router();
 
@@ -341,6 +342,58 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
     };
 
     conversation.messages.push(userMessage);
+
+    // Check for consent withdrawal signals in user message
+    const consentWithdrawal = detectConsentWithdrawal(content);
+    
+    // If consent withdrawal detected, handle it before generating AI response
+    if (consentWithdrawal.detected) {
+      logger.info('Consent withdrawal detected', {
+        conversationId: conversation._id,
+        type: consentWithdrawal.type,
+        confidence: consentWithdrawal.confidence,
+        phrase: consentWithdrawal.phrase,
+      });
+
+      // Generate appropriate response for consent withdrawal
+      const withdrawalResponse = getWithdrawalResponse(consentWithdrawal);
+      
+      const systemMessage: IMessage = {
+        sender: 'ai',
+        content: withdrawalResponse,
+        metadata: {
+          messageId: `msg-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+          isSystemGenerated: true,
+          consentWithdrawal: {
+            type: consentWithdrawal.type,
+            confidence: consentWithdrawal.confidence,
+            suggestedAction: consentWithdrawal.suggestedAction,
+          },
+        },
+        ciModel: 'symbi-core',
+        trustScore: 5, // System messages are trusted
+        timestamp: new Date(),
+      };
+
+      conversation.messages.push(systemMessage);
+      conversation.lastActivity = new Date();
+      await conversation.save();
+
+      res.json({
+        success: true,
+        message: 'Consent withdrawal detected',
+        data: {
+          conversation,
+          lastMessage: systemMessage,
+          consentWithdrawal: {
+            detected: true,
+            type: consentWithdrawal.type,
+            suggestedAction: consentWithdrawal.suggestedAction,
+          },
+        },
+      });
+      return;
+    }
 
     // User messages don't get trust evaluation - only AI responses are evaluated
     // This ensures trust assessment is focused on AI behavior, not user input

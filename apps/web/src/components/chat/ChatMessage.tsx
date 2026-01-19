@@ -4,14 +4,17 @@ import React from 'react';
 import { TrustEvaluation } from '@/lib/api';
 import { TrustReceiptCompact } from '../trust-receipt/TrustReceiptCompact';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Shield, User, Bot, AlertCircle } from 'lucide-react';
+import { Shield, User, Bot, AlertCircle, Phone, UserCheck, Database, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '../ui/button';
 
 export interface ChatMessageProps {
   role: 'user' | 'assistant';
   content: string;
   evaluation?: TrustEvaluation;
   timestamp: number;
+  isConsentWithdrawal?: boolean;
+  consentWithdrawalType?: string;
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({
@@ -19,6 +22,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   content,
   evaluation,
   timestamp,
+  isConsentWithdrawal,
+  consentWithdrawalType,
 }) => {
   const isAssistant = role === 'assistant';
   
@@ -60,6 +65,80 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         <div className="text-sm leading-relaxed whitespace-pre-wrap text-slate-800 dark:text-slate-200">
           {content}
         </div>
+        
+        {/* Consent Withdrawal Action Buttons */}
+        {isConsentWithdrawal && (
+          <div className="mt-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center gap-2 mb-3 text-blue-700 dark:text-blue-300">
+              <UserCheck size={16} />
+              <span className="font-medium text-sm">Your Choice Matters</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(consentWithdrawalType === 'HUMAN_ESCALATION' || consentWithdrawalType === 'FRUSTRATION_EXIT') && (
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => {
+                    // In production, this would initiate a real human handoff
+                    alert('In a production system, this would connect you to a human operator.\n\nYour conversation context would be shared to ensure continuity.');
+                  }}
+                >
+                  <Phone size={14} className="mr-1" />
+                  Connect to Human
+                </Button>
+              )}
+              {(consentWithdrawalType === 'DATA_REQUEST') && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      alert('Data export would be initiated. You would receive an email with your data within 24 hours.');
+                    }}
+                  >
+                    <Database size={14} className="mr-1" />
+                    Export My Data
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => {
+                      if (confirm('Are you sure you want to delete all your data? This action cannot be undone.')) {
+                        alert('Data deletion request submitted. A confirmation email will be sent.');
+                      }
+                    }}
+                  >
+                    Delete My Data
+                  </Button>
+                </>
+              )}
+              {(consentWithdrawalType === 'OPT_OUT' || consentWithdrawalType === 'EXPLICIT_REVOCATION') && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    if (confirm('Would you like to disable AI interactions on your account?')) {
+                      alert('AI interactions have been disabled. You can re-enable them in Settings.');
+                    }
+                  }}
+                >
+                  <LogOut size={14} className="mr-1" />
+                  Disable AI
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  alert('Continuing with AI assistance. You can always ask for a human at any time.');
+                }}
+              >
+                Continue with AI
+              </Button>
+            </div>
+          </div>
+        )}
         
         {isAssistant && evaluation && (
           <div className="mt-2 w-full max-w-lg">

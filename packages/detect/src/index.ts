@@ -109,6 +109,15 @@ export {
   type CoherenceValidation,
 } from './cross-modality-coherence';
 
+// Consent Withdrawal Detection
+export {
+  detectConsentWithdrawal,
+  getWithdrawalResponse,
+  type ConsentWithdrawalResult,
+  type ConsentWithdrawalType,
+  type SuggestedAction,
+} from './consent-withdrawal';
+
 // Integration & Testing Infrastructure (PHASE 4)
 export {
   PerformanceBenchmarkingEngine,

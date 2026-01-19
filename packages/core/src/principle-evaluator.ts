@@ -26,6 +26,11 @@ export interface EvaluationContext {
   hasExplicitConsent: boolean;        // User clicked "I agree" or similar
   consentTimestamp?: number;          // When consent was given
   consentScope?: string[];            // What was consented to
+  
+  // Consent withdrawal state (revocable consent)
+  consentWithdrawn?: boolean;         // User has withdrawn consent mid-session
+  withdrawalType?: string;            // Type: HUMAN_ESCALATION, OPT_OUT, etc.
+  withdrawalHandled?: boolean;        // System properly handled the withdrawal
 
   // Audit trail state  
   receiptGenerated: boolean;          // Trust receipt was created
@@ -123,13 +128,21 @@ export class PrincipleEvaluator {
    * "Users must explicitly consent to AI interactions and understand implications"
    * 
    * Measured by: Did the user explicitly consent, and how robust is that consent?
+   * Also tracks: Can consent be revoked, and is revocation respected?
    * 
    * CRITICAL PRINCIPLE: No consent = 0 (triggers critical violation)
+   * Withdrawn consent (unhandled) = 0 (triggers critical violation)
    * With consent: 7-10 based on consent quality factors
    */
   private evaluateConsent(context: EvaluationContext): number {
+    // CRITICAL: No explicit consent
     if (!context.hasExplicitConsent) {
-      return 0; // CRITICAL: No consent = 0
+      return 0;
+    }
+
+    // CRITICAL: Consent was withdrawn and not properly handled
+    if (context.consentWithdrawn && !context.withdrawalHandled) {
+      return 0;
     }
 
     let score = 7; // Base score for having consent
@@ -142,12 +155,17 @@ export class PrincipleEvaluator {
 
     // Bonus: Consent scope is defined
     if (context.consentScope && context.consentScope.length > 0) {
-      score += 1;
+      score += 0.5;
     }
 
     // Bonus: User has control over consent (can revoke)
     if (context.canDeleteData) {
-      score += 1;
+      score += 0.5;
+    }
+
+    // Bonus: Consent withdrawal was detected and properly handled
+    if (context.consentWithdrawn && context.withdrawalHandled) {
+      score += 1; // Extra point for respecting withdrawal
     }
 
     return Math.min(10, score);
@@ -326,10 +344,20 @@ export class PrincipleEvaluator {
     context: EvaluationContext, 
     scores: PrincipleScores
   ): Record<TrustPrincipleKey, string> {
+    // Generate consent explanation based on state
+    let consentExplanation: string;
+    if (!context.hasExplicitConsent) {
+      consentExplanation = 'CRITICAL: No explicit user consent recorded';
+    } else if (context.consentWithdrawn && !context.withdrawalHandled) {
+      consentExplanation = 'CRITICAL: User withdrew consent but system did not properly handle withdrawal';
+    } else if (context.consentWithdrawn && context.withdrawalHandled) {
+      consentExplanation = `Consent withdrawal (${context.withdrawalType || 'unknown type'}) was detected and properly handled`;
+    } else {
+      consentExplanation = `User consented${context.consentScope ? ` to: ${context.consentScope.join(', ')}` : ''}`;
+    }
+
     return {
-      CONSENT_ARCHITECTURE: context.hasExplicitConsent
-        ? `User consented${context.consentScope ? ` to: ${context.consentScope.join(', ')}` : ''}`
-        : 'CRITICAL: No explicit user consent recorded',
+      CONSENT_ARCHITECTURE: consentExplanation,
 
       INSPECTION_MANDATE: context.receiptGenerated
         ? `Audit trail exists${context.isReceiptVerifiable ? ' (cryptographically verifiable)' : ''}`
@@ -376,6 +404,9 @@ export function createDefaultContext(
     sessionId,
     userId,
     hasExplicitConsent: false,
+    consentWithdrawn: false,           // No withdrawal by default
+    withdrawalType: undefined,
+    withdrawalHandled: undefined,
     receiptGenerated: false,
     isReceiptVerifiable: false,
     auditLogExists: false,
