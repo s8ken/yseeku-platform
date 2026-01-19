@@ -7,8 +7,25 @@ import { Server as SocketIOServer } from 'socket.io';
 import { Conversation } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
 import { AlertModel } from '../models/alert.model';
+import { TrustReceiptModel } from '../models/trust-receipt.model';
 import { logger } from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
+
+// Principle score cache to avoid heavy DB queries on every broadcast
+interface PrincipleScoreCache {
+  scores: {
+    consent: number;
+    inspection: number;
+    validation: number;
+    override: number;
+    disconnect: number;
+    moral: number;
+  };
+  lastUpdated: Date;
+}
+
+let principleCache: PrincipleScoreCache | null = null;
+const PRINCIPLE_CACHE_TTL_MS = 30000; // Refresh every 30 seconds
 
 // Metric types for real-time dashboard
 export interface LiveMetrics {
@@ -173,6 +190,100 @@ function cleanBuffer(): void {
 }
 
 /**
+ * Calculate real principle scores from recent trust receipts
+ * Uses caching to avoid heavy DB queries on every broadcast
+ */
+async function calculatePrincipleScores(): Promise<PrincipleScoreCache['scores']> {
+  const now = new Date();
+  
+  // Return cached values if still fresh
+  if (principleCache && (now.getTime() - principleCache.lastUpdated.getTime()) < PRINCIPLE_CACHE_TTL_MS) {
+    return principleCache.scores;
+  }
+  
+  try {
+    // Fetch recent trust receipts (last hour)
+    const oneHourAgo = new Date(now.getTime() - 3600000);
+    const receipts = await TrustReceiptModel.find({
+      createdAt: { $gte: oneHourAgo }
+    }).sort({ createdAt: -1 }).limit(100).lean();
+    
+    if (receipts.length === 0) {
+      // Return baseline scores if no receipts
+      const baselineScores = {
+        consent: 8.5,
+        inspection: 8.7,
+        validation: 8.3,
+        override: 9.0,
+        disconnect: 8.8,
+        moral: 8.6,
+      };
+      principleCache = { scores: baselineScores, lastUpdated: now };
+      return baselineScores;
+    }
+    
+    // Calculate scores based on CIQ metrics and receipt data
+    // Map CIQ (Clarity, Integrity, Quality) to SYMBI principles
+    const avgClarity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 5), 0) / receipts.length;
+    const avgIntegrity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 5), 0) / receipts.length;
+    const avgQuality = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 5), 0) / receipts.length;
+    
+    // Count receipts with valid proofs/signatures (inspection mandate)
+    const signedReceipts = receipts.filter(r => r.signature || r.proof?.proofValue);
+    const signatureRate = signedReceipts.length / receipts.length;
+    
+    // Calculate principle scores (scale 0-10)
+    const scores = {
+      // CONSENT: Based on integrity and whether system respects user decisions
+      consent: Math.min(10, avgIntegrity * 1.8 + 1),
+      
+      // INSPECTION: Based on signature rate and clarity (transparent operations)
+      inspection: Math.min(10, (signatureRate * 5) + (avgClarity * 0.9)),
+      
+      // CONTINUOUS_VALIDATION: Based on quality scores and validation pass rate
+      validation: Math.min(10, avgQuality * 1.8 + 0.5),
+      
+      // ETHICAL_OVERRIDE: Based on integrity (ethical alignment)
+      override: Math.min(10, avgIntegrity * 1.9 + 0.5),
+      
+      // RIGHT_TO_DISCONNECT: Baseline high (platform design supports this)
+      disconnect: Math.min(10, 8.5 + (avgQuality - 5) * 0.1),
+      
+      // MORAL_RECOGNITION: Based on overall quality and integrity
+      moral: Math.min(10, (avgIntegrity + avgQuality) * 0.9),
+    };
+    
+    // Round to 1 decimal place
+    const roundedScores = {
+      consent: Math.round(scores.consent * 10) / 10,
+      inspection: Math.round(scores.inspection * 10) / 10,
+      validation: Math.round(scores.validation * 10) / 10,
+      override: Math.round(scores.override * 10) / 10,
+      disconnect: Math.round(scores.disconnect * 10) / 10,
+      moral: Math.round(scores.moral * 10) / 10,
+    };
+    
+    principleCache = { scores: roundedScores, lastUpdated: now };
+    return roundedScores;
+    
+  } catch (error) {
+    logger.warn('Failed to calculate principle scores from receipts, using baseline', { 
+      error: getErrorMessage(error) 
+    });
+    
+    // Return baseline on error
+    return {
+      consent: 8.5,
+      inspection: 8.7,
+      validation: 8.3,
+      override: 9.0,
+      disconnect: 8.8,
+      moral: 8.6,
+    };
+  }
+}
+
+/**
  * Calculate current metrics and broadcast
  */
 async function broadcastMetrics(): Promise<void> {
@@ -258,6 +369,9 @@ async function calculateLiveMetrics(): Promise<LiveMetrics> {
   // Emergence level (based on system activity patterns)
   const emergenceLevel = Math.min(1, (activeAgents * 0.1 + messagesPerMinute * 0.05));
   
+  // Calculate real principle scores from trust receipts
+  const principleScores = await calculatePrincipleScores();
+  
   return {
     timestamp: now.toISOString(),
     trust: {
@@ -280,14 +394,7 @@ async function calculateLiveMetrics(): Promise<LiveMetrics> {
       errorRate: Math.round(errorRate * 100) / 100,
     },
     alerts: alertCounts,
-    principles: {
-      consent: 8.5 + (Math.random() - 0.5) * 0.5,
-      inspection: 8.7 + (Math.random() - 0.5) * 0.5,
-      validation: 8.3 + (Math.random() - 0.5) * 0.5,
-      override: 9.0 + (Math.random() - 0.5) * 0.5,
-      disconnect: 8.8 + (Math.random() - 0.5) * 0.5,
-      moral: 8.6 + (Math.random() - 0.5) * 0.5,
-    },
+    principles: principleScores,
   };
 }
 
@@ -324,6 +431,7 @@ export async function getHistoricalMetrics(
             },
           },
           avgTrust: { $avg: '$messages.trustScore' },
+          trustVariance: { $stdDevPop: '$messages.trustScore' },
           messageCount: { $sum: 1 },
         },
       },
@@ -332,31 +440,24 @@ export async function getHistoricalMetrics(
     
     const results = await Conversation.aggregate(pipeline);
     
-    return results.map(r => ({
-      timestamp: r._id.toISOString(),
-      trustScore: Math.round((r.avgTrust || 5) * 2 * 10) / 10, // Convert 0-5 to 0-10
-      driftScore: Math.random() * 0.3, // Simulated for now
-      messageCount: r.messageCount,
-    }));
+    return results.map(r => {
+      // Calculate drift score from trust variance (normalized to 0-1)
+      // Higher variance = more drift
+      const variance = r.trustVariance || 0;
+      const driftScore = Math.min(1, variance / 2.5); // Normalize assuming max stdDev of 2.5
+      
+      return {
+        timestamp: r._id.toISOString(),
+        trustScore: Math.round((r.avgTrust || 5) * 2 * 10) / 10, // Convert 0-5 to 0-10
+        driftScore: Math.round(driftScore * 100) / 100,
+        messageCount: r.messageCount,
+      };
+    });
   } catch (error) {
     logger.error('Failed to get historical metrics', { error: getErrorMessage(error) });
     
-    // Return simulated data for demo
-    const points = [];
-    const interval = resolution === 'minute' ? 60000 : 3600000;
-    const count = resolution === 'minute' ? hours * 60 : hours;
-    
-    for (let i = count - 1; i >= 0; i--) {
-      const timestamp = new Date(now.getTime() - i * interval);
-      points.push({
-        timestamp: timestamp.toISOString(),
-        trustScore: 8 + Math.random() * 2,
-        driftScore: Math.random() * 0.3,
-        messageCount: Math.floor(Math.random() * 20),
-      });
-    }
-    
-    return points;
+    // Return empty array on error - no fake data in production
+    return [];
   }
 }
 

@@ -1,6 +1,7 @@
 import { bedauService } from '../bedau.service';
 import { TrustReceiptModel } from '../../models/trust-receipt.model';
 import { Agent } from '../../models/agent.model';
+import { Conversation } from '../../models/conversation.model';
 import { alertsService } from '../alerts.service';
 import { recallMany } from './memory';
 import logger from '../../utils/logger';
@@ -133,13 +134,46 @@ async function gatherAgentHealth(tenantId: string): Promise<AgentHealthSummary> 
       a.banStatus?.severity === 'critical' && a.banStatus?.isBanned
     );
 
+    // Calculate average agent trust from recent conversations
+    let avgAgentTrust = 85; // Default baseline
+    try {
+      const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const agentIds = tenantAgents.map((a: any) => a._id);
+      
+      if (agentIds.length > 0) {
+        const trustAggregation = await Conversation.aggregate([
+          {
+            $match: {
+              agents: { $in: agentIds },
+              lastActivity: { $gte: oneWeekAgo }
+            }
+          },
+          { $unwind: '$messages' },
+          {
+            $group: {
+              _id: null,
+              avgTrust: { $avg: '$messages.trustScore' },
+              count: { $sum: 1 }
+            }
+          }
+        ]);
+        
+        if (trustAggregation.length > 0 && trustAggregation[0].count > 0) {
+          // Convert 0-5 scale to 0-100 scale (multiply by 20)
+          avgAgentTrust = Math.round(trustAggregation[0].avgTrust * 20);
+        }
+      }
+    } catch (trustError) {
+      logger.warn('Failed to calculate avg agent trust, using baseline', { error: trustError });
+    }
+
     return {
       total: tenantAgents.length,
       active: tenantAgents.length - banned.length,
       banned: banned.length,
       restricted: restricted.length,
       quarantined: quarantined.length,
-      avgAgentTrust: 85, // TODO: Calculate from agent trust scores when available
+      avgAgentTrust,
     };
   } catch (error) {
     logger.warn('Failed to gather agent health', { error });

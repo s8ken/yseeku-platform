@@ -165,11 +165,33 @@ export const bedauService = {
       const avgClarity = receipts.reduce((sum, r) => sum + r.ciq_metrics.clarity, 0) / receipts.length;
       const avgQuality = receipts.reduce((sum, r) => sum + r.ciq_metrics.quality, 0) / receipts.length;
 
+      // Calculate cross-domain connections
+      // Measures how diverse the conversation topics are by analyzing CIQ metric variance
+      // High variance in metrics indicates cross-domain reasoning (switching contexts)
+      const clarityValues = receipts.map(r => r.ciq_metrics.clarity);
+      const integrityValues = receipts.map(r => r.ciq_metrics.integrity);
+      const qualityValues = receipts.map(r => r.ciq_metrics.quality);
+      
+      const calculateVariance = (values: number[]): number => {
+        if (values.length < 2) return 0;
+        const mean = values.reduce((a, b) => a + b, 0) / values.length;
+        return values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
+      };
+      
+      // Cross-domain score: higher variance in metrics suggests more diverse reasoning
+      const clarityVar = calculateVariance(clarityValues);
+      const integrityVar = calculateVariance(integrityValues);
+      const qualityVar = calculateVariance(qualityValues);
+      const avgVariance = (clarityVar + integrityVar + qualityVar) / 3;
+      
+      // Normalize to 0-1 scale (assuming max reasonable variance of ~2.5 for 0-5 scale metrics)
+      const crossDomainConnections = Math.min(1, avgVariance / 2.5);
+
       const semanticIntent: SemanticIntent = {
         intent_vectors: intentVectors,
         reasoning_depth: avgClarity, // Map Clarity to Reasoning Depth
         abstraction_level: avgQuality, // Map Quality to Abstraction
-        cross_domain_connections: 0 // Placeholder
+        cross_domain_connections: crossDomainConnections
       };
 
       // Surface Pattern: Mapped from hash/nonce variations
