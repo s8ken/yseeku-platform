@@ -303,7 +303,7 @@ export default function SystemBrainDashboard() {
   // Filter memories by search
   const filteredMemories = (memories || []).filter(m =>
     m.content.toLowerCase().includes(memorySearch.toLowerCase()) ||
-    m.tags?.some(t => t.toLowerCase().includes(memorySearch.toLowerCase()))
+    m.tags?.some((t: string) => t.toLowerCase().includes(memorySearch.toLowerCase()))
   );
 
   // Calculate summary stats
