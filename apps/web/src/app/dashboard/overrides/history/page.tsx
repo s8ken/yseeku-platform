@@ -90,7 +90,7 @@ export default function OverridesHistoryPage() {
       item.impact ? JSON.stringify(item.impact) : ''
     ]);
 
-    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+    const csvContent = [headers.join(','), ...rows.map((row: string[]) => row.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
