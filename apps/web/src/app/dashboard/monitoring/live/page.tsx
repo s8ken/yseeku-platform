@@ -270,6 +270,44 @@ export default function LiveDashboardPage() {
     };
   }, [isDemo, isLoaded]);
 
+  // Fallback demo events when API is unavailable
+  const fallbackDemoEvents: TrustEvent[] = [
+    {
+      id: 'demo-event-1',
+      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+      type: 'evaluation',
+      description: 'Trust evaluation completed for Atlas agent',
+      severity: 'info',
+      agentName: 'Atlas',
+      trustScore: 8.7,
+    },
+    {
+      id: 'demo-event-2',
+      timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+      type: 'alert',
+      description: 'Minor drift detected in Nova agent output patterns',
+      severity: 'warning',
+    },
+    {
+      id: 'demo-event-3',
+      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+      type: 'evaluation',
+      description: 'Security compliance check passed for Sentinel',
+      severity: 'info',
+      agentName: 'Sentinel',
+      trustScore: 9.2,
+    },
+    {
+      id: 'demo-event-4',
+      timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+      type: 'evaluation',
+      description: 'Customer support interaction evaluated',
+      severity: 'info',
+      agentName: 'Echo',
+      trustScore: 8.4,
+    },
+  ];
+
   // Use initial data if no socket data yet (for live mode)
   useEffect(() => {
     if (!isDemo && initialEvents && events.length === 0) {
@@ -277,12 +315,17 @@ export default function LiveDashboardPage() {
     }
   }, [isDemo, initialEvents, events.length]);
 
-  // Use demo events when in demo mode
+  // Use demo events when in demo mode (with fallback)
   useEffect(() => {
-    if (isDemo && demoEvents && demoEvents.length > 0) {
-      setEvents(demoEvents);
+    if (isDemo && isLoaded) {
+      if (demoEvents && demoEvents.length > 0) {
+        setEvents(demoEvents);
+      } else if (events.length === 0) {
+        // Use fallback events if API didn't return any
+        setEvents(fallbackDemoEvents);
+      }
     }
-  }, [isDemo, demoEvents]);
+  }, [isDemo, isLoaded, demoEvents, events.length]);
 
   // Handle refetch based on mode
   const handleRefresh = () => {
@@ -294,24 +337,35 @@ export default function LiveDashboardPage() {
     setLastUpdate(new Date());
   };
 
-  // Display metrics - prioritize demo data when in demo mode
+  // Fallback demo metrics when API is unavailable
+  const fallbackDemoMetrics: LiveMetrics = {
+    timestamp: new Date().toISOString(),
+    trust: { current: 8.5, trend: 'up', delta: 0.3 },
+    drift: { score: 0.12, status: 'normal' },
+    emergence: { level: 0.15, active: false },
+    system: { activeAgents: 5, activeConversations: 3, messagesPerMinute: 12, errorRate: 0.2 },
+    alerts: { active: 2, critical: 0, warning: 2 },
+    principles: {
+      consent: 8.6,
+      inspection: 9.0,
+      validation: 8.4,
+      override: 9.0,
+      disconnect: 8.5,
+      moral: 8.5,
+    },
+  };
+
+  // Display metrics - prioritize demo data when in demo mode, with fallback
   const displayMetrics = isDemo 
     ? (demoMetrics?.data ? {
         timestamp: demoMetrics.data.timestamp || new Date().toISOString(),
-        trust: demoMetrics.data.trust || { current: 8.5, trend: 'up' as const, delta: 0.3 },
-        drift: demoMetrics.data.drift || { score: 0.12, status: 'normal' as const },
-        emergence: demoMetrics.data.emergence || { level: 0.15, active: false },
-        system: demoMetrics.data.system || { activeAgents: 5, activeConversations: 3, messagesPerMinute: 12, errorRate: 0.2 },
-        alerts: demoMetrics.data.alerts || { active: 2, critical: 0, warning: 2 },
-        principles: demoMetrics.data.principles || {
-          consent: 8.6,
-          inspection: 9.0,
-          validation: 8.4,
-          override: 9.0,
-          disconnect: 8.5,
-          moral: 8.5,
-        },
-      } : null)
+        trust: demoMetrics.data.trust || fallbackDemoMetrics.trust,
+        drift: demoMetrics.data.drift || fallbackDemoMetrics.drift,
+        emergence: demoMetrics.data.emergence || fallbackDemoMetrics.emergence,
+        system: demoMetrics.data.system || fallbackDemoMetrics.system,
+        alerts: demoMetrics.data.alerts || fallbackDemoMetrics.alerts,
+        principles: demoMetrics.data.principles || fallbackDemoMetrics.principles,
+      } : fallbackDemoMetrics)  // Use fallback when API fails
     : (metrics || (initialMetrics?.data ? {
         timestamp: new Date().toISOString(),
         trust: {
