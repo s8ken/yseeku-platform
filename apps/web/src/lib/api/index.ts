@@ -224,22 +224,31 @@ export const api = {
   // LLM Keys Management
   async getLLMKeys(): Promise<Array<{ id: string; name: string; provider: string; createdAt: string }>> {
     const { fetchAPI } = await import('./client');
-    const res = await fetchAPI<{ success: boolean; data: { keys: Array<any> } }>('/api/llm/keys');
-    return res.data?.keys || [];
+    const res = await fetchAPI<{ success: boolean; data: { apiKeys: Array<any> } }>('/api/auth/me');
+    return (res.data?.apiKeys || []).map((k: any) => ({
+      id: k.provider,
+      name: k.name,
+      provider: k.provider,
+      createdAt: k.createdAt,
+    }));
   },
 
-  async addApiKey(data: { name: string; provider: string; apiKey: string }): Promise<{ id: string }> {
+  async addApiKey(data: { name: string; provider: string; apiKey: string }): Promise<{ success: boolean; data: { apiKeys: any[] } }> {
     const { fetchAPI } = await import('./client');
-    const res = await fetchAPI<{ success: boolean; data: { id: string } }>('/api/llm/keys', {
+    const res = await fetchAPI<{ success: boolean; data: { apiKeys: any[] } }>('/api/auth/api-keys', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        provider: data.provider,
+        key: data.apiKey,
+        name: data.name,
+      }),
     });
-    return res.data;
+    return res;
   },
 
-  async deleteApiKey(id: string): Promise<void> {
+  async deleteApiKey(provider: string): Promise<void> {
     const { fetchAPI } = await import('./client');
-    await fetchAPI(`/api/llm/keys/${id}`, { method: 'DELETE' });
+    await fetchAPI(`/api/auth/api-keys/${provider}`, { method: 'DELETE' });
   },
 
   // Brain / Memory Features

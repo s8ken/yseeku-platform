@@ -100,14 +100,29 @@ export default function TenantSettingsPage() {
   const handleAddKey = async (provider: string, key: string, name: string) => {
     try {
       const res = await api.addApiKey({ provider, apiKey: key, name });
-      if ((res as any).success) {
-        setLlmKeys((res as any).data.apiKeys);
+      if (res.success) {
+        // Transform apiKeys to match the expected format
+        const transformedKeys = (res.data?.apiKeys || []).map((k: any) => ({
+          id: k.provider,
+          name: k.name,
+          provider: k.provider,
+          createdAt: k.createdAt,
+        }));
+        setLlmKeys(transformedKeys);
         toast.success(`${provider} key updated successfully`);
+      } else {
+        toast.error('Failed to update key', {
+          description: (res as any).message || 'An unexpected error occurred',
+        });
       }
     } catch (error: any) {
       console.error('Failed to update key:', error);
+      // Handle different error formats
+      const errorMessage = typeof error === 'string' 
+        ? error 
+        : error?.message || error?.error || JSON.stringify(error);
       toast.error('Failed to update key', {
-        description: error.message || 'An unexpected error occurred',
+        description: errorMessage,
       });
     }
   };

@@ -174,12 +174,21 @@ export const ChatContainer: React.FC = () => {
       const convRes = await api.sendMessage(convId, input, undefined);
 
       // Check if response is successful
-      if (convRes.success && convRes.data?.message) {
-        const msg = convRes.data.message;
-        const trustEval = convRes.data.trustEvaluation;
+      if (convRes.success && convRes.data) {
+        // Handle both new format (message) and legacy format (lastMessage)
+        const msg = convRes.data.message || (convRes.data as any).lastMessage;
+        const trustEval = convRes.data.trustEvaluation || (msg as any)?.metadata?.trustEvaluation;
 
-        // Check if this is an AI response (should be assistant role)
-        if (msg.sender === 'assistant') {
+        if (!msg) {
+          toast.warning('No Response', {
+            description: 'Message was sent but no AI response was returned.',
+            duration: 3000,
+          });
+          return;
+        }
+
+        // Check if this is an AI response (handle both 'assistant' and 'ai' sender values)
+        if (msg.sender === 'assistant' || msg.sender === 'ai') {
           const assistantMessage: ChatMessageProps = {
             role: 'assistant',
             content: msg.content,

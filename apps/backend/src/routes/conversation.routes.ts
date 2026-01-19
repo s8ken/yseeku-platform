@@ -619,12 +619,31 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
     // Recalculate ethical score
     await conversation.calculateEthicalScore();
 
+    // Get the last message for the response
+    const lastMessage = conversation.messages[conversation.messages.length - 1];
+    
+    // Transform response to match frontend expectations
     res.json({
       success: true,
       message: 'Message added successfully',
       data: {
         conversation,
-        lastMessage: conversation.messages[conversation.messages.length - 1],
+        lastMessage,
+        // Frontend expects 'message' with 'sender' as 'assistant' for AI responses
+        message: {
+          _id: lastMessage.metadata?.messageId || `msg-${Date.now()}`,
+          content: lastMessage.content,
+          sender: lastMessage.sender === 'ai' ? 'assistant' : lastMessage.sender,
+          timestamp: lastMessage.timestamp.toISOString(),
+        },
+        // Frontend expects trustEvaluation at the top level of data
+        trustEvaluation: lastMessage.metadata?.trustEvaluation ? {
+          trustScore: lastMessage.metadata.trustEvaluation.trustScore,
+          status: lastMessage.metadata.trustEvaluation.status,
+          detection: lastMessage.metadata.trustEvaluation.detection,
+          receipt: lastMessage.metadata.trustEvaluation.receipt,
+          receiptHash: lastMessage.metadata.trustEvaluation.receiptHash,
+        } : undefined,
       },
     });
   } catch (error: unknown) {
