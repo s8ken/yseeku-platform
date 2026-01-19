@@ -224,7 +224,7 @@ class WebhookService {
    */
   private async deliverToChannel(
     config: IWebhookConfig,
-    channel: WebhookChannel,
+    channel: WebhookChannelConfig,
     alert: IAlert,
     rule?: AlertRule,
     metrics?: MetricSnapshot
@@ -295,7 +295,7 @@ class WebhookService {
    * Format payload for specific channel types
    */
   private formatForChannel(
-    channel: WebhookChannel,
+    channel: WebhookChannelConfig,
     payload: WebhookPayload
   ): Record<string, unknown> {
     const alert = payload.alert;
@@ -383,7 +383,7 @@ class WebhookService {
    */
   private buildHeaders(
     config: IWebhookConfig,
-    channel: WebhookChannel,
+    channel: WebhookChannelConfig,
     payload: Record<string, unknown>
   ): Record<string, string> {
     const headers: Record<string, string> = {
