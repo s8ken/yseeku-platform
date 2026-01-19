@@ -224,13 +224,18 @@ class WebhookService {
    */
   private async deliverToChannel(
     config: IWebhookConfig,
-    channel: WebhookChannelConfig,
+    channel: WebhookChannel,
     alert: IAlert,
     rule?: AlertRule,
     metrics?: MetricSnapshot
   ): Promise<void> {
+    // Normalize channel to WebhookChannelConfig
+    const channelConfig: WebhookChannelConfig = typeof channel === 'string' 
+      ? { type: channel, url: config.url } 
+      : channel;
+    
     const payload = this.buildPayload(alert, config.tenantId, rule, metrics);
-    const formattedPayload = this.formatForChannel(channel, payload);
+    const formattedPayload = this.formatForChannel(channelConfig, payload);
     
     // Create delivery record
     const delivery = await WebhookDeliveryModel.create({
@@ -242,10 +247,10 @@ class WebhookService {
       ruleId: rule?.id,
       ruleName: rule?.name,
       status: 'pending',
-      url: channel.url,
-      method: channel.method || 'POST',
+      url: channelConfig.url,
+      method: channelConfig.method || 'POST',
       requestBody: JSON.stringify(formattedPayload),
-      requestHeaders: this.buildHeaders(config, channel, formattedPayload),
+      requestHeaders: this.buildHeaders(config, channelConfig, formattedPayload),
       attempt: 1,
       maxAttempts: config.retryConfig?.maxRetries ?? 3,
     });
@@ -668,14 +673,18 @@ class WebhookService {
     };
     
     const channel = config.channels[0];
-    const formattedPayload = this.formatForChannel(channel, testPayload);
-    const headers = this.buildHeaders(config, channel, formattedPayload);
+    // Normalize channel to WebhookChannelConfig
+    const channelConfig: WebhookChannelConfig = typeof channel === 'string' 
+      ? { type: channel, url: config.url } 
+      : channel;
+    const formattedPayload = this.formatForChannel(channelConfig, testPayload);
+    const headers = this.buildHeaders(config, channelConfig, formattedPayload);
     
     const startTime = Date.now();
     
     // Get channel URL - handle both object and string channel types
-    const channelUrl = typeof channel === 'string' ? config.url : (channel as WebhookChannelConfig).url || config.url;
-    const channelMethod = typeof channel === 'string' ? 'POST' : (channel as WebhookChannelConfig).method || 'POST';
+    const channelUrl = channelConfig.url || config.url;
+    const channelMethod = channelConfig.method || 'POST';
     
     try {
       const response = await fetch(channelUrl, {

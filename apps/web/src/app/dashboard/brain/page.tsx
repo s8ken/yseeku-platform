@@ -594,7 +594,7 @@ export default function SystemBrainDashboard() {
                 </div>
               ) : effectiveness && effectiveness.length > 0 ? (
                 <div className="space-y-4">
-                  {effectiveness.map((eff: { actionType: string; trend: 'stable' | 'improving' | 'declining'; effectivenessScore: number; totalActions?: number; avgImpact?: number; avgDuration?: number; successRate?: number }, i: number) => (
+                  {effectiveness.map((eff: { actionType: string; trend: 'stable' | 'improving' | 'declining'; effectivenessScore: number; totalActions?: number; avgImpact?: number; avgDuration?: number; successRate?: number; successCount?: number; failureCount?: number }, i: number) => (
                     <div key={i} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
@@ -609,19 +609,19 @@ export default function SystemBrainDashboard() {
                       <div className="grid grid-cols-4 gap-4 text-sm">
                         <div>
                           <div className="text-muted-foreground">Total Actions</div>
-                          <div className="font-medium">{eff.totalActions}</div>
+                          <div className="font-medium">{eff.totalActions ?? 0}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Successful</div>
-                          <div className="font-medium text-green-600">{eff.successCount}</div>
+                          <div className="font-medium text-green-600">{eff.successCount ?? Math.round((eff.totalActions ?? 0) * (eff.successRate ?? 0))}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Failed</div>
-                          <div className="font-medium text-red-600">{eff.failureCount}</div>
+                          <div className="font-medium text-red-600">{eff.failureCount ?? Math.round((eff.totalActions ?? 0) * (1 - (eff.successRate ?? 0)))}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Avg Impact</div>
-                          <div className="font-medium">{(eff.avgImpact * 100).toFixed(0)}%</div>
+                          <div className="font-medium">{((eff.avgImpact ?? 0) * 100).toFixed(0)}%</div>
                         </div>
                       </div>
                     </div>
