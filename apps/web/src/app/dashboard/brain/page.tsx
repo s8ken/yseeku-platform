@@ -310,7 +310,7 @@ export default function SystemBrainDashboard() {
   const totalMemories = memories?.length || 0;
   const totalCycles = cycles?.length || 0;
   const avgEffectiveness = effectiveness?.length
-    ? (effectiveness.reduce((sum, e) => sum + e.effectivenessScore, 0) / effectiveness.length * 100).toFixed(0)
+    ? (effectiveness.reduce((sum: number, e: { effectivenessScore: number }) => sum + e.effectivenessScore, 0) / effectiveness.length * 100).toFixed(0)
     : 0;
   const pendingRecommendations = recommendations?.length || 0;
 
