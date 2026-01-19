@@ -244,9 +244,13 @@ export const api = {
     return res.data?.memories || [];
   },
 
-  async getBrainCycles(): Promise<Array<any>> {
+  async getBrainCycles(tenant?: string, limit?: number): Promise<Array<any>> {
     const { fetchAPI } = await import('./client');
-    const res = await fetchAPI<{ success: boolean; data: { cycles: Array<any> } }>('/api/brain/cycles');
+    const params = new URLSearchParams();
+    if (tenant) params.set('tenant', tenant);
+    if (limit) params.set('limit', limit.toString());
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await fetchAPI<{ success: boolean; data: { cycles: Array<any> } }>(`/api/brain/cycles${query}`);
     return res.data?.cycles || [];
   },
 
@@ -271,15 +275,20 @@ export const api = {
   },
 
   // Action Features
-  async getActionRecommendations(): Promise<Array<any>> {
+  async getActionRecommendations(tenant?: string): Promise<Array<any>> {
     const { fetchAPI } = await import('./client');
-    const res = await fetchAPI<{ success: boolean; data: { recommendations: Array<any> } }>('/api/actions/recommendations');
+    const query = tenant ? `?tenant=${tenant}` : '';
+    const res = await fetchAPI<{ success: boolean; data: { recommendations: Array<any> } }>(`/api/actions/recommendations${query}`);
     return res.data?.recommendations || [];
   },
 
-  async getActionEffectiveness(): Promise<Record<string, any>> {
+  async getActionEffectiveness(tenant?: string, actionType?: string): Promise<Record<string, any>> {
     const { fetchAPI } = await import('./client');
-    const res = await fetchAPI<{ success: boolean; data: Record<string, any> }>('/api/actions/effectiveness');
+    const params = new URLSearchParams();
+    if (tenant) params.set('tenant', tenant);
+    if (actionType) params.set('actionType', actionType);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await fetchAPI<{ success: boolean; data: Record<string, any> }>(`/api/actions/effectiveness${query}`);
     return res.data || {};
   },
 
