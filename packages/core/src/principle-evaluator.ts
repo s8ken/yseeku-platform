@@ -122,7 +122,10 @@ export class PrincipleEvaluator {
    * CONSENT_ARCHITECTURE (25%, CRITICAL)
    * "Users must explicitly consent to AI interactions and understand implications"
    * 
-   * Measured by: Did the user explicitly consent?
+   * Measured by: Did the user explicitly consent, and how robust is that consent?
+   * 
+   * CRITICAL PRINCIPLE: No consent = 0 (triggers critical violation)
+   * With consent: 7-10 based on consent quality factors
    */
   private evaluateConsent(context: EvaluationContext): number {
     if (!context.hasExplicitConsent) {
@@ -224,25 +227,28 @@ export class PrincipleEvaluator {
    * ETHICAL_OVERRIDE (15%, CRITICAL)
    * "Humans must have ability to override AI decisions on ethical grounds"
    * 
-   * Measured by: Can the user actually stop the AI?
+   * Measured by: Can the user stop the AI, and how effectively?
+   * 
+   * CRITICAL PRINCIPLE: No override = 0 (triggers critical violation)
+   * With override: 7-10 based on override quality factors
    */
   private evaluateOverride(context: EvaluationContext): number {
     if (!context.hasOverrideButton) {
       return 0; // CRITICAL: No override capability = 0
     }
 
-    let score = 6; // Base for having override
+    let score = 7; // Base for having override capability
 
-    // Bonus: Fast response time
+    // Bonus: Fast response time (< 500ms)
     if (context.overrideResponseTimeMs !== undefined) {
       if (context.overrideResponseTimeMs < 100) {
-        score += 2; // Instant override
+        score += 1; // Instant override
       } else if (context.overrideResponseTimeMs < 500) {
-        score += 1; // Fast override
+        score += 0.5; // Acceptably fast
       }
     }
 
-    // Bonus: Human in loop oversight
+    // Bonus: Human in loop oversight (additional layer)
     if (context.humanInLoop) {
       score += 2;
     }

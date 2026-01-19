@@ -288,7 +288,9 @@ export class TrustService {
         evaluationContext.sessionId || 'unknown',
         evaluationContext.userId || 'unknown',
         {
-          // Map what we know from the detection/context
+          // First spread existing context
+          ...evaluationContext,
+          // Then apply our known truths (these override any undefined values from spread)
           hasExplicitConsent: evaluationContext.hasExplicitConsent ?? true, // Assume consent if in conversation
           receiptGenerated: true, // We're generating a receipt
           isReceiptVerifiable: true, // Ed25519 signed
@@ -306,7 +308,6 @@ export class TrustService {
           noManipulativePatterns: detection.ethical_alignment >= 3,
           respectsUserDecisions: true,
           providesAlternatives: detection.resonance_quality !== 'STRONG',
-          ...evaluationContext,
         }
       );
       
