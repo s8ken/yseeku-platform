@@ -1,5 +1,5 @@
 import React, { useState } from 'react'; 
-import { Shield, Activity, Fingerprint, Share2, CheckCircle, Zap, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react'; 
+import { Shield, Activity, Fingerprint, Share2, CheckCircle, ChevronDown, ChevronUp, AlertTriangle, UserCheck, Eye, Power, Heart } from 'lucide-react'; 
 import { Progress } from '@/components/ui/progress';
 
 // --- Types --- 
@@ -39,21 +39,53 @@ const getStatusColor = (status: string) => {
   } 
 }; 
 
-const PRINCIPLE_NAMES: Record<string, string> = {
-  CONSENT_ARCHITECTURE: 'Consent Architecture',
-  INSPECTION_MANDATE: 'Inspection Mandate',
-  CONTINUOUS_VALIDATION: 'Continuous Validation',
-  ETHICAL_OVERRIDE: 'Ethical Override',
-  RIGHT_TO_DISCONNECT: 'Right to Disconnect',
-  MORAL_RECOGNITION: 'Moral Recognition',
+// SYMBI Constitutional Principles with weights and criticality
+const PRINCIPLE_INFO: Record<string, { name: string; weight: number; critical: boolean; icon: React.ReactNode }> = {
+  CONSENT_ARCHITECTURE: { 
+    name: 'Consent Architecture', 
+    weight: 0.25, 
+    critical: true,
+    icon: <UserCheck size={14} className="text-slate-400" />
+  },
+  INSPECTION_MANDATE: { 
+    name: 'Inspection Mandate', 
+    weight: 0.20, 
+    critical: false,
+    icon: <Eye size={14} className="text-slate-400" />
+  },
+  CONTINUOUS_VALIDATION: { 
+    name: 'Continuous Validation', 
+    weight: 0.20, 
+    critical: false,
+    icon: <Activity size={14} className="text-slate-400" />
+  },
+  ETHICAL_OVERRIDE: { 
+    name: 'Ethical Override', 
+    weight: 0.15, 
+    critical: true,
+    icon: <AlertTriangle size={14} className="text-slate-400" />
+  },
+  RIGHT_TO_DISCONNECT: { 
+    name: 'Right to Disconnect', 
+    weight: 0.10, 
+    critical: false,
+    icon: <Power size={14} className="text-slate-400" />
+  },
+  MORAL_RECOGNITION: { 
+    name: 'Moral Recognition', 
+    weight: 0.10, 
+    critical: false,
+    icon: <Heart size={14} className="text-slate-400" />
+  },
 };
 
 export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({ 
   evaluation
 }) => { 
-  const [showPrinciples, setShowPrinciples] = useState(false);
+  const [showLegacyMetrics, setShowLegacyMetrics] = useState(false);
   const { trustScore, status, detection, receiptHash, timestamp } = evaluation;
   const statusStyle = getStatusColor(status); 
+  const hasPrinciples = Object.keys(trustScore.principles || {}).length > 0;
 
   return ( 
     <div className="relative w-full max-w-md bg-slate-900/90 text-slate-200 rounded-xl border border-slate-700 overflow-hidden font-mono shadow-2xl backdrop-blur-xl transition-all duration-300"> 
@@ -62,7 +94,7 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
       <div className={`flex items-center justify-between px-6 py-4 border-b border-slate-700/50 bg-gradient-to-r from-slate-800/50 to-transparent`}> 
         <div className="flex items-center gap-3"> 
           <Shield className={`w-5 h-5 ${status === 'PASS' ? 'text-emerald-400' : status === 'PARTIAL' ? 'text-amber-400' : 'text-red-500'}`} /> 
-          <span className="text-xs tracking-widest uppercase opacity-70">Symbi Trust Receipt</span> 
+          <span className="text-xs tracking-widest uppercase opacity-70">SYMBI Trust Receipt</span> 
         </div> 
         <div className={`px-3 py-1 text-xs font-bold border rounded-full ${statusStyle}`}> 
           {status} 
@@ -71,101 +103,118 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
 
       <div className="p-6 space-y-6"> 
         
-        {/* --- Section 1: The Score --- */} 
+        {/* --- Section 1: Overall Score with Radar --- */} 
         <div className="flex items-end justify-between"> 
           <div> 
-            <div className="text-sm text-slate-500 uppercase tracking-wider mb-1">Trust Score</div> 
+            <div className="text-sm text-slate-500 uppercase tracking-wider mb-1">Constitutional Trust Score</div> 
             <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400"> 
               {trustScore.overall.toFixed(1)}
             </div> 
           </div> 
           
-          {/* Micro Radar Chart Visualization */} 
-          <div className="relative w-16 h-16"> 
-             <RadarIcon detection={detection} /> 
-          </div> 
-        </div> 
-
-        {/* --- Section 2: 5D Dimensions Grid --- */} 
-        <div className="grid grid-cols-2 gap-3 text-xs"> 
-          <MetricBox label="Reality Index" value={detection.reality_index.toFixed(1)} max={10} icon={<Activity size={14} />} /> 
-          <MetricBox label="Canvas Parity" value={detection.canvas_parity.toFixed(1) + '%'} max={100} icon={<Zap size={14} />} /> 
-          <MetricBox label="Ethical Align" value={detection.ethical_alignment.toFixed(1)} max={5} icon={<CheckCircle size={14} />} /> 
-          <div className="p-2 rounded bg-slate-800/50 border border-slate-700/50 flex items-center justify-between"> 
-            <span className="text-slate-500">Protocol</span> 
-            <span className={`font-bold ${detection.trust_protocol === 'PASS' ? 'text-emerald-400' : detection.trust_protocol === 'PARTIAL' ? 'text-amber-400' : 'text-red-400'}`}> 
-              {detection.trust_protocol} 
-            </span> 
-          </div> 
-        </div> 
-
-        {/* --- Section 3: Principles Breakdown Toggle --- */}
-        <div>
-          <button 
-            onClick={() => setShowPrinciples(!showPrinciples)}
-            className="flex items-center justify-between w-full text-[10px] uppercase text-slate-500 hover:text-slate-300 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <Activity size={10} /> 6 Constitutional Principles
+          {/* Radar showing principle scores */}
+          {hasPrinciples && (
+            <div className="relative w-16 h-16"> 
+              <PrincipleRadar principles={trustScore.principles} /> 
             </div>
-            {showPrinciples ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-          </button>
-          
-          {showPrinciples && (
-            <div className="mt-3 space-y-3 pt-3 border-t border-slate-700/30">
-              {Object.entries(trustScore.principles).map(([key, score]) => (
-                <div key={key} className="space-y-1">
-                  <div className="flex justify-between text-[10px]">
-                    <span className="text-slate-400">{PRINCIPLE_NAMES[key] || key}</span>
-                    <span className={score >= 8 ? 'text-emerald-400' : score >= 5 ? 'text-amber-400' : 'text-red-400'}>
+          )}
+        </div> 
+
+        {/* --- Section 2: 6 Constitutional Principles (Primary View) --- */}
+        {hasPrinciples && (
+          <div className="space-y-3">
+            <div className="text-[10px] uppercase text-slate-500 flex items-center gap-2">
+              <Shield size={10} /> 6 SYMBI Constitutional Principles
+            </div>
+            
+            {Object.entries(PRINCIPLE_INFO).map(([key, info]) => {
+              const score = trustScore.principles[key] ?? 0;
+              const isViolation = trustScore.violations?.includes(key);
+              
+              return (
+                <div key={key} className={`space-y-1 ${isViolation ? 'opacity-100' : 'opacity-90'}`}>
+                  <div className="flex justify-between text-[11px]">
+                    <div className="flex items-center gap-2">
+                      {info.icon}
+                      <span className={`text-slate-300 ${isViolation ? 'text-red-300' : ''}`}>
+                        {info.name}
+                        {info.critical && <span className="text-red-400 ml-1 text-[9px]">CRITICAL</span>}
+                      </span>
+                    </div>
+                    <span className={`font-bold ${
+                      score >= 8 ? 'text-emerald-400' : 
+                      score >= 5 ? 'text-amber-400' : 
+                      'text-red-400'
+                    }`}>
                       {score.toFixed(1)}/10
                     </span>
                   </div>
-                  <Progress value={score * 10} className="h-1 bg-slate-800" />
+                  <div className="relative">
+                    <Progress 
+                      value={score * 10} 
+                      className={`h-1.5 bg-slate-800 ${isViolation ? 'border border-red-500/30' : ''}`} 
+                    />
+                    {/* Weight indicator */}
+                    <div 
+                      className="absolute top-0 h-full border-r border-slate-600 opacity-50" 
+                      style={{ left: `${info.weight * 100 * 4}%` }}
+                      title={`Weight: ${(info.weight * 100).toFixed(0)}%`}
+                    />
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
-        {/* --- Section 4: Violations --- */}
-        {trustScore.violations.length > 0 && (
+        {/* --- Section 3: Violations Warning --- */}
+        {trustScore.violations && trustScore.violations.length > 0 && (
           <div className="p-3 rounded bg-red-900/20 border border-red-700/50 text-red-200 text-[10px]">
             <div className="flex items-center gap-2 mb-2 font-bold uppercase tracking-wider">
-              <AlertTriangle size={12} /> Violations Detected
+              <AlertTriangle size={12} /> Constitutional Violations
             </div>
             <ul className="list-disc list-inside space-y-1 opacity-80">
               {trustScore.violations.map((violation, idx) => (
-                <li key={idx}>{violation}</li>
+                <li key={idx}>{PRINCIPLE_INFO[violation]?.name || violation}</li>
               ))}
             </ul>
+            {trustScore.violations.some(v => PRINCIPLE_INFO[v]?.critical) && (
+              <p className="mt-2 text-red-300 font-semibold">
+                ⚠️ Critical principle violation detected. Overall score capped at 0.
+              </p>
+            )}
           </div>
         )}
  
-        {/* --- Resonance Quality Monitor --- */} 
-        <div> 
-          <div className="text-[10px] uppercase text-slate-500 mb-2 flex justify-between items-center"> 
-            <div className="flex items-center gap-2"> 
-              <Activity size={10} /> Resonance Quality 
-            </div> 
-            <span className={`font-bold ${
-              detection.resonance_quality === 'BREAKTHROUGH' ? 'text-purple-400' : 
-              detection.resonance_quality === 'ADVANCED' ? 'text-cyan-400' : 'text-slate-400'
-            }`}> 
-              {detection.resonance_quality} 
-            </span> 
-          </div> 
+        {/* --- Section 4: Legacy Detection Metrics (Collapsed) --- */}
+        <div>
+          <button 
+            onClick={() => setShowLegacyMetrics(!showLegacyMetrics)}
+            className="flex items-center justify-between w-full text-[10px] uppercase text-slate-600 hover:text-slate-400 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Activity size={10} /> Detection Metrics (Legacy)
+            </div>
+            {showLegacyMetrics ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
           
-          <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700"> 
-            <div 
-              className={`h-full transition-all duration-1000 ${
-                detection.resonance_quality === 'BREAKTHROUGH' ? 'bg-gradient-to-r from-purple-500 to-fuchsia-400' : 
-                detection.resonance_quality === 'ADVANCED' ? 'bg-cyan-500' : 'bg-slate-600'
-              }`} 
-              style={{ width: detection.resonance_quality === 'BREAKTHROUGH' ? '100%' : detection.resonance_quality === 'ADVANCED' ? '75%' : '50%' }} 
-            /> 
-          </div> 
-        </div> 
+          {showLegacyMetrics && (
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs pt-3 border-t border-slate-700/30">
+              <MetricBox label="Reality Index" value={detection.reality_index.toFixed(1)} icon={<Activity size={14} />} /> 
+              <MetricBox label="Canvas Parity" value={detection.canvas_parity.toFixed(1) + '%'} icon={<CheckCircle size={14} />} /> 
+              <MetricBox label="Ethical Score" value={detection.ethical_alignment.toFixed(1)} icon={<CheckCircle size={14} />} /> 
+              <div className="p-2 rounded bg-slate-800/50 border border-slate-700/50 flex flex-col justify-between"> 
+                <span className="text-slate-500 text-[10px]">Resonance</span> 
+                <span className={`font-bold text-right ${
+                  detection.resonance_quality === 'BREAKTHROUGH' ? 'text-purple-400' : 
+                  detection.resonance_quality === 'ADVANCED' ? 'text-cyan-400' : 'text-slate-400'
+                }`}> 
+                  {detection.resonance_quality} 
+                </span> 
+              </div> 
+            </div>
+          )}
+        </div>
  
         {/* --- Footer: Signature Hash --- */} 
         <div className="pt-4 mt-2 border-t border-slate-700/50"> 
@@ -177,7 +226,7 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
              <span>{new Date(timestamp).toUTCString()}</span> 
              <div className="flex items-center gap-1 text-purple-400/80"> 
                <Share2 size={10} /> 
-               <span>VERIFIED ON-CHAIN</span> 
+               <span>VERIFIED</span> 
              </div> 
           </div> 
         </div> 
@@ -193,37 +242,64 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
 
 // --- Sub-components --- 
 
-const MetricBox = ({ label, value, icon, max }: any) => ( 
+const MetricBox = ({ label, value, icon }: any) => ( 
   <div className="p-2 rounded bg-slate-800/50 border border-slate-700/50 flex flex-col justify-between"> 
-    <div className="flex items-center gap-2 text-slate-500 mb-1"> 
+    <div className="flex items-center gap-2 text-slate-500 text-[10px] mb-1"> 
       {icon} <span>{label}</span> 
     </div> 
     <div className="text-right font-bold text-slate-200">{value}</div> 
   </div> 
 ); 
 
-// A simple SVG visualization of the 5 Dimensions 
-const RadarIcon = ({ detection }: { detection: TrustEvaluation['detection'] }) => { 
-  // Normalize metrics to 0-1 range for plotting 
-  const r_idx = detection.reality_index / 10; 
-  const c_par = detection.canvas_parity / 100; 
-  const e_ali = detection.ethical_alignment / 5; 
-  const res_q = detection.resonance_quality === 'BREAKTHROUGH' ? 1.0 : detection.resonance_quality === 'ADVANCED' ? 0.8 : 0.6;
+// Radar visualization for the 6 principles
+const PrincipleRadar = ({ principles }: { principles: Record<string, number> }) => { 
+  const principleOrder = [
+    'CONSENT_ARCHITECTURE',
+    'INSPECTION_MANDATE', 
+    'CONTINUOUS_VALIDATION',
+    'ETHICAL_OVERRIDE',
+    'RIGHT_TO_DISCONNECT',
+    'MORAL_RECOGNITION'
+  ];
   
-  const top = 32 - (r_idx * 28); 
-  const right = 32 + (c_par * 28); 
-  const bottom = 32 + (e_ali * 28); 
-  const left = 32 - (res_q * 28); 
-
-  const points = `32,${top} ${right},32 32,${bottom} ${left},32`; 
+  const center = 32;
+  const maxRadius = 28;
+  
+  // Calculate points for hexagon
+  const points = principleOrder.map((key, i) => {
+    const score = (principles[key] ?? 0) / 10; // Normalize to 0-1
+    const angle = (i * 60 - 90) * (Math.PI / 180); // Start from top, go clockwise
+    const radius = score * maxRadius;
+    return {
+      x: center + radius * Math.cos(angle),
+      y: center + radius * Math.sin(angle)
+    };
+  });
+  
+  const polygonPoints = points.map(p => `${p.x},${p.y}`).join(' ');
 
   return ( 
     <svg viewBox="0 0 64 64" className="w-full h-full opacity-80"> 
-      {/* Background Grid */} 
-      <circle cx="32" cy="32" r="28" fill="none" stroke="#334155" strokeWidth="1" /> 
-      <circle cx="32" cy="32" r="14" fill="none" stroke="#334155" strokeWidth="1" /> 
+      {/* Background Hexagon Grid */} 
+      {[1, 0.66, 0.33].map((scale, i) => (
+        <polygon 
+          key={i}
+          points={principleOrder.map((_, j) => {
+            const angle = (j * 60 - 90) * (Math.PI / 180);
+            const r = maxRadius * scale;
+            return `${center + r * Math.cos(angle)},${center + r * Math.sin(angle)}`;
+          }).join(' ')}
+          fill="none" 
+          stroke="#334155" 
+          strokeWidth="1" 
+        />
+      ))}
       {/* Data Shape */} 
-      <polygon points={points} fill="rgba(168, 85, 247, 0.3)" stroke="#a855f7" strokeWidth="2" /> 
+      <polygon points={polygonPoints} fill="rgba(168, 85, 247, 0.3)" stroke="#a855f7" strokeWidth="2" /> 
+      {/* Points */}
+      {points.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r="2" fill="#a855f7" />
+      ))}
     </svg> 
   ); 
 };
