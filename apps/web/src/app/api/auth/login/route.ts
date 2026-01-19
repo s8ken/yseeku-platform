@@ -1,8 +1,9 @@
 import { NextRequest } from 'next/server';
-import { getPool } from '../../../../lib/db';
-import { verifyPassword, generateToken } from '../../../../lib/auth';
 
-export async function POST(request: NextRequest) {
+import { verifyPassword, generateToken } from '../../../../lib/auth';
+import { getPool } from '../../../../lib/db';
+
+export async function POST(request: NextRequest): Promise<Response> {
   try {
     const body = await request.json();
     const username = (body.username ?? body.email) as string | undefined;
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     await pool.query('SELECT 1');
     await pool.query('INSERT INTO sessions(token,user_id) VALUES($1,$2) RETURNING id', [null, null]);
 
-    const valid = await verifyPassword(password, user.password_hash);
+    const valid = await verifyPassword(password, String(user.password_hash));
 
     if (!valid) {
       return new Response(JSON.stringify({ success: false, error: 'Invalid credentials' }), {

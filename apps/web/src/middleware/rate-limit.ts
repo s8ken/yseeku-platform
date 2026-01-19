@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import { getClientIp } from '@/lib/security-utils';
 
 export interface RateLimitConfig {
-  windowMs: number;      // Time window in milliseconds
+  windowMs: number; // Time window in milliseconds
   maxRequests: number; // Maximum requests per window
   keyGenerator?: (request: NextRequest) => string; // Custom key generator
   skipSuccessfulRequests?: boolean;
@@ -44,13 +45,13 @@ export class RateLimiter {
   /**
    * Check if request should be rate limited
    */
-  async checkLimit(request: NextRequest): Promise<{
+  checkLimit(request: NextRequest): {
     allowed: boolean;
     limit: number;
     remaining: number;
     reset: number;
     retryAfter?: number;
-  }> {
+  } {
     const key = this.generateKey(request);
     const now = Date.now();
     
@@ -86,11 +87,11 @@ export class RateLimiter {
   /**
    * Apply rate limiting to a request
    */
-  async limit(request: NextRequest, response?: NextResponse): Promise<{
+  limit(request: NextRequest): {
     allowed: boolean;
     response?: NextResponse;
-  }> {
-    const result = await this.checkLimit(request);
+  } {
+    const result = this.checkLimit(request);
     
     if (result.allowed) {
       return { allowed: true };
@@ -112,7 +113,7 @@ export class RateLimiter {
           'X-RateLimit-Limit': String(result.limit),
           'X-RateLimit-Remaining': String(result.remaining),
           'X-RateLimit-Reset': String(result.reset),
-          'Retry-After': String(result.retryAfter || Math.ceil(this.config.windowMs / 1000))
+          'Retry-After': String(result.retryAfter ?? Math.ceil(this.config.windowMs / 1000))
         } : {}
       }
     );
@@ -123,10 +124,10 @@ export class RateLimiter {
   /**
    * Create middleware function for rate limiting
    */
-  middleware() {
-    return async (request: NextRequest): Promise<NextResponse | null> => {
-      const result = await this.limit(request);
-      return result.allowed ? null : result.response!;
+  middleware(): (request: NextRequest) => Promise<NextResponse | null> {
+    return (request: NextRequest): Promise<NextResponse | null> => {
+      const result = this.limit(request);
+      return Promise.resolve(result.allowed ? null : (result.response ?? null));
     };
   }
 
@@ -137,10 +138,21 @@ export class RateLimiter {
     if (this.config.keyGenerator) {
       return this.config.keyGenerator(request);
     }
-    
+
     // Default: use IP address
     const ip = getClientIp(request);
     return `rate_limit:${ip}`;
+  }
+
+  /**
+   * Public method to decrement rate limit count for a request (used by skipSuccessfulRequests/skipFailedRequests)
+   */
+  decrementCount(request: NextRequest): void {
+    const key = this.generateKey(request);
+    const entry = this.store.get(key);
+    if (entry && entry.count > 0) {
+      entry.count--;
+    }
   }
 
   /**
@@ -235,7 +247,7 @@ export const rateLimiters = {
 /**
  * Create a rate limiting middleware with custom configuration
  */
-export function createRateLimit(config: Partial<RateLimitConfig> = {}) {
+export function createRateLimit(config: Partial<RateLimitConfig> = {}): (request: NextRequest) => Promise<NextResponse | null> {
   const limiter = new RateLimiter(config);
   return limiter.middleware();
 }
@@ -246,40 +258,30 @@ export function createRateLimit(config: Partial<RateLimitConfig> = {}) {
 export function withRateLimit(
   handler: (request: NextRequest) => Promise<NextResponse>,
   config: Partial<RateLimitConfig> = {}
-) {
+): (request: NextRequest) => Promise<NextResponse> {
   const limiter = new RateLimiter(config);
-  
+
   return async (request: NextRequest): Promise<NextResponse> => {
-    const result = await limiter.limit(request);
+    const result = limiter.limit(request);
     if (!result.allowed) {
-      return result.response!;
+      return result.response ?? new NextResponse('Rate limit exceeded', { status: 429 });
     }
-    
+
     try {
       const response = await handler(request);
-      
+
       // Optionally skip rate limiting for successful requests
       if (config.skipSuccessfulRequests) {
-        // Remove this request from rate limit count
-        const key = limiter['generateKey'](request);
-        const entry = limiter['store'].get(key);
-        if (entry && entry.count > 0) {
-          entry.count--;
-        }
+        limiter.decrementCount(request);
       }
-      
+
       return response;
     } catch (error) {
       // Optionally skip rate limiting for failed requests
       if (config.skipFailedRequests) {
-        // Remove this request from rate limit count
-        const key = limiter['generateKey'](request);
-        const entry = limiter['store'].get(key);
-        if (entry && entry.count > 0) {
-          entry.count--;
-        }
+        limiter.decrementCount(request);
       }
-      
+
       throw error;
     }
   };

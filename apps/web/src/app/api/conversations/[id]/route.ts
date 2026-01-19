@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_URL = process.env.INTERNAL_API_URL || process.env.BACKEND_URL || 'http://localhost:3001';
+const BACKEND_URL = process.env.INTERNAL_API_URL ?? process.env.BACKEND_URL ?? 'http://localhost:3001';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+): Promise<NextResponse> {
   try {
     const { id } = await params;
     const authHeader = request.headers.get('Authorization');
@@ -35,7 +35,7 @@ export async function GET(
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+): Promise<NextResponse> {
   try {
     const { id } = await params;
     const authHeader = request.headers.get('Authorization');
@@ -67,7 +67,7 @@ export async function PUT(
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+): Promise<NextResponse> {
   try {
     const { id } = await params;
     const authHeader = request.headers.get('Authorization');

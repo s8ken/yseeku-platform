@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { 
-  AuthMiddleware, 
-  AuthenticatedRequest, 
+
+import {
+  AuthenticatedRequest,
   handleAuthError,
-  createAuthMiddleware 
+  createAuthMiddleware
 } from './auth-middleware';
 
 export interface RouteProtectionOptions {
@@ -11,7 +11,7 @@ export interface RouteProtectionOptions {
   requiredRoles?: string[];
   requiredPermissions?: string[];
   allowedTenants?: string[];
-  auditLogger?: (event: any) => Promise<void>;
+  auditLogger?: (event: unknown) => Promise<void>;
 }
 
 /**
@@ -117,7 +117,7 @@ export function withTenantAccess(
 /**
  * Helper to extract user information from authenticated request
  */
-export function getUserFromRequest(request: AuthenticatedRequest) {
+export function getUserFromRequest(request: AuthenticatedRequest): AuthenticatedRequest['user'] {
   return request.user;
 }
 
@@ -125,30 +125,19 @@ export function getUserFromRequest(request: AuthenticatedRequest) {
  * Helper to check if user has specific role
  */
 export function hasRole(request: AuthenticatedRequest, role: string): boolean {
-  return request.user?.roles.includes(role) || false;
+  return request.user?.roles.includes(role) ?? false;
 }
 
 /**
  * Helper to check if user has specific permission
  */
 export function hasPermission(request: AuthenticatedRequest, permission: string): boolean {
-  return request.user?.permissions.includes(permission) || false;
+  return request.user?.permissions.includes(permission) ?? false;
 }
 
 /**
  * Helper to get user's tenant
  */
 export function getUserTenant(request: AuthenticatedRequest): string | null {
-  return request.user?.tenant || null;
-}
-
-// Security headers for all responses
-function getSecurityHeaders(): Record<string, string> {
-  return {
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
-  };
+  return request.user?.tenant ?? null;
 }

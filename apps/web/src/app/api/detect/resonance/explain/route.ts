@@ -1,9 +1,10 @@
 // apps/web/src/app/api/detect/resonance/explain/route.ts
 import { NextResponse } from 'next/server';
+
 import { resonanceWithStickiness, SessionState, Transcript, ResonanceClient } from '@sonate/detect';
 
 // Initialize client for Python Sidecar (Optional fallback)
-const resonanceClient = new ResonanceClient(process.env.RESONANCE_ENGINE_URL || 'http://localhost:8000');
+const resonanceClient = new ResonanceClient(process.env.RESONANCE_ENGINE_URL ?? 'http://localhost:8000');
 
 // Mock KV Store (Shared with trust receipt route for demo)
 const globalKv = globalThis as unknown as { mockKv: Map<string, { value: any, expiry: number }> };
@@ -12,21 +13,24 @@ if (!globalKv.mockKv) {
 }
 
 const mockKV = {
-    get: async <T>(key: string): Promise<T | null> => {
+    get: <T>(key: string): Promise<T | null> => {
         const item = globalKv.mockKv.get(key);
-        if (!item) return null;
+        if (!item) {
+            return Promise.resolve(null);
+        }
         if (Date.now() > item.expiry) {
             globalKv.mockKv.delete(key);
-            return null;
+            return Promise.resolve(null);
         }
-        return item.value as T;
+        return Promise.resolve(item.value as T);
     },
-    set: async (key: string, value: any, options: { ex: number }) => {
+    set: (key: string, value: unknown, options: { ex: number }): Promise<void> => {
         globalKv.mockKv.set(key, { value, expiry: Date.now() + options.ex * 1000 });
+        return Promise.resolve();
     }
 };
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
     try {
         const body = await req.json();
         const { userInput, aiResponse, history, session_id } = body;
@@ -57,12 +61,12 @@ export async function POST(req: Request) {
         };
 
         if (Array.isArray(history)) {
-            // @ts-ignore
+            // @ts-expect-error - turns property exists at runtime
             transcript.turns = history.map((h: any) => ({
                 role: h.role,
                 content: h.content
             }));
-            // @ts-ignore
+            // @ts-expect-error - turns property exists at runtime
             transcript.turns.push({ role: 'assistant', content: aiResponse });
         }
 

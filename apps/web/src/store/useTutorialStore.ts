@@ -169,14 +169,18 @@ export const useTutorialStore = create<TutorialState>()(
       steps: [],
       hasCompletedTutorial: false,
 
-      startTutorial: (steps) => set({ 
-        steps, 
-        isActive: true, 
-        currentStepIndex: 0 
-      }),
-      
-      stopTutorial: () => set({ isActive: false }),
-      
+      startTutorial: (steps) => {
+        set({
+          steps,
+          isActive: true,
+          currentStepIndex: 0
+        });
+      },
+
+      stopTutorial: () => {
+        set({ isActive: false });
+      },
+
       nextStep: () => {
         const { currentStepIndex, steps } = get();
         if (currentStepIndex < steps.length - 1) {
@@ -185,17 +189,21 @@ export const useTutorialStore = create<TutorialState>()(
           set({ isActive: false, hasCompletedTutorial: true });
         }
       },
-      
+
       previousStep: () => {
         const { currentStepIndex } = get();
         if (currentStepIndex > 0) {
           set({ currentStepIndex: currentStepIndex - 1 });
         }
       },
-      
-      setStep: (index) => set({ currentStepIndex: index }),
-      
-      completeTutorial: () => set({ isActive: false, hasCompletedTutorial: true }),
+
+      setStep: (index) => {
+        set({ currentStepIndex: index });
+      },
+
+      completeTutorial: () => {
+        set({ isActive: false, hasCompletedTutorial: true });
+      },
     }),
     {
       name: 'tutorial-storage',

@@ -1,13 +1,13 @@
-const API_BASE = typeof window === 'undefined' 
-  ? (process.env.INTERNAL_API_URL || 'http://localhost:3001') 
+const API_BASE = typeof window === 'undefined'
+  ? (process.env.INTERNAL_API_URL ?? 'http://localhost:3001')
   : '';
 const BACKEND_API_BASE = typeof window === 'undefined'
-  ? (process.env.INTERNAL_API_URL || 'http://localhost:3001')
+  ? (process.env.INTERNAL_API_URL ?? 'http://localhost:3001')
   : '';
 
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('token') || null;
+  return localStorage.getItem('token') ?? null;
 }
 
 async function fetchAPI<T>(endpoint: string, options?: RequestInit, retryCount = 0): Promise<T> {

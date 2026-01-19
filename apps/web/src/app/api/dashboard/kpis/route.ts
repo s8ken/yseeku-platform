@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export function GET(_request: NextRequest): Response {
   // Return default KPI structure
   const kpis = {
     trustScore: 0,

@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+
 import { getAgents } from '../../../lib/db';
 
 // Default agent when no agents exist
@@ -31,7 +32,7 @@ const DEFAULT_AGENTS = [
   }
 ];
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest): Promise<Response> {
   let agents = await getAgents();
 
   // Use default agents if none exist
