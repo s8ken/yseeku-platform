@@ -203,6 +203,13 @@ export const api = {
     const { fetchAPI } = await import('./client');
     await fetchAPI(`/api/platform/api-keys/${id}`, { method: 'DELETE' });
   },
+
+  // Audit Logs
+  async getAuditLogs(params: URLSearchParams | Record<string, string>): Promise<{ success: boolean; data: { logs: Array<any>; total: number; page: number; limit: number } }> {
+    const { fetchAPI } = await import('./client');
+    const queryString = params instanceof URLSearchParams ? params.toString() : new URLSearchParams(params).toString();
+    return fetchAPI(`/api/audit/logs?${queryString}`);
+  },
 };
 
 export default api;
