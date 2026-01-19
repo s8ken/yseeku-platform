@@ -178,6 +178,12 @@ export const api = {
     return res.json();
   },
 
+  async getDemoVLS(sessionId?: string): Promise<unknown> {
+    const query = sessionId ? `?sessionId=${sessionId}` : '';
+    const res = await fetch(`${API_BASE}/api/demo/vls${query}`);
+    return res.json();
+  },
+
   // Orchestration / Workflows
   async getWorkflows(): Promise<unknown[]> {
     const { fetchAPI } = await import('./client');

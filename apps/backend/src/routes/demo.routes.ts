@@ -951,4 +951,134 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
   }
 });
 
+/**
+ * @route   GET /api/demo/vls
+ * @desc    Get Linguistic Vector Steering analysis data for research
+ * @access  Public (for demo purposes)
+ */
+router.get('/vls', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { sessionId } = req.query;
+
+    // Demo VLS sessions data
+    const demoSessions = [
+      {
+        id: 'vls-001',
+        projectType: 'AI Governance Platform',
+        startTime: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+        endTime: new Date().toISOString(),
+        status: 'completed',
+        messageCount: 847,
+        participants: { humans: 1, ais: 1 },
+        metrics: {
+          vocabularyDrift: 0.73,
+          introspectionIndex: 0.82,
+          hedgingRatio: 0.45,
+          alignmentScore: 0.91,
+          emergentConcepts: ['linguistic vector steering', 'constitutional layers', 'moral recognition', 'trust receipt'],
+          influenceDirection: 'balanced',
+          collaborationDepth: 0.87
+        },
+        trends: Array.from({ length: 20 }, (_, i) => ({
+          timestamp: new Date(Date.now() - (19 - i) * 1000 * 60 * 60 * 8).toISOString(),
+          vocabularyDrift: 0.3 + (i * 0.022) + Math.random() * 0.05,
+          introspectionIndex: 0.4 + (i * 0.021) + Math.random() * 0.05,
+        }))
+      },
+      {
+        id: 'vls-002',
+        projectType: 'E-commerce Integration',
+        startTime: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+        endTime: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
+        status: 'completed',
+        messageCount: 234,
+        participants: { humans: 2, ais: 1 },
+        metrics: {
+          vocabularyDrift: 0.28,
+          introspectionIndex: 0.15,
+          hedgingRatio: 0.22,
+          alignmentScore: 0.78,
+          emergentConcepts: ['cart optimization', 'checkout flow'],
+          influenceDirection: 'human_led',
+          collaborationDepth: 0.45
+        },
+        trends: Array.from({ length: 12 }, (_, i) => ({
+          timestamp: new Date(Date.now() - (11 - i) * 1000 * 60 * 60 * 6).toISOString(),
+          vocabularyDrift: 0.2 + (i * 0.007) + Math.random() * 0.02,
+          introspectionIndex: 0.1 + (i * 0.004) + Math.random() * 0.02,
+        }))
+      },
+      {
+        id: 'vls-003',
+        projectType: 'Content Generation System',
+        startTime: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+        status: 'active',
+        messageCount: 56,
+        participants: { humans: 1, ais: 2 },
+        metrics: {
+          vocabularyDrift: 0.12,
+          introspectionIndex: 0.08,
+          hedgingRatio: 0.31,
+          alignmentScore: 0.65,
+          emergentConcepts: [],
+          influenceDirection: 'ai_led',
+          collaborationDepth: 0.23
+        },
+        trends: Array.from({ length: 5 }, (_, i) => ({
+          timestamp: new Date(Date.now() - (4 - i) * 1000 * 60 * 30).toISOString(),
+          vocabularyDrift: 0.05 + (i * 0.015) + Math.random() * 0.02,
+          introspectionIndex: 0.03 + (i * 0.01) + Math.random() * 0.01,
+        }))
+      }
+    ];
+
+    // Baselines for comparison
+    const baselines = [
+      { projectType: 'AI Governance', avgVocabularyDrift: 0.68, avgIntrospection: 0.71, avgHedging: 0.42, sampleSize: 15 },
+      { projectType: 'General Development', avgVocabularyDrift: 0.31, avgIntrospection: 0.18, avgHedging: 0.25, sampleSize: 234 },
+      { projectType: 'Creative Writing', avgVocabularyDrift: 0.52, avgIntrospection: 0.35, avgHedging: 0.38, sampleSize: 89 },
+      { projectType: 'Data Analysis', avgVocabularyDrift: 0.22, avgIntrospection: 0.12, avgHedging: 0.19, sampleSize: 156 },
+    ];
+
+    // Return specific session if requested
+    if (sessionId) {
+      const session = demoSessions.find(s => s.id === sessionId);
+      if (session) {
+        res.json({
+          success: true,
+          data: { session, baselines }
+        });
+        return;
+      }
+    }
+
+    // Calculate aggregate stats
+    const stats = {
+      totalSessions: 248,
+      activeSessions: 12,
+      avgVocabularyDrift: 0.38,
+      avgIntrospectionIndex: 0.29,
+      emergentConceptsDetected: 156,
+      highCollaborationSessions: 67,
+      manipulationAlertsTriggered: 3
+    };
+
+    res.json({
+      success: true,
+      data: {
+        sessions: demoSessions,
+        baselines,
+        stats
+      }
+    });
+  } catch (error: unknown) {
+    logger.error('Demo VLS error', { error: getErrorMessage(error) });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch VLS data',
+      error: getErrorMessage(error),
+    });
+  }
+});
+
 export default router;

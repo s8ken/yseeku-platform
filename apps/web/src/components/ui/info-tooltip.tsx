@@ -89,6 +89,11 @@ const glossary: Record<string, string> = {
   "Latency": "Time delay between request and response in system operations.",
   "Throughput": "Volume of operations processed per unit of time.",
   "Interactions": "All AI interactions (AI↔Customer, AI↔Staff, AI↔AI) tracked with constitutional compliance, trust scores, and verifiable receipts for enterprise audit and governance.",
+  "Linguistic Vector Steering": "Research methodology measuring how AI collaboration influences language patterns, vocabulary drift, introspective language emergence, and concept formation. Enterprise applications include manipulation detection, alignment tracking, and influence auditing.",
+  "VLS": "Linguistic Vector Steering - measures vocabulary drift, introspection indices, hedging ratios, and collaboration depth to quantify bidirectional influence in human-AI collaboration.",
+  "Vocabulary Drift": "Quantitative measure (0-100%) of how much language patterns have shifted from baseline during a collaboration session. Higher drift suggests deeper conceptual exchange.",
+  "Introspection Index": "Frequency measure (0-100%) of self-referential and meta-cognitive language in AI responses. Higher indices correlate with reflective, philosophical project contexts.",
+  "Collaboration Depth": "Measure of reciprocal influence between human and AI participants. High depth indicates significant bidirectional vocabulary adoption and concept sharing.",
 };
 
 export function InfoTooltip({ 
