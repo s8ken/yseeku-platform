@@ -1,4 +1,14 @@
-export function getPool() {
+// Pool interface for type safety
+export interface QueryResult<T = any> {
+  rows: T[];
+  rowCount: number | null;
+}
+
+export interface Pool {
+  query<T = any>(text: string, values?: any[]): Promise<QueryResult<T>>;
+}
+
+export function getPool(): Pool {
   // In tests this module is mocked. In runtime, the app should replace this
   // with a real Postgres pool created via `pg`.
   throw new Error('Database pool not initialized. In tests, mock ../lib/db to provide getPool().');
