@@ -99,10 +99,10 @@ export const agentsApi = {
     await fetchAPI(`/api/agents/${id}`, { method: 'DELETE' });
   },
 
-  async banAgent(agentId: string, reason: string): Promise<void> {
+  async banAgent(agentId: string, reason: string, severity?: string): Promise<void> {
     await fetchAPI<{ success: boolean }>(`/api/agents/${agentId}/ban`, {
       method: 'POST',
-      body: JSON.stringify({ reason }),
+      body: JSON.stringify({ reason, severity: severity || 'medium' }),
     });
   },
 
