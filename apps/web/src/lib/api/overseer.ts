@@ -38,8 +38,15 @@ export interface BrainCycleAction {
   type: string;
   target: string;
   reason: string;
-  status: 'pending' | 'executed' | 'failed';
+  status: 'pending' | 'executed' | 'failed' | 'refused';
   executedAt?: string;
+  result?: {
+    refused?: boolean;
+    rule?: string;
+    reason?: string;
+    overridden?: boolean;
+    overriddenBy?: string;
+  };
 }
 
 export interface BrainCycle {
@@ -55,6 +62,21 @@ export interface BrainCycle {
     actionsPlanned: number;
   };
   actions: BrainCycleAction[];
+  inputContext?: {
+    riskScore?: number;
+    urgency?: string;
+    anomalyCount?: number;
+  };
+}
+
+export interface KernelRefusal {
+  id: string;
+  actionType: string;
+  target: string;
+  rule: string;
+  reason: string;
+  cycleId: string;
+  timestamp: string;
 }
 
 export interface OverseerStatus {
@@ -113,6 +135,31 @@ export const overseerApi = {
       method: 'PUT',
       body: JSON.stringify({ mode }),
     });
+  },
+
+  async overrideAction(actionId: string, reason: string): Promise<{ success: boolean; reverted: boolean }> {
+    const res = await fetchAPI<{ success: boolean; data: { reverted: boolean } }>(`/api/overseer/actions/${actionId}/override`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+    return { success: res.success, reverted: res.data?.reverted ?? false };
+  },
+
+  async approveAction(actionId: string): Promise<void> {
+    await fetchAPI(`/api/overseer/actions/${actionId}/approve`, {
+      method: 'POST',
+    });
+  },
+
+  async getRefusals(limit?: number): Promise<KernelRefusal[]> {
+    const params = limit ? `?limit=${limit}` : '';
+    const res = await fetchAPI<{ success: boolean; data: KernelRefusal[] }>(`/api/overseer/refusals${params}`);
+    return res.data || [];
+  },
+
+  async getCycleDetails(cycleId: string): Promise<{ cycle: BrainCycle; actions: BrainCycleAction[] }> {
+    const res = await fetchAPI<{ success: boolean; data: { cycle: BrainCycle; actions: BrainCycleAction[] } }>(`/api/overseer/cycles/${cycleId}`);
+    return res.data;
   },
 };
 

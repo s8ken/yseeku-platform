@@ -81,6 +81,10 @@ export const api = {
   getOverseerEffectiveness: overseerApi.getEffectiveness,
   getOverseerRecommendations: overseerApi.getRecommendations,
   setOverseerMode: overseerApi.setMode,
+  overrideOverseerAction: overseerApi.overrideAction,
+  approveOverseerAction: overseerApi.approveAction,
+  getOverseerRefusals: overseerApi.getRefusals,
+  getOverseerCycleDetails: overseerApi.getCycleDetails,
 
   // Conversations
   createConversation: conversationsApi.createConversation,

@@ -36,10 +36,31 @@ import {
   BarChart3,
   Lightbulb,
   Target,
-  History
+  History,
+  ShieldAlert,
+  ShieldCheck,
+  HandMetal,
+  Undo2,
+  Eye,
+  Lock,
+  Cpu,
+  Network,
+  Gauge,
+  FlaskConical,
+  Info
 } from 'lucide-react';
 import { api, BrainMemory, ActionEffectiveness, BrainRecommendation, BrainCycle } from '@/lib/api';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 // Memory kind options
 const MEMORY_KINDS = [
@@ -149,8 +170,15 @@ function MemoryCard({ memory, onDelete }: { memory: BrainMemory; onDelete: () =>
   );
 }
 
-function CycleCard({ cycle }: { cycle: BrainCycle }) {
+function CycleCard({ cycle, onOverride }: { cycle: BrainCycle; onOverride?: (actionId: string, reason: string) => void }) {
   const [expanded, setExpanded] = useState(false);
+  const [overrideDialogOpen, setOverrideDialogOpen] = useState(false);
+  const [selectedAction, setSelectedAction] = useState<{ id: string; type: string; target: string } | null>(null);
+  const [overrideReason, setOverrideReason] = useState('');
+
+  const refusedActions = cycle.actions.filter(a => a.status === 'failed' && (a.result as any)?.refused);
+  const executedActions = cycle.actions.filter(a => a.status === 'executed');
+  const overriddenActions = cycle.actions.filter(a => (a.result as any)?.overridden);
 
   return (
     <Card className={`mb-3 ${cycle.status === 'failed' ? 'border-l-4 border-l-red-500' : ''}`}>
@@ -163,6 +191,12 @@ function CycleCard({ cycle }: { cycle: BrainCycle }) {
               {cycle.mode}
             </Badge>
             <StatusBadge status={cycle.status} />
+            {refusedActions.length > 0 && (
+              <Badge variant="outline" className="text-amber-600 border-amber-400">
+                <ShieldAlert className="h-3 w-3 mr-1" />
+                {refusedActions.length} refused
+              </Badge>
+            )}
           </div>
           <span className="text-xs text-muted-foreground">
             {new Date(cycle.timestamp).toLocaleString()}
@@ -171,6 +205,24 @@ function CycleCard({ cycle }: { cycle: BrainCycle }) {
       </CardHeader>
       <CardContent>
         <p className="text-sm italic text-muted-foreground mb-3">"{cycle.thought}"</p>
+
+        {/* Risk Context */}
+        {cycle.inputContext && (
+          <div className="flex items-center gap-4 mb-3 text-xs">
+            <div className="flex items-center gap-1">
+              <Gauge className="h-3 w-3" />
+              <span>Risk: {cycle.inputContext.riskScore ?? 'N/A'}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              <span>Urgency: {cycle.inputContext.urgency ?? 'N/A'}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Activity className="h-3 w-3" />
+              <span>Anomalies: {cycle.inputContext.anomalyCount ?? 0}</span>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-4 gap-2 text-xs mb-3">
           <div className="text-center p-2 bg-muted rounded">
@@ -199,12 +251,55 @@ function CycleCard({ cycle }: { cycle: BrainCycle }) {
             {expanded && (
               <div className="space-y-2">
                 {cycle.actions.map((action, i) => (
-                  <div key={i} className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline">{action.type}</Badge>
-                      <span>{action.target}</span>
+                  <div key={i} className={`p-3 rounded text-xs ${
+                    (action.result as any)?.refused ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-200' :
+                    (action.result as any)?.overridden ? 'bg-blue-50 dark:bg-blue-950/30 border border-blue-200' :
+                    'bg-muted/50'
+                  }`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{action.type}</Badge>
+                        <span className="text-muted-foreground">{action.target}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={action.status} />
+                        {action.status === 'executed' && !((action.result as any)?.overridden) && onOverride && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => {
+                              setSelectedAction({ id: (action as any).id || `${cycle.id}-${i}`, type: action.type, target: action.target });
+                              setOverrideDialogOpen(true);
+                            }}
+                          >
+                            <Undo2 className="h-3 w-3 mr-1" />
+                            Override
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <StatusBadge status={action.status} />
+                    {action.reason && (
+                      <p className="text-muted-foreground mt-1">{action.reason}</p>
+                    )}
+                    {(action.result as any)?.refused && (
+                      <div className="mt-2 p-2 bg-amber-100 dark:bg-amber-900/30 rounded text-amber-800 dark:text-amber-200">
+                        <div className="flex items-center gap-1 font-medium">
+                          <Lock className="h-3 w-3" />
+                          Refused by kernel constraint
+                        </div>
+                        <p className="mt-1">Rule: {(action.result as any)?.rule}</p>
+                        <p>Reason: {(action.result as any)?.reason}</p>
+                      </div>
+                    )}
+                    {(action.result as any)?.overridden && (
+                      <div className="mt-2 p-2 bg-blue-100 dark:bg-blue-900/30 rounded text-blue-800 dark:text-blue-200">
+                        <div className="flex items-center gap-1 font-medium">
+                          <Undo2 className="h-3 w-3" />
+                          Overridden by {(action.result as any)?.overriddenBy}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -212,6 +307,53 @@ function CycleCard({ cycle }: { cycle: BrainCycle }) {
           </>
         )}
       </CardContent>
+
+      {/* Override Dialog */}
+      <Dialog open={overrideDialogOpen} onOpenChange={setOverrideDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Override Action</DialogTitle>
+            <DialogDescription>
+              This will revert the effects of the action. A justification is required for audit purposes.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="p-3 bg-muted rounded">
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant="outline">{selectedAction?.type}</Badge>
+                <span>{selectedAction?.target}</span>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="override-reason">Justification (required)</Label>
+              <Textarea
+                id="override-reason"
+                placeholder="Explain why this action should be overridden..."
+                value={overrideReason}
+                onChange={(e) => setOverrideReason(e.target.value)}
+                className="mt-2"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOverrideDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                if (selectedAction && overrideReason.length >= 3 && onOverride) {
+                  onOverride(selectedAction.id, overrideReason);
+                  setOverrideDialogOpen(false);
+                  setOverrideReason('');
+                }
+              }}
+              disabled={overrideReason.length < 3}
+              className="bg-amber-500 hover:bg-amber-600"
+            >
+              <Undo2 className="h-4 w-4 mr-2" />
+              Override Action
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
@@ -221,6 +363,9 @@ export default function SystemBrainDashboard() {
   const [selectedMemoryKind, setSelectedMemoryKind] = useState('all');
   const [selectedActionType, setSelectedActionType] = useState('all');
   const [memorySearch, setMemorySearch] = useState('');
+  const [overrideOpen, setOverrideOpen] = useState(false);
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
+  const [overrideReason, setOverrideReason] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -263,6 +408,12 @@ export default function SystemBrainDashboard() {
     enabled: !!tenant,
   });
 
+  const { data: refusals, isLoading: refusalsLoading, refetch: refetchRefusals } = useQuery({
+    queryKey: ['brain-refusals', tenant],
+    queryFn: () => api.getOverseerRefusals(50),
+    enabled: !!tenant,
+  });
+
   // Mutations
   const triggerThinkMutation = useMutation({
     mutationFn: (mode: 'advisory' | 'enforced') => api.triggerOverseerThink(mode),
@@ -271,10 +422,27 @@ export default function SystemBrainDashboard() {
       setTimeout(() => {
         refetchStatus();
         refetchCycles();
+        refetchRefusals();
       }, 2000);
     },
     onError: (error: any) => {
       toast.error('Failed to trigger think cycle', { description: error.message });
+    },
+  });
+
+  const overrideActionMutation = useMutation({
+    mutationFn: ({ actionId, reason }: { actionId: string; reason: string }) => 
+      api.overrideOverseerAction(actionId, reason),
+    onSuccess: (result) => {
+      toast.success(result.reverted ? 'Action overridden and reverted' : 'Action marked as overridden');
+      setOverrideOpen(false);
+      setOverrideReason('');
+      setSelectedActionId(null);
+      refetchCycles();
+      queryClient.invalidateQueries({ queryKey: ['overseer-refusals'] });
+    },
+    onError: (error: any) => {
+      toast.error('Failed to override action', { description: error.message });
     },
   });
 
@@ -313,9 +481,28 @@ export default function SystemBrainDashboard() {
     ? (effectiveness.reduce((sum: number, e: { effectivenessScore: number }) => sum + e.effectivenessScore, 0) / effectiveness.length * 100).toFixed(0)
     : 0;
   const pendingRecommendations = recommendations?.length || 0;
+  const totalRefusals = refusals?.length || 0;
 
   return (
     <div className="container max-w-7xl mx-auto py-8 space-y-6">
+      {/* Research Preview Banner */}
+      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <FlaskConical className="h-5 w-5 text-purple-600 shrink-0 mt-0.5" />
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <strong className="text-purple-800 dark:text-purple-200">Autonomous AI Governance System</strong>
+              <Badge variant="outline" className="text-purple-600 border-purple-400 text-xs">Production Ready</Badge>
+            </div>
+            <p className="text-sm text-purple-700 dark:text-purple-300">
+              The System Brain continuously monitors trust metrics, agent behavior, and emergence patterns. 
+              It can autonomously detect anomalies, recommend actions, and (in enforced mode) execute governance decisions
+              with full audit trails and human override capabilities.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -325,7 +512,7 @@ export default function SystemBrainDashboard() {
             <InfoTooltip term="System Brain" />
           </h1>
           <p className="text-muted-foreground">
-            Monitor AI oversight, memory, and action effectiveness
+            Autonomous AI oversight with real-time monitoring and governance
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -334,7 +521,7 @@ export default function SystemBrainDashboard() {
             onClick={() => triggerThinkMutation.mutate('advisory')}
             disabled={triggerThinkMutation.isPending}
           >
-            <Play className="h-4 w-4 mr-2" />
+            <Eye className="h-4 w-4 mr-2" />
             Advisory Cycle
           </Button>
           <Button
@@ -347,6 +534,56 @@ export default function SystemBrainDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* Capabilities Showcase */}
+      <Card className="border-purple-200 dark:border-purple-800">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Cpu className="h-5 w-5 text-purple-500" />
+            Core Capabilities
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Activity className="h-4 w-4 text-green-500" />
+                <span className="font-medium text-sm">Real-Time Sensors</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Trust scores, agent health, alerts, Z-score anomaly detection, trend analysis
+              </p>
+            </div>
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="h-4 w-4 text-blue-500" />
+                <span className="font-medium text-sm">Autonomous Actions</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Ban/restrict/quarantine agents, adjust thresholds, create alerts
+              </p>
+            </div>
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Lock className="h-4 w-4 text-amber-500" />
+                <span className="font-medium text-sm">Kernel Constraints</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Safety layer that refuses high-risk actions without justification
+              </p>
+            </div>
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Network className="h-4 w-4 text-purple-500" />
+                <span className="font-medium text-sm">Feedback Learning</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Tracks action effectiveness, adjusts recommendations over time
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Status Banner */}
       {overseerStatus && (
@@ -384,7 +621,7 @@ export default function SystemBrainDashboard() {
       )}
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription className="flex items-center gap-2">
@@ -432,14 +669,33 @@ export default function SystemBrainDashboard() {
             <div className="text-3xl font-bold text-amber-600">{pendingRecommendations}</div>
           </CardContent>
         </Card>
+
+        <Card className={totalRefusals > 0 ? 'border-amber-200 dark:border-amber-800' : ''}>
+          <CardHeader className="pb-2">
+            <CardDescription className="flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4" />
+              Kernel Refusals
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-3xl font-bold ${totalRefusals > 0 ? 'text-amber-600' : ''}`}>{totalRefusals}</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="cycles" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="cycles" className="flex items-center gap-2">
             <History className="h-4 w-4" />
             Think Cycles
+          </TabsTrigger>
+          <TabsTrigger value="refusals" className="flex items-center gap-2">
+            <ShieldAlert className="h-4 w-4" />
+            Refusals
+            {totalRefusals > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5">{totalRefusals}</Badge>
+            )}
           </TabsTrigger>
           <TabsTrigger value="memories" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
@@ -476,7 +732,14 @@ export default function SystemBrainDashboard() {
               ) : cycles && cycles.length > 0 ? (
                 <ScrollArea className="h-[500px] pr-4">
                   {cycles.map((cycle, i) => (
-                    <CycleCard key={cycle.id || i} cycle={cycle} />
+                    <CycleCard 
+                      key={cycle.id || i} 
+                      cycle={cycle} 
+                      onOverride={(actionId) => {
+                        setSelectedActionId(actionId);
+                        setOverrideOpen(true);
+                      }}
+                    />
                   ))}
                 </ScrollArea>
               ) : (
@@ -696,7 +959,146 @@ export default function SystemBrainDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Refusals Tab */}
+        <TabsContent value="refusals">
+          <Card className="border-red-500/30">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-red-500/10">
+                    <HandMetal className="h-5 w-5 text-red-500" />
+                  </div>
+                  <div>
+                    <CardTitle>Kernel Refusals</CardTitle>
+                    <CardDescription>Actions blocked by safety constraints</CardDescription>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {refusalsLoading ? (
+                <div className="flex justify-center py-8">
+                  <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : refusals && refusals.length > 0 ? (
+                <ScrollArea className="h-[500px] pr-4">
+                  <div className="space-y-4">
+                    {refusals.map((refusal, i) => (
+                      <Card key={refusal.id || i} className="border-l-4 border-l-red-500">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Lock className="h-4 w-4 text-red-500" />
+                                <Badge variant="destructive">{refusal.actionType}</Badge>
+                                <Badge variant="outline" className="border-red-300 text-red-700 dark:text-red-300">
+                                  {refusal.rule}
+                                </Badge>
+                              </div>
+                              <p className="text-sm font-medium mb-1">Target: {refusal.target}</p>
+                              <p className="text-sm text-muted-foreground">{refusal.reason}</p>
+                              <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                                <span>Cycle: {refusal.cycleId?.slice(-8) || 'N/A'}</span>
+                                <span>Blocked: {new Date(refusal.timestamp).toLocaleString()}</span>
+                              </div>
+                            </div>
+                            <div className="ml-4">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                className="border-red-300 text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-950"
+                                onClick={() => {
+                                  setSelectedActionId(refusal.id);
+                                  setOverrideOpen(true);
+                                }}
+                              >
+                                <Undo2 className="h-3 w-3 mr-1" />
+                                Override
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/10 flex items-center justify-center">
+                    <ShieldCheck className="h-8 w-8 text-green-500" />
+                  </div>
+                  <p className="text-lg font-medium text-green-600 dark:text-green-400">No Refusals</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    All actions have passed safety constraints
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      {/* Override Dialog */}
+      <Dialog open={overrideOpen} onOpenChange={setOverrideOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-amber-500" />
+              Override Safety Constraint
+            </DialogTitle>
+            <DialogDescription>
+              You are about to override a kernel safety constraint. This action will be logged for audit purposes.
+              Please provide a clear justification for this override.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="override-reason" className="text-sm font-medium">
+              Justification <span className="text-red-500">*</span>
+            </Label>
+            <Textarea
+              id="override-reason"
+              placeholder="Explain why this override is necessary..."
+              value={overrideReason}
+              onChange={(e) => setOverrideReason(e.target.value)}
+              className="mt-2 min-h-[100px]"
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              This justification will be stored in the brain memory for audit trail.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setOverrideOpen(false);
+              setOverrideReason('');
+              setSelectedActionId(null);
+            }}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-amber-500 hover:bg-amber-600"
+              disabled={!overrideReason.trim() || overrideActionMutation.isPending}
+              onClick={() => {
+                if (selectedActionId && overrideReason.trim()) {
+                  overrideActionMutation.mutate({ actionId: selectedActionId, reason: overrideReason });
+                }
+              }}
+            >
+              {overrideActionMutation.isPending ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <ShieldAlert className="h-4 w-4 mr-2" />
+                  Confirm Override
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

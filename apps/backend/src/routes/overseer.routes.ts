@@ -169,6 +169,42 @@ router.post('/actions/:id/override', protect, bindTenantContext, requireTenant, 
 });
 
 /**
+ * GET /api/overseer/refusals
+ * Get kernel refusals (actions that were blocked by safety constraints)
+ */
+router.get('/refusals', protect, requireTenant, requireScopes(['overseer:read']), async (req: Request, res: Response): Promise<void> => {
+  try {
+    const tenant = req.userTenant || 'default';
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
+
+    // Find actions that were refused
+    const refusals = await BrainAction.find({
+      tenantId: tenant,
+      'result.refused': true,
+    })
+      .sort({ executedAt: -1 })
+      .limit(limit)
+      .lean();
+
+    res.json({
+      success: true,
+      data: refusals.map((r: any) => ({
+        id: r._id.toString(),
+        actionType: r.type,
+        target: r.target,
+        rule: r.result?.rule || 'unknown',
+        reason: r.result?.reason || 'No reason provided',
+        cycleId: r.cycleId?.toString(),
+        timestamp: r.executedAt || r.createdAt,
+      })),
+    });
+  } catch (error: unknown) {
+    logger.error('Overseer refusals error', { error: getErrorMessage(error) });
+    res.status(500).json({ success: false, message: 'Failed to get refusals' });
+  }
+});
+
+/**
  * GET /api/overseer/status
  * Get the latest status from the Overseer including last brain cycle
  */
