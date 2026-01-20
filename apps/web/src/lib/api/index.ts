@@ -193,6 +193,11 @@ export const api = {
     return res.json();
   },
 
+  async getDemoBedauMetrics(): Promise<unknown> {
+    const res = await fetch(`${API_BASE}/api/demo/bedau-metrics`);
+    return res.json();
+  },
+
   // Orchestration / Workflows
   async getWorkflows(): Promise<unknown[]> {
     const { fetchAPI } = await import('./client');
@@ -343,7 +348,7 @@ export const api = {
   // Bedau Metrics (alias for getBedauIndex)
   async getBedauMetrics(): Promise<Record<string, any>> {
     const { fetchAPI } = await import('./client');
-    const res = await fetchAPI<{ success: boolean; data: Record<string, any> }>('/api/bedau/metrics');
+    const res = await fetchAPI<{ success: boolean; data: Record<string, any> }>('/api/lab/bedau-metrics');
     return res.data || {};
   },
 

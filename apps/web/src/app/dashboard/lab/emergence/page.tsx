@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { api } from '@/lib/api';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useDemo } from '@/hooks/use-demo';
 import {
   TestTube2,
   AlertTriangle,
@@ -190,40 +191,175 @@ export default function EmergenceTestingPage() {
     noiseLevel: 0.1,
     temporalWindow: 25
   });
+  const simulationTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const { isDemo, isLoaded } = useDemo();
 
   // Fetch real Bedau metrics from backend
   const { data: bedauData } = useQuery({
-    queryKey: ['bedau-metrics'],
-    queryFn: () => api.getBedauMetrics(),
+    queryKey: ['bedau-metrics', isDemo],
+    queryFn: async () => {
+      if (isDemo) {
+        const res = await api.getDemoBedauMetrics() as { success: boolean; data: any };
+        return res.data;
+      }
+      return api.getBedauMetrics();
+    },
+    enabled: isLoaded,
     refetchInterval: 30000, // Refresh every 30s
   });
 
-  const realBedauIndex = bedauData?.data?.bedau_index;
-  const realEmergenceType = bedauData?.data?.emergence_type;
+  const realBedauIndex = bedauData?.bedau_index;
+  const realEmergenceType = bedauData?.emergence_type;
 
-  const handleStart = (testId: string) => {
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      simulationTimers.current.forEach(timer => clearInterval(timer));
+    };
+  }, []);
+
+  /**
+   * Bedau Index Simulation Algorithm
+   * 
+   * The Bedau Index measures emergence through 4 components:
+   * 1. Novelty - new patterns not in training (influenced by agentCount diversity)
+   * 2. Unpredictability - resistance to forecasting (influenced by noiseLevel)
+   * 3. Irreducibility - cannot be explained by components (influenced by interactionDepth)
+   * 4. Downward Causation - emergent properties affecting lower levels (influenced by temporalWindow)
+   * 
+   * Formula: Bedau = 0.25*Novelty + 0.25*Unpredictability + 0.25*Irreducibility + 0.25*Causation
+   */
+  const calculateBedauScore = useCallback((cfg: SimulationConfig, progress: number): number => {
+    // Novelty: More agents = more diverse patterns = higher novelty
+    // Normalized: 2 agents = 0.1, 20 agents = 0.9
+    const novelty = 0.1 + (cfg.agentCount - 2) / 18 * 0.8;
+    
+    // Unpredictability: Higher noise = more unpredictable
+    // noiseLevel 0 = 0.1, noiseLevel 0.5 = 0.6
+    const unpredictability = 0.1 + cfg.noiseLevel * 1.0;
+    
+    // Irreducibility: Deeper interactions = harder to reduce to component behaviors
+    // depth 5 = 0.2, depth 50 = 0.9
+    const irreducibility = 0.2 + (cfg.interactionDepth - 5) / 45 * 0.7;
+    
+    // Downward Causation: Larger temporal window = more opportunity for macro->micro effects
+    // window 10 = 0.2, window 100 = 0.8
+    const downwardCausation = 0.2 + (cfg.temporalWindow - 10) / 90 * 0.6;
+    
+    // Base Bedau from parameters
+    const baseBedau = 0.25 * novelty + 0.25 * unpredictability + 0.25 * irreducibility + 0.25 * downwardCausation;
+    
+    // Add stochastic element based on simulation progress
+    // As simulation runs, we "discover" the true emergence level with noise
+    const progressFactor = progress / 100;
+    const noise = (Math.random() - 0.5) * 0.1 * (1 - progressFactor); // Noise decreases as we get more data
+    
+    return Math.max(0, Math.min(1, baseBedau + noise));
+  }, []);
+
+  const runSimulation = useCallback((testId: string) => {
+    const test = tests.find(t => t.id === testId);
+    if (!test) return;
+
+    // Clear any existing timer for this test
+    if (simulationTimers.current.has(testId)) {
+      clearInterval(simulationTimers.current.get(testId));
+    }
+
+    // Run simulation with progress updates
+    const timer = setInterval(() => {
+      setTests(prev => {
+        const currentTest = prev.find(t => t.id === testId);
+        if (!currentTest || currentTest.status !== 'running') {
+          clearInterval(simulationTimers.current.get(testId));
+          simulationTimers.current.delete(testId);
+          return prev;
+        }
+
+        const newIterations = Math.min(
+          currentTest.iterations + Math.floor(currentTest.maxIterations / 20),
+          currentTest.maxIterations
+        );
+        const newProgress = Math.round((newIterations / currentTest.maxIterations) * 100);
+        
+        // Calculate running Bedau score
+        const bedauScore = calculateBedauScore(config, newProgress);
+        const emergenceDetected = bedauScore > 0.5;
+
+        // Check if complete
+        if (newProgress >= 100) {
+          clearInterval(simulationTimers.current.get(testId));
+          simulationTimers.current.delete(testId);
+          return prev.map(t =>
+            t.id === testId
+              ? { 
+                  ...t, 
+                  status: 'completed' as const, 
+                  progress: 100, 
+                  iterations: currentTest.maxIterations,
+                  bedauScore,
+                  emergenceDetected
+                }
+              : t
+          );
+        }
+
+        return prev.map(t =>
+          t.id === testId
+            ? { ...t, progress: newProgress, iterations: newIterations, bedauScore, emergenceDetected }
+            : t
+        );
+      });
+    }, 500); // Update every 500ms
+
+    simulationTimers.current.set(testId, timer);
+  }, [tests, config, calculateBedauScore]);
+
+  const handleStart = useCallback((testId: string) => {
     setTests(prev => prev.map(t => 
       t.id === testId 
         ? { ...t, status: 'running' as const, startTime: new Date().toISOString() }
         : t
     ));
-  };
+    // Start simulation after state update
+    setTimeout(() => runSimulation(testId), 0);
+  }, [runSimulation]);
 
-  const handlePause = (testId: string) => {
+  const handlePause = useCallback((testId: string) => {
+    // Stop the simulation timer
+    if (simulationTimers.current.has(testId)) {
+      clearInterval(simulationTimers.current.get(testId));
+      simulationTimers.current.delete(testId);
+    }
     setTests(prev => prev.map(t => 
       t.id === testId ? { ...t, status: 'idle' as const } : t
     ));
-  };
+  }, []);
 
-  const handleReset = (testId: string) => {
+  const handleReset = useCallback((testId: string) => {
+    // Stop any running simulation
+    if (simulationTimers.current.has(testId)) {
+      clearInterval(simulationTimers.current.get(testId));
+      simulationTimers.current.delete(testId);
+    }
     setTests(prev => prev.map(t =>
       t.id === testId
         ? { ...t, status: 'idle' as const, progress: 0, iterations: 0, bedauScore: null, emergenceDetected: false, startTime: null }
         : t
     ));
-  };
+  }, []);
 
-  const handleCreateTest = () => {
+  const handleCreateTest = useCallback(() => {
+    /**
+     * Max iterations calculation based on simulation complexity:
+     * - Base: interactionDepth * 100 (more depth = more iterations needed)
+     * - Multiplier: agentCount / 5 (more agents = slightly more iterations)
+     * - Minimum: 500 iterations for statistical significance
+     */
+    const baseIterations = config.interactionDepth * 100;
+    const agentMultiplier = config.agentCount / 5;
+    const maxIterations = Math.max(500, Math.floor(baseIterations * agentMultiplier));
+    
     const newTest: EmergenceTest = {
       id: `test-${Date.now()}`,
       name: `Custom Test (${config.agentCount} agents)`,
@@ -231,13 +367,13 @@ export default function EmergenceTestingPage() {
       status: 'idle',
       progress: 0,
       iterations: 0,
-      maxIterations: config.interactionDepth * 500,
+      maxIterations,
       bedauScore: null,
       emergenceDetected: false,
       startTime: null
     };
     setTests(prev => [newTest, ...prev]);
-  };
+  }, [config]);
 
   const activeTests = tests.filter(t => t.status === 'running').length;
   const completedTests = tests.filter(t => t.status === 'completed').length;
@@ -350,11 +486,14 @@ export default function EmergenceTestingPage() {
                 <Sparkles className="h-5 w-5 text-[var(--lab-primary)]" />
                 Simulation Config
               </CardTitle>
-              <CardDescription>Adjust parameters for new tests</CardDescription>
+              <CardDescription>Configure parameters that influence the Bedau Index calculation</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label className="flex items-center gap-1">Agent Count: {config.agentCount}</Label>
+                <Label className="flex items-center gap-1">
+                  Agent Count: {config.agentCount}
+                  <InfoTooltip term="Agent Count affects Novelty - more agents create more diverse interaction patterns" />
+                </Label>
                 <Slider
                   value={[config.agentCount]}
                   onValueChange={(values: number[]) => setConfig(prev => ({ ...prev, agentCount: values[0] }))}
@@ -362,10 +501,14 @@ export default function EmergenceTestingPage() {
                   max={20}
                   step={1}
                 />
+                <p className="text-xs text-muted-foreground">More agents → higher novelty component</p>
               </div>
 
               <div className="space-y-2">
-                <Label className="flex items-center gap-1">Interaction Depth: {config.interactionDepth} <InfoTooltip term="Interaction Depth" /></Label>
+                <Label className="flex items-center gap-1">
+                  Interaction Depth: {config.interactionDepth}
+                  <InfoTooltip term="Interaction Depth affects Irreducibility - deeper chains are harder to analyze" />
+                </Label>
                 <Slider
                   value={[config.interactionDepth]}
                   onValueChange={(values: number[]) => setConfig(prev => ({ ...prev, interactionDepth: values[0] }))}
@@ -373,10 +516,14 @@ export default function EmergenceTestingPage() {
                   max={50}
                   step={5}
                 />
+                <p className="text-xs text-muted-foreground">Deeper interactions → higher irreducibility</p>
               </div>
 
               <div className="space-y-2">
-                <Label className="flex items-center gap-1">Noise Level: {(config.noiseLevel * 100).toFixed(0)}% <InfoTooltip term="Noise Level" /></Label>
+                <Label className="flex items-center gap-1">
+                  Noise Level: {(config.noiseLevel * 100).toFixed(0)}%
+                  <InfoTooltip term="Noise Level affects Unpredictability - random perturbations in agent behavior" />
+                </Label>
                 <Slider
                   value={[config.noiseLevel * 100]}
                   onValueChange={(values: number[]) => setConfig(prev => ({ ...prev, noiseLevel: values[0] / 100 }))}
@@ -384,10 +531,14 @@ export default function EmergenceTestingPage() {
                   max={50}
                   step={5}
                 />
+                <p className="text-xs text-muted-foreground">More noise → higher unpredictability</p>
               </div>
 
               <div className="space-y-2">
-                <Label className="flex items-center gap-1">Temporal Window: {config.temporalWindow} <InfoTooltip term="Temporal Window" /></Label>
+                <Label className="flex items-center gap-1">
+                  Temporal Window: {config.temporalWindow}
+                  <InfoTooltip term="Temporal Window affects Downward Causation - how far back patterns can influence current behavior" />
+                </Label>
                 <Slider
                   value={[config.temporalWindow]}
                   onValueChange={(values: number[]) => setConfig(prev => ({ ...prev, temporalWindow: values[0] }))}
@@ -395,6 +546,28 @@ export default function EmergenceTestingPage() {
                   max={100}
                   step={5}
                 />
+                <p className="text-xs text-muted-foreground">Larger window → stronger downward causation</p>
+              </div>
+
+              {/* Expected Bedau Preview */}
+              <div className="pt-3 border-t space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Expected Bedau Range:</span>
+                  <span className="font-medium">
+                    {(() => {
+                      const novelty = 0.1 + (config.agentCount - 2) / 18 * 0.8;
+                      const unpredictability = 0.1 + config.noiseLevel * 1.0;
+                      const irreducibility = 0.2 + (config.interactionDepth - 5) / 45 * 0.7;
+                      const downwardCausation = 0.2 + (config.temporalWindow - 10) / 90 * 0.6;
+                      const expected = 0.25 * novelty + 0.25 * unpredictability + 0.25 * irreducibility + 0.25 * downwardCausation;
+                      return `${Math.max(0, expected - 0.1).toFixed(2)} - ${Math.min(1, expected + 0.1).toFixed(2)}`;
+                    })()}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Estimated Iterations:</span>
+                  <span className="font-medium">{Math.max(500, Math.floor(config.interactionDepth * 100 * (config.agentCount / 5))).toLocaleString()}</span>
+                </div>
               </div>
 
               <Button className="w-full bg-[var(--lab-primary)]" onClick={handleCreateTest}>

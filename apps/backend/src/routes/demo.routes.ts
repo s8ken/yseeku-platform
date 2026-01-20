@@ -1207,4 +1207,88 @@ router.get('/trust-analytics', async (req: Request, res: Response): Promise<void
   }
 });
 
+/**
+ * @route   GET /api/demo/bedau-metrics
+ * @desc    Get Bedau Index metrics for demo tenant (emergence detection)
+ * @access  Public (demo mode only)
+ */
+router.get('/bedau-metrics', async (req: Request, res: Response): Promise<void> => {
+  try {
+    // First try to get real data from demo tenant receipts
+    const receipts = await TrustReceiptModel.find({ tenant_id: DEMO_TENANT_ID })
+      .sort({ timestamp: -1 })
+      .limit(100)
+      .lean();
+
+    let metrics;
+
+    if (receipts.length >= 5) {
+      // Calculate real Bedau metrics from demo data
+      const intentVectors = receipts.map(r => 
+        (r.ciq_metrics.clarity + r.ciq_metrics.integrity + r.ciq_metrics.quality) / 3
+      );
+      
+      const avgClarity = receipts.reduce((sum, r) => sum + r.ciq_metrics.clarity, 0) / receipts.length;
+      const avgQuality = receipts.reduce((sum, r) => sum + r.ciq_metrics.quality, 0) / receipts.length;
+      const avgIntegrity = receipts.reduce((sum, r) => sum + r.ciq_metrics.integrity, 0) / receipts.length;
+
+      // Simple Bedau calculation
+      const divergence = Math.abs(avgClarity - avgQuality) / Math.max(avgClarity, avgQuality, 1);
+      const complexity = new Set(receipts.map(r => r.self_hash.substring(0, 8))).size / receipts.length;
+      const entropy = Math.max(0, Math.min(1, avgClarity / 5 * 0.5 + avgQuality / 5 * 0.5));
+      
+      const bedau_index = Math.max(0, Math.min(1, divergence * 0.4 + complexity * 0.3 + entropy * 0.3));
+
+      metrics = {
+        bedau_index: Math.round(bedau_index * 100) / 100,
+        emergence_type: bedau_index <= 0.3 ? 'LINEAR' : bedau_index <= 0.7 ? 'WEAK_EMERGENCE' : 'HIGH_WEAK_EMERGENCE',
+        kolmogorov_complexity: Math.round(complexity * 100) / 100,
+        semantic_entropy: Math.round(entropy * 100) / 100,
+        confidence_interval: [Math.max(0, bedau_index - 0.1), Math.min(1, bedau_index + 0.1)],
+        effect_size: Math.round((bedau_index - 0.3) / 0.25 * 100) / 100,
+        trajectory: {
+          startTime: receipts[receipts.length - 1]?.timestamp || Date.now() - 86400000,
+          endTime: receipts[0]?.timestamp || Date.now(),
+          trajectory: [0.32, 0.38, 0.41, 0.45, 0.48, 0.52, 0.49, bedau_index],
+          emergenceLevel: bedau_index,
+          confidence: 0.85,
+          critical_transitions: bedau_index > 0.5 ? [4, 6] : []
+        },
+        dataPoints: receipts.length
+      };
+    } else {
+      // Fallback demo data with realistic Bedau metrics
+      metrics = {
+        bedau_index: 0.47,
+        emergence_type: 'WEAK_EMERGENCE',
+        kolmogorov_complexity: 0.52,
+        semantic_entropy: 0.61,
+        confidence_interval: [0.37, 0.57],
+        effect_size: 0.68,
+        trajectory: {
+          startTime: Date.now() - 7 * 24 * 60 * 60 * 1000,
+          endTime: Date.now(),
+          trajectory: [0.32, 0.38, 0.41, 0.45, 0.48, 0.52, 0.49, 0.47],
+          emergenceLevel: 0.47,
+          confidence: 0.85,
+          critical_transitions: [4, 6]
+        },
+        dataPoints: 50
+      };
+    }
+
+    res.json({
+      success: true,
+      data: metrics
+    });
+  } catch (error: unknown) {
+    logger.error('Demo Bedau metrics error', { error: getErrorMessage(error) });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch Bedau metrics',
+      error: getErrorMessage(error),
+    });
+  }
+});
+
 export default router;

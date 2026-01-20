@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { api } from '@/lib/api';
+import { useDemo } from '@/hooks/use-demo';
 
 interface BedauMetric {
   id: string;
@@ -197,10 +198,18 @@ function HistoryChart({ data }: { data: HistoricalDataPoint[] }) {
 
 export default function BedauIndexPage() {
   const [selectedTab, setSelectedTab] = useState('realtime');
+  const { isDemo, isLoaded } = useDemo();
 
   const { data: metricsData, isLoading } = useQuery({
-    queryKey: ['bedau-metrics'],
-    queryFn: () => api.getBedauMetrics(),
+    queryKey: ['bedau-metrics', isDemo],
+    queryFn: async () => {
+      if (isDemo) {
+        const res = await api.getDemoBedauMetrics() as { success: boolean; data: any };
+        return res.data;
+      }
+      return api.getBedauMetrics();
+    },
+    enabled: isLoaded,
   });
 
   // Transform backend data to frontend format
