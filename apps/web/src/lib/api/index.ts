@@ -184,6 +184,11 @@ export const api = {
     return res.json();
   },
 
+  async getDemoTrustAnalytics(): Promise<unknown> {
+    const res = await fetch(`${API_BASE}/api/demo/trust-analytics`);
+    return res.json();
+  },
+
   // Orchestration / Workflows
   async getWorkflows(): Promise<unknown[]> {
     const { fetchAPI } = await import('./client');

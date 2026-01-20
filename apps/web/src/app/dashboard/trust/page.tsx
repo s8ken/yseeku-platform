@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { api, TrustAnalyticsResponse } from '@/lib/api';
+import { useDemo } from '@/hooks/use-demo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   TrendingUp,
   TrendingDown,
@@ -56,17 +58,28 @@ interface Analytics {
 }
 
 export default function TrustAnalyticsPage() {
+  const { isDemo, isLoaded } = useDemo();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState({ days: 7, start: '', end: '' });
 
   const loadAnalytics = async () => {
+    if (!isLoaded) return;
+    
     setLoading(true);
     try {
-      // Use getTrustAnalytics from API client
-      const response = await api.getTrustAnalytics();
-      setAnalytics(response.data.analytics);
-      setTimeRange(response.data.timeRange);
+      // Use demo or real API based on mode
+      if (isDemo) {
+        const response = await api.getDemoTrustAnalytics() as any;
+        if (response.success) {
+          setAnalytics(response.data.analytics);
+          setTimeRange(response.data.timeRange);
+        }
+      } else {
+        const response = await api.getTrustAnalytics();
+        setAnalytics(response.data.analytics);
+        setTimeRange(response.data.timeRange);
+      }
       toast.success('Analytics refreshed');
     } catch (error: any) {
       console.error('Failed to load analytics:', error);
@@ -80,7 +93,7 @@ export default function TrustAnalyticsPage() {
 
   useEffect(() => {
     loadAnalytics();
-  }, []);
+  }, [isDemo, isLoaded]);
 
   if (loading) {
     return (
@@ -116,12 +129,25 @@ export default function TrustAnalyticsPage() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      {/* Demo Mode Banner */}
+      {isDemo && (
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 flex items-center gap-2">
+          <Badge variant="outline" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+            Demo Mode
+          </Badge>
+          <span className="text-sm text-amber-700 dark:text-amber-300">
+            Viewing demo tenant analytics. Switch to Live Mode for real data.
+          </span>
+        </div>
+      )}
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <Shield className="h-8 w-8 text-purple-500" />
             Trust Analytics
+            {isDemo && <Badge variant="secondary" className="ml-2">Demo</Badge>}
           </h1>
           <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
             <Calendar className="h-4 w-4" />
