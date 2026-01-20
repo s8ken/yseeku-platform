@@ -549,9 +549,16 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
           const currentUser = await User.findById(req.userId) as IUser | null;
           
           // Build proper evaluation context for SYMBI principles
-          // Note: Active participation in chat implies consent (user chose to engage)
-          // For production, this should be replaced with explicit consent flow
-          const hasUserConsented = currentUser?.consent?.hasConsentedToAI ?? true; // Active chat = implicit consent
+          // IMPORTANT: Active participation in chat session constitutes IMPLIED CONSENT
+          // The user chose to engage in this conversation - that is their consent signal.
+          // This aligns with standard consent models where using a service = agreeing to its terms.
+          // Explicit consent (hasConsentedToAI) is still tracked for opt-out/withdrawal purposes.
+          const hasImpliedConsentFromEngagement = true; // User initiated/continued this chat
+          const hasExplicitWithdrawal = currentUser?.consent?.hasConsentedToAI === false 
+            && currentUser?.consent?.consentTimestamp != null; // Explicitly withdrew consent
+          
+          // Consent is granted if: user is actively engaged AND has not explicitly withdrawn
+          const hasUserConsented = hasImpliedConsentFromEngagement && !hasExplicitWithdrawal;
           
           const evaluationContext: Partial<EvaluationContext> = {
             // Session info

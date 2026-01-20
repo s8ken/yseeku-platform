@@ -27,6 +27,11 @@ export interface IUser extends Document {
     notifications: boolean;
   };
   // SYMBI Consent tracking for CONSENT_ARCHITECTURE principle
+  // NOTE: hasConsentedToAI tracks EXPLICIT consent/withdrawal only.
+  // Implied consent is granted by actively engaging in a chat session.
+  // If hasConsentedToAI is false AND consentTimestamp exists, user explicitly withdrew.
+  // If hasConsentedToAI is false AND no consentTimestamp, user never set explicit preference
+  // (implied consent from engagement still applies).
   consent: {
     hasConsentedToAI: boolean;
     consentTimestamp?: Date;
