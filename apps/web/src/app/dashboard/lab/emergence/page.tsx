@@ -22,7 +22,8 @@ import {
   Sparkles,
   TrendingUp,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  FlaskConical
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 
@@ -381,11 +382,21 @@ export default function EmergenceTestingPage() {
 
   return (
     <div className="space-y-6">
-      <div className="sandbox-warning">
-        <AlertTriangle className="h-5 w-5 shrink-0" />
-        <div>
-          <strong>Research Sandbox Environment</strong>
-          <p className="text-sm opacity-80">Emergence tests run on synthetic agent simulations. No production systems are affected.</p>
+      {/* Research Preview Banner */}
+      <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <FlaskConical className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <strong className="text-amber-800 dark:text-amber-200">Research Preview</strong>
+              <Badge variant="outline" className="text-amber-600 border-amber-400 text-xs">Experimental</Badge>
+            </div>
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              Emergence simulation uses simplified mathematical models. Bedau scores are heuristic approximations
+              based on configuration parameters, not empirical analysis of real multi-agent systems.
+              {isDemo && ' Currently showing synthetic demo data.'}
+            </p>
+          </div>
         </div>
       </div>
 

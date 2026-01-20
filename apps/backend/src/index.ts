@@ -31,6 +31,7 @@ import dashboardRoutes from './routes/dashboard.routes';
 import riskEventsRoutes from './routes/risk-events.routes';
 import auditRoutes from './routes/audit.routes';
 import labRoutes from './routes/lab.routes';
+import vlsRoutes from './routes/vls.routes';
 import tenantRoutes from './routes/tenant.routes';
 import apiGatewayRoutes from './routes/api-gateway.routes';
 import orchestrateRoutes from './routes/orchestrate.routes';
@@ -135,6 +136,7 @@ app.use('/api/dashboard/alerts', alertsRoutes);
 app.use('/api/risk-events', riskEventsRoutes); // Risk events management
 app.use('/api/audit', auditRoutes); // Audit trails and logs
 app.use('/api/lab', labRoutes); // Lab experiments and A/B testing
+app.use('/api/lab/vls', vlsRoutes); // Linguistic Vector Space (Research Preview)
 app.use('/api/tenants', tenantRoutes); // Tenant management
 app.use('/api/gateway', apiGatewayRoutes); // API Gateway and Platform Keys
 app.use('/api/orchestrate', orchestrateRoutes); // Multi-Agent Orchestration

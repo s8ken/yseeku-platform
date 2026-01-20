@@ -105,6 +105,11 @@ export const api = {
   getBedauIndex: labApi.getBedauIndex,
   runEmergenceTest: labApi.runEmergenceTest,
 
+  // VLS (Research Preview)
+  analyzeVLSText: labApi.analyzeVLSText,
+  getVLSConversation: labApi.getVLSConversation,
+  getVLSSessions: labApi.getVLSSessions,
+
   // Admin
   getTenants: adminApi.getTenants,
   createTenant: adminApi.createTenant,

@@ -66,6 +66,56 @@ export interface BedauAnalysis {
   timestamp: string;
 }
 
+// VLS (Linguistic Vector Steering) Types
+export interface VLSMetrics {
+  vocabularyDrift: number;
+  introspectionIndex: number;
+  hedgingRatio: number;
+  formalityScore: number;
+  complexityIndex: number;
+}
+
+export interface VLSAnalysisResult {
+  metrics: VLSMetrics;
+  timestamp: string;
+  baseline?: string;
+}
+
+export interface VLSConversationResult {
+  conversationId: string;
+  agentId?: string;
+  messageCount: number;
+  overallMetrics: VLSMetrics;
+  messageAnalyses: Array<{
+    messageIndex: number;
+    role: string;
+    metrics: VLSMetrics;
+    timestamp: string;
+  }>;
+  trends: {
+    vocabularyDriftTrend: number[];
+    introspectionTrend: number[];
+    hedgingTrend: number[];
+  };
+  analysisTimestamp: string;
+}
+
+export interface VLSSessionSummary {
+  sessionId: string;
+  agentId?: string;
+  firstMessage: string;
+  lastMessage: string;
+  messageCount: number;
+  averageMetrics: VLSMetrics;
+}
+
+export interface VLSSessionsResponse {
+  sessions: VLSSessionSummary[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export const labApi = {
   async getExperiments(status?: string): Promise<ExperimentsResponse> {
     const params = status ? `?status=${status}` : '';
@@ -157,6 +207,21 @@ export const labApi = {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  },
+
+  // VLS (Linguistic Vector Steering) - Research Preview
+  async analyzeVLSText(text: string, baseline?: string): Promise<VLSAnalysisResult> {
+    const params = new URLSearchParams({ text });
+    if (baseline) params.append('baseline', baseline);
+    return fetchAPI<VLSAnalysisResult>(`/api/lab/vls/analyze?${params}`);
+  },
+
+  async getVLSConversation(conversationId: string): Promise<VLSConversationResult> {
+    return fetchAPI<VLSConversationResult>(`/api/lab/vls/conversation/${conversationId}`);
+  },
+
+  async getVLSSessions(page = 1, limit = 20): Promise<VLSSessionsResponse> {
+    return fetchAPI<VLSSessionsResponse>(`/api/lab/vls/sessions?page=${page}&limit=${limit}`);
   },
 };
 
