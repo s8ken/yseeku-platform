@@ -88,11 +88,46 @@ export const labApi = {
   },
 
   async startExperiment(id: string): Promise<void> {
-    await fetchAPI(`/api/lab/experiments/${id}/start`, { method: 'POST' });
+    await fetchAPI(`/api/lab/experiments/${id}`, { 
+      method: 'PATCH',
+      body: JSON.stringify({ action: 'start' }),
+    });
+  },
+
+  async pauseExperiment(id: string): Promise<void> {
+    await fetchAPI(`/api/lab/experiments/${id}`, { 
+      method: 'PATCH',
+      body: JSON.stringify({ action: 'pause' }),
+    });
+  },
+
+  async resumeExperiment(id: string): Promise<void> {
+    await fetchAPI(`/api/lab/experiments/${id}`, { 
+      method: 'PATCH',
+      body: JSON.stringify({ action: 'resume' }),
+    });
+  },
+
+  async completeExperiment(id: string): Promise<void> {
+    await fetchAPI(`/api/lab/experiments/${id}`, { 
+      method: 'PATCH',
+      body: JSON.stringify({ action: 'complete' }),
+    });
   },
 
   async stopExperiment(id: string): Promise<void> {
-    await fetchAPI(`/api/lab/experiments/${id}/stop`, { method: 'POST' });
+    // Alias for pause (backwards compatibility)
+    await fetchAPI(`/api/lab/experiments/${id}`, { 
+      method: 'PATCH',
+      body: JSON.stringify({ action: 'pause' }),
+    });
+  },
+
+  async recordExperimentData(id: string, data: { variantIndex: number; score: number; success?: boolean }): Promise<void> {
+    await fetchAPI(`/api/lab/experiments/${id}/record`, { 
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   },
 
   async deleteExperiment(id: string): Promise<void> {
