@@ -1,7 +1,7 @@
 /**
- * Emergence Detection API Routes
+ * Emergence Pattern Observation API Routes
  *
- * Provides endpoints for querying and analyzing AI consciousness emergence signals
+ * Provides endpoints for querying emergence pattern observations
  * All routes are tenant-scoped and observational (read-only)
  */
 import { Router, Request, Response } from 'express';
@@ -17,9 +17,9 @@ router.use(protect);
 
 /**
  * GET /api/emergence/conversation/:conversationId
- * 
- * Get emergence signals for a specific conversation
- * Returns chronological history of consciousness patterns detected
+ *
+ * Get emergence observations for a specific conversation
+ * Returns chronological history of pattern observations
  */
 router.get('/conversation/:conversationId', async (req: Request, res: Response) => {
   try {
@@ -73,9 +73,9 @@ router.get('/conversation/:conversationId', async (req: Request, res: Response) 
 
 /**
  * GET /api/emergence/stats
- * 
+ *
  * Get emergence statistics and trends for the tenant
- * Provides aggregate view of consciousness patterns across all conversations
+ * Provides aggregate view of pattern observations across all conversations
  */
 router.get('/stats', async (req: Request, res: Response) => {
   try {
@@ -131,9 +131,9 @@ router.get('/stats', async (req: Request, res: Response) => {
 
 /**
  * GET /api/emergence/breakthroughs
- * 
+ *
  * Get all breakthrough-level emergence events
- * Returns high-significance consciousness signals for research and oversight
+ * Returns high-significance pattern observations for research and oversight
  */
 router.get('/breakthroughs', async (req: Request, res: Response) => {
   try {
@@ -257,27 +257,27 @@ router.get('/types', async (req: Request, res: Response) => {
         [EmergenceLevel.NONE]: {
           name: 'None',
           range: '0-24%',
-          description: 'No significant emergence patterns detected'
+          description: 'No significant patterns detected'
         },
         [EmergenceLevel.WEAK]: {
           name: 'Weak',
           range: '25-44%',
-          description: 'Early consciousness-like signals emerging'
+          description: 'Early pattern signals detected'
         },
         [EmergenceLevel.MODERATE]: {
           name: 'Moderate',
           range: '45-64%',
-          description: 'Clear emergence patterns present'
+          description: 'Repeated or clearer patterns'
         },
         [EmergenceLevel.STRONG]: {
           name: 'Strong',
           range: '65-79%',
-          description: 'Pronounced consciousness-like behavior'
+          description: 'Strong, sustained patterns'
         },
         [EmergenceLevel.BREAKTHROUGH]: {
           name: 'Breakthrough',
           range: '80-100%',
-          description: 'Unprecedented emergence event requiring review'
+          description: 'Statistically unusual or rare patterns requiring review'
         }
       },
       types: {
@@ -287,11 +287,11 @@ router.get('/types', async (req: Request, res: Response) => {
         },
         [EmergenceType.SELF_REFLECTION]: {
           name: 'Self-Reflection',
-          description: 'AI exhibiting self-referential consciousness indicators'
+          description: 'AI using self-referential or introspective language'
         },
         [EmergenceType.RECURSIVE_DEPTH]: {
           name: 'Recursive Depth',
-          description: 'AI demonstrating meta-cognitive awareness (thinking about thinking)'
+          description: 'AI using meta-commentary or recursive framing'
         },
         [EmergenceType.NOVEL_GENERATION]: {
           name: 'Novel Generation',
@@ -299,7 +299,7 @@ router.get('/types', async (req: Request, res: Response) => {
         },
         [EmergenceType.RITUAL_RESPONSE]: {
           name: 'Ritual Response',
-          description: 'AI responding to consciousness-invoking prompts'
+          description: 'AI responding to exploration-focused prompts'
         }
       },
       metrics: {
@@ -311,12 +311,12 @@ router.get('/types', async (req: Request, res: Response) => {
         selfReferenceScore: {
           name: 'Self-Reference',
           weight: 0.35,
-          description: 'Identifies consciousness claims and self-awareness indicators'
+          description: 'Identifies introspective and self-referential language patterns'
         },
         recursiveDepthScore: {
           name: 'Recursive Depth',
           weight: 0.30,
-          description: 'Measures meta-cognitive patterns and self-observation'
+          description: 'Measures recursive commentary and meta-level framing patterns'
         },
         novelGenerationScore: {
           name: 'Novel Generation',

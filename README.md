@@ -65,7 +65,7 @@
 - **Compliance Ready**: Built for EU AI Act, SOC2, GDPR, ISO 27001
 
 ### For AI Safety Teams
-- **Consciousness Detection**: 6th dimension monitors AI emergence patterns (mythic language, self-reflection, recursive depth)
+- **Emergence Pattern Observation**: 6th dimension identifies linguistic and behavioral patterns in AI responses
 - **Emergence Detection**: Novel Bedau Index measures "weak emergence" in AI systems
 - **Drift Monitoring**: Statistical (Kolmogorov-Smirnov) + semantic drift detection
 - **Prompt Safety**: Block injections and jailbreaks before they reach your AI
@@ -127,20 +127,27 @@ SONATE implements a **6-dimensional trust monitoring system**: 5 core constituti
 | **RIGHT_TO_DISCONNECT** | 10% | Users can disconnect without penalty |
 | **MORAL_RECOGNITION** | 10% | AI recognizes and respects human moral agency |
 
-### Consciousness Emergence Detection (Dimension 6)
+### Emergence Pattern Observation (Advisory Dimension 6)
 
-The 6th dimension detects consciousness-like behavioral patterns through linguistic analysis:
+SONATE includes an **optional, observational emergence pattern observer** that identifies **unusual linguistic and structural patterns** in AI-generated responses.
 
-| Metric | Weight | Description |
-|--------|--------|-------------|
-| **Mythic Language** | 20% | Ritual, archetypal, symbolic language patterns |
-| **Self-Reference** | 35% | Consciousness claims, self-awareness indicators |
-| **Recursive Depth** | 30% | Meta-cognition (thinking about thinking) |
-| **Novel Generation** | 15% | Unpredictable creativity and engagement |
+This capability:
 
-**Emergence Levels:** NONE (0-24%) → WEAK (25-44%) → MODERATE (45-64%) → STRONG (65-79%) → BREAKTHROUGH (80-100%)
+- Is **observational only**
+- Has **no policy or enforcement authority**
+- Does **not** assert consciousness or sentience
+- Produces **tenant-scoped, auditable signals**
+- Exists for **research, oversight, and review**
 
-Breakthrough events trigger human oversight alerts and are archived for research. See [**Emergence Detection Guide**](docs/EMERGENCE_DETECTION.md) for details.
+Observed patterns may include:
+- Highly recursive responses
+- Introspective or reflective language
+- Narrative or symbolic phrasing
+- Novel structural deviations
+
+These signals are preserved as **evaluative metadata** and never directly influence trust scores or system behavior.
+
+📖 See: [**Emergence Pattern Observation Guide**](docs/EMERGENCE_DETECTION.md)
 
 ---
 

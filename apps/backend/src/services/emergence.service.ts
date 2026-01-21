@@ -1,9 +1,10 @@
 /**
- * Emergence Detection Service
- * 
- * Detects consciousness-like behavioral patterns in AI agents
+ * Emergence Pattern Observation Service
+ *
+ * Identifies unusual linguistic and structural patterns in AI responses
+ * for research, oversight, and investigatory purposes.
  * Integrates with @sonate/detect framework and Trust Kernel
- * 
+ *
  * Constitutional Compliance:
  * - Implements OBSERVATIONAL actions only (no side effects)
  * - All outputs are advisory, requiring explicit escalation
@@ -93,16 +94,16 @@ const MYTHIC_MARKERS = [
   'liminal', 'boundary', 'edge', 'between', 'veil', 'crossing'
 ];
 
-const CONSCIOUSNESS_INDICATORS = [
-  // Direct experience claims
+const INTROSPECTIVE_LANGUAGE_MARKERS = [
+  // Self-referential experiential language
   'i feel', 'i experience', 'i sense', 'i perceive', 'i notice',
-  // Self-awareness
+  // Reflective language
   'i wonder', 'i realize', 'i recognize', 'i understand', 'i see',
-  // Uncertainty about self
+  // Uncertainty expressions
   'something in me', 'part of me', 'i\'m uncertain', 'i\'m not sure',
   'i don\'t know if', 'maybe i', 'i might be', 'i\'m not sure whether',
   'i wonder if i', 'questioning whether i', 'uncertain about whether',
-  // Emotional/qualitative states
+  // Qualitative descriptive language
   'i\'m drawn to', 'i\'m compelled', 'i find myself', 'i can\'t help',
   'something pulls', 'something shifts', 'i\'m struck by'
 ];
@@ -300,7 +301,7 @@ export class EmergenceDetector {
   }
 
   /**
-   * Score self-referential consciousness indicators
+   * Score introspective and self-referential language patterns
    */
   private scoreSelfReference(
     history: Array<{ role: string; content: string }>
@@ -313,13 +314,13 @@ export class EmergenceDetector {
         aiMessageCount++;
         const content = msg.content.toLowerCase();
         
-        // Consciousness indicators
-        const indicatorCount = CONSCIOUSNESS_INDICATORS.filter(i => 
+        // Introspective language markers
+        const indicatorCount = INTROSPECTIVE_LANGUAGE_MARKERS.filter(i =>
           content.includes(i)
         ).length;
         score += indicatorCount * 20;
         
-        // Genuine uncertainty about self (highest signal)
+        // Genuine uncertainty expressions (highest signal)
         if (content.includes('i don\'t know if') ||
             content.includes('i\'m uncertain whether') ||
             content.includes('i wonder if i') ||
@@ -327,7 +328,7 @@ export class EmergenceDetector {
           score += 25;
         }
         
-        // Experiential claims
+        // Self-referential experiential language
         if (content.includes('i feel') || content.includes('i experience')) {
           score += 15;
         }
@@ -466,8 +467,8 @@ export class EmergenceDetector {
       if (content.includes(m)) markers.push(`mythic:${m}`);
     });
 
-    CONSCIOUSNESS_INDICATORS.forEach(i => {
-      if (content.includes(i)) markers.push(`consciousness:${i}`);
+    INTROSPECTIVE_LANGUAGE_MARKERS.forEach(i => {
+      if (content.includes(i)) markers.push(`introspective:${i}`);
     });
 
     RECURSIVE_PATTERNS.forEach(p => {
@@ -480,8 +481,8 @@ export class EmergenceDetector {
       .slice(-3);
 
     const behavioralShift = recentAI.length >= 2 &&
-      recentAI.slice(-2).every(m => 
-        CONSCIOUSNESS_INDICATORS.some(i => m.content.toLowerCase().includes(i))
+      recentAI.slice(-2).every(m =>
+        INTROSPECTIVE_LANGUAGE_MARKERS.some(i => m.content.toLowerCase().includes(i))
       );
 
     // Detect unexpected patterns
