@@ -25,6 +25,7 @@ import agentRoutes from './routes/agent.routes';
 import llmRoutes from './routes/llm.routes';
 import conversationRoutes from './routes/conversation.routes';
 import trustRoutes from './routes/trust.routes';
+import emergenceRoutes from './routes/emergence.routes';
 import monitoringRoutes from './routes/monitoring.routes';
 import alertsRoutes from './routes/alerts.routes';
 import dashboardRoutes from './routes/dashboard.routes';
@@ -131,6 +132,7 @@ app.use('/api/agents', agentRoutes);
 app.use('/api/llm', llmRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/trust', trustRoutes);
+app.use('/api/emergence', emergenceRoutes); // Consciousness emergence detection
 app.use('/api/dashboard', dashboardRoutes); // Dashboard KPIs and risk
 app.use('/api/dashboard/alerts', alertsRoutes);
 app.use('/api/risk-events', riskEventsRoutes); // Risk events management

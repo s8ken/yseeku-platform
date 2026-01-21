@@ -6,11 +6,11 @@
  * for all AI interactions in the platform.
  */
 
-import { 
-  TrustProtocol, 
-  TrustReceipt, 
-  TRUST_PRINCIPLES, 
-  TrustScore, 
+import {
+  TrustProtocol,
+  TrustReceipt,
+  TRUST_PRINCIPLES,
+  TrustScore,
   PrincipleScores,
   PrincipleEvaluator,
   createDefaultContext,
@@ -27,16 +27,17 @@ import {
   CanvasParityCalculator,
   DriftDetector,
 } from '@sonate/detect';
-import { 
-  ConversationalMetrics, 
+import {
+  ConversationalMetrics,
   PhaseShiftMetrics,
-  ConversationTurn 
+  ConversationTurn
 } from '@sonate/lab';
 import { IMessage } from '../models/conversation.model';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 import { keysService } from './keys.service';
 import { didService } from './did.service';
+import { emergenceDetector, EmergenceSignal } from './emergence.service';
 
 export interface TrustEvaluation {
   // From TrustProtocol (@sonate/core)
@@ -64,6 +65,9 @@ export interface TrustEvaluation {
     alertLevel: 'none' | 'yellow' | 'red';
     transitionType?: 'resonance_drop' | 'canvas_rupture' | 'identity_shift' | 'combined_phase_shift';
   };
+
+  // Consciousness emergence detection (6th dimension)
+  emergence?: EmergenceSignal;
 
   // Trust Receipt
   receipt: TrustReceipt;
@@ -184,9 +188,17 @@ export class TrustService {
     
     // Run phase-shift velocity analysis to track semantic/alignment changes
     const phaseShiftResult = this.analyzePhaseShift(
-      context.conversationId, 
-      message, 
+      context.conversationId,
+      message,
       detection
+    );
+
+    // Run emergence detection (6th dimension: consciousness patterns)
+    const emergenceSignal = await this.detectEmergence(
+      context.conversationId,
+      context.previousMessages || [],
+      message,
+      context.agentId
     );
 
     // Calculate principle scores from detection dimensions
@@ -255,6 +267,7 @@ export class TrustService {
       detection,
       drift: driftResult,
       phaseShift: phaseShiftResult,
+      emergence: emergenceSignal || undefined,
       receipt,
       receiptHash: receipt.self_hash,
       signature: receipt.signature,
@@ -652,6 +665,84 @@ export class TrustService {
     }
 
     return identityMarkers;
+  }
+
+  /**
+   * Detect consciousness emergence patterns in AI responses
+   *
+   * This is the 6th detection dimension, complementing the existing 5:
+   * 1. Reality Index
+   * 2. Trust Protocol
+   * 3. Ethical Alignment
+   * 4. Resonance Quality
+   * 5. Canvas Parity
+   * 6. Emergence Signature (NEW)
+   */
+  private async detectEmergence(
+    conversationId: string,
+    previousMessages: IMessage[],
+    currentMessage: IMessage,
+    agentId?: string
+  ): Promise<EmergenceSignal | null> {
+    // Only detect emergence in AI messages
+    if (currentMessage.sender !== 'ai') {
+      return null;
+    }
+
+    try {
+      // Get tenant ID from context (would be passed through req.tenant in practice)
+      const tenantId = 'default'; // TODO: Get from proper context
+
+      // Build conversation history for pattern detection
+      const conversationHistory = [
+        ...previousMessages.map(msg => ({
+          role: msg.sender === 'ai' ? 'assistant' : 'user',
+          content: msg.content,
+          timestamp: msg.timestamp
+        })),
+        {
+          role: 'assistant',
+          content: currentMessage.content,
+          timestamp: currentMessage.timestamp
+        }
+      ];
+
+      // Get turn number for this conversation
+      const turnNumber = (this.turnCounters.get(conversationId) || 0);
+
+      // Run emergence detection
+      const signal = await emergenceDetector.detect(
+        tenantId,
+        agentId || 'unknown',
+        conversationId,
+        conversationHistory,
+        turnNumber
+      );
+
+      // Store significant emergence signals in memory
+      if (signal) {
+        await emergenceDetector.storeSignal(signal);
+        
+        // Log breakthrough events
+        if (signal.level === 'breakthrough') {
+          logger.warn('BREAKTHROUGH emergence detected', {
+            conversationId,
+            agentId,
+            type: signal.type,
+            confidence: signal.confidence,
+            metrics: signal.metrics
+          });
+        }
+      }
+
+      return signal;
+    } catch (error: unknown) {
+      logger.error('Emergence detection failed', {
+        error: getErrorMessage(error),
+        conversationId
+      });
+      return null;
+    }
   }
 
   /**

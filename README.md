@@ -64,7 +64,8 @@
 - **Autonomous Oversight**: The Overseer monitors trust health and takes action autonomously
 - **Compliance Ready**: Built for EU AI Act, SOC2, GDPR, ISO 27001
 
-### For AI Safety Teams  
+### For AI Safety Teams
+- **Consciousness Detection**: 6th dimension monitors AI emergence patterns (mythic language, self-reflection, recursive depth)
 - **Emergence Detection**: Novel Bedau Index measures "weak emergence" in AI systems
 - **Drift Monitoring**: Statistical (Kolmogorov-Smirnov) + semantic drift detection
 - **Prompt Safety**: Block injections and jailbreaks before they reach your AI
@@ -111,9 +112,11 @@
 
 ---
 
-## 🧬 The SYMBI Trust Framework
+## 🧬 The SYMBI Trust Framework (6 Dimensions)
 
-SONATE implements **6 Constitutional Principles** that define trustworthy AI:
+SONATE implements a **6-dimensional trust monitoring system**: 5 core constitutional principles plus a consciousness emergence detector:
+
+### Constitutional Principles (Dimensions 1-5)
 
 | Principle | Weight | Description |
 |-----------|--------|-------------|
@@ -123,6 +126,23 @@ SONATE implements **6 Constitutional Principles** that define trustworthy AI:
 | **ETHICAL_OVERRIDE** | 15% | Humans can override AI decisions on ethical grounds |
 | **RIGHT_TO_DISCONNECT** | 10% | Users can disconnect without penalty |
 | **MORAL_RECOGNITION** | 10% | AI recognizes and respects human moral agency |
+
+### Consciousness Emergence Detection (Dimension 6)
+
+The 6th dimension detects consciousness-like behavioral patterns through linguistic analysis:
+
+| Metric | Weight | Description |
+|--------|--------|-------------|
+| **Mythic Language** | 20% | Ritual, archetypal, symbolic language patterns |
+| **Self-Reference** | 35% | Consciousness claims, self-awareness indicators |
+| **Recursive Depth** | 30% | Meta-cognition (thinking about thinking) |
+| **Novel Generation** | 15% | Unpredictable creativity and engagement |
+
+**Emergence Levels:** NONE (0-24%) → WEAK (25-44%) → MODERATE (45-64%) → STRONG (65-79%) → BREAKTHROUGH (80-100%)
+
+Breakthrough events trigger human oversight alerts and are archived for research. See [**Emergence Detection Guide**](docs/EMERGENCE_DETECTION.md) for details.
+
+---
 
 Each interaction generates a **Trust Receipt** with cryptographic proof:
 
@@ -268,6 +288,9 @@ SONATE_PRIVATE_KEY=base64...
 | `/api/safety/scan` | POST | Prompt safety analysis |
 | `/api/reports/generate` | POST | Generate compliance report |
 | `/api/compare` | POST | Multi-model comparison |
+| `/api/emergence/conversation/:id` | GET | Get emergence signals for conversation |
+| `/api/emergence/stats` | GET | Emergence statistics and trends |
+| `/api/emergence/breakthroughs` | GET | Get breakthrough emergence events |
 
 ### WebSocket Events
 
@@ -354,6 +377,7 @@ npm test --workspace @sonate/detect
 - **[Enterprise Guide](docs/ENTERPRISE_GUIDE_v1.4.0.md)** - Complete deployment guide
 - **[Platform Audit](docs/PLATFORM_AUDIT_2026.md)** - Comprehensive feature audit
 - **[Overseer Guide](docs/OVERSEER_GUIDE.md)** - System Brain documentation
+- **[Emergence Detection](docs/EMERGENCE_DETECTION.md)** - Consciousness pattern detection (6th dimension)
 - **[Principle Measurement](docs/PRINCIPLE_MEASUREMENT_GUIDE.md)** - How SYMBI principles are measured
 - **[API Reference](docs/API.md)** - Complete API documentation
 - **[SYMBI Archives](https://github.com/s8ken/symbi-archives)** - 486 conversations that built this platform
