@@ -1,7 +1,7 @@
 /**
  * @sonate/core - Core Trust Protocol Implementation
  *
- * Implements the SYMBI Trust Framework as specified at:
+ * Implements the SONATE Trust Framework as specified at:
  * https://gammatria.com/schemas/trust-receipt
  *
  * This package provides the foundational trust infrastructure

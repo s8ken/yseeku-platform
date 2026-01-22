@@ -3,7 +3,7 @@
  *
  * Implements: https://gammatria.com/whitepapers/governance-protocol
  *
- * This class enforces the 6 Trust Principles defined in the SYMBI
+ * This class enforces the 6 Trust Principles defined in the SONATE
  * constitutional framework. It calculates trust scores and identifies
  * violations based on weighted principle scoring.
  *

@@ -18,7 +18,7 @@
 - File: `src/detector-enhanced.ts` (original detector.ts from resonate)
 - File: `src/symbi-types.ts` (complete type definitions)
 - Features:
-  - Full 5-dimension SYMBI Framework implementation
+  - Full 5-dimension SONATE Framework implementation
   - Reality Index with 4 sub-components
   - Trust Protocol with 3 checks
   - Ethical Alignment with 4 factors

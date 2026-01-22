@@ -13,7 +13,7 @@ export interface IMessage {
   agentId?: Types.ObjectId;
   metadata: Record<string, any>;
   ciModel: 'none' | 'symbi-core' | 'overseer' | 'system-brain';
-  trustScore: number; // 0-5 (maps to SYMBI 0-10 scale by doubling)
+  trustScore: number; // 0-5 (maps to SONATE 0-10 scale by doubling)
   timestamp: Date;
 }
 

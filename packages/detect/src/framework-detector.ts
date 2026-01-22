@@ -1,8 +1,8 @@
 /**
- * SymbiFrameworkDetector - Core 5-dimension detection engine
+ * SonateFrameworkDetector - Core 5-dimension detection engine
  *
  * This is the production-grade detector that scores AI interactions
- * in real-time across all 5 SYMBI Framework dimensions.
+ * in real-time across all 5 SONATE Framework dimensions.
  *
  * Use case: Live production monitoring (< 100ms latency requirement)
  */
@@ -19,7 +19,7 @@ import { AIInteraction, DetectionResult } from './index';
 
 
 
-export class SymbiFrameworkDetector {
+export class SonateFrameworkDetector {
   private realityCalc: RealityIndexCalculator;
   private trustValidator: TrustProtocolValidator;
   private ethicalScorer: EthicalAlignmentScorer;

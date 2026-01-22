@@ -14,7 +14,7 @@ const DEFAULT_AGENTS = [
     status: 'active',
     trustScore: 92,
     isPublic: true,
-    symbiDimensions: {
+    sonateDimensions: {
       realityIndex: 9.2,
       trustProtocol: 'PASS',
       ethicalAlignment: 4.6,

@@ -39,7 +39,7 @@ yseeku-platform/
 │   └── integration-tests/ # E2E tests
 │
 ├── packages/
-│   ├── core/             # Trust Protocol, SYMBI principles
+│   ├── core/             # Trust Protocol, SONATE principles
 │   ├── detect/           # Real-time detection & scoring
 │   ├── lab/              # Research & experimentation
 │   ├── orchestrate/      # Multi-agent orchestration

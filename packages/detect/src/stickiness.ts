@@ -1,5 +1,5 @@
 // @sonate/detect/stickiness.ts
-import { ExplainedResonance, explainableSymbiResonance, Transcript } from './calculator';
+import { ExplainedResonance, explainableSonateResonance, Transcript } from './calculator';
 import { sha256 } from './crypto';
 
 // Server-side session state (Redis/Vercel KV)
@@ -27,7 +27,7 @@ export async function resonanceWithStickiness(
   session_state?: SessionState
 ): Promise<StickyResonance> {
   // Calculate fresh R_m
-  const fresh = await explainableSymbiResonance(transcript);
+  const fresh = await explainableSonateResonance(transcript);
 
   if (!session_state?.last_rm) {
     return {

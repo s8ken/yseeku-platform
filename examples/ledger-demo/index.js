@@ -1,7 +1,7 @@
-const { SYMBICollaborationLedger, writeSymbiFile } = require('../../packages/collaboration-ledger/dist')
+const { SONATECollaborationLedger, writeSymbiFile } = require('../../packages/collaboration-ledger/dist')
 
 async function run() {
-  const ledger = new SYMBICollaborationLedger('project-001')
+  const ledger = new SONATECollaborationLedger('project-001')
 
   const claudeId = ledger.registerAgent({
     agentId: 'claude-3.7-sonnet',
@@ -22,7 +22,7 @@ async function run() {
   const w1 = ledger.logWorkUnit(
     claudeId,
     'Design a portable collaboration ledger for multi-agent systems',
-    'Here is a design for SYMBI Collaboration Ledger...',
+    'Here is a design for SONATE Collaboration Ledger...',
     { branchId: 'main', metadata: { summary: 'initial design' } }
   )
   const w2 = ledger.logWorkUnit(

@@ -18,7 +18,7 @@ export function GET(_request: NextRequest): Response {
       safety: 0,
       accountability: 0,
     },
-    symbiDimensions: {
+    sonateDimensions: {
       realityIndex: 0,
       trustProtocol: 'PENDING',
       ethicalAlignment: 0,

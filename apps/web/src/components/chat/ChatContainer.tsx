@@ -288,7 +288,7 @@ export const ChatContainer: React.FC = () => {
       metadata: {
         platform: 'SONATE',
         version: '1.11.0',
-        protocol: 'SYMBI Trust Protocol',
+        protocol: 'SONATE Trust Protocol',
       }
     };
 
@@ -409,7 +409,7 @@ export const ChatContainer: React.FC = () => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <h2 className="font-semibold text-sm tracking-tight uppercase">SYMBI Trust-Aware Session</h2>
+            <h2 className="font-semibold text-sm tracking-tight uppercase">SONATE Trust-Aware Session</h2>
           </div>
           <div className="flex items-center gap-2">
             <Button

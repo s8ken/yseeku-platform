@@ -1,7 +1,7 @@
 /**
- * SYMBI Framework Detector
+ * SONATE Framework Detector
  *
- * This module implements the core detection and validation algorithms for the SYMBI framework.
+ * This module implements the core detection and validation algorithms for the SONATE framework.
  * It analyzes content to determine scores across the 5 dimensions of the framework.
  */
 
@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   AssessmentInput,
   AssessmentResult,
-  SymbiFrameworkAssessment,
+  SonateFrameworkAssessment,
   RealityIndex,
   TrustProtocol,
   TrustStatus,
@@ -18,21 +18,21 @@ import {
   ResonanceQuality,
   ResonanceLevel,
   CanvasParity,
-} from './symbi-types';
+} from './sonate-types';
 
 /**
- * Main class for SYMBI framework detection and validation
+ * Main class for SONATE framework detection and validation
  */
-export class EnhancedSymbiFrameworkDetector {
+export class EnhancedSonateFrameworkDetector {
   /**
-   * Analyze content and generate a complete SYMBI framework assessment
+   * Analyze content and generate a complete SONATE framework assessment
    */
   public async analyzeContent(input: AssessmentInput): Promise<AssessmentResult> {
     // Generate a unique ID for this assessment
     const assessmentId = uuidv4();
     const timestamp = new Date().toISOString();
 
-    // Analyze each dimension of the SYMBI framework
+    // Analyze each dimension of the SONATE framework
     const realityIndex = this.detectRealityIndex(input);
     const trustProtocol = this.detectTrustProtocol(input);
     const ethicalAlignment = this.detectEthicalAlignment(input);
@@ -49,7 +49,7 @@ export class EnhancedSymbiFrameworkDetector {
     });
 
     // Create the complete assessment
-    const assessment: SymbiFrameworkAssessment = {
+    const assessment: SonateFrameworkAssessment = {
       id: assessmentId,
       timestamp,
       contentId: input.metadata?.source || 'unknown',
@@ -70,7 +70,7 @@ export class EnhancedSymbiFrameworkDetector {
       assessment,
       insights,
       validationDetails: {
-        validatedBy: 'SYMBI-Resonate-System',
+        validatedBy: 'SONATE-Resonate-System',
         validationTimestamp: timestamp,
       },
     };
@@ -797,7 +797,7 @@ export class EnhancedSymbiFrameworkDetector {
   /**
    * Generate insights based on assessment results
    */
-  private generateInsights(assessment: SymbiFrameworkAssessment): {
+  private generateInsights(assessment: SonateFrameworkAssessment): {
     strengths: string[];
     weaknesses: string[];
     recommendations: string[];
@@ -862,14 +862,14 @@ export class EnhancedSymbiFrameworkDetector {
     // Overall assessment
     if (assessment.overallScore >= 80) {
       strengths.push(
-        'Overall excellent SYMBI framework alignment with strong performance across dimensions.'
+        'Overall excellent SONATE framework alignment with strong performance across dimensions.'
       );
     } else if (assessment.overallScore <= 50) {
       weaknesses.push(
-        'Overall low SYMBI framework alignment indicates significant room for improvement.'
+        'Overall low SONATE framework alignment indicates significant room for improvement.'
       );
       recommendations.push(
-        'Focus on improving the weakest dimensions to enhance overall SYMBI framework alignment.'
+        'Focus on improving the weakest dimensions to enhance overall SONATE framework alignment.'
       );
     }
 
@@ -884,10 +884,10 @@ export class EnhancedSymbiFrameworkDetector {
    * Validate an existing assessment
    */
   public validateAssessment(
-    assessment: SymbiFrameworkAssessment,
+    assessment: SonateFrameworkAssessment,
     _validatedBy: string,
     _notes?: string
-  ): SymbiFrameworkAssessment {
+  ): SonateFrameworkAssessment {
     return {
       ...assessment,
       validationStatus: 'VALID',
@@ -899,10 +899,10 @@ export class EnhancedSymbiFrameworkDetector {
    * Invalidate an existing assessment
    */
   public invalidateAssessment(
-    assessment: SymbiFrameworkAssessment,
+    assessment: SonateFrameworkAssessment,
     _validatedBy: string,
     _reason: string
-  ): SymbiFrameworkAssessment {
+  ): SonateFrameworkAssessment {
     return {
       ...assessment,
       validationStatus: 'INVALID',

@@ -31,7 +31,7 @@ function buildMarkdownReport(data){
   lines.push('')
   lines.push('## Executive Summary')
   lines.push(`- Total conversations: ${stats.totalConversations}`)
-  lines.push(`- Systems: Claude ${stats.bySystem?.Claude||0}, DeepSeek ${stats.bySystem?.DeepSeek||0}, GPT 4.0 ${stats.bySystem?.['GPT 4.0']||0}, GROK ${stats.bySystem?.GROK||0}, SYMBI ${stats.bySystem?.SYMBI||0}, Wolfram ${stats.bySystem?.Wolfram||0}`)
+  lines.push(`- Systems: Claude ${stats.bySystem?.Claude||0}, DeepSeek ${stats.bySystem?.DeepSeek||0}, GPT 4.0 ${stats.bySystem?.['GPT 4.0']||0}, GROK ${stats.bySystem?.GROK||0}, SONATE ${stats.bySystem?.SONATE||0}, Wolfram ${stats.bySystem?.Wolfram||0}`)
   lines.push(`- Total turns: ${stats.totalTurns}; Total words: ${stats.totalWords}`)
   lines.push(`- Avg turns/conversation: ${stats.avgTurnsPerConversation}`)
   lines.push(`- Avg words/conversation: ${stats.avgWordsPerConversation}`)
@@ -75,7 +75,7 @@ function buildMarkdownReport(data){
   })
   lines.push('')
   lines.push('## Per-System Patterns')
-  ;['Claude','DeepSeek','GPT 4.0','GROK','SYMBI','Wolfram'].forEach(sys => {
+  ;['Claude','DeepSeek','GPT 4.0','GROK','SONATE','Wolfram'].forEach(sys => {
     const list = convs.filter(c => c.aiSystem === sys)
     lines.push(`### ${sys}`)
     lines.push(`- Conversations: ${list.length}`)

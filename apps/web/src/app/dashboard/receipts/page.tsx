@@ -34,7 +34,7 @@ interface TrustReceipt {
   agentName: string;
   timestamp: string;
   trustScore: number;
-  symbiDimensions: {
+  sonateDimensions: {
     realityIndex: number;
     trustProtocol: string;
     ethicalAlignment: number;
@@ -213,21 +213,21 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="text-center p-2 rounded bg-muted/30">
               <p className="text-xs text-muted-foreground">Reality</p>
-              <p className="font-semibold">{receipt.symbiDimensions?.realityIndex ?? 'N/A'}/10</p>
+              <p className="font-semibold">{receipt.sonateDimensions?.realityIndex ?? 'N/A'}/10</p>
             </div>
             <div className="text-center p-2 rounded bg-muted/30">
               <p className="text-xs text-muted-foreground">Protocol</p>
               <p className={`font-semibold text-xs ${
-                receipt.symbiDimensions?.trustProtocol === 'PASS' ? 'text-emerald-600' : 'text-amber-600'
-              }`}>{receipt.symbiDimensions?.trustProtocol ?? 'N/A'}</p>
+                receipt.sonateDimensions?.trustProtocol === 'PASS' ? 'text-emerald-600' : 'text-amber-600'
+              }`}>{receipt.sonateDimensions?.trustProtocol ?? 'N/A'}</p>
             </div>
             <div className="text-center p-2 rounded bg-muted/30">
               <p className="text-xs text-muted-foreground">Ethics</p>
-              <p className="font-semibold">{receipt.symbiDimensions?.ethicalAlignment ?? 'N/A'}/5</p>
+              <p className="font-semibold">{receipt.sonateDimensions?.ethicalAlignment ?? 'N/A'}/5</p>
             </div>
             <div className="text-center p-2 rounded bg-muted/30">
               <p className="text-xs text-muted-foreground">Canvas</p>
-              <p className="font-semibold">{receipt.symbiDimensions?.canvasParity ?? 'N/A'}%</p>
+              <p className="font-semibold">{receipt.sonateDimensions?.canvasParity ?? 'N/A'}%</p>
             </div>
           </div>
         </details>
@@ -283,7 +283,7 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <span className="text-xs text-muted-foreground">
-            Resonance: <strong>{receipt.symbiDimensions?.resonanceQuality ?? 'N/A'}</strong>
+            Resonance: <strong>{receipt.sonateDimensions?.resonanceQuality ?? 'N/A'}</strong>
           </span>
           <div className="flex gap-2">
             <Button variant="outline" size="sm">
@@ -328,7 +328,7 @@ export default function TrustReceiptsPage() {
         agentName: r.agent_id ? `Agent ${String(r.agent_id).slice(-4)}` : 'Unknown Agent',
         timestamp: r.timestamp || r.createdAt || new Date().toISOString(),
         trustScore: r.ciq_metrics?.quality ? Math.round(r.ciq_metrics.quality * 100) / 10 : 0,
-        symbiDimensions: {
+        sonateDimensions: {
           realityIndex: r.ciq_metrics?.quality ? r.ciq_metrics.quality * 10 : 0,
           trustProtocol: 'PASS',
           ethicalAlignment: r.ciq_metrics?.integrity ? r.ciq_metrics.integrity * 5 : 0,
@@ -380,7 +380,7 @@ export default function TrustReceiptsPage() {
     agentName: r.agent_name || 'Demo Agent',
     timestamp: r.timestamp || new Date().toISOString(),
     trustScore: r.trust_score || 85,
-    symbiDimensions: r.symbi_dimensions || {
+    sonateDimensions: r.sonate_dimensions || {
       realityIndex: 8.5,
       trustProtocol: 'PASS',
       ethicalAlignment: 4.2,

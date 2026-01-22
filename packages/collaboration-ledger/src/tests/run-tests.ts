@@ -1,11 +1,11 @@
-import { SYMBICollaborationLedger } from '../index';
+import { SonateCollaborationLedger } from '../index';
 
 function assert(condition: boolean, message?: string) {
   if (!condition) {throw new Error(message || 'Assertion failed');}
 }
 
 (function main() {
-  const ledger = new SYMBICollaborationLedger('project-001');
+  const ledger = new SonateCollaborationLedger('project-001');
   const agentId = ledger.registerAgent({
     agentId: 'gpt-5',
     provider: 'openai',

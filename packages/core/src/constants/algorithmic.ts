@@ -39,7 +39,7 @@ export const BEDAU_INDEX_CONSTANTS = {
 
 /**
  * Resonance Scoring Constants
- * Used for SYMBI resonance calculations and trust scoring
+ * Used for SONATE resonance calculations and trust scoring
  */
 export const RESONANCE_CONSTANTS = {
   /** Canonical weights for resonance dimensions */
@@ -84,7 +84,7 @@ export const RESONANCE_CONSTANTS = {
 
 /**
  * Trust Protocol Constants
- * Used for SYMBI constitutional trust scoring
+ * Used for SONATE constitutional trust scoring
  */
 export const TRUST_PROTOCOL_CONSTANTS = {
   /** Trust score classification thresholds */

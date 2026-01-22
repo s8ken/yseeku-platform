@@ -22,7 +22,7 @@ export interface MFAVerifyResult {
 }
 
 export class MFAService {
-  private readonly issuer = 'SYMBI-Resonate';
+  private readonly issuer = 'SONATE-Resonate';
   private supabase: any = null;
 
   constructor() {

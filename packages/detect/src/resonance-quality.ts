@@ -1,7 +1,7 @@
 /**
  * Resonance Quality Measurer (STRONG/ADVANCED/BREAKTHROUGH)
  *
- * Dimension 4 of SYMBI Framework
+ * Dimension 4 of SONATE Framework
  * Evaluates: Creativity, synthesis quality, innovation markers
  *
  * ENHANCED: Now integrates with the Python-based Resonance Engine

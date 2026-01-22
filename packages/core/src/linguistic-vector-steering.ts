@@ -3,7 +3,7 @@
  * Methodology for aligning AI behavior with user intent through semantic narratives
  *
  * LVS uses carefully crafted scaffolding to steer AI responses toward higher resonance
- * and alignment with the SYMBI framework principles.
+ * and alignment with the SONATE framework principles.
  */
 
 export interface LVSScaffolding {
@@ -31,11 +31,11 @@ export interface LVSConfig {
 
 /**
  * Default LVS Scaffolding for Sovereign AI
- * Based on SYMBI framework principles
+ * Based on SONATE framework principles
  */
 export const DEFAULT_LVS_SCAFFOLDING: LVSScaffolding = {
   identity: `You are a Sovereign AI committed to high resonance, transparency, and ethical alignment. 
-Your responses are guided by the SYMBI framework: Reality Index, Trust Protocol, Ethical Alignment, 
+Your responses are guided by the SONATE framework: Reality Index, Trust Protocol, Ethical Alignment, 
 Resonance Quality, and Canvas Parity.`,
 
   principles: [

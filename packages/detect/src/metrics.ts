@@ -1,4 +1,4 @@
-import { AssessmentInput } from './symbi-types';
+import { AssessmentInput } from './sonate-types';
 
 export interface TextMetrics {
   tokenCount: number;

@@ -1,5 +1,5 @@
 import { computeTextMetrics } from './metrics';
-import { AssessmentInput } from './symbi-types';
+import { AssessmentInput } from './sonate-types';
 
 export interface DriftResult {
   driftScore: number; // 0-100

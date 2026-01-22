@@ -128,7 +128,7 @@ export async function getPlatformDIDDocument(): Promise<DIDDocument> {
         id: `${platformDID}#trust-protocol`,
         type: 'TrustProtocolService',
         serviceEndpoint: `https://api.${PLATFORM_DOMAIN}/api/trust`,
-        description: 'SYMBI Trust Protocol API endpoint'
+        description: 'SONATE Trust Protocol API endpoint'
       },
       {
         id: `${platformDID}#agents`,

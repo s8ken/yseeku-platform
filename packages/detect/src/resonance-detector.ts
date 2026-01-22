@@ -1,17 +1,14 @@
 /**
  * Resonance Detector for Real-Time R_m Monitoring
  * Part of @sonate/detect - Real-time AI Detection & Scoring
+ * 
+ * NOTE: This module uses simplified heuristics for resonance calculation.
+ * Full transformer-based embeddings are planned for v2.1.
+ * See: https://github.com/s8ken/yseeku-platform/issues/XXX
  */
 
-// Temporarily commented out due to build issues
-// import {
-//   calculateResonanceMetrics,
-//   ResonanceMetrics,
-//   InteractionContext,
-//   RESONANCE_THRESHOLDS
-// } from '@sonate/core';
-
-// Temporary mock implementations
+// Types defined locally to avoid circular dependency with @sonate/core
+// TODO(v2.1): Consolidate with @sonate/core/resonance-metric.ts
 export interface ResonanceMetrics {
   vectorAlignment: number;
   contextualContinuity: number;
@@ -40,15 +37,41 @@ export const RESONANCE_THRESHOLDS = {
 };
 
 export function calculateResonanceMetrics(context: InteractionContext): ResonanceMetrics {
-  // Mock implementation
+  /**
+   * Simplified resonance calculation using word-overlap heuristics.
+   * Production enhancement: Replace with transformer embeddings (OpenAI, Sentence-Transformers)
+   * for true semantic similarity measurement.
+   */
+  const userWords = new Set(context.userInput.toLowerCase().split(/\s+/));
+  const responseWords = new Set(context.aiResponse.toLowerCase().split(/\s+/));
+  
+  // Jaccard similarity as proxy for alignment
+  const intersection = [...userWords].filter(w => responseWords.has(w)).length;
+  const union = new Set([...userWords, ...responseWords]).size;
+  const vectorAlignment = union > 0 ? intersection / union : 0.5;
+  
+  // Simplified metrics (replace with proper calculations in v2.1)
+  const contextualContinuity = 0.6;
+  const semanticMirroring = Math.min(vectorAlignment * 1.2, 1.0);
+  const entropyDelta = 0.3;
+  
+  // R_m formula: ((V_align × 0.5) + (C_hist × 0.3) + (S_match × 0.2)) / (1 + δ_entropy)
+  const R_m = ((vectorAlignment * 0.5) + (contextualContinuity * 0.3) + (semanticMirroring * 0.2)) / (1 + entropyDelta);
+  
+  // Determine alert level
+  let alertLevel: ResonanceMetrics['alertLevel'] = 'GREEN';
+  if (R_m < RESONANCE_THRESHOLDS.RED) alertLevel = 'CRITICAL';
+  else if (R_m < RESONANCE_THRESHOLDS.YELLOW) alertLevel = 'RED';
+  else if (R_m < RESONANCE_THRESHOLDS.GREEN) alertLevel = 'YELLOW';
+  
   return {
-    vectorAlignment: 0.7,
-    contextualContinuity: 0.6,
-    semanticMirroring: 0.8,
-    entropyDelta: 0.3,
-    R_m: 0.65,
-    alertLevel: 'YELLOW',
-    interpretation: 'Moderate resonance detected',
+    vectorAlignment,
+    contextualContinuity,
+    semanticMirroring,
+    entropyDelta,
+    R_m,
+    alertLevel,
+    interpretation: `Resonance score: ${R_m.toFixed(2)} (${alertLevel})`,
   };
 }
 

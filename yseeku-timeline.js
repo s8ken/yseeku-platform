@@ -42,7 +42,7 @@ function generateMockTimelineEvents() {
           'Performance degradation warning';
         break;
       case 'symbi':
-        event.title = `SYMBI Framework Update - ${agent}`;
+        event.title = `SONATE Framework Update - ${agent}`;
         event.description = 'Constitutional parameters adjusted';
         event.reality = 6 + Math.random() * 4;
         event.ethics = 6 + Math.random() * 4;

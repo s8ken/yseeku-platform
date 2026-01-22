@@ -1,6 +1,6 @@
 # YSEEKU Platform Backend
 
-Enterprise-grade backend API integrating **SecureAuthService** from `@sonate/core` with **MongoDB** and the **SYMBI Trust Protocol**.
+Enterprise-grade backend API integrating **SecureAuthService** from `@sonate/core` with **MongoDB** and the **SONATE Trust Protocol**.
 
 ## 🎯 What's Been Integrated
 
@@ -84,7 +84,7 @@ You should see:
 ║   Environment: development                        ║
 ║   Database:    MongoDB Connected                  ║
 ║   Security:    SecureAuthService Enabled          ║
-║   Trust:       SYMBI Protocol Active              ║
+║   Trust:       SONATE Protocol Active              ║
 ╚═══════════════════════════════════════════════════╝
 ```
 
@@ -387,7 +387,7 @@ lsof -ti:3001 | xargs kill -9
 ### Using from yseeku-platform
 - `packages/core/src/security/auth-service.ts` - SecureAuthService
 - `packages/core/src/security/mfa-system.ts` - MFAService (not yet wired)
-- `packages/core/src/trust-protocol.ts` - SYMBI Trust Protocol
+- `packages/core/src/trust-protocol.ts` - SONATE Trust Protocol
 
 ---
 

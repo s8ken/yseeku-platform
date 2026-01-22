@@ -12,7 +12,7 @@ import {
 import { TrustProtocol } from './trust-protocol';
 
 export interface EnhancedTrustScore {
-  // Original SYMBI dimensions
+  // Original SONATE dimensions
   realityIndex: number; // 0-10
   trustProtocol: 'PASS' | 'PARTIAL' | 'FAIL';
   ethicalAlignment: number; // 1-5
@@ -61,7 +61,7 @@ export class EnhancedTrustProtocol extends TrustProtocol {
       metadata: interaction.metadata,
     });
 
-    // Calculate base SYMBI dimensions
+    // Calculate base SONATE dimensions
     const realityIndex = this.calculateRealityIndex(interaction);
     const trustProtocol = this.calculateTrustProtocol(interaction, resonanceMetrics.R_m);
     const ethicalAlignment = this.calculateEthicalAlignment(interaction);

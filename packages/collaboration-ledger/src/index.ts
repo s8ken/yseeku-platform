@@ -49,7 +49,7 @@ class SimpleMerkleTree {
   }
 }
 
-export class SYMBICollaborationLedger {
+export class SonateCollaborationLedger {
   private workUnits: WorkUnit[] = [];
   private decisions: DecisionCheckpoint[] = [];
   private agents: Map<string, AgentAttestation> = new Map();

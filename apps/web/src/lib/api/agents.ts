@@ -22,7 +22,7 @@ export interface Agent {
   type: string;
   status: string;
   trustScore: number;
-  symbiDimensions: {
+  sonateDimensions: {
     realityIndex: number;
     trustProtocol: number;
     ethicalAlignment: number;

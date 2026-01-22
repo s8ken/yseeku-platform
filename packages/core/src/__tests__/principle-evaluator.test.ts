@@ -1,7 +1,7 @@
 /**
  * Tests for PrincipleEvaluator
  * 
- * Verifies that each of the 6 SYMBI principles is evaluated correctly
+ * Verifies that each of the 6 SONATE principles is evaluated correctly
  * based on actual system state, not NLP proxies.
  */
 

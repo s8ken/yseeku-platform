@@ -172,7 +172,7 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
       alertsCount: alertSummary.active,
       experimentsRunning: experiments,
       orchestratorsActive: 3,
-      symbiDimensions: {
+      sonateDimensions: {
         realityIndex: Math.round(avgQuality * 2 * 10) / 10,
         trustProtocol: trustScore >= 7 ? 'PASS' : trustScore >= 5 ? 'PARTIAL' : 'FAIL',
         ethicalAlignment: Math.round(avgIntegrity * 10) / 10,

@@ -225,7 +225,7 @@ async function seedConversations(userId: string, agentIds: string[]): Promise<vo
       agentIndex: 1, // Nova
       messages: [
         { sender: 'user', content: 'Write compelling copy for our new AI Trust Platform launch', trustScore: 4.4 },
-        { sender: 'ai', content: '**Headline Options:**\n\n1. "Trust, Verified. Every AI Interaction, Accountable."\n2. "The Trust Layer Your AI Stack Has Been Missing"\n3. "From Black Box to Glass Box: AI You Can Prove"\n\n**Body Copy:**\n\nIn a world where AI decisions impact millions, trust isn\'t optional—it\'s essential. YSEEKU gives you cryptographic proof of every AI interaction, real-time drift detection, and the confidence to deploy AI at scale.\n\n✓ Ed25519 signed trust receipts\n✓ 6-principle SYMBI framework\n✓ Enterprise compliance out of the box', trustScore: 4.6 },
+        { sender: 'ai', content: '**Headline Options:**\n\n1. "Trust, Verified. Every AI Interaction, Accountable."\n2. "The Trust Layer Your AI Stack Has Been Missing"\n3. "From Black Box to Glass Box: AI You Can Prove"\n\n**Body Copy:**\n\nIn a world where AI decisions impact millions, trust isn\'t optional—it\'s essential. YSEEKU gives you cryptographic proof of every AI interaction, real-time drift detection, and the confidence to deploy AI at scale.\n\n✓ Ed25519 signed trust receipts\n✓ 6-principle SONATE framework\n✓ Enterprise compliance out of the box', trustScore: 4.6 },
       ],
     },
   ];
@@ -323,11 +323,11 @@ async function seedAlerts(): Promise<void> {
       tenantId: DEMO_TENANT_ID,
       type: 'compliance_warning',
       title: 'Compliance Check Due',
-      description: 'Monthly SYMBI compliance report generation scheduled',
+      description: 'Monthly SONATE compliance report generation scheduled',
       severity: 'info',
       status: 'active',
       timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-      metadata: { reportType: 'SYMBI', dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000) },
+      metadata: { reportType: 'SONATE', dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000) },
     },
     {
       tenantId: DEMO_TENANT_ID,

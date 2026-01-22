@@ -13,7 +13,7 @@ The YSEEKU Platform incorporates cutting-edge research in AI emergence, consciou
 - [Emergence Fingerprinting](EMERGENCE_FINGERPRINTING.md) - Pattern identification
 
 ### **Constitutional AI**
-- [SYMBI Framework](SYMBI_FRAMEWORK.md) - Constitutional principles
+- [SONATE Framework](SYMBI_FRAMEWORK.md) - Constitutional principles
 - [Trust Protocol Research](TRUST_PROTOCOL.md) - Cryptographic trust
 - [Phase-Shift Velocity](PHASE_SHIFT_VELOCITY.md) - Emergence dynamics
 - [Identity Coherence](IDENTITY_COHERENCE.md) - Agent consistency

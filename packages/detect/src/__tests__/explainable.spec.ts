@@ -1,5 +1,5 @@
 // @sonate/detect/__tests__/explainable.spec.ts
-import { explainableSymbiResonance } from '../calculator';
+import { explainableSonateResonance } from '../calculator';
 
 const EXPLAIN_TESTS = [
   {
@@ -28,7 +28,7 @@ const EXPLAIN_TESTS = [
 
 describe('Explainable Resonance', () => {
   test.each(EXPLAIN_TESTS)('$name', async ({ input, expect: expected }) => {
-    const result = await explainableSymbiResonance(input);
+    const result = await explainableSonateResonance(input);
 
     if (expected.r_m_exact !== undefined) {
       expect(result.r_m).toBe(expected.r_m_exact);

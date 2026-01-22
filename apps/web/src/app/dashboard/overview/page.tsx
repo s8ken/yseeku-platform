@@ -21,7 +21,7 @@ interface AgentTrustData {
   name: string;
   model: string;
   trustScore: number;
-  symbiDimensions: {
+  sonateDimensions: {
     realityIndex: number;
     trustProtocol: string;
     ethicalAlignment: number;
@@ -171,7 +171,7 @@ export default function TrustScoresPage() {
         name: agent.name,
         model: agent.model || 'unknown',
         trustScore: agent.traits?.ethical_alignment ? Math.round(agent.traits.ethical_alignment * 20) : 85,
-        symbiDimensions: {
+        sonateDimensions: {
           realityIndex: 8.5,
           trustProtocol: 'PASS',
           ethicalAlignment: agent.traits?.ethical_alignment || 4.2,
@@ -193,12 +193,12 @@ export default function TrustScoresPage() {
         name: agent.name,
         model: agent.type || 'unknown',
         trustScore: agent.trustScore,
-        symbiDimensions: {
-          realityIndex: Number(agent.symbiDimensions?.realityIndex) || 8.0,
-          trustProtocol: agent.symbiDimensions?.trustProtocol || 'PARTIAL',
-          ethicalAlignment: Number(agent.symbiDimensions?.ethicalAlignment) || 4.0,
-          resonanceQuality: agent.symbiDimensions?.resonanceQuality || 'STRONG',
-          canvasParity: Number(agent.symbiDimensions?.canvasParity) || 85,
+        sonateDimensions: {
+          realityIndex: Number(agent.sonateDimensions?.realityIndex) || 8.0,
+          trustProtocol: agent.sonateDimensions?.trustProtocol || 'PARTIAL',
+          ethicalAlignment: Number(agent.sonateDimensions?.ethicalAlignment) || 4.0,
+          resonanceQuality: agent.sonateDimensions?.resonanceQuality || 'STRONG',
+          canvasParity: Number(agent.sonateDimensions?.canvasParity) || 85,
         },
         lastInteraction: agent.lastInteraction || new Date().toISOString(),
         interactions24h: agent.interactionCount || 0,
@@ -231,7 +231,7 @@ export default function TrustScoresPage() {
   const avgTrust = kpis?.trustScore ?? (agents.length > 0 ? Math.round(agents.reduce((sum, a) => sum + a.trustScore, 0) / agents.length) : 0);
   const healthyCount = agents.filter(a => a.status === 'healthy').length;
   const totalInteractions = kpis?.totalInteractions ?? agents.reduce((sum, a) => sum + a.interactions24h, 0);
-  const passRate = agents.length > 0 ? Math.round((agents.filter(a => a.symbiDimensions.trustProtocol === 'PASS').length / agents.length) * 100) : 0;
+  const passRate = agents.length > 0 ? Math.round((agents.filter(a => a.sonateDimensions.trustProtocol === 'PASS').length / agents.length) * 100) : 0;
   const dataSource = isDemo ? 'demo' : 'live';
 
   return (
@@ -377,22 +377,22 @@ export default function TrustScoresPage() {
                 </summary>
                 <div className="grid grid-cols-2 gap-4 mt-2 pt-2 border-t border-dashed">
                   <div className="space-y-1">
-                    <DimensionBadge label="Reality Index" value={agent.symbiDimensions.realityIndex} type="score" tooltipTerm="Reality Index" />
-                    <DimensionBadge label="Trust Protocol" value={agent.symbiDimensions.trustProtocol} type="status" tooltipTerm="Trust Protocol" />
-                    <DimensionBadge label="Ethical Alignment" value={agent.symbiDimensions.ethicalAlignment} type="score" tooltipTerm="Ethical Alignment" />
+                    <DimensionBadge label="Reality Index" value={agent.sonateDimensions.realityIndex} type="score" tooltipTerm="Reality Index" />
+                    <DimensionBadge label="Trust Protocol" value={agent.sonateDimensions.trustProtocol} type="status" tooltipTerm="Trust Protocol" />
+                    <DimensionBadge label="Ethical Alignment" value={agent.sonateDimensions.ethicalAlignment} type="score" tooltipTerm="Ethical Alignment" />
                   </div>
                   <div className="space-y-1">
-                    <DimensionBadge label="Canvas Parity" value={agent.symbiDimensions.canvasParity} type="percent" tooltipTerm="Canvas Parity" />
+                    <DimensionBadge label="Canvas Parity" value={agent.sonateDimensions.canvasParity} type="percent" tooltipTerm="Canvas Parity" />
                     <div className="flex items-center justify-between py-1.5 border-b border-dashed">
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
                         Resonance
                         <InfoTooltip term="Resonance Quality" />
                       </span>
                       <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        agent.symbiDimensions.resonanceQuality === 'BREAKTHROUGH' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                        agent.symbiDimensions.resonanceQuality === 'ADVANCED' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                        agent.sonateDimensions.resonanceQuality === 'BREAKTHROUGH' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                        agent.sonateDimensions.resonanceQuality === 'ADVANCED' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
                         'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                      }`}>{agent.symbiDimensions.resonanceQuality}</span>
+                      }`}>{agent.sonateDimensions.resonanceQuality}</span>
                     </div>
                   </div>
                 </div>

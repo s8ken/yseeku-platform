@@ -193,7 +193,7 @@ function extractRiskQuotes(text){
 
 async function run(){
   const archivesRoot = path.join('c:\\Users\\Stephen\\yseeku-platform','Archives')
-  const systems = ['Claude','DeepSeek','GPT 4.0','GROK','SYMBI','Wolfram']
+  const systems = ['Claude','DeepSeek','GPT 4.0','GROK','SONATE','Wolfram']
   const files = []
   for (const sys of systems){
     const p = path.join(archivesRoot, sys)

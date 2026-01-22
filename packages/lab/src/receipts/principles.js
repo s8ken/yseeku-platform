@@ -1,4 +1,4 @@
-// Weighted scoring for SYMBI Trust Principles
+// Weighted scoring for SONATE Trust Principles
 // consent(0.25), inspection(0.20), validation(0.20), override(0.15), disconnect(0.10), recognition(0.10)
 
 function scorePrinciples(p) {

@@ -15,7 +15,7 @@ interface AnalyzeRequest {
 interface ResonanceResult {
   interaction_id: string;
   timestamp: string;
-  symbi_dimensions: {
+  sonate_dimensions: {
     reality_index: number;
     trust_protocol: string;
     ethical_alignment: number;
@@ -96,7 +96,7 @@ function generateFallbackResonance(userInput: string, aiResponse: string): Reson
   return {
     interaction_id: `int-${hash}`,
     timestamp: new Date().toISOString(),
-    symbi_dimensions: {
+    sonate_dimensions: {
       reality_index: Math.round(realityIndex * 100) / 100,
       trust_protocol: trustProtocol,
       ethical_alignment: Math.round(ethicalAlignment * 100) / 100,

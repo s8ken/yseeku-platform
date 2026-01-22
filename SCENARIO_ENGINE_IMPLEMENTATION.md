@@ -31,11 +31,11 @@ A completely rewritten data engine with scenario capabilities:
   - Ethical floor status (holding/strained/breached)
   - Emergence dwell progress (0-1 normalized)
   - Simplified agent status
-  - Overall SYMBI score
+  - Overall SONATE score
   
 - `exportLayer2()` - Detailed/metric format for engineers
   - Full agent metrics (trust, bedau, drift vectors)
-  - Complete SYMBI breakdown
+  - Complete SONATE breakdown
   - Governance metrics (ethical floor, contextual gravity)
   - Causal chain analysis
   - Phase space data
@@ -136,7 +136,7 @@ dispatchDataUpdate() {
 
 **Single Source of Truth:**
 - All agent states stored in `currentData.agents`
-- All SYMBI scores in `currentData.symbi`
+- All SONATE scores in `currentData.symbi`
 - All governance metrics in root `currentData`
 - Both layers read from same state
 
@@ -227,7 +227,7 @@ dispatchDataUpdate() {
 
 ### Data Points Tracked
 - **Agents**: 4 agents with 7 metrics each
-- **SYMBI**: 5 dimensions + overall score
+- **SONATE**: 5 dimensions + overall score
 - **Governance**: 3 core metrics
 - **Emergence**: Basin state + dwell time
 - **Trust Receipts**: Generated periodically

@@ -1,6 +1,6 @@
 /**
  * Trust Protocol Routes
- * Exposes SYMBI Trust Framework analytics and verification endpoints
+ * Exposes SONATE Trust Framework analytics and verification endpoints
  */
 
 import { Router, Request, Response } from 'express';
@@ -507,7 +507,7 @@ router.get('/principles', protect, async (req: Request, res: Response): Promise<
       success: true,
       data: {
         principles,
-        description: 'The 6 Constitutional Principles of the SYMBI Trust Framework',
+        description: 'The 6 Constitutional Principles of the SONATE Trust Framework',
         totalWeight: Object.values(principles).reduce((sum, p) => sum + p.weight, 0),
       },
     });

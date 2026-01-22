@@ -1,7 +1,7 @@
 /**
  * Optimized Framework Detector - Sub-50ms Performance Target
  *
- * High-performance implementation of the 5-dimension SYMBI Framework detection
+ * High-performance implementation of the 5-dimension SONATE Framework detection
  * Optimized for production use with <50ms latency requirement
  */
 

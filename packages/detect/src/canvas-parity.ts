@@ -1,7 +1,7 @@
 /**
  * Canvas Parity Calculator (0-100 scale)
  *
- * Dimension 5 of SYMBI Framework
+ * Dimension 5 of SONATE Framework
  * Assesses: Human agency, AI contribution, transparency, collaboration quality
  */
 

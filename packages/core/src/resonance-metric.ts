@@ -44,7 +44,7 @@ export interface InteractionContext {
 
 /**
  * Default weights for resonance calculation
- * Optimized based on SYMBI framework research
+ * Optimized based on SONATE framework research
  */
 export const DEFAULT_RESONANCE_WEIGHTS: ResonanceWeights = {
   vectorAlignment: 0.5, // Highest weight - direct alignment

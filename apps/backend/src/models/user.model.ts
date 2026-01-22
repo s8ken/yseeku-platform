@@ -26,7 +26,7 @@ export interface IUser extends Document {
     theme: 'light' | 'dark' | 'system';
     notifications: boolean;
   };
-  // SYMBI Consent tracking for CONSENT_ARCHITECTURE principle
+  // SONATE Consent tracking for CONSENT_ARCHITECTURE principle
   // NOTE: hasConsentedToAI tracks EXPLICIT consent/withdrawal only.
   // Implied consent is granted by actively engaging in a chat session.
   // If hasConsentedToAI is false AND consentTimestamp exists, user explicitly withdrew.
@@ -112,7 +112,7 @@ const UserSchema = new Schema<IUser>({
       default: true,
     },
   },
-  // SYMBI Consent tracking for CONSENT_ARCHITECTURE principle
+  // SONATE Consent tracking for CONSENT_ARCHITECTURE principle
   consent: {
     hasConsentedToAI: {
       type: Boolean,

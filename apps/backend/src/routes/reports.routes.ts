@@ -88,8 +88,8 @@ router.get('/types', protect, (req: Request, res: Response): void => {
       },
       {
         id: 'symbi_compliance',
-        name: 'SYMBI Compliance Report',
-        description: 'Detailed SYMBI principle compliance analysis with certification readiness',
+        name: 'SONATE Compliance Report',
+        description: 'Detailed SONATE principle compliance analysis with certification readiness',
         formats: ['json', 'html'],
       },
       {

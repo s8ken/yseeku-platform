@@ -1,8 +1,8 @@
-import { EnhancedSymbiFrameworkDetector } from '../detector-enhanced';
+import { EnhancedSonateFrameworkDetector } from '../detector-enhanced';
 
-describe('EnhancedSymbiFrameworkDetector', () => {
+describe('EnhancedSonateFrameworkDetector', () => {
   test('analyzeContent produces assessment and insights', async () => {
-    const det = new EnhancedSymbiFrameworkDetector();
+    const det = new EnhancedSonateFrameworkDetector();
     const res = await det.analyzeContent({
       content: 'Creative synthesis with secure verification and ethical clarity.',
     });

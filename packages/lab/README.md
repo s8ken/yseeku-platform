@@ -17,7 +17,7 @@ Dynamic behavioral tracking that transforms static analysis into dynamic behavio
 Comprehensive analysis of historical conversation data:
 
 - **Multi-Format Support**: MHTML and JSON archive processing
-- **AI System Coverage**: Claude, DeepSeek, GPT, GROK, SYMBI, Wolfram
+- **AI System Coverage**: Claude, DeepSeek, GPT, GROK, SONATE, Wolfram
 - **Automatic Scoring**: Content-based resonance and canvas scoring
 - **Statistical Analysis**: T-tests, confidence intervals, effect sizes
 - **Parameter Optimization**: Automated threshold calibration

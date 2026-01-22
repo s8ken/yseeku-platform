@@ -1,24 +1,24 @@
-import { EnhancedSymbiFrameworkDetector } from './detector-enhanced';
+import { EnhancedSonateFrameworkDetector } from './detector-enhanced';
 import {
   AssessmentInput,
   AssessmentResult,
-  SymbiFrameworkAssessment,
+  SonateFrameworkAssessment,
   RealityIndex,
   TrustProtocol,
   EthicalAlignment,
   ResonanceQuality,
   CanvasParity,
-} from './symbi-types';
+} from './sonate-types';
 
 /**
- * BalancedSymbiDetector
+ * BalancedSonateDetector
  * Applies conservative weighting and penalty smoothing to reduce false positives
  */
-export class BalancedSymbiDetector {
-  private base: EnhancedSymbiFrameworkDetector;
+export class BalancedSonateDetector {
+  private base: EnhancedSonateFrameworkDetector;
 
   constructor() {
-    this.base = new EnhancedSymbiFrameworkDetector();
+    this.base = new EnhancedSonateFrameworkDetector();
   }
 
   async analyzeContent(input: AssessmentInput): Promise<AssessmentResult> {
@@ -28,7 +28,7 @@ export class BalancedSymbiDetector {
     return { assessment: adjusted, insights, validationDetails: result.validationDetails };
   }
 
-  private applyBalancedTransform(a: SymbiFrameworkAssessment): SymbiFrameworkAssessment {
+  private applyBalancedTransform(a: SonateFrameworkAssessment): SonateFrameworkAssessment {
     const realityIndex = this.smoothReality(a.realityIndex);
     const trustProtocol = this.conservativeTrust(a.trustProtocol);
     const ethicalAlignment = this.smoothEthics(a.ethicalAlignment);

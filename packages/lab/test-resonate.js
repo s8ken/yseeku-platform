@@ -12,7 +12,7 @@
 import { runComprehensiveTests } from './dist/test-runner.js';
 
 async function main() {
-  console.log('🚀 SYMBI Resonate Feature Testing CLI');
+  console.log('🚀 SONATE Resonate Feature Testing CLI');
   console.log('=====================================\n');
   
   try {

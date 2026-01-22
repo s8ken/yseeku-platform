@@ -548,7 +548,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
           // Fetch user for consent status if not already loaded
           const currentUser = await User.findById(req.userId) as IUser | null;
           
-          // Build proper evaluation context for SYMBI principles
+          // Build proper evaluation context for SONATE principles
           // IMPORTANT: Active participation in chat session constitutes IMPLIED CONSENT
           // The user chose to engage in this conversation - that is their consent signal.
           // This aligns with standard consent models where using a service = agreeing to its terms.

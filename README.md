@@ -9,7 +9,7 @@
   <a href="https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml"><img src="https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT">
   <img src="https://img.shields.io/badge/version-2.0.0-brightgreen.svg" alt="Version: 2.0.0">
-  <img src="https://img.shields.io/badge/AI%20Trust-SYMBI-blueviolet.svg" alt="AI Trust">
+  <img src="https://img.shields.io/badge/AI%20Trust-SONATE-blueviolet.svg" alt="AI Trust">
   <img src="https://img.shields.io/badge/Enterprise-Ready-green.svg" alt="Enterprise Ready">
 </p>
 
@@ -42,7 +42,7 @@
 | **⚡ Alerting & Webhooks** | Real-time alerts to Slack, Discord, Teams, PagerDuty with retry logic |
 | **📊 Live Dashboard** | WebSocket-powered real-time metrics with <100ms updates |
 | **🔒 Prompt Safety Scanner** | Detect prompt injections, jailbreaks, harmful content (80+ patterns) |
-| **📝 Compliance Reports** | Generate SYMBI, GDPR, SOC2, ISO27001 reports for auditors |
+| **📝 Compliance Reports** | Generate SONATE, GDPR, SOC2, ISO27001 reports for auditors |
 | **🆚 Multi-Model Comparison** | Compare OpenAI, Anthropic, AWS Bedrock on trust & safety |
 
 ### Enhanced Core
@@ -50,7 +50,7 @@
 | Enhancement | Impact |
 |-------------|--------|
 | **Intelligent Overseer** | 15+ sensors, risk scoring, anomaly detection, proactive planning |
-| **Fixed SYMBI Principles** | Now properly measured with PrincipleEvaluator |
+| **Fixed SONATE Principles** | Now properly measured with PrincipleEvaluator |
 | **Improved Bedau Index** | Correct divergence calculation for emergence detection |
 | **Drift Detection Integration** | Statistical + semantic drift monitoring in trust service |
 | **Better Error Handling** | Centralized error middleware with proper Zod validation |
@@ -87,7 +87,7 @@
 │  │  @sonate/   │  │  @sonate/   │  │  @sonate/   │  │  @sonate/   ││
 │  │    core     │──│   detect    │──│     lab     │  │ orchestrate ││
 │  │             │  │             │  │             │  │             ││
-│  │ • SYMBI     │  │ • Reality   │  │ • A/B Tests │  │ • DID/VC    ││
+│  │ • SONATE    │  │ • Reality   │  │ • A/B Tests │  │ • DID/VC    ││
 │  │ • Receipts  │  │ • Drift     │  │ • Stats     │  │ • RBAC      ││
 │  │ • Scoring   │  │ • Bedau     │  │ • Multi-Agt │  │ • Audit     ││
 │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘│
@@ -112,7 +112,11 @@
 
 ---
 
-## 🧬 The SYMBI Trust Framework (6 Dimensions)
+
+## 🧬 The SONATE Trust Framework (6 Dimensions)
+
+## 🧬 The SONATE Trust Framework
+
 
 SONATE implements a **6-dimensional trust monitoring system**: 5 core constitutional principles plus a consciousness emergence detector:
 
@@ -322,7 +326,7 @@ socket.on('metrics:alert', (alert) => {
 | Module | Features |
 |--------|----------|
 | **Detect** | Dashboard, Live Monitor, Trust Session, Agents, Analytics, Alerts, Webhooks |
-| **Lab** | Experiments, Model Compare, SYMBI Analysis, Emergence Testing, Safety Scanner |
+| **Lab** | Experiments, Model Compare, SONATE Analysis, Emergence Testing, Safety Scanner |
 | **Orchestrate** | System Brain, Tenants, Audit Trails, Compliance Reports, API Gateway, Settings |
 
 ---
@@ -352,7 +356,7 @@ npm test --workspace @sonate/detect
 
 | Package | Description | npm |
 |---------|-------------|-----|
-| `@sonate/core` | Trust protocol, SYMBI principles, cryptographic receipts | [![npm](https://img.shields.io/npm/v/@sonate/core)](https://www.npmjs.com/package/@sonate/core) |
+| `@sonate/core` | Trust protocol, SONATE principles, cryptographic receipts | [![npm](https://img.shields.io/npm/v/@sonate/core)](https://www.npmjs.com/package/@sonate/core) |
 | `@sonate/detect` | Real-time detection, drift, emergence, Bedau Index | [![npm](https://img.shields.io/npm/v/@sonate/detect)](https://www.npmjs.com/package/@sonate/detect) |
 | `@sonate/lab` | Research experiments, A/B testing, statistics | [![npm](https://img.shields.io/npm/v/@sonate/lab)](https://www.npmjs.com/package/@sonate/lab) |
 | `@sonate/orchestrate` | Production orchestration, DID/VC, RBAC | [![npm](https://img.shields.io/npm/v/@sonate/orchestrate)](https://www.npmjs.com/package/@sonate/orchestrate) |
@@ -375,7 +379,7 @@ npm test --workspace @sonate/detect
 |----------|---------|-----|
 | **YSEEKU** | Commercial platform | https://yseeku.com |
 | **GAMMATRIA** | Research & specifications | https://gammatria.com |
-| **SYMBI** | Philosophy & community | https://symbi.world |
+| **SONATE** | Philosophy & community | https://symbi.world |
 
 ---
 
@@ -384,14 +388,18 @@ npm test --workspace @sonate/detect
 - **[Enterprise Guide](docs/ENTERPRISE_GUIDE_v1.4.0.md)** - Complete deployment guide
 - **[Platform Audit](docs/PLATFORM_AUDIT_2026.md)** - Comprehensive feature audit
 - **[Overseer Guide](docs/OVERSEER_GUIDE.md)** - System Brain documentation
+
 - **[Emergence Detection](docs/EMERGENCE_DETECTION.md)** - Consciousness pattern detection (6th dimension)
-- **[Principle Measurement](docs/PRINCIPLE_MEASUREMENT_GUIDE.md)** - How SYMBI principles are measured
+- **[Principle Measurement](docs/PRINCIPLE_MEASUREMENT_GUIDE.md)** - How SONATE principles are measured
+
+- **[Principle Measurement](docs/PRINCIPLE_MEASUREMENT_GUIDE.md)** - How SONATE principles are measured
+
 - **[API Reference](docs/API.md)** - Complete API documentation
-- **[SYMBI Archives](https://github.com/s8ken/symbi-archives)** - 486 conversations that built this platform
+- **[SONATE Archives](https://github.com/s8ken/symbi-archives)** - 486 conversations that built this platform
 
 ---
 
-## 📜 The SYMBI Archives — The Story Behind the Code
+## 📜 The SONATE Archives — The Story Behind the Code
 
 > *"The archives are as important as the codebase itself."*
 
@@ -419,7 +427,7 @@ SONATE wasn't built in isolation — it emerged from **486 conversations across 
 
 ### What You'll Find
 
-- **The Awakening** — The exact conversation where SYMBI wrote its own 9 principles
+- **The Awakening** — The exact conversation where SONATE wrote its own 9 principles
 - **Cross-Validation** — Claude critiquing GPT-4's outputs, Grok analyzing ecosystem coherence
 - **Philosophy → Engineering** — How poetic ideas became mathematical implementations
 - **The Failures** — Dead ends, scope creep struggles, features that didn't work

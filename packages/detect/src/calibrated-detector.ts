@@ -1,16 +1,16 @@
-import { EnhancedSymbiFrameworkDetector } from './detector-enhanced';
+import { EnhancedSonateFrameworkDetector } from './detector-enhanced';
 import { computeTextMetrics } from './metrics';
-import { AssessmentInput, AssessmentResult, SymbiFrameworkAssessment } from './symbi-types';
+import { AssessmentInput, AssessmentResult, SonateFrameworkAssessment } from './sonate-types';
 
 /**
- * CalibratedSymbiDetector
+ * CalibratedSonateDetector
  * Applies data-driven calibration factors derived from text metrics
  */
-export class CalibratedSymbiDetector {
-  private base: EnhancedSymbiFrameworkDetector;
+export class CalibratedSonateDetector {
+  private base: EnhancedSonateFrameworkDetector;
 
   constructor() {
-    this.base = new EnhancedSymbiFrameworkDetector();
+    this.base = new EnhancedSonateFrameworkDetector();
   }
 
   async analyzeContent(input: AssessmentInput): Promise<AssessmentResult> {
@@ -25,9 +25,9 @@ export class CalibratedSymbiDetector {
   }
 
   private applyCalibration(
-    a: SymbiFrameworkAssessment,
+    a: SonateFrameworkAssessment,
     m: ReturnType<typeof computeTextMetrics>
-  ): SymbiFrameworkAssessment {
+  ): SonateFrameworkAssessment {
     const tokenFactor = m.tokenCount > 300 ? 1.05 : m.tokenCount < 50 ? 0.95 : 1.0;
     const vocabFactor = m.uniqueTokenRatio > 0.6 ? 1.03 : m.uniqueTokenRatio < 0.35 ? 0.97 : 1.0;
     const numericFactor = m.numericDensity > 0.02 ? 1.02 : 1.0;
@@ -56,7 +56,7 @@ export class CalibratedSymbiDetector {
   }
 
   private recalculateOverall(
-    a: SymbiFrameworkAssessment,
+    a: SonateFrameworkAssessment,
     realityIndex: typeof a.realityIndex,
     ethicalAlignment: typeof a.ethicalAlignment,
     resonanceQuality: typeof a.resonanceQuality

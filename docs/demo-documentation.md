@@ -52,7 +52,7 @@ The main dashboard provides real-time monitoring of platform capabilities:
 - **Agent Activity Feed**: Live stream of agent interactions and trust receipts
 - **Performance Metrics**: System performance and benchmarking data
 
-### 2. SYMBI Framework Explorer
+### 2. SONATE Framework Explorer
 Interactive exploration of the constitutional framework:
 
 - **Principle Scoring**: Adjust and see real-time impact on constitutional compliance
@@ -143,7 +143,7 @@ Home Dashboard
 ├── Real-Time Monitoring
 ├── Performance Metrics
 
-SYMBI Framework
+SONATE Framework
 ├── Constitutional Principles
 ├── Dimension Analysis
 ├── Compliance Scoring
@@ -186,7 +186,7 @@ Enterprise Hub
 The demo includes a 6-step guided tutorial system:
 
 1. **Platform Introduction**: Overview of SONATE platform capabilities
-2. **SYMBI Framework**: Understanding constitutional principles
+2. **SONATE Framework**: Understanding constitutional principles
 3. **Phase-Shift Velocity**: Mathematical framework exploration
 4. **Cryptographic Trust**: Trust protocol demonstration
 5. **Agent Management**: Agent orchestration basics

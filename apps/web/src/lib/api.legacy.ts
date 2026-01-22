@@ -139,7 +139,7 @@ export interface KPIData {
   alertsCount: number;
   experimentsRunning: number;
   orchestratorsActive: number;
-  symbiDimensions: {
+  sonateDimensions: {
     realityIndex: number;
     trustProtocol: string;
     ethicalAlignment: number;
@@ -211,7 +211,7 @@ export interface Agent {
   type: string;
   status: string;
   trustScore: number;
-  symbiDimensions: {
+  sonateDimensions: {
     realityIndex: number;
     trustProtocol: number;
     ethicalAlignment: number;

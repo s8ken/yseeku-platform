@@ -91,7 +91,7 @@ export default function VerifyPage() {
         verified: !!record?.verified,
         receiptHash,
         trustScore: record?.trustScore || 0,
-        status: record?.symbiDimensions?.trustProtocol || 'UNKNOWN',
+        status: record?.sonateDimensions?.trustProtocol || 'UNKNOWN',
         timestamp: record?.timestamp || new Date().toISOString(),
         violations: [],
       };
@@ -255,7 +255,7 @@ export default function VerifyPage() {
       const rows = receipts.map((r: any) => [
         r.hash || r.receiptHash || '',
         r.trustScore || r.trust_score || '',
-        r.symbiDimensions?.trustProtocol || r.status || '',
+        r.sonateDimensions?.trustProtocol || r.status || '',
         r.timestamp || r.created_at || '',
         r.agentId || r.session_id || '',
         r.agentId || r.agent_id || '',

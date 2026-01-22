@@ -1,9 +1,9 @@
-import { SymbiFrameworkDetector } from '../framework-detector';
+import { SonateFrameworkDetector } from '../framework-detector';
 import { AIInteraction } from '../index';
 
-describe('SymbiFrameworkDetector (base)', () => {
+describe('SonateFrameworkDetector (base)', () => {
   test('detect returns 5D metrics and receipt hash', async () => {
-    const det = new SymbiFrameworkDetector();
+    const det = new SonateFrameworkDetector();
     const interaction: AIInteraction = {
       content:
         'Mission: verify and validate boundaries with secure, ethical practices.\n- clear steps\n- transparent reasoning',

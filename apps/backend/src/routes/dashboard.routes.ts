@@ -112,8 +112,8 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
     const previousMetrics = calculateTrustMetrics(previousConversations);
     const allMetrics = calculateTrustMetrics(allConversations);
 
-    // Calculate SYMBI dimensions from recent data
-    const symbiDimensions = {
+    // Calculate SONATE dimensions from recent data
+    const sonateDimensions = {
       realityIndex: allMetrics.principleScores.transparency || 8.5,
       trustProtocol: allMetrics.complianceRate >= 80 ? 'PASS' : allMetrics.complianceRate >= 60 ? 'PARTIAL' : 'FAIL',
       ethicalAlignment: Math.round((allMetrics.trustScore / 20) * 10) / 10, // Convert 0-10 to 0-5
@@ -155,7 +155,7 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
       alertsCount,
       experimentsRunning: 0, // Lab experiments not yet implemented
       orchestratorsActive: 0, // Orchestrators not yet implemented
-      symbiDimensions,
+      sonateDimensions,
       trends,
     };
 
@@ -245,7 +245,7 @@ router.get('/risk', protect, async (req: Request, res: Response): Promise<void> 
         const principles = msg.metadata.trustEvaluation.trustScore.principles;
         totalMessages++;
 
-        // Map SYMBI principles to risk categories
+        // Map SONATE principles to risk categories
         if (principles.CONSENT_ARCHITECTURE) principleScores.consent += principles.CONSENT_ARCHITECTURE;
         if (principles.INSPECTION_MANDATE) principleScores.inspection += principles.INSPECTION_MANDATE;
         if (principles.CONTINUOUS_VALIDATION) principleScores.validation += principles.CONTINUOUS_VALIDATION;

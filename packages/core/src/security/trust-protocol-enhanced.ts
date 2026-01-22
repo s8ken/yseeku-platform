@@ -1,7 +1,7 @@
 /**
  * Enhanced Trust Protocol Validator (PASS/PARTIAL/FAIL)
  *
- * Dimension 2 of SYMBI Framework
+ * Dimension 2 of SONATE Framework
  * Checks: Verification methods, boundary maintenance, security awareness
  * Enhanced with cryptographic validation and audit integration
  */

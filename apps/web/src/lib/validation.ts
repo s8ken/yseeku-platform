@@ -81,7 +81,7 @@ export function validateSymbiDimensions(dimensions: any): ValidationResult {
   const errors: ValidationError[] = [];
   
   if (!dimensions || typeof dimensions !== 'object') {
-    return { valid: false, errors: [{ field: 'symbi_dimensions', message: 'Must be an object' }] };
+    return { valid: false, errors: [{ field: 'sonate_dimensions', message: 'Must be an object' }] };
   }
   
   if (dimensions.reality_index !== undefined) {

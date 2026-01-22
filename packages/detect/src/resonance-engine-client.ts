@@ -1,4 +1,4 @@
-import { ResonanceLevel, ResonanceQuality } from './symbi-types';
+import { ResonanceLevel, ResonanceQuality } from './sonate-types';
 
 export interface ResonanceMetrics {
   R_m: number;

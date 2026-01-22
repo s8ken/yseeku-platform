@@ -36,7 +36,7 @@ Based on the comprehensive repository analysis performed earlier, here's a detai
 2. **ExperimentViewer** - Research experiment display
 3. **ReceiptChain** - Trust receipt chain visualization
 4. **TrustDashboard** - Main trust monitoring dashboard
-5. **TrustPillarCard** - 6 SYMBI principles display
+5. **TrustPillarCard** - 6 SONATE principles display
 
 ### SONATE Package Integration
 ```javascript
@@ -249,7 +249,7 @@ import { AgentOrchestrator } from '@sonate/orchestrate';
 
 ## 🎯 Feature Coverage Comparison
 
-### SYMBI Framework Features
+### SONATE Framework Features
 
 | Feature | enterprise-demo | new-demo |
 |---------|----------------|----------|

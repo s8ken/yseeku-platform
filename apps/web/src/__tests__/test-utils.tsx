@@ -94,7 +94,7 @@ export function createMockKPIData(overrides: Partial<any> = {}) {
     alertsCount: 3,
     experimentsRunning: 2,
     orchestratorsActive: 1,
-    symbiDimensions: {
+    sonateDimensions: {
       realityIndex: 8.2,
       trustProtocol: 'stable',
       ethicalAlignment: 8.6,

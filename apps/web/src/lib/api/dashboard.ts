@@ -16,7 +16,7 @@ export interface KPIData {
   alertsCount: number;
   experimentsRunning: number;
   orchestratorsActive: number;
-  symbiDimensions: {
+  sonateDimensions: {
     realityIndex: number;
     trustProtocol: string;
     ethicalAlignment: number;

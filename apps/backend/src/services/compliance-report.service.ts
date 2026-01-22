@@ -291,7 +291,7 @@ class ComplianceReportService {
   }
 
   /**
-   * Generate SYMBI Compliance Report
+   * Generate SONATE Compliance Report
    */
   private async generateSymbiCompliance(config: ReportConfig): Promise<SymbiComplianceReport> {
     const { tenantId, startDate, endDate } = config;
@@ -435,7 +435,7 @@ class ComplianceReportService {
     return {
       meta: this.createMeta('full_audit', config.tenantId, config.startDate, config.endDate),
       trust: trustSummary,
-      symbi: symbiCompliance,
+      sonate: symbiCompliance,
       incidents: incidentReport,
       executiveSummary: {
         overallHealth: symbiCompliance.status,

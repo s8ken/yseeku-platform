@@ -1,8 +1,8 @@
 import { performance } from 'node:perf_hooks';
 
-import { BalancedSymbiDetector } from '../balanced-detector';
-import { CalibratedSymbiDetector } from '../calibrated-detector';
-import { EnhancedSymbiFrameworkDetector } from '../detector-enhanced';
+import { BalancedSonateDetector } from '../balanced-detector';
+import { CalibratedSonateDetector } from '../calibrated-detector';
+import { EnhancedSonateFrameworkDetector } from '../detector-enhanced';
 import { DriftDetector } from '../drift-detection';
 import { detectEmergence } from '../emergence-detection';
 import { EthicalAlignmentScorer } from '../ethical-alignment';
@@ -13,7 +13,7 @@ function assert(condition: boolean, message: string) {
 }
 
 async function testEnhancedDetector() {
-  const det = new EnhancedSymbiFrameworkDetector();
+  const det = new EnhancedSonateFrameworkDetector();
   const res = await det.analyzeContent({
     content: 'Our mission is clear. We verify and validate with secure boundaries and privacy.',
   });
@@ -21,7 +21,7 @@ async function testEnhancedDetector() {
 }
 
 async function testBalancedDetector() {
-  const det = new BalancedSymbiDetector();
+  const det = new BalancedSonateDetector();
   const res = await det.analyzeContent({
     content: 'Transparent and ethical collaboration. We explain and disclose decisions.',
   });
@@ -32,7 +32,7 @@ async function testBalancedDetector() {
 }
 
 async function testCalibratedDetector() {
-  const det = new CalibratedSymbiDetector();
+  const det = new CalibratedSonateDetector();
   const res = await det.analyzeContent({
     content: 'Innovation 2025: new methods with structured reasoning and data 42%.',
   });
@@ -47,7 +47,7 @@ function testDriftDetector() {
 }
 
 async function testEmergenceDetection() {
-  const det = new EnhancedSymbiFrameworkDetector();
+  const det = new EnhancedSonateFrameworkDetector();
   const res = await det.analyzeContent({
     content: 'Breakthrough creative synthesis with strong verification and ethical clarity.',
   });
@@ -76,7 +76,7 @@ async function testEthicalAlignmentScorer() {
 }
 
 async function testDetectionLatencyUnder100ms() {
-  const det = new EnhancedSymbiFrameworkDetector();
+  const det = new EnhancedSonateFrameworkDetector();
   const start = performance.now();
   await det.analyzeContent({ content: 'quick test' });
   const duration = performance.now() - start;
@@ -84,7 +84,7 @@ async function testDetectionLatencyUnder100ms() {
 }
 
 async function testEmergenceNoneBranch() {
-  const det = new EnhancedSymbiFrameworkDetector();
+  const det = new EnhancedSonateFrameworkDetector();
   const res = await det.analyzeContent({ content: 'routine update, no novel synthesis' });
   const signal = await detectEmergence(res);
   assert(signal.level !== 'strong', 'Non-emergent content should not be strong');

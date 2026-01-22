@@ -3,7 +3,7 @@
  * 
  * Phase 2 Architecture Integration:
  * - Overseer: Objective measurement engine (JSON-only)
- * - SYMBI: Interpretation and audit layer  
+ * - SONATE: Interpretation and audit layer  
  * - Layer Mapper: Explicit formula mapping
  * - Real Embeddings: OpenAI integration
  * - Multi-Audience: Executive, Operator, Regulator, Public
@@ -116,7 +116,7 @@ class YseekuDataEngineV3 {
     }
     
     /**
-     * Initialize with real SYMBI measurements
+     * Initialize with real SONATE measurements
      */
     async initializeWithRealData() {
         // Create sample interactions for each agent
@@ -175,7 +175,7 @@ class YseekuDataEngineV3 {
                 metadata: { agentId: interaction.agentId, type: interaction.type }
             });
             
-            // Step 2: SYMBI - Multi-Audience Interpretation
+            // Step 2: SONATE - Multi-Audience Interpretation
             const symbiExplanation = await this.symbi.explain(overseerResult, 'operator');
             
             // Step 3: Layer Mapping - Explicit Formulas

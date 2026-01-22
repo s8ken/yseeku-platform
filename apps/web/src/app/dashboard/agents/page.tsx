@@ -654,21 +654,21 @@ export default function AgentsPage() {
                   </div>
 
                   {/* SYMBI Dimensions (if available) */}
-                  {agent.symbiDimensions && (
+                  {agent.sonateDimensions && (
                     <div className="pt-2 border-t">
                       <div className="text-xs text-muted-foreground mb-2">SYMBI Dimensions</div>
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div>
                           <div className="text-muted-foreground">Reality</div>
-                          <div className="font-medium">{agent.symbiDimensions.realityIndex?.toFixed(1) || 'N/A'}</div>
+                          <div className="font-medium">{agent.sonateDimensions.realityIndex?.toFixed(1) || 'N/A'}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Ethics</div>
-                          <div className="font-medium">{agent.symbiDimensions.ethicalAlignment?.toFixed(1) || 'N/A'}</div>
+                          <div className="font-medium">{agent.sonateDimensions.ethicalAlignment?.toFixed(1) || 'N/A'}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Parity</div>
-                          <div className="font-medium">{agent.symbiDimensions.canvasParity?.toFixed(0) || 'N/A'}%</div>
+                          <div className="font-medium">{agent.sonateDimensions.canvasParity?.toFixed(0) || 'N/A'}%</div>
                         </div>
                       </div>
                     </div>

@@ -1,11 +1,11 @@
-const { SYMBICollaborationLedger } = require('../dist/index.js');
+const { SONATECollaborationLedger } = require('../dist/index.js');
 
 function assert(condition, message) {
   if (!condition) throw new Error(message || 'Assertion failed');
 }
 
 (function main() {
-  const ledger = new SYMBICollaborationLedger('project-001');
+  const ledger = new SONATECollaborationLedger('project-001');
   const agentId = ledger.registerAgent({
     agentId: 'gpt-5',
     provider: 'openai',

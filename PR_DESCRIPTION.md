@@ -11,7 +11,7 @@ This pull request delivers a comprehensive, fully-functional demo of the Yseeku 
 - **Professional design**: Modern UI with Tailwind CSS
 
 ### 🎯 Three Core Modules
-- **DETECT (Blue)**: Real-time monitoring, agent tracking, SYMBI analysis, alerts
+- **DETECT (Blue)**: Real-time monitoring, agent tracking, SONATE analysis, alerts
 - **LAB (Purple)**: Experiments, Bedau calculator, emergence testing, resonance detection  
 - **ORCHESTRATE (Green)**: Trust principles, cryptographic receipts, governance
 
@@ -25,15 +25,15 @@ This pull request delivers a comprehensive, fully-functional demo of the Yseeku 
 
 ### 📊 Complete Pages (14 total)
 1. Overview - Welcome page with module cards
-2. Dashboard - KPI cards, SYMBI radar, trust distribution
+2. Dashboard - KPI cards, SONATE radar, trust distribution
 3. Agent Monitoring - 6 agents with trust scores and metrics
-4. SYMBI Analysis - Framework evaluation with radar chart
+4. SONATE Analysis - Framework evaluation with radar chart
 5. Alerts - Management system with severity levels
 6. Experiments - A/B testing tracking
 7. Bedau Index - Interactive calculator with real-time updates
 8. Emergence Testing - Monitor emergent behaviors
 9. Resonance Detection - AI-human collaboration metrics
-10. Trust Principles - All 6 SYMBI principles with details
+10. Trust Principles - All 6 SONATE principles with details
 11. Trust Receipts - Cryptographic audit trails
 12. Governance - Compliance and risk management
 13. Glossary - Searchable definitions (53+ terms)

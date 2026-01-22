@@ -71,7 +71,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         }
 
         const sessionId = session_id || 'demo-session';
-        const sessionState = await mockKV.get<SessionState>(`symbi:${sessionId}`);
+        const sessionState = await mockKV.get<SessionState>(`sonate:${sessionId}`);
 
         // 3. Calculate Resonance with Stickiness
         const result = await resonanceWithStickiness(transcript, sessionState || undefined);
@@ -80,14 +80,14 @@ export async function POST(req: Request): Promise<NextResponse> {
         if (pythonReceipt) {
             // Adjust R_m based on Python engine's more sophisticated semantic analysis
             // We use a weighted average or replace if Python is considered "Ground Truth"
-            const pythonRm = Math.max(0, Math.min(1, pythonReceipt.symbi_dimensions.reality_index / 10));
+            const pythonRm = Math.max(0, Math.min(1, pythonReceipt.sonate_dimensions.reality_index / 10));
             result.r_m = (result.r_m * 0.4) + (pythonRm * 0.6); // 60% weight to Python Engine
             result.audit_trail.push(`Python Resonance Engine Validation: ${pythonRm.toFixed(3)} (Weighted 60%)`);
         }
 
         // Store new state (30 days TTL)
         if (result.session_state) {
-            await mockKV.set(`symbi:${sessionId}`, result.session_state, { ex: 86400 * 30 });
+            await mockKV.set(`sonate:${sessionId}`, result.session_state, { ex: 86400 * 30 });
         }
 
         const explainableResult = {

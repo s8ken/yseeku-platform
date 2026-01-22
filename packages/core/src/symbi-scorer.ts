@@ -3,7 +3,7 @@
  *
  * Implements: https://gammatria.com/whitepapers/governance-protocol#scoring
  *
- * This is the canonical implementation of SYMBI principle scoring.
+ * This is the canonical implementation of SONATE principle scoring.
  * Used by all modules (Detect, Lab, Orchestrate) for consistent scoring.
  */
 

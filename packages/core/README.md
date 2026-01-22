@@ -4,7 +4,7 @@ Core trust protocol implementation for the SONATE platform.
 
 ## Overview
 
-This package provides the foundational trust infrastructure that all SONATE modules depend on. It implements the SYMBI constitutional framework as specified at [GAMMATRIA.COM](https://gammatria.com).
+This package provides the foundational trust infrastructure that all SONATE modules depend on. It implements the SONATE constitutional framework as specified at [GAMMATRIA.COM](https://gammatria.com).
 
 ## Key Features
 

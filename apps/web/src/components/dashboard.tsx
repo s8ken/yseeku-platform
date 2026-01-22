@@ -57,7 +57,7 @@ export function Dashboard() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">SONATE Dashboard</h1>
-            <p className="text-gray-500 dark:text-slate-400">SYMBI Trust Protocol v1.8.0 Monitoring</p>
+            <p className="text-gray-500 dark:text-slate-400">SONATE Trust Protocol v1.8.0 Monitoring</p>
           </div>
           <div className="flex gap-3">
              {overseerStatus && (

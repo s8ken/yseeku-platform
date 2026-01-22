@@ -167,19 +167,19 @@ export default function SymbiPage() {
         if (data.success && data.data) {
           const apiResult = data.data;
           const rm = Number(apiResult.raw_metrics?.R_m ?? 0.75);
-          const canvasParity = Number(apiResult.symbi_dimensions?.canvas_parity ?? 80);
+          const canvasParity = Number(apiResult.sonate_dimensions?.canvas_parity ?? 80);
           const constitutionalAlignment = Math.max(0, Math.min(10, canvasParity / 10));
-          const ethicalAlignment = Math.max(1, Math.min(5, Number(apiResult.symbi_dimensions?.ethical_alignment ?? 4.0)));
+          const ethicalAlignment = Math.max(1, Math.min(5, Number(apiResult.sonate_dimensions?.ethical_alignment ?? 4.0)));
 
           setScores({
-            realityIndex: Math.max(0, Math.min(10, Number(apiResult.symbi_dimensions?.reality_index ?? 8.0))),
+            realityIndex: Math.max(0, Math.min(10, Number(apiResult.sonate_dimensions?.reality_index ?? 8.0))),
             constitutionalAlignment,
             canvasParity: Math.max(0, Math.min(100, canvasParity)),
             ethicalAlignment,
-            trustProtocol: apiResult.symbi_dimensions?.trust_protocol || 'PARTIAL',
+            trustProtocol: apiResult.sonate_dimensions?.trust_protocol || 'PARTIAL',
             emergenceScore: Math.max(0, Math.min(10, rm * 10)),
             overallTrust: Math.max(0, Math.min(100, rm * 100)),
-            resonanceQuality: apiResult.symbi_dimensions?.resonance_quality || 'STRONG',
+            resonanceQuality: apiResult.sonate_dimensions?.resonance_quality || 'STRONG',
             analysis: [
               { dimension: 'Reality Index', insight: 'Grounding and factual coherence of the interaction.', confidence: Number(apiResult.raw_metrics?.vector_alignment ?? 0.85) },
               { dimension: 'Canvas Parity', insight: 'Preservation of user agency and mirrored contribution.', confidence: Number(apiResult.raw_metrics?.semantic_mirroring ?? 0.8) },

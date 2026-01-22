@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Home, Box, Shield, GitBranch, TestTube2, Menu } from 'lucide-react';
+import { Home, Box, Shield, GitBranch, TestTube2, Menu, Fingerprint } from 'lucide-react';
 
 interface NavItem {
   title: string;
@@ -39,6 +39,11 @@ const navItems: NavItem[] = [
     title: 'Experiment Lab',
     href: '/demo/lab',
     icon: TestTube2,
+  },
+  {
+    title: '/proof Widget',
+    href: '/proof',
+    icon: Fingerprint,
   },
 ];
 

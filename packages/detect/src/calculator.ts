@@ -181,7 +181,7 @@ function simpleEvidence(
   };
 }
 
-export async function explainableSymbiResonance(
+export async function explainableSonateResonance(
   transcript: Transcript,
   options: { max_evidence?: number } = {}
 ): Promise<ExplainedResonance> {
@@ -312,7 +312,7 @@ function calculateRawResonance(transcript: Transcript): { r_m: number; breakdown
   };
 }
 
-export function robustSymbiResonance(transcript: Transcript): RobustResonanceResult {
+export function robustSonateResonance(transcript: Transcript): RobustResonanceResult {
   const text = transcript.text;
 
   // ADVERSARIAL CHECK (blocks gaming)

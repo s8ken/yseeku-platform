@@ -42,7 +42,7 @@ interface KPIData {
   alertsCount: number;
   experimentsRunning: number;
   orchestratorsActive: number;
-  symbiDimensions: {
+  sonateDimensions: {
     realityIndex: number;
     trustProtocol: string;
     ethicalAlignment: number;
@@ -474,28 +474,28 @@ export default function DashboardPage() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   <DetectionMetricCard 
                     title="Reality Index" 
-                    value={kpis.symbiDimensions?.realityIndex ?? 0} 
+                    value={kpis.sonateDimensions?.realityIndex ?? 0} 
                     type="score"
                     icon={Fingerprint}
                     tooltipTerm="Reality Index"
                   />
                   <DetectionMetricCard 
                     title="Trust Protocol" 
-                    value={kpis.symbiDimensions?.trustProtocol ?? 'UNKNOWN'} 
+                    value={kpis.sonateDimensions?.trustProtocol ?? 'UNKNOWN'} 
                     type="status"
                     icon={Shield}
                     tooltipTerm="Trust Protocol"
                   />
                   <DetectionMetricCard 
                     title="Ethical Score" 
-                    value={kpis.symbiDimensions?.ethicalAlignment ?? 0} 
+                    value={kpis.sonateDimensions?.ethicalAlignment ?? 0} 
                     type="ethics"
                     icon={CheckCircle2}
                     tooltipTerm="Ethical Alignment"
                   />
                   <DetectionMetricCard 
                     title="Canvas Parity" 
-                    value={kpis.symbiDimensions?.canvasParity ?? 0} 
+                    value={kpis.sonateDimensions?.canvasParity ?? 0} 
                     type="percent"
                     icon={BarChart3}
                     tooltipTerm="Canvas Parity"
@@ -506,7 +506,7 @@ export default function DashboardPage() {
                     <Zap className="h-5 w-5 text-[var(--detect-primary)]" />
                     <div>
                       <p className="text-xs text-muted-foreground flex items-center gap-1">Resonance Quality <InfoTooltip term="Resonance" /></p>
-                      <p className="font-semibold">{kpis.symbiDimensions?.resonanceQuality ?? 'UNKNOWN'}</p>
+                      <p className="font-semibold">{kpis.sonateDimensions?.resonanceQuality ?? 'UNKNOWN'}</p>
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -514,7 +514,7 @@ export default function DashboardPage() {
                       <div 
                         key={level}
                         className={`h-2 w-8 rounded-full ${
-                          ['STRONG', 'ADVANCED', 'BREAKTHROUGH'].indexOf(kpis.symbiDimensions?.resonanceQuality || '') >= i
+                          ['STRONG', 'ADVANCED', 'BREAKTHROUGH'].indexOf(kpis.sonateDimensions?.resonanceQuality || '') >= i
                             ? 'bg-[var(--detect-primary)]'
                             : 'bg-muted'
                         }`}

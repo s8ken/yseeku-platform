@@ -35,7 +35,7 @@ export const analyzeInteraction = async (req: Request, res: Response) => {
     // await db.receipts.create({ ...receipt, userId: req.user.id });
 
     // 5. Return the Trust Receipt to the Frontend
-    logger.info(`✅ Receipt Minted: ${receipt.symbi_dimensions.trust_protocol}`);
+    logger.info(`✅ Receipt Minted: ${receipt.sonate_dimensions.trust_protocol}`);
     return res.json(receipt);
 
   } catch (error) {

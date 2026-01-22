@@ -176,7 +176,7 @@ class SonateDemo {
     initializeSection(sectionId) {
         switch (sectionId) {
             case 'framework':
-                this.initializeSYMBIFramework();
+                this.initializeSONATEFramework();
                 break;
             case 'detection':
                 this.initializeDetectionDashboard();
@@ -193,7 +193,7 @@ class SonateDemo {
         }
     }
 
-    initializeSYMBIFramework() {
+    initializeSONATEFramework() {
         // Animate principle cards
         const principleCards = document.querySelectorAll('.principle-card');
         principleCards.forEach((card, index) => {
@@ -1182,8 +1182,8 @@ class SonateDemo {
                 content: 'This is the most advanced enterprise AI governance platform. Constitutional AI ensures trust, compliance, and accountability.'
             },
             {
-                title: 'SYMBI Framework',
-                content: 'The 6 SYMBI principles form the foundation of trust: Consent, Explanation, Audit, Override, Disconnect, and Agency.'
+                title: 'SONATE Framework',
+                content: 'The 6 SONATE principles form the foundation of trust: Consent, Explanation, Audit, Override, Disconnect, and Agency.'
             },
             {
                 title: 'Real-Time Detection',

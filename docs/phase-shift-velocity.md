@@ -314,7 +314,7 @@ class VelocityBuffer {
 }
 ```
 
-## Integration with SYMBI Framework
+## Integration with SONATE Framework
 
 ### Constitutional Coherence Calculation
 

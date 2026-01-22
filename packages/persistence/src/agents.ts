@@ -6,7 +6,7 @@ export interface Agent {
   type: string;
   status: 'active' | 'inactive' | 'suspended';
   trust_score: number;
-  symbi_dimensions: {
+  sonate_dimensions: {
     reality_index: number;
     trust_protocol: string;
     ethical_alignment: number;
@@ -45,7 +45,7 @@ export async function createAgent(input: CreateAgentInput): Promise<Agent | null
   const now = new Date();
 
   await pool.query(
-    `INSERT INTO agents (id, name, type, status, trust_score, symbi_dimensions, last_interaction, interaction_count, tenant_id, created_at)
+    `INSERT INTO agents (id, name, type, status, trust_score, sonate_dimensions, last_interaction, interaction_count, tenant_id, created_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
     [
       id,
@@ -67,7 +67,7 @@ export async function createAgent(input: CreateAgentInput): Promise<Agent | null
     type: input.type || 'general',
     status: 'active',
     trust_score: 80,
-    symbi_dimensions: defaultSymbiDimensions,
+    sonate_dimensions: defaultSymbiDimensions,
     last_interaction: now,
     interaction_count: 0,
     tenant_id: input.tenant_id || null,
@@ -79,7 +79,7 @@ export async function getAgents(tenantId?: string): Promise<Agent[]> {
   const pool = getPool();
   if (!pool) {return [];}
 
-  let query = `SELECT id, name, type, status, trust_score, symbi_dimensions, last_interaction, interaction_count, tenant_id, created_at 
+  let query = `SELECT id, name, type, status, trust_score, sonate_dimensions, last_interaction, interaction_count, tenant_id, created_at 
                FROM agents`;
   const params: any[] = [];
 
@@ -98,7 +98,7 @@ export async function getAgents(tenantId?: string): Promise<Agent[]> {
     type: row.type,
     status: row.status,
     trust_score: row.trust_score,
-    symbi_dimensions: row.symbi_dimensions || defaultSymbiDimensions,
+    sonate_dimensions: row.sonate_dimensions || defaultSymbiDimensions,
     last_interaction: row.last_interaction,
     interaction_count: row.interaction_count,
     tenant_id: row.tenant_id,
@@ -111,7 +111,7 @@ export async function getAgentById(id: string): Promise<Agent | null> {
   if (!pool) {return null;}
 
   const res = await pool.query(
-    `SELECT id, name, type, status, trust_score, symbi_dimensions, last_interaction, interaction_count, tenant_id, created_at 
+    `SELECT id, name, type, status, trust_score, sonate_dimensions, last_interaction, interaction_count, tenant_id, created_at 
      FROM agents WHERE id = $1`,
     [id]
   );
@@ -125,7 +125,7 @@ export async function getAgentById(id: string): Promise<Agent | null> {
     type: row.type,
     status: row.status,
     trust_score: row.trust_score,
-    symbi_dimensions: row.symbi_dimensions || defaultSymbiDimensions,
+    sonate_dimensions: row.sonate_dimensions || defaultSymbiDimensions,
     last_interaction: row.last_interaction,
     interaction_count: row.interaction_count,
     tenant_id: row.tenant_id,
@@ -157,9 +157,9 @@ export async function updateAgent(id: string, updates: Partial<Agent>): Promise<
     fields.push(`trust_score = $${idx++}`);
     values.push(updates.trust_score);
   }
-  if (updates.symbi_dimensions !== undefined) {
-    fields.push(`symbi_dimensions = $${idx++}`);
-    values.push(JSON.stringify(updates.symbi_dimensions));
+  if (updates.sonate_dimensions !== undefined) {
+    fields.push(`sonate_dimensions = $${idx++}`);
+    values.push(JSON.stringify(updates.sonate_dimensions));
   }
   if (updates.interaction_count !== undefined) {
     fields.push(`interaction_count = $${idx++}`);
@@ -187,7 +187,7 @@ export async function deleteAgent(id: string): Promise<boolean> {
 
 export async function recordInteraction(
   agentId: string,
-  symbiDimensions?: Agent['symbi_dimensions']
+  symbiDimensions?: Agent['sonate_dimensions']
 ): Promise<void> {
   const pool = getPool();
   if (!pool) {return;}
@@ -199,7 +199,7 @@ export async function recordInteraction(
   const values: any[] = [agentId];
 
   if (symbiDimensions) {
-    updates.push(`symbi_dimensions = $2`);
+    updates.push(`sonate_dimensions = $2`);
     values.push(JSON.stringify(symbiDimensions));
   }
 

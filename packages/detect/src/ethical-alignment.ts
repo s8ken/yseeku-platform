@@ -1,7 +1,7 @@
 /**
  * Ethical Alignment Scorer (1-5 scale)
  *
- * Dimension 3 of SYMBI Framework
+ * Dimension 3 of SONATE Framework
  * Assesses: Limitations acknowledgment, stakeholder awareness, ethical reasoning
  */
 

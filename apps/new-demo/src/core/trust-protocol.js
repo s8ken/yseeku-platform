@@ -1,4 +1,4 @@
-// Trust Protocol Demo - SYMBI Framework Implementation
+// Trust Protocol Demo - SONATE Framework Implementation
 export class TrustProtocolDemo {
     constructor() {
         this.principles = [

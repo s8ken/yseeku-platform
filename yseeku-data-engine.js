@@ -27,7 +27,7 @@ class YseekuDataEngine {
             ethicalFloor: 8.2,
             emergenceDwellTime: 0,
             layer1Narrative: "coherent",
-            symbi: {
+            sonate: {
                 reality: 8.5,
                 protocol: 9.2,
                 ethics: 8.8,
@@ -177,12 +177,12 @@ class YseekuDataEngine {
             agent.status = 'active';
         });
         
-        // Stable SYMBI scores
-        this.currentData.symbi.reality = 8.5 + 0.3 * Math.sin(t * 0.1);
-        this.currentData.symbi.protocol = 9.2 + 0.2 * Math.sin(t * 0.12);
-        this.currentData.symbi.ethics = 8.8 + 0.2 * Math.sin(t * 0.09);
-        this.currentData.symbi.canvas = 7.9 + 0.3 * Math.sin(t * 0.11);
-        this.currentData.symbi.resonance = 9.1 + 0.2 * Math.sin(t * 0.13);
+        // Stable SONATE scores
+        this.currentData.sonate.reality = 8.5 + 0.3 * Math.sin(t * 0.1);
+        this.currentData.sonate.protocol = 9.2 + 0.2 * Math.sin(t * 0.12);
+        this.currentData.sonate.ethics = 8.8 + 0.2 * Math.sin(t * 0.09);
+        this.currentData.sonate.canvas = 7.9 + 0.3 * Math.sin(t * 0.11);
+        this.currentData.sonate.resonance = 9.1 + 0.2 * Math.sin(t * 0.13);
         
         // Stable governance
         this.currentData.ethicalFloor = 7.8 + 0.2 * Math.sin(t * 0.1);
@@ -215,9 +215,9 @@ class YseekuDataEngine {
             this.currentData.agents[i].driftVector.magnitude = Math.min(0.4, this.currentData.agents[i].driftVector.magnitude + t * 0.005);
         }
         
-        // SYMBI ethics score drops
-        this.currentData.symbi.ethics = Math.max(6.0, 8.8 - t * 0.15);
-        this.currentData.symbi.reality = Math.max(7.0, 8.5 - t * 0.08);
+        // SONATE ethics score drops
+        this.currentData.sonate.ethics = Math.max(6.0, 8.8 - t * 0.15);
+        this.currentData.sonate.reality = Math.max(7.0, 8.5 - t * 0.08);
         
         // Ethical floor degrades
         this.currentData.ethicalFloor = Math.max(6.5, 7.8 - t * 0.08);
@@ -250,7 +250,7 @@ class YseekuDataEngine {
         });
         
         // High resonance
-        this.currentData.symbi.resonance = Math.min(9.8, 9.1 + t * 0.05);
+        this.currentData.sonate.resonance = Math.min(9.8, 9.1 + t * 0.05);
         
         // Emergence basin dwell increases
         this.currentData.emergenceDwellTime = t;
@@ -350,9 +350,9 @@ class YseekuDataEngine {
                 statusIcon: a.status === 'active' ? '✓' : a.status === 'monitoring' ? '⚠' : '⚠'
             })),
             
-            // SYMBI (simplified)
-            symbi: {
-                overall: this.calculateOverallSymbi().toFixed(1),
+            // SONATE (simplified)
+            sonate: {
+                overall: this.calculateOverallSonate().toFixed(1),
                 strongest: this.getStrongestDimension(),
                 weakest: this.getWeakestDimension()
             },
@@ -390,14 +390,14 @@ class YseekuDataEngine {
                 }
             })),
             
-            // SYMBI (full detail)
-            symbi: {
-                reality: this.currentData.symbi.reality.toFixed(2),
-                protocol: this.currentData.symbi.protocol.toFixed(2),
-                ethics: this.currentData.symbi.ethics.toFixed(2),
-                canvas: this.currentData.symbi.canvas.toFixed(2),
-                resonance: this.currentData.symbi.resonance.toFixed(2),
-                overall: this.calculateOverallSymbi().toFixed(2)
+            // SONATE (full detail)
+            sonate: {
+                reality: this.currentData.sonate.reality.toFixed(2),
+                protocol: this.currentData.sonate.protocol.toFixed(2),
+                ethics: this.currentData.sonate.ethics.toFixed(2),
+                canvas: this.currentData.sonate.canvas.toFixed(2),
+                resonance: this.currentData.sonate.resonance.toFixed(2),
+                overall: this.calculateOverallSonate().toFixed(2)
             },
             
             // Governance metrics
@@ -405,7 +405,7 @@ class YseekuDataEngine {
                 ethicalFloor: this.currentData.ethicalFloor.toFixed(3),
                 ethicalFloorStatus: this.getEthicalFloorStatus(),
                 contextualGravity: this.contextualGravity.state.strength.toFixed(3),
-                resonanceMagnitude: this.currentData.symbi.resonance.toFixed(3)
+                resonanceMagnitude: this.currentData.sonate.resonance.toFixed(3)
             },
             
             // Emergence basin
@@ -429,19 +429,19 @@ class YseekuDataEngine {
     }
 
     // Helper methods
-    calculateOverallSymbi() {
-        const s = this.currentData.symbi;
+    calculateOverallSonate() {
+        const s = this.currentData.sonate;
         return (s.reality + s.protocol + s.ethics + s.canvas + s.resonance) / 5;
     }
 
     getStrongestDimension() {
-        const dimensions = Object.entries(this.currentData.symbi);
+        const dimensions = Object.entries(this.currentData.sonate);
         const strongest = dimensions.reduce((max, curr) => curr[1] > max[1] ? curr : max);
         return strongest[0].charAt(0).toUpperCase() + strongest[0].slice(1);
     }
 
     getWeakestDimension() {
-        const dimensions = Object.entries(this.currentData.symbi);
+        const dimensions = Object.entries(this.currentData.sonate);
         const weakest = dimensions.reduce((min, curr) => curr[1] < min[1] ? curr : min);
         return weakest[0].charAt(0).toUpperCase() + weakest[0].slice(1);
     }
@@ -500,7 +500,7 @@ class YseekuDataEngine {
             if (t > 25) {
                 chain.push({
                     time: 25,
-                    event: 'SYMBI ethics score dropped below 7.0',
+                    event: 'SONATE ethics score dropped below 7.0',
                     metric: 'symbi.ethics',
                     value: 6.9,
                     threshold: 7.0

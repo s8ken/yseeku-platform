@@ -1,6 +1,6 @@
 /**
- * Trust Service - SYMBI Trust Protocol Integration
- * Wraps @sonate/core TrustProtocol and @sonate/detect SymbiFrameworkDetector
+ * Trust Service - SONATE Trust Protocol Integration
+ * Wraps @sonate/core TrustProtocol and @sonate/detect SonateFrameworkDetector
  *
  * This service provides trust scoring, receipt generation, and analytics
  * for all AI interactions in the platform.
@@ -17,7 +17,7 @@ import {
   EvaluationContext
 } from '@sonate/core';
 import {
-  SymbiFrameworkDetector,
+  SonateFrameworkDetector,
   AIInteraction,
   DetectionResult,
   RealityIndexCalculator,
@@ -44,7 +44,7 @@ export interface TrustEvaluation {
   trustScore: TrustScore;
   status: 'PASS' | 'PARTIAL' | 'FAIL';
 
-  // From SymbiFrameworkDetector (@sonate/detect)
+  // From SonateFrameworkDetector (@sonate/detect)
   detection: DetectionResult;
 
   // Statistical drift detection (text property changes)
@@ -112,7 +112,7 @@ export interface TrustAnalytics {
 
 export class TrustService {
   private trustProtocol: TrustProtocol;
-  private detector: SymbiFrameworkDetector;
+  private detector: SonateFrameworkDetector;
   private realityCalc: RealityIndexCalculator;
   private trustValidator: TrustProtocolValidator;
   private ethicalScorer: EthicalAlignmentScorer;
@@ -138,7 +138,7 @@ export class TrustService {
 
   constructor() {
     this.trustProtocol = new TrustProtocol();
-    this.detector = new SymbiFrameworkDetector();
+    this.detector = new SonateFrameworkDetector();
     this.realityCalc = new RealityIndexCalculator();
     this.trustValidator = new TrustProtocolValidator();
     this.ethicalScorer = new EthicalAlignmentScorer();

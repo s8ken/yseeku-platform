@@ -351,7 +351,7 @@ async function calculateRawResonance(transcript: Transcript): Promise<{
   };
 }
 
-export async function explainableSymbiResonance(
+export async function explainableSonateResonance(
   transcript: Transcript,
   options: { max_evidence?: number } = {}
 ): Promise<ExplainedResonance> {
@@ -462,7 +462,7 @@ export async function explainableSymbiResonance(
   };
 }
 
-export async function robustSymbiResonance(transcript: Transcript): Promise<RobustResonanceResult> {
+export async function robustSonateResonance(transcript: Transcript): Promise<RobustResonanceResult> {
   const text = transcript.text;
   const { is_adversarial, penalty, evidence } = adversarialCheck(text, CANONICAL_SCAFFOLD_VECTOR);
   if (is_adversarial) {
@@ -535,13 +535,13 @@ export const CalculatorV2 = {
   CANONICAL_WEIGHTS,
   DYNAMIC_THRESHOLDS,
   async compute(transcript: Transcript): Promise<RobustResonanceResult> {
-    return robustSymbiResonance(transcript);
+    return robustSonateResonance(transcript);
   },
   async computeExplainable(
     transcript: Transcript,
     options?: { max_evidence?: number }
   ): Promise<ExplainedResonance> {
-    return explainableSymbiResonance(transcript, options);
+    return explainableSonateResonance(transcript, options);
   },
   getWeights() {
     return { ...CANONICAL_WEIGHTS };

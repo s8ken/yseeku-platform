@@ -453,5 +453,5 @@ function checkResonanceAlert(R_m: number): 'GREEN' | 'YELLOW' | 'RED' | 'CRITICA
 ## References
 
 - [Resonance Metric Documentation](../../docs/BEDAU_RESEARCH.md)
-- [SYMBI Framework](https://gammatria.com/schemas/trust-receipt)
+- [SONATE Framework](https://gammatria.com/schemas/trust-receipt)
 - [Enterprise Guide](../../docs/ENTERPRISE_GUIDE_v1.4.0.md)

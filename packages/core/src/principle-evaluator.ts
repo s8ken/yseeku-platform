@@ -1,7 +1,7 @@
 /**
  * Principle Evaluator
  * 
- * Properly measures compliance with the 6 SYMBI Constitutional Principles.
+ * Properly measures compliance with the 6 SONATE Constitutional Principles.
  * Each principle is evaluated based on actual system state and user interactions,
  * NOT NLP proxy metrics.
  * 
@@ -73,7 +73,7 @@ export interface PrincipleEvaluationResult {
 }
 
 /**
- * Evaluates the 6 SYMBI Constitutional Principles based on actual system state
+ * Evaluates the 6 SONATE Constitutional Principles based on actual system state
  */
 export class PrincipleEvaluator {
   

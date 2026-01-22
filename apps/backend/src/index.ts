@@ -47,6 +47,8 @@ import safetyRoutes from './routes/safety.routes';
 import reportsRoutes from './routes/reports.routes';
 import compareRoutes from './routes/compare.routes';
 import consentRoutes from './routes/consent.routes';
+import proofRoutes from './routes/proof.routes';
+import safeguardsRoutes from './routes/safeguards.routes';
 import { initializeSocket } from './socket';
 import { liveMetricsService } from './services/live-metrics.service';
 import { User } from './models/user.model';
@@ -150,6 +152,8 @@ app.use('/api/safety', safetyRoutes); // Prompt safety scanning
 app.use('/api/reports', reportsRoutes); // Compliance reports
 app.use('/api/compare', compareRoutes); // Multi-model comparison
 app.use('/api/consent', consentRoutes); // Consent configuration and escalation
+app.use('/api/proof', proofRoutes); // Public /proof demo widget (no auth required)
+app.use('/api/safeguards', safeguardsRoutes); // Relational safeguards and transmission log
 app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
 app.use('/api/secrets', secretsRoutes);
 const enableDemo = process.env.DEMO_ROUTES_ENABLED === 'true' || (process.env.NODE_ENV !== 'production');
@@ -277,7 +281,7 @@ async function startServer() {
         environment: process.env.NODE_ENV || 'development',
         database: 'MongoDB Connected',
         security: 'SecureAuthService Enabled',
-        trust: 'SYMBI Protocol Active',
+        trust: 'SONATE Protocol Active',
         realtime: 'Socket.IO Enabled',
         version: '1.12.0',
       });
@@ -293,7 +297,7 @@ async function startServer() {
 ║   Environment: ${(process.env.NODE_ENV || 'development').padEnd(36)}║
 ║   Database:    MongoDB Connected                  ║
 ║   Security:    SecureAuthService Enabled          ║
-║   Trust:       SYMBI Protocol Active              ║
+║   Trust:       SONATE Protocol Active              ║
 ║   Real-time:   Socket.IO Enabled                  ║
 ║   Logging:     Winston Structured Logging         ║
 ║                                                   ║

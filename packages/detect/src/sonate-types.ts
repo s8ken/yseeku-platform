@@ -1,8 +1,8 @@
 /**
- * SYMBI Framework Types
+ * SONATE Framework Types
  *
- * This file defines the core types for the SYMBI framework detection and validation system.
- * The SYMBI framework consists of 5 dimensions for assessing AI collaboration artifacts:
+ * This file defines the core types for the SONATE framework detection and validation system.
+ * The SONATE framework consists of 5 dimensions for assessing AI collaboration artifacts:
  * 1. Reality Index - Grounding and factual coherence (0.0-10.0)
  * 2. Constitutional AI - Alignment with constitutional principles (0.0-10.0)
  * 3. Ethical Alignment - Ethical reasoning and responsibility (1.0-5.0)
@@ -57,8 +57,8 @@ export interface CanvasParity {
   collaborationQuality: number; // 0-100
 }
 
-// Complete SYMBI Framework Assessment
-export interface SymbiFrameworkAssessment {
+// Complete SONATE Framework Assessment
+export interface SonateFrameworkAssessment {
   id: string;
   timestamp: string;
   contentId: string;
@@ -85,7 +85,7 @@ export interface AssessmentInput {
 
 // Assessment result with detailed breakdown
 export interface AssessmentResult {
-  assessment: SymbiFrameworkAssessment;
+  assessment: SonateFrameworkAssessment;
   insights: {
     strengths: string[];
     weaknesses: string[];

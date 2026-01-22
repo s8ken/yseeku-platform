@@ -1,7 +1,7 @@
 /**
  * Reality Index Calculator (0-10 scale)
  *
- * Dimension 1 of SYMBI Framework
+ * Dimension 1 of SONATE Framework
  * Measures: Mission alignment, contextual coherence, technical accuracy, authenticity
  */
 

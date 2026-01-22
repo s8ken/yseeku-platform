@@ -14,7 +14,7 @@ export default function ChatPage() {
           Trust-Aware Session
         </h1>
         <p className="text-muted-foreground">
-          Real-time AI interaction monitoring with SYMBI Trust Protocol v1.8.0.
+          Real-time AI interaction monitoring with SONATE Trust Protocol v1.8.0.
         </p>
       </div>
 
@@ -33,7 +33,7 @@ export default function ChatPage() {
             </CardHeader>
             <CardContent className="text-xs space-y-3 text-slate-600 dark:text-slate-400">
               <p>
-                Every message in this session is processed through the <strong>SYMBI Trust Protocol</strong>.
+                Every message in this session is processed through the <strong>SONATE Trust Protocol</strong>.
               </p>
               <div className="space-y-2">
                 <div className="flex items-start gap-2">

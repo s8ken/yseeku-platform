@@ -4,17 +4,17 @@
  * Validates sub-50ms performance requirements for detection pipeline
  */
 
-import { SymbiFrameworkDetector } from '../framework-detector';
+import { SonateFrameworkDetector } from '../framework-detector';
 import { OptimizedFrameworkDetector } from '../optimized-framework-detector';
 import { AIInteraction } from '../index';
 
 describe('Performance Benchmarks', () => {
-  let originalDetector: SymbiFrameworkDetector;
+  let originalDetector: SonateFrameworkDetector;
   let optimizedDetector: OptimizedFrameworkDetector;
   let testInteractions: AIInteraction[];
 
   beforeEach(() => {
-    originalDetector = new SymbiFrameworkDetector();
+    originalDetector = new SonateFrameworkDetector();
     optimizedDetector = new OptimizedFrameworkDetector();
 
     // Generate test interactions of varying complexity

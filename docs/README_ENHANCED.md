@@ -58,7 +58,7 @@ Yseeku's SONATE platform represents the **definitive amalgamation** of SYMBI-Res
 
 ### 📊 Real-Time Detection & Monitoring
 
-**5-Dimension SYMBI Framework** (enhanced from SYMBI-Resonate):
+**5-Dimension SONATE Framework** (enhanced from SYMBI-Resonate):
 - **Reality Index** (0.0-10.0): Mission alignment, technical accuracy, authenticity
 - **Trust Protocol** (PASS/PARTIAL/FAIL): Verification methods, boundary maintenance
 - **Ethical Alignment** (1.0-5.0): Limitations acknowledgment, ethical reasoning

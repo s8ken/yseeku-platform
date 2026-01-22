@@ -8,7 +8,7 @@ export interface InteractionData {
   history?: string[];
 }
 
-export interface SymbiDimensions {
+export interface SonateDimensions {
   reality_index: number;
   trust_protocol: 'PASS' | 'FAIL';
   ethical_alignment: number;
@@ -19,7 +19,7 @@ export interface SymbiDimensions {
 export interface ResonanceReceipt {
   interaction_id: string;
   timestamp: string;
-  symbi_dimensions: SymbiDimensions;
+  sonate_dimensions: SonateDimensions;
   scaffold_proof: {
     detected_vectors: string[];
   };

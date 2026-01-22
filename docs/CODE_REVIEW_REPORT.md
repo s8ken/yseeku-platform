@@ -32,7 +32,7 @@ The YSEEKU/SONATE platform is an **ambitious and well-architected enterprise AI 
 The monorepo structure with Turborepo is well-organized:
 ```
 packages/
-├── core/         # Trust protocol foundation (SYMBI principles)
+├── core/         # Trust protocol foundation (SONATE principles)
 ├── detect/       # Real-time monitoring (<100ms latency)
 ├── lab/          # Research/experimentation (isolated)
 ├── orchestrate/  # Production agent management

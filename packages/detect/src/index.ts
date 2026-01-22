@@ -4,7 +4,7 @@ export const VERSION = '1.4.0';
  * @sonate/detect - Real-time AI Detection & Scoring
  *
  * SONATE Detect provides real-time monitoring and scoring of AI interactions
- * using the 5-dimension SYMBI Framework.
+ * using the 5-dimension SONATE Framework.
  *
  * HARD BOUNDARY: Production use only. For experiments, use @sonate/lab.
  */
@@ -14,11 +14,11 @@ import { TrustProtocol , CalculationError } from '@sonate/core';
 import { calculateResonanceMetrics } from './resonance-metrics';
 
 // Core detector
-export { SymbiFrameworkDetector } from './framework-detector';
+export { SonateFrameworkDetector } from './framework-detector';
 export { OptimizedFrameworkDetector } from './optimized-framework-detector';
-export { EnhancedSymbiFrameworkDetector as EnhancedDetector } from './detector-enhanced';
-export { BalancedSymbiDetector } from './balanced-detector';
-export { CalibratedSymbiDetector } from './calibrated-detector';
+export { EnhancedSonateFrameworkDetector as EnhancedDetector } from './detector-enhanced';
+export { BalancedSonateDetector } from './balanced-detector';
+export { CalibratedSonateDetector } from './calibrated-detector';
 export { DriftDetector } from './drift-detection';
 
 // Linguistic Analysis (VLS)
@@ -38,7 +38,7 @@ export { ResonanceQualityMeasurer } from './resonance-quality';
 export { CanvasParityCalculator } from './canvas-parity';
 
 // Types
-export * from './symbi-types';
+export * from './sonate-types';
 export interface DetectionResult {
   reality_index: number; // 0-10
   trust_protocol: 'PASS' | 'PARTIAL' | 'FAIL';
@@ -56,15 +56,15 @@ export interface AIInteraction {
 }
 
 // New V2.1 Exports
-export { explainableSymbiResonance, RobustResonanceResult, Transcript } from './calculator';
+export { explainableSonateResonance, RobustResonanceResult, Transcript } from './calculator';
 export { resonanceWithStickiness, StickyResonance, SessionState } from './stickiness';
 export { adversarialCheck, AdversarialEvidence } from './adversarial';
 export { classifyStakes, StakesEvidence } from './stakes';
 export { normalizeScore, normalizeEmbedding } from './model-normalize';
 export {
   CalculatorV2,
-  explainableSymbiResonance as explainableSymbiResonanceV2,
-  robustSymbiResonance as robustSymbiResonanceV2,
+  explainableSonateResonance as explainableSonateResonanceV2,
+  robustSonateResonance as robustSonateResonanceV2,
   CANONICAL_WEIGHTS as CANONICAL_WEIGHTS_V2,
   DYNAMIC_THRESHOLDS as DYNAMIC_THRESHOLDS_V2,
 } from './v2';
@@ -73,7 +73,7 @@ export {
 export {
   ResonanceClient,
   InteractionData,
-  SymbiDimensions,
+  SonateDimensions,
   ResonanceReceipt,
 } from './ResonanceClient';
 

@@ -37,7 +37,7 @@ jest.mock('../../calculator/v2', () => {
 
 import { robustSymbiResonance } from '../../calculator/v2';
 
-describe('SYMBI Resonance Calculator', () => {
+describe('SONATE Resonance Calculator', () => {
   const createTestTranscript = (text: string) => ({
     text,
     metadata: {},

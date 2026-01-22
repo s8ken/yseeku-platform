@@ -1096,8 +1096,8 @@
         <button class="global-nav-button" id="global-nav-button" aria-expanded="false" aria-controls="global-nav-menu">Navigate</button>
         <div class="global-nav-menu" id="global-nav-menu" hidden>
             <div class="global-nav-section">Core Experience</div>
-            <a href="/" class="global-nav-item">SYMBI Home</a>
-            <a href="/symbi-symphony" class="global-nav-item">SYMBI Symphony</a>
+            <a href="/" class="global-nav-item">SONATE Home</a>
+            <a href="/symbi-symphony" class="global-nav-item">SONATE Symphony</a>
             <a href="/enterprise-demo" class="global-nav-item">Enterprise Demo</a>
             <div class="global-nav-section">Technology</div>
             <a href="/trust-protocol" class="global-nav-item">Trust Protocol</a>
@@ -1111,7 +1111,7 @@
             <a href="/archives" class="global-nav-item">Archives</a>
             <a href="/whitepaper" class="global-nav-item">Research Whitepaper</a>
             <a href="/404-sitemap" class="global-nav-item">Site Map</a>
-            <a href="/symbi" class="global-nav-item cta">Chat with SYMBI</a>
+            <a href="/symbi" class="global-nav-item cta">Chat with SONATE</a>
         </div>
     </div>
 
@@ -1166,7 +1166,7 @@
                     <span>📊</span> Dashboard
                 </li>
                 <li class="nav-item" data-section="principles">
-                    <span>⚡</span> SYMBI Framework
+                    <span>⚡</span> SONATE Framework
                 </li>
                 <li class="nav-item" data-section="detection">
                     <span>🔍</span> Detection
@@ -1199,7 +1199,7 @@
                     <h1 class="hero-title">Enterprise AI You Can Trust</h1>
                     <p class="hero-subtitle">
                         Constitutional AI governance with real-time detection, cryptographic receipts, 
-                        and linguistic vector steering. Built on SYMBI Trust Physics.
+                        and linguistic vector steering. Built on SONATE Trust Physics.
                     </p>
                     
                     <div class="flex justify-center gap-4" style="margin-bottom: var(--spacing-2xl);">
@@ -1233,7 +1233,7 @@
                 <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-xl);">
                     <div>
                         <h2>Trust Dashboard</h2>
-                        <p>Real-time SYMBI governance monitoring and compliance metrics</p>
+                        <p>Real-time SONATE governance monitoring and compliance metrics</p>
                     </div>
                     <button class="btn btn-secondary" id="refresh-dashboard">
                         <span>🔄</span> Refresh
@@ -1312,13 +1312,13 @@
                 </div>
             </section>
 
-            <!-- SYMBI Principles Section -->
+            <!-- SONATE Principles Section -->
             <section id="principles-section" class="section">
                 <div style="margin-bottom: var(--spacing-xl);">
-                    <h2 title="Six constitutional principles ensuring AI accountability: Consent, Inspection, Validation, Override, Disconnect, and Recognition">SYMBI Trust Physics</h2>
+                    <h2 title="Six constitutional principles ensuring AI accountability: Consent, Inspection, Validation, Override, Disconnect, and Recognition">SONATE Trust Physics</h2>
                     <p>Six-Pillar Governance Scoring aligned with W3C standards and constitutional AI principles</p>
                     <div class="plain-english-tooltip">
-                        <strong>Plain English:</strong> The SYMBI framework is like a constitution for AI systems. It ensures AI behaves ethically through six core principles: getting user consent, being transparent about decisions, continuously proving trustworthiness, allowing human override, letting users disconnect, and recognizing its own limitations.
+                        <strong>Plain English:</strong> The SONATE framework is like a constitution for AI systems. It ensures AI behaves ethically through six core principles: getting user consent, being transparent about decisions, continuously proving trustworthiness, allowing human override, letting users disconnect, and recognizing its own limitations.
                     </div>
                 </div>
 
@@ -1486,7 +1486,7 @@
                 <div class="card" style="margin-top: var(--spacing-lg);">
                     <h3>Live Resonance Analysis</h3>
                     <div class="plain-english-tooltip">
-                        <strong>Plain English:</strong> Test any text input against our resonance engine to see how well it aligns with SYMBI principles. This gives you real-time scoring across all 5 dimensions.
+                        <strong>Plain English:</strong> Test any text input against our resonance engine to see how well it aligns with SONATE principles. This gives you real-time scoring across all 5 dimensions.
                     </div>
 
                     <div style="margin-top: var(--spacing-lg);">
@@ -1873,7 +1873,7 @@
          * @typedef {Object} TrustScore
          * @property {number} total - Overall trust score (0-100)
          * @property {'HIGH'|'MEDIUM'|'LOW'|'CRITICAL'} tier - Trust tier
-         * @property {Array} principles - SYMBI principle scores
+         * @property {Array} principles - SONATE principle scores
          * @property {number} timestamp - Score timestamp
          * @property {string} receiptHash - Cryptographic receipt hash
          */
@@ -1963,9 +1963,9 @@
                 plainEnglish: 'Welcome! SONATE is like a constitution and monitoring system for AI. It makes sure AI behaves ethically, stays consistent, and follows your organization\'s rules.'
             },
             {
-                title: 'SYMBI Trust Framework',
-                content: 'The SYMBI framework consists of six constitutional principles: Consent, Inspection, Validation, Override, Disconnect, and Recognition. These provide measurable, enforceable trust governance.',
-                plainEnglish: 'Think of SYMBI as six rules for good AI: 1) Get permission, 2) Be transparent, 3) Stay trustworthy, 4) Let humans intervene, 5) Allow exit, 6) Know your limits.'
+                title: 'SONATE Trust Framework',
+                content: 'The SONATE framework consists of six constitutional principles: Consent, Inspection, Validation, Override, Disconnect, and Recognition. These provide measurable, enforceable trust governance.',
+                plainEnglish: 'Think of SONATE as six rules for good AI: 1) Get permission, 2) Be transparent, 3) Stay trustworthy, 4) Let humans intervene, 5) Allow exit, 6) Know your limits.'
             },
             {
                 title: 'Real-Time Detection',
@@ -2820,7 +2820,7 @@
                 </div>
 
                 <div style="margin-bottom: 30px;">
-                    <h2 style="color: #8b5cf6;">SYMBI Trust Principles</h2>
+                    <h2 style="color: #8b5cf6;">SONATE Trust Principles</h2>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
                         ${state.trustScore.principles.map(p => `
                             <div style="border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
@@ -3040,7 +3040,7 @@
             try {
                 const userInput = input.value.trim();
                 // For resonance analysis, we treat the input as both user input and AI response
-                // to analyze the text's alignment with SYMBI principles
+                // to analyze the text's alignment with SONATE principles
                 const result = await ResonanceAPI.analyze(userInput, userInput);
 
                 if (result) {
@@ -3082,7 +3082,7 @@
                     `;
 
                     // Show success notification
-                    showNotification('info', 'Analysis Complete', 'Resonance analysis completed using Demo SYMBI engine.');
+                    showNotification('info', 'Analysis Complete', 'Resonance analysis completed using Demo SONATE engine.');
 
                 } else {
                     // Fallback to heuristic calculation if API fails

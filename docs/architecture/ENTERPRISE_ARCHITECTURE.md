@@ -7,7 +7,7 @@ Yseeku-Platform represents the culmination and evolution of SYMBI-Resonate's ana
 ## Architecture Principles
 
 ### 1. Constitutional Foundation
-- **SYMBI Framework**: 6-principle constitutional AI foundation
+- **SONATE Framework**: 6-principle constitutional AI foundation
 - **Trust Protocol**: Cryptographically verifiable trust receipts
 - **Hard Boundaries**: Clean separation between Detect, Lab, and Orchestrate
 - **Compliance by Design**: Built-in GDPR, SOC 2, and EU AI Act alignment
@@ -230,7 +230,7 @@ enum Permission {
   ANALYTICS_EXPORT = 'analytics:export',
   ANALYTICS_CONFIGURE = 'analytics:configure',
   
-  // SYMBI Framework
+  // SONATE Framework
   SYMBI_DETECT = 'symbi:detect',
   SYMBI_SCORE = 'symbi:score',
   SYMBI_CONFIGURE = 'symbi:configure',

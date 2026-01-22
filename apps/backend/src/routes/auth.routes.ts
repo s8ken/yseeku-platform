@@ -637,7 +637,7 @@ router.put('/consent', protect, async (req: Request, res: Response): Promise<voi
       hasConsentedToAI,
       consentTimestamp: hasConsentedToAI ? new Date() : user.consent?.consentTimestamp,
       consentScope: consentScope || ['chat', 'analysis', 'recommendations'],
-      canWithdrawAnytime: true, // SYMBI principle: user can always withdraw
+      canWithdrawAnytime: true, // SONATE principle: user can always withdraw
     };
 
     await user.save();

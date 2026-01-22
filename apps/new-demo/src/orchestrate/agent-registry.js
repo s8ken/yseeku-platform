@@ -117,7 +117,7 @@ export class AgentRegistry {
                 claims: {
                     agentId,
                     platform: 'SONATE',
-                    trustFramework: 'SYMBI',
+                    trustFramework: 'SONATE',
                     complianceLevel: 'enterprise'
                 }
             },

@@ -104,7 +104,7 @@ export async function ensureSchema(): Promise<void> {
       type TEXT,
       status TEXT DEFAULT 'active',
       trust_score INTEGER DEFAULT 80,
-      symbi_dimensions JSONB,
+      sonate_dimensions JSONB,
       last_interaction TIMESTAMPTZ DEFAULT NOW(),
       interaction_count INTEGER DEFAULT 0,
       tenant_id TEXT REFERENCES tenants(id),

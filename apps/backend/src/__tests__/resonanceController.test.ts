@@ -40,7 +40,7 @@ describe('Resonance Controller', () => {
     // Reset the mock implementations to default behavior
     mockHealthCheck.mockResolvedValue(true);
     mockGenerateReceipt.mockResolvedValue({
-      symbi_dimensions: {
+      sonate_dimensions: {
         trust_protocol: 'test-protocol',
         resonance_score: 0.85,
       },
@@ -100,7 +100,7 @@ describe('Resonance Controller', () => {
         history: [],
       });
       expect(mockJson).toHaveBeenCalledWith({
-        symbi_dimensions: {
+        sonate_dimensions: {
           trust_protocol: 'test-protocol',
           resonance_score: 0.85,
         },
@@ -109,7 +109,7 @@ describe('Resonance Controller', () => {
 
     it('should handle optional history field', async () => {
       mockGenerateReceipt.mockResolvedValue({
-        symbi_dimensions: { trust_protocol: 'test' },
+        sonate_dimensions: { trust_protocol: 'test' },
       });
 
       mockRequest.body = {

@@ -98,7 +98,7 @@ console.log(trustScore);
 
 ## Linguistic Vector Steering (LVS)
 
-LVS uses carefully crafted scaffolding to steer AI responses toward higher resonance and alignment with the SYMBI framework principles.
+LVS uses carefully crafted scaffolding to steer AI responses toward higher resonance and alignment with the SONATE framework principles.
 
 ### Default LVS Scaffolding
 
@@ -349,6 +349,6 @@ const agent = await orchestrator.registerAgent({
 
 ## References
 
-- [SYMBI Framework](https://gammatria.com/schemas/trust-receipt)
+- [SONATE Framework](https://gammatria.com/schemas/trust-receipt)
 - [Bedau Research](../../docs/BEDAU_RESEARCH.md)
 - [Enterprise Guide](../../docs/ENTERPRISE_GUIDE_v1.4.0.md)

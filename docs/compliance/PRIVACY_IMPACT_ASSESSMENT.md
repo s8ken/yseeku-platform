@@ -80,7 +80,7 @@ This Privacy Impact Assessment (PIA) evaluates the privacy risks associated with
 **Primary Activities:**
 1. **User Authentication:** Verify user identity and manage access
 2. **AI Interaction Monitoring:** Capture and analyze AI interactions
-3. **Trust Assessment:** Calculate trust scores based on SYMBI principles
+3. **Trust Assessment:** Calculate trust scores based on SONATE principles
 4. **Emergence Detection:** Measure weak emergence using Bedau Index
 5. **Compliance Reporting:** Generate audit trails and compliance reports
 6. **Research:** Conduct AI research with anonymized data (with consent)

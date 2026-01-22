@@ -1,4 +1,4 @@
-import { AssessmentResult } from './symbi-types';
+import { AssessmentResult } from './sonate-types';
 
 export interface EmergenceSignal {
   level: 'none' | 'weak' | 'moderate' | 'strong';

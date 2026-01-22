@@ -223,7 +223,7 @@ async function calculatePrincipleScores(): Promise<PrincipleScoreCache['scores']
     }
     
     // Calculate scores based on CIQ metrics and receipt data
-    // Map CIQ (Clarity, Integrity, Quality) to SYMBI principles
+    // Map CIQ (Clarity, Integrity, Quality) to SONATE principles
     const avgClarity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 5), 0) / receipts.length;
     const avgIntegrity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 5), 0) / receipts.length;
     const avgQuality = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 5), 0) / receipts.length;

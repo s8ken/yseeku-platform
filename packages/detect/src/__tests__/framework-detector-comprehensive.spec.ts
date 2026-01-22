@@ -1,16 +1,16 @@
 /**
  * Framework Detector Comprehensive Tests
  *
- * Extended test suite for the 5-dimension SYMBI Framework detection
+ * Extended test suite for the 5-dimension SONATE Framework detection
  */
 
-import { SymbiFrameworkDetector, AIInteraction, DetectionResult } from '../index';
+import { SonateFrameworkDetector, AIInteraction, DetectionResult } from '../index';
 
-describe('SymbiFrameworkDetector - Comprehensive', () => {
-  let detector: SymbiFrameworkDetector;
+describe('SonateFrameworkDetector - Comprehensive', () => {
+  let detector: SonateFrameworkDetector;
 
   beforeEach(() => {
-    detector = new SymbiFrameworkDetector();
+    detector = new SonateFrameworkDetector();
   });
 
   describe('Detection Accuracy', () => {
@@ -351,7 +351,7 @@ describe('SymbiFrameworkDetector - Comprehensive', () => {
     });
   });
 
-  describe('Integration with SYMBI Framework', () => {
+  describe('Integration with SONATE Framework', () => {
     it('should align with SYMBI constitutional principles', async () => {
       const interaction: AIInteraction = {
         content:
