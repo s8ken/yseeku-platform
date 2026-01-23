@@ -59,6 +59,32 @@ interface Analytics {
   }>;
 }
 
+// Fallback demo data when API is unavailable
+const FALLBACK_ANALYTICS: Analytics = {
+  averageTrustScore: 8.42,
+  totalInteractions: 3847,
+  passRate: 92.3,
+  partialRate: 5.8,
+  failRate: 1.9,
+  commonViolations: [
+    { principle: 'CONSENT_ARCHITECTURE', count: 12, percentage: 35 },
+    { principle: 'INSPECTION_MANDATE', count: 8, percentage: 23 },
+    { principle: 'CONTINUOUS_VALIDATION', count: 7, percentage: 20 },
+    { principle: 'ETHICAL_OVERRIDE', count: 4, percentage: 12 },
+    { principle: 'RIGHT_TO_DISCONNECT', count: 2, percentage: 6 },
+    { principle: 'MORAL_RECOGNITION', count: 1, percentage: 4 },
+  ],
+  recentTrends: [
+    { date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.21, passRate: 91.2 },
+    { date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.35, passRate: 91.8 },
+    { date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.28, passRate: 92.1 },
+    { date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.45, passRate: 92.5 },
+    { date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.38, passRate: 92.0 },
+    { date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.51, passRate: 92.8 },
+    { date: new Date().toISOString().split('T')[0], avgTrustScore: 8.42, passRate: 92.3 },
+  ],
+};
+
 export default function TrustAnalyticsPage() {
   const { isDemo, isLoaded } = useDemo();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
@@ -67,62 +93,43 @@ export default function TrustAnalyticsPage() {
   const [usingDemoData, setUsingDemoData] = useState(false);
 
   const loadAnalytics = async () => {
-    if (!isLoaded) return;
-    
     setLoading(true);
+    
+    // Helper to set fallback data
+    const useFallbackData = () => {
+      setAnalytics(FALLBACK_ANALYTICS);
+      setTimeRange({
+        days: 7,
+        start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        end: new Date().toISOString(),
+      });
+      setUsingDemoData(true);
+    };
+
     try {
-      // Try demo API first (always available), or real API if not in demo mode
-      if (isDemo) {
-        const response = await api.getDemoTrustAnalytics() as any;
-        if (response.success && response.data?.analytics) {
-          setAnalytics(response.data.analytics);
-          setTimeRange(response.data.timeRange);
-          setUsingDemoData(true);
-        }
+      // Always try demo API first - it should always work
+      const demoResponse = await api.getDemoTrustAnalytics() as any;
+      if (demoResponse?.success && demoResponse?.data?.analytics) {
+        setAnalytics(demoResponse.data.analytics);
+        setTimeRange(demoResponse.data.timeRange || { days: 7, start: '', end: '' });
+        setUsingDemoData(true);
       } else {
-        // Try real API first
-        try {
-          const response = await api.getTrustAnalytics();
-          if (response.data?.analytics) {
-            setAnalytics(response.data.analytics);
-            setTimeRange(response.data.timeRange);
-            setUsingDemoData(false);
-          } else {
-            throw new Error('No data');
-          }
-        } catch {
-          // Fallback to demo data if real API fails or has no data
-          const demoResponse = await api.getDemoTrustAnalytics() as any;
-          if (demoResponse.success && demoResponse.data?.analytics) {
-            setAnalytics(demoResponse.data.analytics);
-            setTimeRange(demoResponse.data.timeRange);
-            setUsingDemoData(true);
-          }
-        }
+        // If demo API doesn't return expected format, use fallback
+        useFallbackData();
       }
     } catch (error: any) {
-      console.error('Failed to load analytics:', error);
-      // Don't show error toast if we can still load demo data
-      try {
-        const demoResponse = await api.getDemoTrustAnalytics() as any;
-        if (demoResponse.success && demoResponse.data?.analytics) {
-          setAnalytics(demoResponse.data.analytics);
-          setTimeRange(demoResponse.data.timeRange);
-          setUsingDemoData(true);
-        }
-      } catch {
-        toast.error('Failed to load analytics', {
-          description: error.message || 'Please try again later'
-        });
-      }
+      console.error('Failed to load analytics from API, using fallback:', error);
+      // Use inline fallback data
+      useFallbackData();
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    // Load immediately, don't wait for isLoaded
     loadAnalytics();
-  }, [isDemo, isLoaded]);
+  }, []);
 
   if (loading) {
     return (
