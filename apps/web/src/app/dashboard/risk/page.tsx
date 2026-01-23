@@ -284,7 +284,7 @@ export default function RiskManagementPage() {
     ? {
         overallRiskScore: demoData?.overallRiskScore ?? 12,
         trustScore: overallTrustScore,
-        complianceRate: 98,
+        complianceRate: 92.3,
         activeAlerts: 0,
         criticalViolations: 0,
         riskTrend: 'improving' as const
@@ -292,7 +292,7 @@ export default function RiskManagementPage() {
     : (riskMetrics?.data || {
         overallRiskScore: 15,
         trustScore: overallTrustScore,
-        complianceRate: 92,
+        complianceRate: 92.3,
         activeAlerts: riskAlerts.length,
         criticalViolations: 1,
         riskTrend: 'stable' as const

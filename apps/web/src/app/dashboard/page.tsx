@@ -117,7 +117,7 @@ const FALLBACK_KPI_DATA: KPIData = {
   },
   totalInteractions: 6932,
   activeAgents: 5,
-  complianceRate: 94.2,
+  complianceRate: 92.3,
   riskScore: 2.3,
   alertsCount: 3,
   experimentsRunning: 2,

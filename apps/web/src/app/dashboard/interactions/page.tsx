@@ -197,7 +197,7 @@ const DEMO_STATS: InteractionStats = {
     ALL: 6932
   },
   avgTrustScore: 90.4,
-  complianceRate: 98.1
+  complianceRate: 92.3
 };
 
 function InteractionTypeIcon({ type }: { type: InteractionType }) {

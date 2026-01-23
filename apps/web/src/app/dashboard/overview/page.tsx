@@ -168,7 +168,7 @@ const FALLBACK_KPIS = {
   trustScore: 90.4,
   activeAgents: 5,
   totalInteractions: 6932,
-  complianceRate: 97.2,
+  complianceRate: 92.3,
   trends: {
     trustScore: { change: 2.1, direction: 'up' },
   },
