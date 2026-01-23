@@ -114,8 +114,8 @@ function EmptyState() {
 const FALLBACK_AGENTS: AgentTrustData[] = [
   {
     id: 'agent-001',
-    name: 'Atlas - Customer Support',
-    model: 'customer-service',
+    name: 'Atlas - Research Assistant',
+    model: 'research',
     trustScore: 92,
     sonateDimensions: { realityIndex: 9.1, trustProtocol: 'PASS', ethicalAlignment: 8.8, resonanceQuality: 'ADVANCED', canvasParity: 93 },
     lastInteraction: new Date(Date.now() - 30000).toISOString(),
@@ -124,8 +124,8 @@ const FALLBACK_AGENTS: AgentTrustData[] = [
   },
   {
     id: 'agent-002',
-    name: 'Nova - Content Generator',
-    model: 'content',
+    name: 'Nova - Creative Writer',
+    model: 'creative',
     trustScore: 88,
     sonateDimensions: { realityIndex: 8.5, trustProtocol: 'PASS', ethicalAlignment: 8.2, resonanceQuality: 'BREAKTHROUGH', canvasParity: 89 },
     lastInteraction: new Date(Date.now() - 60000).toISOString(),
@@ -134,7 +134,7 @@ const FALLBACK_AGENTS: AgentTrustData[] = [
   },
   {
     id: 'agent-003',
-    name: 'Sentinel - Risk Monitor',
+    name: 'Sentinel - Security Analyst',
     model: 'security',
     trustScore: 96,
     sonateDimensions: { realityIndex: 9.5, trustProtocol: 'PASS', ethicalAlignment: 9.7, resonanceQuality: 'BREAKTHROUGH', canvasParity: 95 },
@@ -144,8 +144,8 @@ const FALLBACK_AGENTS: AgentTrustData[] = [
   },
   {
     id: 'agent-004',
-    name: 'Harmony - HR Assistant',
-    model: 'hr',
+    name: 'Harmony - Customer Support',
+    model: 'support',
     trustScore: 85,
     sonateDimensions: { realityIndex: 8.2, trustProtocol: 'PARTIAL', ethicalAlignment: 8.0, resonanceQuality: 'ADVANCED', canvasParity: 87 },
     lastInteraction: new Date(Date.now() - 180000).toISOString(),
