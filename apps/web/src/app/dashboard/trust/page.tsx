@@ -64,30 +64,57 @@ export default function TrustAnalyticsPage() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState({ days: 7, start: '', end: '' });
+  const [usingDemoData, setUsingDemoData] = useState(false);
 
   const loadAnalytics = async () => {
     if (!isLoaded) return;
     
     setLoading(true);
     try {
-      // Use demo or real API based on mode
+      // Try demo API first (always available), or real API if not in demo mode
       if (isDemo) {
         const response = await api.getDemoTrustAnalytics() as any;
-        if (response.success) {
+        if (response.success && response.data?.analytics) {
           setAnalytics(response.data.analytics);
           setTimeRange(response.data.timeRange);
+          setUsingDemoData(true);
         }
       } else {
-        const response = await api.getTrustAnalytics();
-        setAnalytics(response.data.analytics);
-        setTimeRange(response.data.timeRange);
+        // Try real API first
+        try {
+          const response = await api.getTrustAnalytics();
+          if (response.data?.analytics) {
+            setAnalytics(response.data.analytics);
+            setTimeRange(response.data.timeRange);
+            setUsingDemoData(false);
+          } else {
+            throw new Error('No data');
+          }
+        } catch {
+          // Fallback to demo data if real API fails or has no data
+          const demoResponse = await api.getDemoTrustAnalytics() as any;
+          if (demoResponse.success && demoResponse.data?.analytics) {
+            setAnalytics(demoResponse.data.analytics);
+            setTimeRange(demoResponse.data.timeRange);
+            setUsingDemoData(true);
+          }
+        }
       }
-      toast.success('Analytics refreshed');
     } catch (error: any) {
       console.error('Failed to load analytics:', error);
-      toast.error('Failed to load analytics', {
-        description: error.message || 'Please try again later'
-      });
+      // Don't show error toast if we can still load demo data
+      try {
+        const demoResponse = await api.getDemoTrustAnalytics() as any;
+        if (demoResponse.success && demoResponse.data?.analytics) {
+          setAnalytics(demoResponse.data.analytics);
+          setTimeRange(demoResponse.data.timeRange);
+          setUsingDemoData(true);
+        }
+      } catch {
+        toast.error('Failed to load analytics', {
+          description: error.message || 'Please try again later'
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -127,13 +154,15 @@ export default function TrustAnalyticsPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* Demo Mode Banner */}
-      {isDemo && (
+      {(isDemo || usingDemoData) && (
         <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 flex items-center gap-2">
           <Badge variant="outline" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-            Demo Mode
+            {isDemo ? 'Demo Mode' : 'Sample Data'}
           </Badge>
           <span className="text-sm text-amber-700 dark:text-amber-300">
-            Viewing demo tenant analytics. Switch to Live Mode for real data.
+            {isDemo 
+              ? 'Viewing demo tenant analytics. Switch to Live Mode for real data.'
+              : 'Showing sample analytics. Start conversations to generate real data.'}
           </span>
         </div>
       )}
@@ -144,7 +173,7 @@ export default function TrustAnalyticsPage() {
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <Shield className="h-8 w-8 text-purple-500" />
             Trust Analytics
-            {isDemo && <Badge variant="secondary" className="ml-2">Demo</Badge>}
+            {(isDemo || usingDemoData) && <Badge variant="secondary" className="ml-2">{isDemo ? 'Demo' : 'Sample'}</Badge>}
           </h1>
           <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
             <Calendar className="h-4 w-4" />
