@@ -32,6 +32,8 @@ import { format } from 'date-fns';
 import { api } from '@/lib/api';
 import { useDemo } from '@/hooks/use-demo';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
+import { WithDemoWatermark } from '@/components/demo-watermark';
+import { ListSkeleton } from '@/components/dashboard-skeletons';
 
 // Interaction types for enterprise tracking
 type InteractionType = 'AI_CUSTOMER' | 'AI_STAFF' | 'AI_AI' | 'ALL';
@@ -561,47 +563,49 @@ export default function InteractionsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-5">
-        <Card>
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold">{stats.total.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Total Interactions</p>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-blue-500">
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-blue-500" />
-              <div className="text-2xl font-bold">{stats.byType.AI_CUSTOMER}</div>
-            </div>
-            <p className="text-xs text-muted-foreground">AI ↔ Customer</p>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-purple-500">
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-purple-500" />
-              <div className="text-2xl font-bold">{stats.byType.AI_STAFF}</div>
-            </div>
-            <p className="text-xs text-muted-foreground">AI ↔ Staff</p>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-cyan-500">
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2">
-              <Bot className="h-4 w-4 text-cyan-500" />
-              <div className="text-2xl font-bold">{stats.byType.AI_AI}</div>
-            </div>
-            <p className="text-xs text-muted-foreground">AI ↔ AI</p>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-emerald-500">
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold">{stats.complianceRate}%</div>
-            <p className="text-xs text-muted-foreground">Compliance Rate</p>
-          </CardContent>
-        </Card>
-      </div>
+      <WithDemoWatermark position="top-right" size="sm" opacity={20}>
+        <div className="grid gap-4 md:grid-cols-5">
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-2xl font-bold">{stats.total.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">Total Interactions</p>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-blue-500">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-blue-500" />
+                <div className="text-2xl font-bold">{stats.byType.AI_CUSTOMER}</div>
+              </div>
+              <p className="text-xs text-muted-foreground">AI ↔ Customer</p>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-purple-500">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-purple-500" />
+                <div className="text-2xl font-bold">{stats.byType.AI_STAFF}</div>
+              </div>
+              <p className="text-xs text-muted-foreground">AI ↔ Staff</p>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-cyan-500">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2">
+                <Bot className="h-4 w-4 text-cyan-500" />
+                <div className="text-2xl font-bold">{stats.byType.AI_AI}</div>
+              </div>
+              <p className="text-xs text-muted-foreground">AI ↔ AI</p>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-emerald-500">
+            <CardContent className="pt-4">
+              <div className="text-2xl font-bold">{stats.complianceRate}%</div>
+              <p className="text-xs text-muted-foreground">Compliance Rate</p>
+            </CardContent>
+          </Card>
+        </div>
+      </WithDemoWatermark>
 
       {/* Filters */}
       <Card>
@@ -650,9 +654,7 @@ export default function InteractionsPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className={`space-y-4 ${selectedInteraction ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
           {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
+            <ListSkeleton items={5} />
           ) : interactions.length === 0 ? (
             <EmptyState />
           ) : (

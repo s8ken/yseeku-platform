@@ -29,6 +29,7 @@ import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { OverseerWidget } from '@/components/overseer-widget';
 import { api } from '@/lib/api';
 import { WithDemoWatermark } from '@/components/demo-watermark';
+import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
 
 interface KPIData {
   tenant: string;
@@ -241,21 +242,7 @@ export default function DashboardPage() {
   const experiments = (experimentData as any)?.data || experimentData;
 
   if (kpiLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="h-8 w-48 bg-muted animate-pulse rounded" />
-            <div className="h-4 w-32 bg-muted animate-pulse rounded mt-2" />
-          </div>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
+    return <DashboardPageSkeleton />;
   }
 
   return (

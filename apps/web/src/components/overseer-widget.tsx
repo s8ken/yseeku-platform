@@ -96,7 +96,7 @@ export function OverseerWidget() {
 
   useEffect(() => {
     if (error) console.error('Overseer Widget Error:', error);
-    if (overseerStatus) console.log('Overseer Status:', overseerStatus);
+    // Debug: overseer status updates can be tracked via React DevTools if needed
   }, [overseerStatus, error]);
 
   // Calculate aggregate effectiveness

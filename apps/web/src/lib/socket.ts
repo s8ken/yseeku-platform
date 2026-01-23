@@ -31,23 +31,23 @@ class SocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('🔌 Connected to Trust Protocol Socket');
+      // Connection status is tracked via useSocket hook
     });
 
     this.socket.on('disconnect', () => {
-      console.log('🔌 Disconnected from Trust Protocol Socket');
+      // Disconnection status is tracked via useSocket hook
     });
 
-    this.socket.io.on('reconnect_attempt', (attempt) => {
-      console.log('🔌 Reconnect attempt', attempt);
+    this.socket.io.on('reconnect_attempt', () => {
+      // Reconnection status is tracked via useSocket hook
     });
 
     this.socket.io.on('reconnect_failed', () => {
-      console.error('🔌 Reconnect failed');
+      console.error('Socket reconnection failed after multiple attempts');
     });
 
     this.socket.on('error', (error) => {
-      console.error('🔌 Socket error:', error);
+      console.error('Socket error:', error);
     });
   }
 

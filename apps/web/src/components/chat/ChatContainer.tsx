@@ -258,10 +258,10 @@ export const ChatContainer: React.FC = () => {
     } catch (error: any) {
       // Check if this was a user-initiated abort (ETHICAL_OVERRIDE in action)
       if (error.name === 'AbortError') {
-        console.log('Request aborted by user - ETHICAL_OVERRIDE exercised');
+        // User-initiated abort - no error logging needed
         return;
       }
-      
+
       console.error('Failed to get trust evaluation:', error);
 
       // Error handling

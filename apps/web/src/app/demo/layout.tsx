@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Home, Box, Shield, GitBranch, TestTube2, Menu, Fingerprint } from 'lucide-react';
+import { Home, Box, Shield, GitBranch, TestTube2, Menu, Fingerprint, Sparkles } from 'lucide-react';
 
 interface NavItem {
   title: string;
@@ -90,6 +90,24 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
         <SidebarContent />
       </div>
       <div className="flex flex-col">
+        {/* Demo Mode Indicator Banner */}
+        <div className="bg-gradient-to-r from-cyan-600 via-purple-600 to-cyan-600 text-white px-4 py-2">
+          <div className="flex items-center justify-between max-w-screen-2xl mx-auto">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1">
+                <Sparkles className="h-4 w-4" />
+                <span className="text-sm font-semibold">DEMO PREVIEW</span>
+              </div>
+              <span className="text-sm hidden sm:inline">Exploring SONATE framework capabilities</span>
+            </div>
+            <Link href="/dashboard?demo=true">
+              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 h-7 px-3">
+                Enter Full Demo Dashboard →
+              </Button>
+            </Link>
+          </div>
+        </div>
+
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
@@ -98,7 +116,7 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
             </SheetTrigger>
-            // @ts-ignore
+            {/* @ts-ignore */}
             <SheetContent side="left" className="flex flex-col">
               <SidebarContent />
             </SheetContent>

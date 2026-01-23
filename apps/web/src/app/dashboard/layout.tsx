@@ -50,8 +50,10 @@ import { useTutorialStore } from '@/store/useTutorialStore';
 import { dashboardTutorialSteps } from '@/components/tutorial/steps';
 import { TutorialTour } from '@/components/tutorial/TutorialTour';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { ConnectionStatus } from '@/components/connection-status';
 import { DemoModeBanner } from '@/components/demo-mode-banner';
 import { DemoInitializer } from '@/components/demo-initializer';
+import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
 import { useDemo } from '@/hooks/use-demo';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -322,6 +324,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <Providers>
       <TutorialTour />
+      <OnboardingModal />
       <div className="grid min-h-screen w-full md:grid-cols-[260px_1fr] lg:grid-cols-[280px_1fr]">
         <a
           href="#main-content"
@@ -403,6 +406,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Button>
             </a>
 
+            <ConnectionStatus />
             <ThemeToggle />
 
             <DropdownMenu>

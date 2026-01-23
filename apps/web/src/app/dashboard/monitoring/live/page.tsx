@@ -236,12 +236,10 @@ export default function LiveDashboardPage() {
 
     newSocket.on('connect', () => {
       setConnected(true);
-      console.log('Live dashboard connected');
     });
 
     newSocket.on('disconnect', () => {
       setConnected(false);
-      console.log('Live dashboard disconnected');
     });
 
     newSocket.on('metrics:live', (data: LiveMetrics) => {

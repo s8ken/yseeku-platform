@@ -21,6 +21,7 @@ import {
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { api } from '@/lib/api';
 import { useDemo } from '@/hooks/use-demo';
+import { WithDemoWatermark } from '@/components/demo-watermark';
 
 const defaultTrustPrinciples = [
   { name: 'Consent Architecture', weight: 25, score: 85, critical: true },
@@ -388,15 +389,21 @@ export default function RiskManagementPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <TrustScoreVisualization
-          principles={trustPrinciples}
-          overallScore={Math.round(overallTrustScore)}
-        />
+        <WithDemoWatermark position="top-right" size="sm" opacity={25}>
+          <TrustScoreVisualization
+            principles={trustPrinciples}
+            overallScore={Math.round(overallTrustScore)}
+          />
+        </WithDemoWatermark>
 
-        <ComplianceReports reports={complianceReports} />
+        <WithDemoWatermark position="top-right" size="sm" opacity={25}>
+          <ComplianceReports reports={complianceReports} />
+        </WithDemoWatermark>
 
         <div className="lg:col-span-2">
-          <RiskAlerts alerts={riskAlerts} />
+          <WithDemoWatermark position="top-right" size="sm" opacity={25}>
+            <RiskAlerts alerts={riskAlerts} />
+          </WithDemoWatermark>
         </div>
       </div>
     </div>

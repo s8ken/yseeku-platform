@@ -38,6 +38,8 @@ import {
   Legend
 } from 'recharts';
 import { toast } from 'sonner';
+import { WithDemoWatermark } from '@/components/demo-watermark';
+import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
 
 interface Analytics {
   averageTrustScore: number;
@@ -98,12 +100,7 @@ export default function TrustAnalyticsPage() {
   if (loading) {
     return (
       <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-96">
-          <div className="flex flex-col items-center gap-4">
-            <RefreshCw className="h-8 w-8 animate-spin text-purple-500" />
-            <p className="text-sm text-muted-foreground">Loading trust analytics...</p>
-          </div>
-        </div>
+        <DashboardPageSkeleton />
       </div>
     );
   }
@@ -213,14 +210,22 @@ export default function TrustAnalyticsPage() {
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <StatusDistributionChart analytics={analytics} />
-        <TrustTrendChart analytics={analytics} />
+        <WithDemoWatermark position="top-right" size="sm" opacity={25}>
+          <StatusDistributionChart analytics={analytics} />
+        </WithDemoWatermark>
+        <WithDemoWatermark position="top-right" size="sm" opacity={25}>
+          <TrustTrendChart analytics={analytics} />
+        </WithDemoWatermark>
       </div>
 
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <PrinciplesRadarChart analytics={analytics} />
-        <ViolationsTable analytics={analytics} />
+        <WithDemoWatermark position="top-right" size="sm" opacity={25}>
+          <PrinciplesRadarChart analytics={analytics} />
+        </WithDemoWatermark>
+        <WithDemoWatermark position="top-right" size="sm" opacity={25}>
+          <ViolationsTable analytics={analytics} />
+        </WithDemoWatermark>
       </div>
 
       {/* Additional Info Card */}

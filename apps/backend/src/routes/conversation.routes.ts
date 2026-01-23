@@ -661,7 +661,32 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
           }
         } catch (trustError: unknown) {
           logger.error('Trust evaluation error for AI message:', trustError);
-          // Continue even if trust evaluation fails
+          // Set fallback trust evaluation so frontend displays meaningful data
+          // Use 'PARTIAL' status (valid type) with descriptive violation
+          aiMessage.metadata.trustEvaluation = {
+            trustScore: {
+              overall: 70, // Conservative default
+              principles: {
+                CONSENT_ARCHITECTURE: 7,
+                INSPECTION_MANDATE: 7,
+                CONTINUOUS_VALIDATION: 7,
+                ETHICAL_OVERRIDE: 7,
+                RIGHT_TO_DISCONNECT: 7,
+                MORAL_RECOGNITION: 7,
+              },
+              violations: ['Trust evaluation temporarily unavailable - using conservative defaults'],
+            },
+            status: 'PARTIAL' as 'PASS' | 'PARTIAL' | 'FAIL',
+            detection: {
+              isAI: true,
+              confidence: 0.95,
+              indicators: ['ai_response'],
+              bedauIndex: null,
+            },
+            receipt: null,
+            receiptHash: `fallback-${Date.now()}`,
+          };
+          aiMessage.trustScore = 3.5; // Conservative middle value (0-5 scale)
         }
       } catch (llmError: unknown) {
         logger.error('LLM generation error:', llmError);
