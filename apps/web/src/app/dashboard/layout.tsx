@@ -53,7 +53,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { ConnectionStatus } from '@/components/connection-status';
 import { DemoModeBanner } from '@/components/demo-mode-banner';
 import { DemoInitializer } from '@/components/demo-initializer';
-import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
+import { OnboardingModal, triggerOnboardingModal } from '@/components/onboarding/OnboardingModal';
 import { useDemo } from '@/hooks/use-demo';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -360,6 +360,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 />
               </div>
             </div>
+
+            {/* Show Welcome Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2 text-muted-foreground hover:text-foreground"
+              onClick={triggerOnboardingModal}
+              title="Show welcome screen"
+            >
+              <HelpCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Welcome</span>
+            </Button>
 
             {/* Demo Mode Toggle */}
             <Button
