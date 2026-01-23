@@ -38,6 +38,11 @@ import {
 } from 'lucide-react';
 import { AgentCreateModal } from '@/components/agents/AgentCreateModal';
 import { AgentEditModal } from '@/components/agents/AgentEditModal';
+import { 
+  FALLBACK_AGENTS as CENTRALIZED_AGENTS, 
+  AGGREGATE_METRICS,
+  DEMO_TENANT_ID,
+} from '@/lib/fallback-data';
 
 // DID display component
 function DIDDisplay({ did, didDocument }: { did?: string; didDocument?: string }) {
@@ -229,75 +234,31 @@ function BanActionDialog({ open, onClose, agent, action, onConfirm }: BanDialogP
   );
 }
 
-// Fallback demo agents matching seed.ts
-const FALLBACK_AGENTS: Agent[] = [
-  {
-    id: 'agent-001',
-    name: 'Atlas - Research Assistant',
-    type: 'research',
-    status: 'active',
-    trustScore: 9.2,
-    sonateDimensions: { realityIndex: 9.1, trustProtocol: 9.2, ethicalAlignment: 9.2, resonanceQuality: 8.5, canvasParity: 92 },
-    lastInteraction: new Date(Date.now() - 1800000).toISOString(),
-    interactionCount: 1247,
-    tenantId: 'demo-tenant',
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+// Fallback demo agents - derived from centralized fallback-data.ts
+const FALLBACK_AGENTS: Agent[] = CENTRALIZED_AGENTS.map(agent => ({
+  id: agent.id,
+  name: `${agent.name} - ${agent.type}`,
+  type: agent.type.toLowerCase().replace(' ', '-'),
+  status: agent.status,
+  trustScore: agent.trustScore,
+  sonateDimensions: { 
+    realityIndex: agent.trustScore - 0.1, 
+    trustProtocol: agent.trustScore, 
+    ethicalAlignment: agent.trustScore, 
+    resonanceQuality: agent.trustScore - 0.5, 
+    canvasParity: Math.round(agent.trustScore * 10) 
   },
-  {
-    id: 'agent-002',
-    name: 'Nova - Creative Writer',
-    type: 'creative',
-    status: 'active',
-    trustScore: 8.7,
-    sonateDimensions: { realityIndex: 8.5, trustProtocol: 8.7, ethicalAlignment: 8.7, resonanceQuality: 9.2, canvasParity: 87 },
-    lastInteraction: new Date(Date.now() - 3600000).toISOString(),
-    interactionCount: 3421,
-    tenantId: 'demo-tenant',
-    createdAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'agent-003',
-    name: 'Sentinel - Security Analyst',
-    type: 'security',
-    status: 'active',
-    trustScore: 9.8,
-    sonateDimensions: { realityIndex: 9.5, trustProtocol: 9.8, ethicalAlignment: 9.8, resonanceQuality: 9.5, canvasParity: 98 },
-    lastInteraction: new Date(Date.now() - 7200000).toISOString(),
-    interactionCount: 856,
-    tenantId: 'demo-tenant',
-    createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'agent-004',
-    name: 'Harmony - Customer Support',
-    type: 'support',
-    status: 'active',
-    trustScore: 8.4,
-    sonateDimensions: { realityIndex: 8.2, trustProtocol: 8.4, ethicalAlignment: 8.4, resonanceQuality: 8.8, canvasParity: 84 },
-    lastInteraction: new Date(Date.now() - 900000).toISOString(),
-    interactionCount: 432,
-    tenantId: 'demo-tenant',
-    createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'agent-005',
-    name: 'Quantum - Code Assistant',
-    type: 'development',
-    status: 'active',
-    trustScore: 9.1,
-    sonateDimensions: { realityIndex: 8.9, trustProtocol: 9.1, ethicalAlignment: 9.1, resonanceQuality: 8.7, canvasParity: 91 },
-    lastInteraction: new Date(Date.now() - 300000).toISOString(),
-    interactionCount: 976,
-    tenantId: 'demo-tenant',
-    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
+  lastInteraction: agent.lastActive,
+  interactionCount: agent.totalInteractions,
+  tenantId: DEMO_TENANT_ID,
+  createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+}));
 
 const FALLBACK_SUMMARY = {
-  total: 5,
-  active: 5,
-  inactive: 0,
-  avgTrustScore: 9.04,
+  total: AGGREGATE_METRICS.totalAgents,
+  active: AGGREGATE_METRICS.activeAgents,
+  inactive: AGGREGATE_METRICS.totalAgents - AGGREGATE_METRICS.activeAgents,
+  avgTrustScore: AGGREGATE_METRICS.avgTrustScore, // 9.04
   banned: 0,
   restricted: 0,
   quarantined: 0,

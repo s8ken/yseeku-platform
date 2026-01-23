@@ -15,6 +15,12 @@ import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { ConstitutionalPrinciples } from '@/components/ConstitutionalPrinciples';
 import { api } from '@/lib/api';
 import { useDemo } from '@/hooks/use-demo';
+import { 
+  FALLBACK_AGENTS as CENTRALIZED_AGENTS, 
+  AGGREGATE_METRICS,
+  FALLBACK_DASHBOARD_METRICS,
+  trustScoreToPercent,
+} from '@/lib/fallback-data';
 
 interface AgentTrustData {
   id: string;
@@ -110,65 +116,29 @@ function EmptyState() {
   );
 }
 
-// Fallback agent data for demos when API unavailable
-const FALLBACK_AGENTS: AgentTrustData[] = [
-  {
-    id: 'agent-001',
-    name: 'Atlas - Research Assistant',
-    model: 'research',
-    trustScore: 92,
-    sonateDimensions: { realityIndex: 9.1, trustProtocol: 'PASS', ethicalAlignment: 9.2, resonanceQuality: 'ADVANCED', canvasParity: 92 },
-    lastInteraction: new Date(Date.now() - 30000).toISOString(),
-    interactions24h: 1247,
-    status: 'healthy',
+// Fallback agent data - derived from centralized fallback-data.ts
+const FALLBACK_AGENTS: AgentTrustData[] = CENTRALIZED_AGENTS.map(agent => ({
+  id: agent.id,
+  name: `${agent.name} - ${agent.type}`,
+  model: agent.type.toLowerCase().replace(' ', '-'),
+  trustScore: trustScoreToPercent(agent.trustScore), // Convert 0-10 to 0-100
+  sonateDimensions: { 
+    realityIndex: agent.trustScore - 0.1, 
+    trustProtocol: agent.trustScore >= 9.0 ? 'PASS' : 'PARTIAL', 
+    ethicalAlignment: agent.trustScore, 
+    resonanceQuality: agent.trustScore >= 9.0 ? 'BREAKTHROUGH' : 'ADVANCED', 
+    canvasParity: trustScoreToPercent(agent.trustScore)
   },
-  {
-    id: 'agent-002',
-    name: 'Nova - Creative Writer',
-    model: 'creative',
-    trustScore: 87,
-    sonateDimensions: { realityIndex: 8.5, trustProtocol: 'PASS', ethicalAlignment: 8.7, resonanceQuality: 'BREAKTHROUGH', canvasParity: 87 },
-    lastInteraction: new Date(Date.now() - 60000).toISOString(),
-    interactions24h: 3421,
-    status: 'healthy',
-  },
-  {
-    id: 'agent-003',
-    name: 'Sentinel - Security Analyst',
-    model: 'security',
-    trustScore: 98,
-    sonateDimensions: { realityIndex: 9.5, trustProtocol: 'PASS', ethicalAlignment: 9.8, resonanceQuality: 'BREAKTHROUGH', canvasParity: 98 },
-    lastInteraction: new Date(Date.now() - 120000).toISOString(),
-    interactions24h: 856,
-    status: 'healthy',
-  },
-  {
-    id: 'agent-004',
-    name: 'Harmony - Customer Support',
-    model: 'support',
-    trustScore: 84,
-    sonateDimensions: { realityIndex: 8.2, trustProtocol: 'PARTIAL', ethicalAlignment: 8.4, resonanceQuality: 'ADVANCED', canvasParity: 84 },
-    lastInteraction: new Date(Date.now() - 180000).toISOString(),
-    interactions24h: 432,
-    status: 'healthy',
-  },
-  {
-    id: 'agent-005',
-    name: 'Quantum - Code Assistant',
-    model: 'development',
-    trustScore: 91,
-    sonateDimensions: { realityIndex: 8.9, trustProtocol: 'PASS', ethicalAlignment: 9.1, resonanceQuality: 'ADVANCED', canvasParity: 91 },
-    lastInteraction: new Date(Date.now() - 300000).toISOString(),
-    interactions24h: 976,
-    status: 'healthy',
-  },
-];
+  lastInteraction: agent.lastActive,
+  interactions24h: agent.totalInteractions,
+  status: agent.status === 'warning' ? 'warning' : 'healthy',
+}));
 
 const FALLBACK_KPIS = {
-  trustScore: 90.4,
-  activeAgents: 5,
-  totalInteractions: 6932,
-  complianceRate: 92.3,
+  trustScore: AGGREGATE_METRICS.avgTrustScorePercent, // 90
+  activeAgents: AGGREGATE_METRICS.activeAgents, // 4
+  totalInteractions: AGGREGATE_METRICS.totalInteractions, // 7932
+  complianceRate: AGGREGATE_METRICS.avgComplianceRate, // 92.3
   trends: {
     trustScore: { change: 2.1, direction: 'up' },
   },

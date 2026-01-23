@@ -40,6 +40,10 @@ import {
 import { toast } from 'sonner';
 import { WithDemoWatermark } from '@/components/demo-watermark';
 import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
+import { 
+  AGGREGATE_METRICS,
+  FALLBACK_TRUST_METRICS,
+} from '@/lib/fallback-data';
 
 interface Analytics {
   averageTrustScore: number;
@@ -59,11 +63,11 @@ interface Analytics {
   }>;
 }
 
-// Fallback demo data when API is unavailable
+// Fallback demo data when API is unavailable - uses centralized data
 const FALLBACK_ANALYTICS: Analytics = {
-  averageTrustScore: 9.04,
-  totalInteractions: 6932,
-  passRate: 92.3,
+  averageTrustScore: AGGREGATE_METRICS.avgTrustScore, // 9.04
+  totalInteractions: AGGREGATE_METRICS.totalInteractions, // 7932
+  passRate: AGGREGATE_METRICS.avgComplianceRate, // 92.3
   partialRate: 5.8,
   failRate: 1.9,
   commonViolations: [
@@ -81,7 +85,7 @@ const FALLBACK_ANALYTICS: Analytics = {
     { date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.98, passRate: 92.5 },
     { date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 9.01, passRate: 92.0 },
     { date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 9.02, passRate: 92.8 },
-    { date: new Date().toISOString().split('T')[0], avgTrustScore: 9.04, passRate: 92.3 },
+    { date: new Date().toISOString().split('T')[0], avgTrustScore: AGGREGATE_METRICS.avgTrustScore, passRate: AGGREGATE_METRICS.avgComplianceRate },
   ],
 };
 

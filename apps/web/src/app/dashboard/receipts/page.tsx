@@ -26,6 +26,12 @@ import {
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { api } from '@/lib/api';
 import { useDemo } from '@/hooks/use-demo';
+import { 
+  FALLBACK_AGENTS as CENTRALIZED_AGENTS, 
+  FALLBACK_RECEIPTS as CENTRALIZED_RECEIPTS,
+  trustScoreToPercent,
+  DEMO_TENANT_ID,
+} from '@/lib/fallback-data';
 
 interface TrustReceipt {
   id: string;
@@ -85,79 +91,30 @@ function EmptyState() {
   );
 }
 
-// Fallback receipts for demo when API is unavailable
-const FALLBACK_RECEIPTS: TrustReceipt[] = [
-  {
-    id: 'receipt-001',
-    hash: '0x7a9f4e2c8b1d3e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f',
-    agentId: 'agent-001',
-    agentName: 'Atlas - Research Assistant',
-    timestamp: new Date(Date.now() - 5 * 60000).toISOString(),
-    trustScore: 92,
-    sonateDimensions: { realityIndex: 9.1, trustProtocol: 'PASS', ethicalAlignment: 9.2, resonanceQuality: 'ADVANCED', canvasParity: 92 },
+// Fallback receipts - derived from centralized fallback-data.ts
+const FALLBACK_RECEIPTS: TrustReceipt[] = CENTRALIZED_RECEIPTS.map((receipt, index) => {
+  const agent = CENTRALIZED_AGENTS.find(a => a.id === receipt.agentId);
+  return {
+    id: receipt.id,
+    hash: `0x${index}a9f4e2c8b1d3e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f`,
+    agentId: receipt.agentId,
+    agentName: agent ? `${agent.name} - ${agent.type}` : receipt.agentName,
+    timestamp: receipt.timestamp,
+    trustScore: receipt.trustScore, // Already 0-100 in receipts
+    sonateDimensions: { 
+      realityIndex: (receipt.trustScore / 10) - 0.1, 
+      trustProtocol: receipt.trustScore >= 90 ? 'PASS' : 'PARTIAL', 
+      ethicalAlignment: receipt.trustScore / 10, 
+      resonanceQuality: receipt.trustScore >= 90 ? 'BREAKTHROUGH' : 'ADVANCED', 
+      canvasParity: receipt.trustScore
+    },
     verified: true,
-    chainPosition: 4821,
-    previousHash: '0x6b8e3d1c7a0f9e4d5c6b7a8f9e0d1c2b3a4f5e6d7c8b9a0f1e2d3c4b5a6f7e8d',
-    issuer: 'did:sonate:demo-tenant:platform',
-    subject: 'did:sonate:demo-tenant:agent:agent-001',
-  },
-  {
-    id: 'receipt-002',
-    hash: '0x3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d',
-    agentId: 'agent-002',
-    agentName: 'Nova - Creative Writer',
-    timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
-    trustScore: 87,
-    sonateDimensions: { realityIndex: 8.5, trustProtocol: 'PASS', ethicalAlignment: 8.7, resonanceQuality: 'BREAKTHROUGH', canvasParity: 87 },
-    verified: true,
-    chainPosition: 4820,
-    previousHash: '0x7a9f4e2c8b1d3e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f',
-    issuer: 'did:sonate:demo-tenant:platform',
-    subject: 'did:sonate:demo-tenant:agent:agent-002',
-  },
-  {
-    id: 'receipt-003',
-    hash: '0x8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f',
-    agentId: 'agent-003',
-    agentName: 'Sentinel - Security Analyst',
-    timestamp: new Date(Date.now() - 30 * 60000).toISOString(),
-    trustScore: 98,
-    sonateDimensions: { realityIndex: 9.5, trustProtocol: 'PASS', ethicalAlignment: 9.8, resonanceQuality: 'BREAKTHROUGH', canvasParity: 98 },
-    verified: true,
-    chainPosition: 4819,
-    previousHash: '0x3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d',
-    issuer: 'did:sonate:demo-tenant:platform',
-    subject: 'did:sonate:demo-tenant:agent:agent-003',
-  },
-  {
-    id: 'receipt-004',
-    hash: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b',
-    agentId: 'agent-005',
-    agentName: 'Quantum - Code Assistant',
-    timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
-    trustScore: 91,
-    sonateDimensions: { realityIndex: 8.9, trustProtocol: 'PASS', ethicalAlignment: 9.1, resonanceQuality: 'ADVANCED', canvasParity: 91 },
-    verified: true,
-    chainPosition: 4818,
-    previousHash: '0x8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f',
-    issuer: 'did:sonate:demo-tenant:platform',
-    subject: 'did:sonate:demo-tenant:agent:agent-005',
-  },
-  {
-    id: 'receipt-005',
-    hash: '0x5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f',
-    agentId: 'agent-004',
-    agentName: 'Harmony - Customer Support',
-    timestamp: new Date(Date.now() - 60 * 60000).toISOString(),
-    trustScore: 84,
-    sonateDimensions: { realityIndex: 8.2, trustProtocol: 'PARTIAL', ethicalAlignment: 8.4, resonanceQuality: 'STRONG', canvasParity: 84 },
-    verified: true,
-    chainPosition: 4817,
-    previousHash: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b',
-    issuer: 'did:sonate:demo-tenant:platform',
-    subject: 'did:sonate:demo-tenant:agent:agent-004',
-  },
-];
+    chainPosition: 4821 - index,
+    previousHash: `0x${index + 1}b8e3d1c7a0f9e4d5c6b7a8f9e0d1c2b3a4f5e6d7c8b9a0f1e2d3c4b5a6f7e8d`,
+    issuer: `did:sonate:${DEMO_TENANT_ID}:platform`,
+    subject: `did:sonate:${DEMO_TENANT_ID}:agent:${receipt.agentId}`,
+  };
+});
 
 function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
   const [copied, setCopied] = useState(false);

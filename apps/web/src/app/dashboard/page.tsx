@@ -30,6 +30,13 @@ import { OverseerWidget } from '@/components/overseer-widget';
 import { api } from '@/lib/api';
 import { WithDemoWatermark } from '@/components/demo-watermark';
 import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
+import { 
+  AGGREGATE_METRICS, 
+  FALLBACK_DASHBOARD_METRICS,
+  FALLBACK_SONATE_SCORES,
+  FALLBACK_SONATE_AVERAGE,
+  FALLBACK_ALERTS as CENTRALIZED_ALERTS,
+} from '@/lib/fallback-data';
 
 interface KPIData {
   tenant: string;
@@ -103,10 +110,11 @@ interface ExperimentData {
 }
 
 // Fallback KPI data when API is unavailable (for demo mode)
+// Uses centralized fallback data for consistency
 const FALLBACK_KPI_DATA: KPIData = {
   tenant: 'demo-tenant',
   timestamp: new Date().toISOString(),
-  trustScore: 90,
+  trustScore: FALLBACK_DASHBOARD_METRICS.trustScore, // 90 (from avgTrustScore 9.04 * 10)
   principleScores: {
     CONSENT_ARCHITECTURE: 9.2,
     INSPECTION_MANDATE: 8.9,
@@ -115,19 +123,19 @@ const FALLBACK_KPI_DATA: KPIData = {
     RIGHT_TO_DISCONNECT: 9.0,
     MORAL_RECOGNITION: 9.2,
   },
-  totalInteractions: 6932,
-  activeAgents: 5,
-  complianceRate: 92.3,
+  totalInteractions: AGGREGATE_METRICS.totalInteractions, // 7932
+  activeAgents: AGGREGATE_METRICS.activeAgents, // 4
+  complianceRate: AGGREGATE_METRICS.avgComplianceRate, // 92.3
   riskScore: 2.3,
-  alertsCount: 3,
+  alertsCount: FALLBACK_DASHBOARD_METRICS.alertsCount, // 3
   experimentsRunning: 2,
   orchestratorsActive: 1,
   sonateDimensions: {
     realityIndex: 8.9,
     trustProtocol: 'PASS',
-    ethicalAlignment: 9.04,
+    ethicalAlignment: AGGREGATE_METRICS.avgTrustScore, // 9.04
     resonanceQuality: 'COHERENT',
-    canvasParity: 90,
+    canvasParity: FALLBACK_SONATE_AVERAGE, // 89
   },
   trends: {
     trustScore: { change: 2.4, direction: 'up' },

@@ -34,6 +34,7 @@ import { useDemo } from '@/hooks/use-demo';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { WithDemoWatermark } from '@/components/demo-watermark';
 import { ListSkeleton } from '@/components/dashboard-skeletons';
+import { AGGREGATE_METRICS } from '@/lib/fallback-data';
 
 // Interaction types for enterprise tracking
 type InteractionType = 'AI_CUSTOMER' | 'AI_STAFF' | 'AI_AI' | 'ALL';
@@ -183,21 +184,21 @@ const DEMO_INTERACTIONS: Interaction[] = [
 ];
 
 const DEMO_STATS: InteractionStats = {
-  total: 6932,
+  total: AGGREGATE_METRICS.totalInteractions, // 7932
   byType: {
-    AI_CUSTOMER: 4856,
-    AI_STAFF: 1712,
-    AI_AI: 364,
-    ALL: 6932
+    AI_CUSTOMER: Math.round(AGGREGATE_METRICS.totalInteractions * 0.70), // ~70%
+    AI_STAFF: Math.round(AGGREGATE_METRICS.totalInteractions * 0.25), // ~25%
+    AI_AI: Math.round(AGGREGATE_METRICS.totalInteractions * 0.05), // ~5%
+    ALL: AGGREGATE_METRICS.totalInteractions
   },
   byStatus: {
-    PASS: 6089,
-    PARTIAL: 634,
-    FAIL: 209,
-    ALL: 6932
+    PASS: Math.round(AGGREGATE_METRICS.totalInteractions * (AGGREGATE_METRICS.avgComplianceRate / 100)),
+    PARTIAL: Math.round(AGGREGATE_METRICS.totalInteractions * 0.058), // ~5.8%
+    FAIL: Math.round(AGGREGATE_METRICS.totalInteractions * 0.019), // ~1.9%
+    ALL: AGGREGATE_METRICS.totalInteractions
   },
-  avgTrustScore: 90.4,
-  complianceRate: 92.3
+  avgTrustScore: AGGREGATE_METRICS.avgTrustScorePercent, // 90
+  complianceRate: AGGREGATE_METRICS.avgComplianceRate // 92.3
 };
 
 function InteractionTypeIcon({ type }: { type: InteractionType }) {

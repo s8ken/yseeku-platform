@@ -21,6 +21,7 @@ import {
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { api } from '@/lib/api';
 import { useDemo } from '@/hooks/use-demo';
+import { AGGREGATE_METRICS } from '@/lib/fallback-data';
 
 const defaultTrustPrinciples = [
   { name: 'Consent Architecture', weight: 25, score: 85, critical: true },
@@ -284,7 +285,7 @@ export default function RiskManagementPage() {
     ? {
         overallRiskScore: demoData?.overallRiskScore ?? 12,
         trustScore: overallTrustScore,
-        complianceRate: 92.3,
+        complianceRate: AGGREGATE_METRICS.avgComplianceRate, // 92.3
         activeAlerts: 0,
         criticalViolations: 0,
         riskTrend: 'improving' as const
@@ -292,7 +293,7 @@ export default function RiskManagementPage() {
     : (riskMetrics?.data || {
         overallRiskScore: 15,
         trustScore: overallTrustScore,
-        complianceRate: 92.3,
+        complianceRate: AGGREGATE_METRICS.avgComplianceRate, // 92.3
         activeAlerts: riskAlerts.length,
         criticalViolations: 1,
         riskTrend: 'stable' as const

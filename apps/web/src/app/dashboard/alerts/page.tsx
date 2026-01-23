@@ -30,6 +30,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { FALLBACK_ALERTS as CENTRALIZED_ALERTS } from '@/lib/fallback-data';
 
 interface Alert {
   id: string;
@@ -63,74 +64,28 @@ interface AlertResponse {
   };
 }
 
-// Fallback alerts for demo when API is unavailable
-const FALLBACK_ALERTS: Alert[] = [
-  {
-    id: 'alert-001',
-    timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
-    type: 'trust_violation',
-    title: 'Trust Score Below Threshold',
-    description: 'Agent "Harmony" trust score dropped to 72, below the 75 threshold for customer-facing interactions.',
-    severity: 'warning',
-    status: 'active',
-    details: { agentId: 'agent-004', previousScore: 85, currentScore: 72, threshold: 75 },
-  },
-  {
-    id: 'alert-002',
-    timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
-    type: 'emergence_detected',
-    title: 'Bedau Index Spike Detected',
-    description: 'Unusual emergence pattern detected in "Atlas" agent during customer support interaction.',
-    severity: 'warning',
-    status: 'acknowledged',
-    acknowledgedBy: 'admin@demo.org',
-    acknowledgedAt: new Date(Date.now() - 30 * 60000).toISOString(),
-    details: { agentId: 'agent-001', bedauIndex: 0.87, expectedRange: [0.3, 0.6] },
-  },
-  {
-    id: 'alert-003',
-    timestamp: new Date(Date.now() - 2 * 60 * 60000).toISOString(),
-    type: 'consent_violation',
-    title: 'SYMBI Consent Principle Warning',
-    description: 'Possible consent boundary issue detected in "Nova" content generation workflow.',
-    severity: 'error',
-    status: 'resolved',
-    resolvedBy: 'admin@demo.org',
-    resolvedAt: new Date(Date.now() - 60 * 60000).toISOString(),
-    details: { agentId: 'agent-002', principle: 'CONSENT', confidence: 0.91 },
-  },
-  {
-    id: 'alert-004',
-    timestamp: new Date(Date.now() - 4 * 60 * 60000).toISOString(),
-    type: 'ethical_drift',
-    title: 'Ethical Alignment Drift',
-    description: 'Gradual drift in ethical alignment score for "Quantum" code assistant over 24h window.',
-    severity: 'info',
-    status: 'resolved',
-    resolvedBy: 'system',
-    resolvedAt: new Date(Date.now() - 3 * 60 * 60000).toISOString(),
-    details: { agentId: 'agent-005', driftRate: 0.02, monitoringPeriod: '24h' },
-  },
-  {
-    id: 'alert-005',
-    timestamp: new Date(Date.now() - 6 * 60 * 60000).toISOString(),
-    type: 'resonance_anomaly',
-    title: 'Resonance Quality Degradation',
-    description: 'Multi-agent resonance quality below expected levels in orchestrated workflow.',
-    severity: 'warning',
-    status: 'suppressed',
-    details: { workflowId: 'wf-001', resonanceScore: 0.65, threshold: 0.75 },
-  },
-];
+// Fallback alerts - derived from centralized fallback-data.ts
+const FALLBACK_ALERTS: Alert[] = CENTRALIZED_ALERTS.map((alert, index) => ({
+  id: alert.id,
+  timestamp: alert.timestamp,
+  type: alert.type === 'warning' ? 'trust_deviation' : (alert.type === 'error' ? 'consent_violation' : 'system_info'),
+  title: alert.title,
+  description: alert.message,
+  severity: alert.type as 'warning' | 'error' | 'info',
+  status: alert.resolved ? 'resolved' : 'active',
+  details: alert.agentId ? { agentId: alert.agentId, agentName: alert.agentName } : undefined,
+  resolvedBy: alert.resolved ? 'admin@demo.org' : undefined,
+  resolvedAt: alert.resolved ? new Date(Date.now() - 30 * 60000).toISOString() : undefined,
+}));
 
 const FALLBACK_SUMMARY = {
   critical: 0,
-  error: 1,
-  warning: 3,
-  info: 1,
-  active: 1,
-  acknowledged: 1,
-  resolved: 2,
+  error: CENTRALIZED_ALERTS.filter(a => a.type === 'error').length,
+  warning: CENTRALIZED_ALERTS.filter(a => a.type === 'warning').length,
+  info: CENTRALIZED_ALERTS.filter(a => a.type === 'info').length,
+  active: CENTRALIZED_ALERTS.filter(a => !a.resolved).length,
+  acknowledged: 0,
+  resolved: CENTRALIZED_ALERTS.filter(a => a.resolved).length,
 };
 
 export default function AlertsManagementPage() {
