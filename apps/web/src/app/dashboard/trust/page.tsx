@@ -61,8 +61,8 @@ interface Analytics {
 
 // Fallback demo data when API is unavailable
 const FALLBACK_ANALYTICS: Analytics = {
-  averageTrustScore: 8.42,
-  totalInteractions: 3847,
+  averageTrustScore: 9.04,
+  totalInteractions: 6932,
   passRate: 92.3,
   partialRate: 5.8,
   failRate: 1.9,
@@ -75,13 +75,13 @@ const FALLBACK_ANALYTICS: Analytics = {
     { principle: 'MORAL_RECOGNITION', count: 1, percentage: 4 },
   ],
   recentTrends: [
-    { date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.21, passRate: 91.2 },
-    { date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.35, passRate: 91.8 },
-    { date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.28, passRate: 92.1 },
-    { date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.45, passRate: 92.5 },
-    { date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.38, passRate: 92.0 },
-    { date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.51, passRate: 92.8 },
-    { date: new Date().toISOString().split('T')[0], avgTrustScore: 8.42, passRate: 92.3 },
+    { date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.85, passRate: 91.2 },
+    { date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.92, passRate: 91.8 },
+    { date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.88, passRate: 92.1 },
+    { date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.98, passRate: 92.5 },
+    { date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 9.01, passRate: 92.0 },
+    { date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 9.02, passRate: 92.8 },
+    { date: new Date().toISOString().split('T')[0], avgTrustScore: 9.04, passRate: 92.3 },
   ],
 };
 

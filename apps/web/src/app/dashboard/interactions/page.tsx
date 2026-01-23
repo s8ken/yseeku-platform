@@ -183,20 +183,20 @@ const DEMO_INTERACTIONS: Interaction[] = [
 ];
 
 const DEMO_STATS: InteractionStats = {
-  total: 1247,
+  total: 6932,
   byType: {
-    AI_CUSTOMER: 856,
-    AI_STAFF: 312,
-    AI_AI: 79,
-    ALL: 1247
+    AI_CUSTOMER: 4856,
+    AI_STAFF: 1712,
+    AI_AI: 364,
+    ALL: 6932
   },
   byStatus: {
-    PASS: 1089,
-    PARTIAL: 134,
-    FAIL: 24,
-    ALL: 1247
+    PASS: 6089,
+    PARTIAL: 634,
+    FAIL: 209,
+    ALL: 6932
   },
-  avgTrustScore: 87.3,
+  avgTrustScore: 90.4,
   complianceRate: 98.1
 };
 
