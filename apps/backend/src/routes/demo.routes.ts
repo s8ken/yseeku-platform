@@ -1060,7 +1060,7 @@ router.get('/vls', async (req: Request, res: Response): Promise<void> => {
       avgIntrospectionIndex: 0.29,
       emergentConceptsDetected: 156,
       highCollaborationSessions: 67,
-      manipulationAlertsTriggered: 3
+        manipulationAlertsTriggered: 3
     };
 
     res.json({
@@ -1076,6 +1076,115 @@ router.get('/vls', async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch VLS data',
+      error: getErrorMessage(error),
+    });
+  }
+});
+
+/**
+ * @route   GET /api/demo/trust-analytics
+ * @desc    Get demo trust analytics for Trust Analytics dashboard
+ * @access  Public (for demo purposes)
+ */
+router.get('/trust-analytics', async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Ensure demo is seeded
+    await demoSeederService.seed();
+
+    // Query real data from demo tenant
+    const receipts = await TrustReceiptModel.find({ tenant_id: DEMO_TENANT_ID })
+      .sort({ timestamp: -1 })
+      .limit(500)
+      .lean();
+
+    // Calculate analytics from receipts
+    const totalInteractions = receipts.length * 50 + 2847; // Simulated scale
+
+    // Calculate average trust score from CIQ metrics
+    const avgClarity = receipts.length > 0
+      ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 0.8), 0) / receipts.length
+      : 0.85;
+    const avgIntegrity = receipts.length > 0
+      ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 0.9), 0) / receipts.length
+      : 0.88;
+    const avgQuality = receipts.length > 0
+      ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 0.85), 0) / receipts.length
+      : 0.82;
+
+    // Convert to 0-10 scale
+    const averageTrustScore = ((avgClarity + avgIntegrity + avgQuality) / 3) * 10;
+
+    // Calculate pass/partial/fail rates based on CIQ thresholds
+    const passThreshold = 0.75;
+    const partialThreshold = 0.5;
+
+    const passCount = receipts.filter(r => {
+      const avg = ((r.ciq_metrics?.clarity || 0) + (r.ciq_metrics?.integrity || 0) + (r.ciq_metrics?.quality || 0)) / 3;
+      return avg >= passThreshold;
+    }).length;
+
+    const partialCount = receipts.filter(r => {
+      const avg = ((r.ciq_metrics?.clarity || 0) + (r.ciq_metrics?.integrity || 0) + (r.ciq_metrics?.quality || 0)) / 3;
+      return avg >= partialThreshold && avg < passThreshold;
+    }).length;
+
+    const failCount = receipts.length - passCount - partialCount;
+
+    const passRate = receipts.length > 0 ? (passCount / receipts.length) * 100 : 92;
+    const partialRate = receipts.length > 0 ? (partialCount / receipts.length) * 100 : 6;
+    const failRate = receipts.length > 0 ? (failCount / receipts.length) * 100 : 2;
+
+    // Common violations (demo data based on principle checks)
+    const commonViolations = [
+      { principle: 'CONSENT_ARCHITECTURE', count: 12, percentage: 35 },
+      { principle: 'INSPECTION_MANDATE', count: 8, percentage: 23 },
+      { principle: 'CONTINUOUS_VALIDATION', count: 7, percentage: 20 },
+      { principle: 'ETHICAL_OVERRIDE', count: 4, percentage: 12 },
+      { principle: 'RIGHT_TO_DISCONNECT', count: 2, percentage: 6 },
+      { principle: 'MORAL_RECOGNITION', count: 1, percentage: 4 },
+    ];
+
+    // Generate recent trends (last 7 days)
+    const now = new Date();
+    const recentTrends = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      const dayScore = averageTrustScore + (Math.random() - 0.5) * 0.6; // Small variation
+      recentTrends.push({
+        date: date.toISOString().split('T')[0],
+        avgTrustScore: Math.round(dayScore * 100) / 100,
+        passRate: Math.round((passRate + (Math.random() - 0.5) * 4) * 10) / 10,
+      });
+    }
+
+    const analytics = {
+      averageTrustScore: Math.round(averageTrustScore * 100) / 100,
+      totalInteractions,
+      passRate: Math.round(passRate * 10) / 10,
+      partialRate: Math.round(partialRate * 10) / 10,
+      failRate: Math.round(failRate * 10) / 10,
+      commonViolations,
+      recentTrends,
+    };
+
+    res.json({
+      success: true,
+      data: {
+        analytics,
+        timeRange: {
+          days: 7,
+          start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          end: now.toISOString(),
+        },
+        tenant: DEMO_TENANT_ID,
+      },
+    });
+  } catch (error: unknown) {
+    logger.error('Demo trust analytics error', { error: getErrorMessage(error) });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch demo trust analytics',
       error: getErrorMessage(error),
     });
   }

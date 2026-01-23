@@ -29,7 +29,7 @@ import crypto from 'crypto';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/yseeku';
 const DEMO_PASSWORD = 'Demo123!';
 const TENANT_ID = 'default';
-const DEMO_TENANT_ID = '507f1f77bcf86cd799439011';  // Special demo tenant for investor showcases
+const DEMO_TENANT_ID = 'demo-tenant';  // Must match demo.routes.ts and demo-seeder.service.ts
 
 // Demo Users
 const demoUsers = [
