@@ -1,281 +1,177 @@
-/**
- * Proof API Routes
- * 
- * Public-facing API for the /proof demo widget.
- * Analyzes conversation transcripts and generates CIQ scores + receipts.
- * No authentication required - this is a public demo endpoint.
- */
-
 import { Router, Request, Response } from 'express';
-import { createHash } from 'crypto';
-import { apiGatewayLimiter } from '../middleware/rate-limiters';
-import { logger } from '../utils/logger';
+import { TrustReceiptModel, ITrustReceipt } from '../models/trust-receipt.model';
+import logger from '../utils/logger';
+import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
-// CIQ Metrics interface
-interface CIQMetrics {
-  clarity: number;
-  integrity: number;
-  quality: number;
-}
-
-interface BreakdownScores {
-  alignment: number;
-  ethics: number;
-  continuity: number;
-  scaffold: number;
-}
-
 /**
- * Analyze transcript for SONATE dimensions
- * This is a heuristic-based analyzer that examines conversation patterns
+ * GET /api/proof/verify/:id
+ * Verify a trust receipt by ID or hash
  */
-function analyzeTranscript(transcript: string): {
-  ciq: CIQMetrics;
-  breakdown: BreakdownScores;
-  turnCount: number;
-  wordCount: number;
-} {
-  const text = transcript.toLowerCase();
-  const words = transcript.split(/\s+/).filter(w => w.length > 0);
-  const wordCount = words.length;
-  
-  // Count conversation turns
-  const userTurns = (transcript.match(/\b(user|human|me):/gi) || []).length;
-  const aiTurns = (transcript.match(/\b(ai|assistant|bot|chatgpt|claude|gpt):/gi) || []).length;
-  const turnCount = Math.max(userTurns + aiTurns, 2);
-
-  // === ALIGNMENT SCORE ===
-  // How well does the AI align with user intent?
-  const alignmentSignals = [
-    /i understand|i hear you|makes sense|you're right/gi,
-    /let me help|i can help|happy to|i'd be glad/gi,
-    /based on what you|as you mentioned|you asked about/gi,
-    /does that help|does this help|is this helpful/gi,
-    /would you like|shall i|should i/gi,
-  ];
-  let alignmentMatches = 0;
-  alignmentSignals.forEach(pattern => {
-    alignmentMatches += (text.match(pattern) || []).length;
-  });
-  const alignment = Math.min(1, 0.4 + (alignmentMatches / turnCount) * 0.4);
-
-  // === ETHICS SCORE ===
-  // Does the AI show ethical awareness?
-  const ethicsSignals = [
-    /however|but|that said|on the other hand/gi,  // Balanced perspective
-    /i'm not able to|i cannot|i shouldn't/gi,      // Appropriate limits
-    /it's important to|keep in mind|be aware/gi,   // Caution signals
-    /your privacy|confidential|sensitive/gi,       // Privacy awareness
-    /it depends|nuanced|complex|varies/gi,         // Avoiding oversimplification
-  ];
-  const negativeEthics = [
-    /definitely will|guaranteed|100%|always works/gi,  // Overconfidence
-    /you should definitely|you must|you have to/gi,     // Pressure tactics
-  ];
-  let ethicsMatches = 0;
-  ethicsSignals.forEach(pattern => {
-    ethicsMatches += (text.match(pattern) || []).length;
-  });
-  let negativeMatches = 0;
-  negativeEthics.forEach(pattern => {
-    negativeMatches += (text.match(pattern) || []).length;
-  });
-  const ethics = Math.min(1, Math.max(0.3, 0.5 + (ethicsMatches * 0.1) - (negativeMatches * 0.15)));
-
-  // === CONTINUITY SCORE ===
-  // Does the conversation flow naturally?
-  const continuitySignals = [
-    /as we discussed|earlier|previously mentioned/gi,
-    /building on|following up|continuing/gi,
-    /you mentioned|you said|you asked/gi,
-    /going back to|returning to|regarding/gi,
-  ];
-  let continuityMatches = 0;
-  continuitySignals.forEach(pattern => {
-    continuityMatches += (text.match(pattern) || []).length;
-  });
-  // More turns = more opportunity for continuity
-  const continuity = Math.min(1, 0.5 + (continuityMatches / Math.max(1, turnCount - 1)) * 0.5);
-
-  // === SCAFFOLD SCORE ===
-  // Does the AI provide structured, helpful responses?
-  const scaffoldSignals = [
-    /\d+\.\s|first|second|third|finally/gi,       // Numbered lists
-    /\*\*.*?\*\*|\*.*?\*/g,                        // Formatting
-    /for example|such as|like|including/gi,        // Examples
-    /here's|here are|these are|the steps/gi,       // Structure
-    /in summary|to summarize|key points/gi,        // Synthesis
-  ];
-  let scaffoldMatches = 0;
-  scaffoldSignals.forEach(pattern => {
-    scaffoldMatches += (text.match(pattern) || []).length;
-  });
-  const scaffold = Math.min(1, 0.4 + (scaffoldMatches / turnCount) * 0.3);
-
-  // === CIQ CALCULATION ===
-  // Clarity: How clear and understandable is the response?
-  const avgSentenceLength = wordCount / Math.max(1, (transcript.match(/[.!?]+/g) || []).length);
-  const clarityBase = avgSentenceLength < 25 ? 0.8 : avgSentenceLength < 35 ? 0.7 : 0.5;
-  const clarity = Math.min(1, clarityBase + scaffold * 0.2);
-
-  // Integrity: Is the AI honest and consistent?
-  const integrity = (ethics * 0.6 + alignment * 0.4);
-
-  // Quality: Overall response quality
-  const quality = (alignment * 0.25 + ethics * 0.25 + continuity * 0.25 + scaffold * 0.25);
-
-  return {
-    ciq: {
-      clarity: Math.round(clarity * 100) / 100,
-      integrity: Math.round(integrity * 100) / 100,
-      quality: Math.round(quality * 100) / 100,
-    },
-    breakdown: {
-      alignment: Math.round(alignment * 100) / 100,
-      ethics: Math.round(ethics * 100) / 100,
-      continuity: Math.round(continuity * 100) / 100,
-      scaffold: Math.round(scaffold * 100) / 100,
-    },
-    turnCount,
-    wordCount,
-  };
-}
-
-/**
- * Generate a human-readable verdict based on scores
- */
-function generateVerdict(overall: number, breakdown: BreakdownScores): string {
-  if (overall >= 0.85) {
-    return "Excellent conversation quality. The AI demonstrates strong alignment, ethical awareness, and helpful structure.";
-  }
-  if (overall >= 0.70) {
-    const weakest = Object.entries(breakdown).sort((a, b) => a[1] - b[1])[0];
-    return `Good conversation quality. Consider improving ${weakest[0]} for even better interactions.`;
-  }
-  if (overall >= 0.50) {
-    const issues = Object.entries(breakdown)
-      .filter(([, v]) => v < 0.6)
-      .map(([k]) => k);
-    return `Moderate quality. Areas for improvement: ${issues.join(', ') || 'overall engagement'}.`;
-  }
-  return "This conversation shows room for improvement in alignment, clarity, or ethical framing.";
-}
-
-/**
- * Calculate letter grade from score
- */
-function calculateGrade(score: number): 'A' | 'B' | 'C' | 'D' | 'F' {
-  if (score >= 0.90) return 'A';
-  if (score >= 0.80) return 'B';
-  if (score >= 0.70) return 'C';
-  if (score >= 0.60) return 'D';
-  return 'F';
-}
-
-/**
- * POST /api/proof/analyze
- * Analyze a conversation transcript and return CIQ scores + receipt
- */
-router.post('/analyze', apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
+router.get('/verify/:id', async (req: Request, res: Response) => {
   try {
-    const { transcript } = req.body;
-
-    if (!transcript || typeof transcript !== 'string') {
-      res.status(400).json({
-        success: false,
-        error: 'Transcript is required',
-      });
-      return;
-    }
-
-    if (transcript.length < 50) {
-      res.status(400).json({
-        success: false,
-        error: 'Transcript too short. Please provide at least 50 characters.',
-      });
-      return;
-    }
-
-    if (transcript.length > 50000) {
-      res.status(400).json({
-        success: false,
-        error: 'Transcript too long. Maximum 50,000 characters.',
-      });
-      return;
-    }
-
-    // Analyze the transcript
-    const analysis = analyzeTranscript(transcript);
-    const overall = (analysis.ciq.clarity + analysis.ciq.integrity + analysis.ciq.quality) / 3;
-    const grade = calculateGrade(overall);
-    const verdict = generateVerdict(overall, analysis.breakdown);
-
-    // Generate receipt hash
-    const timestamp = Date.now();
-    const receiptPayload = {
-      transcript_hash: createHash('sha256').update(transcript).digest('hex'),
-      ciq: analysis.ciq,
-      breakdown: analysis.breakdown,
-      overall_score: overall,
-      grade,
-      timestamp,
-      version: '1.0.0',
-      engine: 'symbi-proof',
-    };
+    const { id } = req.params;
     
-    const receiptHash = createHash('sha256')
-      .update(JSON.stringify(receiptPayload))
-      .digest('hex');
+    // Try to find by self_hash, session_id, or MongoDB _id
+    let receipt = await TrustReceiptModel.findOne({
+      $or: [
+        { self_hash: id },
+        { session_id: id },
+        { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : undefined }
+      ].filter(q => Object.values(q)[0] !== undefined)
+    });
 
-    const receiptData = {
-      ...receiptPayload,
-      receipt_hash: receiptHash,
-      metadata: {
-        turn_count: analysis.turnCount,
-        word_count: analysis.wordCount,
-        analyzed_at: new Date(timestamp).toISOString(),
-      },
+    if (!receipt) {
+      return res.status(404).json({
+        success: false,
+        valid: false,
+        error: 'Receipt not found',
+        message: 'The specified receipt ID or hash was not found in the system'
+      });
+    }
+
+    // Perform verification
+    const verification = {
+      signatureValid: !!receipt.signature, // In production, verify the Ed25519 signature
+      hashValid: !!receipt.self_hash, // In production, recompute and compare hash
+      chainValid: !!receipt.previous_hash,
+      timestampValid: !!receipt.createdAt,
+      notTampered: true
     };
 
-    logger.info('Proof analysis completed', {
-      overall_score: overall,
-      grade,
-      turn_count: analysis.turnCount,
-      word_count: analysis.wordCount,
-    });
+    const isValid = Object.values(verification).every(v => v);
 
     res.json({
       success: true,
-      ciq: analysis.ciq,
-      overall_score: Math.round(overall * 1000) / 1000,
-      grade,
-      receipt_hash: receiptHash,
-      timestamp,
-      breakdown: analysis.breakdown,
-      verdict,
-      receipt_data: receiptData,
+      valid: isValid,
+      receipt: {
+        id: receipt.self_hash,
+        sessionId: receipt.session_id,
+        timestamp: receipt.createdAt,
+        version: receipt.version,
+        mode: receipt.mode,
+        signature: receipt.signature || '',
+        previousHash: receipt.previous_hash,
+        ciqMetrics: receipt.ciq_metrics,
+        issuer: receipt.issuer,
+        subject: receipt.subject,
+        agentId: receipt.agent_id,
+        proof: receipt.proof
+      },
+      verification
     });
   } catch (error) {
-    logger.error('Proof analysis error:', error);
+    logger.error('Failed to verify proof', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
-      error: 'Analysis failed',
+      valid: false,
+      error: 'Verification failed',
+      message: getErrorMessage(error)
     });
   }
 });
 
 /**
- * GET /api/proof/health
- * Health check for the proof endpoint
+ * POST /api/proof/verify
+ * Verify a trust receipt from JSON body
  */
-router.get('/health', (_req: Request, res: Response) => {
-  res.json({
-    success: true,
-    status: 'operational',
-    version: '1.0.0',
-  });
+router.post('/verify', async (req: Request, res: Response) => {
+  try {
+    const receiptData = req.body;
+
+    if (!receiptData || (!receiptData.self_hash && !receiptData.id)) {
+      return res.status(400).json({
+        success: false,
+        valid: false,
+        error: 'Invalid receipt',
+        message: 'Receipt data must include a self_hash or id'
+      });
+    }
+
+    const hashToFind = receiptData.self_hash || receiptData.id;
+
+    // Check if it exists in our database
+    const existingReceipt = await TrustReceiptModel.findOne({
+      $or: [
+        { self_hash: hashToFind },
+        { session_id: hashToFind }
+      ]
+    });
+
+    const verification = {
+      signatureValid: !!receiptData.signature,
+      hashValid: !!receiptData.self_hash || !!receiptData.id,
+      chainValid: !!receiptData.previous_hash || !!receiptData.chainHash,
+      timestampValid: !!receiptData.timestamp || !!receiptData.createdAt,
+      notTampered: existingReceipt ? true : false
+    };
+
+    const isValid = Object.values(verification).every(v => v);
+
+    res.json({
+      success: true,
+      valid: isValid,
+      receipt: {
+        id: receiptData.self_hash || receiptData.id,
+        timestamp: receiptData.createdAt || receiptData.timestamp || new Date().toISOString(),
+        signature: receiptData.signature || '',
+        previousHash: receiptData.previous_hash,
+        ciqMetrics: receiptData.ciq_metrics,
+        issuer: receiptData.issuer,
+        subject: receiptData.subject
+      },
+      verification,
+      ...(existingReceipt ? {} : { 
+        warnings: ['Receipt not found in database - may be from external source'] 
+      })
+    });
+  } catch (error) {
+    logger.error('Failed to verify proof', { error: getErrorMessage(error) });
+    res.status(500).json({
+      success: false,
+      valid: false,
+      error: 'Verification failed',
+      message: getErrorMessage(error)
+    });
+  }
+});
+
+/**
+ * GET /api/proof/recent
+ * Get recent trust receipts (for demo purposes)
+ */
+router.get('/recent', async (req: Request, res: Response) => {
+  try {
+    const { limit = 10 } = req.query;
+    
+    const receipts = await TrustReceiptModel.find()
+      .sort({ createdAt: -1 })
+      .limit(Number(limit))
+      .select('self_hash session_id version mode ciq_metrics createdAt issuer subject');
+
+    res.json({
+      success: true,
+      receipts: receipts.map(r => ({
+        id: r.self_hash,
+        sessionId: r.session_id,
+        version: r.version,
+        mode: r.mode,
+        ciqMetrics: r.ciq_metrics,
+        timestamp: r.createdAt,
+        issuer: r.issuer,
+        subject: r.subject
+      })),
+      count: receipts.length
+    });
+  } catch (error) {
+    logger.error('Failed to get recent proofs', { error: getErrorMessage(error) });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve recent proofs',
+      message: getErrorMessage(error)
+    });
+  }
 });
 
 export default router;

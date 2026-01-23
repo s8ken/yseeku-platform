@@ -85,7 +85,7 @@ export default function OverridesQueuePage() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked && data?.data?.items) {
-      const allIds = new Set<string>(data.data.items.map((item: OverrideQueueItem) => item.id));
+      const allIds = new Set(data.data.items.map(item => item.id));
       setSelectedItems(allIds);
       setShowBulkActions(true);
     } else {
@@ -144,22 +144,22 @@ export default function OverridesQueuePage() {
     }
   };
 
-  const getStatusBadgeVariant = (status: string) => {
+  const getStatusBadgeVariant = (status: string): "default" | "destructive" | "outline" | "secondary" => {
     switch (status) {
       case 'pending': return 'secondary';
       case 'approved': return 'default';
-      case 'executed': return 'success';
+      case 'executed': return 'outline';
       case 'failed': return 'destructive';
       case 'overridden': return 'outline';
       default: return 'default';
     }
   };
 
-  const getSeverityBadgeVariant = (severity: string) => {
+  const getSeverityBadgeVariant = (severity: string): "default" | "destructive" | "outline" | "secondary" => {
     switch (severity) {
       case 'critical': return 'destructive';
       case 'high': return 'destructive';
-      case 'medium': return 'warning';
+      case 'medium': return 'outline';
       case 'low': return 'secondary';
       default: return 'default';
     }
@@ -343,7 +343,7 @@ export default function OverridesQueuePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item: OverrideQueueItem) => (
+                  {items.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>
                         <Checkbox

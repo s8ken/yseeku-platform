@@ -81,10 +81,6 @@ export const api = {
   getOverseerEffectiveness: overseerApi.getEffectiveness,
   getOverseerRecommendations: overseerApi.getRecommendations,
   setOverseerMode: overseerApi.setMode,
-  overrideOverseerAction: overseerApi.overrideAction,
-  approveOverseerAction: overseerApi.approveAction,
-  getOverseerRefusals: overseerApi.getRefusals,
-  getOverseerCycleDetails: overseerApi.getCycleDetails,
 
   // Conversations
   createConversation: conversationsApi.createConversation,
@@ -99,20 +95,11 @@ export const api = {
   getExperiment: labApi.getExperiment,
   createExperiment: labApi.createExperiment,
   startExperiment: labApi.startExperiment,
-  pauseExperiment: labApi.pauseExperiment,
-  resumeExperiment: labApi.resumeExperiment,
-  completeExperiment: labApi.completeExperiment,
   stopExperiment: labApi.stopExperiment,
-  recordExperimentData: labApi.recordExperimentData,
   deleteExperiment: labApi.deleteExperiment,
   runSymbiAnalysis: labApi.runSymbiAnalysis,
   getBedauIndex: labApi.getBedauIndex,
   runEmergenceTest: labApi.runEmergenceTest,
-
-  // VLS (Research Preview)
-  analyzeVLSText: labApi.analyzeVLSText,
-  getVLSConversation: labApi.getVLSConversation,
-  getVLSSessions: labApi.getVLSSessions,
 
   // Admin
   getTenants: adminApi.getTenants,
@@ -161,6 +148,11 @@ export const api = {
     return res.json();
   },
 
+  async getDemoTrustAnalytics(): Promise<unknown> {
+    const res = await fetch(`${API_BASE}/api/demo/trust-analytics`);
+    return res.json();
+  },
+
   async getDemoRisk(): Promise<unknown> {
     const res = await fetch(`${API_BASE}/api/demo/risk`);
     return res.json();
@@ -194,16 +186,6 @@ export const api = {
   async getDemoVLS(sessionId?: string): Promise<unknown> {
     const query = sessionId ? `?sessionId=${sessionId}` : '';
     const res = await fetch(`${API_BASE}/api/demo/vls${query}`);
-    return res.json();
-  },
-
-  async getDemoTrustAnalytics(): Promise<unknown> {
-    const res = await fetch(`${API_BASE}/api/demo/trust-analytics`);
-    return res.json();
-  },
-
-  async getDemoBedauMetrics(): Promise<unknown> {
-    const res = await fetch(`${API_BASE}/api/demo/bedau-metrics`);
     return res.json();
   },
 
@@ -357,7 +339,7 @@ export const api = {
   // Bedau Metrics (alias for getBedauIndex)
   async getBedauMetrics(): Promise<Record<string, any>> {
     const { fetchAPI } = await import('./client');
-    const res = await fetchAPI<{ success: boolean; data: Record<string, any> }>('/api/lab/bedau-metrics');
+    const res = await fetchAPI<{ success: boolean; data: Record<string, any> }>('/api/bedau/metrics');
     return res.data || {};
   },
 

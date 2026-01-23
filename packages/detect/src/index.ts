@@ -21,15 +21,6 @@ export { BalancedSonateDetector } from './balanced-detector';
 export { CalibratedSonateDetector } from './calibrated-detector';
 export { DriftDetector } from './drift-detection';
 
-// Linguistic Analysis (VLS)
-export { 
-  analyzeLinguistics, 
-  analyzeConversation, 
-  calculateVocabularyDrift,
-  type LinguisticMetrics,
-  type ConversationAnalysis
-} from './linguistic-analyzer';
-
 // 5 Dimension scorers
 export { RealityIndexCalculator } from './reality-index';
 export { TrustProtocolValidator } from './trust-protocol-validator';

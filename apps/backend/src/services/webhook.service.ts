@@ -229,12 +229,13 @@ class WebhookService {
     rule?: AlertRule,
     metrics?: MetricSnapshot
   ): Promise<void> {
+    const payload = this.buildPayload(alert, config.tenantId, rule, metrics);
+    
     // Normalize channel to WebhookChannelConfig
     const channelConfig: WebhookChannelConfig = typeof channel === 'string' 
       ? { type: channel, url: config.url } 
       : channel;
     
-    const payload = this.buildPayload(alert, config.tenantId, rule, metrics);
     const formattedPayload = this.formatForChannel(channelConfig, payload);
     
     // Create delivery record
@@ -673,16 +674,18 @@ class WebhookService {
     };
     
     const channel = config.channels[0];
+    
     // Normalize channel to WebhookChannelConfig
     const channelConfig: WebhookChannelConfig = typeof channel === 'string' 
       ? { type: channel, url: config.url } 
       : channel;
+    
     const formattedPayload = this.formatForChannel(channelConfig, testPayload);
     const headers = this.buildHeaders(config, channelConfig, formattedPayload);
     
     const startTime = Date.now();
     
-    // Get channel URL - handle both object and string channel types
+    // Get channel URL
     const channelUrl = channelConfig.url || config.url;
     const channelMethod = channelConfig.method || 'POST';
     

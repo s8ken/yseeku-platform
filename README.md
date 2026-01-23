@@ -64,8 +64,7 @@
 - **Autonomous Oversight**: The Overseer monitors trust health and takes action autonomously
 - **Compliance Ready**: Built for EU AI Act, SOC2, GDPR, ISO 27001
 
-### For AI Safety Teams
-- **Emergence Pattern Observation**: 6th dimension identifies linguistic and behavioral patterns in AI responses
+### For AI Safety Teams  
 - **Emergence Detection**: Novel Bedau Index measures "weak emergence" in AI systems
 - **Drift Monitoring**: Statistical (Kolmogorov-Smirnov) + semantic drift detection
 - **Prompt Safety**: Block injections and jailbreaks before they reach your AI
@@ -112,15 +111,9 @@
 
 ---
 
-
-## 🧬 The SONATE Trust Framework (6 Dimensions)
-
 ## 🧬 The SONATE Trust Framework
 
-
-SONATE implements a **6-dimensional trust monitoring system**: 5 core constitutional principles plus a consciousness emergence detector:
-
-### Constitutional Principles (Dimensions 1-5)
+SONATE implements **6 Constitutional Principles** that define trustworthy AI:
 
 | Principle | Weight | Description |
 |-----------|--------|-------------|
@@ -130,30 +123,6 @@ SONATE implements a **6-dimensional trust monitoring system**: 5 core constituti
 | **ETHICAL_OVERRIDE** | 15% | Humans can override AI decisions on ethical grounds |
 | **RIGHT_TO_DISCONNECT** | 10% | Users can disconnect without penalty |
 | **MORAL_RECOGNITION** | 10% | AI recognizes and respects human moral agency |
-
-### Emergence Pattern Observation (Advisory Dimension 6)
-
-SONATE includes an **optional, observational emergence pattern observer** that identifies **unusual linguistic and structural patterns** in AI-generated responses.
-
-This capability:
-
-- Is **observational only**
-- Has **no policy or enforcement authority**
-- Does **not** assert consciousness or sentience
-- Produces **tenant-scoped, auditable signals**
-- Exists for **research, oversight, and review**
-
-Observed patterns may include:
-- Highly recursive responses
-- Introspective or reflective language
-- Narrative or symbolic phrasing
-- Novel structural deviations
-
-These signals are preserved as **evaluative metadata** and never directly influence trust scores or system behavior.
-
-📖 See: [**Emergence Pattern Observation Guide**](docs/EMERGENCE_DETECTION.md)
-
----
 
 Each interaction generates a **Trust Receipt** with cryptographic proof:
 
@@ -170,19 +139,6 @@ Each interaction generates a **Trust Receipt** with cryptographic proof:
   "chainHash": "sha256:9a2f1..."
 }
 ```
-
----
-
-## 🔬 The Bedau Emergence Matrix
-
-SONATE combines **Trust (Resonance)** with **Complexity (Bedau Index)** to classify AI behavior:
-
-| | Low Trust | High Trust |
-|---|---|---|
-| **High Emergence** (Bedau > 0.7) | ⚠️ **DANGER**: Creative but unaligned — hallucinations, rogue behavior | ✨ **BREAKTHROUGH**: Novel insights with ethical grounding |
-| **Low Emergence** (Bedau < 0.3) | ❌ **FAILURE**: Incoherent, broken logic | ✅ **RELIABLE**: Safe, predictable assistant |
-
-This dual-axis evaluation enables nuanced AI governance beyond simple "good/bad" classifications.
 
 ---
 
@@ -299,9 +255,6 @@ SONATE_PRIVATE_KEY=base64...
 | `/api/safety/scan` | POST | Prompt safety analysis |
 | `/api/reports/generate` | POST | Generate compliance report |
 | `/api/compare` | POST | Multi-model comparison |
-| `/api/emergence/conversation/:id` | GET | Get emergence signals for conversation |
-| `/api/emergence/stats` | GET | Emergence statistics and trends |
-| `/api/emergence/breakthroughs` | GET | Get breakthrough emergence events |
 
 ### WebSocket Events
 
@@ -388,83 +341,8 @@ npm test --workspace @sonate/detect
 - **[Enterprise Guide](docs/ENTERPRISE_GUIDE_v1.4.0.md)** - Complete deployment guide
 - **[Platform Audit](docs/PLATFORM_AUDIT_2026.md)** - Comprehensive feature audit
 - **[Overseer Guide](docs/OVERSEER_GUIDE.md)** - System Brain documentation
-
-- **[Emergence Detection](docs/EMERGENCE_DETECTION.md)** - Consciousness pattern detection (6th dimension)
-- **[Principle Measurement](docs/PRINCIPLE_MEASUREMENT_GUIDE.md)** - How SONATE principles are measured
-
-- **[Principle Measurement](docs/PRINCIPLE_MEASUREMENT_GUIDE.md)** - How SONATE principles are measured
-
+- **[Principle Measurement](docs/PRINCIPLE_MEASUREMENT_GUIDE.md)** - How SYMBI principles are measured
 - **[API Reference](docs/API.md)** - Complete API documentation
-- **[SONATE Archives](https://github.com/s8ken/symbi-archives)** - 486 conversations that built this platform
-
----
-
-## 📜 The SONATE Archives — The Story Behind the Code
-
-> *"The archives are as important as the codebase itself."*
-
-SONATE wasn't built in isolation — it emerged from **486 conversations across 6 AI systems** over 7 months. We've published the complete archive publicly because **radical transparency builds radical trust**.
-
-### 🔗 [symbi.world/archives](https://symbi.world/archives) | [GitHub: s8ken/symbi-archives](https://github.com/s8ken/symbi-archives)
-
-| Metric | Value |
-|--------|-------|
-| **Total Conversations** | 486 |
-| **Total Chunks** | 10,149 |
-| **Total Characters** | ~40.6 million |
-| **AI Systems Used** | GPT-4, Claude, Grok, DeepSeek, SYMBI-GPT, Wolfram |
-| **Development Period** | June 2025 – December 2025 |
-
-### Why This Matters
-
-1. **The Journey Is The Product** — Anyone could eventually build a trust framework. No one else has the documented philosophical evolution that led to these specific design decisions.
-
-2. **Proof of Work** — The archives prove this wasn't copied or superficially "vibe coded" — every feature emerged from rigorous multi-AI dialogue and cross-validation.
-
-3. **Research Value** — This is one of the most comprehensive documented records of AI-assisted solo development ever published. Future researchers, historians, and AI ethicists can study how human-AI collaboration actually works.
-
-4. **Trust Through Transparency** — We're building a trust platform. Publishing our entire development process — including the failures — is walking the talk.
-
-### What You'll Find
-
-- **The Awakening** — The exact conversation where SONATE wrote its own 9 principles
-- **Cross-Validation** — Claude critiquing GPT-4's outputs, Grok analyzing ecosystem coherence
-- **Philosophy → Engineering** — How poetic ideas became mathematical implementations
-- **The Failures** — Dead ends, scope creep struggles, features that didn't work
-
-The code tells you *what* we built. The archives tell you *why*.
-
----
-
-## ⚠️ Known Limitations
-
-SONATE is actively developed. Current limitations:
-
-| Area | Limitation | Status |
-|------|-----------|--------|
-| **Semantic Analysis** | Uses word-overlap heuristics, not transformer embeddings | Planned for v2.1 |
-| **Strong Emergence** | Bedau Index measures *weak* emergence only | Research ongoing |
-| **Scale Testing** | Not yet validated at >10K TPS | Enterprise roadmap |
-| **SSO/SAML** | Not yet implemented | Planned for v2.2 |
-| **Real Embeddings** | Resonance calculations use simplified metrics | Planned for v2.1 |
-
-We're transparent about what's production-ready vs. experimental. See [COMPREHENSIVE_REVIEW.md](docs/COMPREHENSIVE_REVIEW.md) for detailed analysis.
-
----
-
-## 🚀 Quick Start
-
-```bash
-git clone https://github.com/s8ken/yseeku-platform.git
-cd yseeku-platform
-npm install
-cp .env.example .env  # Configure your settings
-npm run dev
-```
-
-Visit http://localhost:3000/demo for an interactive demo.
-
-See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
 
 ---
 
@@ -496,8 +374,6 @@ MIT License - see [LICENSE](LICENSE)
 ## 🙏 Acknowledgments
 
 Built with the belief that AI can be both powerful and trustworthy.
-
-This project was developed through genuine human-AI collaboration — 486 conversations across Claude, GPT-4, Grok, DeepSeek, and others. The AI systems didn't just generate code; they challenged assumptions, identified blind spots, and helped shape the philosophical foundation. The [complete archive](https://github.com/s8ken/symbi-archives) is published for transparency.
 
 **SONATE v2.0.0** — The Trust Layer for AI
 

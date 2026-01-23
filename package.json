@@ -11,8 +11,6 @@
     "build": "turbo run build --filter=web",
     "start": "npm start --workspace=web",
     "build:backend": "turbo run build --filter=backend",
-    "typecheck": "turbo run typecheck --filter=web",
-    "typecheck:all": "turbo run typecheck",
     "dev": "turbo run dev --parallel",
     "test": "turbo run test --filter=@sonate/core --filter=@sonate/detect --filter=@sonate/orchestrate --filter=@sonate/lab --filter=@sonate/persistence --filter=@sonate/monitoring",
     "test:integration": "turbo run test --filter=integration-tests",

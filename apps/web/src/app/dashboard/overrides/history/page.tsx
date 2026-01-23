@@ -78,7 +78,7 @@ export default function OverridesHistoryPage() {
     }
 
     const headers = ['ID', 'Action Type', 'Target', 'Decision', 'Reason', 'Emergency', 'User', 'Created', 'Impact'];
-    const rows = items.map((item: OverrideHistoryItem) => [
+    const rows = items.map(item => [
       item.id,
       item.actionType,
       item.actionTarget,
@@ -90,7 +90,7 @@ export default function OverridesHistoryPage() {
       item.impact ? JSON.stringify(item.impact) : ''
     ]);
 
-    const csvContent = [headers.join(','), ...rows.map((row: string[]) => row.join(','))].join('\n');
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -102,9 +102,9 @@ export default function OverridesHistoryPage() {
     window.URL.revokeObjectURL(url);
   };
 
-  const getDecisionBadgeVariant = (decision: string): 'success' | 'destructive' | 'default' => {
+  const getDecisionBadgeVariant = (decision: string): "default" | "destructive" | "outline" | "secondary" => {
     switch (decision) {
-      case 'approve': return 'success';
+      case 'approve': return 'secondary';
       case 'reject': return 'destructive';
       default: return 'default';
     }
@@ -258,7 +258,7 @@ export default function OverridesHistoryPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item: OverrideHistoryItem) => (
+                  {items.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">
                         <Badge variant="outline">{item.actionType}</Badge>

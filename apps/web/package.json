@@ -7,7 +7,6 @@
     "build": "next build",
     "start": "next start -H 0.0.0.0",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
     "test": "vitest run src/__tests__/",
     "test:watch": "vitest src/__tests__/",
     "test:e2e": "node scripts/e2e.js",

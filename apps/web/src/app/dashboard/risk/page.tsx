@@ -21,7 +21,6 @@ import {
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { api } from '@/lib/api';
 import { useDemo } from '@/hooks/use-demo';
-import { WithDemoWatermark } from '@/components/demo-watermark';
 
 const defaultTrustPrinciples = [
   { name: 'Consent Architecture', weight: 25, score: 85, critical: true },
@@ -238,9 +237,9 @@ export default function RiskManagementPage() {
   });
 
   // Fetch demo risk data when in demo mode
-  const { data: demoRiskData } = useQuery({
+  const { data: demoRiskData } = useQuery<{ data?: Record<string, any> }>({
     queryKey: ['demo-risk'],
-    queryFn: () => api.getDemoRisk(),
+    queryFn: () => api.getDemoRisk() as Promise<{ data?: Record<string, any> }>,
     staleTime: 60000,
     enabled: isDemo && isLoaded,
   });
@@ -259,11 +258,10 @@ export default function RiskManagementPage() {
   });
 
   // Use demo data when in demo mode
-  const demoRiskDataTyped = demoRiskData as { data?: { trustPrinciples?: any[]; complianceReports?: any[]; overallRiskScore?: number } } | undefined;
-  const demoData = demoRiskDataTyped?.data;
+  const demoData = demoRiskData?.data;
   const trustPrinciples = isDemo
     ? (demoData?.trustPrinciples || defaultTrustPrinciples)
-    : ((riskMetrics as any)?.data?.trustPrinciples || defaultTrustPrinciples);
+    : (riskMetrics?.data?.trustPrinciples || defaultTrustPrinciples);
   const complianceReports = isDemo
     ? (demoData?.complianceReports?.map((r: any) => ({
         id: r.framework,
@@ -272,10 +270,10 @@ export default function RiskManagementPage() {
         lastChecked: r.lastAudit,
         score: r.score
       })) || defaultComplianceReports)
-    : ((riskMetrics as any)?.data?.complianceReports || defaultComplianceReports);
+    : (riskMetrics?.data?.complianceReports || defaultComplianceReports);
   const riskAlerts = isDemo
     ? []
-    : ((riskEventsData as any)?.data?.length ? (riskEventsData as any).data : ((riskMetrics as any)?.data?.recentRiskEvents || []));
+    : (riskEventsData?.data?.length ? riskEventsData.data : (riskMetrics?.data?.recentRiskEvents || []));
   const dataSource = isDemo ? 'demo' : 'live';
 
   const overallTrustScore = trustPrinciples.reduce((acc: number, principle: TrustPrinciple) => {
@@ -389,21 +387,15 @@ export default function RiskManagementPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <WithDemoWatermark position="top-right" size="sm" opacity={25}>
-          <TrustScoreVisualization
-            principles={trustPrinciples}
-            overallScore={Math.round(overallTrustScore)}
-          />
-        </WithDemoWatermark>
+        <TrustScoreVisualization
+          principles={trustPrinciples}
+          overallScore={Math.round(overallTrustScore)}
+        />
 
-        <WithDemoWatermark position="top-right" size="sm" opacity={25}>
-          <ComplianceReports reports={complianceReports} />
-        </WithDemoWatermark>
+        <ComplianceReports reports={complianceReports} />
 
         <div className="lg:col-span-2">
-          <WithDemoWatermark position="top-right" size="sm" opacity={25}>
-            <RiskAlerts alerts={riskAlerts} />
-          </WithDemoWatermark>
+          <RiskAlerts alerts={riskAlerts} />
         </div>
       </div>
     </div>

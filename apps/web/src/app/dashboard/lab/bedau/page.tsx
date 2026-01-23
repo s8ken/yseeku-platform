@@ -16,12 +16,10 @@ import {
   Zap,
   Target,
   Clock,
-  Info,
-  FlaskConical
+  Info
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { api } from '@/lib/api';
-import { useDemo } from '@/hooks/use-demo';
 
 interface BedauMetric {
   id: string;
@@ -199,18 +197,10 @@ function HistoryChart({ data }: { data: HistoricalDataPoint[] }) {
 
 export default function BedauIndexPage() {
   const [selectedTab, setSelectedTab] = useState('realtime');
-  const { isDemo, isLoaded } = useDemo();
 
   const { data: metricsData, isLoading } = useQuery({
-    queryKey: ['bedau-metrics', isDemo],
-    queryFn: async () => {
-      if (isDemo) {
-        const res = await api.getDemoBedauMetrics() as { success: boolean; data: any };
-        return res.data;
-      }
-      return api.getBedauMetrics();
-    },
-    enabled: isLoaded,
+    queryKey: ['bedau-metrics'],
+    queryFn: () => api.getBedauMetrics(),
   });
 
   // Transform backend data to frontend format
@@ -247,24 +237,6 @@ export default function BedauIndexPage() {
 
   return (
     <div className="space-y-6">
-      {/* Research Preview Banner */}
-      <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <FlaskConical className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <strong className="text-amber-800 dark:text-amber-200">Research Preview</strong>
-              <Badge variant="outline" className="text-amber-600 border-amber-400 text-xs">Experimental</Badge>
-            </div>
-            <p className="text-sm text-amber-700 dark:text-amber-300">
-              Bedau Index calculations use heuristic approximations for emergence detection.
-              Component weights are not empirically validated. Use for exploration, not production decisions.
-              {isDemo && ' Currently showing synthetic demo data.'}
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">

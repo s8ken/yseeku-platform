@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { api } from '@/lib/api';
-import { useDemo } from '@/hooks/use-demo';
 import {
   AlertTriangle,
   Play,
@@ -43,9 +42,7 @@ import {
   BarChart3,
   LineChart,
   Info,
-  RefreshCw,
-  Beaker,
-  FlaskConical
+  RefreshCw
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 
@@ -340,72 +337,9 @@ function TrendChart({ trends }: { trends: VLSSession['trends'] }) {
 
 // Main component
 export default function VLSPage() {
-  const { isDemo, isLoaded } = useDemo();
-  const [selectedSession, setSelectedSession] = useState<VLSSession | null>(null);
+  const [selectedSession, setSelectedSession] = useState<VLSSession | null>(demoSessions[0]);
   const [isRunning, setIsRunning] = useState(false);
   const [projectFilter, setProjectFilter] = useState<string>('all');
-  const [analyzeText, setAnalyzeText] = useState('');
-  const [analyzeResult, setAnalyzeResult] = useState<{
-    metrics: { vocabularyDrift: number; introspectionIndex: number; hedgingRatio: number; formalityScore: number; complexityIndex: number };
-    timestamp: string;
-  } | null>(null);
-
-  // Fetch real session data from API
-  const { data: apiSessions, isLoading: sessionsLoading } = useQuery({
-    queryKey: ['vls-sessions'],
-    queryFn: async () => {
-      const response = await api.getVLSSessions();
-      return response.sessions;
-    },
-    enabled: !isDemo && isLoaded, // Only fetch when not in demo mode
-    staleTime: 30000,
-  });
-
-  // Use API data or fall back to demo data
-  const sessions: VLSSession[] = useMemo(() => {
-    if (isDemo || !apiSessions?.length) {
-      return demoSessions;
-    }
-    // Transform API sessions to VLSSession format
-    return apiSessions.map((s) => ({
-      id: s.sessionId,
-      projectType: `Session ${s.sessionId.slice(0, 8)}`,
-      startTime: s.firstMessage,
-      endTime: s.lastMessage,
-      status: 'completed' as const,
-      messageCount: s.messageCount,
-      participants: { humans: 1, ais: 1 },
-      metrics: {
-        vocabularyDrift: s.averageMetrics.vocabularyDrift,
-        introspectionIndex: s.averageMetrics.introspectionIndex,
-        hedgingRatio: s.averageMetrics.hedgingRatio,
-        alignmentScore: 1 - s.averageMetrics.hedgingRatio, // Inverse of hedging as proxy
-        emergentConcepts: [],
-        influenceDirection: s.averageMetrics.introspectionIndex > 0.5 ? 'ai_led' as const :
-                          s.averageMetrics.vocabularyDrift > 0.5 ? 'human_led' as const : 'balanced' as const,
-        collaborationDepth: Math.min(1, s.averageMetrics.complexityIndex + s.averageMetrics.formalityScore) / 2,
-      },
-      trends: [], // Would need time-series data for real trends
-    }));
-  }, [isDemo, apiSessions]);
-
-  // Set initial selection when sessions load
-  useEffect(() => {
-    if (sessions.length > 0 && !selectedSession) {
-      setSelectedSession(sessions[0]);
-    }
-  }, [sessions, selectedSession]);
-
-  // Analyze text handler
-  const handleAnalyzeText = async () => {
-    if (!analyzeText.trim()) return;
-    try {
-      const response = await api.analyzeVLSText(analyzeText);
-      setAnalyzeResult(response);
-    } catch (error) {
-      console.error('Failed to analyze text:', error);
-    }
-  };
 
   // Get baseline for comparison
   const relevantBaseline = useMemo(() => {
@@ -417,38 +351,16 @@ export default function VLSPage() {
   }, [selectedSession]);
 
   const filteredSessions = projectFilter === 'all' 
-    ? sessions 
-    : sessions.filter(s => s.projectType.toLowerCase().includes(projectFilter.toLowerCase()));
-
-  // Loading state
-  if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-8 w-8 animate-spin text-[var(--lab-primary)]" />
-      </div>
-    );
-  }
+    ? demoSessions 
+    : demoSessions.filter(s => s.projectType.toLowerCase().includes(projectFilter.toLowerCase()));
 
   return (
     <div className="space-y-6">
-      {/* Research Preview Banner */}
-      <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <FlaskConical className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <strong className="text-amber-800 dark:text-amber-200">Research Preview</strong>
-              <Badge variant="outline" className="text-amber-600 border-amber-400 text-xs">
-                <Beaker className="h-3 w-3 mr-1" />
-                Experimental
-              </Badge>
-            </div>
-            <p className="text-sm text-amber-700 dark:text-amber-300">
-              VLS (Linguistic Vector Steering) uses pattern-based NLP analysis. 
-              Metrics are derived from text pattern matching and may not reflect true linguistic meaning.
-              {isDemo && ' Currently showing synthetic demo data.'}
-            </p>
-          </div>
+      <div className="sandbox-warning">
+        <AlertTriangle className="h-5 w-5 shrink-0" />
+        <div>
+          <strong>Research Sandbox Environment</strong>
+          <p className="text-sm opacity-80">VLS analysis uses synthetic interaction data. Real collaboration patterns require opt-in instrumentation.</p>
         </div>
       </div>
 
