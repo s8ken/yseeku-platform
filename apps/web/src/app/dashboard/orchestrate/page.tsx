@@ -31,6 +31,52 @@ import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 
+// Demo workflows for fallback when API unavailable
+const DEMO_WORKFLOWS = [
+  {
+    _id: 'wf-001',
+    id: 'wf-001',
+    name: 'Customer Support Escalation',
+    description: 'Automated support flow: AI triages → Human escalation → Resolution tracking',
+    type: 'CEV',
+    status: 'active',
+    steps: [
+      { id: 'step-1', name: 'Triage', role: 'coordinator', agentId: 'agent-001' },
+      { id: 'step-2', name: 'Process', role: 'executor', agentId: 'agent-003' },
+      { id: 'step-3', name: 'Validate', role: 'validator', agentId: 'agent-004' },
+    ],
+    lastRun: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    _id: 'wf-002',
+    id: 'wf-002',
+    name: 'Content Review Pipeline',
+    description: 'Multi-stage content validation: Generate → Ethics check → Quality review',
+    type: 'CEV',
+    status: 'active',
+    steps: [
+      { id: 'step-1', name: 'Generate', role: 'coordinator', agentId: 'agent-002' },
+      { id: 'step-2', name: 'Ethics Check', role: 'executor', agentId: 'agent-003' },
+      { id: 'step-3', name: 'Quality Review', role: 'validator', agentId: 'agent-003' },
+    ],
+    lastRun: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+  },
+  {
+    _id: 'wf-003',
+    id: 'wf-003',
+    name: 'Code Review Automation',
+    description: 'Automated code analysis: Static analysis → Security scan → Style check',
+    type: 'CEV',
+    status: 'paused',
+    steps: [
+      { id: 'step-1', name: 'Analyze', role: 'coordinator', agentId: 'agent-005' },
+      { id: 'step-2', name: 'Security Scan', role: 'executor', agentId: 'agent-003' },
+      { id: 'step-3', name: 'Style Check', role: 'validator', agentId: 'agent-005' },
+    ],
+    lastRun: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
 export default function OrchestrationPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState<any | null>(null);
@@ -38,10 +84,14 @@ export default function OrchestrationPage() {
   const queryClient = useQueryClient();
 
   // Fetch workflows
-  const { data: workflows = [], isLoading } = useQuery({
+  const { data: workflowsData, isLoading, isError } = useQuery({
     queryKey: ['workflows'],
     queryFn: () => api.getWorkflows()
   });
+  
+  // Use fallback when API fails or returns empty
+  const useFallback = isError || (!isLoading && (!workflowsData || (Array.isArray(workflowsData) && workflowsData.length === 0)));
+  const workflows = useFallback ? DEMO_WORKFLOWS : (Array.isArray(workflowsData) ? workflowsData : []);
 
   // Fetch agents for template creation (needed for CEV)
   const { data: agentsData } = useQuery({
@@ -115,6 +165,15 @@ export default function OrchestrationPage() {
 
   return (
     <div className="space-y-6">
+      {useFallback && (
+        <div className="demo-notice mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex items-start gap-3">
+          <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-blue-800 dark:text-blue-200">Demo Mode</strong>
+            <p className="text-sm text-blue-700 dark:text-blue-300">Showing sample workflows. Connect backend to create and execute real workflows.</p>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">

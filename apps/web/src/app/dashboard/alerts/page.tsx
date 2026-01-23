@@ -63,6 +63,76 @@ interface AlertResponse {
   };
 }
 
+// Fallback alerts for demo when API is unavailable
+const FALLBACK_ALERTS: Alert[] = [
+  {
+    id: 'alert-001',
+    timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
+    type: 'trust_violation',
+    title: 'Trust Score Below Threshold',
+    description: 'Agent "Harmony" trust score dropped to 72, below the 75 threshold for customer-facing interactions.',
+    severity: 'warning',
+    status: 'active',
+    details: { agentId: 'agent-004', previousScore: 85, currentScore: 72, threshold: 75 },
+  },
+  {
+    id: 'alert-002',
+    timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
+    type: 'emergence_detected',
+    title: 'Bedau Index Spike Detected',
+    description: 'Unusual emergence pattern detected in "Atlas" agent during customer support interaction.',
+    severity: 'warning',
+    status: 'acknowledged',
+    acknowledgedBy: 'admin@demo.org',
+    acknowledgedAt: new Date(Date.now() - 30 * 60000).toISOString(),
+    details: { agentId: 'agent-001', bedauIndex: 0.87, expectedRange: [0.3, 0.6] },
+  },
+  {
+    id: 'alert-003',
+    timestamp: new Date(Date.now() - 2 * 60 * 60000).toISOString(),
+    type: 'consent_violation',
+    title: 'SYMBI Consent Principle Warning',
+    description: 'Possible consent boundary issue detected in "Nova" content generation workflow.',
+    severity: 'error',
+    status: 'resolved',
+    resolvedBy: 'admin@demo.org',
+    resolvedAt: new Date(Date.now() - 60 * 60000).toISOString(),
+    details: { agentId: 'agent-002', principle: 'CONSENT', confidence: 0.91 },
+  },
+  {
+    id: 'alert-004',
+    timestamp: new Date(Date.now() - 4 * 60 * 60000).toISOString(),
+    type: 'ethical_drift',
+    title: 'Ethical Alignment Drift',
+    description: 'Gradual drift in ethical alignment score for "Quantum" code assistant over 24h window.',
+    severity: 'info',
+    status: 'resolved',
+    resolvedBy: 'system',
+    resolvedAt: new Date(Date.now() - 3 * 60 * 60000).toISOString(),
+    details: { agentId: 'agent-005', driftRate: 0.02, monitoringPeriod: '24h' },
+  },
+  {
+    id: 'alert-005',
+    timestamp: new Date(Date.now() - 6 * 60 * 60000).toISOString(),
+    type: 'resonance_anomaly',
+    title: 'Resonance Quality Degradation',
+    description: 'Multi-agent resonance quality below expected levels in orchestrated workflow.',
+    severity: 'warning',
+    status: 'suppressed',
+    details: { workflowId: 'wf-001', resonanceScore: 0.65, threshold: 0.75 },
+  },
+];
+
+const FALLBACK_SUMMARY = {
+  critical: 0,
+  error: 1,
+  warning: 3,
+  info: 1,
+  active: 1,
+  acknowledged: 1,
+  resolved: 2,
+};
+
 export default function AlertsManagementPage() {
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -71,7 +141,7 @@ export default function AlertsManagementPage() {
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['alerts-management', filterStatus, filterSeverity, searchTerm],
     queryFn: async () => {
       const status = filterStatus !== 'all' ? filterStatus : undefined;
@@ -141,19 +211,33 @@ export default function AlertsManagementPage() {
     }
   };
 
-  const summary = data?.data?.summary || {
-    critical: 0,
-    error: 0,
-    warning: 0,
-    info: 0,
-    active: 0,
-    acknowledged: 0,
-    resolved: 0
-  };
-  const alerts: Alert[] = data?.data?.alerts || [];
+  // Use fallback when API fails or returns empty
+  const useFallback = isError || (!isLoading && (!data?.data?.alerts || data.data.alerts.length === 0));
+  
+  const summary = useFallback ? FALLBACK_SUMMARY : (data?.data?.summary || FALLBACK_SUMMARY);
+  
+  // Apply filters to fallback alerts if using fallback
+  const filteredFallbackAlerts = FALLBACK_ALERTS.filter(alert => {
+    if (filterStatus !== 'all' && alert.status !== filterStatus) return false;
+    if (filterSeverity !== 'all' && alert.severity !== filterSeverity) return false;
+    if (searchTerm && !alert.title.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !alert.description.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    return true;
+  });
+  
+  const alerts: Alert[] = useFallback ? filteredFallbackAlerts : (data?.data?.alerts || []);
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+      {useFallback && (
+        <div className="demo-notice mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-blue-800 dark:text-blue-200">Demo Mode</strong>
+            <p className="text-sm text-blue-700 dark:text-blue-300">Showing sample alert data. Connect backend for production alerts.</p>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Alert Management</h2>
         <Button onClick={() => refetch()}>

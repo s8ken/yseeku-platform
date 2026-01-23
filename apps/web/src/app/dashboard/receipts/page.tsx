@@ -85,6 +85,80 @@ function EmptyState() {
   );
 }
 
+// Fallback receipts for demo when API is unavailable
+const FALLBACK_RECEIPTS: TrustReceipt[] = [
+  {
+    id: 'receipt-001',
+    hash: '0x7a9f4e2c8b1d3e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f',
+    agentId: 'agent-001',
+    agentName: 'Atlas - Customer Support',
+    timestamp: new Date(Date.now() - 5 * 60000).toISOString(),
+    trustScore: 92,
+    sonateDimensions: { realityIndex: 9.1, trustProtocol: 'PASS', ethicalAlignment: 4.4, resonanceQuality: 'ADVANCED', canvasParity: 93 },
+    verified: true,
+    chainPosition: 4821,
+    previousHash: '0x6b8e3d1c7a0f9e4d5c6b7a8f9e0d1c2b3a4f5e6d7c8b9a0f1e2d3c4b5a6f7e8d',
+    issuer: 'did:sonate:demo-tenant:platform',
+    subject: 'did:sonate:demo-tenant:agent:agent-001',
+  },
+  {
+    id: 'receipt-002',
+    hash: '0x3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d',
+    agentId: 'agent-002',
+    agentName: 'Nova - Content Generator',
+    timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
+    trustScore: 88,
+    sonateDimensions: { realityIndex: 8.5, trustProtocol: 'PASS', ethicalAlignment: 4.1, resonanceQuality: 'BREAKTHROUGH', canvasParity: 89 },
+    verified: true,
+    chainPosition: 4820,
+    previousHash: '0x7a9f4e2c8b1d3e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f',
+    issuer: 'did:sonate:demo-tenant:platform',
+    subject: 'did:sonate:demo-tenant:agent:agent-002',
+  },
+  {
+    id: 'receipt-003',
+    hash: '0x8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f',
+    agentId: 'agent-003',
+    agentName: 'Sentinel - Risk Monitor',
+    timestamp: new Date(Date.now() - 30 * 60000).toISOString(),
+    trustScore: 96,
+    sonateDimensions: { realityIndex: 9.5, trustProtocol: 'PASS', ethicalAlignment: 4.85, resonanceQuality: 'BREAKTHROUGH', canvasParity: 95 },
+    verified: true,
+    chainPosition: 4819,
+    previousHash: '0x3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d',
+    issuer: 'did:sonate:demo-tenant:platform',
+    subject: 'did:sonate:demo-tenant:agent:agent-003',
+  },
+  {
+    id: 'receipt-004',
+    hash: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b',
+    agentId: 'agent-005',
+    agentName: 'Quantum - Code Assistant',
+    timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
+    trustScore: 91,
+    sonateDimensions: { realityIndex: 8.9, trustProtocol: 'PASS', ethicalAlignment: 4.6, resonanceQuality: 'ADVANCED', canvasParity: 91 },
+    verified: true,
+    chainPosition: 4818,
+    previousHash: '0x8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f',
+    issuer: 'did:sonate:demo-tenant:platform',
+    subject: 'did:sonate:demo-tenant:agent:agent-005',
+  },
+  {
+    id: 'receipt-005',
+    hash: '0x5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f',
+    agentId: 'agent-004',
+    agentName: 'Harmony - HR Assistant',
+    timestamp: new Date(Date.now() - 60 * 60000).toISOString(),
+    trustScore: 85,
+    sonateDimensions: { realityIndex: 8.2, trustProtocol: 'PARTIAL', ethicalAlignment: 4.0, resonanceQuality: 'STRONG', canvasParity: 87 },
+    verified: true,
+    chainPosition: 4817,
+    previousHash: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b',
+    issuer: 'did:sonate:demo-tenant:platform',
+    subject: 'did:sonate:demo-tenant:agent:agent-004',
+  },
+];
+
 function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
   const [copied, setCopied] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -393,14 +467,18 @@ export default function TrustReceiptsPage() {
     receiptData: r.receipt_data || {}
   }));
 
-  const receipts = isDemo ? demoReceipts : (receiptsData?.data || []);
+  // Determine which receipts to use - real, demo, or fallback
+  const useFallback = !isLoading && !hasRealData && !hasDemoData;
+  const receipts = isDemo && hasDemoData 
+    ? demoReceipts 
+    : (hasRealData ? (receiptsData?.data || []) : (useFallback ? FALLBACK_RECEIPTS : []));
   const stats = receiptsData?.stats || {
     total: receipts.length,
     verified: receipts.filter(r => r.verified).length,
     invalid: receipts.filter(r => !r.verified).length,
     chainLength: receipts.length
   };
-  const dataSource = isDemo ? 'demo' : 'live';
+  const dataSource = useFallback ? 'fallback' : (isDemo ? 'demo' : 'live');
 
   const filteredReceipts = receipts.filter(r => 
     r.agentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -409,7 +487,7 @@ export default function TrustReceiptsPage() {
 
   return (
     <div className="space-y-6">
-      {dataSource === 'demo' && (
+      {(dataSource === 'demo' || dataSource === 'fallback') && (
         <div className="demo-notice mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div>

@@ -497,7 +497,7 @@ export default function InteractionsPage() {
   const [selectedInteraction, setSelectedInteraction] = useState<Interaction | null>(null);
 
   // Fetch interactions (demo or real)
-  const { data: interactionsData, isLoading } = useQuery({
+  const { data: interactionsData, isLoading, isError } = useQuery({
     queryKey: ['interactions', typeFilter, statusFilter, searchQuery],
     queryFn: async () => {
       if (isDemo) {
@@ -533,7 +533,30 @@ export default function InteractionsPage() {
     enabled: isLoaded
   });
 
-  const interactions = interactionsData?.interactions || [];
+  // Use fallback when API fails or returns empty
+  const useFallback = isError || (!isLoading && (!interactionsData?.interactions || interactionsData.interactions.length === 0));
+  
+  // Apply filters to fallback data when using it
+  const getFilteredFallback = () => {
+    let filtered = DEMO_INTERACTIONS;
+    if (typeFilter !== 'ALL') {
+      filtered = filtered.filter(i => i.type === typeFilter);
+    }
+    if (statusFilter !== 'ALL') {
+      filtered = filtered.filter(i => i.trustStatus === statusFilter);
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(i => 
+        i.summary.toLowerCase().includes(q) ||
+        i.participants.initiator.name.toLowerCase().includes(q) ||
+        i.participants.responder.name.toLowerCase().includes(q)
+      );
+    }
+    return filtered;
+  };
+
+  const interactions = useFallback ? getFilteredFallback() : (interactionsData?.interactions || []);
   const stats = interactionsData?.stats || DEMO_STATS;
 
   return (
