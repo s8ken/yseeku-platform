@@ -398,7 +398,7 @@ function TrustTrendChart({ analytics }: { analytics: Analytics }) {
     <Card>
       <CardHeader>
         <CardTitle>Trust Score Trend</CardTitle>
-        <CardDescription>Average trust score over the last 7 days</CardDescription>
+        <CardDescription>Average trust score and pass rate over the last 7 days</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -410,15 +410,29 @@ function TrustTrendChart({ analytics }: { analytics: Analytics }) {
               tick={{ fontSize: 12 }}
             />
             <YAxis
+              yAxisId="left"
               domain={[0, 10]}
               className="text-xs"
               tick={{ fontSize: 12 }}
+              label={{ value: 'Trust Score', angle: -90, position: 'insideLeft', fontSize: 11 }}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              domain={[0, 100]}
+              className="text-xs"
+              tick={{ fontSize: 12 }}
+              label={{ value: 'Pass Rate %', angle: 90, position: 'insideRight', fontSize: 11 }}
             />
             <Tooltip
               contentStyle={{
                 backgroundColor: 'hsl(var(--background))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px'
+              }}
+              formatter={(value: number, name: string) => {
+                if (name === 'Trust Score') return [`${value.toFixed(2)}/10`, name];
+                return [`${value.toFixed(1)}%`, name];
               }}
             />
             <Legend />
@@ -428,6 +442,7 @@ function TrustTrendChart({ analytics }: { analytics: Analytics }) {
               stroke="#8b5cf6"
               strokeWidth={3}
               name="Trust Score"
+              yAxisId="left"
               dot={{ fill: '#8b5cf6', r: 4 }}
               activeDot={{ r: 6 }}
             />
@@ -438,6 +453,7 @@ function TrustTrendChart({ analytics }: { analytics: Analytics }) {
               strokeWidth={2}
               strokeDasharray="5 5"
               name="Pass Rate %"
+              yAxisId="right"
               dot={{ fill: '#10b981', r: 3 }}
             />
           </LineChart>
