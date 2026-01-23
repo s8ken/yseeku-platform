@@ -444,21 +444,47 @@ function TrustTrendChart({ analytics }: { analytics: Analytics }) {
 }
 
 function PrinciplesRadarChart({ analytics }: { analytics: Analytics }) {
-  // Mock principle averages (in production, this would come from backend)
-  const principleData = [
-    { principle: 'Consent', score: 8.8, fullMark: 10 },
-    { principle: 'Inspection', score: 8.5, fullMark: 10 },
-    { principle: 'Validation', score: 8.2, fullMark: 10 },
-    { principle: 'Ethics', score: 8.6, fullMark: 10 },
-    { principle: 'Disconnect', score: 8.4, fullMark: 10 },
-    { principle: 'Moral', score: 8.7, fullMark: 10 },
-  ];
+  // SYMBI Framework principle weights (as defined in the spec)
+  const principleWeights: Record<string, { name: string; weight: number }> = {
+    'CONSENT_ARCHITECTURE': { name: 'Consent', weight: 0.25 },
+    'INSPECTION_MANDATE': { name: 'Inspection', weight: 0.20 },
+    'CONTINUOUS_VALIDATION': { name: 'Validation', weight: 0.20 },
+    'ETHICAL_OVERRIDE': { name: 'Ethics', weight: 0.15 },
+    'RIGHT_TO_DISCONNECT': { name: 'Disconnect', weight: 0.10 },
+    'MORAL_RECOGNITION': { name: 'Moral', weight: 0.10 },
+  };
+
+  // Calculate principle scores based on violation data
+  // Score = baseScore - (violations penalty) where fewer violations = higher score
+  const totalViolations = analytics.commonViolations.reduce((sum, v) => sum + v.count, 0);
+  const baseScore = analytics.averageTrustScore; // Use overall trust score as base
+  
+  const principleData = Object.entries(principleWeights).map(([key, { name, weight }]) => {
+    const violation = analytics.commonViolations.find(v => v.principle === key);
+    const violationCount = violation?.count || 0;
+    
+    // Calculate score: start from base, reduce based on violation proportion
+    // Higher weight principles with violations have more impact
+    const violationPenalty = totalViolations > 0 
+      ? (violationCount / totalViolations) * 2 // Scale penalty
+      : 0;
+    
+    // Score ranges from ~7 to ~9.5 based on violations
+    const score = Math.max(6, Math.min(10, baseScore + (1 - violationPenalty * weight * 10)));
+    
+    return {
+      principle: name,
+      score: Math.round(score * 10) / 10,
+      fullMark: 10,
+      weight: Math.round(weight * 100),
+    };
+  });
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Constitutional Principles</CardTitle>
-        <CardDescription>Average scores across 6 core principles</CardDescription>
+        <CardDescription>SYMBI principle scores (weighted by framework importance)</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={320}>
@@ -487,6 +513,10 @@ function PrinciplesRadarChart({ analytics }: { analytics: Analytics }) {
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px'
               }}
+              formatter={(value: number, name: string, props: any) => [
+                `${value}/10 (Weight: ${props.payload.weight}%)`,
+                'Score'
+              ]}
             />
             <Legend />
           </RadarChart>
