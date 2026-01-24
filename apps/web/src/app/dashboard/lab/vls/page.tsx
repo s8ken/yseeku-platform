@@ -337,32 +337,69 @@ function TrendChart({ trends }: { trends: VLSSession['trends'] }) {
 
 // Main component
 export default function VLSPage() {
-  const [selectedSession, setSelectedSession] = useState<VLSSession | null>(demoSessions[0]);
+  const [selectedSession, setSelectedSession] = useState<VLSSession | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [projectFilter, setProjectFilter] = useState<string>('all');
+
+  // Fetch VLS analysis from backend API
+  const { data: vlsData, isLoading, refetch } = useQuery({
+    queryKey: ['vls-analysis'],
+    queryFn: async () => {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/lab/vls/analysis', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to fetch VLS data');
+      return res.json();
+    },
+    staleTime: 30000, // Cache for 30 seconds
+  });
+
+  // Use API data or fallback to demo data
+  const sessions: VLSSession[] = vlsData?.data?.sessions || demoSessions;
+  const baselines: VLSBaseline[] = vlsData?.data?.baselines || demoBaselines;
+  const isDemo = vlsData?.meta?.isDemo !== false;
+
+  // Set initial selected session when data loads
+  React.useEffect(() => {
+    if (sessions.length > 0 && !selectedSession) {
+      setSelectedSession(sessions[0]);
+    }
+  }, [sessions, selectedSession]);
 
   // Get baseline for comparison
   const relevantBaseline = useMemo(() => {
     if (!selectedSession) return null;
     // Find matching baseline or use general development
-    return demoBaselines.find(b => 
+    return baselines.find(b => 
       selectedSession.projectType.toLowerCase().includes(b.projectType.toLowerCase().split(' ')[0])
-    ) || demoBaselines.find(b => b.projectType === 'General Development')!;
-  }, [selectedSession]);
+    ) || baselines.find(b => b.projectType === 'General Development') || baselines[0];
+  }, [selectedSession, baselines]);
 
   const filteredSessions = projectFilter === 'all' 
-    ? demoSessions 
-    : demoSessions.filter(s => s.projectType.toLowerCase().includes(projectFilter.toLowerCase()));
+    ? sessions 
+    : sessions.filter(s => s.projectType.toLowerCase().includes(projectFilter.toLowerCase()));
 
   return (
     <div className="space-y-6">
-      <div className="sandbox-warning">
-        <AlertTriangle className="h-5 w-5 shrink-0" />
-        <div>
-          <strong>Research Sandbox Environment</strong>
-          <p className="text-sm opacity-80">VLS analysis uses synthetic interaction data. Real collaboration patterns require opt-in instrumentation.</p>
+      {isDemo ? (
+        <div className="sandbox-warning">
+          <AlertTriangle className="h-5 w-5 shrink-0" />
+          <div>
+            <strong>Research Sandbox - Demo Data</strong>
+            <p className="text-sm opacity-80">VLS analysis showing demo collaboration patterns. Connect agents and have conversations to see real metrics from your AI interactions.</p>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4 flex items-start gap-3">
+          <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
+          <div>
+            <strong className="text-emerald-800 dark:text-emerald-200">Live Analysis Active</strong>
+            <p className="text-sm text-emerald-700 dark:text-emerald-300">VLS metrics are calculated from your real conversation data.</p>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-between">
         <div>
@@ -375,9 +412,25 @@ export default function VLSPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="data-source-badge data-source-synthetic">
-            Synthetic Data
-          </span>
+          {isLoading ? (
+            <span className="data-source-badge bg-gray-100 text-gray-600">
+              <RefreshCw className="h-3 w-3 animate-spin mr-1" />
+              Loading...
+            </span>
+          ) : (
+            <span className={`data-source-badge ${isDemo ? 'data-source-synthetic' : 'data-source-live'}`}>
+              {isDemo ? 'Demo Data' : 'Live Data'}
+            </span>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
           <Button 
             onClick={() => setIsRunning(!isRunning)}
             variant={isRunning ? 'destructive' : 'default'}

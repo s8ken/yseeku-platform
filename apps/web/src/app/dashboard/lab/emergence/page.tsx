@@ -248,8 +248,8 @@ export default function EmergenceTestingPage() {
       <div className="sandbox-warning">
         <AlertTriangle className="h-5 w-5 shrink-0" />
         <div>
-          <strong>Research Sandbox Environment</strong>
-          <p className="text-sm opacity-80">Emergence tests run on synthetic agent simulations. No production systems are affected.</p>
+          <strong>Hybrid Mode: Real Metrics + Simulation Runner</strong>
+          <p className="text-sm opacity-80">Bedau Index metrics below are calculated from real platform data. The test runner UI is a simulation for demonstration purposes.</p>
         </div>
       </div>
 
