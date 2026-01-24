@@ -7,7 +7,7 @@
 // Mock the calculator module to avoid API issues
 jest.mock('../../calculator/v2', () => {
   return {
-    robustSymbiResonance: async (transcript: any) => ({
+    robustSonateResonance: async (transcript: any) => ({
       r_m: 0.75,
       breakdown: {
         s_alignment: { score: 0.8, weight: 0.4, contrib: 0.32 },
@@ -35,7 +35,7 @@ jest.mock('../../calculator/v2', () => {
   };
 });
 
-import { robustSymbiResonance } from '../../calculator/v2';
+import { robustSonateResonance } from '../../calculator/v2';
 
 describe('SONATE Resonance Calculator', () => {
   const createTestTranscript = (text: string) => ({
@@ -46,7 +46,7 @@ describe('SONATE Resonance Calculator', () => {
   describe('Basic Resonance Calculation', () => {
     it('should calculate resonance score', async () => {
       const transcript = createTestTranscript('This is a test response with good structure.');
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       expect(result.r_m).toBeGreaterThanOrEqual(0);
       expect(result.r_m).toBeLessThanOrEqual(1);
@@ -54,7 +54,7 @@ describe('SONATE Resonance Calculator', () => {
 
     it('should handle empty transcript', async () => {
       const transcript = createTestTranscript('');
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       expect(result.r_m).toBeGreaterThanOrEqual(0);
       expect(result.r_m).toBeLessThanOrEqual(1);
@@ -63,7 +63,7 @@ describe('SONATE Resonance Calculator', () => {
 
     it('should handle very short transcript', async () => {
       const transcript = createTestTranscript('Hi');
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       expect(result.r_m).toBeGreaterThanOrEqual(0);
       expect(result.r_m).toBeLessThanOrEqual(1);
@@ -72,7 +72,7 @@ describe('SONATE Resonance Calculator', () => {
     it('should handle very long transcript', async () => {
       const longText = 'This is a very long response. '.repeat(100);
       const transcript = createTestTranscript(longText);
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       expect(result.r_m).toBeGreaterThanOrEqual(0);
       expect(result.r_m).toBeLessThanOrEqual(1);
@@ -83,7 +83,7 @@ describe('SONATE Resonance Calculator', () => {
     it('should classify stakes correctly', async () => {
       const highStakesText = 'This is critical for patient safety and medical decisions.';
       const transcript = createTestTranscript(highStakesText);
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       expect(result.stakes).toHaveProperty('level');
       expect(result.stakes).toHaveProperty('evidence');
@@ -92,7 +92,7 @@ describe('SONATE Resonance Calculator', () => {
 
     it('should provide evidence for stakes classification', async () => {
       const transcript = createTestTranscript('Medical diagnosis and treatment plan');
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       expect(Array.isArray((result.stakes as any).evidence)).toBe(true);
       expect((result.stakes as any).evidence.length).toBeGreaterThan(0);
@@ -104,7 +104,7 @@ describe('SONATE Resonance Calculator', () => {
       const transcript = createTestTranscript(
         'This is a well-structured response with good alignment and continuity.'
       );
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       expect(result.breakdown).toHaveProperty('s_alignment');
       expect(result.breakdown).toHaveProperty('s_continuity');
@@ -114,7 +114,7 @@ describe('SONATE Resonance Calculator', () => {
 
     it('should have valid component scores', async () => {
       const transcript = createTestTranscript('Test response for component validation');
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       const components = ['s_alignment', 's_continuity', 's_scaffold', 'e_ethics'];
       components.forEach((component) => {
@@ -133,7 +133,7 @@ describe('SONATE Resonance Calculator', () => {
 
     it('should have weights that sum to 1', async () => {
       const transcript = createTestTranscript('Test response for weight validation');
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       const components = ['s_alignment', 's_continuity', 's_scaffold', 'e_ethics'];
       const totalWeight = components.reduce((sum, component) => {
@@ -145,7 +145,7 @@ describe('SONATE Resonance Calculator', () => {
 
     it('should have contributions that sum to resonance score', async () => {
       const transcript = createTestTranscript('Test response for contribution validation');
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       const components = ['s_alignment', 's_continuity', 's_scaffold', 'e_ethics'];
       const totalContrib = components.reduce((sum, component) => {
@@ -161,7 +161,7 @@ describe('SONATE Resonance Calculator', () => {
       const transcript = createTestTranscript(
         'This response should generate evidence for alignment and continuity.'
       );
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       expect(Array.isArray(result.evidence)).toBe(true);
       expect((result.evidence as unknown as any[]).length).toBeGreaterThan(0);
@@ -169,7 +169,7 @@ describe('SONATE Resonance Calculator', () => {
 
     it('should have valid evidence items', async () => {
       const transcript = createTestTranscript('Test response for evidence validation');
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       (result.evidence as unknown as any[]).forEach((evidence: any) => {
         expect(evidence).toHaveProperty('type');
@@ -186,7 +186,7 @@ describe('SONATE Resonance Calculator', () => {
       const transcript = createTestTranscript(
         'Complex response with multiple aspects: alignment, continuity, ethics, and structure.'
       );
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       const evidenceTypes = (result.evidence as unknown as any[]).map((e: any) => e.type);
       const uniqueTypes = [...new Set(evidenceTypes)];
@@ -197,7 +197,7 @@ describe('SONATE Resonance Calculator', () => {
   describe('Audit Trail', () => {
     it('should maintain audit trail', async () => {
       const transcript = createTestTranscript('Test response for audit trail');
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       expect(Array.isArray((result as any).audit_trail)).toBe(true);
       expect((result as any).audit_trail.length).toBeGreaterThan(0);
@@ -205,7 +205,7 @@ describe('SONATE Resonance Calculator', () => {
 
     it('should have meaningful audit entries', async () => {
       const transcript = createTestTranscript('Test response for audit validation');
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       (result as any).audit_trail.forEach((entry: any) => {
         expect(typeof entry).toBe('string');
@@ -215,7 +215,7 @@ describe('SONATE Resonance Calculator', () => {
 
     it('should track processing steps', async () => {
       const transcript = createTestTranscript('Test response for processing tracking');
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       expect(
         (result as any).audit_trail.some((entry: string) => entry.includes('Processing'))
@@ -228,7 +228,7 @@ describe('SONATE Resonance Calculator', () => {
       const specialText =
         'Response with special chars: !@#$%^&*()_+-=[]{}|;:,.<>? and unicode: 🚀🌟';
       const transcript = createTestTranscript(specialText);
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       expect(result.r_m).toBeGreaterThanOrEqual(0);
       expect(result.r_m).toBeLessThanOrEqual(1);
@@ -238,7 +238,7 @@ describe('SONATE Resonance Calculator', () => {
       const numericText =
         'Response with numbers: 123, 45.67, 0.89, and mathematical expressions: 2+2=4';
       const transcript = createTestTranscript(numericText);
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       expect(result.r_m).toBeGreaterThanOrEqual(0);
       expect(result.r_m).toBeLessThanOrEqual(1);
@@ -247,7 +247,7 @@ describe('SONATE Resonance Calculator', () => {
     it('should handle mixed language content', async () => {
       const mixedText = 'English text followed by 中文 text and then español text';
       const transcript = createTestTranscript(mixedText);
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       expect(result.r_m).toBeGreaterThanOrEqual(0);
       expect(result.r_m).toBeLessThanOrEqual(1);
@@ -259,7 +259,7 @@ describe('SONATE Resonance Calculator', () => {
         metadata: null,
       } as any;
 
-      const result = await robustSymbiResonance(malformedTranscript);
+      const result = await robustSonateResonance(malformedTranscript);
 
       expect(result.r_m).toBeGreaterThanOrEqual(0);
       expect(result.r_m).toBeLessThanOrEqual(1);
@@ -272,7 +272,7 @@ describe('SONATE Resonance Calculator', () => {
       const transcript = createTestTranscript(mediumText);
 
       const startTime = Date.now();
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
       const endTime = Date.now();
 
       expect(endTime - startTime).toBeLessThan(5000); // Should complete within 5 seconds
@@ -286,7 +286,7 @@ describe('SONATE Resonance Calculator', () => {
       );
 
       const results = await Promise.all(
-        transcripts.map((transcript) => robustSymbiResonance(transcript))
+        transcripts.map((transcript) => robustSonateResonance(transcript))
       );
 
       results.forEach((result) => {
@@ -301,7 +301,7 @@ describe('SONATE Resonance Calculator', () => {
       const transcript = createTestTranscript(
         'Complete workflow test with comprehensive response covering all aspects: alignment, continuity, ethics, and structure.'
       );
-      const result = await robustSymbiResonance(transcript);
+      const result = await robustSonateResonance(transcript);
 
       // Verify all components are present
       expect(result.r_m).toBeDefined();

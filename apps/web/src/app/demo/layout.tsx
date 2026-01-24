@@ -22,7 +22,7 @@ const navItems: NavItem[] = [
   },
   {
     title: 'SONATE Framework',
-    href: '/demo/symbi',
+    href: '/demo/sonate',
     icon: Box,
   },
   {

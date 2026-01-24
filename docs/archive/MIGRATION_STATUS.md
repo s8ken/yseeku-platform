@@ -3,7 +3,7 @@
 ## Completed Migrations
 
 ### @sonate/core
-✅ **Enhanced Cryptography** (from symbi-symphony)
+✅ **Enhanced Cryptography** (from sonate-symphony)
 - File: `src/utils/crypto-advanced.ts`
 - Features:
   - Ed25519 signature verification (W3C DID/VC)
@@ -14,9 +14,9 @@
 - Dependencies: @noble/ed25519, @noble/secp256k1, @noble/hashes, json-canonicalize
 
 ### @sonate/detect
-✅ **Enhanced Detection** (from symbi-resonate)
+✅ **Enhanced Detection** (from sonate-resonate)
 - File: `src/detector-enhanced.ts` (original detector.ts from resonate)
-- File: `src/symbi-types.ts` (complete type definitions)
+- File: `src/sonate-types.ts` (complete type definitions)
 - Features:
   - Full 5-dimension SONATE Framework implementation
   - Reality Index with 4 sub-components
@@ -27,7 +27,7 @@
   - Insight generation system
 
 ### @sonate/orchestrate
-✅ **Security Modules** (from symbi-symphony)
+✅ **Security Modules** (from sonate-symphony)
 - Directory: `src/security/`
 - Files copied:
   - `api-keys.ts` (10KB) - API key management with rotation
@@ -37,7 +37,7 @@
   - `rbac.ts` (10KB) - Role-based access control
   - `index.ts` - Security module exports
 
-✅ **Agent Types** (from symbi-symphony)
+✅ **Agent Types** (from sonate-symphony)
 - File: `src/agent-types-enhanced.ts`
 - Enhanced agent type definitions
 
@@ -51,7 +51,7 @@ yseeku-platform/
 │   │   │   ├── index.ts (original)
 │   │   │   ├── trust-protocol.ts
 │   │   │   ├── trust-receipt.ts
-│   │   │   ├── symbi-scorer.ts
+│   │   │   ├── sonate-scorer.ts
 │   │   │   └── utils/
 │   │   │       ├── hash-chain.ts
 │   │   │       ├── signatures.ts
@@ -69,7 +69,7 @@ yseeku-platform/
 │   │   │   ├── resonance-quality.ts
 │   │   │   ├── canvas-parity.ts
 │   │   │   ├── detector-enhanced.ts ✨ NEW
-│   │   │   └── symbi-types.ts ✨ NEW
+│   │   │   └── sonate-types.ts ✨ NEW
 │   │   ├── package.json
 │   │   └── README.md
 │   │
@@ -149,8 +149,8 @@ export * from './utils/crypto-advanced';
 #### @sonate/detect/src/index.ts
 Add exports for enhanced detector:
 ```typescript
-export { SymbiFrameworkDetector as EnhancedDetector } from './detector-enhanced';
-export * from './symbi-types';
+export { SonateFrameworkDetector as EnhancedDetector } from './detector-enhanced';
+export * from './sonate-types';
 ```
 
 #### @sonate/orchestrate/src/index.ts
@@ -176,7 +176,7 @@ import { v4 as uuidv4 } from 'uuid';  // Keep as is
 import { AssessmentInput, AssessmentResult } from './types';
 
 // NEW
-import { AssessmentInput, AssessmentResult } from './symbi-types';
+import { AssessmentInput, AssessmentResult } from './sonate-types';
 ```
 
 **Security modules**:

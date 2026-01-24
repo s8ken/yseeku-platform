@@ -964,7 +964,7 @@
                 <div class="module-section">
                     <button class="nav-tab active" onclick="switchTab('overview')">Overview</button>
                     <button class="nav-tab detect" onclick="switchTab('agents')">Agents</button>
-                    <button class="nav-tab detect" onclick="switchTab('symbi')">SONATE</button>
+                    <button class="nav-tab detect" onclick="switchTab('sonate')">SONATE</button>
                     <button class="nav-tab detect" onclick="switchTab('vectorPhase')">Vector Phase Space</button>
                     <button class="nav-tab detect" onclick="switchTab('basinDynamics')">Basin Dynamics</button>
                     <button class="nav-tab detect" onclick="switchTab('memoryLattice')">Memory Lattice</button>
@@ -1155,7 +1155,7 @@
             </div>
 
             <!-- SONATE Analysis Tab -->
-            <div id="symbi" class="tab-content">
+            <div id="sonate" class="tab-content">
                 <div class="module-header detect">
                     <h2>🧬 SONATE Analysis</h2>
                     <p>Constitutional framework trust scoring with cryptographic verification</p>
@@ -2355,8 +2355,8 @@
             }
             
             // Initialize tab-specific content
-            if (tabName === 'symbi') {
-                updateSymbiChart();
+            if (tabName === 'sonate') {
+                updateSonateChart();
             } else if (tabName === 'emergence') {
                 updateEmergenceChart();
             } else if (tabName === 'resonance') {
@@ -2565,7 +2565,7 @@
 
         // Chart Initialization
         function initializeCharts() {
-            // SYMBI Radar Chart
+            // SONATE Radar Chart
             const symbiCtx = document.getElementById('symbiRadarChart');
             if (symbiCtx) {
                 new Chart(symbiCtx, {
@@ -2607,7 +2607,7 @@
             }
         }
 
-        function updateSymbiChart() {
+        function updateSonateChart() {
             // Chart is initialized on load, this can be used for real-time updates
         }
 
@@ -3207,8 +3207,8 @@
                 Part of the SONATE Ecosystem
             </h3>
             <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-bottom: 30px;">
-                <a href="https://symbi.world" target="_blank" style="color: #a0a0a0; text-decoration: none; font-size: 14px;">
-                    <div style="font-weight: 600; color: white;">symbi.world</div>
+                <a href="https://sonate.world" target="_blank" style="color: #a0a0a0; text-decoration: none; font-size: 14px;">
+                    <div style="font-weight: 600; color: white;">sonate.world</div>
                     <div>Philosophy &amp; Manifesto</div>
                 </a>
                 <a href="https://gammatria.com" target="_blank" style="color: #a0a0a0; text-decoration: none; font-size: 14px;">

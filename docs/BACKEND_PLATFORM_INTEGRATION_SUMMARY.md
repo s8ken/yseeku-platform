@@ -14,9 +14,9 @@ PR #36 (commit 46cc38c) **DID** include substantial backend platform integration
 |------|------|-------|---------|
 | `domain-models.ts` | 14.6 KB | ~500 | Unified domain models (Policy, Flow, TrustReceipt, ComplianceSnapshot) |
 | `orchestrate-service.ts` | 21.4 KB | ~600 | Service layer integrating SYMPHONY + SYNERGY |
-| `agent-management.controller.ts` | 12.7 KB | ~400 | Agent CRUD operations (ported from symbi-synergy) |
+| `agent-management.controller.ts` | 12.7 KB | ~400 | Agent CRUD operations (ported from sonate-synergy) |
 | `trust-governance.controller.ts` | 17.2 KB | ~550 | Trust protocol enforcement and governance |
-| `multi-agent-orchestrator.ts` | 11.7 KB | ~350 | Multi-agent coordination (ported from symbi-symphony) |
+| `multi-agent-orchestrator.ts` | 11.7 KB | ~350 | Multi-agent coordination (ported from sonate-symphony) |
 | `advanced-trust-protocol.ts` | 9.2 KB | ~300 | Advanced trust protocol implementation |
 | `guardrails.controller.ts` | 1.4 KB | ~50 | Safety guardrails and constraints |
 | **TOTAL** | **88 KB** | **~2,750 lines** | **Complete backend integration** |
@@ -25,7 +25,7 @@ PR #36 (commit 46cc38c) **DID** include substantial backend platform integration
 
 ## 📦 What Was Integrated From Each Repository
 
-### From `symbi-synergy` (Agent Management)
+### From `sonate-synergy` (Agent Management)
 ✅ **agent-management.controller.ts**
 - Agent registration and lifecycle management
 - Agent status tracking and health monitoring
@@ -48,7 +48,7 @@ PR #36 (commit 46cc38c) **DID** include substantial backend platform integration
 - Behavioral boundaries
 - Risk mitigation rules
 
-### From `symbi-symphony` (Multi-Agent Orchestration)
+### From `sonate-symphony` (Multi-Agent Orchestration)
 ✅ **multi-agent-orchestrator.ts**
 - Multi-agent workflow coordination
 - Agent communication protocols
@@ -61,11 +61,11 @@ PR #36 (commit 46cc38c) **DID** include substantial backend platform integration
 - Multi-signature support
 - Hash chain integrity
 
-### From `symbi-resonate` (Detection - Already Integrated)
+### From `sonate-resonate` (Detection - Already Integrated)
 ✅ **Already in packages/detect/**
 - Bedau Index calculation
 - Emergence detection algorithms
-- SYMBI framework scoring
+- SONATE framework scoring
 - Reality Index, Trust Protocol, Ethical Alignment
 
 ---
@@ -140,7 +140,7 @@ class OrchestrateService {
 ### 1. **DETECT Module Integration**
 ```typescript
 // orchestrate-service.ts uses packages/detect
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { SonateFrameworkDetector } from '@sonate/detect';
 import { detectEmergence } from '@sonate/detect';
 
 // Real-time monitoring feeds into governance decisions
@@ -271,8 +271,8 @@ ls -lh guardrails.controller.ts
 ✅ **Complete backend platform integration** (~2,750 lines of TypeScript)
 ✅ **Unified domain models** for Policy, Flow, TrustReceipt, ComplianceSnapshot
 ✅ **Service layer** composing SYMPHONY + SYNERGY
-✅ **Agent management** from symbi-synergy
-✅ **Multi-agent orchestration** from symbi-symphony
+✅ **Agent management** from sonate-synergy
+✅ **Multi-agent orchestration** from sonate-symphony
 ✅ **Trust protocol** with cryptographic receipts
 ✅ **Compliance framework** for GDPR, EU AI Act, SOC 2
 

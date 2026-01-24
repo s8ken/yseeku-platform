@@ -1,6 +1,6 @@
 /**
  * Enhanced Cryptographic Utilities for YSEEKU
- * Combines symbi-symphony Ed25519 components with YSEEKU trust receipt system
+ * Combines sonate-protocol Ed25519 components with YSEEKU trust receipt system
  * Provides enterprise-grade cryptographic operations with integrity verification
  */
 

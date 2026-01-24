@@ -51,7 +51,7 @@ export class ArchiveAnalyzer {
    */
   async loadAllConversations(): Promise<ArchiveConversation[]> {
     const conversations: ArchiveConversation[] = [];
-    const aiSystems = ['Claude', 'DeepSeek', 'GPT 4.0', 'GROK', 'SYMBI', 'Wolfram'];
+    const aiSystems = ['Claude', 'DeepSeek', 'GPT 4.0', 'GROK', 'SONATE', 'Wolfram'];
 
     for (const system of aiSystems) {
       const systemPath = path.join(this.archivesPath, system);

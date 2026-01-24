@@ -66,7 +66,7 @@ export interface AgentModelInterface {
     lastSync: Date;
   }[];
   metadata: Record<string, any>;
-  ciModel: 'none' | 'symbi-core' | 'overseer';
+  ciModel: 'none' | 'sonate-core' | 'overseer';
   bondingStatus: 'none' | 'initiated' | 'bonded' | 'rejected';
   createdAt: Date;
   lastActive: Date;
@@ -193,7 +193,7 @@ const AgentSchema = new Schema<IAgentDocument, mongoose.Model<IAgentDocument>>({
   },
   ciModel: {
     type: String,
-    enum: ['none', 'symbi-core', 'overseer'],
+    enum: ['none', 'sonate-core', 'overseer'],
     default: 'none',
   },
   bondingStatus: {

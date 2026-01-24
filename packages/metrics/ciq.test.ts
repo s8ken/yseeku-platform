@@ -18,8 +18,8 @@ test('deterministic CIQ across runs', () => {
 
 test('37% uplift calculation', () => {
   const baseline = 875;  // Directive mode
-  const symbi = 1204;    // SYMBI mode 
-  expect(ciqUplift(baseline, symbi)).toBe(38); // 37.6% → 38%
+  const sonate = 1204;    // SONATE mode 
+  expect(ciqUplift(baseline, sonate)).toBe(38); // 37.6% → 38%
 });
 
 test('Holm-Bonferroni survives integer math', () => {

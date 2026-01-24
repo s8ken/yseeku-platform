@@ -64,7 +64,7 @@ export const TrustDashboard: React.FC<TrustDashboardProps> = ({
             Trust Scoring Matrix
           </h2>
           <p className="text-gray-400 mt-1">
-            Real-time SYMBI governance monitoring and compliance metrics
+            Real-time SONATE governance monitoring and compliance metrics
           </p>
         </div>
         

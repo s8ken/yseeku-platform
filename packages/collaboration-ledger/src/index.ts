@@ -128,7 +128,7 @@ export class SonateCollaborationLedger {
 
     return {
       projectId: this.projectId,
-      name: `SYMBI Collaboration ${this.projectId}`,
+      name: `SONATE Collaboration ${this.projectId}`,
       created: this.workUnits[0]?.timestamp || Date.now(),
       updated: Date.now(),
       humans: Array.from(new Set(this.decisions.map((d) => d.humanId))),
@@ -225,7 +225,7 @@ export class SonateCollaborationLedger {
 
   private generateVerificationGuide(): string {
     return (
-      `# SYMBI Collaboration Verification Guide\n\n` +
+      `# SONATE Collaboration Verification Guide\n\n` +
       `1. Verify Merkle proofs using merkletreejs.\n` +
       `2. Validate agent attestations and human signatures.\n` +
       `3. Recompute hashes for work units to confirm integrity.`
@@ -237,7 +237,7 @@ export class SonateCollaborationLedger {
   }
 }
 
-export function writeSymbiFile(path: string, manifest: ProjectManifest) {
+export function writeSonateFile(path: string, manifest: ProjectManifest) {
   const fs = require('fs');
   fs.writeFileSync(path, JSON.stringify(manifest, null, 2), 'utf8');
 }

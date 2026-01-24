@@ -418,7 +418,7 @@ export interface Receipt {
   session_id: string;
   agent_id: string;
   trust_score: number;
-  symbi_snapshot: Record<string, unknown>;
+  sonate_snapshot: Record<string, unknown>;
   hash: string;
   signature?: string;
   verified: boolean;

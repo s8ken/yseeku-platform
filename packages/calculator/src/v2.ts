@@ -382,7 +382,7 @@ async function calculateRawResonance(transcript: Transcript): Promise<{
 /**
  * Explainable resonance function with detailed evidence
  */
-export async function explainableSymbiResonance(
+export async function explainableSonateResonance(
   transcript: Transcript,
   options: { max_evidence?: number } = {}
 ): Promise<ExplainedResonance> {
@@ -516,7 +516,7 @@ export async function explainableSymbiResonance(
 /**
  * Enhanced main function with all mathematical improvements
  */
-export async function robustSymbiResonance(transcript: Transcript): Promise<RobustResonanceResult> {
+export async function robustSonateResonance(transcript: Transcript): Promise<RobustResonanceResult> {
   const text = transcript.text;
 
   // ADVERSARIAL CHECK (enhanced with real embeddings)
@@ -620,7 +620,7 @@ export const CalculatorV2 = {
    * Compute resonance score for a transcript
    */
   async compute(transcript: Transcript): Promise<RobustResonanceResult> {
-    return robustSymbiResonance(transcript);
+    return robustSonateResonance(transcript);
   },
 
   /**
@@ -630,7 +630,7 @@ export const CalculatorV2 = {
     transcript: Transcript,
     options?: { max_evidence?: number }
   ): Promise<ExplainedResonance> {
-    return explainableSymbiResonance(transcript, options);
+    return explainableSonateResonance(transcript, options);
   },
 
   /**

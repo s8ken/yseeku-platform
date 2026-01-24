@@ -501,7 +501,7 @@ class YseekuDataEngine {
                 chain.push({
                     time: 25,
                     event: 'SONATE ethics score dropped below 7.0',
-                    metric: 'symbi.ethics',
+                    metric: 'sonate.ethics',
                     value: 6.9,
                     threshold: 7.0
                 });

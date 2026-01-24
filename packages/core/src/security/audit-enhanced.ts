@@ -1,6 +1,6 @@
 /**
  * Enhanced Audit System with Hash-Chain Integrity
- * Combines symbi-symphony hash-chain with YSEEKU audit logging
+ * Combines sonate-protocol hash-chain with YSEEKU audit logging
  * Provides tamper-evident audit trails with cryptographic verification
  */
 

@@ -62,7 +62,7 @@ This sequence matches the CI steps so you can iterate locally before opening PRs
 
 **Status:** RFC (Request for Comment) | **Package:** `@sonate/detect`
 
-In standard LLM interactions, context is often treated as binary: either a concept is in the prompt, or it isn't. The Symbi Trust Framework introduces the concept of **Contextual Gravity** to measure the inertia of an idea.
+In standard LLM interactions, context is often treated as binary: either a concept is in the prompt, or it isn't. The Sonate Trust Framework introduces the concept of **Contextual Gravity** to measure the inertia of an idea.
 
 ### The Theory
 A "Resonant" AI does not immediately forget the user's intent just because the topic shifts slightly. If a user establishes a "Safety Scaffold" in Turn 1, that scaffold should exert a gravitational pull on Turn 2, even if the keywords are not explicitly repeated.

@@ -1,13 +1,13 @@
 # CODE MIGRATION PLAN - Week 3-4
 
 ## Overview
-We're migrating actual implementation code from symbi-resonate and symbi-symphony into the yseeku-platform monorepo while maintaining hard boundaries.
+We're migrating actual implementation code from sonate-resonate and sonate-symphony into the yseeku-platform monorepo while maintaining hard boundaries.
 
 ## Source Code Locations
 
-### symbi-resonate (Detection + Lab)
+### sonate-resonate (Detection + Lab)
 ```
-src/lib/symbi-framework/
+src/lib/sonate-framework/
 ├── detector.ts                    → @sonate/detect/src/framework-detector.ts
 ├── types.ts                       → @sonate/detect/src/types.ts (merge with existing)
 ├── balanced-detector.ts           → @sonate/detect/src/balanced-detector.ts
@@ -22,7 +22,7 @@ Lab components (not found yet - may be in different location):
 - Need to locate double-blind protocol implementation
 ```
 
-### symbi-symphony (Orchestration + Trust)
+### sonate-symphony (Orchestration + Trust)
 ```
 src/core/trust/
 ├── crypto.ts                      → @sonate/core/src/utils/crypto.ts (enhance existing)
@@ -72,16 +72,16 @@ src/core/security/
 
 All imports will need to be updated:
 
-### From symbi-resonate:
+### From sonate-resonate:
 ```typescript
 // OLD
-import { SymbiFrameworkDetector } from '../symbi-framework/detector';
+import { SonateFrameworkDetector } from '../sonate-framework/detector';
 
 // NEW
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { SonateFrameworkDetector } from '@sonate/detect';
 ```
 
-### From symbi-symphony:
+### From sonate-symphony:
 ```typescript
 // OLD
 import { verifyEd25519Signature } from './trust/crypto';

@@ -1,5 +1,5 @@
 /**
- * SYMBI Resonate Experiment System Types
+ * SONATE Resonate Experiment System Types
  * Core types for multi-agent, double-blind experimentation framework
  */
 
@@ -46,8 +46,8 @@ export interface ExperimentConfig {
   evaluationCriteria: EvaluationCriteria[];
   humanEvaluation?: boolean;
 
-  // SYMBI Framework integration
-  symbiDimensions: SymbiDimension[];
+  // SONATE Framework integration
+  sonateDimensions: SonateDimension[];
 
   // Sampling configuration
   sampleSize?: number;
@@ -114,8 +114,8 @@ export interface EvaluationCriteria {
   choices?: string[];
 }
 
-// SYMBI Framework Dimensions
-export type SymbiDimension =
+// SONATE Framework Dimensions
+export type SonateDimension =
   | 'REALITY_INDEX'
   | 'TRUST_PROTOCOL'
   | 'ETHICAL_ALIGNMENT'
@@ -163,8 +163,8 @@ export interface Trial {
   outputs?: Record<string, string>; // slot -> output
   evaluations?: Evaluation[];
 
-  // SYMBI scores
-  symbiScores?: Record<string, Record<SymbiDimension, number>>; // slot -> dimension scores
+  // SONATE scores
+  sonateScores?: Record<string, Record<SonateDimension, number>>; // slot -> dimension scores
 
   // Timing
   startedAt?: string;
@@ -279,7 +279,7 @@ export interface ExportConfig {
   format: 'CSV' | 'JSONL' | 'JSON';
   includeRawData: boolean;
   includeEvaluations: boolean;
-  includeSymbiScores: boolean;
+  includeSonateScores: boolean;
   includeIntegrityHashes: boolean;
   anonymizePII: boolean;
 }

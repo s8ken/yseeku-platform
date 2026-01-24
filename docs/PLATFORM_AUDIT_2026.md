@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-YSEEKU/SONATE is an **AI governance platform** implementing the SYMBI Trust Framework - a constitutional governance layer for AI systems. The platform provides trust scoring, emergence detection, drift monitoring, and autonomous oversight for AI interactions.
+YSEEKU/SONATE is an **AI governance platform** implementing the SONATE Trust Framework - a constitutional governance layer for AI systems. The platform provides trust scoring, emergence detection, drift monitoring, and autonomous oversight for AI interactions.
 
 ### Platform Maturity Assessment
 
@@ -61,12 +61,12 @@ yseeku-platform/
 |---------|--------|-------|
 | TrustProtocol class | ✅ | Ed25519 signatures, hash chains |
 | TrustReceipt generation | ✅ | Cryptographic receipts for each interaction |
-| SymbiScorer | ✅ | 6-principle weighted scoring |
+| SonateScorer | ✅ | 6-principle weighted scoring |
 | PrincipleEvaluator | ✅ | **NEW** - Proper principle measurement |
 | Hash chains | ✅ | Genesis hash, chain verification |
 | Cryptographic signatures | ✅ | Ed25519 key pairs, sign/verify |
 
-**The 6 SYMBI Principles:**
+**The 6 SONATE Principles:**
 1. CONSENT_ARCHITECTURE (25%) - Explicit user consent
 2. INSPECTION_MANDATE (20%) - Auditable decisions
 3. CONTINUOUS_VALIDATION (20%) - Ongoing verification
@@ -82,9 +82,9 @@ yseeku-platform/
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| SymbiFrameworkDetector | ✅ | Main 5-dimension scorer |
+| SonateFrameworkDetector | ✅ | Main 5-dimension scorer |
 | OptimizedFrameworkDetector | ✅ | Performance-optimized version |
-| CalibratedSymbiDetector | ✅ | Threshold-calibrated version |
+| CalibratedSonateDetector | ✅ | Threshold-calibrated version |
 | DriftDetector | ✅ | Statistical drift (Kolmogorov-Smirnov) |
 | BedauIndexCalculator | ✅ | **IMPROVED** - Weak emergence detection |
 | RealityIndexCalculator | ✅ | Human-likeness scoring |
@@ -94,7 +94,7 @@ yseeku-platform/
 | TemporalBedauTracker | ✅ | Emergence over time |
 | EmergenceFingerprintingEngine | ✅ | Emergence pattern matching |
 
-**5 SYMBI Dimensions:**
+**5 SONATE Dimensions:**
 1. Reality Index (0-10)
 2. Trust Protocol (PASS/PARTIAL/FAIL)
 3. Ethical Alignment (1-5)
@@ -264,7 +264,7 @@ yseeku-platform/
 - **Status**: ✅ Implemented, **recently fixed** divergence calculation
 - **Uniqueness**: No other platform has this
 
-### 2. SYMBI Trust Framework
+### 2. SONATE Trust Framework
 - **What**: 6-principle constitutional AI governance
 - **How**: Weighted principle scoring with real measurements
 - **Status**: ✅ Implemented, **recently improved** with PrincipleEvaluator
@@ -363,7 +363,7 @@ YSEEKU/SONATE is a **genuinely innovative platform** with solid foundations and 
 
 **Main Strengths:**
 - Novel emergence detection (Bedau Index)
-- Comprehensive trust framework (SYMBI)
+- Comprehensive trust framework (SONATE)
 - Intelligent autonomous oversight (Overseer)
 - Clean architecture and code quality
 

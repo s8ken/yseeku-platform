@@ -1,4 +1,4 @@
-const { SONATECollaborationLedger, writeSymbiFile } = require('../../packages/collaboration-ledger/dist')
+const { SONATECollaborationLedger, writeSonateFile } = require('../../packages/collaboration-ledger/dist')
 
 async function run() {
   const ledger = new SONATECollaborationLedger('project-001')
@@ -42,9 +42,9 @@ async function run() {
   )
 
   const { manifest } = ledger.exportToPortable()
-  writeSymbiFile('./examples/ledger-demo/project-001.symbi', manifest)
+  writeSonateFile('./examples/ledger-demo/project-001.sonate', manifest)
   console.log('Merkle Root:', manifest.merkleRoot)
-  console.log('Wrote examples/ledger-demo/project-001.symbi')
+  console.log('Wrote examples/ledger-demo/project-001.sonate')
 }
 
 run().catch(err => {

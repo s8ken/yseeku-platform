@@ -64,7 +64,7 @@ const demoAgents = [
     temperature: 0.7,
     maxTokens: 2000,
     isPublic: true,
-    ciModel: 'symbi-core' as const,
+    ciModel: 'sonate-core' as const,
     traits: {
       ethical_alignment: 4.8,
       creativity: 3.5,
@@ -81,7 +81,7 @@ const demoAgents = [
     temperature: 0.9,
     maxTokens: 3000,
     isPublic: true,
-    ciModel: 'symbi-core' as const,
+    ciModel: 'sonate-core' as const,
     traits: {
       ethical_alignment: 4.5,
       creativity: 4.9,
@@ -132,7 +132,7 @@ const demoAgents = [
     temperature: 0.4,
     maxTokens: 4000,
     isPublic: true,
-    ciModel: 'symbi-core' as const,
+    ciModel: 'sonate-core' as const,
     traits: {
       ethical_alignment: 4.6,
       creativity: 4.0,
@@ -465,7 +465,7 @@ async function seedDatabase() {
           content: msg.content,
           agentId: msg.sender === 'ai' ? agent._id : undefined,
           trustScore: msg.trustScore,
-          ciModel: template.ciEnabled ? 'symbi-core' : 'none',
+          ciModel: template.ciEnabled ? 'sonate-core' : 'none',
           metadata: {
             trustEvaluation: {
               overall: msg.trustScore * 2, // Convert to 0-10 scale

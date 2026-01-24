@@ -5,8 +5,8 @@ async function testCompareVariants(){
   const content = 'We verify and validate with secure boundaries, privacy, and ethical clarity. Novel synthesis and innovation 2025 with 42% evidence.'
 
   const enhanced = new detect.EnhancedDetector()
-  const balanced = new detect.BalancedSymbiDetector()
-  const calibrated = new detect.CalibratedSymbiDetector()
+  const balanced = new detect.BalancedSonateDetector()
+  const calibrated = new detect.CalibratedSonateDetector()
 
   const er = await enhanced.analyzeContent({ content })
   const br = await balanced.analyzeContent({ content })

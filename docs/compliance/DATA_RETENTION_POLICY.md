@@ -71,7 +71,7 @@ This policy applies to:
 **Category 2: Interaction Data**
 - AI interaction logs
 - Trust scores and assessments
-- SYMBI dimension scores
+- SONATE dimension scores
 - Bedau Index measurements
 
 **Category 3: System Data**
@@ -123,7 +123,7 @@ This policy applies to:
 |-----------|------------------|-------------|-----------------|
 | AI interaction logs | 2 years | Contract, Legal obligation | Secure deletion |
 | Trust scores | 2 years | Contract | Secure deletion |
-| SYMBI assessments | 2 years | Contract | Secure deletion |
+| SONATE assessments | 2 years | Contract | Secure deletion |
 | Bedau Index data | 2 years | Contract | Secure deletion |
 | Resonance metrics | 2 years | Contract | Secure deletion |
 

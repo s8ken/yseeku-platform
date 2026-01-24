@@ -98,10 +98,10 @@ graph TB
 - Constant-time cryptographic operations
 
 #### @sonate/detect - Real-time Framework Detection
-**Purpose**: Real-time AI interaction monitoring and SYMBI validation
+**Purpose**: Real-time AI interaction monitoring and SONATE validation
 
 **Key Components**:
-- **SymbiFrameworkDetector**: 5-dimension scoring system
+- **SonateFrameworkDetector**: 5-dimension scoring system
 - **CalibratedDetector**: Enhanced detection with emergence recognition
 - **DriftDetector**: Performance degradation monitoring
 - **AlertSystem**: Real-time alerting with configurable thresholds
@@ -231,9 +231,9 @@ enum Permission {
   ANALYTICS_CONFIGURE = 'analytics:configure',
   
   // SONATE Framework
-  SYMBI_DETECT = 'symbi:detect',
-  SYMBI_SCORE = 'symbi:score',
-  SYMBI_CONFIGURE = 'symbi:configure',
+  SONATE_DETECT = 'sonate:detect',
+  SONATE_SCORE = 'sonate:score',
+  SONATE_CONFIGURE = 'sonate:configure',
   
   // System Administration
   SYSTEM_CONFIGURE = 'system:configure',
@@ -339,7 +339,7 @@ CREATE TABLE audit_logs (
   )
 );
 
--- SYMBI Trust Receipts
+-- SONATE Trust Receipts
 CREATE TABLE trust_receipts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   session_id VARCHAR(255) NOT NULL,
@@ -378,7 +378,7 @@ sequenceDiagram
     DETECT->>CACHE: Cache results
     
     DETECT-->>API: Detection results
-    API-->>UI: Return SYMBI analysis
+    API-->>UI: Return SONATE analysis
 ```
 
 #### Experiment Pipeline
@@ -394,7 +394,7 @@ sequenceDiagram
     LAB->>AGENTS: Execute agent variants
     AGENTS-->>LAB: Variant responses
     
-    LAB->>CORE: Apply SYMBI framework
+    LAB->>CORE: Apply SONATE framework
     CORE-->>LAB: Trust scores
     
     LAB->>STATS: Perform statistical analysis
@@ -829,4 +829,4 @@ const disasterRecovery = {
 };
 ```
 
-This enterprise architecture documentation demonstrates that Yseeku-Platform successfully combines and enhances the capabilities of both SYMBI-Resonate and SYMBI-Symphony, providing a comprehensive, secure, and scalable platform for constitutional AI governance.
+This enterprise architecture documentation demonstrates that Yseeku-Platform successfully combines and enhances the capabilities of both SONATE-Resonate and SONATE-Symphony, providing a comprehensive, secure, and scalable platform for constitutional AI governance.

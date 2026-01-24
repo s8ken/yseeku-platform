@@ -42,7 +42,7 @@ export interface ExperimentsResponse {
   };
 }
 
-export interface SymbiAnalysis {
+export interface SonateAnalysis {
   dimensions: {
     realityIndex: number;
     trustProtocol: number;
@@ -99,12 +99,12 @@ export const labApi = {
     await fetchAPI(`/api/lab/experiments/${id}`, { method: 'DELETE' });
   },
 
-  async runSymbiAnalysis(data: {
+  async runSonateAnalysis(data: {
     userInput: string;
     aiResponse: string;
     context?: string;
-  }): Promise<{ success: boolean; data: SymbiAnalysis }> {
-    return fetchAPI('/api/lab/symbi/analyze', {
+  }): Promise<{ success: boolean; data: SonateAnalysis }> {
+    return fetchAPI('/api/lab/sonate/analyze', {
       method: 'POST',
       body: JSON.stringify(data),
     });

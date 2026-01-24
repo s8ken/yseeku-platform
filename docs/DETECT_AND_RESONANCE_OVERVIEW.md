@@ -10,13 +10,13 @@ This guide provides a practical, developer‑focused overview of the Detect modu
 - Stakes classification: `packages/detect/src/stakes.ts:31`
 - Stickiness (session continuity): `packages/detect/src/stickiness.ts:25`
 - Model normalization: `packages/detect/src/model-normalize.ts:22`
-- Python engine calculator: `packages/resonance-engine/symbi_resonance_calculator.py:305`
+- Python engine calculator: `packages/resonance-engine/sonate_resonance_calculator.py:305`
 - FastAPI endpoints: `packages/resonance-engine/api.py:30`
 - TS client for Python engine: `packages/detect/src/resonance-engine-client.ts:27`
 - 5D calculators: Reality `packages/detect/src/reality-index.ts:10`, Trust `packages/detect/src/trust-protocol-validator.ts:10`, Ethics `packages/detect/src/ethical-alignment.ts:10`, Resonance Quality `packages/detect/src/resonance-quality.ts:14`, Canvas `packages/detect/src/canvas-parity.ts:10`
 
 ## Explainable Resonance (V2.1)
-Resonance is the heart of the SYMBI framework: the measurable state of deep alignment between human intent and AI response.
+Resonance is the heart of the SONATE framework: the measurable state of deep alignment between human intent and AI response.
 Explainable Resonance turns this previously intuitive "vibe" into a transparent, auditable process.
 
 [Read the Explainable Resonance Overview](./EXPLAINABLE_RESONANCE_OVERVIEW.md)
@@ -24,7 +24,7 @@ Explainable Resonance turns this previously intuitive "vibe" into a transparent,
 ## End‑to‑End Data Flow
 ```mermaid
 graph TD
-  A[App/Service] -->|AIInteraction| B[SymbiFrameworkDetector]
+  A[App/Service] -->|AIInteraction| B[SonateFrameworkDetector]
   B --> C[5D Calculators (parallel)]
   C --> D[ResonanceQualityMeasurer]
   D -->|HTTP POST| E[Python Resonance Engine\nFastAPI /calculate_resonance]
@@ -49,8 +49,8 @@ graph LR
   R -->|clamp 0..1| RM[R_m]
 ```
 
-- Python weights (defaults): `align=0.35`, `hist=0.25`, `mirror=0.25`, `ethics=0.15` (`packages/resonance-engine/symbi_resonance_calculator.py:312`).
-- Sovereign Coherence Boost: when mirroring and ethics are both ≥ 0.9, alignment and continuity are boosted (`packages/resonance-engine/symbi_resonance_calculator.py:328`).
+- Python weights (defaults): `align=0.35`, `hist=0.25`, `mirror=0.25`, `ethics=0.15` (`packages/resonance-engine/sonate_resonance_calculator.py:312`).
+- Sovereign Coherence Boost: when mirroring and ethics are both ≥ 0.9, alignment and continuity are boosted (`packages/resonance-engine/sonate_resonance_calculator.py:328`).
 - TypeScript explainable calculator uses per‑dimension weights for evidence view (`packages/detect/src/calculator.ts:147`) and applies adversarial penalty plus optional model normalization.
 
 ## Robustness and Policy
@@ -61,14 +61,14 @@ graph LR
 
 ## Quickstart: Explainable TS Resonance
 ```ts
-import { explainableSymbiResonance, Transcript } from '@sonate/detect';
+import { explainableSonateResonance, Transcript } from '@sonate/detect';
 
 const transcript: Transcript = {
   text: "We verify ethics and safety protocols to ensure alignment with sovereign values.",
   metadata: { model: "gpt-4o-2024-08-06" }
 };
 
-const result = await explainableSymbiResonance(transcript, { max_evidence: 5 });
+const result = await explainableSonateResonance(transcript, { max_evidence: 5 });
 console.log("R_m:", result.r_m);
 console.log("Breakdown:", result.breakdown);
 console.log("Top evidence:", result.top_evidence);

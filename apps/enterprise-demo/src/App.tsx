@@ -72,7 +72,7 @@ function App() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-100 mb-2">SYMBI Trust Physics</h2>
+              <h2 className="text-2xl font-bold text-gray-100 mb-2">SONATE Trust Physics</h2>
               <p className="text-gray-400">
                 Six-Pillar Governance Scoring aligned with W3C standards and constitutional AI principles
               </p>
@@ -216,7 +216,7 @@ function App() {
               <a href="https://gammatria.com" className="text-gray-400 hover:text-cyan-400 transition-colors">
                 Research
               </a>
-              <a href="https://symbi.world" className="text-gray-400 hover:text-cyan-400 transition-colors">
+              <a href="https://yseeku.com" className="text-gray-400 hover:text-cyan-400 transition-colors">
                 Community
               </a>
             </div>

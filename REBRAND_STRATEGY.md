@@ -1,18 +1,18 @@
-# SYMBI → SONATE Rebranding Strategy
+# SONATE → SONATE Rebranding Strategy
 
 ## Executive Summary
 
-**Goal**: Rebrand the "SYMBI Framework" to "SONATE Framework" for brand consistency across the platform.
+**Goal**: Rebrand the "SONATE Framework" to "SONATE Framework" for brand consistency across the platform.
 
 **Scope**: ~1,636 references across code, documentation, and demos
 - 777 references in code files (.ts, .tsx, .js, .json)
 - 651 references in markdown files (.md)
-- 208 lowercase "symbi" references
+- 208 lowercase "sonate" references
 
 **Current State**:
 - ✅ Platform already branded as "SONATE Platform - The Trust Layer for AI"
 - ✅ Package names already use @sonate/* namespace
-- ❌ Framework principles still referenced as "SYMBI" throughout
+- ❌ Framework principles still referenced as "SONATE" throughout
 
 ## Replacement Categories
 
@@ -20,8 +20,8 @@
 These directly impact user experience and should be changed for brand consistency.
 
 #### Frontend UI Components
-- [ ] Page titles: "SYMBI Analysis" → "SONATE Analysis"
-- [ ] Navigation items: "SYMBI Home", "Chat with SYMBI" → "SONATE Home", "Chat with SONATE"
+- [ ] Page titles: "SONATE Analysis" → "SONATE Analysis"
+- [ ] Navigation items: "SONATE Home", "Chat with SONATE" → "SONATE Home", "Chat with SONATE"
 - [ ] Buttons and labels
 - [ ] Tooltips and help text
 - [ ] Error messages and notifications
@@ -73,8 +73,8 @@ Essential for external communication and developer onboarding.
 **Pattern to apply**:
 ```markdown
 # Before:
-"SYMBI Framework consists of six constitutional principles..."
-"The SYMBI framework is like a constitution for AI systems..."
+"SONATE Framework consists of six constitutional principles..."
+"The SONATE framework is like a constitution for AI systems..."
 
 # After:
 "SONATE Framework consists of six constitutional principles..."
@@ -88,8 +88,8 @@ Improve code documentation clarity for future developers.
 ```typescript
 // Before:
 /**
- * SYMBI Framework Types
- * This file defines the core types for the SYMBI framework detection...
+ * SONATE Framework Types
+ * This file defines the core types for the SONATE framework detection...
  */
 
 // After:
@@ -101,14 +101,14 @@ Improve code documentation clarity for future developers.
 
 **Files to update** (~50+ files):
 ```
-packages/detect/src/symbi-types.ts
+packages/detect/src/sonate-types.ts
 packages/detect/src/detector-enhanced.ts
 packages/core/src/trust-protocol.ts
 apps/backend/src/services/trust.service.ts
 apps/backend/src/routes/proof.routes.ts
 apps/backend/src/routes/conversation.routes.ts
 apps/backend/src/routes/reports.routes.ts
-... (all files with "SYMBI" in comments)
+... (all files with "SONATE" in comments)
 ```
 
 ### Category 4: **CHANGE WITH CAUTION** - Type and Interface Names
@@ -117,9 +117,9 @@ Requires careful refactoring to maintain type safety.
 #### TypeScript Types/Interfaces
 ```typescript
 // Before:
-export interface SymbiFrameworkAssessment { ... }
-export class SymbiFrameworkDetector { ... }
-export class SYMBICollaborationLedger { ... }
+export interface SonateFrameworkAssessment { ... }
+export class SonateFrameworkDetector { ... }
+export class SONATECollaborationLedger { ... }
 
 // After:
 export interface SonateFrameworkAssessment { ... }
@@ -128,12 +128,12 @@ export class SonateCollaborationLedger { ... }
 ```
 
 **Critical files** (update exports AND all imports):
-1. `packages/detect/src/symbi-types.ts` → Consider renaming to `sonate-types.ts`
-   - SymbiFrameworkAssessment → SonateFrameworkAssessment
+1. `packages/detect/src/sonate-types.ts` → Consider renaming to `sonate-types.ts`
+   - SonateFrameworkAssessment → SonateFrameworkAssessment
 2. `packages/detect/src/detector-enhanced.ts`
-   - SymbiFrameworkDetector → SonateFrameworkDetector
+   - SonateFrameworkDetector → SonateFrameworkDetector
 3. `packages/collaboration-ledger/src/index.ts`
-   - SYMBICollaborationLedger → SonateCollaborationLedger
+   - SONATECollaborationLedger → SonateCollaborationLedger
 4. All consuming files that import these types
 
 **Migration approach**:
@@ -146,7 +146,7 @@ Example:
 // Phase 1: Add aliases
 export interface SonateFrameworkAssessment { ... }
 /** @deprecated Use SonateFrameworkAssessment */
-export type SymbiFrameworkAssessment = SonateFrameworkAssessment;
+export type SonateFrameworkAssessment = SonateFrameworkAssessment;
 
 // Phase 2: Update all usages
 // Phase 3: Remove deprecated aliases
@@ -159,7 +159,7 @@ Improve code consistency.
 ```typescript
 // Before:
 const symbiScore = ...;
-const symbi = {
+const sonate = {
   consent: 8.5,
   inspection: 9.0,
   // ...
@@ -174,7 +174,7 @@ const sonate = {
 };
 ```
 
-**Files with lowercase "symbi"** (~208 references):
+**Files with lowercase "sonate"** (~208 references):
 - JavaScript data engine files
 - Demo HTML files
 - TypeScript service files
@@ -186,7 +186,7 @@ Ensure API consistency (requires API versioning consideration).
 ```typescript
 // Before:
 {
-  symbi: {
+  sonate: {
     consent: 8.5,
     inspection: 9.0,
     // ...
@@ -221,12 +221,12 @@ apps/backend/src/services/demo-seeder.service.ts
 Do not change these to maintain historical accuracy.
 
 #### Git History
-- ✅ KEEP: All commit messages mentioning "SYMBI"
-- ✅ KEEP: Git tags and branch names with "SYMBI"
+- ✅ KEEP: All commit messages mentioning "SONATE"
+- ✅ KEEP: Git tags and branch names with "SONATE"
 - ✅ KEEP: Historical changelog entries
 
 #### Archived Code
-- ✅ KEEP: `_archived/symbi-symphony/` directory
+- ✅ KEEP: `_archived/sonate-symphony/` directory
 - ✅ KEEP: Historical documentation in archived folders
 
 ### Category 8: **PRESERVE** - Package Names
@@ -246,13 +246,13 @@ Consider renaming for consistency.
 
 #### TypeScript Files
 ```
-packages/detect/src/symbi-types.ts → packages/detect/src/sonate-types.ts
+packages/detect/src/sonate-types.ts → packages/detect/src/sonate-types.ts
 ```
 
 Update all imports:
 ```typescript
 // Before:
-import { SymbiFrameworkAssessment } from './symbi-types';
+import { SonateFrameworkAssessment } from './sonate-types';
 
 // After:
 import { SonateFrameworkAssessment } from './sonate-types';
@@ -262,12 +262,12 @@ import { SonateFrameworkAssessment } from './sonate-types';
 
 ### Phase 1: Preparation (Low Risk)
 1. ✅ Create this strategy document
-2. [ ] Create git branch: `feature/rebrand-symbi-to-sonate`
+2. [ ] Create git branch: `feature/rebrand-sonate-to-sonate`
 3. [ ] Update documentation (markdown files)
 4. [ ] Update code comments and docstrings
 5. [ ] Update HTML demo files
 6. [ ] Test build: `npm run build`
-7. [ ] Commit: "docs: Rebrand SYMBI Framework to SONATE Framework in documentation"
+7. [ ] Commit: "docs: Rebrand SONATE Framework to SONATE Framework in documentation"
 
 ### Phase 2: Frontend (Medium Risk)
 1. [ ] Update frontend UI text (React components)
@@ -275,7 +275,7 @@ import { SonateFrameworkAssessment } from './sonate-types';
 3. [ ] Update store names (useTutorialStore, etc.)
 4. [ ] Test build: `npm run build`
 5. [ ] Manual UI testing
-6. [ ] Commit: "feat: Rebrand SYMBI to SONATE in frontend UI"
+6. [ ] Commit: "feat: Rebrand SONATE to SONATE in frontend UI"
 
 ### Phase 3: Backend (Medium Risk)
 1. [ ] Update backend API response field names
@@ -283,29 +283,29 @@ import { SonateFrameworkAssessment } from './sonate-types';
 3. [ ] Update route handlers
 4. [ ] Test build: `npm run build:backend`
 5. [ ] API integration testing
-6. [ ] Commit: "feat: Rebrand SYMBI to SONATE in backend API"
+6. [ ] Commit: "feat: Rebrand SONATE to SONATE in backend API"
 
 ### Phase 4: TypeScript Types (High Risk - Breaking Changes)
 1. [ ] Add type aliases for backward compatibility
 2. [ ] Update interface names in source files
 3. [ ] Update all imports across codebase
-4. [ ] Rename `symbi-types.ts` to `sonate-types.ts`
+4. [ ] Rename `sonate-types.ts` to `sonate-types.ts`
 5. [ ] Update package exports
 6. [ ] Test build: `npm run build`
 7. [ ] Run all tests: `npm test`
-8. [ ] Commit: "refactor: Rename SYMBI types to SONATE types"
+8. [ ] Commit: "refactor: Rename SONATE types to SONATE types"
 
 ### Phase 5: Verification and Cleanup
 1. [ ] Run full build: `npm run build`
 2. [ ] Run all tests: `npm test`
 3. [ ] Manual end-to-end testing
-4. [ ] Search for remaining "SYMBI" references: `grep -r "SYMBI" --exclude-dir=node_modules --exclude-dir=dist`
+4. [ ] Search for remaining "SONATE" references: `grep -r "SONATE" --exclude-dir=node_modules --exclude-dir=dist`
 5. [ ] Update package.json descriptions if needed
 6. [ ] Remove deprecated type aliases (if Phase 4 was stable)
-7. [ ] Final commit: "chore: Complete SYMBI to SONATE rebranding"
+7. [ ] Final commit: "chore: Complete SONATE to SONATE rebranding"
 
 ### Phase 6: Deployment
-1. [ ] Push to remote: `git push origin feature/rebrand-symbi-to-sonate`
+1. [ ] Push to remote: `git push origin feature/rebrand-sonate-to-sonate`
 2. [ ] Create pull request
 3. [ ] Review changes
 4. [ ] Merge to main
@@ -315,25 +315,25 @@ import { SonateFrameworkAssessment } from './sonate-types';
 
 ## Search Commands
 
-### Find all SYMBI references
+### Find all SONATE references
 ```bash
 # Code files
-grep -r "SYMBI" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.next
+grep -r "SONATE" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.next
 
 # Documentation
-grep -r "SYMBI" --include="*.md" --exclude-dir=node_modules
+grep -r "SONATE" --include="*.md" --exclude-dir=node_modules
 
-# Lowercase symbi
-grep -ri "symbi" --include="*.ts" --include="*.tsx" --exclude-dir=node_modules --exclude-dir=dist
+# Lowercase sonate
+grep -ri "sonate" --include="*.ts" --include="*.tsx" --exclude-dir=node_modules --exclude-dir=dist
 
 # HTML demos
-grep -r "SYMBI" --include="*.html"
+grep -r "SONATE" --include="*.html"
 ```
 
-### Verify no SYMBI references remain (after changes)
+### Verify no SONATE references remain (after changes)
 ```bash
 # Should return only archived files and git history
-grep -r "SYMBI" --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.next --exclude-dir=_archived
+grep -r "SONATE" --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=.next --exclude-dir=_archived
 ```
 
 ## Risk Mitigation
@@ -364,7 +364,7 @@ If issues arise after deployment:
 
 ## Success Criteria
 
-1. ✅ Zero "SYMBI" references in non-archived code (except git history)
+1. ✅ Zero "SONATE" references in non-archived code (except git history)
 2. ✅ All builds pass successfully
 3. ✅ All tests pass
 4. ✅ UI displays "SONATE" consistently

@@ -1,9 +1,9 @@
 # Yseeku Platform (SONATE) — Enterprise AI You Can Trust
-![SYMBI](apps/resonate-dashboard/public/symbi-logo.svg)
-![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg) ![Build](https://img.shields.io/badge/build-passing-brightgreen.svg) ![AI Trust](https://img.shields.io/badge/AI%20Trust-SYMBI-blueviolet.svg)
+![SONATE](apps/resonate-dashboard/public/sonate-logo.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg) ![Build](https://img.shields.io/badge/build-passing-brightgreen.svg) ![AI Trust](https://img.shields.io/badge/AI%20Trust-SONATE-blueviolet.svg)
 
 ## Executive Summary
-Yseeku’s SONATE platform is a comprehensive enterprise AI governance framework that provides constitutional AI with real-time trust monitoring, research validation, and production orchestration. Built on the SYMBI constitutional framework, SONATE offers enterprises a complete solution for deploying AI systems with provable trust, compliance, and operational control.
+Yseeku’s SONATE platform is a comprehensive enterprise AI governance framework that provides constitutional AI with real-time trust monitoring, research validation, and production orchestration. Built on the SONATE constitutional framework, SONATE offers enterprises a complete solution for deploying AI systems with provable trust, compliance, and operational control.
 
 ## Architecture Overview
 Modular Three-Pillar Design
@@ -12,7 +12,7 @@ Modular Three-Pillar Design
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
 │   @sonate/core  │────│  @sonate/detect  │    │  @sonate/orchestrate│
 │ Trust Protocol  │    │ Real-time        │    │ Production           │
-│ (SYMBI)         │    │ Monitoring (<100ms)   │ Orchestration (W3C DID/VC)
+│ (SONATE)         │    │ Monitoring (<100ms)   │ Orchestration (W3C DID/VC)
 └─────────────────┘    └──────────────────┘    └─────────────────────┘
           │                       │                       │
           └───────────────────────┼───────────────────────┘
@@ -39,8 +39,8 @@ flowchart LR
 
 ## Core Product Features
 
-### 1. SYMBI Framework — 6 Principles (Core) and 5 Dimensions (Detect)
-Core (`@sonate/core`) encodes the 6 SYMBI principles and canonical weighted trust algorithm.
+### 1. SONATE Framework — 6 Principles (Core) and 5 Dimensions (Detect)
+Core (`@sonate/core`) encodes the 6 SONATE principles and canonical weighted trust algorithm.
 Detect (`@sonate/detect`) derives 5 production monitoring dimensions from the core principles:
 - Reality Index (0–10): mission alignment, accuracy, context, authenticity
 - Trust Protocol (PASS/PARTIAL/FAIL): verification, boundaries, security derived from core principles
@@ -63,7 +63,7 @@ Detect (`@sonate/detect`) derives 5 production monitoring dimensions from the co
 - Tactical command dashboard: live trust scores, alert management, workflow orchestration
 
 ## Unique Differentiators
-- Constitutional AI foundation: measurable, enforceable trust (SYMBI)
+- Constitutional AI foundation: measurable, enforceable trust (SONATE)
 - Phase‑Shift Velocity innovation: early warning, identity coherence tracking
 - Hard boundary separation: clean governance for compliance and audit readiness
 - Cryptographic Trust Receipts: SHA‑256 hashing + Ed25519 signatures, hash‑chain audits
@@ -77,10 +77,10 @@ Detect (`@sonate/detect`) derives 5 production monitoring dimensions from the co
 ## Ecosystem
 - Platform: https://yseeku.com
 - Research & Specifications: https://gammatria.com
-- Community & Philosophy: https://symbi.world
+- Community & Philosophy: https://sonate.world
 
 ---
-## Trust Receipts (SYMBI)
+## Trust Receipts (SONATE)
 - Every AI turn can generate a cryptographic trust receipt (SHA‑256 content hash, Ed25519 signature, weighted principle scores, final trustScore).
 - Verification API: `POST /api/receipts/verify` returns `{ verifiable, hashOk, signatureOk }`.
 - Key management: set `SONATE_PUBLIC_KEY` (base64) and `SONATE_PRIVATE_KEY` (dev only) in env; in production, use a secrets manager/KMS.
@@ -114,7 +114,7 @@ yseeku-platform/
 ## The SONATE Modules
 
 ### @sonate/core
-Core trust protocol implementing the SYMBI framework:
+Core trust protocol implementing the SONATE framework:
 - 6 Trust Principles with weighted scoring
 - Cryptographic Trust Receipts (SHA-256 + Ed25519)
 - Hash-chained audit trails
@@ -124,7 +124,7 @@ Core trust protocol implementing the SYMBI framework:
 
 ### @sonate/detect
 Real-time AI detection and scoring (Production):
-- 5-dimension SYMBI Framework scoring
+- 5-dimension SONATE Framework scoring
 - Reality Index (0-10)
 - Trust Protocol (PASS/PARTIAL/FAIL)
 - Ethical Alignment (1-5)
@@ -184,8 +184,8 @@ npm --workspace @sonate/lab run test
 
 ### Package Quick Start
 
-- Core: import `TrustProtocol`, `SymbiScorer`, `hashChain`, and signature helpers.
-- Detect: use `SymbiFrameworkDetector`, `BalancedSymbiDetector`, `CalibratedSymbiDetector`, `DriftDetector`, `detectEmergence`.
+- Core: import `TrustProtocol`, `SonateScorer`, `hashChain`, and signature helpers.
+- Detect: use `SonateFrameworkDetector`, `BalancedSonateDetector`, `CalibratedSonateDetector`, `DriftDetector`, `detectEmergence`.
 - Orchestrate: use `AgentOrchestrator`, `WorkflowEngine`, `TacticalCommand`, and `security` (`rbac`, `audit`, `api-keys`, `rate-limiter`).
 
 ### Environment Variables
@@ -213,9 +213,9 @@ graph TD
 ### Example 1: Real-time Detection
 
 ```typescript
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { SonateFrameworkDetector } from '@sonate/detect';
 
-const detector = new SymbiFrameworkDetector();
+const detector = new SonateFrameworkDetector();
 const result = await detector.detect({
   content: 'AI response here',
   context: 'User inquiry',
@@ -286,9 +286,9 @@ console.log(agent.did); // did:key:z6Mk...
 
 ## The Trinity
 
-SONATE is part of the SYMBI ecosystem:
+SONATE is part of the SONATE ecosystem:
 
-- **SYMBI.WORLD**: Philosophy and community → https://symbi.world
+- **SONATE.WORLD**: Philosophy and community → https://sonate.world
 - **GAMMATRIA.COM**: Research and specifications → https://gammatria.com
 - **YSEEKU.COM**: Commercial platform (this repo) → https://yseeku.com
 

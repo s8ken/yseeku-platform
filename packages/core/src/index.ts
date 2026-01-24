@@ -11,7 +11,7 @@
 // Core exports
 export { TrustProtocol } from './trust-protocol';
 export { TrustReceipt } from './trust-receipt';
-export { SymbiScorer } from './symbi-scorer';
+export { SonateScorer } from './sonate-scorer';
 export { 
   PrincipleEvaluator, 
   createDefaultContext,
@@ -124,7 +124,7 @@ export * from './validation/schemas';
 export * from './errors/math-errors';
 
 // Calculator V2 is in @sonate/detect (has detect dependencies)
-// Import from @sonate/detect instead: import { explainableSymbiResonance } from '@sonate/detect';
+// Import from @sonate/detect instead: import { explainableSonateResonance } from '@sonate/detect';
 
 // Security infrastructure
 export { SecurityAuditor, runSecurityAudit } from './security/security-audit';

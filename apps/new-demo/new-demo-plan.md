@@ -4,7 +4,7 @@
 
 ### 1. Multi-Layer Experience Design
 **Layer 1: Welcome & Education**
-- Animated introduction to SYMBI constitutional framework
+- Animated introduction to SONATE constitutional framework
 - Interactive tutorial explaining 6 principles and 5 dimensions
 - Phase-Shift Velocity mathematical innovation showcase
 
@@ -29,7 +29,7 @@ new-demo/
 ├── src/
 │   ├── core/
 │   │   ├── demo-engine.js (orchestrates all demos)
-│   │   ├── trust-protocol.js (real SYMBI integration)
+│   │   ├── trust-protocol.js (real SONATE integration)
 │   │   └── phase-velocity.js (ΔΦ/t calculations)
 │   ├── detect/
 │   │   ├── real-time-monitor.js
@@ -92,7 +92,7 @@ new-demo/
 4. Enterprise readiness summary
 
 ### Path 2: Technical Deep Dive (15 minutes)
-1. SYMBI framework tutorial
+1. SONATE framework tutorial
 2. Phase-Shift Velocity mathematics
 3. Cryptographic security demonstration
 4. Performance benchmarks
@@ -128,8 +128,8 @@ new-demo/
 ### 1. Real Package Integration
 ```javascript
 // Import real SONATE packages
-import { TrustProtocol, SymbiScorer } from '@sonate/core';
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { TrustProtocol, SonateScorer } from '@sonate/core';
+import { SonateFrameworkDetector } from '@sonate/detect';
 import { ExperimentOrchestrator } from '@sonate/lab';
 import { AgentOrchestrator } from '@sonate/orchestrate';
 ```

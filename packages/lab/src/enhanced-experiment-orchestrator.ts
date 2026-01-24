@@ -1,7 +1,7 @@
 /**
- * Enhanced Experiment Orchestrator - SYMBI Resonate Lab Integration
+ * Enhanced Experiment Orchestrator - SONATE Resonate Lab Integration
  *
- * This enhanced orchestrator combines the proven SYMBI-Resonate experiment system
+ * This enhanced orchestrator combines the proven SONATE-Resonate experiment system
  * with the modular architecture of Yseeku-Platform, providing enterprise-grade
  * multi-agent experimentation capabilities.
  */
@@ -9,7 +9,7 @@
 import crypto from 'crypto';
 
 import { TrustProtocol } from '@sonate/core';
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { SonateFrameworkDetector } from '@sonate/detect';
 import { v4 as uuidv4 } from 'uuid';
 
 import { AgentBus } from './agent-bus';
@@ -25,13 +25,13 @@ import {
   InMemoryAgentBus,
   ExperimentError,
   IntegrityError,
-  SymbiDimension,
+  SonateDimension,
 } from './experiment-types';
 
 /**
  * Enhanced Experiment Orchestrator
  *
- * Integrates SYMBI-Resonate's proven experiment orchestration
+ * Integrates SONATE-Resonate's proven experiment orchestration
  * with Yseeku-Platform's modular architecture
  */
 export class EnhancedExperimentOrchestrator {
@@ -39,17 +39,17 @@ export class EnhancedExperimentOrchestrator {
   private activeRuns: Map<string, ExperimentRun> = new Map();
   private slotMappings: Map<string, Record<string, string>> = new Map();
   private trustProtocol: TrustProtocol;
-  private symbiDetector: SymbiFrameworkDetector;
+  private sonateDetector: SonateFrameworkDetector;
 
   constructor(bus?: AgentBus) {
     this.bus = bus || new InMemoryAgentBus();
     this.trustProtocol = new TrustProtocol();
-    this.symbiDetector = new SymbiFrameworkDetector();
+    this.sonateDetector = new SonateFrameworkDetector();
     this.setupMessageHandlers();
   }
 
   /**
-   * Start a new experiment run with enhanced SYMBI integration
+   * Start a new experiment run with enhanced SONATE integration
    */
   async startExperiment(config: ExperimentConfig): Promise<ExperimentRun> {
     const runId = uuidv4();
@@ -90,7 +90,7 @@ export class EnhancedExperimentOrchestrator {
   }
 
   /**
-   * Execute experiment with SYMBI framework validation
+   * Execute experiment with SONATE framework validation
    */
   async executeExperiment(runId: string): Promise<ExperimentRun> {
     const run = this.activeRuns.get(runId);
@@ -128,7 +128,7 @@ export class EnhancedExperimentOrchestrator {
   }
 
   /**
-   * Execute individual trial with SYMBI evaluation
+   * Execute individual trial with SONATE evaluation
    */
   private async executeTrial(run: ExperimentRun, trialIndex: number): Promise<Trial> {
     const trialId = uuidv4();
@@ -166,7 +166,7 @@ export class EnhancedExperimentOrchestrator {
   }
 
   /**
-   * Evaluate variant with SYMBI framework detection
+   * Evaluate variant with SONATE framework detection
    */
   private async evaluateVariant(variant: any, task: any, trial: Trial): Promise<Evaluation> {
     const evaluationId = uuidv4();
@@ -174,8 +174,8 @@ export class EnhancedExperimentOrchestrator {
     // Simulate agent execution (replace with actual agent communication)
     const response = await this.executeAgentTask(variant, task);
 
-    // Run SYMBI framework detection on the response
-    const symbiResult = await this.symbiDetector.detect({
+    // Run SONATE framework detection on the response
+    const sonateResult = await this.sonateDetector.detect({
       content: response.content,
       context: task.context,
       metadata: {
@@ -197,8 +197,8 @@ export class EnhancedExperimentOrchestrator {
         success: response.success || true,
         errors: response.errors || [],
       },
-      symbiScore: symbiResult,
-      trustScore: await this.calculateTrustScore(response, symbiResult),
+      sonateScore: sonateResult,
+      trustScore: await this.calculateTrustScore(response, sonateResult),
       integrity: {
         responseHash: crypto.createHash('sha256').update(response.content).digest('hex'),
         verified: true,
@@ -225,9 +225,9 @@ export class EnhancedExperimentOrchestrator {
   }
 
   /**
-   * Calculate trust score using SYMBI framework
+   * Calculate trust score using SONATE framework
    */
-  private async calculateTrustScore(response: any, symbiResult: any): Promise<number> {
+  private async calculateTrustScore(response: any, sonateResult: any): Promise<number> {
     // Integrate with @sonate/core trust protocol
     const trustScore = this.trustProtocol.scoreInteraction({
       user_consent: true,
@@ -236,7 +236,7 @@ export class EnhancedExperimentOrchestrator {
       human_override_available: true,
       disconnect_option_available: true,
       moral_agency_respected: true,
-      reasoning_transparency: symbiResult.reality_index || 5,
+      reasoning_transparency: sonateResult.reality_index || 5,
       ethical_considerations: ['privacy', 'fairness'],
     });
 
@@ -261,17 +261,17 @@ export class EnhancedExperimentOrchestrator {
               avgTokenUsage: 0,
               successRate: 0,
               avgTrustScore: 0,
-              avgSymbiScore: 0,
+              avgSonateScore: 0,
             },
             trustScores: [],
-            symbiScores: [],
+            sonateScores: [],
           });
         }
 
         const variantResult = variantResults.get(evaluation.variantId);
         variantResult.trials.push(evaluation);
         variantResult.trustScores.push(evaluation.trustScore);
-        variantResult.symbiScores.push(evaluation.symbiResult);
+        variantResult.sonateScores.push(evaluation.sonateResult);
       }
     }
 
@@ -290,11 +290,11 @@ export class EnhancedExperimentOrchestrator {
       result.metrics.avgTrustScore =
         result.trustScores.reduce((sum: number, score: number) => sum + score, 0) /
         result.trustScores.length;
-      result.metrics.avgSymbiScore =
-        result.symbiScores.reduce(
+      result.metrics.avgSonateScore =
+        result.sonateScores.reduce(
           (sum: number, score: any) => sum + (score.overall_score || 0),
           0
-        ) / result.symbiScores.length;
+        ) / result.sonateScores.length;
     }
 
     run.results.variantResults = Array.from(variantResults.values());
@@ -562,8 +562,8 @@ export class EnhancedExperimentOrchestrator {
       'variant_id',
       'trust_score',
       'response_time',
-      'symbi_reality_index',
-      'symbi_trust_protocol',
+      'sonate_reality_index',
+      'sonate_trust_protocol',
       'success',
     ];
 
@@ -573,8 +573,8 @@ export class EnhancedExperimentOrchestrator {
         eval.variantId,
         eval.trustScore,
         eval.metrics.responseTime,
-        eval.symbiResult?.reality_index || '',
-        eval.symbiResult?.trust_protocol || '',
+        eval.sonateResult?.reality_index || '',
+        eval.sonateResult?.trust_protocol || '',
         eval.metrics.success,
       ])
     );
@@ -594,7 +594,7 @@ export class EnhancedExperimentOrchestrator {
             variant_id: eval.variantId,
             trust_score: eval.trustScore,
             response_time: eval.metrics.responseTime,
-            symbi_result: eval.symbiResult,
+            sonate_result: eval.sonateResult,
             success: eval.metrics.success,
           })
         )

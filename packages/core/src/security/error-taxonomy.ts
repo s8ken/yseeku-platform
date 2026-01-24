@@ -1,6 +1,6 @@
 /**
  * Enhanced Error Taxonomy for YSEEKU
- * Based on symbi-symphony protocol errors with enterprise security extensions
+ * Based on sonate-protocol protocol errors with enterprise security extensions
  * Provides structured error handling with security context and audit integration
  */
 

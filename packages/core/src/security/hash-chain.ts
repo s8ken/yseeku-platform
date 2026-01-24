@@ -1,6 +1,6 @@
 /**
  * Enhanced Hash Chain Implementation for YSEEKU
- * Based on symbi-symphony hash-chain with enterprise enhancements
+ * Based on sonate-protocol hash-chain with enterprise enhancements
  * Provides tamper-evident chaining for audit trails and data integrity
  */
 

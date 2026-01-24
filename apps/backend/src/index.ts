@@ -215,7 +215,7 @@ async function startServer() {
               ['precision', 4.6],
               ['adaptability', 4.2],
             ]),
-            ciModel: 'symbi-core',
+            ciModel: 'sonate-core',
             lastActive: new Date(),
           });
           logger.info('Default Anthropic agent provisioned for admin');
@@ -249,7 +249,7 @@ async function startServer() {
               ['precision', 4.6],
               ['adaptability', 4.2],
             ]),
-            ciModel: 'symbi-core',
+            ciModel: 'sonate-core',
             lastActive: new Date(),
           });
           logger.info('Default Anthropic agent provisioned for demo user');

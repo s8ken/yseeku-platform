@@ -16,7 +16,7 @@ Verifiable provenance for agent collaboration using cryptographic identities, co
 - Agent Attestation: cryptographic identity + capability metadata
 - Work Unit: atomic contribution (hashes, agent, branch, parent link)
 - Decision Checkpoint: signed human approval/modification/delegation
-- Project Manifest: portable `.symbi` JSON with `merkleRoot` and proofs
+- Project Manifest: portable `.sonate` JSON with `merkleRoot` and proofs
 
 ## Git Metaphor
 - commit → logWorkUnit

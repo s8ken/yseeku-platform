@@ -1,7 +1,7 @@
 {
   "name": "@sonate/collaboration-ledger",
   "version": "1.4.0",
-  "description": "SYMBI Collaboration Ledger: verifiable multi-agent collaboration provenance",
+  "description": "SONATE Collaboration Ledger: verifiable multi-agent collaboration provenance",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

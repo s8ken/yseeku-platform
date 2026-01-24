@@ -211,8 +211,8 @@ export interface StatisticalResult {
   effectSize?: number;
 }
 
-// SYMBI Dimension
-export type SymbiDimension =
+// SONATE Dimension
+export type SonateDimension =
   | 'reality_index'
   | 'trust_protocol'
   | 'ethical_alignment'

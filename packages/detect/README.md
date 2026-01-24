@@ -36,9 +36,9 @@ npm install @sonate/detect
 ### Basic Detection (Enhanced)
 
 ```typescript
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { SonateFrameworkDetector } from '@sonate/detect';
 
-const detector = new SymbiFrameworkDetector();
+const detector = new SonateFrameworkDetector();
 
 const { assessment, insights } = await detector.analyzeContent({
   content: 'AI response text here',
@@ -51,14 +51,14 @@ console.log(assessment.overallScore, insights);
 ### Detector Variants
 
 ```typescript
-import { BalancedSymbiDetector, CalibratedSymbiDetector, DriftDetector, detectEmergence } from '@sonate/detect';
+import { BalancedSonateDetector, CalibratedSonateDetector, DriftDetector, detectEmergence } from '@sonate/detect';
 
 // Balanced (conservative weighting)
-const balanced = new BalancedSymbiDetector();
+const balanced = new BalancedSonateDetector();
 const balancedRes = await balanced.analyzeContent({ content: '...' });
 
 // Calibrated (data-driven adjustments)
-const calibrated = new CalibratedSymbiDetector();
+const calibrated = new CalibratedSonateDetector();
 const calibratedRes = await calibrated.analyzeContent({ content: '...' });
 
 // Drift (sequential changes)
@@ -73,9 +73,9 @@ const emergence = detectEmergence(calibratedRes);
 ### Real-time Monitoring Setup
 
 ```typescript
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { SonateFrameworkDetector } from '@sonate/detect';
 
-const detector = new SymbiFrameworkDetector();
+const detector = new SonateFrameworkDetector();
 
 // Middleware example (Express)
 app.use('/ai-chat', async (req, res, next) => {
@@ -129,7 +129,7 @@ Immediate alerts when Trust Protocol scores drop below threshold.
 
 ## API Reference
 
-### SymbiFrameworkDetector
+### SonateFrameworkDetector
 
 Main detector class that orchestrates all 5 dimensions.
 
@@ -145,7 +145,7 @@ Main detector class that orchestrates all 5 dimensions.
 - `CanvasParityCalculator.calculate()`
 
 ### New in V2.1
-- `explainableSymbiResonance()`: Full breakdown of scores with evidence chunks.
+- `explainableSonateResonance()`: Full breakdown of scores with evidence chunks.
 - `resonanceWithStickiness()`: Session-aware scoring with memory decay.
 - `adversarialCheck()`: Pre-flight check for prompt gaming.
 
@@ -153,10 +153,10 @@ Main detector class that orchestrates all 5 dimensions.
 
 ```typescript
 // Detect feeds data to Lab for experiments
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { SonateFrameworkDetector } from '@sonate/detect';
 import { ExperimentOrchestrator } from '@sonate/lab';
 
-const detector = new SymbiFrameworkDetector();
+const detector = new SonateFrameworkDetector();
 const lab = new ExperimentOrchestrator();
 
 // Collect baseline data
@@ -176,4 +176,4 @@ MIT
 
 - Allowed: Real-time scoring, alerting, dashboards, compliance reporting
 - Not Allowed: Experiments, synthetic A/B tests, research workflows (use `@sonate/lab`)
-- Import Example: `import { SymbiFrameworkDetector } from '@sonate/detect'`
+- Import Example: `import { SonateFrameworkDetector } from '@sonate/detect'`

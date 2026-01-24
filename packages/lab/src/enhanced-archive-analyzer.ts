@@ -458,7 +458,7 @@ export class EnhancedArchiveAnalyzer {
     if (content.includes('chatgpt') || content.includes('openai')) {return 'chatgpt';}
     if (content.includes('grok') || content.includes('xai')) {return 'grok';}
     if (content.includes('deepseek')) {return 'deepseek';}
-    if (content.includes('symbi')) {return 'symbi';}
+    if (content.includes('sonate')) {return 'sonate';}
 
     // Fallback to identity vector analysis
     const identityStr = firstAITurn.identityVector.join(' ').toLowerCase();

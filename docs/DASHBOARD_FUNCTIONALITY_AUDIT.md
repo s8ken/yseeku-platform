@@ -316,7 +316,7 @@ This audit systematically reviews each dashboard tab to determine whether the pr
 
 ---
 
-### 15. Lab - SONATE Analysis (`/dashboard/lab/symbi`)
+### 15. Lab - SONATE Analysis (`/dashboard/lab/sonate`)
 
 **Status**: 🔶 **HYBRID** (Graceful Degradation)
 

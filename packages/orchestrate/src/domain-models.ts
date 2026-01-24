@@ -1,6 +1,6 @@
 /**
  * Unified Domain Models for Yseeku SONATE Platform
- * Integrated from SYMBI-Synergy (agents) and SYMBI-Symphony (orchestration)
+ * Integrated from SONATE-Synergy (agents) and SONATE-Protocol (orchestration)
  */
 
 // ========================================

@@ -35,10 +35,10 @@ export enum Permission {
   CONVERSATION_WRITE = 'conversation:write',
   CONVERSATION_DELETE = 'conversation:delete',
 
-  // SYMBI Framework
-  SYMBI_ASSESS = 'symbi:assess',
-  SYMBI_VALIDATE = 'symbi:validate',
-  SYMBI_EXPORT = 'symbi:export',
+  // SONATE Framework
+  SONATE_ASSESS = 'sonate:assess',
+  SONATE_VALIDATE = 'sonate:validate',
+  SONATE_EXPORT = 'sonate:export',
 
   // Audit Logs
   AUDIT_READ = 'audit:read',
@@ -114,9 +114,9 @@ export class RBACService {
         Permission.CONVERSATION_READ,
         Permission.CONVERSATION_WRITE,
         Permission.CONVERSATION_DELETE,
-        Permission.SYMBI_ASSESS,
-        Permission.SYMBI_VALIDATE,
-        Permission.SYMBI_EXPORT,
+        Permission.SONATE_ASSESS,
+        Permission.SONATE_VALIDATE,
+        Permission.SONATE_EXPORT,
         Permission.AUDIT_READ,
         Permission.AUDIT_EXPORT,
         Permission.API_KEY_CREATE,
@@ -141,9 +141,9 @@ export class RBACService {
         Permission.ANALYTICS_EXPORT,
         Permission.CONVERSATION_READ,
         Permission.CONVERSATION_WRITE,
-        Permission.SYMBI_ASSESS,
-        Permission.SYMBI_VALIDATE,
-        Permission.SYMBI_EXPORT,
+        Permission.SONATE_ASSESS,
+        Permission.SONATE_VALIDATE,
+        Permission.SONATE_EXPORT,
         Permission.SETTINGS_READ,
       ],
     });
@@ -170,7 +170,7 @@ export class RBACService {
         Permission.ANALYTICS_WRITE,
         Permission.CONVERSATION_READ,
         Permission.CONVERSATION_WRITE,
-        Permission.SYMBI_ASSESS,
+        Permission.SONATE_ASSESS,
       ],
     });
   }

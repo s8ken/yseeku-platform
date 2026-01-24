@@ -29,7 +29,7 @@ function generateId(): string {
   return `agent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-const defaultSymbiDimensions = {
+const defaultSonateDimensions = {
   reality_index: 8.0,
   trust_protocol: 'PASS',
   ethical_alignment: 4.0,
@@ -53,7 +53,7 @@ export async function createAgent(input: CreateAgentInput): Promise<Agent | null
       input.type || 'general',
       'active',
       80,
-      JSON.stringify(defaultSymbiDimensions),
+      JSON.stringify(defaultSonateDimensions),
       now,
       0,
       input.tenant_id || null,
@@ -67,7 +67,7 @@ export async function createAgent(input: CreateAgentInput): Promise<Agent | null
     type: input.type || 'general',
     status: 'active',
     trust_score: 80,
-    sonate_dimensions: defaultSymbiDimensions,
+    sonate_dimensions: defaultSonateDimensions,
     last_interaction: now,
     interaction_count: 0,
     tenant_id: input.tenant_id || null,
@@ -98,7 +98,7 @@ export async function getAgents(tenantId?: string): Promise<Agent[]> {
     type: row.type,
     status: row.status,
     trust_score: row.trust_score,
-    sonate_dimensions: row.sonate_dimensions || defaultSymbiDimensions,
+    sonate_dimensions: row.sonate_dimensions || defaultSonateDimensions,
     last_interaction: row.last_interaction,
     interaction_count: row.interaction_count,
     tenant_id: row.tenant_id,
@@ -125,7 +125,7 @@ export async function getAgentById(id: string): Promise<Agent | null> {
     type: row.type,
     status: row.status,
     trust_score: row.trust_score,
-    sonate_dimensions: row.sonate_dimensions || defaultSymbiDimensions,
+    sonate_dimensions: row.sonate_dimensions || defaultSonateDimensions,
     last_interaction: row.last_interaction,
     interaction_count: row.interaction_count,
     tenant_id: row.tenant_id,
@@ -187,7 +187,7 @@ export async function deleteAgent(id: string): Promise<boolean> {
 
 export async function recordInteraction(
   agentId: string,
-  symbiDimensions?: Agent['sonate_dimensions']
+  sonateDimensions?: Agent['sonate_dimensions']
 ): Promise<void> {
   const pool = getPool();
   if (!pool) {return;}
@@ -198,9 +198,9 @@ export async function recordInteraction(
   ];
   const values: any[] = [agentId];
 
-  if (symbiDimensions) {
+  if (sonateDimensions) {
     updates.push(`sonate_dimensions = $2`);
-    values.push(JSON.stringify(symbiDimensions));
+    values.push(JSON.stringify(sonateDimensions));
   }
 
   await pool.query(`UPDATE agents SET ${updates.join(', ')} WHERE id = $1`, values);

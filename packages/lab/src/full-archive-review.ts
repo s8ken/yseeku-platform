@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { SonateFrameworkDetector } from '@sonate/detect';
 
 import { ArchiveAnalyzer, ArchiveConversation } from './archive-analyzer';
 import { ConversationalMetrics, ConversationTurn } from './conversational-metrics';
@@ -111,7 +111,7 @@ function extractThemes(allContent: string, topN = 10): string[] {
 
 export async function runFullArchiveReview() {
   const analyzer = new ArchiveAnalyzer();
-  const detector = new SymbiFrameworkDetector();
+  const detector = new SonateFrameworkDetector();
   const convMetrics = new ConversationalMetrics();
 
   console.log('🔍 Loading conversations from Archives...');

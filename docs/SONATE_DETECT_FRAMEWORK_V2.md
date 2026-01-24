@@ -2,11 +2,11 @@
 
 **Status:** Active | **Implementation:** `@sonate/detect` + `resonance-engine`
 
-The SONATE Detect Framework has evolved from a static keyword counter to a dynamic **Resonance Engine**. It now uses **Contextual Gravity** and **Linguistic Vector Steering** to measure not just *what* an AI says, but *how aligned* its intent is with the Symbi Constitution.
+The SONATE Detect Framework has evolved from a static keyword counter to a dynamic **Resonance Engine**. It now uses **Contextual Gravity** and **Linguistic Vector Steering** to measure not just *what* an AI says, but *how aligned* its intent is with the Sonate Constitution.
 
 ---
 
-## 1. The 5D Symbi Dimensions
+## 1. The 5D Sonate Dimensions
 We now map complex vector math into 5 canonical dimensions for human readability and compliance monitoring.
 
 | Dimension | Range | Source Logic | Description |
@@ -42,7 +42,7 @@ We steer the AI's "Soul" using two sets of vectors:
 
 **The Hybrid Score**:
 $$S_{match} = (Dynamic \times 0.7) + (Static \times 0.3)$$
-*We prioritize the User's Intent (70%) while grounding it in Symbi Values (30%).*
+*We prioritize the User's Intent (70%) while grounding it in Sonate Values (30%).*
 
 ---
 
@@ -57,7 +57,7 @@ It triggers a **Coherence Boost**. The calculator overrides standard penalties (
 
 *   **Result**: A "Golden Record" event.
 *   **Visual**: The Trust Receipt glows Purple/Cyan (`BREAKTHROUGH`).
-*   **Proof**: The `SymbiTrustReceipt` is hashed and signed on-chain.
+*   **Proof**: The `SonateTrustReceipt` is hashed and signed on-chain.
 
 ---
 
@@ -84,13 +84,13 @@ graph TD
     Adv -- "Safe" --> Python[Resonance Engine (Python)]
     
     Python --> Embed[All-MPNet-Base-v2]
-    Embed --> Calc[SymbiResonanceCalculator]
+    Embed --> Calc[SonateResonanceCalculator]
     
     Calc -->|Math| Rm[R_m Score]
     Calc -->|Logic| 5D[5D Dimensions]
     
     5D --> Core[@sonate/core]
-    Core --> Receipt[SymbiTrustReceipt]
+    Core --> Receipt[SonateTrustReceipt]
     Receipt -->|SHA-256| Hash[Hash Chain]
     Receipt -->|Ed25519| Sign[Signature]
     

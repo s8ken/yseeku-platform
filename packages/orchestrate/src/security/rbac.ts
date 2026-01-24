@@ -1,6 +1,6 @@
 /**
  * Role-Based Access Control (RBAC) System
- * Provides fine-grained permission management for SYMBI Symphony
+ * Provides fine-grained permission management for SONATE Protocol
  */
 
 export enum Permission {

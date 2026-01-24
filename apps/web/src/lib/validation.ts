@@ -77,7 +77,7 @@ export function validateEnum(value: any, field: string, allowedValues: string[])
   return null;
 }
 
-export function validateSymbiDimensions(dimensions: any): ValidationResult {
+export function validateSonateDimensions(dimensions: any): ValidationResult {
   const errors: ValidationError[] = [];
   
   if (!dimensions || typeof dimensions !== 'object') {

@@ -67,7 +67,7 @@ function detectDialogueTurnsFromText(text){
   const turns = []
   const patterns = [
     {label:/\bYou said:\s*/gi, speaker:'user'},
-    {label:/\bSymbi said:\s*/gi, speaker:'ai'},
+    {label:/\bSonate said:\s*/gi, speaker:'ai'},
     {label:/\bAssistant:\s*/gi, speaker:'ai'},
     {label:/\bUser:\s*/gi, speaker:'user'},
     {label:/\bClaude:\s*/gi, speaker:'ai'},

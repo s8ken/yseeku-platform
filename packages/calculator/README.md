@@ -194,13 +194,13 @@ If you're using the old calculator, migrate to V2:
 
 ```typescript
 // OLD (deprecated)
-import { robustSymbiResonance } from '@sonate/detect/calculator';
+import { robustSonateResonance } from '@sonate/detect/calculator';
 
 // NEW (canonical)
 import { CalculatorV2 } from '@sonate/calculator';
 
 // Old way
-const result = await robustSymbiResonance(transcript);
+const result = await robustSonateResonance(transcript);
 
 // New way
 const result = await CalculatorV2.compute(transcript);

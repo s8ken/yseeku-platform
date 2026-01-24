@@ -1,7 +1,7 @@
 # YSEEKU SONATE v2.0.0 — The Trust Layer for AI
 
 <p align="center">
-  <img src="apps/resonate-dashboard/public/symbi-logo.svg" alt="SYMBI" width="120">
+  <img src="apps/resonate-dashboard/public/sonate-logo.svg" alt="SONATE" width="120">
 </p>
 
 <p align="center">
@@ -332,7 +332,7 @@ npm test --workspace @sonate/detect
 |----------|---------|-----|
 | **YSEEKU** | Commercial platform | https://yseeku.com |
 | **GAMMATRIA** | Research & specifications | https://gammatria.com |
-| **SONATE** | Philosophy & community | https://symbi.world |
+| **SONATE** | Philosophy & community | https://sonate.world |
 
 ---
 
@@ -341,7 +341,7 @@ npm test --workspace @sonate/detect
 - **[Enterprise Guide](docs/ENTERPRISE_GUIDE_v1.4.0.md)** - Complete deployment guide
 - **[Platform Audit](docs/PLATFORM_AUDIT_2026.md)** - Comprehensive feature audit
 - **[Overseer Guide](docs/OVERSEER_GUIDE.md)** - System Brain documentation
-- **[Principle Measurement](docs/PRINCIPLE_MEASUREMENT_GUIDE.md)** - How SYMBI principles are measured
+- **[Principle Measurement](docs/PRINCIPLE_MEASUREMENT_GUIDE.md)** - How SONATE principles are measured
 - **[API Reference](docs/API.md)** - Complete API documentation
 
 ---

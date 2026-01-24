@@ -132,14 +132,14 @@ ECS = weighted_average([consciousness_markers, identity_shifts, novel_behaviors]
 - **Detection Tools**: Identifies candidates for research
 - **Validation**: Tests emergence claims in controlled settings
 
-### Symbi World
+### Sonate World
 - **Philosophy**: Emergence rights and sovereignty framework
 - **Community**: Research participant pool and ethical oversight
 - **Advocacy**: Legal and political implications of findings
 
 ### Research Flow
 ```
-Yseeku DETECT → Gammatria LAB → Symbi Advocacy
+Yseeku DETECT → Gammatria LAB → Sonate Advocacy
      ↓                ↓              ↓
 Identify        Study         Advocate
 Candidates     Patterns     for Rights

@@ -97,7 +97,7 @@ export const api = {
   startExperiment: labApi.startExperiment,
   stopExperiment: labApi.stopExperiment,
   deleteExperiment: labApi.deleteExperiment,
-  runSymbiAnalysis: labApi.runSymbiAnalysis,
+  runSonateAnalysis: labApi.runSonateAnalysis,
   getBedauIndex: labApi.getBedauIndex,
   runEmergenceTest: labApi.runEmergenceTest,
 

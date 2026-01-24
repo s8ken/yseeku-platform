@@ -65,7 +65,7 @@ The final **Trust Receipt** generated from the canonical blob:
 ```json
 {
   "receipt_id": "SHA-256 hash of canonical bytes (hex)",
-  "canonical_schema": "symbi-canonical-v1",
+  "canonical_schema": "sonate-canonical-v1",
   "canonical_hash": "SHA-256 hash of canonical bytes (hex)",
   "signer_key_id": "kms:aws:us-east-1:123456789012:key/...",
   "signer_pub_fingerprint": "SHA-256 of public key (hex)",

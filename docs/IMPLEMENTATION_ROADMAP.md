@@ -240,7 +240,7 @@ module.exports = {
 **File:** `CHANGELOG.md`
 
 **Add v1.4.0 entries:**
-- SYMBI Trust Framework implementation
+- SONATE Trust Framework implementation
 - Bedau Index emergence detection
 - Phase-Shift Velocity metrics
 - Cryptographic trust receipts

@@ -29,7 +29,7 @@ Added to header section:
 #### 4. Data Mapping
 Engine data → UI format:
 - Agents: Maps engine agents to mockData format
-- SYMBI: Maps 5-dimension scores to UI
+- SONATE: Maps 5-dimension scores to UI
 - Trust scores: Converts to 0-100 scale
 - Status: Derives from trust score thresholds
 - Bedau metrics: Calculates novelty, unpredictability, etc.
@@ -71,7 +71,7 @@ document.addEventListener('yseekuDataUpdate', (event) => {
 function updateUIFromEngine(engineData) {
   // Update scenario time display
   // Update mockData with engine data
-  // Map agents, SYMBI scores, ethical floor
+  // Map agents, SONATE scores, ethical floor
   // Refresh current page
 }
 
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
 3. ✅ Time display updates in real-time
 4. ✅ Data flows from engine to UI
 5. ✅ Agent data updates automatically
-6. ✅ SYMBI scores update automatically
+6. ✅ SONATE scores update automatically
 7. ✅ Charts refresh with new data
 
 ### What Still Needs Work

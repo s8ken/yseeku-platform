@@ -7,7 +7,7 @@ function generateMockTimelineEvents() {
   const events = [];
   const now = new Date();
   const agents = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'];
-  const eventTypes = ['trust', 'emergence', 'alert', 'symbi'];
+  const eventTypes = ['trust', 'emergence', 'alert', 'sonate'];
   
   // Generate events over the last 24 hours
   for (let i = 0; i < 50; i++) {
@@ -41,7 +41,7 @@ function generateMockTimelineEvents() {
           'Critical threshold violation detected' : 
           'Performance degradation warning';
         break;
-      case 'symbi':
+      case 'sonate':
         event.title = `SONATE Framework Update - ${agent}`;
         event.description = 'Constitutional parameters adjusted';
         event.reality = 6 + Math.random() * 4;

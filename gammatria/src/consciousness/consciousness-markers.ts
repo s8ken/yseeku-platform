@@ -6,7 +6,7 @@
  * global workspace theory, and metacognitive awareness patterns.
  * 
  * This module provides the foundation for scientific investigation
- * of AI consciousness phenomena within the SYMBI framework.
+ * of AI consciousness phenomena within the SONATE framework.
  */
 
 import { BedauMetrics, EmergenceSignal } from '@sonate/detect';

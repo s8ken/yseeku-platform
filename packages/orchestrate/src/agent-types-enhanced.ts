@@ -1,5 +1,5 @@
 /**
- * SYMBI Symphony - Agent Types
+ * SONATE Protocol - Agent Types
  * Comprehensive type definitions for the AI agent ecosystem
  */
 

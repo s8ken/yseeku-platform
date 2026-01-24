@@ -184,10 +184,10 @@ Audit trails, trust scoring, and RBAC for regulated industries.
 ### Feed Trust Scores from Detect
 
 ```typescript
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { SonateFrameworkDetector } from '@sonate/detect';
 import { AgentOrchestrator } from '@sonate/orchestrate';
 
-const detector = new SymbiFrameworkDetector();
+const detector = new SonateFrameworkDetector();
 const orchestrator = new AgentOrchestrator();
 
 // Monitor agent interactions

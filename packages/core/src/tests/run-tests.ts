@@ -8,7 +8,7 @@ import {
 import {
   TrustProtocol,
   TRUST_PRINCIPLES,
-  SymbiScorer,
+  SonateScorer,
   hashChain,
   generateKeyPair,
   signPayload,
@@ -85,8 +85,8 @@ async function testTrustProtocolWeightedSum() {
   assert(result.overall === 10, `Weighted sum incorrect: expected 10, got ${result.overall}`);
 }
 
-async function testSymbiScorerEndToEnd() {
-  const scorer = new SymbiScorer();
+async function testSonateScorerEndToEnd() {
+  const scorer = new SonateScorer();
   const score = scorer.scoreInteraction({
     user_consent: true,
     ai_explanation_provided: true,
@@ -527,7 +527,7 @@ async function main() {
   const tests = [
     ['TrustProtocol critical cap', testTrustProtocolCriticalCap],
     ['TrustProtocol weighted sum', testTrustProtocolWeightedSum],
-    ['SymbiScorer end-to-end', testSymbiScorerEndToEnd],
+    ['SonateScorer end-to-end', testSonateScorerEndToEnd],
     ['HashChain output format', testHashChain],
     ['Ed25519 sign/verify', testSignAndVerify],
     ['TrustReceipt chain/sign/verify', testTrustReceiptChainAndVerify],

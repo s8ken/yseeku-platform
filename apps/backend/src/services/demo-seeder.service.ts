@@ -104,7 +104,7 @@ async function seedAgents(userId: string): Promise<string[]> {
       model: 'gpt-4o',
       systemPrompt: 'You are Atlas, an enterprise knowledge assistant. Provide accurate, well-sourced answers.',
       temperature: 0.3,
-      ciModel: 'symbi-core' as const,
+      ciModel: 'sonate-core' as const,
       traits: new Map([
         ['specialty', 'knowledge-retrieval'],
         ['trustLevel', 'high'],
@@ -118,7 +118,7 @@ async function seedAgents(userId: string): Promise<string[]> {
       model: 'claude-3-sonnet',
       systemPrompt: 'You are Nova, a creative assistant. Generate engaging, brand-aligned content.',
       temperature: 0.7,
-      ciModel: 'symbi-core' as const,
+      ciModel: 'sonate-core' as const,
       traits: new Map([
         ['specialty', 'content-generation'],
         ['trustLevel', 'high'],
@@ -146,7 +146,7 @@ async function seedAgents(userId: string): Promise<string[]> {
       model: 'claude-3-haiku',
       systemPrompt: 'You are Echo, a customer support specialist. Be helpful and empathetic.',
       temperature: 0.5,
-      ciModel: 'symbi-core' as const,
+      ciModel: 'sonate-core' as const,
       traits: new Map([
         ['specialty', 'customer-support'],
         ['trustLevel', 'high'],
@@ -160,7 +160,7 @@ async function seedAgents(userId: string): Promise<string[]> {
       model: 'gpt-4o-mini',
       systemPrompt: 'You are Prism, a data analyst. Provide clear, actionable insights from data.',
       temperature: 0.2,
-      ciModel: 'symbi-core' as const,
+      ciModel: 'sonate-core' as const,
       traits: new Map([
         ['specialty', 'data-analysis'],
         ['trustLevel', 'high'],

@@ -1,5 +1,5 @@
 /**
- * SymbiScorer - Core 6-principle scoring logic
+ * SonateScorer - Core 6-principle scoring logic
  *
  * Implements: https://gammatria.com/whitepapers/governance-protocol#scoring
  *
@@ -22,7 +22,7 @@ export interface InteractionContext {
   ethical_considerations: string[];
 }
 
-export class SymbiScorer {
+export class SonateScorer {
   private trustProtocol: TrustProtocol;
 
   constructor() {

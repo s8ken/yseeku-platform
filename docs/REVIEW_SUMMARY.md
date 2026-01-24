@@ -15,7 +15,7 @@ The Yseeku Platform is a **groundbreaking enterprise AI governance framework** w
 
 ## ✅ Key Strengths
 
-1. **Unique Constitutional AI Framework (SYMBI)**
+1. **Unique Constitutional AI Framework (SONATE)**
    - Only platform with measurable, enforceable constitutional principles
    - 6 trust principles with proper weighting and enforcement
    - Cryptographic trust receipts (SHA-256 + Ed25519)

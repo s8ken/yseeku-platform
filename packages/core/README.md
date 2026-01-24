@@ -25,9 +25,9 @@ npm install @sonate/core
 ### Calculate Trust Score
 
 ```typescript
-import { TrustProtocol, SymbiScorer } from '@sonate/core';
+import { TrustProtocol, SonateScorer } from '@sonate/core';
 
-const scorer = new SymbiScorer();
+const scorer = new SonateScorer();
 const score = scorer.scoreInteraction({
   user_consent: true,
   ai_explanation_provided: true,
@@ -121,7 +121,7 @@ This implementation follows the specifications at:
 
 - `TrustProtocol`: Calculate and validate trust scores
 - `TrustReceipt`: Create and verify cryptographic receipts
-- `SymbiScorer`: Score interactions against 6 principles
+- `SonateScorer`: Score interactions against 6 principles
 
 ### Functions
 

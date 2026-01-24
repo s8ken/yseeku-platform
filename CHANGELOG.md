@@ -34,7 +34,7 @@ This is a major release that significantly enhances the platform's production re
   - `/api/safety/scan` and `/api/safety/analyze` endpoints
 
 - **Compliance Reports** - Generate audit-ready compliance reports
-  - SYMBI Framework compliance assessment
+  - SONATE Framework compliance assessment
   - GDPR data protection compliance
   - SOC2 security and availability
   - ISO 27001 information security
@@ -57,7 +57,7 @@ This is a major release that significantly enhances the platform's production re
 #### New Documentation
 - `docs/PLATFORM_AUDIT_2026.md` - Comprehensive platform audit
 - `docs/OVERSEER_GUIDE.md` - System Brain documentation
-- `docs/PRINCIPLE_MEASUREMENT_GUIDE.md` - How SYMBI principles are measured
+- `docs/PRINCIPLE_MEASUREMENT_GUIDE.md` - How SONATE principles are measured
 
 ### Changed
 
@@ -88,7 +88,7 @@ This is a major release that significantly enhances the platform's production re
   - Action effectiveness tracking
 
 #### Core Algorithm Fixes
-- **PrincipleEvaluator**: New class for proper SYMBI principle measurement
+- **PrincipleEvaluator**: New class for proper SONATE principle measurement
   - CONSENT: Checks user.consentGiven, agent consent status
   - INSPECTION: Verifies audit trail exists, decision logging
   - CONTINUOUS_VALIDATION: Checks drift detection, validation frequency
@@ -120,7 +120,7 @@ This is a major release that significantly enhances the platform's production re
 - Improved loading states and error boundaries
 
 ### Fixed
-- SYMBI principles now use actual measurements instead of random values
+- SONATE principles now use actual measurements instead of random values
 - Bedau Index divergence calculation corrected
 - Overseer now actually uses LLM output for planning
 - Error handling for async route handlers
@@ -161,6 +161,6 @@ This is a major release that significantly enhances the platform's production re
 
 ### Added
 - Initial repository setup
-- Core SYMBI framework implementation
+- Core SONATE framework implementation
 - Basic detection and scoring
 - Documentation structure

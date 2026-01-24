@@ -1,4 +1,4 @@
-// SYMBI Trust Physics Types
+// SONATE Trust Physics Types
 export interface TrustPrinciple {
   id: string;
   name: string;

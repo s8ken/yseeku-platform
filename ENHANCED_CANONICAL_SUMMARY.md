@@ -22,7 +22,7 @@
 ## ✅ All Original Features Preserved
 
 ### Complete Feature Set (From Original Demo):
-1. ✅ **14 Original Pages**: Overview, Dashboard, Agents, SYMBI Analysis, Alerts, Experiments, Bedau Calculator, Emergence Testing, Resonance Detection, Trust Principles, Trust Receipts, Governance, Glossary, Documentation
+1. ✅ **14 Original Pages**: Overview, Dashboard, Agents, SONATE Analysis, Alerts, Experiments, Bedau Calculator, Emergence Testing, Resonance Detection, Trust Principles, Trust Receipts, Governance, Glossary, Documentation
 2. ✅ **Glossary**: 53+ terms with live search
 3. ✅ **Guided Tour**: 11-step working tour
 4. ✅ **Charts**: Chart.js radar and bar charts

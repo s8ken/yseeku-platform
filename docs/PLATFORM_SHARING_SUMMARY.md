@@ -13,7 +13,7 @@
 ## 🚀 **What's Ready for Sharing**
 
 ### **✅ Core Platform Features**
-- **SYMBI Trust Framework**: 6 constitutional principles + 5 derived dimensions
+- **SONATE Trust Framework**: 6 constitutional principles + 5 derived dimensions
 - **Real-time Detection**: Sub-100ms AI monitoring with 5-dimension scoring
 - **Research Validation**: Double-blind experiments with statistical analysis
 - **Production Orchestration**: W3C DID/VC agent management
@@ -71,7 +71,7 @@
 ### **🌐 Platform Access**
 - **Main Platform**: https://yseeku.com
 - **Research & Specs**: https://gammatria.com
-- **Community**: https://symbi.world
+- **Community**: https://sonate.world
 
 ### **📚 Documentation Links**
 - **Main README**: [README.md](../README.md) - Updated with achievement

@@ -21,10 +21,10 @@ export function computeCIQ(metrics: CIQSubmetrics): number {
   return Number(weighted / 1000n);
 }
 
-export function ciqUplift(baseline: number, symbi: number): number {
+export function ciqUplift(baseline: number, sonate: number): number {
   if (baseline === 0) {return 0;}
   const b = BigInt(baseline);
-  const s = BigInt(symbi);
+  const s = BigInt(sonate);
   // (s - b) * 100 / b with rounding
   return Number(((s - b) * 100n + b / 2n) / b);
 }

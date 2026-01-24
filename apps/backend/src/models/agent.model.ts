@@ -42,7 +42,7 @@ export interface IAgent extends Omit<Document, 'model'> {
   connectedAgents: Types.ObjectId[];
   externalSystems: IExternalSystem[];
   metadata: Record<string, any>;
-  ciModel: 'none' | 'symbi-core' | 'overseer' | 'system-brain';
+  ciModel: 'none' | 'sonate-core' | 'overseer' | 'system-brain';
   bondingStatus: 'none' | 'initiated' | 'bonded' | 'rejected';
   createdAt: Date;
   lastActive: Date;
@@ -168,7 +168,7 @@ const AgentSchema = new Schema<IAgent>({
   },
   ciModel: {
     type: String,
-    enum: ['none', 'symbi-core', 'overseer', 'system-brain'],
+    enum: ['none', 'sonate-core', 'overseer', 'system-brain'],
     default: 'none',
   },
   bondingStatus: {

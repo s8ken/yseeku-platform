@@ -24,7 +24,7 @@ export default function Home() {
           </div>
         </div>
       )}
-      <footer className="text-center text-sm text-gray-500 mt-20">Powered by SYMBI Resonate – the trust engine for sovereign AI</footer>
+      <footer className="text-center text-sm text-gray-500 mt-20">Powered by SONATE Resonate – the trust engine for sovereign AI</footer>
     </main>
   )
 }

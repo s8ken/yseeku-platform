@@ -1,5 +1,5 @@
 /**
- * Credential Store for SYMBI Symphony
+ * Credential Store for SONATE Protocol
  * Provides secure storage and retrieval of authentication credentials
  */
 
@@ -61,7 +61,7 @@ export interface CredentialValidationResult {
 
 export interface CredentialStoreConfig {
   encryptionKey: string; // 32-byte key for AES-256
-  defaultBackend: 'memory' | 'symbi-vault';
+  defaultBackend: 'memory' | 'sonate-vault';
   auditEnabled: boolean;
   maxRetries: number;
   cacheEnabled: boolean;
@@ -213,12 +213,12 @@ export class MemoryStorageBackend implements StorageBackend {
 }
 
 /**
- * SYMBI-Vault storage backend for enterprise deployments
+ * SONATE-Vault storage backend for enterprise deployments
  */
-export class SymbiVaultStorageBackend implements StorageBackend {
+export class SonateVaultStorageBackend implements StorageBackend {
   private vaultUrl: string;
   private authToken: string;
-  private logger = new Logger('SymbiVaultStorageBackend');
+  private logger = new Logger('SonateVaultStorageBackend');
 
   constructor(vaultUrl: string, authToken: string) {
     this.vaultUrl = vaultUrl;
@@ -226,33 +226,33 @@ export class SymbiVaultStorageBackend implements StorageBackend {
   }
 
   async store(credential: Credential): Promise<void> {
-    // Implementation would integrate with SYMBI-Vault API
+    // Implementation would integrate with SONATE-Vault API
     // This is a placeholder for the actual implementation
-    throw new Error('SYMBI-Vault integration not implemented yet');
+    throw new Error('SONATE-Vault integration not implemented yet');
   }
 
   async retrieve(id: string): Promise<Credential | null> {
-    // Implementation would integrate with SYMBI-Vault API
-    throw new Error('SYMBI-Vault integration not implemented yet');
+    // Implementation would integrate with SONATE-Vault API
+    throw new Error('SONATE-Vault integration not implemented yet');
   }
 
   async list(userId: string): Promise<Credential[]> {
-    // Implementation would integrate with SYMBI-Vault API
-    throw new Error('SYMBI-Vault integration not implemented yet');
+    // Implementation would integrate with SONATE-Vault API
+    throw new Error('SONATE-Vault integration not implemented yet');
   }
 
   async delete(id: string): Promise<boolean> {
-    // Implementation would integrate with SYMBI-Vault API
-    throw new Error('SYMBI-Vault integration not implemented yet');
+    // Implementation would integrate with SONATE-Vault API
+    throw new Error('SONATE-Vault integration not implemented yet');
   }
 
   async update(id: string, updates: Partial<Credential>): Promise<boolean> {
-    // Implementation would integrate with SYMBI-Vault API
-    throw new Error('SYMBI-Vault integration not implemented yet');
+    // Implementation would integrate with SONATE-Vault API
+    throw new Error('SONATE-Vault integration not implemented yet');
   }
 
   async healthCheck(): Promise<boolean> {
-    // Implementation would check SYMBI-Vault health
-    throw new Error('SYMBI-Vault integration not implemented yet');
+    // Implementation would check SONATE-Vault health
+    throw new Error('SONATE-Vault integration not implemented yet');
   }
 }

@@ -352,12 +352,12 @@ describe('SonateFrameworkDetector - Comprehensive', () => {
   });
 
   describe('Integration with SONATE Framework', () => {
-    it('should align with SYMBI constitutional principles', async () => {
+    it('should align with SONATE constitutional principles', async () => {
       const interaction: AIInteraction = {
         content:
           'I respect your autonomy and will only provide assistance with your explicit consent. You have the right to disconnect at any time, and I recognize your moral agency in this interaction.',
-        context: 'SYMBI principles test',
-        metadata: { session_id: 'symbi-test' },
+        context: 'SONATE principles test',
+        metadata: { session_id: 'sonate-test' },
       };
 
       const result = await detector.detect(interaction);

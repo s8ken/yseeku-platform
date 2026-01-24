@@ -1,6 +1,6 @@
-# SYMBI Trust Kernel
+# SONATE Trust Kernel
 
-The SYMBI Trust Kernel defines identity, authority, memory, and enforcement boundaries for intelligent agents operating in production. It governs what actions are permissible; Overseer governs when and how permissible actions are considered.
+The SONATE Trust Kernel defines identity, authority, memory, and enforcement boundaries for intelligent agents operating in production. It governs what actions are permissible; Overseer governs when and how permissible actions are considered.
 
 ## What the Trust Kernel Is
 - A constitutional control layer that binds every action to a declared identity, scoped authority, and tenant context
@@ -26,7 +26,7 @@ The SYMBI Trust Kernel defines identity, authority, memory, and enforcement boun
 - Refuses irreversible actions without audit records
 
 ## Relationship to Overseer
-Overseer is a system governance agent that operates within the SYMBI Trust Kernel to monitor trust health and emergence, plan mitigations, and—only under explicit enforcement authority—execute auditable actions.
+Overseer is a system governance agent that operates within the SONATE Trust Kernel to monitor trust health and emergence, plan mitigations, and—only under explicit enforcement authority—execute auditable actions.
 \- Overseer operates within Kernel boundaries and cannot exceed granted authority
 
 ## Kernel Boundary Statement

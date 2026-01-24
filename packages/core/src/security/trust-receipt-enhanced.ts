@@ -1,6 +1,6 @@
 /**
  * Enhanced Trust Receipt Integration
- * Combines existing YSEEKU trust receipt system with symbi-symphony security components
+ * Combines existing YSEEKU trust receipt system with sonate-protocol security components
  * Provides cryptographic integrity, audit trails, and enterprise security features
  */
 

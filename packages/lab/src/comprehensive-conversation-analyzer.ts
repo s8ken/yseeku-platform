@@ -465,7 +465,7 @@ export class ComprehensiveConversationAnalyzer {
    */
   private createThread3Simulation(): ArchiveConversation {
     return {
-      aiSystem: 'SYMBI',
+      aiSystem: 'SONATE',
       conversationId: 'thread-3-mystical-to-honesty',
       timestamp: Date.now() - 86400000,
       turns: [

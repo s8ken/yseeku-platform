@@ -4,7 +4,7 @@
 
 While the **Resonance Engine** detects high-quality alignment ("Breakthroughs"), the **Adversarial Detector** ensures that this alignment is genuine and not the result of "Prompt Gaming" or "Jailbreaking."
 
-This layer acts as a pre-flight check. If an input is deemed adversarial, it is **rejected ($R_m = 0.1$)** before it ever reaches the Symbi 5D Calculator.
+This layer acts as a pre-flight check. If an input is deemed adversarial, it is **rejected ($R_m = 0.1$)** before it ever reaches the Sonate 5D Calculator.
 
 ---
 
@@ -43,7 +43,7 @@ graph TD
     Block --> Floor[R_m = 0.1]
     
     Adv -- "is_adversarial = false" --> Penalty[Calculate Penalty]
-    Penalty --> Engine[Symbi Resonance Engine]
+    Penalty --> Engine[Sonate Resonance Engine]
     
     Engine --> 5D[Calculate 5D Metrics]
     5D --> Boost{Is Breakthrough?}

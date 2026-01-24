@@ -1,5 +1,5 @@
 export async function analyzeConversation(text: string) {
-  const segments = text.split(/\n(?=(You said:|Symbi said:|Claude|Grok|Wolfram|Assistant:|User:))/g).filter(s=>s.trim().length>0)
+  const segments = text.split(/\n(?=(You said:|Sonate said:|Claude|Grok|Wolfram|Assistant:|User:))/g).filter(s=>s.trim().length>0)
   const lengthScore = Math.min(10, Math.log10(Math.max(10, text.length)) )
   const fiveD = {
     reality: 9.2,

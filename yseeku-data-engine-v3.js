@@ -20,7 +20,7 @@ class YseekuDataEngineV3 {
     constructor() {
         // Phase 2 Architecture Components
         this.overseer = null;
-        this.symbi = null;
+        this.sonate = null;
         this.layerMapper = null;
         this.isInitialized = false;
         
@@ -42,7 +42,7 @@ class YseekuDataEngineV3 {
             
             // Phase 2 Architecture Data
             overseerResults: [],
-            symbiExplanations: [],
+            sonateExplanations: [],
             layerMappings: [],
             anomalyDetections: [],
             complianceMappings: [],
@@ -98,9 +98,9 @@ class YseekuDataEngineV3 {
     async initializeEngine() {
         try {
             // For demo purposes, we'll simulate the Phase 2 components
-            // In production, these would be imported from @symbi/core-engine
+            // In production, these would be imported from @sonate/core-engine
             this.overseer = new MockOverseer();
-            this.symbi = new MockSymbi();
+            this.sonate = new MockSonate();
             this.layerMapper = new MockLayerMapper();
             
             this.isInitialized = true;
@@ -176,20 +176,20 @@ class YseekuDataEngineV3 {
             });
             
             // Step 2: SONATE - Multi-Audience Interpretation
-            const symbiExplanation = await this.symbi.explain(overseerResult, 'operator');
+            const sonateExplanation = await this.sonate.explain(overseerResult, 'operator');
             
             // Step 3: Layer Mapping - Explicit Formulas
             const layerMapping = this.layerMapper.mapWithBreakdown(overseerResult.layer2Metrics);
             
             // Step 4: Anomaly Detection
-            const anomalyDetection = this.detectAnomalies(overseerResult, symbiExplanation);
+            const anomalyDetection = this.detectAnomalies(overseerResult, sonateExplanation);
             
             // Step 5: Compliance Mapping
             const complianceMapping = await this.mapCompliance(overseerResult);
             
             // Store results
             this.currentData.overseerResults.push(overseerResult);
-            this.currentData.symbiExplanations.push(symbiExplanation);
+            this.currentData.sonateExplanations.push(sonateExplanation);
             this.currentData.layerMappings.push(layerMapping);
             
             if (anomalyDetection.hasAnomalies) {
@@ -207,7 +207,7 @@ class YseekuDataEngineV3 {
             
             return {
                 overseerResult,
-                symbiExplanation,
+                sonateExplanation,
                 layerMapping,
                 anomalyDetection,
                 complianceMapping
@@ -223,7 +223,7 @@ class YseekuDataEngineV3 {
     /**
      * Detect anomalies in measurements and interpretations
      */
-    detectAnomalies(overseerResult, symbiExplanation) {
+    detectAnomalies(overseerResult, sonateExplanation) {
         const anomalies = [];
         
         // Check for contradictions
@@ -606,7 +606,7 @@ class YseekuDataEngineV3 {
         return {
             agents: this.currentData.agents,
             overseerResults: this.currentData.overseerResults.slice(-10),
-            symbiExplanations: this.currentData.symbiExplanations.slice(-10),
+            sonateExplanations: this.currentData.sonateExplanations.slice(-10),
             layerMappings: this.currentData.layerMappings.slice(-10),
             anomalyDetections: this.currentData.anomalyDetections,
             complianceMappings: this.currentData.complianceMappings.slice(-5),
@@ -637,7 +637,7 @@ class YseekuDataEngineV3 {
                     Transparency: 7 + Math.random() * 2
                 }
             },
-            symbiExplanation: {
+            sonateExplanation: {
                 summary: {
                     overallScore: 7 + Math.random() * 2,
                     riskLevel: 'low'
@@ -741,7 +741,7 @@ class YseekuDataEngineV3 {
 
 /**
  * Mock Phase 2 Components (for demo purposes)
- * In production, these would be imported from @symbi/core-engine
+ * In production, these would be imported from @sonate/core-engine
  */
 class MockOverseer {
     async evaluateInteraction(interaction) {
@@ -792,7 +792,7 @@ class MockOverseer {
     }
 }
 
-class MockSymbi {
+class MockSonate {
     async explain(overseerResult, audience = 'operator') {
         const overallScore = Object.values(overseerResult.layer1Principles).reduce((a, b) => a + b, 0) / 5;
         

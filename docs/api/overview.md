@@ -59,7 +59,7 @@ interface Agent {
   type: AgentType;              // Agent classification
   status: AgentStatus;          // Current operational status
   capabilities: string[];       // List of capabilities
-  constitutionalScore: number;  // SYMBI compliance score (0-1)
+  constitutionalScore: number;  // SONATE compliance score (0-1)
   phaseVelocity: number;        // Current Phase-Shift Velocity
   createdAt: string;            // ISO timestamp
   updatedAt: string;            // ISO timestamp
@@ -119,7 +119,7 @@ interface ErrorResponse {
 | `NOT_FOUND` | Resource not found | 404 |
 | `VALIDATION_ERROR` | Invalid request data | 400 |
 | `AGENT_NOT_FOUND` | Agent does not exist | 404 |
-| `CONSTITUTIONAL_VIOLATION` | SYMBI framework violation | 422 |
+| `CONSTITUTIONAL_VIOLATION` | SONATE framework violation | 422 |
 | `PHASE_VELOCITY_ALERT` | Velocity threshold exceeded | 429 |
 | `RATE_LIMIT_EXCEEDED` | API rate limit exceeded | 429 |
 | `INTERNAL_ERROR` | Server error | 500 |
@@ -183,7 +183,7 @@ interface WebhookEvent {
 | `agent.deleted` | Agent removed | Agent ID |
 | `phase_velocity.alert` | Velocity threshold exceeded | PhaseVelocity object |
 | `trust.receipt` | New trust receipt created | TrustReceipt object |
-| `constitutional.violation` | SYMBI violation detected | Violation details |
+| `constitutional.violation` | SONATE violation detected | Violation details |
 | `experiment.completed` | Research experiment finished | Experiment results |
 
 ## Pagination

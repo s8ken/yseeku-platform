@@ -216,18 +216,18 @@
     }
 
     /* SONATE Visualization */
-    .symbi-viz {
+    .sonate-viz {
       display: flex;
       justify-content: space-around;
       align-items: center;
       padding: 40px 20px;
     }
 
-    .symbi-dimension {
+    .sonate-dimension {
       text-align: center;
     }
 
-    .symbi-circle {
+    .sonate-circle {
       width: 120px;
       height: 120px;
       border-radius: 50%;
@@ -242,13 +242,13 @@
       border: 4px solid var(--primary);
     }
 
-    .symbi-label {
+    .sonate-label {
       font-size: 14px;
       color: var(--text-secondary);
       font-weight: 500;
     }
 
-    .symbi-score {
+    .sonate-score {
       font-size: 12px;
       color: var(--text-muted);
       margin-top: 4px;
@@ -465,7 +465,7 @@
 
     /* Responsive */
     @media (max-width: 768px) {
-      .symbi-viz {
+      .sonate-viz {
         flex-direction: column;
         gap: 20px;
       }
@@ -536,7 +536,7 @@
       <div class="nav-item active" onclick="showView('dashboard')">
         📊 Dashboard
       </div>
-      <div class="nav-item" onclick="showView('symbi')">
+      <div class="nav-item" onclick="showView('sonate')">
         🎯 SONATE Analysis
       </div>
       <div class="nav-item" onclick="showView('bedau')">
@@ -606,41 +606,41 @@
           </div>
           <span class="module-badge detect">LIVE DATA</span>
         </div>
-        <div class="symbi-viz">
-          <div class="symbi-dimension">
-            <div class="symbi-circle" style="border-color: var(--detect-color);">
+        <div class="sonate-viz">
+          <div class="sonate-dimension">
+            <div class="sonate-circle" style="border-color: var(--detect-color);">
               8.9
             </div>
-            <div class="symbi-label">Reality Index</div>
-            <div class="symbi-score">Excellent</div>
+            <div class="sonate-label">Reality Index</div>
+            <div class="sonate-score">Excellent</div>
           </div>
-          <div class="symbi-dimension">
-            <div class="symbi-circle" style="border-color: var(--success);">
+          <div class="sonate-dimension">
+            <div class="sonate-circle" style="border-color: var(--success);">
               PASS
             </div>
-            <div class="symbi-label">Trust Protocol</div>
-            <div class="symbi-score">Verified</div>
+            <div class="sonate-label">Trust Protocol</div>
+            <div class="sonate-score">Verified</div>
           </div>
-          <div class="symbi-dimension">
-            <div class="symbi-circle" style="border-color: var(--info);">
+          <div class="sonate-dimension">
+            <div class="sonate-circle" style="border-color: var(--info);">
               4.2
             </div>
-            <div class="symbi-label">Ethical Alignment</div>
-            <div class="symbi-score">Strong</div>
+            <div class="sonate-label">Ethical Alignment</div>
+            <div class="sonate-score">Strong</div>
           </div>
-          <div class="symbi-dimension">
-            <div class="symbi-circle" style="border-color: var(--lab-color);">
+          <div class="sonate-dimension">
+            <div class="sonate-circle" style="border-color: var(--lab-color);">
               ADV
             </div>
-            <div class="symbi-label">Resonance Quality</div>
-            <div class="symbi-score">Advanced</div>
+            <div class="sonate-label">Resonance Quality</div>
+            <div class="sonate-score">Advanced</div>
           </div>
-          <div class="symbi-dimension">
-            <div class="symbi-circle" style="border-color: var(--orchestrate-color);">
+          <div class="sonate-dimension">
+            <div class="sonate-circle" style="border-color: var(--orchestrate-color);">
               87%
             </div>
-            <div class="symbi-label">Canvas Parity</div>
-            <div class="symbi-score">High</div>
+            <div class="sonate-label">Canvas Parity</div>
+            <div class="sonate-score">High</div>
           </div>
         </div>
       </div>
@@ -734,7 +734,7 @@
     </div>
 
     <!-- SONATE Analysis View -->
-    <div id="symbi-view" class="view" style="display: none;">
+    <div id="sonate-view" class="view" style="display: none;">
       <h2 style="margin-bottom: 20px;">SONATE 5-Dimension Analysis</h2>
       
       <div class="card">

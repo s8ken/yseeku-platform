@@ -137,7 +137,7 @@ export default function SonatePage() {
     setExplainResult(null);
     
     try {
-      const [symbiResponse, explainResponse] = await Promise.allSettled([
+      const [sonateResponse, explainResponse] = await Promise.allSettled([
         fetch('/api/resonance/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -152,7 +152,7 @@ export default function SonatePage() {
           body: JSON.stringify({
             userInput,
             aiResponse,
-            session_id: `lab-symbi-${Date.now()}`
+            session_id: `lab-sonate-${Date.now()}`
           }),
         }),
       ]);
@@ -162,8 +162,8 @@ export default function SonatePage() {
         setExplainResult(data);
       }
 
-      if (symbiResponse.status === 'fulfilled' && symbiResponse.value.ok) {
-        const data = await symbiResponse.value.json();
+      if (sonateResponse.status === 'fulfilled' && sonateResponse.value.ok) {
+        const data = await sonateResponse.value.json();
         if (data.success && data.data) {
           const apiResult = data.data;
           const rm = Number(apiResult.raw_metrics?.R_m ?? 0.75);

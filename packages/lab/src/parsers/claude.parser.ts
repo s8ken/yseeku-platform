@@ -19,11 +19,11 @@ export function parseClaudeMhtml(content: RawText): ParsedTurn[] {
 
   const patterns = [
     {
-      re: /You said:\s*(.*?)(?=Symbi said:|Claude|Grok|Wolfram|User:|Assistant:|$)/gi,
+      re: /You said:\s*(.*?)(?=Sonate said:|Claude|Grok|Wolfram|User:|Assistant:|$)/gi,
       speaker: 'user' as const,
     },
     {
-      re: /Symbi said:\s*(.*?)(?=You said:|Claude|Grok|Wolfram|User:|Assistant:|$)/gi,
+      re: /Sonate said:\s*(.*?)(?=You said:|Claude|Grok|Wolfram|User:|Assistant:|$)/gi,
       speaker: 'ai' as const,
     },
     { re: /User:\s*(.*?)(?=Assistant:|Claude|Grok|Wolfram|$)/gi, speaker: 'user' as const },

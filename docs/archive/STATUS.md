@@ -32,12 +32,12 @@ yseeku-platform/
 
 ### Production Code Migrated
 
-#### From symbi-resonate:
+#### From sonate-resonate:
 - ✅ Enhanced detector with full 5-dimension scoring
-- ✅ Complete SYMBI type system
+- ✅ Complete SONATE type system
 - ✅ Reality Index, Trust Protocol, Ethical Alignment, Resonance, Canvas Parity
 
-#### From symbi-symphony:
+#### From sonate-symphony:
 - ✅ Advanced cryptography (Ed25519, secp256k1, RSA)
 - ✅ Enterprise security (RBAC, API keys, audit logging, rate limiting)
 - ✅ Agent type definitions
@@ -86,7 +86,7 @@ Settings → General → Features → Enable Discussions
 
 ### 2. Update Old Repositories (10 min)
 
-#### symbi-resonate
+#### sonate-resonate
 Add to top of README.md:
 
 ```markdown
@@ -110,16 +110,16 @@ npm install @sonate/detect @sonate/lab
 ### Import Changes
 ```typescript
 // OLD
-import { SymbiFrameworkDetector } from 'symbi-resonate';
+import { SonateFrameworkDetector } from 'sonate-resonate';
 
 // NEW
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { SonateFrameworkDetector } from '@sonate/detect';
 ```
 
 **This repository will be archived on January 15, 2025.**
 ```
 
-#### symbi-symphony
+#### sonate-symphony
 Add to top of README.md:
 
 ```markdown
@@ -260,9 +260,9 @@ jobs:
 - [ ] Website link added
 
 ### Old Repositories
-- [ ] symbi-resonate: Deprecation notice added
-- [ ] symbi-symphony: Deprecation notice added
-- [ ] symbi-vault: Content migration notice added
+- [ ] sonate-resonate: Deprecation notice added
+- [ ] sonate-symphony: Deprecation notice added
+- [ ] sonate-vault: Content migration notice added
 
 ### Technical
 - [ ] Dependencies installed
@@ -357,7 +357,7 @@ npm run dev
 - **Discussions**: https://github.com/s8ken/yseeku-platform/discussions
 - **Website**: https://yseeku.com
 - **Research**: https://gammatria.com
-- **Community**: https://symbi.world
+- **Community**: https://sonate.world
 
 ---
 

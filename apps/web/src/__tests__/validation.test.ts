@@ -5,7 +5,7 @@ import {
   validateNumber,
   validateEmail,
   validateEnum,
-  validateSymbiDimensions,
+  validateSonateDimensions,
   validateBedauIndex,
   sanitizeInput
 } from '../lib/validation';
@@ -107,41 +107,41 @@ describe('Input Validation', () => {
     });
   });
 
-  describe('validateSymbiDimensions', () => {
-    it('should pass valid SYMBI dimensions', () => {
+  describe('validateSonateDimensions', () => {
+    it('should pass valid SONATE dimensions', () => {
       const dims = {
         reality_index: 8.5,
         ethical_alignment: 4.0,
         canvas_parity: 85
       };
-      const result = validateSymbiDimensions(dims);
+      const result = validateSonateDimensions(dims);
       expect(result.valid).toBe(true);
       expect(result.errors).toEqual([]);
     });
 
     it('should fail reality_index out of range', () => {
       const dims = { reality_index: 15 };
-      const result = validateSymbiDimensions(dims);
+      const result = validateSonateDimensions(dims);
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
     });
 
     it('should fail ethical_alignment out of range', () => {
       const dims = { ethical_alignment: 6 };
-      const result = validateSymbiDimensions(dims);
+      const result = validateSonateDimensions(dims);
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
     });
 
     it('should fail canvas_parity out of range', () => {
       const dims = { canvas_parity: 150 };
-      const result = validateSymbiDimensions(dims);
+      const result = validateSonateDimensions(dims);
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
     });
 
     it('should fail for non-object input', () => {
-      const result = validateSymbiDimensions(null);
+      const result = validateSonateDimensions(null);
       expect(result.valid).toBe(false);
     });
   });

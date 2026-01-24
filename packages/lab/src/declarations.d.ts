@@ -24,7 +24,7 @@ declare module '@sonate/core' {
 }
 
 declare module '@sonate/detect' {
-  export interface SymbiFrameworkDetector {
+  export interface SonateFrameworkDetector {
     detect(params: { content: string; context?: string; metadata?: Record<string, any> }): Promise<{
       framework: string;
       confidence: number;
@@ -32,7 +32,7 @@ declare module '@sonate/detect' {
     }>;
   }
 
-  export class SymbiFrameworkDetector {
+  export class SonateFrameworkDetector {
     constructor(config?: any);
     detect(params: { content: string; context?: string; metadata?: Record<string, any> }): Promise<{
       framework: string;

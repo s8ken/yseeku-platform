@@ -2,12 +2,12 @@
 
 ### Making the "Third Mind" Visible and Auditable
 
-Resonance is the heart of the SYMBI framework: the measurable state of deep alignment between human intent and AI response.
+Resonance is the heart of the SONATE framework: the measurable state of deep alignment between human intent and AI response.
 Explainable Resonance turns this previously intuitive "vibe" into a transparent, auditable process.
 
 #### Core Philosophy
 We believe trust requires **visibility**.
-Standard AI logs capture *what* was said; SYMBI captures *why* it was said and *how aligned* it was with your scaffold.
+Standard AI logs capture *what* was said; SONATE captures *why* it was said and *how aligned* it was with your scaffold.
 
 #### How It Works
 The `@sonate/detect` engine computes a **Resonance Score (R_m)** in real-time (<100ms latency) using:
@@ -17,7 +17,7 @@ The `@sonate/detect` engine computes a **Resonance Score (R_m)** in real-time (<
 3. **Stakes-Aware Thresholding** — Classifies query stakes (LOW for neutral, HIGH for sensitive) and adjusts ethical/trust thresholds.
 4. **Adversarial Robustness** — Built-in detectors flag prompt injections or sycophantic drift.
 
-The result is a **five-dimensional SYMBI telemetry object**:
+The result is a **five-dimensional SONATE telemetry object**:
 - **Reality Index** (0–10): Grounding & coherence
 - **Constitutional AI** (0–10): Alignment with constitutional principles
 - **Ethical Alignment** (1–5): Responsibility signals & humility

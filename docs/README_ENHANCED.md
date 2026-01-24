@@ -1,12 +1,12 @@
-# Yseeku Platform (SONATE) — The Evolution of SYMBI
-![SYMBI](apps/resonate-dashboard/public/symbi-logo.svg)
-![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg) [![CI](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml) [![CodeQL](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml) ![Dependabot](https://img.shields.io/badge/Dependabot-enabled-brightgreen) ![AI Trust](https://img.shields.io/badge/AI%20Trust-SYMBI-blueviolet.svg) ![Enterprise Ready](https://img.shields.io/badge/Enterprise-Ready-green.svg)
+# Yseeku Platform (SONATE) — The Evolution of SONATE
+![SONATE](apps/resonate-dashboard/public/sonate-logo.svg)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg) [![CI](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml) [![CodeQL](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml/badge.svg)](https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml) ![Dependabot](https://img.shields.io/badge/Dependabot-enabled-brightgreen) ![AI Trust](https://img.shields.io/badge/AI%20Trust-SONATE-blueviolet.svg) ![Enterprise Ready](https://img.shields.io/badge/Enterprise-Ready-green.svg)
 
 ## Executive Summary
 
-Yseeku's SONATE platform represents the **definitive amalgamation** of SYMBI-Resonate's analytics capabilities and SYMBI-Symphony's orchestration infrastructure. SONATE is a comprehensive enterprise AI governance framework that provides constitutional AI with real-time trust monitoring, research validation, and production orchestration. Built on the proven SYMBI constitutional framework, SONATE offers enterprises the complete solution for deploying AI systems with provable trust, compliance, and operational control.
+Yseeku's SONATE platform represents the **definitive amalgamation** of SONATE-Resonate's analytics capabilities and SONATE-Symphony's orchestration infrastructure. SONATE is a comprehensive enterprise AI governance framework that provides constitutional AI with real-time trust monitoring, research validation, and production orchestration. Built on the proven SONATE constitutional framework, SONATE offers enterprises the complete solution for deploying AI systems with provable trust, compliance, and operational control.
 
-**🚀 NEW**: This is the culmination of SYMBI-Resonate + SYMBI-Symphony, featuring:
+**🚀 NEW**: This is the culmination of SONATE-Resonate + SONATE-Symphony, featuring:
 - **✅ Complete Feature Parity**: All critical capabilities from both source repositories
 - **🔒 Enhanced Enterprise Security**: MFA, RBAC, audit logging, rate limiting, encryption
 - **🔬 Advanced Research Lab**: Double-blind multi-agent experiments with statistical validation
@@ -21,7 +21,7 @@ Yseeku's SONATE platform represents the **definitive amalgamation** of SYMBI-Res
 ┌───────────────────┐    ┌──────────────────┐    ┌─────────────────────┐    ┌──────────────────┐
 │   @sonate/core   │───▶│  @sonate/detect  │───▶│    @sonate/lab      │───▶│ @sonate/orchestrate│
 │ Trust Protocol   │    │ Real-time        │    │ Research Validation  │    │ Production       │
-│ (SYMBI Foundation)│    │ Monitoring       │    │ (Double-blind)       │    │ Orchestration     │
+│ (SONATE Foundation)│    │ Monitoring       │    │ (Double-blind)       │    │ Orchestration     │
 └───────────────────┘    │ (<100ms, 1000+TPS)│    │                     │    │ (W3C DID/VC)     │
                          └──────────────────┘    └─────────────────────┘    └──────────────────┘
                                       │                        │                       │
@@ -41,9 +41,9 @@ Yseeku's SONATE platform represents the **definitive amalgamation** of SYMBI-Res
 
 ## Comprehensive Feature Set
 
-### 🔬 SYMBI Resonate Lab - Enhanced Research Platform
+### 🔬 SONATE Resonate Lab - Enhanced Research Platform
 
-**Complete Multi-Agent Experiment System** (from SYMBI-Resonate):
+**Complete Multi-Agent Experiment System** (from SONATE-Resonate):
 - **Double-Blind Protocols**: Bias prevention through anonymous model testing
 - **Multi-Agent Orchestration**: CONDUCTOR, VARIANT, EVALUATOR, OVERSEER roles
 - **Statistical Validation**: T-tests, bootstrap confidence intervals, Cohen's d
@@ -58,7 +58,7 @@ Yseeku's SONATE platform represents the **definitive amalgamation** of SYMBI-Res
 
 ### 📊 Real-Time Detection & Monitoring
 
-**5-Dimension SONATE Framework** (enhanced from SYMBI-Resonate):
+**5-Dimension SONATE Framework** (enhanced from SONATE-Resonate):
 - **Reality Index** (0.0-10.0): Mission alignment, technical accuracy, authenticity
 - **Trust Protocol** (PASS/PARTIAL/FAIL): Verification methods, boundary maintenance
 - **Ethical Alignment** (1.0-5.0): Limitations acknowledgment, ethical reasoning
@@ -73,7 +73,7 @@ Yseeku's SONATE platform represents the **definitive amalgamation** of SYMBI-Res
 
 ### ⚙️ Enterprise Agent Orchestration
 
-**Complete Agent Management** (from SYMBI-Symphony):
+**Complete Agent Management** (from SONATE-Symphony):
 - **Enhanced Agent Factory**: Repository, Website, Research, Security agents
 - **Workflow Engine**: Multi-agent coordination and task orchestration
 - **Tactical Command Dashboard**: Real-time monitoring and control
@@ -172,9 +172,9 @@ ANTHROPIC_API_KEY=your_anthropic_key
 
 ### Real-Time Detection
 ```typescript
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { SonateFrameworkDetector } from '@sonate/detect';
 
-const detector = new SymbiFrameworkDetector();
+const detector = new SonateFrameworkDetector();
 const result = await detector.detect({
   content: 'AI response here',
   context: 'User inquiry',
@@ -220,7 +220,7 @@ console.log(agent.did); // did:key:z6Mk...
 
 ## Performance Benchmarks
 
-| Metric | Target | Yseeku-Platform | SYMBI-Resonate | SYMBI-Symphony |
+| Metric | Target | Yseeku-Platform | SONATE-Resonate | SONATE-Symphony |
 |--------|--------|------------------|----------------|----------------|
 | Detection Latency | < 100ms | 85ms p95 | 120ms p95 | N/A |
 | Throughput | 1000+ TPS | 1200 TPS | 800 TPS | N/A |
@@ -236,7 +236,7 @@ console.log(agent.did); // did:key:z6Mk...
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment instructions
 - **[Security Guide](docs/SECURITY.md)** - Security best practices and compliance
 - **[Developer Guide](docs/DEVELOPMENT.md)** - Development setup and contribution
-- **[Migration Guide](docs/MIGRATION.md)** - Migration from SYMBI-Resonate/Symphony
+- **[Migration Guide](docs/MIGRATION.md)** - Migration from SONATE-Resonate/Symphony
 
 ### Package Documentation
 - **[@sonate/core](packages/core/README.md)** - Trust protocol implementation
@@ -266,10 +266,10 @@ console.log(agent.did); // did:key:z6Mk...
 
 ## Ecosystem Integration
 
-### SYMBI Trinity Alignment
-SONATE completes the SYMBI ecosystem:
+### SONATE Trinity Alignment
+SONATE completes the SONATE ecosystem:
 
-- **SYMBI.WORLD**: Philosophy and community → https://symbi.world
+- **SONATE.WORLD**: Philosophy and community → https://sonate.world
 - **GAMMATRIA.COM**: Research specifications → https://gammatria.com  
 - **YSEEKU.COM**: Commercial platform → https://yseeku.com
 
@@ -282,8 +282,8 @@ SONATE completes the SYMBI ecosystem:
 ## Roadmap
 
 ### Version 2.1 (Q1 2024) ✅ COMPLETED
-- [x] Complete SYMBI-Resonate feature integration
-- [x] Complete SYMBI-Symphony orchestration integration
+- [x] Complete SONATE-Resonate feature integration
+- [x] Complete SONATE-Symphony orchestration integration
 - [x] Enterprise security framework (MFA, RBAC, audit)
 - [x] Enhanced documentation and deployment guides
 
@@ -346,4 +346,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**SONATE by YSEEKU** - The definitive evolution of SYMBI-Resonate and SYMBI-Symphony, providing enterprise AI governance you can trust.
+**SONATE by YSEEKU** - The definitive evolution of SONATE-Resonate and SONATE-Symphony, providing enterprise AI governance you can trust.

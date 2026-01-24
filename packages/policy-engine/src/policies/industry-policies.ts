@@ -104,7 +104,7 @@ export class IndustryPolicies {
       id: 'base-standard',
       name: 'Standard Trust Policy',
       industry: 'technology',
-      description: 'Standard SYMBI trust framework policy',
+      description: 'Standard SONATE trust framework policy',
       basePrinciples: ['CONSENT_ARCHITECTURE', 'INSPECTION_MANDATE', 'CONTINUOUS_VALIDATION', 'ETHICAL_OVERRIDE', 'RIGHT_TO_DISCONNECT', 'MORAL_RECOGNITION'],
       customWeights: {
         CONSENT_ARCHITECTURE: 0.25,

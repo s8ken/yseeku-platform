@@ -40,8 +40,8 @@ Based on the comprehensive repository analysis performed earlier, here's a detai
 
 ### SONATE Package Integration
 ```javascript
-import { TrustProtocol, SymbiScorer } from '@sonate/core';
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { TrustProtocol, SonateScorer } from '@sonate/core';
+import { SonateFrameworkDetector } from '@sonate/detect';
 import { ExperimentOrchestrator } from '@sonate/lab';
 import { AgentOrchestrator } from '@sonate/orchestrate';
 ```
@@ -100,11 +100,11 @@ new-demo/
 │   ├── demo.html (main entry)
 │   └── assets/
 │       ├── styles.css (quantum-grade design)
-│       └── symbi-logo.svg
+│       └── sonate-logo.svg
 ├── src/
 │   ├── core/
 │   │   ├── demo-engine.js (orchestration)
-│   │   ├── trust-protocol.js (SYMBI integration)
+│   │   ├── trust-protocol.js (SONATE integration)
 │   │   └── phase-velocity.js (ΔΦ/t calculations)
 │   ├── detect/
 │   │   ├── real-time-monitor.js (sub-100ms demo)
@@ -127,7 +127,7 @@ new-demo/
 ### Three-Layer Experience Design
 
 #### Layer 1: Welcome & Education
-- Animated introduction to SYMBI framework
+- Animated introduction to SONATE framework
 - Interactive tutorial (6 principles + 5 dimensions)
 - Phase-Shift Velocity mathematical showcase
 - Constitutional AI explanation
@@ -172,7 +172,7 @@ new-demo/
 - Enterprise readiness summary
 
 **Path 2: Technical Deep Dive (15 minutes)**
-- SYMBI framework tutorial
+- SONATE framework tutorial
 - Phase-Shift Velocity mathematics (ΔΦ/t = √(ΔR² + ΔC²) ÷ Δt)
 - Cryptographic security demonstration
 - Performance benchmarks
@@ -206,8 +206,8 @@ new-demo/
 ### SONATE Package Integration
 ```javascript
 // Real package imports
-import { TrustProtocol, SymbiScorer } from '@sonate/core';
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { TrustProtocol, SonateScorer } from '@sonate/core';
+import { SonateFrameworkDetector } from '@sonate/detect';
 import { ExperimentOrchestrator } from '@sonate/lab';
 import { AgentOrchestrator } from '@sonate/orchestrate';
 ```

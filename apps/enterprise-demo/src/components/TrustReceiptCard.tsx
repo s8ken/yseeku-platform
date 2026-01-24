@@ -13,7 +13,7 @@ interface TrustReceiptCardProps {
  * TrustReceiptCard - Enhanced with Bedau Emergence Index visualization
  * 
  * Displays trust receipt information with:
- * - Traditional SYMBI metrics
+ * - Traditional SONATE metrics
  * - Bedau Emergence Index visualization
  * - Emergence trajectory analysis
  * - Interactive elements for detailed inspection
@@ -75,30 +75,30 @@ export const TrustReceiptCard: React.FC<TrustReceiptCardProps> = ({
         </div>
       </div>
 
-      {/* Traditional SYMBI Metrics */}
-      {receipt.symbi_trust_receipt && (
+      {/* Traditional SONATE Metrics */}
+      {receipt.sonate_trust_receipt && (
         <div className="mb-4">
-          <h4 className="text-md font-medium text-gray-700 mb-2">SYMBI Framework</h4>
+          <h4 className="text-md font-medium text-gray-700 mb-2">SONATE Framework</h4>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
               <div className="text-lg font-bold text-gray-900">
-                {receipt.symbi_trust_receipt.telemetry.resonance_score.toFixed(3)}
+                {receipt.sonate_trust_receipt.telemetry.resonance_score.toFixed(3)}
               </div>
               <div className="text-xs text-gray-500">Resonance</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-gray-900">
-                {receipt.symbi_trust_receipt.telemetry.reality_index.toFixed(1)}
+                {receipt.sonate_trust_receipt.telemetry.reality_index.toFixed(1)}
               </div>
               <div className="text-xs text-gray-500">Reality</div>
             </div>
             <div className="text-center">
               <div className={`text-lg font-bold ${
-                receipt.symbi_trust_receipt.telemetry.resonance_quality === 'BREAKTHROUGH' ? 'text-purple-600' :
-                receipt.symbi_trust_receipt.telemetry.resonance_quality === 'ADVANCED' ? 'text-blue-600' :
+                receipt.sonate_trust_receipt.telemetry.resonance_quality === 'BREAKTHROUGH' ? 'text-purple-600' :
+                receipt.sonate_trust_receipt.telemetry.resonance_quality === 'ADVANCED' ? 'text-blue-600' :
                 'text-gray-600'
               }`}>
-                {receipt.symbi_trust_receipt.telemetry.resonance_quality}
+                {receipt.sonate_trust_receipt.telemetry.resonance_quality}
               </div>
               <div className="text-xs text-gray-500">Quality</div>
             </div>

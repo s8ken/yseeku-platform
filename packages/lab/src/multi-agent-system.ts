@@ -1,22 +1,22 @@
 /**
  * Multi-Agent System - CONDUCTOR, VARIANT, EVALUATOR, OVERSEER roles
  *
- * Implements the 4-agent architecture from symbi-resonate Lab:
+ * Implements the 4-agent architecture from sonate-resonate Lab:
  * - CONDUCTOR: Manages experiment flow
  * - VARIANT: Executes AI model responses
  * - EVALUATOR: Scores outputs
  * - OVERSEER: Monitors for anomalies
  */
 
-import { SymbiFrameworkDetector } from '@sonate/detect';
+import { SonateFrameworkDetector } from '@sonate/detect';
 
 import { VariantConfig, TestCase, VariantResult, TestCaseResult } from './index';
 
 export class MultiAgentSystem {
-  private detector: SymbiFrameworkDetector;
+  private detector: SonateFrameworkDetector;
 
   constructor() {
-    this.detector = new SymbiFrameworkDetector();
+    this.detector = new SonateFrameworkDetector();
   }
 
   /**

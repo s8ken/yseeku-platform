@@ -240,7 +240,7 @@ This document outlines the Yseeku Platform's alignment with the European Union's
 **Explainability:**
 - InfoTooltip component with 50+ term definitions
 - Detailed explanations of trust scores
-- Breakdown of SYMBI dimensions
+- Breakdown of SONATE dimensions
 - Evidence and reasoning for assessments
 
 **Accessibility:**

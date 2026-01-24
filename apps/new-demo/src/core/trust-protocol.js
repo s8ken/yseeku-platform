@@ -171,7 +171,7 @@ export class TrustProtocolDemo {
     }
 
     getAgentId() {
-        return `agent-symbi-demo`;
+        return `agent-sonate-demo`;
     }
 
     dispatchReceiptEvent(receipt) {

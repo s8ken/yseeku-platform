@@ -370,7 +370,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             suggestedAction: consentWithdrawal.suggestedAction,
           },
         },
-        ciModel: 'symbi-core',
+        ciModel: 'sonate-core',
         trustScore: 5, // System messages are trusted
         timestamp: new Date(),
       };
@@ -444,7 +444,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
               ['precision', 4.6],
               ['adaptability', 4.2]
             ]),
-            ciModel: 'symbi-core',
+            ciModel: 'sonate-core',
           });
           targetAgentId = agent._id;
           conversation.agents.push(agent._id);

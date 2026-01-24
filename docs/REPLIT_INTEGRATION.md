@@ -47,7 +47,7 @@ The web dashboard has been redesigned with a 3-module architecture:
 
 2. **LAB Module** (Purple/SANDBOX) - Research environment
    - Experiments page (`/dashboard/lab/experiments`) - A/B testing with statistical validation
-   - SONATE Analysis page (`/dashboard/lab/symbi`) - 5-dimension trust framework scoring
+   - SONATE Analysis page (`/dashboard/lab/sonate`) - 5-dimension trust framework scoring
    - Emergence Testing page (`/dashboard/lab/emergence`) - Test suites with simulation controls
    - Bedau Index page (`/dashboard/lab/bedau`) - Comprehensive emergence monitoring with 4-component analysis
    - All LAB pages use synthetic data only - no production data access

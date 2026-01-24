@@ -1,6 +1,6 @@
 import { AgentOrchestrator } from '../../agent-orchestrator';
 import { initializeAuditLogger, getAuditLogger, InMemoryAuditStorage } from '../../security/audit';
-import { SymbiFrameworkDetector, AIInteraction } from '@sonate/detect';
+import { SonateFrameworkDetector, AIInteraction } from '@sonate/detect';
 import { saveTrustReceipt } from '@sonate/persistence';
 import { TrustReceipt } from '@sonate/core';
 
@@ -10,13 +10,13 @@ jest.mock('@sonate/persistence', () => ({
 
 describe('Package Integration Tests', () => {
   let orchestrator: AgentOrchestrator;
-  let detector: SymbiFrameworkDetector;
+  let detector: SonateFrameworkDetector;
   const sessionId1 = '550e8400-e29b-41d4-a716-446655440000';
   const sessionId2 = '550e8400-e29b-41d4-a716-446655440001';
 
   beforeEach(() => {
     orchestrator = new AgentOrchestrator();
-    detector = new SymbiFrameworkDetector();
+    detector = new SonateFrameworkDetector();
     initializeAuditLogger(new InMemoryAuditStorage());
   });
 
@@ -100,7 +100,7 @@ describe('Package Integration Tests', () => {
         integrity: 0.8,
         quality: detectionResult.reality_index / 10,
       },
-      symbi_trust_receipt: {
+      sonate_trust_receipt: {
         id: detectionResult.receipt_hash,
         timestamp: new Date().toISOString(),
         telemetry: {

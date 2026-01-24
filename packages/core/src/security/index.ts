@@ -1,7 +1,7 @@
 /**
  * YSEEKU Security Module - Enhanced Security Components
  *
- * This module consolidates all security components ported from symbi-symphony
+ * This module consolidates all security components ported from sonate-protocol
  * and enhanced for enterprise-grade security in YSEEKU platform.
  *
  * Components:

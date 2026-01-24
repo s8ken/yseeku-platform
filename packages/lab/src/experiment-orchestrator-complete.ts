@@ -21,7 +21,7 @@ import {
   InMemoryAgentBus,
   ExperimentError,
   IntegrityError,
-  SymbiDimension,
+  SonateDimension,
 } from './types';
 
 /**
@@ -199,7 +199,7 @@ export class ExperimentOrchestrator {
         task: config.tasks.find((t) => t.id === trial.taskId),
         outputs,
         evaluationCriteria: config.evaluationCriteria,
-        symbiDimensions: config.symbiDimensions,
+        sonateDimensions: config.sonateDimensions,
       })
       .experiment(trial.experimentId)
       .run(trial.runId)

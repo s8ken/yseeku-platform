@@ -1,6 +1,6 @@
 /**
  * Security Integration Test Suite
- * Tests the ported security components from symbi-symphony
+ * Tests the ported security components from sonate-protocol
  * Verifies cryptographic integrity, audit trails, and authentication
  */
 

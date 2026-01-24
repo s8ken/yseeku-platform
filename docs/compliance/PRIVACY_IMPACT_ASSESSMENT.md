@@ -70,7 +70,7 @@ This Privacy Impact Assessment (PIA) evaluates the privacy risks associated with
 
 **Key Features:**
 - Real-time AI interaction monitoring
-- Trust score calculation (SYMBI framework)
+- Trust score calculation (SONATE framework)
 - Emergence detection (Bedau Index)
 - Compliance reporting and audit trails
 - Multi-tenant enterprise deployment
@@ -125,7 +125,7 @@ Research (Anonymized) → Analysis → Publication
 
 **Category 4: Assessment Data**
 - Trust scores
-- SYMBI dimension scores
+- SONATE dimension scores
 - Bedau Index measurements
 - Compliance status
 

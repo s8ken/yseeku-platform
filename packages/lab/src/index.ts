@@ -28,7 +28,7 @@ export type {
 
 export type { ArchiveConversation } from './archive-analyzer';
 
-// Agent roles (from symbi-resonate Lab)
+// Agent roles (from sonate-resonate Lab)
 export const AGENT_ROLES = ['CONDUCTOR', 'VARIANT', 'EVALUATOR', 'OVERSEER'] as const;
 
 // Types

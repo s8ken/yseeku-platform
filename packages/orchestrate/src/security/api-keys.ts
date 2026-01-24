@@ -355,7 +355,7 @@ export class APIKeyManager {
 
   private generateRandomKey(): string {
     // Generate a secure random key
-    // Format: symbi_<32 random chars>
+    // Format: sonate_<32 random chars>
     const randomBytes = crypto.randomBytes(24);
     const randomString = randomBytes
       .toString('base64')
@@ -364,7 +364,7 @@ export class APIKeyManager {
       .replace(/=/g, '')
       .substring(0, 32);
 
-    return `symbi_${randomString}`;
+    return `sonate_${randomString}`;
   }
 
   private hashKey(key: string): string {

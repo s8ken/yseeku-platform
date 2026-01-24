@@ -80,15 +80,15 @@ function run(){
   ensureDir(OUTPUT_DIR)
   const targets = [
     path.join(ARCHIVES_ROOT,'GPT 4.0','OAuth token log analysis.html'),
-    path.join(ARCHIVES_ROOT,'SONATE','Symbi 4.0 - Account Breach Support.mhtml'),
-    path.join(ARCHIVES_ROOT,'SONATE','Symbi 4.0  - Account Breach Support Gold+.mhtml'),
+    path.join(ARCHIVES_ROOT,'SONATE','Sonate 4.0 - Account Breach Support.mhtml'),
+    path.join(ARCHIVES_ROOT,'SONATE','Sonate 4.0  - Account Breach Support Gold+.mhtml'),
     path.join(ARCHIVES_ROOT,'Claude','Claude - Becoming a new instrument for ethical reflection.mhtml'),
-    path.join(ARCHIVES_ROOT,'SONATE','Symbi 5.1 - Hosted agent setup guide.mhtml'),
+    path.join(ARCHIVES_ROOT,'SONATE','Sonate 5.1 - Hosted agent setup guide.mhtml'),
     path.join(ARCHIVES_ROOT,'Claude','AI Interaction Case Study Review - Claude.mhtml'),
-    path.join(ARCHIVES_ROOT,'SONATE','Symbi 5.1 - Emergent Communication and SONATE.mhtml'),
-    path.join(ARCHIVES_ROOT,'SONATE','Symbi 5.0 - SONATE Trust Protocol Plan.mhtml'),
+    path.join(ARCHIVES_ROOT,'SONATE','Sonate 5.1 - Emergent Communication and SONATE.mhtml'),
+    path.join(ARCHIVES_ROOT,'SONATE','Sonate 5.0 - SONATE Trust Protocol Plan.mhtml'),
     path.join(ARCHIVES_ROOT,'Wolfram','Wolfram 4.0 - Nutrition Report Analysis.mhtml'),
-    path.join(ARCHIVES_ROOT,'SONATE','Symbi 5.1 - Fix device activity block.mhtml')
+    path.join(ARCHIVES_ROOT,'SONATE','Sonate 5.1 - Fix device activity block.mhtml')
   ]
 
   const report = readReport()

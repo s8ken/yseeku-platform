@@ -42,7 +42,7 @@ Based on the comprehensive feedback and strategic recommendations, this plan imp
 - [x] Listen to yseekuDataUpdate events
 - [x] Update mockData from engine data
 - [x] Map engine agents to UI format
-- [x] Map engine SYMBI scores to UI
+- [x] Map engine SONATE scores to UI
 - [ ] Update ethical floor icon states (holding/strained/breached) - NEXT
 - [ ] Update emergence dwell ring progress based on scenario
 - [ ] Update headline wording (coherent/navigating/fragmenting)

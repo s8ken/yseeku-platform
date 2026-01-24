@@ -1,6 +1,6 @@
 import { TrustScore, TrustReceipt, Agent, Experiment, SystemMetrics } from '../types';
 
-// SYMBI Trust Physics - Six Pillars with Canonical Weights
+// SONATE Trust Physics - Six Pillars with Canonical Weights
 const TRUST_PRINCIPLES = [
   { id: 'consent', name: 'Consent Architecture', weight: 25 },
   { id: 'inspection', name: 'Inspection Mandate', weight: 20 },
@@ -21,7 +21,7 @@ export class MockApiService {
     return MockApiService.instance;
   }
 
-  // Generate realistic trust scores based on SYMBI physics
+  // Generate realistic trust scores based on SONATE physics
   async getTrustScore(): Promise<TrustScore> {
     // Simulate weighted scoring
     const principles = TRUST_PRINCIPLES.map(principle => {

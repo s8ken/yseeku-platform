@@ -15,7 +15,7 @@ This document summarizes controls and operational practices to run the platform 
 
 ## Data Governance
 - Trust Receipts: SHA-256 content hashing, Ed25519 signatures, append-only verification trails
-- Ledger Options: Portable `.symbi` manifests with Merkle proofs; database-backed persistence for production
+- Ledger Options: Portable `.sonate` manifests with Merkle proofs; database-backed persistence for production
 
 ## SLOs & Performance
 - Detection latency: sub-100ms typical under production load

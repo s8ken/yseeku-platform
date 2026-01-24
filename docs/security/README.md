@@ -2,7 +2,7 @@
 
 ## 🔐 Security Overview
 
-YSEEKU Platform implements enterprise-grade security with the SYMBI Trust Framework at its core.
+YSEEKU Platform implements enterprise-grade security with the SONATE Trust Framework at its core.
 
 ## 🛡️ Security Architecture
 

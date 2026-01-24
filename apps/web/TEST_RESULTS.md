@@ -56,7 +56,7 @@ API response helpers and standardization.
 Input validation and sanitization.
 
 - Required/string/number/email/enum validators
-- SYMBI dimension validation:
+- SONATE dimension validation:
   - reality_index: 0-10
   - ethical_alignment: 0-5
   - canvas_parity: 0-100
@@ -123,5 +123,5 @@ cd apps/web && npm run test:watch
 | Authentication | Token generation, password hashing, session management |
 | Authorization | RBAC roles, permission hierarchy, access control |
 | API Security | CSRF protection, security headers, rate limiting |
-| Input Validation | SYMBI dimensions, Bedau Index, XSS prevention |
+| Input Validation | SONATE dimensions, Bedau Index, XSS prevention |
 | Route Handlers | Health, tenants, agents, KPIs, audit |
