@@ -653,10 +653,10 @@ export default function AgentsPage() {
                     </div>
                   </div>
 
-                  {/* SYMBI Dimensions (if available) */}
+                  {/* SONATE Dimensions (if available) */}
                   {agent.sonateDimensions && (
                     <div className="pt-2 border-t">
-                      <div className="text-xs text-muted-foreground mb-2">SYMBI Dimensions</div>
+                      <div className="text-xs text-muted-foreground mb-2">SONATE Dimensions</div>
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div>
                           <div className="text-muted-foreground">Reality</div>

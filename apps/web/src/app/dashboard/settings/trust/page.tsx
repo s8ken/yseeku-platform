@@ -34,7 +34,7 @@ interface TrustSettings {
     compactView: boolean;
     showReceiptHash: boolean;
     showPrincipleBreakdown: boolean;
-    showSymbiDimensions: boolean;
+    showSonateDimensions: boolean;
     autoExpandViolations: boolean;
     colorScheme: 'default' | 'colorblind' | 'monochrome';
   };
@@ -62,7 +62,7 @@ export default function TrustSettingsPage() {
       compactView: false,
       showReceiptHash: true,
       showPrincipleBreakdown: true,
-      showSymbiDimensions: true,
+      showSonateDimensions: true,
       autoExpandViolations: true,
       colorScheme: 'default',
     },
@@ -157,7 +157,7 @@ export default function TrustSettingsPage() {
         compactView: false,
         showReceiptHash: true,
         showPrincipleBreakdown: true,
-        showSymbiDimensions: true,
+        showSonateDimensions: true,
         autoExpandViolations: true,
         colorScheme: 'default',
       },
@@ -420,16 +420,16 @@ export default function TrustSettingsPage() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="show-symbi-dimensions">Show SYMBI Dimensions</Label>
+              <Label htmlFor="show-sonate-dimensions">Show SONATE Dimensions</Label>
               <p className="text-sm text-muted-foreground">Display Reality Index, Canvas Parity, etc.</p>
             </div>
             <Switch
-              id="show-symbi-dimensions"
-              checked={settings.display.showSymbiDimensions}
+              id="show-sonate-dimensions"
+              checked={settings.display.showSonateDimensions}
               onCheckedChange={(checked) =>
                 setSettings({
                   ...settings,
-                  display: { ...settings.display, showSymbiDimensions: checked },
+                  display: { ...settings.display, showSonateDimensions: checked },
                 })
               }
             />

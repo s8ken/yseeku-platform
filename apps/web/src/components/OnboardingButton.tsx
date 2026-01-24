@@ -2,13 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { HelpCircle, Play } from 'lucide-react';
-import { useTutorialStore, SYMBI_ONBOARDING_STEPS } from '@/store/useTutorialStore';
+import { useTutorialStore, SONATE_ONBOARDING_STEPS } from '@/store/useTutorialStore';
 
 export function OnboardingButton() {
   const { startTutorial } = useTutorialStore();
 
   const handleStartOnboarding = () => {
-    startTutorial(SYMBI_ONBOARDING_STEPS);
+    startTutorial(SONATE_ONBOARDING_STEPS);
   };
 
   return (
@@ -42,10 +42,10 @@ export function OnboardingWelcomeBanner() {
             Welcome to SONATE!
           </h3>
           <p className="text-sm text-emerald-700 dark:text-emerald-300 mb-4">
-            New to Constitutional AI monitoring? Take our 5-minute guided tour to learn about the SYMBI Framework, Trust Scores, Resonance Metrics, and more.
+            New to Constitutional AI monitoring? Take our 5-minute guided tour to learn about the SONATE Framework, Trust Scores, Resonance Metrics, and more.
           </p>
           <Button
-            onClick={() => startTutorial(SYMBI_ONBOARDING_STEPS)}
+            onClick={() => startTutorial(SONATE_ONBOARDING_STEPS)}
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
           >
             <Play className="h-4 w-4 mr-2" />

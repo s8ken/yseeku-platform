@@ -24,12 +24,12 @@ interface TutorialState {
   completeTutorial: () => void;
 }
 
-// SYMBI Onboarding Tutorial Steps
-export const SYMBI_ONBOARDING_STEPS: TutorialStep[] = [
+// SONATE Onboarding Tutorial Steps
+export const SONATE_ONBOARDING_STEPS: TutorialStep[] = [
   {
     id: 'welcome',
     title: 'Welcome to SONATE',
-    content: `Welcome! SONATE is a Constitutional AI monitoring platform built on the SYMBI Framework.
+    content: `Welcome! SONATE is a Constitutional AI monitoring platform built on the SONATE Framework.
 
 We'll guide you through understanding how we ensure AI systems remain trustworthy and aligned with human values.
 
@@ -37,9 +37,9 @@ Let's start with the fundamentals...`,
     path: '/dashboard/overview',
   },
   {
-    id: 'symbi-intro',
-    title: 'The SYMBI Framework',
-    content: `SYMBI = Systematic Yielding and Moral Behavioral Integrity
+    id: 'sonate-intro',
+    title: 'The SONATE Framework',
+    content: `SONATE = Constitutional AI Governance Framework
 
 It's a two-layer architecture:
 
@@ -148,7 +148,7 @@ Use this to track system performance and troubleshoot issues.`,
     title: "You're Ready!",
     content: `Congratulations! You now understand:
 
-✓ The 6 SYMBI Constitutional Principles
+✓ The 6 SONATE Constitutional Principles
 ✓ The 5 Monitoring Dimensions
 ✓ Trust Scores and Resonance Metrics
 ✓ Trust Receipts and Audit Trails

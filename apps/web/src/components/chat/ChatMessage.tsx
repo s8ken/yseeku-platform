@@ -44,7 +44,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
       <div className="flex flex-col gap-3 flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-sm">
-            {isAssistant ? 'SYMBI Assistant' : 'You'}
+            {isAssistant ? 'SONATE Assistant' : 'You'}
           </span>
           <span className="text-[10px] text-slate-500">
             {new Date(timestamp).toLocaleTimeString()}

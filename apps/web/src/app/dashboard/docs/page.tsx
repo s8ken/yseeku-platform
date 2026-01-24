@@ -37,8 +37,8 @@ interface DocSection {
 
 const docSections: DocSection[] = [
   {
-    id: 'symbi',
-    title: 'SYMBI 5-Dimension Framework',
+    id: 'sonate',
+    title: 'SONATE 5-Dimension Framework',
     icon: <Sparkles className="h-5 w-5" />,
     description: 'The core detection framework for measuring AI trust and alignment',
     content: [
@@ -88,7 +88,7 @@ const docSections: DocSection[] = [
       {
         term: 'Continuous Validation',
         definition: 'Ongoing monitoring and verification of AI behavior against established baselines. Detects drift, degradation, or unexpected changes.',
-        example: 'Real-time SYMBI scoring compares current performance to historical averages'
+        example: 'Real-time SONATE scoring compares current performance to historical averages'
       },
       {
         term: 'Ethical Override',
@@ -149,7 +149,7 @@ const docSections: DocSection[] = [
     id: 'resonance',
     title: 'Resonance Metrics',
     icon: <Activity className="h-5 w-5" />,
-    description: 'Low-level metrics that power SYMBI calculations',
+    description: 'Low-level metrics that power SONATE calculations',
     content: [
       {
         term: 'R_m (Resonance Score)',
@@ -168,7 +168,7 @@ const docSections: DocSection[] = [
       },
       {
         term: 'Semantic Mirroring (S_match)',
-        definition: 'Adoption of SYMBI linguistic scaffolding and user vocabulary. Measures communication alignment.',
+        definition: 'Adoption of SONATE linguistic scaffolding and user vocabulary. Measures communication alignment.',
         example: 'AI using terminology consistent with user establishes better rapport'
       },
       {
@@ -229,7 +229,7 @@ const docSections: DocSection[] = [
       },
       {
         term: 'Trust Receipt',
-        definition: 'Cryptographic proof of AI interaction including SYMBI scores, timestamps, and hash chain verification.',
+        definition: 'Cryptographic proof of AI interaction including SONATE scores, timestamps, and hash chain verification.',
         example: 'Each interaction generates immutable receipt for audit purposes'
       },
       {
