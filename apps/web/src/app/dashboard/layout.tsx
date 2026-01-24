@@ -44,7 +44,8 @@ import {
   Brain,
   Webhook,
   MessageSquare,
-  Compass
+  Compass,
+  GraduationCap
 } from 'lucide-react';
 import { useTutorialStore } from '@/store/useTutorialStore';
 import { dashboardTutorialSteps } from '@/components/tutorial/steps';
@@ -53,7 +54,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { ConnectionStatus } from '@/components/connection-status';
 import { DemoModeBanner } from '@/components/demo-mode-banner';
 import { DemoInitializer } from '@/components/demo-initializer';
-import { OnboardingModal, triggerOnboardingModal } from '@/components/onboarding/OnboardingModal';
+import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
 import { useDemo } from '@/hooks/use-demo';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -123,6 +124,7 @@ const moduleSections: ModuleSection[] = [
       { title: 'Compliance Reports', href: '/dashboard/reports', icon: ClipboardList, roles: ['admin'], module: 'orchestrate' },
       { title: 'Trust Receipts', href: '/dashboard/receipts', icon: Fingerprint, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'API Gateway', href: '/dashboard/api', icon: Server, roles: ['admin'], module: 'orchestrate' },
+      { title: 'Learn', href: '/dashboard/learn', icon: GraduationCap, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
       { title: 'Documentation', href: '/dashboard/docs', icon: Book, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
       { title: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['admin'], module: 'orchestrate' },
     ]
@@ -360,18 +362,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 />
               </div>
             </div>
-
-            {/* Show Welcome Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2 text-muted-foreground hover:text-foreground"
-              onClick={triggerOnboardingModal}
-              title="Show welcome screen"
-            >
-              <HelpCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Welcome</span>
-            </Button>
 
             {/* Demo Mode Toggle */}
             <Button
