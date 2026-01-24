@@ -5,6 +5,7 @@
 
 import mongoose from 'mongoose';
 import { recordDbQuery } from '../observability/metrics';
+import logger from '../utils/logger';
 
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/yseeku-platform';
 const MAX_RETRIES = 5;
@@ -19,16 +20,16 @@ export async function connectDatabase(): Promise<void> {
       socketTimeoutMS: 45000,
     });
 
-    console.log(`✅ MongoDB connected: ${mongoose.connection.host}`);
+    logger.info('MongoDB connected', { host: mongoose.connection.host });
     retryCount = 0; // Reset retry count on successful connection
 
     // Handle connection events
     mongoose.connection.on('error', (err) => {
-      console.error('❌ MongoDB connection error:', err);
+      logger.error('MongoDB connection error', { error: err.message });
     });
 
     mongoose.connection.on('disconnected', () => {
-      console.warn('⚠️  MongoDB disconnected. Attempting to reconnect...');
+      logger.warn('MongoDB disconnected. Attempting to reconnect...');
       setTimeout(reconnect, RETRY_INTERVAL);
     });
 
@@ -46,15 +47,19 @@ export async function connectDatabase(): Promise<void> {
         recordDbQuery(op, coll, durationSec);
       }
     };
-  } catch (error) {
-    console.error(`❌ MongoDB connection failed (attempt ${retryCount + 1}/${MAX_RETRIES}):`, error);
+  } catch (error: any) {
+    logger.error('MongoDB connection failed', {
+      attempt: retryCount + 1,
+      maxRetries: MAX_RETRIES,
+      error: error.message
+    });
 
     if (retryCount < MAX_RETRIES) {
       retryCount++;
-      console.log(`🔄 Retrying connection in ${RETRY_INTERVAL / 1000} seconds...`);
+      logger.info('Retrying MongoDB connection', { retryIn: `${RETRY_INTERVAL / 1000}s` });
       setTimeout(connectDatabase, RETRY_INTERVAL);
     } else {
-      console.error('❌ Max connection retries reached. Exiting...');
+      logger.error('Max connection retries reached. Exiting...');
       process.exit(1);
     }
   }
@@ -63,9 +68,9 @@ export async function connectDatabase(): Promise<void> {
 async function reconnect(): Promise<void> {
   try {
     await mongoose.connect(MONGODB_URI);
-    console.log('✅ MongoDB reconnected successfully');
-  } catch (error) {
-    console.error('❌ MongoDB reconnection failed:', error);
+    logger.info('MongoDB reconnected successfully');
+  } catch (error: any) {
+    logger.error('MongoDB reconnection failed', { error: error.message });
     setTimeout(reconnect, RETRY_INTERVAL);
   }
 }
@@ -73,9 +78,9 @@ async function reconnect(): Promise<void> {
 export async function disconnectDatabase(): Promise<void> {
   try {
     await mongoose.disconnect();
-    console.log('✅ MongoDB disconnected');
-  } catch (error) {
-    console.error('❌ Error disconnecting from MongoDB:', error);
+    logger.info('MongoDB disconnected');
+  } catch (error: any) {
+    logger.error('Error disconnecting from MongoDB', { error: error.message });
     throw error;
   }
 }

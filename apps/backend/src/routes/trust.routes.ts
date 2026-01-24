@@ -12,6 +12,7 @@ import { TrustReceipt } from '@sonate/core';
 import { didService } from '../services/did.service';
 import { llmLimiter, apiGatewayLimiter } from '../middleware/rate-limiters';
 import { getErrorMessage } from '../utils/error-utils';
+import logger from '../utils/logger';
 
 function validateReceiptPayload(data: any) {
   if (!data || typeof data !== 'object') return 'Payload must be an object';
@@ -91,7 +92,7 @@ router.post('/receipts', protect, llmLimiter, async (req: Request, res: Response
       data: receipt,
     });
   } catch (error: unknown) {
-    console.error('Save receipt error:', error);
+    logger.error('Save receipt error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       error: 'Failed to save receipt',
@@ -174,7 +175,7 @@ router.get('/analytics', protect, apiGatewayLimiter, async (req: Request, res: R
       },
     });
   } catch (error: unknown) {
-    console.error('Trust analytics error:', error);
+    logger.error('Trust analytics error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve trust analytics',
@@ -256,7 +257,7 @@ router.post('/evaluate', protect, llmLimiter, async (req: Request, res: Response
       },
     });
   } catch (error: unknown) {
-    console.error('Trust evaluation error:', error);
+    logger.error('Trust evaluation error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       error: 'Failed to evaluate message',
@@ -326,7 +327,7 @@ router.get('/receipts', protect, async (req: Request, res: Response): Promise<vo
       },
     });
   } catch (error: unknown) {
-    console.error('Get receipts error:', error);
+    logger.error('Get receipts error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve trust receipts',
@@ -447,9 +448,9 @@ router.post('/receipts/:receiptHash/verify', protect, llmLimiter, async (req: Re
           // No signature but hash is valid - partial verification
           isValid = true;
         }
-      } catch (e) {
+      } catch (e: any) {
         // Structure verification failed
-        console.warn('Cryptographic verification failed:', e);
+        logger.warn('Cryptographic verification failed', { error: e?.message || e });
       }
     }
 
@@ -486,7 +487,7 @@ router.post('/receipts/:receiptHash/verify', protect, llmLimiter, async (req: Re
       },
     });
   } catch (error: unknown) {
-    console.error('Verify receipt error:', error);
+    logger.error('Verify receipt error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       error: 'Failed to verify trust receipt',
@@ -512,7 +513,7 @@ router.get('/principles', protect, async (req: Request, res: Response): Promise<
       },
     });
   } catch (error: unknown) {
-    console.error('Get principles error:', error);
+    logger.error('Get principles error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve principles',
@@ -542,7 +543,7 @@ router.get('/signing-key', async (req: Request, res: Response): Promise<void> =>
       },
     });
   } catch (error: unknown) {
-    console.error('Get signing key error:', error);
+    logger.error('Get signing key error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve signing key',
@@ -610,7 +611,7 @@ router.get('/health', protect, apiGatewayLimiter, async (req: Request, res: Resp
       },
     });
   } catch (error: unknown) {
-    console.error('Trust health error:', error);
+    logger.error('Trust health error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve trust health',
@@ -690,7 +691,7 @@ router.get('/receipts/by-did/:did', protect, async (req: Request, res: Response)
       },
     });
   } catch (error: unknown) {
-    console.error('Get receipts by DID error:', error);
+    logger.error('Get receipts by DID error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve receipts by DID',
@@ -718,7 +719,7 @@ router.get('/did-info', async (req: Request, res: Response): Promise<void> => {
       },
     });
   } catch (error: unknown) {
-    console.error('Get DID info error:', error);
+    logger.error('Get DID info error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve DID info',
@@ -748,7 +749,7 @@ router.get('/receipts/list', protect, apiGatewayLimiter, async (req: Request, re
       pagination: { total, limit: Number(limit), offset: Number(offset) },
     });
   } catch (error: unknown) {
-    console.error('List receipts error:', error);
+    logger.error('List receipts error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, error: 'Failed to list receipts', message: getErrorMessage(error) });
   }
 });
@@ -771,7 +772,7 @@ router.get('/receipts/:receiptHash', protect, apiGatewayLimiter, async (req: Req
     }
     res.json({ success: true, data: receipt });
   } catch (error: unknown) {
-    console.error('Get receipt by hash error:', error);
+    logger.error('Get receipt by hash error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, error: 'Failed to fetch receipt', message: getErrorMessage(error) });
   }
 });

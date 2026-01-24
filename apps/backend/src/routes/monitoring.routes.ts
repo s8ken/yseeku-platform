@@ -161,6 +161,71 @@ router.get('/health', async (req: Request, res: Response): Promise<void> => {
 });
 
 /**
+ * @route   GET /api/health/live
+ * @desc    Kubernetes liveness probe - basic server liveness check
+ * @access  Public
+ * @note    Returns 200 if the server is running, regardless of dependency health
+ */
+router.get('/health/live', (req: Request, res: Response): void => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/**
+ * @route   GET /api/health/ready
+ * @desc    Kubernetes readiness probe - checks if server can accept traffic
+ * @access  Public
+ * @note    Returns 200 if DB is connected and system is healthy, 503 otherwise
+ */
+router.get('/health/ready', async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Check database connection
+    let isReady = false;
+
+    if (mongoose.connection.readyState === 1 && mongoose.connection.db) {
+      try {
+        await mongoose.connection.db.admin().ping();
+        isReady = true;
+      } catch (err) {
+        isReady = false;
+      }
+    }
+
+    // Check memory (fail if critically low)
+    const memUsage = process.memoryUsage();
+    const memPercentage = Math.round((memUsage.heapUsed / memUsage.heapTotal) * 100);
+    if (memPercentage > 95) {
+      isReady = false;
+    }
+
+    if (isReady) {
+      res.status(200).json({
+        status: 'ready',
+        timestamp: new Date().toISOString(),
+        checks: {
+          database: 'connected',
+          memory: `${memPercentage}%`,
+        },
+      });
+    } else {
+      res.status(503).json({
+        status: 'not_ready',
+        timestamp: new Date().toISOString(),
+        reason: mongoose.connection.readyState !== 1 ? 'database_disconnected' : 'memory_critical',
+      });
+    }
+  } catch (error: unknown) {
+    res.status(503).json({
+      status: 'not_ready',
+      timestamp: new Date().toISOString(),
+      reason: getErrorMessage(error),
+    });
+  }
+});
+
+/**
  * @route   GET /api/observability/test-trace
  * @desc    Generate a sanity trace to verify OTEL/Jaeger wiring
  * @access  Public

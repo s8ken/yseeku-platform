@@ -158,6 +158,7 @@ export class TrustService {
       previousMessages?: IMessage[];
       agentId?: string;  // Agent ID for DID-based subject
       userId?: string;   // User ID for principle evaluation
+      tenantId?: string; // Tenant ID for multi-tenant isolation
       // Principle evaluation context (for accurate scoring)
       hasExplicitConsent?: boolean;
       hasOverrideButton?: boolean;
@@ -198,7 +199,8 @@ export class TrustService {
       context.conversationId,
       context.previousMessages || [],
       message,
-      context.agentId
+      context.agentId,
+      context.tenantId
     );
 
     // Calculate principle scores from detection dimensions
@@ -682,7 +684,8 @@ export class TrustService {
     conversationId: string,
     previousMessages: IMessage[],
     currentMessage: IMessage,
-    agentId?: string
+    agentId?: string,
+    tenantId?: string
   ): Promise<EmergenceSignal | null> {
     // Only detect emergence in AI messages
     if (currentMessage.sender !== 'ai') {
@@ -690,8 +693,8 @@ export class TrustService {
     }
 
     try {
-      // Get tenant ID from context (would be passed through req.tenant in practice)
-      const tenantId = 'default'; // TODO: Get from proper context
+      // Use provided tenant ID or fall back to default
+      const resolvedTenantId = tenantId || 'default';
 
       // Build conversation history for pattern detection
       const conversationHistory = [
@@ -712,7 +715,7 @@ export class TrustService {
 
       // Run emergence detection
       const signal = await emergenceDetector.detect(
-        tenantId,
+        resolvedTenantId,
         agentId || 'unknown',
         conversationId,
         conversationHistory,

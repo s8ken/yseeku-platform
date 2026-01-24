@@ -8,6 +8,22 @@ import mongoose from 'mongoose';
 import { SecureAuthService } from '@sonate/core';
 import { User, IUser } from '../models/user.model';
 import { getErrorMessage } from '../utils/error-utils';
+import { securityLogger } from '../utils/logger';
+
+/**
+ * JWT Token payload structure
+ */
+interface JwtPayload {
+  userId?: string;
+  sub?: string;
+  email?: string;
+  username?: string;
+  name?: string;
+  tenant?: string;
+  tenant_id?: string;
+  session_id?: string;
+  sessionId?: string;
+}
 
 // Extend Express Request type to include user
 declare global {
@@ -25,7 +41,7 @@ declare global {
 
 // Initialize SecureAuthService
 if (!process.env.JWT_SECRET) {
-  console.warn('⚠️  JWT_SECRET is not set. A random secret will be generated, which may cause session invalidation on restart.');
+  securityLogger.warn('JWT_SECRET is not set. A random secret will be generated, which may cause session invalidation on restart.');
 }
 
 const authService = new SecureAuthService({
@@ -40,8 +56,8 @@ const authService = new SecureAuthService({
  * Protect routes - verify JWT token
  */
 export async function protect(req: Request, res: Response, next: NextFunction): Promise<void> {
-  const requestId = Math.random().toString(36).substring(7);
-  console.log(`[Auth:${requestId}] Processing request to ${req.path}`);
+  const requestId = (req as any).requestId || Math.random().toString(36).substring(7);
+  securityLogger.debug('Processing authentication request', { requestId, path: req.path });
 
   try {
     let token: string | undefined;
@@ -52,7 +68,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     }
 
     if (!token) {
-      console.log(`[Auth:${requestId}] No token provided`);
+      securityLogger.debug('No token provided', { requestId });
       res.status(401).json({
         success: false,
         message: 'Not authorized, no token provided'
@@ -61,15 +77,16 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     }
 
     // Verify token using SecureAuthService
-    let payload: any;
+    let payload: JwtPayload;
     try {
-      payload = authService.verifyToken(token);
-      console.log(`[Auth:${requestId}] Token verified for user: ${payload.username || 'unknown'}`);
-    } catch (verifyError: any) {
-      console.error(`[Auth:${requestId}] Token verification failed:`, verifyError.message);
+      payload = authService.verifyToken(token) as JwtPayload;
+      securityLogger.debug('Token verified', { requestId, username: payload.username || 'unknown' });
+    } catch (verifyError: unknown) {
+      const errorMessage = verifyError instanceof Error ? verifyError.message : 'Unknown error';
+      securityLogger.warn('Token verification failed', { requestId, error: errorMessage });
       res.status(401).json({
         success: false,
-        message: `Token verification failed: ${verifyError.message}`,
+        message: `Token verification failed: ${errorMessage}`,
         code: 'INVALID_TOKEN'
       });
       return;
@@ -79,7 +96,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     const email = payload.email;
 
     if (!userId) {
-      console.error(`[Auth:${requestId}] Invalid payload: missing userId`);
+      securityLogger.warn('Invalid payload: missing userId', { requestId });
       res.status(401).json({
         success: false,
         message: 'Invalid token payload: missing user identifier'
@@ -93,24 +110,26 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     if (mongoose.Types.ObjectId.isValid(userId)) {
       try {
         user = await User.findById(userId).select('-password');
-      } catch (dbError: any) {
-        console.error(`[Auth:${requestId}] DB Error finding user by ID:`, dbError);
+      } catch (dbError: unknown) {
+        const dbErrorMsg = dbError instanceof Error ? dbError.message : 'Unknown error';
+        securityLogger.error('DB Error finding user by ID', { requestId, error: dbErrorMsg });
         // Don't fail yet, try by email
       }
     }
 
     // If not found by ID, try by email (handle users coming from Next.js/Postgres)
     if (!user && email) {
-      console.log(`[Auth:${requestId}] User not found by ID, trying email: ${email}`);
+      securityLogger.debug('User not found by ID, trying email', { requestId, email });
       try {
         user = await User.findOne({ email }).select('-password');
-      } catch (dbError: any) {
-        console.error(`[Auth:${requestId}] DB Error finding user by email:`, dbError);
+      } catch (dbError: unknown) {
+        const dbErrorMsg = dbError instanceof Error ? dbError.message : 'Unknown error';
+        securityLogger.error('DB Error finding user by email', { requestId, error: dbErrorMsg });
       }
-      
+
       // If still not found, create a shadow user in MongoDB so they can store API keys
       if (!user) {
-        console.log(`[Auth:${requestId}] Creating shadow MongoDB user for ${email} (${userId})`);
+        securityLogger.info('Creating shadow MongoDB user', { requestId, email, userId });
         try {
           user = await User.create({
             name: payload.username || payload.name || email.split('@')[0],
@@ -118,22 +137,24 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
             password: 'external-auth-no-password-' + Math.random().toString(36),
             apiKeys: [],
           });
-          console.log(`[Auth:${requestId}] Shadow user created: ${user._id}`);
-        } catch (createError: any) {
-          console.error(`[Auth:${requestId}] Failed to create shadow user:`, createError);
+          securityLogger.info('Shadow user created', { requestId, mongoUserId: user._id });
+        } catch (createError: unknown) {
+          const createErrorMsg = createError instanceof Error ? createError.message : 'Unknown error';
+          securityLogger.error('Failed to create shadow user', { requestId, error: createErrorMsg });
           // Check if user was created by another concurrent request
           try {
             user = await User.findOne({ email }).select('-password');
-          } catch (retryError) {
-             console.error(`[Auth:${requestId}] Retry find failed:`, retryError);
+          } catch (retryError: unknown) {
+            const retryErrorMsg = retryError instanceof Error ? retryError.message : 'Unknown error';
+            securityLogger.error('Retry find failed', { requestId, error: retryErrorMsg });
           }
-          
+
           if (!user) {
              // Return 500 here but with JSON
              res.status(500).json({
                success: false,
                message: 'Failed to provision user account',
-               details: createError.message
+               details: createErrorMsg
              });
              return;
           }
@@ -142,7 +163,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     }
 
     if (!user) {
-      console.error(`[Auth:${requestId}] User not found and could not be provisioned`);
+      securityLogger.warn('User not found and could not be provisioned', { requestId });
       res.status(401).json({
         success: false,
         message: 'User not found and could not be provisioned'
@@ -158,11 +179,12 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     req.userEmail = user.email;
     req.sessionId = payload.session_id || payload.sessionId;
 
-    console.log(`[Auth:${requestId}] Auth successful for ${user.email}`);
+    securityLogger.info('Auth successful', { requestId, email: user.email });
     next();
   } catch (error: unknown) {
     const err = error as Error;
-    console.error(`[Auth:${requestId}] CRITICAL AUTH ERROR:`, {
+    securityLogger.error('Critical auth error', {
+      requestId,
       message: getErrorMessage(error),
       stack: err?.stack,
       name: err?.name
