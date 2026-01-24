@@ -106,7 +106,6 @@ const moduleSections: ModuleSection[] = [
       { title: 'SONATE Analysis', href: '/dashboard/lab/sonate', icon: Sparkles, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Emergence Testing', href: '/dashboard/lab/emergence', icon: TestTube2, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Bedau Index', href: '/dashboard/lab/bedau', icon: BarChart3, roles: ['admin', 'user'], module: 'lab' },
-      { title: 'Linguistic Vector', href: '/dashboard/lab/vls', icon: Compass, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Safety Scanner', href: '/dashboard/safety', icon: Shield, roles: ['admin', 'user'], module: 'lab' },
     ]
   },

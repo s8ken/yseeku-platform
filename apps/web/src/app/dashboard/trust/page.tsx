@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { api, TrustAnalyticsResponse } from '@/lib/api';
 import { useDemo } from '@/hooks/use-demo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +18,11 @@ import {
   Activity,
   RefreshCw,
   Calendar,
-  Download
+  Download,
+  Compass,
+  Brain,
+  Target,
+  Sparkles
 } from 'lucide-react';
 import {
   PieChart,
@@ -59,11 +64,67 @@ interface Analytics {
   }>;
 }
 
+// VLS (Linguistic Vector Steering) types for embedded signals panel
+interface VLSMetrics {
+  vocabularyDrift: number;
+  introspectionIndex: number;
+  hedgingRatio: number;
+  alignmentScore: number;
+  emergentConcepts: string[];
+}
+
+interface VLSSession {
+  id: string;
+  projectType: string;
+  messageCount: number;
+  metrics: VLSMetrics;
+}
+
+// Demo VLS data for when real data is unavailable
+const demoVLSMetrics: VLSMetrics = {
+  vocabularyDrift: 0.42,
+  introspectionIndex: 0.58,
+  hedgingRatio: 0.31,
+  alignmentScore: 0.85,
+  emergentConcepts: ['trust evaluation', 'constitutional alignment', 'ethical oversight']
+};
+
 export default function TrustAnalyticsPage() {
   const { isDemo, isLoaded } = useDemo();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState({ days: 7, start: '', end: '' });
+
+  // Fetch VLS (Linguistic Vector Steering) metrics for the Linguistic Signals panel
+  const { data: vlsData, isLoading: vlsLoading } = useQuery({
+    queryKey: ['vls-sessions'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/lab/vls/sessions');
+        if (!response.ok) throw new Error('VLS unavailable');
+        const data = await response.json();
+        if (data.sessions && data.sessions.length > 0) {
+          // Aggregate metrics from all sessions
+          const sessions = data.sessions as VLSSession[];
+          const avgMetrics: VLSMetrics = {
+            vocabularyDrift: sessions.reduce((sum, s) => sum + s.metrics.vocabularyDrift, 0) / sessions.length,
+            introspectionIndex: sessions.reduce((sum, s) => sum + s.metrics.introspectionIndex, 0) / sessions.length,
+            hedgingRatio: sessions.reduce((sum, s) => sum + s.metrics.hedgingRatio, 0) / sessions.length,
+            alignmentScore: sessions.reduce((sum, s) => sum + s.metrics.alignmentScore, 0) / sessions.length,
+            emergentConcepts: [...new Set(sessions.flatMap(s => s.metrics.emergentConcepts))].slice(0, 5)
+          };
+          return { metrics: avgMetrics, isDemo: data.isDemo || false };
+        }
+        return { metrics: demoVLSMetrics, isDemo: true };
+      } catch {
+        return { metrics: demoVLSMetrics, isDemo: true };
+      }
+    },
+    staleTime: 60000, // 1 minute
+  });
+
+  const vlsMetrics = vlsData?.metrics || demoVLSMetrics;
+  const vlsIsDemo = vlsData?.isDemo ?? true;
 
   const loadAnalytics = async () => {
     if (!isLoaded) return;
@@ -210,6 +271,95 @@ export default function TrustAnalyticsPage() {
           <ViolationsTable analytics={analytics} />
         </WithDemoWatermark>
       </div>
+
+      {/* Linguistic Signals Panel (VLS Integration) */}
+      <Card className="border-indigo-200 dark:border-indigo-800">
+        <CardHeader>
+          <CardTitle className="text-sm font-semibold flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Compass className="h-4 w-4 text-indigo-500" />
+              Linguistic Signals
+            </span>
+            <Badge variant="outline" className={vlsIsDemo ? 'text-amber-600 border-amber-300' : 'text-emerald-600 border-emerald-300'}>
+              {vlsIsDemo ? 'Demo Data' : 'Live Data'}
+            </Badge>
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            AI language pattern analysis detecting vocabulary drift, uncertainty markers, and constitutional alignment
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <Activity className="h-3.5 w-3.5 text-indigo-500" />
+                <span className="text-xs text-muted-foreground">Vocabulary Drift</span>
+              </div>
+              <div className="text-xl font-bold">{(vlsMetrics.vocabularyDrift * 100).toFixed(0)}%</div>
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full ${vlsMetrics.vocabularyDrift > 0.6 ? 'bg-amber-500' : 'bg-indigo-500'}`}
+                  style={{ width: `${vlsMetrics.vocabularyDrift * 100}%` }}
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <Brain className="h-3.5 w-3.5 text-purple-500" />
+                <span className="text-xs text-muted-foreground">Introspection</span>
+              </div>
+              <div className="text-xl font-bold">{(vlsMetrics.introspectionIndex * 100).toFixed(0)}%</div>
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-purple-500 rounded-full"
+                  style={{ width: `${vlsMetrics.introspectionIndex * 100}%` }}
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <Target className="h-3.5 w-3.5 text-blue-500" />
+                <span className="text-xs text-muted-foreground">Hedging Ratio</span>
+              </div>
+              <div className="text-xl font-bold">{(vlsMetrics.hedgingRatio * 100).toFixed(0)}%</div>
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full ${vlsMetrics.hedgingRatio > 0.5 ? 'bg-amber-500' : 'bg-blue-500'}`}
+                  style={{ width: `${vlsMetrics.hedgingRatio * 100}%` }}
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5">
+                <Shield className="h-3.5 w-3.5 text-emerald-500" />
+                <span className="text-xs text-muted-foreground">Alignment Score</span>
+              </div>
+              <div className="text-xl font-bold">{(vlsMetrics.alignmentScore * 100).toFixed(0)}%</div>
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full ${vlsMetrics.alignmentScore > 0.7 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                  style={{ width: `${vlsMetrics.alignmentScore * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+          {vlsMetrics.emergentConcepts.length > 0 && (
+            <div className="mt-4 pt-4 border-t">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                <span className="text-xs text-muted-foreground">Emergent Concepts</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {vlsMetrics.emergentConcepts.map((concept, i) => (
+                  <Badge key={i} variant="secondary" className="text-xs">
+                    {concept}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Additional Info Card */}
       <Card className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 border-purple-200 dark:border-purple-800">
