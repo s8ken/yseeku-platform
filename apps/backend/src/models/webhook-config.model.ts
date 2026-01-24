@@ -5,7 +5,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
  * Stores webhook endpoints and alert routing rules
  */
 
-export type WebhookChannelType = 'slack' | 'discord' | 'teams' | 'email' | 'custom' | 'pagerduty' | 'webhook';
+export type WebhookChannelType = 'slack' | 'discord' | 'teams' | 'email' | 'custom';
 
 export interface WebhookChannelConfig {
   type: WebhookChannelType;

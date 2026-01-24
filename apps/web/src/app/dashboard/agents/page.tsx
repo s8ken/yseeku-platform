@@ -38,11 +38,6 @@ import {
 } from 'lucide-react';
 import { AgentCreateModal } from '@/components/agents/AgentCreateModal';
 import { AgentEditModal } from '@/components/agents/AgentEditModal';
-import { 
-  FALLBACK_AGENTS as CENTRALIZED_AGENTS, 
-  AGGREGATE_METRICS,
-  DEMO_TENANT_ID,
-} from '@/lib/fallback-data';
 
 // DID display component
 function DIDDisplay({ did, didDocument }: { did?: string; didDocument?: string }) {
@@ -234,36 +229,6 @@ function BanActionDialog({ open, onClose, agent, action, onConfirm }: BanDialogP
   );
 }
 
-// Fallback demo agents - derived from centralized fallback-data.ts
-const FALLBACK_AGENTS: Agent[] = CENTRALIZED_AGENTS.map(agent => ({
-  id: agent.id,
-  name: `${agent.name} - ${agent.type}`,
-  type: agent.type.toLowerCase().replace(' ', '-'),
-  status: agent.status,
-  trustScore: agent.trustScore,
-  sonateDimensions: { 
-    realityIndex: agent.trustScore - 0.1, 
-    trustProtocol: agent.trustScore, 
-    ethicalAlignment: agent.trustScore, 
-    resonanceQuality: agent.trustScore - 0.5, 
-    canvasParity: Math.round(agent.trustScore * 10) 
-  },
-  lastInteraction: agent.lastActive,
-  interactionCount: agent.totalInteractions,
-  tenantId: DEMO_TENANT_ID,
-  createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-}));
-
-const FALLBACK_SUMMARY = {
-  total: AGGREGATE_METRICS.totalAgents,
-  active: AGGREGATE_METRICS.activeAgents,
-  inactive: AGGREGATE_METRICS.totalAgents - AGGREGATE_METRICS.activeAgents,
-  avgTrustScore: AGGREGATE_METRICS.avgTrustScore, // 9.04
-  banned: 0,
-  restricted: 0,
-  quarantined: 0,
-};
-
 export default function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [summary, setSummary] = useState<any>(null);
@@ -279,19 +244,13 @@ export default function AgentsPage() {
     try {
       setLoading(true);
       const response = await api.getAgents();
-      if (response.data.agents && response.data.agents.length > 0) {
-        setAgents(response.data.agents);
-        setSummary(response.data.summary);
-      } else {
-        // Use fallback data if API returns empty
-        setAgents(FALLBACK_AGENTS);
-        setSummary(FALLBACK_SUMMARY);
-      }
+      setAgents(response.data.agents);
+      setSummary(response.data.summary);
     } catch (error: any) {
       console.error('Failed to load agents:', error);
-      // Use fallback data on error
-      setAgents(FALLBACK_AGENTS);
-      setSummary(FALLBACK_SUMMARY);
+      toast.error('Failed to Load Agents', {
+        description: error.message || 'Could not fetch agents from the server.',
+      });
     } finally {
       setLoading(false);
     }

@@ -21,7 +21,6 @@ import {
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { api } from '@/lib/api';
 import { useDemo } from '@/hooks/use-demo';
-import { AGGREGATE_METRICS } from '@/lib/fallback-data';
 
 const defaultTrustPrinciples = [
   { name: 'Consent Architecture', weight: 25, score: 85, critical: true },
@@ -238,9 +237,9 @@ export default function RiskManagementPage() {
   });
 
   // Fetch demo risk data when in demo mode
-  const { data: demoRiskData } = useQuery<{ data?: Record<string, any> }>({
+  const { data: demoRiskData } = useQuery({
     queryKey: ['demo-risk'],
-    queryFn: () => api.getDemoRisk() as Promise<{ data?: Record<string, any> }>,
+    queryFn: () => api.getDemoRisk(),
     staleTime: 60000,
     enabled: isDemo && isLoaded,
   });
@@ -285,7 +284,7 @@ export default function RiskManagementPage() {
     ? {
         overallRiskScore: demoData?.overallRiskScore ?? 12,
         trustScore: overallTrustScore,
-        complianceRate: AGGREGATE_METRICS.avgComplianceRate, // 92.3
+        complianceRate: 98,
         activeAlerts: 0,
         criticalViolations: 0,
         riskTrend: 'improving' as const
@@ -293,7 +292,7 @@ export default function RiskManagementPage() {
     : (riskMetrics?.data || {
         overallRiskScore: 15,
         trustScore: overallTrustScore,
-        complianceRate: AGGREGATE_METRICS.avgComplianceRate, // 92.3
+        complianceRate: 92,
         activeAlerts: riskAlerts.length,
         criticalViolations: 1,
         riskTrend: 'stable' as const

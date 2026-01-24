@@ -15,12 +15,6 @@ import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { ConstitutionalPrinciples } from '@/components/ConstitutionalPrinciples';
 import { api } from '@/lib/api';
 import { useDemo } from '@/hooks/use-demo';
-import { 
-  FALLBACK_AGENTS as CENTRALIZED_AGENTS, 
-  AGGREGATE_METRICS,
-  FALLBACK_DASHBOARD_METRICS,
-  trustScoreToPercent,
-} from '@/lib/fallback-data';
 
 interface AgentTrustData {
   id: string;
@@ -115,34 +109,6 @@ function EmptyState() {
     </Card>
   );
 }
-
-// Fallback agent data - derived from centralized fallback-data.ts
-const FALLBACK_AGENTS: AgentTrustData[] = CENTRALIZED_AGENTS.map(agent => ({
-  id: agent.id,
-  name: `${agent.name} - ${agent.type}`,
-  model: agent.type.toLowerCase().replace(' ', '-'),
-  trustScore: trustScoreToPercent(agent.trustScore), // Convert 0-10 to 0-100
-  sonateDimensions: { 
-    realityIndex: agent.trustScore - 0.1, 
-    trustProtocol: agent.trustScore >= 9.0 ? 'PASS' : 'PARTIAL', 
-    ethicalAlignment: agent.trustScore, 
-    resonanceQuality: agent.trustScore >= 9.0 ? 'BREAKTHROUGH' : 'ADVANCED', 
-    canvasParity: trustScoreToPercent(agent.trustScore)
-  },
-  lastInteraction: agent.lastActive,
-  interactions24h: agent.totalInteractions,
-  status: agent.status === 'warning' ? 'warning' : 'healthy',
-}));
-
-const FALLBACK_KPIS = {
-  trustScore: AGGREGATE_METRICS.avgTrustScorePercent, // 90
-  activeAgents: AGGREGATE_METRICS.activeAgents, // 4
-  totalInteractions: AGGREGATE_METRICS.totalInteractions, // 7932
-  complianceRate: AGGREGATE_METRICS.avgComplianceRate, // 92.3
-  trends: {
-    trustScore: { change: 2.1, direction: 'up' },
-  },
-};
 
 export default function TrustScoresPage() {
   const [agents, setAgents] = useState<AgentTrustData[]>([]);
@@ -242,15 +208,9 @@ export default function TrustScoresPage() {
       return;
     }
 
-    // Use fallback data when no other data is available (API unavailable)
-    if (agentsError || (!agentsLoadingReal && !agentsData?.data?.agents?.length && !isDemo)) {
-      setAgents(FALLBACK_AGENTS);
-      return;
-    }
-
-    // No data available yet - leave agents empty until loaded
+    // No data available - leave agents empty
     setAgents([]);
-  }, [isDemo, isLoaded, agentsData, demoAgentsData, agentsError, agentsLoadingReal]);
+  }, [isDemo, isLoaded, agentsData, demoAgentsData]);
 
   // Handle both array and {data: ...} response shapes for KPI data
   const getDemoKpis = () => {
@@ -268,13 +228,11 @@ export default function TrustScoresPage() {
     return kpiData;
   };
   const kpis = isDemo ? getDemoKpis() : getRealKpis();
-  const useFallback = agents === FALLBACK_AGENTS;
-  const effectiveKpis = kpis || (useFallback ? FALLBACK_KPIS : null);
-  const avgTrust = effectiveKpis?.trustScore ?? (agents.length > 0 ? Math.round(agents.reduce((sum, a) => sum + a.trustScore, 0) / agents.length) : 0);
+  const avgTrust = kpis?.trustScore ?? (agents.length > 0 ? Math.round(agents.reduce((sum, a) => sum + a.trustScore, 0) / agents.length) : 0);
   const healthyCount = agents.filter(a => a.status === 'healthy').length;
-  const totalInteractions = effectiveKpis?.totalInteractions ?? agents.reduce((sum, a) => sum + a.interactions24h, 0);
+  const totalInteractions = kpis?.totalInteractions ?? agents.reduce((sum, a) => sum + a.interactions24h, 0);
   const passRate = agents.length > 0 ? Math.round((agents.filter(a => a.sonateDimensions.trustProtocol === 'PASS').length / agents.length) * 100) : 0;
-  const dataSource = isDemo ? 'demo' : (useFallback ? 'fallback' : 'live');
+  const dataSource = isDemo ? 'demo' : 'live';
 
   return (
     <div className="space-y-6">
@@ -302,12 +260,10 @@ export default function TrustScoresPage() {
         <span className={`data-source-badge px-2 py-1 text-xs rounded-full flex items-center gap-2 ${
           dataSource === 'live'
             ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-            : dataSource === 'fallback'
-            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
             : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
         }`}>
           <span className="h-1.5 w-1.5 rounded-full bg-current" />
-          {dataSource === 'live' ? 'Production Data' : dataSource === 'fallback' ? 'Demo Mode' : 'Demo Data'}
+          {dataSource === 'live' ? 'Production Data' : 'Demo Data'}
         </span>
       </div>
 
@@ -323,7 +279,7 @@ export default function TrustScoresPage() {
             <div className="text-3xl font-bold">{avgTrust}</div>
             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
               <TrendingUp className="h-3 w-3 text-emerald-500" />
-              +{effectiveKpis?.trends?.trustScore?.change ?? 2.1}% from yesterday
+              +{kpis?.trends?.trustScore?.change ?? 2.1}% from yesterday
             </p>
           </CardContent>
         </Card>

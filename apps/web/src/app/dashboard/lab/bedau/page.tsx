@@ -21,16 +21,6 @@ import {
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { api } from '@/lib/api';
 
-// Fallback metrics for demo when API unavailable
-const FALLBACK_BEDAU_METRICS = {
-  bedau_index: 0.56,
-  semantic_entropy: 0.67,
-  kolmogorov_complexity: 0.54,
-  emergence_type: 'WEAK_EMERGENCE' as const,
-  confidence_interval: [0.52, 0.60],
-  effect_size: 0.31,
-};
-
 interface BedauMetric {
   id: string;
   agentId: string;
@@ -208,30 +198,26 @@ function HistoryChart({ data }: { data: HistoricalDataPoint[] }) {
 export default function BedauIndexPage() {
   const [selectedTab, setSelectedTab] = useState('realtime');
 
-  const { data: metricsData, isLoading, isError } = useQuery({
+  const { data: metricsData, isLoading } = useQuery({
     queryKey: ['bedau-metrics'],
     queryFn: () => api.getBedauMetrics(),
   });
 
-  // Use fallback when API fails or returns empty
-  const useFallback = isError || (!isLoading && !metricsData);
-  const effectiveMetrics = useFallback ? FALLBACK_BEDAU_METRICS : metricsData;
-
   // Transform backend data to frontend format
-  const currentMetric: BedauMetric | null = effectiveMetrics ? {
+  const currentMetric: BedauMetric | null = metricsData ? {
     id: 'live',
     agentId: 'system',
     agentName: 'System Aggregate',
     timestamp: new Date().toISOString(),
-    bedauIndex: effectiveMetrics.bedau_index,
+    bedauIndex: metricsData.bedau_index,
     trend: 'stable', // Simple default
     components: {
-      novelty: effectiveMetrics.semantic_entropy, // Mapping entropy to novelty
-      unpredictability: effectiveMetrics.kolmogorov_complexity, // Complexity to unpredictability
-      irreducibility: effectiveMetrics.kolmogorov_complexity, 
-      downwardCausation: effectiveMetrics.semantic_entropy * 0.8 // Approx
+      novelty: metricsData.semantic_entropy, // Mapping entropy to novelty
+      unpredictability: metricsData.kolmogorov_complexity, // Complexity to unpredictability
+      irreducibility: metricsData.kolmogorov_complexity, 
+      downwardCausation: metricsData.semantic_entropy * 0.8 // Approx
     },
-    classification: effectiveMetrics.emergence_type
+    classification: metricsData.emergence_type
   } : null;
 
   // Mock history for now, could be fetched from backend trajectory later
@@ -251,15 +237,6 @@ export default function BedauIndexPage() {
 
   return (
     <div className="space-y-6">
-      {useFallback && (
-        <div className="demo-notice mb-4 p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 flex items-start gap-3">
-          <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-          <div>
-            <strong className="text-purple-800 dark:text-purple-200">Demo Mode</strong>
-            <p className="text-sm text-purple-700 dark:text-purple-300">Showing sample Bedau metrics. Connect backend for live emergence detection.</p>
-          </div>
-        </div>
-      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -271,9 +248,9 @@ export default function BedauIndexPage() {
             <InfoTooltip term="Emergence" />
           </p>
         </div>
-        <div className={`data-source-badge ${useFallback ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' : 'data-source-live'}`}>
-          <span className={`h-1.5 w-1.5 rounded-full ${useFallback ? 'bg-purple-500' : 'bg-emerald-500 animate-pulse'}`} />
-          {useFallback ? 'Demo Data' : 'Live Analysis'}
+        <div className="data-source-badge data-source-live">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          Live Analysis
         </div>
       </div>
 

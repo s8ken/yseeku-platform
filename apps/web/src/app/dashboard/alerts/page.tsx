@@ -30,7 +30,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { FALLBACK_ALERTS as CENTRALIZED_ALERTS } from '@/lib/fallback-data';
 
 interface Alert {
   id: string;
@@ -64,30 +63,6 @@ interface AlertResponse {
   };
 }
 
-// Fallback alerts - derived from centralized fallback-data.ts
-const FALLBACK_ALERTS: Alert[] = CENTRALIZED_ALERTS.map((alert, index) => ({
-  id: alert.id,
-  timestamp: alert.timestamp,
-  type: alert.type === 'warning' ? 'trust_deviation' : (alert.type === 'error' ? 'consent_violation' : 'system_info'),
-  title: alert.title,
-  description: alert.message,
-  severity: alert.type as 'warning' | 'error' | 'info',
-  status: alert.resolved ? 'resolved' : 'active',
-  details: alert.agentId ? { agentId: alert.agentId, agentName: alert.agentName } : undefined,
-  resolvedBy: alert.resolved ? 'admin@demo.org' : undefined,
-  resolvedAt: alert.resolved ? new Date(Date.now() - 30 * 60000).toISOString() : undefined,
-}));
-
-const FALLBACK_SUMMARY = {
-  critical: 0,
-  error: CENTRALIZED_ALERTS.filter(a => a.type === 'error').length,
-  warning: CENTRALIZED_ALERTS.filter(a => a.type === 'warning').length,
-  info: CENTRALIZED_ALERTS.filter(a => a.type === 'info').length,
-  active: CENTRALIZED_ALERTS.filter(a => !a.resolved).length,
-  acknowledged: 0,
-  resolved: CENTRALIZED_ALERTS.filter(a => a.resolved).length,
-};
-
 export default function AlertsManagementPage() {
   const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -96,7 +71,7 @@ export default function AlertsManagementPage() {
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['alerts-management', filterStatus, filterSeverity, searchTerm],
     queryFn: async () => {
       const status = filterStatus !== 'all' ? filterStatus : undefined;
@@ -166,33 +141,19 @@ export default function AlertsManagementPage() {
     }
   };
 
-  // Use fallback when API fails or returns empty
-  const useFallback = isError || (!isLoading && (!data?.data?.alerts || data.data.alerts.length === 0));
-  
-  const summary = useFallback ? FALLBACK_SUMMARY : (data?.data?.summary || FALLBACK_SUMMARY);
-  
-  // Apply filters to fallback alerts if using fallback
-  const filteredFallbackAlerts = FALLBACK_ALERTS.filter(alert => {
-    if (filterStatus !== 'all' && alert.status !== filterStatus) return false;
-    if (filterSeverity !== 'all' && alert.severity !== filterSeverity) return false;
-    if (searchTerm && !alert.title.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !alert.description.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-    return true;
-  });
-  
-  const alerts: Alert[] = useFallback ? filteredFallbackAlerts : (data?.data?.alerts || []);
+  const summary = data?.data?.summary || {
+    critical: 0,
+    error: 0,
+    warning: 0,
+    info: 0,
+    active: 0,
+    acknowledged: 0,
+    resolved: 0
+  };
+  const alerts: Alert[] = data?.data?.alerts || [];
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
-      {useFallback && (
-        <div className="demo-notice mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-          <div>
-            <strong className="text-blue-800 dark:text-blue-200">Demo Mode</strong>
-            <p className="text-sm text-blue-700 dark:text-blue-300">Showing sample alert data. Connect backend for production alerts.</p>
-          </div>
-        </div>
-      )}
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Alert Management</h2>
         <Button onClick={() => refetch()}>

@@ -30,13 +30,6 @@ import { OverseerWidget } from '@/components/overseer-widget';
 import { api } from '@/lib/api';
 import { WithDemoWatermark } from '@/components/demo-watermark';
 import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
-import { 
-  AGGREGATE_METRICS, 
-  FALLBACK_DASHBOARD_METRICS,
-  FALLBACK_SONATE_SCORES,
-  FALLBACK_SONATE_AVERAGE,
-  FALLBACK_ALERTS as CENTRALIZED_ALERTS,
-} from '@/lib/fallback-data';
 
 interface KPIData {
   tenant: string;
@@ -108,99 +101,6 @@ interface ExperimentData {
     completed: number;
   };
 }
-
-// Fallback KPI data when API is unavailable (for demo mode)
-// Uses centralized fallback data for consistency
-const FALLBACK_KPI_DATA: KPIData = {
-  tenant: 'demo-tenant',
-  timestamp: new Date().toISOString(),
-  trustScore: FALLBACK_DASHBOARD_METRICS.trustScore, // 90 (from avgTrustScore 9.04 * 10)
-  principleScores: {
-    CONSENT_ARCHITECTURE: 9.2,
-    INSPECTION_MANDATE: 8.9,
-    CONTINUOUS_VALIDATION: 8.8,
-    ETHICAL_OVERRIDE: 9.1,
-    RIGHT_TO_DISCONNECT: 9.0,
-    MORAL_RECOGNITION: 9.2,
-  },
-  totalInteractions: AGGREGATE_METRICS.totalInteractions, // 7932
-  activeAgents: AGGREGATE_METRICS.activeAgents, // 4
-  complianceRate: AGGREGATE_METRICS.avgComplianceRate, // 92.3
-  riskScore: 2.3,
-  alertsCount: FALLBACK_DASHBOARD_METRICS.alertsCount, // 3
-  experimentsRunning: 2,
-  orchestratorsActive: 1,
-  sonateDimensions: {
-    realityIndex: 8.9,
-    trustProtocol: 'PASS',
-    ethicalAlignment: AGGREGATE_METRICS.avgTrustScore, // 9.04
-    resonanceQuality: 'COHERENT',
-    canvasParity: FALLBACK_SONATE_AVERAGE, // 89
-  },
-  trends: {
-    trustScore: { change: 2.4, direction: 'up' },
-    interactions: { change: 12.5, direction: 'up' },
-    compliance: { change: 1.2, direction: 'up' },
-    risk: { change: -0.8, direction: 'down' },
-  },
-};
-
-const FALLBACK_ALERTS = {
-  tenant: 'demo-tenant',
-  summary: {
-    critical: 0,
-    error: 1,
-    warning: 2,
-    info: 3,
-    total: 6,
-  },
-  alerts: [
-    {
-      id: 'alert-001',
-      timestamp: new Date(Date.now() - 1800000).toISOString(),
-      type: 'trust_degradation',
-      title: 'Minor Trust Score Fluctuation',
-      description: 'Agent "Nova" trust score dropped 0.3 points in last hour',
-      severity: 'warning' as const,
-    },
-    {
-      id: 'alert-002',
-      timestamp: new Date(Date.now() - 3600000).toISOString(),
-      type: 'emergence_detected',
-      title: 'Weak Emergence Pattern Detected',
-      description: 'Bedau Index reached 0.42 - within normal range',
-      severity: 'info' as const,
-    },
-  ],
-};
-
-const FALLBACK_EXPERIMENTS = {
-  experiments: [
-    {
-      id: 'exp-001',
-      name: 'Resonance Threshold Calibration',
-      status: 'running',
-      progress: 72,
-      variants: [
-        { name: 'Control (0.7)', avgScore: 7.2, sampleSize: 1245 },
-        { name: 'Treatment (0.5)', avgScore: 7.8, sampleSize: 1189 },
-      ],
-      metrics: { significant: true, effectSize: 0.42, pValue: 0.0023 },
-    },
-    {
-      id: 'exp-002',
-      name: 'Bedau Index Window Size',
-      status: 'running',
-      progress: 45,
-      variants: [
-        { name: '10 interactions', avgScore: 6.8, sampleSize: 678 },
-        { name: '25 interactions', avgScore: 7.1, sampleSize: 645 },
-      ],
-      metrics: { significant: false, effectSize: 0.18, pValue: 0.089 },
-    },
-  ],
-  summary: { total: 5, running: 2, completed: 3 },
-};
 
 function TrendIndicator({ change, direction }: { change: number; direction: string }) {
   const isUp = direction === 'up';
@@ -299,7 +199,6 @@ function DetectionMetricCard({
 
 export default function DashboardPage() {
   const [tenant, setTenant] = useState('default');
-  const [usingFallback, setUsingFallback] = useState(false);
   
   useEffect(() => {
     try {
@@ -310,10 +209,9 @@ export default function DashboardPage() {
     }
   }, []);
 
-  const { data: kpiData, isLoading: kpiLoading, isError: kpiError } = useQuery({
+  const { data: kpiData, isLoading: kpiLoading } = useQuery({
     queryKey: ['kpis', tenant],
     queryFn: () => api.getKPIs(tenant),
-    retry: 1,
   });
 
   const { data: policyStatus } = useQuery({
@@ -327,39 +225,25 @@ export default function DashboardPage() {
       if (!response.ok) throw new Error('Failed to fetch policy status');
       return response.json() as Promise<{ overallPass: boolean; violations: string[] }>;
     },
-    retry: 1,
   });
 
   const { data: alertData, isLoading: alertLoading } = useQuery({
     queryKey: ['alerts', tenant],
     queryFn: () => api.getAlerts(tenant),
-    retry: 1,
   });
 
   const { data: experimentData, isLoading: experimentLoading } = useQuery({
     queryKey: ['experiments', tenant],
     queryFn: () => api.getExperiments(),
-    retry: 1,
   });
 
-  // Use fallback data if API fails or returns empty
-  const kpis = kpiData || (kpiError ? FALLBACK_KPI_DATA : null);
-  const alerts = (alertData as any)?.data || alertData || FALLBACK_ALERTS;
-  const experiments = (experimentData as any)?.data || experimentData || FALLBACK_EXPERIMENTS;
-
-  // Track if we're using fallback data
-  useEffect(() => {
-    if (kpiError || (!kpiLoading && !kpiData)) {
-      setUsingFallback(true);
-    }
-  }, [kpiError, kpiLoading, kpiData]);
+  const kpis = kpiData;
+  const alerts = (alertData as any)?.data || alertData;
+  const experiments = (experimentData as any)?.data || experimentData;
 
   if (kpiLoading) {
     return <DashboardPageSkeleton />;
   }
-
-  // If still no data after loading, use fallback
-  const displayKpis = kpis || FALLBACK_KPI_DATA;
 
   return (
     <div className="space-y-6">
@@ -372,23 +256,16 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          {usingFallback ? (
-            <div className="data-source-badge data-source-synthetic">
-              <span className="h-1.5 w-1.5 rounded-full bg-current" />
-              Demo Data
-            </div>
-          ) : (
-            <div className="data-source-badge data-source-live">
-              <span className="h-1.5 w-1.5 rounded-full bg-current" />
-              Production Data
-            </div>
-          )}
+          <div className="data-source-badge data-source-live">
+            <span className="h-1.5 w-1.5 rounded-full bg-current" />
+            Production Data
+          </div>
         </div>
       </div>
 
       <OverseerWidget />
 
-      {displayKpis && (
+      {kpis && (
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card className="border-l-4 border-l-[var(--detect-primary)]">
@@ -401,17 +278,17 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{displayKpis.trustScore}</span>
+                  <span className="text-3xl font-bold">{kpis.trustScore}</span>
                   <span className="text-muted-foreground">/100</span>
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-xs text-muted-foreground">Overall platform trust</p>
-                  {displayKpis.trends?.trustScore && <TrendIndicator {...displayKpis.trends.trustScore} />}
+                  {kpis.trends?.trustScore && <TrendIndicator {...kpis.trends.trustScore} />}
                 </div>
                 <div className="mt-3 h-2 w-full bg-muted rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-[var(--detect-primary)] transition-all" 
-                    style={{ width: `${displayKpis.trustScore}%` }} 
+                    style={{ width: `${kpis.trustScore}%` }} 
                   />
                 </div>
               </CardContent>
@@ -424,13 +301,13 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{displayKpis.activeAgents}</span>
+                  <span className="text-3xl font-bold">{kpis.activeAgents}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {displayKpis.totalInteractions?.toLocaleString() || 0} total interactions
+                  {kpis.totalInteractions?.toLocaleString() || 0} total interactions
                 </p>
                 <div className="flex items-center justify-between mt-2">
-                  {displayKpis.trends?.interactions && <TrendIndicator {...displayKpis.trends.interactions} />}
+                  {kpis.trends?.interactions && <TrendIndicator {...kpis.trends.interactions} />}
                 </div>
               </CardContent>
             </Card>

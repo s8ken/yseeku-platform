@@ -27,16 +27,6 @@ import { cn } from '@/lib/utils';
 
 const ONBOARDING_KEY = 'yseeku-onboarding-completed';
 
-// Custom event name for reopening the modal
-export const ONBOARDING_REOPEN_EVENT = 'yseeku-reopen-onboarding';
-
-// Helper function to trigger the onboarding modal from anywhere
-export function triggerOnboardingModal() {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent(ONBOARDING_REOPEN_EVENT));
-  }
-}
-
 interface OnboardingStep {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
@@ -86,19 +76,6 @@ export function OnboardingModal() {
         const timer = setTimeout(() => setIsOpen(true), 500);
         return () => clearTimeout(timer);
       }
-    }
-  }, []);
-
-  // Listen for reopen event
-  useEffect(() => {
-    const handleReopen = () => {
-      setCurrentPage(0);
-      setIsOpen(true);
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener(ONBOARDING_REOPEN_EVENT, handleReopen);
-      return () => window.removeEventListener(ONBOARDING_REOPEN_EVENT, handleReopen);
     }
   }, []);
 

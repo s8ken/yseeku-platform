@@ -224,19 +224,13 @@ class WebhookService {
    */
   private async deliverToChannel(
     config: IWebhookConfig,
-    channel: WebhookChannel,
+    channel: WebhookChannelConfig,
     alert: IAlert,
     rule?: AlertRule,
     metrics?: MetricSnapshot
   ): Promise<void> {
     const payload = this.buildPayload(alert, config.tenantId, rule, metrics);
-    
-    // Normalize channel to WebhookChannelConfig
-    const channelConfig: WebhookChannelConfig = typeof channel === 'string' 
-      ? { type: channel, url: config.url } 
-      : channel;
-    
-    const formattedPayload = this.formatForChannel(channelConfig, payload);
+    const formattedPayload = this.formatForChannel(channel, payload);
     
     // Create delivery record
     const delivery = await WebhookDeliveryModel.create({
@@ -248,10 +242,10 @@ class WebhookService {
       ruleId: rule?.id,
       ruleName: rule?.name,
       status: 'pending',
-      url: channelConfig.url,
-      method: channelConfig.method || 'POST',
+      url: channel.url,
+      method: channel.method || 'POST',
       requestBody: JSON.stringify(formattedPayload),
-      requestHeaders: this.buildHeaders(config, channelConfig, formattedPayload),
+      requestHeaders: this.buildHeaders(config, channel, formattedPayload),
       attempt: 1,
       maxAttempts: config.retryConfig?.maxRetries ?? 3,
     });
@@ -674,20 +668,14 @@ class WebhookService {
     };
     
     const channel = config.channels[0];
-    
-    // Normalize channel to WebhookChannelConfig
-    const channelConfig: WebhookChannelConfig = typeof channel === 'string' 
-      ? { type: channel, url: config.url } 
-      : channel;
-    
-    const formattedPayload = this.formatForChannel(channelConfig, testPayload);
-    const headers = this.buildHeaders(config, channelConfig, formattedPayload);
+    const formattedPayload = this.formatForChannel(channel, testPayload);
+    const headers = this.buildHeaders(config, channel, formattedPayload);
     
     const startTime = Date.now();
     
-    // Get channel URL
-    const channelUrl = channelConfig.url || config.url;
-    const channelMethod = channelConfig.method || 'POST';
+    // Get channel URL - handle both object and string channel types
+    const channelUrl = typeof channel === 'string' ? config.url : (channel as WebhookChannelConfig).url || config.url;
+    const channelMethod = typeof channel === 'string' ? 'POST' : (channel as WebhookChannelConfig).method || 'POST';
     
     try {
       const response = await fetch(channelUrl, {

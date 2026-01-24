@@ -144,22 +144,22 @@ export default function OverridesQueuePage() {
     }
   };
 
-  const getStatusBadgeVariant = (status: string): "default" | "destructive" | "outline" | "secondary" => {
+  const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'pending': return 'secondary';
       case 'approved': return 'default';
-      case 'executed': return 'outline';
+      case 'executed': return 'success';
       case 'failed': return 'destructive';
       case 'overridden': return 'outline';
       default: return 'default';
     }
   };
 
-  const getSeverityBadgeVariant = (severity: string): "default" | "destructive" | "outline" | "secondary" => {
+  const getSeverityBadgeVariant = (severity: string) => {
     switch (severity) {
       case 'critical': return 'destructive';
       case 'high': return 'destructive';
-      case 'medium': return 'outline';
+      case 'medium': return 'warning';
       case 'low': return 'secondary';
       default: return 'default';
     }

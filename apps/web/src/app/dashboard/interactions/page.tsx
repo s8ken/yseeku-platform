@@ -34,7 +34,6 @@ import { useDemo } from '@/hooks/use-demo';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { WithDemoWatermark } from '@/components/demo-watermark';
 import { ListSkeleton } from '@/components/dashboard-skeletons';
-import { AGGREGATE_METRICS } from '@/lib/fallback-data';
 
 // Interaction types for enterprise tracking
 type InteractionType = 'AI_CUSTOMER' | 'AI_STAFF' | 'AI_AI' | 'ALL';
@@ -184,21 +183,21 @@ const DEMO_INTERACTIONS: Interaction[] = [
 ];
 
 const DEMO_STATS: InteractionStats = {
-  total: AGGREGATE_METRICS.totalInteractions, // 7932
+  total: 1247,
   byType: {
-    AI_CUSTOMER: Math.round(AGGREGATE_METRICS.totalInteractions * 0.70), // ~70%
-    AI_STAFF: Math.round(AGGREGATE_METRICS.totalInteractions * 0.25), // ~25%
-    AI_AI: Math.round(AGGREGATE_METRICS.totalInteractions * 0.05), // ~5%
-    ALL: AGGREGATE_METRICS.totalInteractions
+    AI_CUSTOMER: 856,
+    AI_STAFF: 312,
+    AI_AI: 79,
+    ALL: 1247
   },
   byStatus: {
-    PASS: Math.round(AGGREGATE_METRICS.totalInteractions * (AGGREGATE_METRICS.avgComplianceRate / 100)),
-    PARTIAL: Math.round(AGGREGATE_METRICS.totalInteractions * 0.058), // ~5.8%
-    FAIL: Math.round(AGGREGATE_METRICS.totalInteractions * 0.019), // ~1.9%
-    ALL: AGGREGATE_METRICS.totalInteractions
+    PASS: 1089,
+    PARTIAL: 134,
+    FAIL: 24,
+    ALL: 1247
   },
-  avgTrustScore: AGGREGATE_METRICS.avgTrustScorePercent, // 90
-  complianceRate: AGGREGATE_METRICS.avgComplianceRate // 92.3
+  avgTrustScore: 87.3,
+  complianceRate: 98.1
 };
 
 function InteractionTypeIcon({ type }: { type: InteractionType }) {
@@ -498,7 +497,7 @@ export default function InteractionsPage() {
   const [selectedInteraction, setSelectedInteraction] = useState<Interaction | null>(null);
 
   // Fetch interactions (demo or real)
-  const { data: interactionsData, isLoading, isError } = useQuery({
+  const { data: interactionsData, isLoading } = useQuery({
     queryKey: ['interactions', typeFilter, statusFilter, searchQuery],
     queryFn: async () => {
       if (isDemo) {
@@ -534,30 +533,7 @@ export default function InteractionsPage() {
     enabled: isLoaded
   });
 
-  // Use fallback when API fails or returns empty
-  const useFallback = isError || (!isLoading && (!interactionsData?.interactions || interactionsData.interactions.length === 0));
-  
-  // Apply filters to fallback data when using it
-  const getFilteredFallback = () => {
-    let filtered = DEMO_INTERACTIONS;
-    if (typeFilter !== 'ALL') {
-      filtered = filtered.filter(i => i.type === typeFilter);
-    }
-    if (statusFilter !== 'ALL') {
-      filtered = filtered.filter(i => i.trustStatus === statusFilter);
-    }
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(i => 
-        i.summary.toLowerCase().includes(q) ||
-        i.participants.initiator.name.toLowerCase().includes(q) ||
-        i.participants.responder.name.toLowerCase().includes(q)
-      );
-    }
-    return filtered;
-  };
-
-  const interactions = useFallback ? getFilteredFallback() : (interactionsData?.interactions || []);
+  const interactions = interactionsData?.interactions || [];
   const stats = interactionsData?.stats || DEMO_STATS;
 
   return (

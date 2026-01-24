@@ -80,7 +80,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function TrendIndicator({ trend }: { trend: string }) {
+function TrendIndicator({ trend }: { trend: 'improving' | 'stable' | 'declining' }) {
   if (trend === 'improving') {
     return <TrendingUp className="h-4 w-4 text-green-500" />;
   }
@@ -594,7 +594,7 @@ export default function SystemBrainDashboard() {
                 </div>
               ) : effectiveness && effectiveness.length > 0 ? (
                 <div className="space-y-4">
-                  {effectiveness.map((eff: { actionType: string; trend: string; effectivenessScore: number; totalActions?: number; avgImpact?: number; avgDuration?: number; successRate?: number; successCount?: number; failureCount?: number }, i: number) => (
+                  {effectiveness.map((eff: { actionType: string; trend: string; effectivenessScore: number; totalActions?: number; avgImpact?: number; avgDuration?: number; successRate?: number }, i: number) => (
                     <div key={i} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
@@ -609,19 +609,19 @@ export default function SystemBrainDashboard() {
                       <div className="grid grid-cols-4 gap-4 text-sm">
                         <div>
                           <div className="text-muted-foreground">Total Actions</div>
-                          <div className="font-medium">{eff.totalActions ?? 0}</div>
+                          <div className="font-medium">{eff.totalActions}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Successful</div>
-                          <div className="font-medium text-green-600">{eff.successCount ?? 0}</div>
+                          <div className="font-medium text-green-600">{eff.successCount}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Failed</div>
-                          <div className="font-medium text-red-600">{eff.failureCount ?? 0}</div>
+                          <div className="font-medium text-red-600">{eff.failureCount}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Avg Impact</div>
-                          <div className="font-medium">{((eff.avgImpact ?? 0) * 100).toFixed(0)}%</div>
+                          <div className="font-medium">{(eff.avgImpact * 100).toFixed(0)}%</div>
                         </div>
                       </div>
                     </div>

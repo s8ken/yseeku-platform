@@ -148,11 +148,6 @@ export const api = {
     return res.json();
   },
 
-  async getDemoTrustAnalytics(): Promise<unknown> {
-    const res = await fetch(`${API_BASE}/api/demo/trust-analytics`);
-    return res.json();
-  },
-
   async getDemoRisk(): Promise<unknown> {
     const res = await fetch(`${API_BASE}/api/demo/risk`);
     return res.json();

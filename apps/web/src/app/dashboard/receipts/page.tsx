@@ -26,12 +26,6 @@ import {
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { api } from '@/lib/api';
 import { useDemo } from '@/hooks/use-demo';
-import { 
-  FALLBACK_AGENTS as CENTRALIZED_AGENTS, 
-  FALLBACK_RECEIPTS as CENTRALIZED_RECEIPTS,
-  trustScoreToPercent,
-  DEMO_TENANT_ID,
-} from '@/lib/fallback-data';
 
 interface TrustReceipt {
   id: string;
@@ -90,31 +84,6 @@ function EmptyState() {
     </Card>
   );
 }
-
-// Fallback receipts - derived from centralized fallback-data.ts
-const FALLBACK_RECEIPTS: TrustReceipt[] = CENTRALIZED_RECEIPTS.map((receipt, index) => {
-  const agent = CENTRALIZED_AGENTS.find(a => a.id === receipt.agentId);
-  return {
-    id: receipt.id,
-    hash: `0x${index}a9f4e2c8b1d3e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f`,
-    agentId: receipt.agentId,
-    agentName: agent ? `${agent.name} - ${agent.type}` : receipt.agentName,
-    timestamp: receipt.timestamp,
-    trustScore: receipt.trustScore, // Already 0-100 in receipts
-    sonateDimensions: { 
-      realityIndex: (receipt.trustScore / 10) - 0.1, 
-      trustProtocol: receipt.trustScore >= 90 ? 'PASS' : 'PARTIAL', 
-      ethicalAlignment: receipt.trustScore / 10, 
-      resonanceQuality: receipt.trustScore >= 90 ? 'BREAKTHROUGH' : 'ADVANCED', 
-      canvasParity: receipt.trustScore
-    },
-    verified: true,
-    chainPosition: 4821 - index,
-    previousHash: `0x${index + 1}b8e3d1c7a0f9e4d5c6b7a8f9e0d1c2b3a4f5e6d7c8b9a0f1e2d3c4b5a6f7e8d`,
-    issuer: `did:sonate:${DEMO_TENANT_ID}:platform`,
-    subject: `did:sonate:${DEMO_TENANT_ID}:agent:${receipt.agentId}`,
-  };
-});
 
 function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
   const [copied, setCopied] = useState(false);
@@ -424,18 +393,14 @@ export default function TrustReceiptsPage() {
     receiptData: r.receipt_data || {}
   }));
 
-  // Determine which receipts to use - real, demo, or fallback
-  const useFallback = !isLoading && !hasRealData && !hasDemoData;
-  const receipts = isDemo && hasDemoData 
-    ? demoReceipts 
-    : (hasRealData ? (receiptsData?.data || []) : (useFallback ? FALLBACK_RECEIPTS : []));
+  const receipts = isDemo ? demoReceipts : (receiptsData?.data || []);
   const stats = receiptsData?.stats || {
     total: receipts.length,
     verified: receipts.filter(r => r.verified).length,
     invalid: receipts.filter(r => !r.verified).length,
     chainLength: receipts.length
   };
-  const dataSource = useFallback ? 'fallback' : (isDemo ? 'demo' : 'live');
+  const dataSource = isDemo ? 'demo' : 'live';
 
   const filteredReceipts = receipts.filter(r => 
     r.agentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -444,7 +409,7 @@ export default function TrustReceiptsPage() {
 
   return (
     <div className="space-y-6">
-      {(dataSource === 'demo' || dataSource === 'fallback') && (
+      {dataSource === 'demo' && (
         <div className="demo-notice mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div>

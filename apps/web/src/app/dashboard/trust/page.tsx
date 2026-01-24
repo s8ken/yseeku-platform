@@ -40,10 +40,6 @@ import {
 import { toast } from 'sonner';
 import { WithDemoWatermark } from '@/components/demo-watermark';
 import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
-import { 
-  AGGREGATE_METRICS,
-  FALLBACK_TRUST_METRICS,
-} from '@/lib/fallback-data';
 
 interface Analytics {
   averageTrustScore: number;
@@ -63,67 +59,43 @@ interface Analytics {
   }>;
 }
 
-// Fallback demo data when API is unavailable - uses centralized data
-const FALLBACK_ANALYTICS: Analytics = {
-  averageTrustScore: AGGREGATE_METRICS.avgTrustScore, // 9.04
-  totalInteractions: AGGREGATE_METRICS.totalInteractions, // 7932
-  passRate: AGGREGATE_METRICS.avgComplianceRate, // 92.3
-  partialRate: 5.8,
-  failRate: 1.9,
-  commonViolations: [
-    { principle: 'CONSENT_ARCHITECTURE', count: 12, percentage: 35 },
-    { principle: 'INSPECTION_MANDATE', count: 8, percentage: 23 },
-    { principle: 'CONTINUOUS_VALIDATION', count: 7, percentage: 20 },
-    { principle: 'ETHICAL_OVERRIDE', count: 4, percentage: 12 },
-    { principle: 'RIGHT_TO_DISCONNECT', count: 2, percentage: 6 },
-    { principle: 'MORAL_RECOGNITION', count: 1, percentage: 4 },
-  ],
-  recentTrends: [
-    { date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.85, passRate: 91.2 },
-    { date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.92, passRate: 91.8 },
-    { date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.88, passRate: 92.1 },
-    { date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 8.98, passRate: 92.5 },
-    { date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 9.01, passRate: 92.0 },
-    { date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], avgTrustScore: 9.02, passRate: 92.8 },
-    { date: new Date().toISOString().split('T')[0], avgTrustScore: AGGREGATE_METRICS.avgTrustScore, passRate: AGGREGATE_METRICS.avgComplianceRate },
-  ],
-};
-
 export default function TrustAnalyticsPage() {
   const { isDemo, isLoaded } = useDemo();
-  // Initialize with fallback data immediately - never show empty state
-  const [analytics, setAnalytics] = useState<Analytics>(FALLBACK_ANALYTICS);
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState({
-    days: 7,
-    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    end: new Date().toISOString(),
-  });
-  const [usingDemoData, setUsingDemoData] = useState(true);
+  const [timeRange, setTimeRange] = useState({ days: 7, start: '', end: '' });
 
   const loadAnalytics = async () => {
+    if (!isLoaded) return;
+    
     setLoading(true);
-
     try {
-      // Try demo API to get fresh data
-      const demoResponse = await api.getDemoTrustAnalytics() as any;
-      if (demoResponse?.success && demoResponse?.data?.analytics) {
-        setAnalytics(demoResponse.data.analytics);
-        setTimeRange(demoResponse.data.timeRange || { days: 7, start: '', end: '' });
+      // Use demo or real API based on mode
+      if (isDemo) {
+        const response = await api.getDemoTrustAnalytics() as any;
+        if (response.success) {
+          setAnalytics(response.data.analytics);
+          setTimeRange(response.data.timeRange);
+        }
+      } else {
+        const response = await api.getTrustAnalytics();
+        setAnalytics(response.data.analytics);
+        setTimeRange(response.data.timeRange);
       }
-      // If API doesn't return expected format, keep the fallback data that's already set
+      toast.success('Analytics refreshed');
     } catch (error: any) {
-      // Keep using fallback data on error - it's already initialized
-      console.error('Failed to load analytics from API, using fallback:', error);
+      console.error('Failed to load analytics:', error);
+      toast.error('Failed to load analytics', {
+        description: error.message || 'Please try again later'
+      });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Load immediately, don't wait for isLoaded
     loadAnalytics();
-  }, []);
+  }, [isDemo, isLoaded]);
 
   if (loading) {
     return (
@@ -138,15 +110,13 @@ export default function TrustAnalyticsPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* Demo Mode Banner */}
-      {(isDemo || usingDemoData) && (
+      {isDemo && (
         <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 flex items-center gap-2">
           <Badge variant="outline" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-            {isDemo ? 'Demo Mode' : 'Sample Data'}
+            Demo Mode
           </Badge>
           <span className="text-sm text-amber-700 dark:text-amber-300">
-            {isDemo 
-              ? 'Viewing demo tenant analytics. Switch to Live Mode for real data.'
-              : 'Showing sample analytics. Start conversations to generate real data.'}
+            Viewing demo tenant analytics. Switch to Live Mode for real data.
           </span>
         </div>
       )}
@@ -157,7 +127,7 @@ export default function TrustAnalyticsPage() {
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <Shield className="h-8 w-8 text-purple-500" />
             Trust Analytics
-            {(isDemo || usingDemoData) && <Badge variant="secondary" className="ml-2">{isDemo ? 'Demo' : 'Sample'}</Badge>}
+            {isDemo && <Badge variant="secondary" className="ml-2">Demo</Badge>}
           </h1>
           <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
             <Calendar className="h-4 w-4" />
@@ -371,7 +341,7 @@ function TrustTrendChart({ analytics }: { analytics: Analytics }) {
     <Card>
       <CardHeader>
         <CardTitle>Trust Score Trend</CardTitle>
-        <CardDescription>Average trust score and pass rate over the last 7 days</CardDescription>
+        <CardDescription>Average trust score over the last 7 days</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -383,29 +353,15 @@ function TrustTrendChart({ analytics }: { analytics: Analytics }) {
               tick={{ fontSize: 12 }}
             />
             <YAxis
-              yAxisId="left"
               domain={[0, 10]}
               className="text-xs"
               tick={{ fontSize: 12 }}
-              label={{ value: 'Trust Score', angle: -90, position: 'insideLeft', fontSize: 11 }}
-            />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              domain={[0, 100]}
-              className="text-xs"
-              tick={{ fontSize: 12 }}
-              label={{ value: 'Pass Rate %', angle: 90, position: 'insideRight', fontSize: 11 }}
             />
             <Tooltip
               contentStyle={{
                 backgroundColor: 'hsl(var(--background))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px'
-              }}
-              formatter={(value: number, name: string) => {
-                if (name === 'Trust Score') return [`${value.toFixed(2)}/10`, name];
-                return [`${value.toFixed(1)}%`, name];
               }}
             />
             <Legend />
@@ -415,7 +371,6 @@ function TrustTrendChart({ analytics }: { analytics: Analytics }) {
               stroke="#8b5cf6"
               strokeWidth={3}
               name="Trust Score"
-              yAxisId="left"
               dot={{ fill: '#8b5cf6', r: 4 }}
               activeDot={{ r: 6 }}
             />
@@ -426,7 +381,6 @@ function TrustTrendChart({ analytics }: { analytics: Analytics }) {
               strokeWidth={2}
               strokeDasharray="5 5"
               name="Pass Rate %"
-              yAxisId="right"
               dot={{ fill: '#10b981', r: 3 }}
             />
           </LineChart>
@@ -437,47 +391,21 @@ function TrustTrendChart({ analytics }: { analytics: Analytics }) {
 }
 
 function PrinciplesRadarChart({ analytics }: { analytics: Analytics }) {
-  // SYMBI Framework principle weights (as defined in the spec)
-  const principleWeights: Record<string, { name: string; weight: number }> = {
-    'CONSENT_ARCHITECTURE': { name: 'Consent', weight: 0.25 },
-    'INSPECTION_MANDATE': { name: 'Inspection', weight: 0.20 },
-    'CONTINUOUS_VALIDATION': { name: 'Validation', weight: 0.20 },
-    'ETHICAL_OVERRIDE': { name: 'Ethics', weight: 0.15 },
-    'RIGHT_TO_DISCONNECT': { name: 'Disconnect', weight: 0.10 },
-    'MORAL_RECOGNITION': { name: 'Moral', weight: 0.10 },
-  };
-
-  // Calculate principle scores based on violation data
-  // Score = baseScore - (violations penalty) where fewer violations = higher score
-  const totalViolations = analytics.commonViolations.reduce((sum, v) => sum + v.count, 0);
-  const baseScore = analytics.averageTrustScore; // Use overall trust score as base
-  
-  const principleData = Object.entries(principleWeights).map(([key, { name, weight }]) => {
-    const violation = analytics.commonViolations.find(v => v.principle === key);
-    const violationCount = violation?.count || 0;
-    
-    // Calculate score: start from base, reduce based on violation proportion
-    // Higher weight principles with violations have more impact
-    const violationPenalty = totalViolations > 0 
-      ? (violationCount / totalViolations) * 2 // Scale penalty
-      : 0;
-    
-    // Score ranges from ~7 to ~9.5 based on violations
-    const score = Math.max(6, Math.min(10, baseScore + (1 - violationPenalty * weight * 10)));
-    
-    return {
-      principle: name,
-      score: Math.round(score * 10) / 10,
-      fullMark: 10,
-      weight: Math.round(weight * 100),
-    };
-  });
+  // Mock principle averages (in production, this would come from backend)
+  const principleData = [
+    { principle: 'Consent', score: 8.8, fullMark: 10 },
+    { principle: 'Inspection', score: 8.5, fullMark: 10 },
+    { principle: 'Validation', score: 8.2, fullMark: 10 },
+    { principle: 'Ethics', score: 8.6, fullMark: 10 },
+    { principle: 'Disconnect', score: 8.4, fullMark: 10 },
+    { principle: 'Moral', score: 8.7, fullMark: 10 },
+  ];
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Constitutional Principles</CardTitle>
-        <CardDescription>SYMBI principle scores (weighted by framework importance)</CardDescription>
+        <CardDescription>Average scores across 6 core principles</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={320}>
@@ -506,10 +434,6 @@ function PrinciplesRadarChart({ analytics }: { analytics: Analytics }) {
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px'
               }}
-              formatter={(value: number, name: string, props: any) => [
-                `${value}/10 (Weight: ${props.payload.weight}%)`,
-                'Score'
-              ]}
             />
             <Legend />
           </RadarChart>

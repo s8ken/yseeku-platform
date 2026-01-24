@@ -44,8 +44,7 @@ import {
   Brain,
   Webhook,
   MessageSquare,
-  Compass,
-  GraduationCap
+  Compass
 } from 'lucide-react';
 import { useTutorialStore } from '@/store/useTutorialStore';
 import { dashboardTutorialSteps } from '@/components/tutorial/steps';
@@ -124,7 +123,6 @@ const moduleSections: ModuleSection[] = [
       { title: 'Compliance Reports', href: '/dashboard/reports', icon: ClipboardList, roles: ['admin'], module: 'orchestrate' },
       { title: 'Trust Receipts', href: '/dashboard/receipts', icon: Fingerprint, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'API Gateway', href: '/dashboard/api', icon: Server, roles: ['admin'], module: 'orchestrate' },
-      { title: 'Learn', href: '/dashboard/learn', icon: GraduationCap, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
       { title: 'Documentation', href: '/dashboard/docs', icon: Book, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
       { title: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['admin'], module: 'orchestrate' },
     ]
