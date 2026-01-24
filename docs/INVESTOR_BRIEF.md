@@ -1,7 +1,7 @@
 # Investor Brief
 
 ## Executive Summary
-SONATE is an enterprise AI governance platform delivering constitutional AI with real-time trust monitoring, research validation, and production orchestration. Built on SYMBI, it enables measurable trust, compliance alignment, and operational control.
+SONATE is an enterprise AI governance platform delivering constitutional AI with real-time trust monitoring, research validation, and production orchestration. Built on the SONATE framework, it enables measurable trust, compliance alignment, and operational control.
 
 ## Problem
 Enterprises lack verifiable trust and governance for AI systems, risking compliance, safety, and brand integrity.
@@ -13,7 +13,7 @@ Enterprises lack verifiable trust and governance for AI systems, risking complia
 - Trust Receipts: cryptographic, portable evidence for every AI turn
 
 ## Differentiation
-- Constitutional AI foundation (SYMBI)
+- Constitutional AI foundation (SONATE)
 - Phase‑Shift Velocity for early identity drift detection
 - Hard boundary separation between production and research
 - Cryptographic trust receipts and hash-chained audits
@@ -48,7 +48,7 @@ Enterprises lack verifiable trust and governance for AI systems, risking complia
 - Tenant growth, retention, and enterprise deployments
 
 ## Defensibility
-- Specifications and research footprint (SYMBI)
+- Specifications and research footprint (SONATE)
 - Architecture separation with compliance alignment
 - Cryptographic provenance and audit guarantees
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Yseeku-Platform represents the culmination and evolution of SYMBI-Resonate's analytics capabilities and SYMBI-Symphony's orchestration infrastructure. This document outlines the enterprise-grade architecture that provides constitutional AI governance with real-time trust monitoring, research validation, and production orchestration.
+Yseeku-Platform represents the culmination and evolution of SONATE-Resonate's analytics capabilities and SONATE-Symphony's orchestration infrastructure. This document outlines the enterprise-grade architecture that provides constitutional AI governance with real-time trust monitoring, research validation, and production orchestration.
 
 ## Architecture Principles
 
@@ -83,7 +83,7 @@ graph TB
 ### Package Architecture
 
 #### @sonate/core - Trust Protocol Foundation
-**Purpose**: Implements the 6-principle SYMBI constitutional framework
+**Purpose**: Implements the 6-principle SONATE constitutional framework
 
 **Key Components**:
 - **TrustProtocol**: 6-principle scoring with weighted calculations

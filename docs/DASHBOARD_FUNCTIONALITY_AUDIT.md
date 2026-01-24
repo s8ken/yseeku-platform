@@ -316,7 +316,7 @@ This audit systematically reviews each dashboard tab to determine whether the pr
 
 ---
 
-### 15. Lab - Symbi Analysis (`/dashboard/lab/symbi`)
+### 15. Lab - SONATE Analysis (`/dashboard/lab/symbi`)
 
 **Status**: 🔶 **HYBRID** (Graceful Degradation)
 
@@ -438,7 +438,7 @@ All pages under `/dashboard/learn/` are **educational content** and don't requir
 | Verify/Proof | Real | ✅ Yes |
 | Lab - Experiments | Real | ✅ Yes |
 | Lab - Bedau | Real | ✅ Yes |
-| Lab - Symbi | Hybrid | 🔶 Partial |
+| Lab - SONATE | Hybrid | 🔶 Partial |
 | Lab - VLS | Hybrid | 🔶 Partial |
 | Lab - Emergence | Hybrid | 🔶 Partial |
 

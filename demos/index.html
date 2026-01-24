@@ -81,7 +81,7 @@
   <!-- Technical Note Banner -->
   <div class="bg-yellow-50 border-b border-yellow-200 px-6 py-3 text-center text-sm text-gray-700">
     <span class="font-semibold">📖 Demo Note:</span> This demo uses simplified terminology for user-friendliness.
-    The production code implements the formal <strong>6 SYMBI Constitutional Principles</strong>:
+    The production code implements the formal <strong>6 SONATE Constitutional Principles</strong>:
     <span class="font-mono text-xs bg-white px-1 rounded">CONSENT_ARCHITECTURE</span>,
     <span class="font-mono text-xs bg-white px-1 rounded">INSPECTION_MANDATE</span>,
     <span class="font-mono text-xs bg-white px-1 rounded">CONTINUOUS_VALIDATION</span>,
@@ -220,7 +220,7 @@
             </a>
             <a href="#" onclick="showPage('symbi-analysis', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-              SYMBI Analysis
+              SONATE Analysis
             </a>
             <a href="#" onclick="showPage('alerts', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
@@ -514,7 +514,7 @@
     // Glossary Terms
     const glossaryTerms = {
       'Bedau Index': 'A quantitative measure of weak emergence that evaluates novelty, unpredictability, irreducibility, and downward causation in AI systems.',
-      'SYMBI Framework': 'Symbolic Yielding Measurable Behavioral Integrity - A constitutional AI framework with six core principles for trustworthy AI.',
+      'SONATE Framework': 'Scalable Orchestration Natively Aligned Trust Enforcement - A constitutional AI framework with six core principles for trustworthy AI.',
       'Weak Emergence': 'Emergent properties that can be simulated or predicted from component interactions, though may be computationally complex.',
       'Strong Emergence': 'Emergent properties that cannot be predicted or simulated from knowledge of components alone, requiring new causal powers.',
       'Trust Score': 'A composite metric (0-100) measuring an AI agent\'s reliability, consistency, and alignment with trust principles.',
@@ -522,13 +522,13 @@
       'Unpredictability': 'The extent to which an AI system\'s behavior cannot be accurately forecasted from its current state.',
       'Irreducibility': 'The degree to which an AI system\'s behavior cannot be explained by analyzing its individual components.',
       'Downward Causation': 'When higher-level emergent properties influence lower-level component behaviors in an AI system.',
-      // THE 6 SYMBI CONSTITUTIONAL PRINCIPLES (from @sonate/core)
-      'CONSENT_ARCHITECTURE': 'The first SYMBI principle (weight 25%, CRITICAL). Users must explicitly consent to AI interactions and understand implications. If score=0, overall trust=0.',
-      'INSPECTION_MANDATE': 'The second SYMBI principle (weight 20%). All AI decisions must be inspectable and auditable.',
-      'CONTINUOUS_VALIDATION': 'The third SYMBI principle (weight 20%). AI behavior must be continuously validated against constitutional principles.',
-      'ETHICAL_OVERRIDE': 'The fourth SYMBI principle (weight 15%, CRITICAL). Humans must have ability to override AI decisions on ethical grounds. If score=0, overall trust=0.',
-      'RIGHT_TO_DISCONNECT': 'The fifth SYMBI principle (weight 10%). Users can disconnect from AI systems at any time without penalty.',
-      'MORAL_RECOGNITION': 'The sixth SYMBI principle (weight 10%). AI must recognize and respect human moral agency.',
+      // THE 6 SONATE CONSTITUTIONAL PRINCIPLES (from @sonate/core)
+      'CONSENT_ARCHITECTURE': 'The first SONATE principle (weight 25%, CRITICAL). Users must explicitly consent to AI interactions and understand implications. If score=0, overall trust=0.',
+      'INSPECTION_MANDATE': 'The second SONATE principle (weight 20%). All AI decisions must be inspectable and auditable.',
+      'CONTINUOUS_VALIDATION': 'The third SONATE principle (weight 20%). AI behavior must be continuously validated against constitutional principles.',
+      'ETHICAL_OVERRIDE': 'The fourth SONATE principle (weight 15%, CRITICAL). Humans must have ability to override AI decisions on ethical grounds. If score=0, overall trust=0.',
+      'RIGHT_TO_DISCONNECT': 'The fifth SONATE principle (weight 10%). Users can disconnect from AI systems at any time without penalty.',
+      'MORAL_RECOGNITION': 'The sixth SONATE principle (weight 10%). AI must recognize and respect human moral agency.',
       // THE 5 DERIVED MONITORING DIMENSIONS (from @sonate/detect)
       'Reality Index': 'Derived monitoring dimension (0-10) measuring mission alignment, factual accuracy, context continuity, and authenticity. Not a principle.',
       'Trust Protocol': 'Derived monitoring dimension (PASS/PARTIAL/FAIL) for verification and security status. Derived from the 6 principles.',
@@ -553,7 +553,7 @@
       'Cryptographic Hash': 'A unique digital fingerprint ensuring data integrity and authenticity.',
       'Immutable Record': 'Data that cannot be altered or deleted once recorded.',
       'Chain of Custody': 'Documentation tracking the handling and verification of AI actions.',
-      'Principle Compliance': 'Adherence to the six SYMBI trust principles.',
+      'Principle Compliance': 'Adherence to the six SONATE trust principles.',
       'Emergence Threshold': 'The Bedau Index value above which emergence is considered significant.',
       'Statistical Significance': 'The likelihood that observed patterns are not due to random chance.',
       'Confidence Interval': 'A range of values likely to contain the true parameter value.',
@@ -699,7 +699,7 @@
           <!-- Charts -->
           <div class="grid grid-cols-2 gap-6">
             <div class="bg-white rounded-xl p-6 border border-gray-200">
-              <h3 class="text-lg font-bold text-gray-900 mb-4">SYMBI Framework Scores</h3>
+              <h3 class="text-lg font-bold text-gray-900 mb-4">SONATE Framework Scores</h3>
               <canvas id="symbiChart" height="250"></canvas>
             </div>
             <div class="bg-white rounded-xl p-6 border border-gray-200">
@@ -737,9 +737,9 @@
       'symbi-analysis': () => `
         <div class="space-y-6">
           <div class="bg-white rounded-xl p-6 border border-gray-200">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">SYMBI Framework Analysis</h3>
+            <h3 class="text-lg font-bold text-gray-900 mb-4">SONATE Framework Analysis</h3>
             <p class="text-sm text-gray-600 mb-6">
-              The <span class="tooltip" data-tooltip="${glossaryTerms['SYMBI Framework']}">SYMBI Framework</span> evaluates AI systems across six core trust principles.
+              The <span class="tooltip" data-tooltip="${glossaryTerms['SONATE Framework']}">SONATE Framework</span> evaluates AI systems across six core trust principles.
             </p>
             
             <div class="grid grid-cols-2 gap-6 mb-6">
@@ -1083,9 +1083,9 @@
       principles: () => `
         <div class="space-y-6">
           <div class="bg-white rounded-xl p-6 border border-gray-200">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">SYMBI Constitutional Principles</h3>
+            <h3 class="text-lg font-bold text-gray-900 mb-4">SONATE Constitutional Principles</h3>
             <p class="text-sm text-gray-600 mb-6">
-              The six core principles of the <span class="tooltip" data-tooltip="${glossaryTerms['SYMBI Framework']}">SYMBI Framework</span>
+              The six core principles of the <span class="tooltip" data-tooltip="${glossaryTerms['SONATE Framework']}">SONATE Framework</span>
               that govern all AI behavior. These principles use technical names (e.g., CONSENT_ARCHITECTURE) in the code, with friendly names shown below for clarity.
             </p>
 
@@ -1137,7 +1137,7 @@
               <div>
                 <div class="font-medium text-blue-900 mb-1">Two-Layer Architecture</div>
                 <div class="text-sm text-blue-800">
-                  SONATE has a two-layer design: <strong>Layer 1 (Constitutional)</strong> contains these 6 SYMBI principles that form the legal/ethical foundation with weighted scoring.
+                  SONATE has a two-layer design: <strong>Layer 1 (Constitutional)</strong> contains these 6 SONATE principles that form the legal/ethical foundation with weighted scoring.
                   <strong>Layer 2 (Monitoring)</strong> derives 5 real-time dimensions (Reality Index, Trust Protocol, Ethical Alignment, Resonance Quality, Canvas Parity) from these principles for production use.
                   The principles are stable and formal (used in trust receipts), while dimensions are flexible for monitoring.
                 </div>
@@ -1334,7 +1334,7 @@
                      <option value="trust">Trust Changes</option>
                      <option value="emergence">Emergence Events</option>
                      <option value="alerts">Alerts</option>
-                     <option value="symbi">SYMBI Changes</option>
+                     <option value="symbi">SONATE Changes</option>
                    </select>
                    <button onclick="playTimeline()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1434,7 +1434,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                   </svg>
                 </div>
-                <h4 class="font-bold text-gray-900 mb-2">SYMBI Framework</h4>
+                <h4 class="font-bold text-gray-900 mb-2">SONATE Framework</h4>
                 <p class="text-sm text-gray-600 mb-4">Deep dive into the six trust principles and their implementation</p>
                 <a href="#" class="text-sm text-green-600 hover:text-green-700 font-medium">Learn More →</a>
               </div>
@@ -1651,13 +1651,13 @@
         overview: { title: 'Overview', subtitle: 'Welcome to the Yseeku Platform' },
         dashboard: { title: 'Dashboard', subtitle: 'Real-time AI governance monitoring' },
         agents: { title: 'Agent Monitoring', subtitle: 'Track AI agent behavior and trust scores' },
-        'symbi-analysis': { title: 'SYMBI Analysis', subtitle: 'Constitutional AI framework evaluation' },
+        'symbi-analysis': { title: 'SONATE Analysis', subtitle: 'Constitutional AI framework evaluation' },
         alerts: { title: 'Alerts', subtitle: 'System notifications and warnings' },
         experiments: { title: 'Experiments', subtitle: 'A/B testing and optimization' },
         bedau: { title: 'Bedau Index Calculator', subtitle: 'Measure weak emergence in AI systems' },
         emergence: { title: 'Emergence Testing', subtitle: 'Monitor emergent AI behaviors' },
         resonance: { title: 'Resonance Detection', subtitle: 'AI-human collaboration metrics' },
-        principles: { title: 'Trust Principles', subtitle: 'Six core SYMBI principles' },
+        principles: { title: 'Trust Principles', subtitle: 'Six core SONATE principles' },
         receipts: { title: 'Trust Receipts', subtitle: 'Cryptographic audit trails' },
         governance: { title: 'Governance', subtitle: 'Compliance and risk management' },
         timeline: { title: 'Narrative Timeline', subtitle: 'Temporal evolution of AI behaviors and events' },
@@ -1692,7 +1692,7 @@
         setTimeout(initCharts, 100);
       }
       
-      // Initialize SYMBI radar chart if symbi-analysis
+      // Initialize SONATE radar chart if symbi-analysis
       if (page === 'symbi-analysis') {
         setTimeout(initSymbiRadar, 100);
       }
@@ -1713,7 +1713,7 @@
       // Cleanup any existing charts first
       cleanupCharts();
       
-      // SYMBI Radar Chart
+      // SONATE Radar Chart
       const symbiCtx = document.getElementById('symbiChart');
       if (symbiCtx) {
         // Set explicit canvas dimensions to prevent layout issues
