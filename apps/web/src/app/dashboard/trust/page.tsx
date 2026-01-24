@@ -91,40 +91,30 @@ const FALLBACK_ANALYTICS: Analytics = {
 
 export default function TrustAnalyticsPage() {
   const { isDemo, isLoaded } = useDemo();
-  const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  // Initialize with fallback data immediately - never show empty state
+  const [analytics, setAnalytics] = useState<Analytics>(FALLBACK_ANALYTICS);
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState({ days: 7, start: '', end: '' });
-  const [usingDemoData, setUsingDemoData] = useState(false);
+  const [timeRange, setTimeRange] = useState({
+    days: 7,
+    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    end: new Date().toISOString(),
+  });
+  const [usingDemoData, setUsingDemoData] = useState(true);
 
   const loadAnalytics = async () => {
     setLoading(true);
-    
-    // Helper to set fallback data
-    const useFallbackData = () => {
-      setAnalytics(FALLBACK_ANALYTICS);
-      setTimeRange({
-        days: 7,
-        start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        end: new Date().toISOString(),
-      });
-      setUsingDemoData(true);
-    };
 
     try {
-      // Always try demo API first - it should always work
+      // Try demo API to get fresh data
       const demoResponse = await api.getDemoTrustAnalytics() as any;
       if (demoResponse?.success && demoResponse?.data?.analytics) {
         setAnalytics(demoResponse.data.analytics);
         setTimeRange(demoResponse.data.timeRange || { days: 7, start: '', end: '' });
-        setUsingDemoData(true);
-      } else {
-        // If demo API doesn't return expected format, use fallback
-        useFallbackData();
       }
+      // If API doesn't return expected format, keep the fallback data that's already set
     } catch (error: any) {
+      // Keep using fallback data on error - it's already initialized
       console.error('Failed to load analytics from API, using fallback:', error);
-      // Use inline fallback data
-      useFallbackData();
     } finally {
       setLoading(false);
     }
@@ -143,24 +133,7 @@ export default function TrustAnalyticsPage() {
     );
   }
 
-  if (!analytics) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center space-y-4">
-            <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
-            <div>
-              <h3 className="text-lg font-semibold">No Analytics Data</h3>
-              <p className="text-sm text-muted-foreground">Start a conversation to generate trust data</p>
-            </div>
-            <Button onClick={() => window.location.href = '/dashboard/chat'}>
-              Go to Chat
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Analytics is always initialized with fallback data, so no empty state needed
 
   return (
     <div className="container mx-auto py-6 space-y-6">
