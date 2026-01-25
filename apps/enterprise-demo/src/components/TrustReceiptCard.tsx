@@ -163,29 +163,29 @@ export const TrustReceiptCard: React.FC<TrustReceiptCardProps> = ({
       )}
 
       {/* Emergence Trajectory */}
-      {emergenceTrajectory && emergenceTrajectory.history.length > 1 && (
+      {emergenceTrajectory && emergenceTrajectory.trajectory.length > 1 && (
         <div className="mb-4">
           <h4 className="text-md font-medium text-gray-700 mb-2">Emergence Trajectory</h4>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <span className="text-lg">{getTrendIcon(emergenceTrajectory.trend)}</span>
-              <span className="text-sm font-medium capitalize">{emergenceTrajectory.trend}</span>
+              <span className="text-lg">{getTrendIcon(emergenceTrajectory.emergenceLevel > 0.5 ? 'improving' : 'stable')}</span>
+              <span className="text-sm font-medium capitalize">{emergenceTrajectory.emergenceLevel > 0.5 ? 'Active Emergence' : 'Stable'}</span>
             </div>
             <div className="flex space-x-4 text-xs">
               <div>
-                <span className="text-gray-500">Velocity: </span>
-                <span className="font-medium">{emergenceTrajectory.velocity.toFixed(3)}</span>
+                <span className="text-gray-500">Emergence Level: </span>
+                <span className="font-medium">{emergenceTrajectory.emergenceLevel.toFixed(3)}</span>
               </div>
               <div>
-                <span className="text-gray-500">Acceleration: </span>
-                <span className="font-medium">{emergenceTrajectory.acceleration.toFixed(3)}</span>
+                <span className="text-gray-500">Confidence: </span>
+                <span className="font-medium">{emergenceTrajectory.confidence.toFixed(3)}</span>
               </div>
             </div>
           </div>
           
           {/* Mini trajectory chart */}
           <div className="mt-2 flex items-end space-x-1 h-8">
-            {emergenceTrajectory.history.slice(-10).map((value: number, index: number) => (
+            {emergenceTrajectory.trajectory.slice(-10).map((value: number, index: number) => (
               <div
                 key={index}
                 className={`flex-1 rounded-t ${
