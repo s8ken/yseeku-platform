@@ -2,7 +2,11 @@
  * Webhook Alerts Types for SONATE Platform
  */
 
+// Import from @sonate/core
 import { TrustScore, TrustPrincipleKey } from '@sonate/core';
+
+// Re-export for consumers
+export { TrustScore, TrustPrincipleKey };
 
 /**
  * Webhook configuration
@@ -150,6 +154,7 @@ export interface TrustViolationData {
   threshold: number;
   severity: ViolationSeverity;
   principles: TrustPrincipleKey[];
+  description?: string;
   context: ViolationContext;
 }
 

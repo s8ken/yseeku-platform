@@ -5,16 +5,17 @@
  */
 
 import { z } from 'zod';
-import { 
-  IndustryPolicy, 
-  PolicyEvaluationResult, 
+import {
+  IndustryPolicy,
+  PolicyEvaluationResult,
   PolicyCompositionRequest,
   IndustryType,
   TrustPrincipleKey,
   TrustScore,
   PolicyViolation,
   ComplianceStatus,
-  ComplianceLevel
+  ComplianceLevel,
+  PolicyRecommendation
 } from './types';
 import { PolicyValidator } from './validation/policy-validator';
 import { ComplianceEngine } from './compliance/compliance-engine';
@@ -339,10 +340,11 @@ export class PolicyEngine {
     }
     
     // Check principle scores
-    Object.entries(trustScore.principles).forEach(([principle, score]) => {
+    Object.entries(trustScore.principles).forEach(([principle, rawScore]) => {
       const principleKey = principle as TrustPrincipleKey;
-      const threshold = policy.thresholds.principleScores[principleKey];
-      
+      const score = rawScore as number;
+      const threshold = policy.thresholds.principleScores?.[principleKey];
+
       if (threshold && score < threshold.minimum) {
         violations.push({
           ruleId: `principle-${principle}-minimum`,
@@ -368,8 +370,8 @@ export class PolicyEngine {
     policy: IndustryPolicy,
     violations: PolicyViolation[],
     complianceStatus: ComplianceStatus
-  ): any[] {
-    const recommendations = [];
+  ): PolicyRecommendation[] {
+    const recommendations: PolicyRecommendation[] = [];
     
     // Generate recommendations for violations
     violations.forEach(violation => {
@@ -418,7 +420,7 @@ export class PolicyEngine {
   private calculateEvaluationConfidence(trustScore: TrustScore, policy: IndustryPolicy): number {
     // Base confidence on data completeness and policy coverage
     const principleCoverage = Object.keys(policy.customWeights).length / Object.keys(trustScore.principles).length;
-    const dataCompleteness = Object.values(trustScore.principles).filter(score => score > 0).length / Object.keys(trustScore.principles).length;
+    const dataCompleteness = Object.values(trustScore.principles).filter((score) => (score as number) > 0).length / Object.keys(trustScore.principles).length;
     
     return Math.min(0.95, (principleCoverage + dataCompleteness) / 2);
   }

@@ -149,7 +149,7 @@ export class ComplianceEngine {
     framework: ComplianceFramework
   ): boolean {
     const principleRequirements = framework.principleMappings[violation.principle];
-    return principleRequirements && principleRequirements.length > 0;
+    return principleRequirements !== undefined && principleRequirements.length > 0;
   }
 
   /**

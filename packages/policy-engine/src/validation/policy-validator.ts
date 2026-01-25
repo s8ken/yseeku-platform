@@ -176,19 +176,20 @@ export class PolicyValidator {
    * Validate policy weights
    */
   validateWeights(weights: Partial<Record<TrustPrincipleKey, number>>): void {
-    const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
-    
+    const totalWeight = Object.values(weights).reduce((sum, weight) => (sum ?? 0) + (weight ?? 0), 0) ?? 0;
+
     if (totalWeight > 1.0) {
       throw new Error(`Total weight (${totalWeight}) cannot exceed 1.0`);
     }
-    
+
     if (totalWeight < 0.1) {
       throw new Error(`Total weight (${totalWeight}) must be at least 0.1`);
     }
-    
+
     Object.entries(weights).forEach(([principle, weight]) => {
-      if (weight < 0 || weight > 1) {
-        throw new Error(`Weight for principle ${principle} (${weight}) must be between 0 and 1`);
+      const w = weight ?? 0;
+      if (w < 0 || w > 1) {
+        throw new Error(`Weight for principle ${principle} (${w}) must be between 0 and 1`);
       }
     });
   }
@@ -375,10 +376,10 @@ export class PolicyValidator {
       if (policy.customWeights) {
         Object.entries(rules).forEach(([key, value]) => {
           if (key.includes('Weight') && policy.customWeights) {
-            const principle = key.replace('Weight', '').toUpperCase();
-            const weight = policy.customWeights[principle as TrustPrincipleKey];
-            
-            if (weight && weight < (value as number)) {
+            const principle = key.replace('Weight', '').toUpperCase() as TrustPrincipleKey;
+            const weight = (policy.customWeights as Record<string, number | undefined>)[principle];
+
+            if (weight !== undefined && weight < (value as number)) {
               throw new Error(`Industry ${policy.industry} requires ${principle} weight >= ${value}`);
             }
           }

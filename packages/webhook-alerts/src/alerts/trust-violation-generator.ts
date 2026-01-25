@@ -201,8 +201,8 @@ export class TrustViolationAlertGenerator {
    */
   private getViolatingPrinciples(trustScore: TrustScore, threshold: number): TrustPrincipleKey[] {
     return Object.entries(trustScore.principles)
-      .filter(([_, score]) => score < threshold)
-      .map(([principle, _]) => principle as TrustPrincipleKey);
+      .filter(([_, score]) => (score as number) < threshold)
+      .map(([principle]) => principle as TrustPrincipleKey);
   }
 
   /**

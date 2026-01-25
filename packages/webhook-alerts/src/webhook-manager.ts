@@ -24,7 +24,10 @@ import {
   EventPriority,
   BackoffStrategy,
   WebhookFilter,
-  FilterOperator
+  FilterOperator,
+  RetryPolicy,
+  WebhookError,
+  WebhookResponse
 } from './types';
 
 /**
@@ -89,8 +92,11 @@ export class WebhookManager {
       events: request.events,
       enabled: true,
       retryPolicy: {
-        ...this.config.defaultRetryPolicy,
-        ...request.retryPolicy
+        maxAttempts: request.retryPolicy?.maxAttempts ?? this.config.defaultRetryPolicy.maxAttempts,
+        backoffStrategy: request.retryPolicy?.backoffStrategy ?? this.config.defaultRetryPolicy.backoffStrategy,
+        initialDelay: request.retryPolicy?.initialDelay ?? this.config.defaultRetryPolicy.initialDelay,
+        maxDelay: request.retryPolicy?.maxDelay ?? this.config.defaultRetryPolicy.maxDelay,
+        retryableErrors: request.retryPolicy?.retryableErrors ?? this.config.defaultRetryPolicy.retryableErrors
       },
       filters: request.filters || [],
       headers: request.headers,
@@ -137,11 +143,26 @@ export class WebhookManager {
     // Update webhook
     const updatedWebhook: WebhookConfig = {
       ...webhook,
-      ...request,
+      name: request.name ?? webhook.name,
+      url: request.url ?? webhook.url,
+      events: request.events ?? webhook.events,
+      secret: request.secret ?? webhook.secret,
+      enabled: request.enabled ?? webhook.enabled,
+      headers: request.headers ?? webhook.headers,
+      filters: request.filters ?? webhook.filters,
+      rateLimit: request.rateLimit ?? webhook.rateLimit,
+      retryPolicy: request.retryPolicy ? {
+        maxAttempts: request.retryPolicy.maxAttempts ?? webhook.retryPolicy.maxAttempts,
+        backoffStrategy: request.retryPolicy.backoffStrategy ?? webhook.retryPolicy.backoffStrategy,
+        initialDelay: request.retryPolicy.initialDelay ?? webhook.retryPolicy.initialDelay,
+        maxDelay: request.retryPolicy.maxDelay ?? webhook.retryPolicy.maxDelay,
+        retryableErrors: request.retryPolicy.retryableErrors ?? webhook.retryPolicy.retryableErrors
+      } : webhook.retryPolicy,
       metadata: {
         ...webhook.metadata,
         lastUpdated: Date.now(),
-        ...request.metadata
+        description: request.metadata?.description ?? webhook.metadata.description,
+        tags: request.metadata?.tags ?? webhook.metadata.tags
       }
     };
 
@@ -324,12 +345,12 @@ export class WebhookManager {
         
         // Process batch concurrently
         const promises = batch.map(event => {
-          const webhooks = this.webhooks.values().filter(w => 
+          const webhooks = Array.from(this.webhooks.values()).filter((w: WebhookConfig) =>
             w.enabled && this.matchesWebhook(event, w)
           );
-          
+
           return Promise.all(
-            webhooks.map(webhook => this.deliverEvent(event, webhook))
+            webhooks.map((webhook: WebhookConfig) => this.deliverEvent(event, webhook))
           );
         });
 
@@ -346,7 +367,7 @@ export class WebhookManager {
   private async deliverEvent(event: WebhookEvent, webhook: WebhookConfig): Promise<WebhookDeliveryResult> {
     const startTime = Date.now();
     let attempt = 0;
-    let lastError: WebhookError | undefined;
+    let lastError: WebhookError | undefined = undefined;
 
     while (attempt < webhook.retryPolicy.maxAttempts) {
       attempt++;
@@ -362,10 +383,19 @@ export class WebhookManager {
         const signedEvent = this.createWebhookEventForWebhook(event, webhook);
 
         // Deliver webhook
-        const response = await this.sendHttpRequest(signedEvent, webhook);
-        
+        const axiosResponse = await this.sendHttpRequest(signedEvent, webhook);
+
         const duration = Date.now() - startTime;
-        
+
+        // Convert to WebhookResponse
+        const response: WebhookResponse = {
+          status: axiosResponse.status,
+          statusText: axiosResponse.statusText,
+          headers: axiosResponse.headers as Record<string, string>,
+          body: typeof axiosResponse.data === 'string' ? axiosResponse.data : JSON.stringify(axiosResponse.data),
+          duration
+        };
+
         // Update statistics
         this.statistics.successfulDeliveries++;
         this.updateAverageDeliveryTime(duration);
@@ -406,7 +436,10 @@ export class WebhookManager {
     
     // Update statistics
     this.statistics.failedDeliveries++;
-    this.statistics.errorsByType[lastError!.type] = (this.statistics.errorsByType[lastError!.type] || 0) + 1;
+    if (lastError) {
+      const errorType = lastError.type;
+      this.statistics.errorsByType[errorType] = (this.statistics.errorsByType[errorType] || 0) + 1;
+    }
     this.statistics.lastUpdated = Date.now();
 
     return {
@@ -436,7 +469,7 @@ export class WebhookManager {
     return axios.post(webhook.url, event, {
       headers,
       timeout: webhook.timeout,
-      validateStatus: false
+      validateStatus: (status: number) => status >= 200 && status < 500
     });
   }
 

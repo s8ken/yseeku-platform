@@ -4,6 +4,9 @@
 
 import { TrustPrincipleKey, TrustScore } from '@sonate/core';
 
+// Re-export for consumers
+export { TrustPrincipleKey, TrustScore };
+
 /**
  * Industry-specific policy configuration
  */
@@ -42,7 +45,7 @@ export interface ComplianceFramework {
   id: string;
   name: string;
   version: string;
-  principleMappings: Record<TrustPrincipleKey, ComplianceRequirement[]>;
+  principleMappings: Partial<Record<TrustPrincipleKey, ComplianceRequirement[]>>;
   auditRequirements: AuditRequirement[];
   reportingFrequency: ReportingFrequency;
 }
