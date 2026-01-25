@@ -238,6 +238,17 @@ export default function DashboardPage() {
   });
 
   const kpis = kpiData;
+  const displayKpis = kpis || {
+    complianceRate: 0,
+    alertsCount: 0,
+    sonateDimensions: {
+      realityIndex: 0,
+      trustProtocol: 'UNKNOWN',
+      ethicalAlignment: 0,
+      resonanceQuality: 'UNKNOWN',
+      canvasParity: 0
+    }
+  };
   const alerts = (alertData as any)?.data || alertData;
   const experiments = (experimentData as any)?.data || experimentData;
 
