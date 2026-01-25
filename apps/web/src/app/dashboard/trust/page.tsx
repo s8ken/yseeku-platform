@@ -70,15 +70,9 @@ export default function TrustAnalyticsPage() {
     
     setLoading(true);
     try {
-      // Use demo or real API based on mode
-      if (isDemo) {
-        const response = await api.getDemoTrustAnalytics() as any;
-        if (response.success) {
-          setAnalytics(response.data.analytics);
-          setTimeRange(response.data.timeRange);
-        }
-      } else {
-        const response = await api.getTrustAnalytics();
+      // Use same API for both demo and real mode
+      const response = await api.getTrustAnalytics();
+      if (response?.data) {
         setAnalytics(response.data.analytics);
         setTimeRange(response.data.timeRange);
       }
@@ -105,7 +99,19 @@ export default function TrustAnalyticsPage() {
     );
   }
 
-  // Analytics is always initialized with fallback data, so no empty state needed
+  if (!analytics) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="text-center text-muted-foreground">
+          <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p>No analytics data available</p>
+          <p className="text-sm">Try refreshing the page</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Analytics is now guaranteed to be non-null
 
   return (
     <div className="container mx-auto py-6 space-y-6">
