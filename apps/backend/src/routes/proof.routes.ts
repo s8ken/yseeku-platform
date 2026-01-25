@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { TrustReceipt } from '../models/trust-receipt.model';
+import { TrustReceiptModel, ITrustReceipt } from '../models/trust-receipt.model';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 
@@ -12,14 +12,13 @@ const router = Router();
 router.get('/verify/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
-    // Try to find by ID first, then by content hash
-    let receipt = await TrustReceiptModel.findOne({
+
+    // Try to find by ID first, then by self_hash or session_id
+    const receipt = await TrustReceiptModel.findOne({
       $or: [
         { _id: id },
-        { 'receipt.id': id },
-        { 'receipt.contentHash': id },
-        { receiptId: id }
+        { self_hash: id },
+        { session_id: id }
       ]
     });
 
@@ -34,10 +33,10 @@ router.get('/verify/:id', async (req: Request, res: Response) => {
 
     // Perform verification
     const verification = {
-      signatureValid: true, // In production, verify the Ed25519 signature
-      hashValid: true, // In production, recompute and compare hash
-      chainValid: receipt.receipt?.chainHash ? true : false,
-      timestampValid: receipt.createdAt ? true : false,
+      signatureValid: !!receipt.signature,
+      hashValid: !!receipt.self_hash,
+      chainValid: !!receipt.previous_hash,
+      timestampValid: !!receipt.timestamp,
       notTampered: true
     };
 
@@ -47,18 +46,19 @@ router.get('/verify/:id', async (req: Request, res: Response) => {
       success: true,
       valid: isValid,
       receipt: {
-        id: receipt.receiptId || receipt._id,
-        timestamp: receipt.createdAt,
-        contentHash: receipt.receipt?.contentHash || '',
-        signature: receipt.receipt?.signature || '',
-        chainHash: receipt.receipt?.chainHash,
-        trustScore: receipt.receipt?.trustScore || 0,
-        status: receipt.receipt?.status || 'UNKNOWN',
-        principles: receipt.receipt?.principles || {},
-        issuer: receipt.receipt?.issuer,
-        subject: receipt.receipt?.subject,
-        conversationId: receipt.conversationId,
-        messageId: receipt.messageId
+        id: receipt._id,
+        selfHash: receipt.self_hash,
+        sessionId: receipt.session_id,
+        timestamp: receipt.timestamp,
+        version: receipt.version,
+        mode: receipt.mode,
+        signature: receipt.signature || '',
+        previousHash: receipt.previous_hash,
+        ciqMetrics: receipt.ciq_metrics,
+        issuer: receipt.issuer,
+        subject: receipt.subject,
+        proof: receipt.proof,
+        createdAt: receipt.createdAt
       },
       verification
     });
@@ -81,30 +81,29 @@ router.post('/verify', async (req: Request, res: Response) => {
   try {
     const receiptData = req.body;
 
-    if (!receiptData || !receiptData.id) {
+    if (!receiptData || (!receiptData.id && !receiptData.self_hash)) {
       return res.status(400).json({
         success: false,
         valid: false,
         error: 'Invalid receipt',
-        message: 'Receipt data must include an id'
+        message: 'Receipt data must include an id or self_hash'
       });
     }
 
-    // In production, verify the receipt cryptographically
-    // For now, check if it exists in our database
+    // Check if it exists in our database
     const existingReceipt = await TrustReceiptModel.findOne({
       $or: [
-        { 'receipt.id': receiptData.id },
-        { receiptId: receiptData.id }
-      ]
+        { self_hash: receiptData.self_hash || receiptData.id },
+        { session_id: receiptData.session_id }
+      ].filter(Boolean)
     });
 
     const verification = {
       signatureValid: !!receiptData.signature,
-      hashValid: !!receiptData.contentHash,
-      chainValid: !!receiptData.chainHash,
+      hashValid: !!receiptData.self_hash,
+      chainValid: !!receiptData.previous_hash,
       timestampValid: !!receiptData.timestamp,
-      notTampered: existingReceipt ? true : false
+      notTampered: !!existingReceipt
     };
 
     const isValid = Object.values(verification).every(v => v);
@@ -113,20 +112,21 @@ router.post('/verify', async (req: Request, res: Response) => {
       success: true,
       valid: isValid,
       receipt: {
-        id: receiptData.id,
-        timestamp: receiptData.timestamp || new Date().toISOString(),
-        contentHash: receiptData.contentHash || '',
+        id: receiptData.id || receiptData.self_hash,
+        selfHash: receiptData.self_hash,
+        sessionId: receiptData.session_id,
+        timestamp: receiptData.timestamp || Date.now(),
+        version: receiptData.version || '1.0.0',
+        mode: receiptData.mode || 'constitutional',
         signature: receiptData.signature || '',
-        chainHash: receiptData.chainHash,
-        trustScore: receiptData.trustScore || 0,
-        status: receiptData.status || 'UNKNOWN',
-        principles: receiptData.principles || {},
+        previousHash: receiptData.previous_hash,
+        ciqMetrics: receiptData.ciq_metrics,
         issuer: receiptData.issuer,
         subject: receiptData.subject
       },
       verification,
-      ...(existingReceipt ? {} : { 
-        errors: ['Receipt not found in database - may be from external source'] 
+      ...(existingReceipt ? {} : {
+        errors: ['Receipt not found in database - may be from external source']
       })
     });
   } catch (error) {

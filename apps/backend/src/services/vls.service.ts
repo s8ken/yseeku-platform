@@ -13,7 +13,6 @@
  */
 
 import { Conversation, IConversation, IMessage } from '../models/conversation.model';
-import { computeTextMetrics } from '@sonate/detect';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 
@@ -318,7 +317,7 @@ class VLSService {
       const sessions: VLSSession[] = [];
       for (const conv of conversations) {
         try {
-          const session = await this.analyzeConversation(conv as IConversation);
+          const session = await this.analyzeConversation(conv as unknown as IConversation);
           sessions.push(session);
         } catch (err) {
           logger.warn('Failed to analyze conversation for VLS', {

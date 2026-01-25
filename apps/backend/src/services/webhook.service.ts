@@ -63,6 +63,22 @@ interface WebhookPayload {
 
 class WebhookService {
   private retryDelays = [1000, 5000, 30000, 60000, 300000]; // 1s, 5s, 30s, 1m, 5m
+
+  /**
+   * Normalize a WebhookChannel to WebhookChannelConfig
+   * Handles both string types and full config objects
+   */
+  private normalizeChannel(channel: WebhookChannel, config: IWebhookConfig): WebhookChannelConfig {
+    if (typeof channel === 'string') {
+      return {
+        type: channel,
+        url: config.url,
+        method: 'POST',
+        headers: config.headers
+      };
+    }
+    return channel;
+  }
   
   /**
    * Process an alert and deliver to matching webhook configs
@@ -224,14 +240,15 @@ class WebhookService {
    */
   private async deliverToChannel(
     config: IWebhookConfig,
-    channel: WebhookChannelConfig,
+    channel: WebhookChannel,
     alert: IAlert,
     rule?: AlertRule,
     metrics?: MetricSnapshot
   ): Promise<void> {
+    const normalizedChannel = this.normalizeChannel(channel, config);
     const payload = this.buildPayload(alert, config.tenantId, rule, metrics);
-    const formattedPayload = this.formatForChannel(channel, payload);
-    
+    const formattedPayload = this.formatForChannel(normalizedChannel, payload);
+
     // Create delivery record
     const delivery = await WebhookDeliveryModel.create({
       tenantId: config.tenantId,
@@ -242,10 +259,10 @@ class WebhookService {
       ruleId: rule?.id,
       ruleName: rule?.name,
       status: 'pending',
-      url: channel.url,
-      method: channel.method || 'POST',
+      url: normalizedChannel.url || config.url,
+      method: normalizedChannel.method || 'POST',
       requestBody: JSON.stringify(formattedPayload),
-      requestHeaders: this.buildHeaders(config, channel, formattedPayload),
+      requestHeaders: this.buildHeaders(config, normalizedChannel, formattedPayload),
       attempt: 1,
       maxAttempts: config.retryConfig?.maxRetries ?? 3,
     });
@@ -389,7 +406,7 @@ class WebhookService {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'User-Agent': 'Yseeku-Webhook/1.0',
-      ...channel.headers,
+      ...(channel.headers || {}),
     };
     
     // Add signature if secret configured
@@ -668,14 +685,15 @@ class WebhookService {
     };
     
     const channel = config.channels[0];
-    const formattedPayload = this.formatForChannel(channel, testPayload);
-    const headers = this.buildHeaders(config, channel, formattedPayload);
-    
+    const normalizedChannel = this.normalizeChannel(channel, config);
+    const formattedPayload = this.formatForChannel(normalizedChannel, testPayload);
+    const headers = this.buildHeaders(config, normalizedChannel, formattedPayload);
+
     const startTime = Date.now();
-    
-    // Get channel URL - handle both object and string channel types
-    const channelUrl = typeof channel === 'string' ? config.url : (channel as WebhookChannelConfig).url || config.url;
-    const channelMethod = typeof channel === 'string' ? 'POST' : (channel as WebhookChannelConfig).method || 'POST';
+
+    // Get channel URL from normalized channel
+    const channelUrl = normalizedChannel.url || config.url;
+    const channelMethod = normalizedChannel.method || 'POST';
     
     try {
       const response = await fetch(channelUrl, {
