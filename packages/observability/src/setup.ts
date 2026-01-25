@@ -11,7 +11,6 @@ import { Resource } from '@opentelemetry/resources';
 import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION, SEMRESATTRS_SERVICE_INSTANCE_ID } from '@opentelemetry/semantic-conventions';
 import { awsEc2Detector, awsEksDetector } from '@opentelemetry/resource-detector-aws';
 import { gcpDetector } from '@opentelemetry/resource-detector-gcp';
-import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 
 import { ObservabilityConfig } from './types';
 import { DEFAULT_OBSERVABILITY_CONFIG, loadConfigFromEnv } from './config';
@@ -76,15 +75,11 @@ export function initializeObservability(config?: Partial<ObservabilityConfig>): 
     }),
     instrumentations: [getNodeAutoInstrumentations()],
     traceExporter: finalConfig.enableTracing ? exporters.find(e => e instanceof JaegerExporter || e instanceof ZipkinExporter) : undefined,
-    metricReader: finalConfig.enableMetrics ? 
-    (finalConfig.exporters.prometheus ? 
-      new PeriodicExportingMetricReader({
-        exporter: new PrometheusExporter({
-          port: finalConfig.exporters.prometheus.port,
-          endpoint: finalConfig.exporters.prometheus.endpoint,
-        }),
-        exportIntervalMillis: 10000,
-      }) : undefined) : undefined,
+    metricReader: finalConfig.enableMetrics && finalConfig.exporters.prometheus ? 
+      new PrometheusExporter({
+        port: finalConfig.exporters.prometheus.port,
+        endpoint: finalConfig.exporters.prometheus.endpoint,
+      }) : undefined,
     sampler: finalConfig.sampling ? new TraceIdRatioBasedSampler(finalConfig.sampling.probability) : undefined,
   });
 
