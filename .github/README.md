@@ -77,7 +77,7 @@ Detect (`@sonate/detect`) derives 5 production monitoring dimensions from the co
 ## Ecosystem
 - Platform: https://yseeku.com
 - Research & Specifications: https://gammatria.com
-- Community & Philosophy: https://sonate.world
+  
 
 ---
 ## Trust Receipts (SONATE)
@@ -288,7 +288,7 @@ console.log(agent.did); // did:key:z6Mk...
 
 SONATE is part of the SONATE ecosystem:
 
-- **SONATE.WORLD**: Philosophy and community → https://sonate.world
+
 - **GAMMATRIA.COM**: Research and specifications → https://gammatria.com
 - **YSEEKU.COM**: Commercial platform (this repo) → https://yseeku.com
 
