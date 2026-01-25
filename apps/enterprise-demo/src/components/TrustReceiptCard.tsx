@@ -185,7 +185,7 @@ export const TrustReceiptCard: React.FC<TrustReceiptCardProps> = ({
           
           {/* Mini trajectory chart */}
           <div className="mt-2 flex items-end space-x-1 h-8">
-            {emergenceTrajectory.history.slice(-10).map((value, index) => (
+            {emergenceTrajectory.history.slice(-10).map((value: number, index: number) => (
               <div
                 key={index}
                 className={`flex-1 rounded-t ${
