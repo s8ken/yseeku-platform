@@ -7,7 +7,7 @@ Build a beautiful Next.js dashboard that visualizes the CSV/JSON reports and pro
   - `app/layout.tsx`, `app/page.tsx` (public mirror), `app/overseer/page.tsx` (private dashboard), `app/api/analyze/route.ts`
   - `components/` with `RadarChart.tsx`, `VelocitySparkline.tsx`, `VerdictBadge.tsx`, `FileUpload.tsx`
   - `lib/resonate-engine.ts` implementing 5D + velocity + identity logic (wrapping our v2.4 thresholds)
-  - `public/symbi-logo.svg`
+  - `public/sonate-logo.svg`
   - `types/index.ts` for shared types
 
 ## Tech & Dependencies

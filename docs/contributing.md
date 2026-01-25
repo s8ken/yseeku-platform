@@ -2,7 +2,7 @@
 
 ## Overview
 
-Thank you for your interest in contributing to the SONATE platform! This guide will help you understand our development process, coding standards, and how to make valuable contributions to our symbiotic AI orchestration system.
+Thank you for your interest in contributing to the SONATE platform! This guide will help you understand our development process, coding standards, and how to make valuable contributions to our sonateotic AI orchestration system.
 
 ## Table of Contents
 
@@ -710,6 +710,6 @@ Active contributors may be invited to become maintainers based on:
 
 ---
 
-Thank you for contributing to the SONATE platform! Your contributions help us advance symbiotic AI orchestration and create a safer, more aligned future for artificial intelligence.
+Thank you for contributing to the SONATE platform! Your contributions help us advance sonateotic AI orchestration and create a safer, more aligned future for artificial intelligence.
 
 If you have any questions about contributing, please don't hesitate to reach out through our community channels.

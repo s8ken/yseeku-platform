@@ -1,5 +1,5 @@
 ## 1. Product Overview
-A web application for loading and analyzing .symbi manifest files, displaying merkle root information, verifying cryptographic proofs, and visualizing hierarchical parent/branch relationships in an interactive graph format.
+A web application for loading and analyzing .sonate manifest files, displaying merkle root information, verifying cryptographic proofs, and visualizing hierarchical parent/branch relationships in an interactive graph format.
 
 This tool helps developers and users verify the integrity and structure of Symbi manifest data through an intuitive interface.
 
@@ -16,7 +16,7 @@ The Symbi manifest viewer consists of the following main pages:
 ### 2.3 Page Details
 | Page Name | Module Name | Feature description |
 |-----------|-------------|---------------------|
-| Upload page | File upload | Drag-and-drop or browse to select .symbi manifest files. Accept only valid .symbi file format. |
+| Upload page | File upload | Drag-and-drop or browse to select .sonate manifest files. Accept only valid .sonate file format. |
 | Upload page | Validation | Parse and validate manifest file structure, display error messages for invalid files. |
 | Upload page | Loading state | Show progress indicator during file processing and data extraction. |
 | Analysis page | Merkle root display | Extract and prominently display the merkle root hash from the manifest. |
@@ -26,7 +26,7 @@ The Symbi manifest viewer consists of the following main pages:
 | Analysis page | Export options | Allow users to export verification results and graph data as JSON or image. |
 
 ## 3. Core Process
-User uploads a .symbi manifest file → System validates and parses the file → Displays merkle root and manifest structure → User can verify proofs against the manifest → Interactive graph shows parent/branch relationships → User can explore individual nodes and export results.
+User uploads a .sonate manifest file → System validates and parses the file → Displays merkle root and manifest structure → User can verify proofs against the manifest → Interactive graph shows parent/branch relationships → User can explore individual nodes and export results.
 
 ```mermaid
 graph TD

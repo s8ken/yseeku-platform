@@ -287,7 +287,7 @@ function scaffoldEvidence(transcript: Transcript): { score: number; chunks: Evid
     'coherence',
     'alignment',
     'emergence',
-    'symbiosis',
+    'sonateosis',
     'integration',
   ];
   const text = transcript.text.toLowerCase();

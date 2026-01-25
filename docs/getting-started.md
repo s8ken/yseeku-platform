@@ -665,4 +665,4 @@ After completing the installation:
 
 ---
 
-Welcome to the SONATE platform! We're excited to see what you'll build with our symbiotic AI orchestration system.
+Welcome to the SONATE platform! We're excited to see what you'll build with our sonateotic AI orchestration system.

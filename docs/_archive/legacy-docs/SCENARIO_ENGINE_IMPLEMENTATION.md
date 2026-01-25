@@ -136,7 +136,7 @@ dispatchDataUpdate() {
 
 **Single Source of Truth:**
 - All agent states stored in `currentData.agents`
-- All SYMBI scores in `currentData.symbi`
+- All SYMBI scores in `currentData.sonate`
 - All governance metrics in root `currentData`
 - Both layers read from same state
 

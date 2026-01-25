@@ -1,13 +1,13 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
-from symbi_resonance_calculator import SymbiResonanceCalculator
+from sonate_resonance_calculator import SonateResonanceCalculator
 
-app = FastAPI(title="Symbi Resonance Engine", description="API for calculating resonance scores and trust receipts")
+app = FastAPI(title="Sonate Resonance Engine", description="API for calculating resonance scores and trust receipts")
 
 # Initialize the calculator (loads the model, which might take a moment)
-print("Initializing Symbi Resonance Calculator...")
-calculator = SymbiResonanceCalculator()
+print("Initializing Sonate Resonance Calculator...")
+calculator = SonateResonanceCalculator()
 print("Calculator initialized.")
 
 class ResonanceRequest(BaseModel):
@@ -75,7 +75,7 @@ async def health_check():
 @app.get("/")
 async def root():
     return {
-        "message": "Symbi Resonance Engine is running",
+        "message": "Sonate Resonance Engine is running",
         "docs_url": "/docs",
         "health_check": "/health"
     }

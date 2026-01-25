@@ -21,7 +21,6 @@ interface InfoTooltipProps {
 const glossary: Record<string, string> = {
   // SONATE Framework - Two-Layer Architecture
   "SONATE Framework": "Constitutional AI framework with 6 core principles (CONSENT_ARCHITECTURE, INSPECTION_MANDATE, CONTINUOUS_VALIDATION, ETHICAL_OVERRIDE, RIGHT_TO_DISCONNECT, MORAL_RECOGNITION) deriving into 5 monitoring dimensions for production use.",
-  "SONATE Framework": "Legacy name for SONATE Framework. Constitutional AI framework with 6 core principles deriving into 5 monitoring dimensions.",
   
   // LAYER 1: The 6 SONATE Constitutional Principles (@sonate/core)
   "CONSENT_ARCHITECTURE": "Users must explicitly consent to AI interactions and understand implications. Critical principle (Weight: 25%). If violated (score=0), overall trust becomes 0.",

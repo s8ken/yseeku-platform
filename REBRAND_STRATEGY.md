@@ -158,7 +158,7 @@ Improve code consistency.
 #### Variable/Property Names
 ```typescript
 // Before:
-const symbiScore = ...;
+const sonateScore = ...;
 const sonate = {
   consent: 8.5,
   inspection: 9.0,

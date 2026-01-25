@@ -102,9 +102,9 @@ export default function OverridesHistoryPage() {
     window.URL.revokeObjectURL(url);
   };
 
-  const getDecisionBadgeVariant = (decision: string) => {
+  const getDecisionBadgeVariant = (decision: string): "default" | "destructive" | "outline" | "secondary" => {
     switch (decision) {
-      case 'approve': return 'success';
+      case 'approve': return 'secondary';
       case 'reject': return 'destructive';
       default: return 'default';
     }

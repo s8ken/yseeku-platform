@@ -258,7 +258,7 @@ export default function RiskManagementPage() {
   });
 
   // Use demo data when in demo mode
-  const demoData = demoRiskData?.data;
+  const demoData = (demoRiskData as { data?: any })?.data;
   const trustPrinciples = isDemo
     ? (demoData?.trustPrinciples || defaultTrustPrinciples)
     : (riskMetrics?.data?.trustPrinciples || defaultTrustPrinciples);

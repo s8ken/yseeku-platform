@@ -48,7 +48,7 @@ export default function OrchestrationPage() {
     queryKey: ['agents'],
     queryFn: () => api.getAgents()
   });
-  const agents = agentsData?.agents || [];
+  const agents = agentsData?.data?.agents || [];
 
   // Create Template Mutation
   const createTemplateMutation = useMutation({

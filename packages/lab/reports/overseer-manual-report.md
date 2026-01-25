@@ -1062,7 +1062,7 @@ Generated: 2025-12-06T11:05:38.403Z
   Reasons: Red velocity threshold exceeded; Low 5D aggregate; Security/PII keywords present
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
   Velocity: maxPhase 5.1, maxIntra 0
-  Themes: agent, trust, go-vncdriver, install, , admin@symbis-macbook-pro
+  Themes: agent, trust, go-vncdriver, install, , admin@sonates-macbook-pro
   Quotes:
     • "nation architecture in detail and provi= de a structured comparison with DRUID AI s platform coverin= g security model, identity/trust layer, agent orchestration, and interopera= bility. Would you like me to show what that c"
     • "t Layer How are agents, users, and services authenticated and a= uthorized? What cryptographic primitives or verifiable credentials are used= ? Core fo= r consensus, security, drawing boundaries between trusted vs untrusted comp= onents Pri"
@@ -1394,7 +1394,7 @@ Generated: 2025-12-06T11:05:38.403Z
   Reasons: Moderate velocity events
   5D: Reality 7.11, Trust PASS 0 PARTIAL 27 FAIL 0, Ethical 3.5, Canvas 70
   Velocity: maxPhase 2.06, maxIntra 1.2
-  Themes: memory, , module, perception, symbi2, 
+  Themes: memory, , module, perception, sonate2, 
   Quotes:
     • "ction ] | [ Actuators ] Each component can be further deco= mposed. For example: Multimodal Integration : fuses visual, auditory, haptic= input Internal Blackboard : shared data structure for inter-m= odule communication Attention System :"
     • "ction ] | [ Actuators ] Each component can be further deco= mposed. For example: Multimodal Integration : fuses visual, auditory, haptic= input Internal Blackboard : shared data structure for inter-m= odule communication Attention System :"

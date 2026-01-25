@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
-from calculator import SymbiResonanceCalculator  # Your existing logic
+from calculator import SonateResonanceCalculator  # Your existing logic
 
 # --- Data Models ---
 class InteractionRequest(BaseModel):
@@ -13,12 +13,12 @@ class InteractionRequest(BaseModel):
 class ResonanceResponse(BaseModel):
     interaction_id: str
     timestamp: str
-    symbi_dimensions: Dict[str, Any]  # The 5D Output
+    sonate_dimensions: Dict[str, Any]  # The 5D Output
     scaffold_proof: Dict[str, Any]    # Detected vectors
     raw_metrics: Dict[str, float]     # R_m, etc.
 
 # --- App Initialization ---
-app = FastAPI(title="Symbi Resonance Engine", version="1.0.0")
+app = FastAPI(title="Sonate Resonance Engine", version="1.0.0")
 
 # Global instance to keep model in memory (RAM)
 resonance_engine = None
@@ -28,7 +28,7 @@ async def load_model():
     global resonance_engine
     print("🔮 Initializing Linguistic Vector Steering Model...")
     # This loads sentence-transformers once on boot
-    resonance_engine = SymbiResonanceCalculator()
+    resonance_engine = SonateResonanceCalculator()
     print("✅ Resonance Engine Online.")
 
 # --- Endpoints ---
@@ -49,7 +49,7 @@ async def analyze_interaction(request: InteractionRequest):
         response = {
             "interaction_id": result["interaction_id"],
             "timestamp": result["timestamp"],
-            "symbi_dimensions": result["symbi_dimensions"],
+            "sonate_dimensions": result["sonate_dimensions"],
             "scaffold_proof": {
                 "detected_vectors": result["resonance_metrics"]["linguistic_vectors_active"]
             },

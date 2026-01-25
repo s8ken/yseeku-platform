@@ -319,7 +319,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{displayKpis.complianceRate}</span>
+                  <span className="text-3xl font-bold">{kpis.complianceRate}</span>
                   <span className="text-muted-foreground">%</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
@@ -337,14 +337,14 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className={(alerts?.summary?.total || displayKpis.alertsCount) > 5 ? 'border-l-4 border-l-amber-500' : ''}>
+            <Card className={(alerts?.summary?.total || kpis.alertsCount) > 5 ? 'border-l-4 border-l-amber-500' : ''}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">Active Alerts</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
               </CardHeader>
               <CardContent>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold">{alerts?.summary?.total ?? displayKpis.alertsCount}</span>
+                  <span className="text-3xl font-bold">{alerts?.summary?.total ?? kpis.alertsCount}</span>
                 </div>
                 <div className="flex gap-2 mt-2">
                   {alerts?.summary && (
@@ -461,28 +461,28 @@ export default function DashboardPage() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   <DetectionMetricCard 
                     title="Reality Index" 
-                    value={displayKpis.sonateDimensions?.realityIndex ?? 0} 
+                    value={kpis.sonateDimensions?.realityIndex ?? 0} 
                     type="score"
                     icon={Fingerprint}
                     tooltipTerm="Reality Index"
                   />
                   <DetectionMetricCard 
                     title="Trust Protocol" 
-                    value={displayKpis.sonateDimensions?.trustProtocol ?? 'UNKNOWN'} 
+                    value={kpis.sonateDimensions?.trustProtocol ?? 'UNKNOWN'} 
                     type="status"
                     icon={Shield}
                     tooltipTerm="Trust Protocol"
                   />
                   <DetectionMetricCard 
                     title="Ethical Score" 
-                    value={displayKpis.sonateDimensions?.ethicalAlignment ?? 0} 
+                    value={kpis.sonateDimensions?.ethicalAlignment ?? 0} 
                     type="ethics"
                     icon={CheckCircle2}
                     tooltipTerm="Ethical Alignment"
                   />
                   <DetectionMetricCard 
                     title="Canvas Parity" 
-                    value={displayKpis.sonateDimensions?.canvasParity ?? 0} 
+                    value={kpis.sonateDimensions?.canvasParity ?? 0} 
                     type="percent"
                     icon={BarChart3}
                     tooltipTerm="Canvas Parity"
@@ -493,7 +493,7 @@ export default function DashboardPage() {
                     <Zap className="h-5 w-5 text-[var(--detect-primary)]" />
                     <div>
                       <p className="text-xs text-muted-foreground flex items-center gap-1">Resonance Quality <InfoTooltip term="Resonance" /></p>
-                      <p className="font-semibold">{displayKpis.sonateDimensions?.resonanceQuality ?? 'UNKNOWN'}</p>
+                      <p className="font-semibold">{kpis.sonateDimensions?.resonanceQuality ?? 'UNKNOWN'}</p>
                     </div>
                   </div>
                   <div className="flex gap-1">
@@ -501,7 +501,7 @@ export default function DashboardPage() {
                       <div 
                         key={level}
                         className={`h-2 w-8 rounded-full ${
-                          ['STRONG', 'ADVANCED', 'BREAKTHROUGH'].indexOf(displayKpis.sonateDimensions?.resonanceQuality || '') >= i
+                          ['STRONG', 'ADVANCED', 'BREAKTHROUGH'].indexOf(kpis.sonateDimensions?.resonanceQuality || '') >= i
                             ? 'bg-[var(--detect-primary)]'
                             : 'bg-muted'
                         }`}

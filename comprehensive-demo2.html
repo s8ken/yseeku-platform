@@ -3046,7 +3046,7 @@
                 if (result) {
                     // Display real API results
                     const rawMetrics = result.raw_metrics || {};
-                    const symbiDimensions = result.sonate_dimensions || {};
+                    const sonateDimensions = result.sonate_dimensions || {};
 
                     scoresDiv.innerHTML = `
                         <div class="card">
@@ -3056,7 +3056,7 @@
                         </div>
                         <div class="card">
                             <h5>Trust Protocol</h5>
-                            <div class="metric-value" style="color: ${symbiDimensions.trust_protocol === 'PASS' ? 'var(--success)' : 'var(--warning)'};">${symbiDimensions.trust_protocol || 'UNKNOWN'}</div>
+                            <div class="metric-value" style="color: ${sonateDimensions.trust_protocol === 'PASS' ? 'var(--success)' : 'var(--warning)'};">${sonateDimensions.trust_protocol || 'UNKNOWN'}</div>
                             <div class="text-xs" style="color: var(--slate-400);">Security compliance</div>
                         </div>
                         <div class="card">
@@ -3066,7 +3066,7 @@
                         </div>
                         <div class="card">
                             <h5>Resonance Quality</h5>
-                            <div class="metric-value" style="color: var(--success);">${symbiDimensions.resonance_quality || 'STANDARD'}</div>
+                            <div class="metric-value" style="color: var(--success);">${sonateDimensions.resonance_quality || 'STANDARD'}</div>
                             <div class="text-xs" style="color: var(--slate-400);">Creative synthesis</div>
                         </div>
                         <div class="card">

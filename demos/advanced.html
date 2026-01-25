@@ -1162,7 +1162,7 @@
                 </div>
 
                 <div class="chart-container">
-                    <canvas id="symbiRadarChart"></canvas>
+                    <canvas id="sonateRadarChart"></canvas>
                 </div>
 
                 <div class="grid">
@@ -2566,9 +2566,9 @@
         // Chart Initialization
         function initializeCharts() {
             // SONATE Radar Chart
-            const symbiCtx = document.getElementById('symbiRadarChart');
-            if (symbiCtx) {
-                new Chart(symbiCtx, {
+            const sonateCtx = document.getElementById('sonateRadarChart');
+            if (sonateCtx) {
+                new Chart(sonateCtx, {
                     type: 'radar',
                     data: {
                         labels: ['CONSENT\n(25%)', 'INSPECTION\n(20%)', 'VALIDATION\n(20%)', 'OVERRIDE\n(15%)', 'DISCONNECT\n(10%)', 'MORAL\n(10%)'],

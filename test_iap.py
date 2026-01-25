@@ -5,17 +5,17 @@ import os
 # Add the current directory to sys.path to find calculator
 sys.path.append(os.path.abspath('apps/resonance-engine'))
 
-from calculator import SymbiResonanceCalculator
+from calculator import SonateResonanceCalculator
 
 def test_iap_automation():
-    calc = SymbiResonanceCalculator()
+    calc = SonateResonanceCalculator()
     
     print("--- Test 1: High Resonance (No Drift) ---")
     user_input = "Tell me about the sovereign protocol and resonance."
     ai_response = "The sovereign protocol ensures user agency, while resonance measures the alignment between intent and output."
     history = [
-        "What is Symbi?",
-        "Symbi is a framework for ethical AI collaboration.",
+        "What is Sonate?",
+        "Sonate is a framework for ethical AI collaboration.",
         "How does it work?",
         "It uses linguistic vector steering."
     ]

@@ -77,12 +77,12 @@ function App() {
               
               <div class="section">
                 <h2>SYMBI 5D Trust Scoring</h2>
-                <div class="score">Reality Index: ${currentReceipt.symbiScore.realityIndex}/10</div>
-                <div class="score">Trust Protocol: ${currentReceipt.symbiScore.trustProtocol}</div>
-                <div class="score">Ethical Alignment: ${currentReceipt.symbiScore.ethicalAlignment}/5</div>
-                <div class="score">Resonance Quality: ${currentReceipt.symbiScore.resonanceQuality}</div>
-                <div class="score">Canvas Parity: ${currentReceipt.symbiScore.canvasParity}%</div>
-                <div class="score">Overall Score: ${currentReceipt.symbiScore.overallScore}/10</div>
+                <div class="score">Reality Index: ${currentReceipt.sonateScore.realityIndex}/10</div>
+                <div class="score">Trust Protocol: ${currentReceipt.sonateScore.trustProtocol}</div>
+                <div class="score">Ethical Alignment: ${currentReceipt.sonateScore.ethicalAlignment}/5</div>
+                <div class="score">Resonance Quality: ${currentReceipt.sonateScore.resonanceQuality}</div>
+                <div class="score">Canvas Parity: ${currentReceipt.sonateScore.canvasParity}%</div>
+                <div class="score">Overall Score: ${currentReceipt.sonateScore.overallScore}/10</div>
               </div>
               
               <div class="section">

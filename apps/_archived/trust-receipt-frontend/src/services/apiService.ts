@@ -211,7 +211,7 @@ export class TrustReceiptService {
       model: receipt.model,
       userInput: receipt.userInput,
       aiResponse: receipt.aiResponse,
-      symbiScore: receipt.symbiScore,
+      symbiScore: receipt.sonateScore,
     };
     
     const expectedHash = this.generateHash(JSON.stringify(receiptData));

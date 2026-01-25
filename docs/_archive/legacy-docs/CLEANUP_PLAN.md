@@ -8,7 +8,7 @@
 - [ ] `verify_fixes.py` - Verification script (move to scripts/ if needed)
 
 ### Duplicate Files
-- [ ] `symbi_resonance_calculator.py` - Duplicate (already in packages/resonance-engine/)
+- [ ] `sonate_resonance_calculator.py` - Duplicate (already in packages/resonance-engine/)
 - [ ] `.gitignore.old` - Old gitignore backup
 
 ### Demo Files (Consider Moving to examples/)

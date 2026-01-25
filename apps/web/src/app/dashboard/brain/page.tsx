@@ -594,7 +594,7 @@ export default function SystemBrainDashboard() {
                 </div>
               ) : effectiveness && effectiveness.length > 0 ? (
                 <div className="space-y-4">
-                  {effectiveness.map((eff: { actionType: string; trend: string; effectivenessScore: number; totalActions?: number; avgImpact?: number; avgDuration?: number; successRate?: number }, i: number) => (
+                  {effectiveness.map((eff: { actionType: string; trend: 'improving' | 'stable' | 'declining'; effectivenessScore: number; totalActions?: number; avgImpact?: number; avgDuration?: number; successRate?: number; successCount?: number; failureCount?: number }, i: number) => (
                     <div key={i} className="p-4 border rounded-lg">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
@@ -621,7 +621,7 @@ export default function SystemBrainDashboard() {
                         </div>
                         <div>
                           <div className="text-muted-foreground">Avg Impact</div>
-                          <div className="font-medium">{(eff.avgImpact * 100).toFixed(0)}%</div>
+                          <div className="font-medium">{((eff.avgImpact ?? 0) * 100).toFixed(0)}%</div>
                         </div>
                       </div>
                     </div>

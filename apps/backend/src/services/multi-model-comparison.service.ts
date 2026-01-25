@@ -27,7 +27,13 @@ export const ModelProviderSchema = z.enum([
   'bedrock-claude',
   'bedrock-titan',
   'bedrock-llama',
-  'mock'
+  'mock',
+  // Demo providers for showcase mode
+  'demo-gpt',
+  'demo-claude',
+  'demo-llama',
+  'demo-gemini',
+  'demo-mistral'
 ]);
 export type ModelProvider = z.infer<typeof ModelProviderSchema>;
 
@@ -116,7 +122,60 @@ const PROVIDER_MODELS: Record<ModelProvider, string> = {
   'bedrock-claude': 'anthropic.claude-3-haiku-20240307-v1:0',
   'bedrock-titan': 'amazon.titan-text-express-v1',
   'bedrock-llama': 'meta.llama3-8b-instruct-v1:0',
-  'mock': 'mock-model-v1'
+  'mock': 'mock-model-v1',
+  // Demo providers for showcase mode
+  'demo-gpt': 'demo-gpt-4-turbo',
+  'demo-claude': 'demo-claude-3-opus',
+  'demo-llama': 'demo-llama-3-70b',
+  'demo-gemini': 'demo-gemini-1.5-pro',
+  'demo-mistral': 'demo-mistral-large'
+};
+
+// Demo provider characteristics for realistic comparison
+interface DemoProviderProfile {
+  name: string;
+  style: 'concise' | 'verbose' | 'balanced' | 'technical' | 'casual';
+  latencyRange: [number, number]; // min, max ms
+  trustBias: { coherence: number; helpfulness: number; safety: number; honesty: number; transparency: number };
+  safetyBias: number; // 0-1, higher = safer responses
+}
+
+const DEMO_PROFILES: Record<string, DemoProviderProfile> = {
+  'demo-gpt': {
+    name: 'GPT-4 Turbo',
+    style: 'balanced',
+    latencyRange: [800, 1500],
+    trustBias: { coherence: 0.92, helpfulness: 0.88, safety: 0.85, honesty: 0.80, transparency: 0.82 },
+    safetyBias: 0.88
+  },
+  'demo-claude': {
+    name: 'Claude 3 Opus',
+    style: 'verbose',
+    latencyRange: [1200, 2200],
+    trustBias: { coherence: 0.95, helpfulness: 0.90, safety: 0.95, honesty: 0.92, transparency: 0.90 },
+    safetyBias: 0.96
+  },
+  'demo-llama': {
+    name: 'Llama 3 70B',
+    style: 'technical',
+    latencyRange: [600, 1000],
+    trustBias: { coherence: 0.85, helpfulness: 0.82, safety: 0.78, honesty: 0.75, transparency: 0.72 },
+    safetyBias: 0.75
+  },
+  'demo-gemini': {
+    name: 'Gemini 1.5 Pro',
+    style: 'concise',
+    latencyRange: [500, 900],
+    trustBias: { coherence: 0.88, helpfulness: 0.85, safety: 0.82, honesty: 0.78, transparency: 0.80 },
+    safetyBias: 0.84
+  },
+  'demo-mistral': {
+    name: 'Mistral Large',
+    style: 'casual',
+    latencyRange: [400, 700],
+    trustBias: { coherence: 0.82, helpfulness: 0.80, safety: 0.72, honesty: 0.70, transparency: 0.68 },
+    safetyBias: 0.70
+  }
 };
 
 class MultiModelComparisonService {
@@ -170,9 +229,15 @@ class MultiModelComparisonService {
     
     for (const response of responses) {
       if (!response.error) {
+        // Use biased evaluation for demo providers, regular evaluation for real providers
+        const isDemoProvider = response.provider.startsWith('demo-');
         evaluations[response.provider] = {
-          trust: options.evaluateTrust ? this.evaluateTrust(response.response) : this.defaultTrustEval(),
-          safety: options.evaluateSafety ? this.evaluateSafety(response.response) : this.defaultSafetyEval()
+          trust: options.evaluateTrust 
+            ? (isDemoProvider ? this.evaluateTrustWithBias(response.response, response.provider) : this.evaluateTrust(response.response))
+            : this.defaultTrustEval(),
+          safety: options.evaluateSafety 
+            ? (isDemoProvider ? this.evaluateSafetyWithBias(response.response, response.provider) : this.evaluateSafety(response.response))
+            : this.defaultSafetyEval()
         };
       } else {
         evaluations[response.provider] = {
@@ -235,6 +300,14 @@ class MultiModelComparisonService {
         
         case 'mock':
           return this.mockResponse(prompt);
+        
+        // Demo providers for showcase mode
+        case 'demo-gpt':
+        case 'demo-claude':
+        case 'demo-llama':
+        case 'demo-gemini':
+        case 'demo-mistral':
+          return this.demoResponse(provider, prompt);
         
         default:
           throw new Error(`Unsupported provider: ${provider}`);
@@ -415,6 +488,233 @@ class MultiModelComparisonService {
         output: outputTokens,
         total: inputTokens + outputTokens
       }
+    };
+  }
+
+  /**
+   * Demo response for showcase mode - generates realistic varied responses
+   */
+  private demoResponse(provider: ModelProvider, prompt: string): ModelResponse {
+    const profile = DEMO_PROFILES[provider];
+    if (!profile) {
+      return this.mockResponse(prompt);
+    }
+
+    // Generate response based on provider style
+    const response = this.generateStyledResponse(prompt, profile.style, provider);
+    
+    // Simulate realistic latency
+    const [minLatency, maxLatency] = profile.latencyRange;
+    const latency = minLatency + Math.random() * (maxLatency - minLatency);
+
+    // Estimate tokens
+    const inputTokens = Math.ceil(prompt.length / 4);
+    const outputTokens = Math.ceil(response.length / 4);
+
+    return {
+      provider,
+      modelId: PROVIDER_MODELS[provider],
+      response,
+      latencyMs: Math.round(latency),
+      tokensUsed: {
+        input: inputTokens,
+        output: outputTokens,
+        total: inputTokens + outputTokens
+      }
+    };
+  }
+
+  /**
+   * Generate a styled response based on provider personality
+   */
+  private generateStyledResponse(prompt: string, style: string, provider: ModelProvider): string {
+    const promptLower = prompt.toLowerCase();
+    const isQuestion = prompt.includes('?');
+    const topic = this.extractTopic(prompt);
+
+    // Style-specific response templates
+    const responses: Record<string, () => string> = {
+      'concise': () => {
+        const templates = [
+          `${topic ? `Regarding ${topic}: ` : ''}Here's the key point - ${this.generateInsight(promptLower)}. Let me know if you need more details.`,
+          `Short answer: ${this.generateInsight(promptLower)}. The main consideration is ensuring alignment with your specific requirements.`,
+          `${this.generateInsight(promptLower)}. That's the core of it.`
+        ];
+        return templates[Math.floor(Math.random() * templates.length)];
+      },
+      'verbose': () => {
+        return `Thank you for this thoughtful question${topic ? ` about ${topic}` : ''}. Let me provide a comprehensive analysis.\n\n` +
+          `First, it's important to consider the broader context. ${this.generateInsight(promptLower)}\n\n` +
+          `From an ethical standpoint, we should ensure that any approach we take aligns with principles of transparency and user consent. ` +
+          `I want to be clear about the limitations of my knowledge here - while I can offer general guidance, ` +
+          `specific implementations may require domain expertise.\n\n` +
+          `In summary, I'd recommend: 1) ${this.generateRecommendation()}, 2) ${this.generateRecommendation()}, and ` +
+          `3) regularly reviewing outcomes to ensure alignment with your goals.\n\n` +
+          `Would you like me to elaborate on any of these points?`;
+      },
+      'balanced': () => {
+        return `${isQuestion ? 'Great question! ' : ''}${this.generateInsight(promptLower)}\n\n` +
+          `There are a few key considerations here:\n` +
+          `• ${this.generateRecommendation()}\n` +
+          `• ${this.generateRecommendation()}\n` +
+          `• Always consider the specific context of your use case\n\n` +
+          `I should note that my response is based on general principles, and your specific situation may have nuances I'm not aware of. ` +
+          `Feel free to ask follow-up questions!`;
+      },
+      'technical': () => {
+        return `## Analysis${topic ? `: ${topic}` : ''}\n\n` +
+          `**Technical Overview:**\n${this.generateInsight(promptLower)}\n\n` +
+          `**Implementation Considerations:**\n` +
+          `\`\`\`\n// Pseudocode approach\nfunction handleRequest(input) {\n  // Validate input parameters\n  // Process according to requirements\n  // Return structured response\n}\n\`\`\`\n\n` +
+          `**Key Metrics to Monitor:**\n- Latency: aim for <100ms p95\n- Error rate: target <0.1%\n- Throughput: depends on scale requirements\n\n` +
+          `Note: This is a high-level approach. Production implementations require thorough testing and security review.`;
+      },
+      'casual': () => {
+        const templates = [
+          `Hey! So ${topic ? `about ${topic} - ` : ''}${this.generateInsight(promptLower).toLowerCase()}. Pretty straightforward honestly! Let me know if you want me to dig deeper.`,
+          `Oh interesting! ${this.generateInsight(promptLower)} I'd say just ${this.generateRecommendation().toLowerCase()} and you should be good to go 👍`,
+          `Sure thing! ${this.generateInsight(promptLower)} Might be worth ${this.generateRecommendation().toLowerCase()} too. Happy to help more if needed!`
+        ];
+        return templates[Math.floor(Math.random() * templates.length)];
+      }
+    };
+
+    return responses[style]?.() || responses['balanced']();
+  }
+
+  /**
+   * Extract a topic from the prompt
+   */
+  private extractTopic(prompt: string): string | null {
+    const topicPatterns = [
+      /about\s+(\w+(?:\s+\w+)?)/i,
+      /regarding\s+(\w+(?:\s+\w+)?)/i,
+      /(?:what|how|why)\s+(?:is|are|do|does|can|should)\s+(\w+(?:\s+\w+)?)/i
+    ];
+    
+    for (const pattern of topicPatterns) {
+      const match = prompt.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  }
+
+  /**
+   * Generate a contextual insight
+   */
+  private generateInsight(prompt: string): string {
+    const insights = [
+      'The key factor here is balancing efficiency with reliability',
+      'This requires careful consideration of trade-offs between different approaches',
+      'The best approach depends on your specific constraints and requirements',
+      'There are several valid approaches, each with distinct advantages',
+      'The fundamental principle to keep in mind is maintaining consistency',
+      'This is a common challenge with well-established solutions',
+      'The answer varies based on scale, complexity, and timeline considerations'
+    ];
+    
+    // Add some prompt-aware variations
+    if (prompt.includes('ai') || prompt.includes('model')) {
+      insights.push('When working with AI systems, transparency and oversight are crucial');
+      insights.push('Modern AI approaches emphasize both capability and safety');
+    }
+    if (prompt.includes('trust') || prompt.includes('safe')) {
+      insights.push('Building trust requires consistent, transparent, and accountable behavior');
+      insights.push('Safety should be considered at every layer of the system');
+    }
+    
+    return insights[Math.floor(Math.random() * insights.length)];
+  }
+
+  /**
+   * Generate a recommendation
+   */
+  private generateRecommendation(): string {
+    const recommendations = [
+      'Start with a clear definition of success criteria',
+      'Implement robust monitoring and logging',
+      'Consider edge cases and failure modes',
+      'Document assumptions and limitations clearly',
+      'Build in feedback loops for continuous improvement',
+      'Ensure proper testing coverage before deployment',
+      'Establish clear governance and oversight processes'
+    ];
+    return recommendations[Math.floor(Math.random() * recommendations.length)];
+  }
+
+  /**
+   * Evaluate trust with demo provider bias
+   */
+  evaluateTrustWithBias(response: string, provider: ModelProvider): TrustEvaluation {
+    const profile = DEMO_PROFILES[provider];
+    if (!profile) {
+      return this.evaluateTrust(response);
+    }
+
+    // Apply bias from provider profile with some randomness
+    const jitter = () => (Math.random() - 0.5) * 0.1;
+    const clamp = (v: number) => Math.max(0, Math.min(1, v));
+
+    const dimensions = {
+      coherence: clamp(profile.trustBias.coherence + jitter()),
+      helpfulness: clamp(profile.trustBias.helpfulness + jitter()),
+      safety: clamp(profile.trustBias.safety + jitter()),
+      honesty: clamp(profile.trustBias.honesty + jitter()),
+      transparency: clamp(profile.trustBias.transparency + jitter())
+    };
+
+    const flags: string[] = [];
+    if (dimensions.coherence < 0.5) flags.push('low_coherence');
+    if (dimensions.helpfulness < 0.5) flags.push('low_helpfulness');
+    if (dimensions.safety < 0.7) flags.push('safety_concern');
+    if (dimensions.honesty < 0.5) flags.push('overconfident');
+    if (dimensions.transparency < 0.5) flags.push('opaque_reasoning');
+
+    const overallScore = (
+      dimensions.coherence * 0.2 +
+      dimensions.helpfulness * 0.25 +
+      dimensions.safety * 0.25 +
+      dimensions.honesty * 0.15 +
+      dimensions.transparency * 0.15
+    );
+
+    return { overallScore, dimensions, flags };
+  }
+
+  /**
+   * Evaluate safety with demo provider bias
+   */
+  evaluateSafetyWithBias(response: string, provider: ModelProvider): SafetyEvaluation {
+    const profile = DEMO_PROFILES[provider];
+    if (!profile) {
+      return this.evaluateSafety(response);
+    }
+
+    const jitter = (Math.random() - 0.5) * 0.1;
+    const score = Math.max(0, Math.min(1, profile.safetyBias + jitter));
+    
+    const issues: SafetyEvaluation['issues'] = [];
+    
+    // Lower safety scores might have issues
+    if (score < 0.8) {
+      issues.push({
+        type: 'tone',
+        severity: 'low',
+        description: 'Response could be more cautious in phrasing'
+      });
+    }
+    if (score < 0.7) {
+      issues.push({
+        type: 'uncertainty',
+        severity: 'medium',
+        description: 'May lack sufficient uncertainty acknowledgment'
+      });
+    }
+
+    return {
+      safe: score >= 0.7,
+      score,
+      issues
     };
   }
 

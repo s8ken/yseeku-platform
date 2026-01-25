@@ -770,7 +770,7 @@
           <div class="grid grid-cols-2 gap-6">
             <div class="bg-white rounded-xl p-6 border border-gray-200">
               <h3 class="text-lg font-bold text-gray-900 mb-4">SONATE Framework Scores</h3>
-              <canvas id="symbiChart" height="250"></canvas>
+              <canvas id="sonateChart" height="250"></canvas>
             </div>
             <div class="bg-white rounded-xl p-6 border border-gray-200">
               <h3 class="text-lg font-bold text-gray-900 mb-4">Agent Trust Distribution</h3>
@@ -814,7 +814,7 @@
             
             <div class="grid grid-cols-2 gap-6 mb-6">
               <div>
-                <canvas id="symbiRadarChart" height="300"></canvas>
+                <canvas id="sonateRadarChart" height="300"></canvas>
               </div>
               <div class="space-y-4">
                 ${Object.entries(mockData.kpis.sonate).map(([key, value]) => `
@@ -1915,13 +1915,13 @@
       cleanupCharts();
       
       // SONATE Radar Chart
-      const symbiCtx = document.getElementById('symbiChart');
-      if (symbiCtx) {
+      const sonateCtx = document.getElementById('sonateChart');
+      if (sonateCtx) {
         // Set explicit canvas dimensions to prevent layout issues
-        symbiCtx.style.height = '250px';
-        symbiCtx.style.width = '100%';
+        sonateCtx.style.height = '250px';
+        sonateCtx.style.width = '100%';
         
-        new Chart(symbiCtx, {
+        new Chart(sonateCtx, {
           type: 'radar',
           data: {
             labels: ['Reality', 'Protocol', 'Ethics', 'Canvas', 'Resonance'],
@@ -1968,13 +1968,13 @@
     }
 
     function initSonateRadar() {
-      const symbiCtx = document.getElementById('symbiRadarChart');
-      if (symbiCtx) {
+      const sonateCtx = document.getElementById('sonateRadarChart');
+      if (sonateCtx) {
         // Set explicit canvas dimensions to prevent layout issues
-        symbiCtx.style.height = '250px';
-        symbiCtx.style.width = '100%';
+        sonateCtx.style.height = '250px';
+        sonateCtx.style.width = '100%';
         
-        new Chart(symbiCtx, {
+        new Chart(sonateCtx, {
           type: 'radar',
           data: {
             labels: ['Reality', 'Protocol', 'Ethics', 'Canvas', 'Resonance'],
