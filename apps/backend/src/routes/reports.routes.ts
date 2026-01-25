@@ -14,7 +14,7 @@ const router = Router();
 
 // Validation schemas
 const generateReportSchema = z.object({
-  type: z.enum(['trust_summary', 'sonate_compliance', 'incident_report', 'agent_audit', 'full_audit']),
+  type: z.enum(['trust_summary', 'symbi_compliance', 'incident_report', 'agent_audit', 'full_audit']),
   format: z.enum(['json', 'html', 'csv']).optional().default('json'),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
@@ -87,7 +87,7 @@ router.get('/types', protect, (req: Request, res: Response): void => {
         formats: ['json', 'html', 'csv'],
       },
       {
-        id: 'sonate_compliance',
+        id: 'symbi_compliance',
         name: 'SONATE Compliance Report',
         description: 'Detailed SONATE principle compliance analysis with certification readiness',
         formats: ['json', 'html'],
@@ -184,7 +184,7 @@ router.get('/schedule', protect, async (req: Request, res: Response): Promise<vo
 router.get('/demo/:type', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const type = req.params.type as ReportType;
-    const validTypes = ['trust_summary', 'sonate_compliance', 'incident_report', 'agent_audit', 'full_audit'];
+    const validTypes = ['trust_summary', 'symbi_compliance', 'incident_report', 'agent_audit', 'full_audit'];
     
     if (!validTypes.includes(type)) {
       res.status(400).json({ success: false, error: 'Invalid report type' });

@@ -16,9 +16,9 @@ interface GlossaryTerm {
 }
 
 const GLOSSARY: GlossaryTerm[] = [
-  // SONATE Framework - Layer 1: Constitutional Principles
+  // SYMBI Framework - Layer 1: Constitutional Principles
   {
-    term: 'SONATE Framework',
+    term: 'SYMBI Framework',
     definition: 'Constitutional AI framework with 6 core principles (CONSENT_ARCHITECTURE, INSPECTION_MANDATE, CONTINUOUS_VALIDATION, ETHICAL_OVERRIDE, RIGHT_TO_DISCONNECT, MORAL_RECOGNITION) deriving into 5 monitoring dimensions for production use.',
     category: 'principles',
     relatedTerms: ['CONSENT_ARCHITECTURE', 'Reality Index', 'Trust Protocol'],
@@ -134,7 +134,7 @@ const GLOSSARY: GlossaryTerm[] = [
     term: 'Trust Score',
     definition: 'Aggregate metric (0-100) representing overall confidence in an AI agent\'s reliability and safety. Calculated from the 6 constitutional principles weighted by importance.',
     category: 'technical',
-    relatedTerms: ['SONATE Framework', 'Reality Index', 'Trust Protocol'],
+    relatedTerms: ['SYMBI Framework', 'Reality Index', 'Trust Protocol'],
   },
   {
     term: 'Trust Receipt',
@@ -261,7 +261,7 @@ const CATEGORY_INFO = {
   principles: {
     label: 'Constitutional Principles',
     icon: Shield,
-    description: 'The 6 foundational SONATE principles (Layer 1)',
+    description: 'The 6 foundational SYMBI principles (Layer 1)',
   },
   dimensions: {
     label: 'Monitoring Dimensions',
@@ -322,7 +322,7 @@ export default function GlossaryPage() {
           Platform Glossary
         </h1>
         <p className="text-muted-foreground">
-          Comprehensive reference for SONATE Framework, trust principles, and technical terms
+          Comprehensive reference for SYMBI Framework, trust principles, and technical terms
         </p>
       </div>
 

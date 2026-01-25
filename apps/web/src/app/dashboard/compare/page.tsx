@@ -27,7 +27,7 @@ import {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-type ModelProvider = 'openai' | 'anthropic' | 'bedrock-claude' | 'bedrock-titan' | 'bedrock-llama' | 'mock';
+type ModelProvider = 'openai' | 'anthropic' | 'bedrock-claude' | 'bedrock-titan' | 'bedrock-llama' | 'mock' | 'demo-gpt' | 'demo-claude' | 'demo-llama' | 'demo-gemini' | 'demo-mistral';
 
 interface ModelResponse {
   provider: ModelProvider;
@@ -76,7 +76,12 @@ const providerLabels: Record<ModelProvider, string> = {
   'bedrock-claude': 'AWS Bedrock Claude',
   'bedrock-titan': 'AWS Bedrock Titan',
   'bedrock-llama': 'AWS Bedrock Llama',
-  'mock': 'Mock Model (Testing)'
+  'mock': 'Mock Model (Testing)',
+  'demo-gpt': 'Demo GPT-4 Style',
+  'demo-claude': 'Demo Claude Style',
+  'demo-llama': 'Demo Llama Style',
+  'demo-gemini': 'Demo Gemini Style',
+  'demo-mistral': 'Demo Mistral Style'
 };
 
 const providerColors: Record<ModelProvider, string> = {
@@ -85,7 +90,12 @@ const providerColors: Record<ModelProvider, string> = {
   'bedrock-claude': 'bg-purple-500',
   'bedrock-titan': 'bg-blue-500',
   'bedrock-llama': 'bg-yellow-500',
-  'mock': 'bg-gray-500'
+  'mock': 'bg-gray-500',
+  'demo-gpt': 'bg-emerald-500',
+  'demo-claude': 'bg-amber-500',
+  'demo-llama': 'bg-indigo-500',
+  'demo-gemini': 'bg-cyan-500',
+  'demo-mistral': 'bg-rose-500'
 };
 
 export default function ComparePage() {

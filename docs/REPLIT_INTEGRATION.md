@@ -40,7 +40,7 @@ npm run dev --workspace web
 The web dashboard has been redesigned with a 3-module architecture:
 
 1. **DETECT Module** (Green/LIVE) - Production monitoring
-   - Dashboard with KPI cards and SONATE 5-dimension visualization
+   - Dashboard with KPI cards and SYMBI 5-dimension visualization
    - Agent Trust page with circular trust gauges per agent
    - Risk Monitor for resonance and drift detection
    - Real-time alerts feed
@@ -64,20 +64,20 @@ The web dashboard has been redesigned with a 3-module architecture:
 - Loading skeletons and trend indicators
 - Modern card-based layouts with progress bars
 - **InfoTooltip Component** - Hover explanations for technical terms
-  - 50+ term glossary covering SONATE, Bedau Index, statistical terms
+  - 50+ term glossary covering SYMBI, Bedau Index, statistical terms
   - Small (i) icons next to complex terms throughout the platform
   - Located at `apps/web/src/components/ui/info-tooltip.tsx`
-  - SONATE dimensions: Reality Index, Trust Protocol, Ethical Alignment, Canvas Parity, Resonance Quality
+  - SYMBI dimensions: Reality Index, Trust Protocol, Ethical Alignment, Canvas Parity, Resonance Quality
   - Trust Principles: Consent Architecture, Inspection Mandate, Continuous Validation, Ethical Override, Right to Disconnect, Moral Recognition
   - Tooltip bubble styling with background, border, and shadow for better visibility
 
 ### API Endpoints Added
-- `/api/dashboard/kpis` - Platform KPIs with SONATE dimensions
+- `/api/dashboard/kpis` - Platform KPIs with SYMBI dimensions
 - `/api/dashboard/alerts` - System alerts with severity levels
 - `/api/dashboard/risk` - Risk metrics, compliance reports, trust principle scores
 - `/api/lab/experiments` - Active experiments with statistical analysis
 - `/api/tenants` - Tenant CRUD operations (GET, POST, PATCH, DELETE)
-- `/api/agents` - Agent management with SONATE dimensions
+- `/api/agents` - Agent management with SYMBI dimensions
 - `/api/audit/trails` - Audit trail listing with filtering
 - `/api/resonance/analyze` - Bridge to Python resonance engine with fallback
 
@@ -90,7 +90,7 @@ The web dashboard has been redesigned with a 3-module architecture:
 ### Documentation Page
 - In-platform documentation at `/dashboard/docs`
 - 33 documented terms across 6 sections:
-  - SONATE 5-Dimension Framework
+  - SYMBI 5-Dimension Framework
   - Trust Principles
   - Bedau Index & Emergence
   - Resonance Metrics
@@ -102,7 +102,7 @@ The web dashboard has been redesigned with a 3-module architecture:
 - Python FastAPI service at `apps/resonance-engine/`
 - Uses sentence-transformers for semantic analysis
 - API bridge at `/api/resonance/analyze` with fallback calculations
-- Calculates R_m (resonance score) and SONATE 5 dimensions
+- Calculates R_m (resonance score) and SYMBI 5 dimensions
 
 ### Authentication
 - Uses localStorage for JWT tokens (Replit iframe compatible)

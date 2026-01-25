@@ -106,7 +106,7 @@ export function ConstitutionalPrinciples({ principleScores, compact = false }: C
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-purple-500" />
               <CardTitle className="text-base">Constitutional Principles</CardTitle>
-              <InfoTooltip term="SONATE Framework" />
+              <InfoTooltip term="SYMBI Framework" />
             </div>
             <Button
               variant="ghost"
@@ -133,7 +133,7 @@ export function ConstitutionalPrinciples({ principleScores, compact = false }: C
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-purple-500" />
             <CardTitle>6 Constitutional Principles (Layer 1)</CardTitle>
-            <InfoTooltip term="SONATE Framework" />
+            <InfoTooltip term="SYMBI Framework" />
           </div>
           {compact && (
             <Button

@@ -48,7 +48,7 @@ apps/new-demo/
 The main dashboard provides real-time monitoring of platform capabilities:
 
 - **Phase-Shift Velocity Monitor**: Live ΔΦ/t calculations with visual alerts
-- **Constitutional Compliance Gauge**: Real-time SONATE framework adherence
+- **Constitutional Compliance Gauge**: Real-time SYMBI framework adherence
 - **Agent Activity Feed**: Live stream of agent interactions and trust receipts
 - **Performance Metrics**: System performance and benchmarking data
 

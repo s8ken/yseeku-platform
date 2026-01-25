@@ -26,7 +26,7 @@ export interface IUser extends Document {
     theme: 'light' | 'dark' | 'system';
     notifications: boolean;
   };
-  // SONATE Consent tracking for CONSENT_ARCHITECTURE principle
+  // SYMBI Consent tracking for CONSENT_ARCHITECTURE principle
   consent: {
     hasConsentedToAI: boolean;
     consentTimestamp?: Date;
@@ -107,7 +107,7 @@ const UserSchema = new Schema<IUser>({
       default: true,
     },
   },
-  // SONATE Consent tracking for CONSENT_ARCHITECTURE principle
+  // SYMBI Consent tracking for CONSENT_ARCHITECTURE principle
   consent: {
     hasConsentedToAI: {
       type: Boolean,

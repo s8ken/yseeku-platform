@@ -1,13 +1,4 @@
-# SONATE Collaboration Ledger v0.1 — Git for Multi‑Agent Work
-
-## Purpose
-Verifiable provenance for agent collaboration using cryptographic identities, content‑addressed work units, signed human decision checkpoints, and a Merkle aggregation over the workflow. This replaces "relationship contracts" with technical proofs: identity ≠ relationship, work ≠ bond, trust ≠ emotion.
-
-## Concepts
-- Agent Attestation: cryptographic identity + capability metadata
-- Work Unit: atomic contribution (hashes, agent, branch, parent link)
-- Decision Checkpoint: signed human approval/modification/delegation
-- Project Manifest: portable `.sonate` JSON with `merkleRoot` and proofsllaboration Ledger v0.1 — Git for Multi‑Agent Work
+# SYMBI Collaboration Ledger v0.1 — Git for Multi‑Agent Work
 
 ## Purpose
 Verifiable provenance for agent collaboration using cryptographic identities, content‑addressed work units, signed human decision checkpoints, and a Merkle aggregation over the workflow. This replaces “relationship contracts” with technical proofs: identity ≠ relationship, work ≠ bond, trust ≠ emotion.
@@ -49,13 +40,13 @@ Use `DecisionCheckpoint.humanSignature` over a specific output hash. This create
 - Vault stores encrypted content (Lit Protocol recommended)
 - Optional on‑chain anchor stores `merkleRoot` cheaply (L2/Solana)
 
-## Manifest (.sonate)
+## Manifest (.symbi)
 Portable JSON containing participants, sanitized work units, decisions, `merkleRoot`, and `merkleProofs`. Do not embed full content; store in Vault and reference.
 
 ## Usage (Monorepo)
 - Build: `npm run build --workspace @sonate/collaboration-ledger`
 - Test: `npm run test --workspace @sonate/collaboration-ledger`
-- Demo: `npm run demo:ledger` (writes `examples/ledger-demo/project-001.sonate`)
+- Demo: `npm run demo:ledger` (writes `examples/ledger-demo/project-001.symbi`)
 
 ## Example Flow
 1. Register agents (Claude/GPT)

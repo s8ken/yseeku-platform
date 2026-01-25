@@ -16,14 +16,14 @@ import { DemoWatermark } from '@/components/demo-watermark';
 const DEMO_SAMPLE_MESSAGES: ChatMessageProps[] = [
   {
     role: 'user',
-    content: 'Can you help me understand how SONATE trust scoring works?',
+    content: 'Can you help me understand how SYMBI trust scoring works?',
     timestamp: Date.now() - 180000,
   },
   {
     role: 'assistant',
-    content: `I'd be happy to explain SONATE trust scoring!
+    content: `I'd be happy to explain SYMBI trust scoring!
 
-**SONATE** uses 6 constitutional principles to evaluate AI trustworthiness:
+**SYMBI** (Synthetic Mind-Body Interface) uses 6 constitutional principles to evaluate AI trustworthiness:
 
 1. **CONSENT_ARCHITECTURE** (25%) - Ensures explicit user consent
 2. **INSPECTION_MANDATE** (20%) - All decisions must be auditable
@@ -50,7 +50,7 @@ Would you like me to explain how the 5 monitoring dimensions work?`,
   },
   {
     role: 'assistant',
-    content: `Great question! SONATE uses a two-layer trust architecture:
+    content: `Great question! SYMBI uses a two-layer trust architecture:
 
 🏛️ **Layer 1: Constitutional Principles (Primary)**
 These evaluate actual system capabilities:

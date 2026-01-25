@@ -58,7 +58,7 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = ({ evalua
   const [expanded, setExpanded] = useState(false);
   const statusClass = statusClasses(evaluation.status);
 
-  // Get principle scores from trustScore.principles (the real SONATE evaluation)
+  // Get principle scores from trustScore.principles (the real SYMBI evaluation)
   const principles = evaluation.trustScore?.principles || {};
   const hasPrincipleScores = Object.keys(principles).length > 0;
 
@@ -83,7 +83,7 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = ({ evalua
           </span>
           <div className="h-4 w-px bg-slate-700" />
           
-          {/* Show SONATE principle scores instead of NLP metrics */}
+          {/* Show SYMBI principle scores instead of NLP metrics */}
           {hasPrincipleScores ? (
             <div className="flex items-center gap-2 text-[11px]">
               {criticalPrinciples.map(key => {
