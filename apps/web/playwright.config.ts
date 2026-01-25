@@ -6,6 +6,11 @@ export default defineConfig({
     baseURL: process.env.BASE_URL || 'http://localhost:5000',
     trace: 'on-first-retry'
   },
-  retries: 1
+  retries: 1,
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:5000',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000
+  }
 });
-

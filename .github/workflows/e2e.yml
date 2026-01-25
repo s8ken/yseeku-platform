@@ -1,0 +1,59 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  web-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run custom E2E script
+        env:
+          E2E_PORT: '5010'
+          JWT_SECRET: 'e2e-secret'
+        run: node apps/web/scripts/e2e.js
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests (dev server)
+        working-directory: apps/web
+        env:
+          BASE_URL: 'http://localhost:5000'
+        run: npx playwright test
+
+  backend-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Backend E2E with Docker Compose
+        env:
+          BACKEND_URL: 'http://localhost:3001'
+        run: |
+          docker compose version
+          docker compose up -d mongo backend
+          node scripts/e2e-backend.js
