@@ -19,7 +19,7 @@ import {
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { ResonanceExplorer } from '@/components/ResonanceExplorer';
 
-interface SymbiScores {
+interface SonateScores {
   realityIndex: number;
   constitutionalAlignment: number;
   canvasParity: number;
@@ -35,7 +35,7 @@ interface SymbiScores {
   }[];
 }
 
-function RadarChart({ scores }: { scores: SymbiScores }) {
+function RadarChart({ scores }: { scores: SonateScores }) {
   const dimensions = [
     { label: 'Reality', value: scores.realityIndex / 10 },
     { label: 'Constitutional', value: scores.constitutionalAlignment / 10 },
@@ -113,10 +113,10 @@ function RadarChart({ scores }: { scores: SymbiScores }) {
   );
 }
 
-export default function SymbiPage() {
+export default function SonatePage() {
   const [userInput, setUserInput] = useState('');
   const [aiResponse, setAiResponse] = useState('');
-  const [scores, setScores] = useState<SymbiScores | null>(null);
+  const [scores, setScores] = useState<SonateScores | null>(null);
   const [explainResult, setExplainResult] = useState<any>(null);
   const [analyzing, setAnalyzing] = useState(false);
 
@@ -209,7 +209,7 @@ export default function SymbiPage() {
     const emergenceScore = rm * 10;
     const overallTrust = rm * 100;
     
-    const deterministicScores: SymbiScores = {
+    const deterministicScores: SonateScores = {
       realityIndex: Math.round(realityIndex * 10) / 10,
       constitutionalAlignment: Math.round(constitutionalAlignment * 10) / 10,
       canvasParity: Math.round(canvasParity),
@@ -251,8 +251,8 @@ export default function SymbiPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            SYMBI Framework Analysis
-            <InfoTooltip term="SYMBI Framework" />
+            SONATE Framework Analysis
+            <InfoTooltip term="SONATE Framework" />
           </h1>
           <p className="text-muted-foreground">5-Dimension AI interaction scoring</p>
         </div>
@@ -317,7 +317,7 @@ The capital of France is Paris. It's also the largest city in France, known for 
 
         <Card>
           <CardHeader>
-            <CardTitle>SYMBI Scores</CardTitle>
+            <CardTitle>SONATE Scores</CardTitle>
             <CardDescription>5-dimension trust framework results</CardDescription>
           </CardHeader>
           <CardContent>
@@ -336,7 +336,7 @@ The capital of France is Paris. It's also the largest city in France, known for 
               <div className="flex items-center justify-center h-64 text-muted-foreground">
                 <div className="text-center">
                   <Sparkles className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                  <p>Enter text and click Analyze to see SYMBI scores</p>
+                  <p>Enter text and click Analyze to see SONATE scores</p>
                 </div>
               </div>
             )}
@@ -348,7 +348,7 @@ The capital of France is Paris. It's also the largest city in France, known for 
         <Card>
           <CardHeader>
             <CardTitle>Dimension Breakdown</CardTitle>
-            <CardDescription>Detailed analysis of each SYMBI dimension</CardDescription>
+            <CardDescription>Detailed analysis of each SONATE dimension</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useDemo } from '@/hooks/use-demo';
-import { useTutorialStore, SYMBI_ONBOARDING_STEPS } from '@/store/useTutorialStore';
+import { useTutorialStore, SONATE_ONBOARDING_STEPS } from '@/store/useTutorialStore';
 import { toast } from 'sonner';
 
 const DEMO_TUTORIAL_KEY = 'yseeku-demo-tutorial-shown';
@@ -13,13 +13,13 @@ const DEMO_TUTORIAL_KEY = 'yseeku-demo-tutorial-shown';
 export const DEMO_SAMPLE_CONVERSATION = [
   {
     role: 'user' as const,
-    content: 'Can you help me understand how SYMBI trust scoring works?',
+    content: 'Can you help me understand how SONATE trust scoring works?',
   },
   {
     role: 'assistant' as const,
-    content: `I'd be happy to explain SYMBI trust scoring!
+    content: `I'd be happy to explain SONATE trust scoring!
 
-**SYMBI** (Synthetic Mind-Body Interface) uses 6 constitutional principles to evaluate AI trustworthiness:
+**SONATE** (Scalable Orchestration Natively Aligned Trust Enforcement) uses 6 constitutional principles to evaluate AI trustworthiness:
 
 1. **CONSENT_ARCHITECTURE** (25%) - Ensures explicit user consent
 2. **INSPECTION_MANDATE** (20%) - All decisions must be auditable
@@ -86,7 +86,7 @@ export function useDemoInitializer() {
 
     // Small delay to let the page render first
     const timeout = setTimeout(() => {
-      startTutorial(SYMBI_ONBOARDING_STEPS);
+      startTutorial(SONATE_ONBOARDING_STEPS);
       sessionStorage.setItem(DEMO_TUTORIAL_KEY, 'true');
       setHasTriggeredTutorial(true);
       

@@ -39,7 +39,7 @@ const getStatusColor = (status: string) => {
   } 
 }; 
 
-// SYMBI Constitutional Principles with weights and criticality
+// SONATE Constitutional Principles with weights and criticality
 const PRINCIPLE_INFO: Record<string, { name: string; weight: number; critical: boolean; icon: React.ReactNode }> = {
   CONSENT_ARCHITECTURE: { 
     name: 'Consent Architecture', 
@@ -124,7 +124,7 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
         {hasPrinciples && (
           <div className="space-y-3">
             <div className="text-[10px] uppercase text-slate-500 flex items-center gap-2">
-              <Shield size={10} /> 6 SYMBI Constitutional Principles
+              <Shield size={10} /> 6 SONATE Constitutional Principles
             </div>
             
             {Object.entries(PRINCIPLE_INFO).map(([key, info]) => {
