@@ -711,7 +711,7 @@ export class WebhookManager {
         'audit_required'
       ])).min(1),
       secret: z.string().min(32).max(256).optional(),
-      headers: z.record(z.string()).optional(),
+      headers: z.object({}).catchall(z.string()).optional(),
       retryPolicy: z.object({
         maxAttempts: z.number().min(1).max(10).optional(),
         backoffStrategy: z.enum(['fixed', 'linear', 'exponential', 'exponential_with_jitter']).optional(),
