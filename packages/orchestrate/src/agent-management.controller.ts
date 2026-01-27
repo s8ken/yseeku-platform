@@ -482,7 +482,7 @@ export const toggleExternalSystem = asyncHandler(
     }
 
     const { isActive } = req.body;
-    await agent.toggleExternalSystem(req.params.systemName, isActive);
+    await agent.toggleExternalSystem(req.params.systemName as string, isActive);
 
     res.status(200).json({
       success: true,
@@ -530,7 +530,7 @@ export const syncExternalSystem = asyncHandler(async (req: AuthenticatedRequest,
     return;
   }
 
-  const systemName = req.params.systemName;
+  const systemName = req.params.systemName as string;
   const system = agent.externalSystems.find((sys) => sys.name === systemName);
 
   if (!system) {

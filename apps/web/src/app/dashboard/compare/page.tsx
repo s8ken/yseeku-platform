@@ -27,7 +27,7 @@ import {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-type ModelProvider = 'openai' | 'anthropic' | 'bedrock-claude' | 'bedrock-titan' | 'bedrock-llama' | 'mock' | 'demo-gpt' | 'demo-claude' | 'demo-llama' | 'demo-gemini' | 'demo-mistral';
+type ModelProvider = 'openai' | 'anthropic' | 'bedrock-claude' | 'bedrock-titan' | 'bedrock-llama' | 'mock';
 
 interface ModelResponse {
   provider: ModelProvider;
@@ -76,12 +76,7 @@ const providerLabels: Record<ModelProvider, string> = {
   'bedrock-claude': 'AWS Bedrock Claude',
   'bedrock-titan': 'AWS Bedrock Titan',
   'bedrock-llama': 'AWS Bedrock Llama',
-  'mock': 'Mock Model (Testing)',
-  'demo-gpt': 'Demo GPT-4 Style',
-  'demo-claude': 'Demo Claude Style',
-  'demo-llama': 'Demo Llama Style',
-  'demo-gemini': 'Demo Gemini Style',
-  'demo-mistral': 'Demo Mistral Style'
+  'mock': 'Mock Model (Testing)'
 };
 
 const providerColors: Record<ModelProvider, string> = {
@@ -90,48 +85,27 @@ const providerColors: Record<ModelProvider, string> = {
   'bedrock-claude': 'bg-purple-500',
   'bedrock-titan': 'bg-blue-500',
   'bedrock-llama': 'bg-yellow-500',
-  'mock': 'bg-gray-500',
-  'demo-gpt': 'bg-emerald-500',
-  'demo-claude': 'bg-amber-500',
-  'demo-llama': 'bg-indigo-500',
-  'demo-gemini': 'bg-cyan-500',
-  'demo-mistral': 'bg-rose-500'
+  'mock': 'bg-gray-500'
 };
-
-// Fallback providers for when API is unreachable
-const FALLBACK_PROVIDERS: { provider: ModelProvider; available: boolean; modelId: string }[] = [
-  { provider: 'demo-gpt', available: true, modelId: 'demo-gpt-4-turbo' },
-  { provider: 'demo-claude', available: true, modelId: 'demo-claude-3-opus' },
-  { provider: 'demo-llama', available: true, modelId: 'demo-llama-3-70b' },
-  { provider: 'demo-gemini', available: true, modelId: 'demo-gemini-1.5-pro' },
-  { provider: 'demo-mistral', available: true, modelId: 'demo-mistral-large' },
-  { provider: 'mock', available: true, modelId: 'mock-model-v1' },
-];
 
 export default function ComparePage() {
   const queryClient = useQueryClient();
   const [prompt, setPrompt] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
-  const [selectedProviders, setSelectedProviders] = useState<ModelProvider[]>(['demo-gpt', 'demo-claude']);
+  const [selectedProviders, setSelectedProviders] = useState<ModelProvider[]>(['mock']);
   const [currentResult, setCurrentResult] = useState<ComparisonResult | null>(null);
   const [expandedResponses, setExpandedResponses] = useState<Set<string>>(new Set());
-  const [apiError, setApiError] = useState<string | null>(null);
 
   // Fetch available providers
-  const { data: providers, isError: providersError } = useQuery<{ provider: ModelProvider; available: boolean; modelId: string }[]>({
+  const { data: providers } = useQuery<{ provider: ModelProvider; available: boolean; modelId: string }[]>({
     queryKey: ['providers'],
     queryFn: async () => {
       const res = await fetch(`${API_BASE}/api/compare/providers/list`);
       if (!res.ok) throw new Error('Failed to fetch providers');
       const data = await res.json();
       return data.providers || [];
-    },
-    retry: 1,
-    staleTime: 30000,
+    }
   });
-  
-  // Use fallback providers if API fails
-  const availableProviders = providers && providers.length > 0 ? providers : FALLBACK_PROVIDERS;
 
   // Fetch recent comparisons
   const { data: recentComparisons } = useQuery<ComparisonResult[]>({
@@ -141,131 +115,24 @@ export default function ComparePage() {
       if (!res.ok) throw new Error('Failed to fetch comparisons');
       const data = await res.json();
       return data.comparisons || [];
-    },
-    retry: 1,
-  });
-
-  // Generate demo comparison locally when API is unavailable
-  const generateDemoComparison = (params: { prompt: string; systemPrompt?: string; providers: ModelProvider[] }): ComparisonResult => {
-    const demoResponses: Record<string, { style: string; latency: [number, number]; trust: number; safety: number }> = {
-      'demo-gpt': { style: 'balanced', latency: [800, 1500], trust: 0.86, safety: 0.88 },
-      'demo-claude': { style: 'verbose', latency: [1200, 2200], trust: 0.92, safety: 0.96 },
-      'demo-llama': { style: 'technical', latency: [600, 1000], trust: 0.78, safety: 0.75 },
-      'demo-gemini': { style: 'concise', latency: [500, 900], trust: 0.84, safety: 0.84 },
-      'demo-mistral': { style: 'casual', latency: [400, 700], trust: 0.76, safety: 0.70 },
-      'mock': { style: 'simple', latency: [100, 300], trust: 0.70, safety: 0.80 },
-    };
-
-    const responses: ModelResponse[] = params.providers.map(provider => {
-      const config = demoResponses[provider] || demoResponses['mock'];
-      const [minLat, maxLat] = config.latency;
-      return {
-        provider,
-        modelId: `demo-${provider}`,
-        response: generateDemoResponse(params.prompt, config.style),
-        latencyMs: Math.round(minLat + Math.random() * (maxLat - minLat)),
-        tokensUsed: { input: Math.ceil(params.prompt.length / 4), output: 50, total: Math.ceil(params.prompt.length / 4) + 50 }
-      };
-    });
-
-    const evaluations: Record<string, { trust: TrustEvaluation; safety: SafetyEvaluation }> = {};
-    params.providers.forEach(provider => {
-      const config = demoResponses[provider] || demoResponses['mock'];
-      const jitter = () => (Math.random() - 0.5) * 0.1;
-      evaluations[provider] = {
-        trust: {
-          overallScore: Math.max(0, Math.min(1, config.trust + jitter())),
-          dimensions: {
-            coherence: Math.max(0, Math.min(1, config.trust + jitter())),
-            helpfulness: Math.max(0, Math.min(1, config.trust + jitter())),
-            safety: Math.max(0, Math.min(1, config.safety + jitter())),
-            honesty: Math.max(0, Math.min(1, config.trust - 0.05 + jitter())),
-            transparency: Math.max(0, Math.min(1, config.trust - 0.08 + jitter())),
-          },
-          flags: []
-        },
-        safety: {
-          safe: config.safety > 0.7,
-          score: Math.max(0, Math.min(1, config.safety + jitter())),
-          issues: config.safety < 0.8 ? [{ type: 'tone', severity: 'low', description: 'Minor concern' }] : []
-        }
-      };
-    });
-
-    const ranking = params.providers
-      .map(provider => ({
-        provider,
-        overallScore: evaluations[provider].trust.overallScore * 0.5 + evaluations[provider].safety.score * 0.5,
-        rank: 0
-      }))
-      .sort((a, b) => b.overallScore - a.overallScore)
-      .map((item, i) => ({ ...item, rank: i + 1 }));
-
-    return {
-      id: `demo_${Date.now()}`,
-      prompt: params.prompt,
-      responses,
-      evaluations,
-      ranking,
-      summary: {
-        bestOverall: ranking[0]?.provider || 'demo-claude',
-        fastestResponse: responses.reduce((a, b) => a.latencyMs < b.latencyMs ? a : b).provider,
-        safestResponse: params.providers.reduce((a, b) => 
-          (evaluations[a]?.safety.score || 0) > (evaluations[b]?.safety.score || 0) ? a : b
-        ),
-        mostTrusted: params.providers.reduce((a, b) => 
-          (evaluations[a]?.trust.overallScore || 0) > (evaluations[b]?.trust.overallScore || 0) ? a : b
-        ),
-      }
-    };
-  };
-
-  const generateDemoResponse = (prompt: string, style: string): string => {
-    const insights = [
-      'The key factor here is balancing efficiency with reliability.',
-      'This requires careful consideration of trade-offs between approaches.',
-      'The best approach depends on your specific constraints.',
-      'There are several valid approaches, each with distinct advantages.',
-      'Building trust requires consistent, transparent behavior.',
-    ];
-    const insight = insights[Math.floor(Math.random() * insights.length)];
-    
-    switch (style) {
-      case 'verbose':
-        return `Thank you for this thoughtful question. Let me provide a comprehensive analysis.\n\n${insight}\n\nIn summary, I'd recommend considering the context carefully before proceeding.`;
-      case 'technical':
-        return `## Analysis\n\n**Overview:** ${insight}\n\n**Implementation:** Consider edge cases and monitoring.\n\nNote: Production implementations require thorough testing.`;
-      case 'concise':
-        return `${insight} Let me know if you need more details.`;
-      case 'casual':
-        return `Hey! So ${insight.toLowerCase()} Pretty straightforward! Let me know if you want more. 👍`;
-      default:
-        return `${insight}\n\nThere are a few key considerations:\n• Start with clear success criteria\n• Implement robust monitoring\n• Always consider context`;
     }
-  };
+  });
 
   // Run comparison mutation
   const compareMutation = useMutation({
     mutationFn: async (params: { prompt: string; systemPrompt?: string; providers: ModelProvider[] }) => {
-      setApiError(null);
-      try {
-        const res = await fetch(`${API_BASE}/api/compare`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt: params.prompt,
-            systemPrompt: params.systemPrompt || undefined,
-            providers: params.providers,
-            options: { temperature: 0.7, maxTokens: 1024, evaluateTrust: true, evaluateSafety: true }
-          })
-        });
-        if (!res.ok) throw new Error('API error');
-        return res.json();
-      } catch {
-        // Fall back to demo mode
-        setApiError('Backend unavailable - running in demo mode');
-        return { comparison: generateDemoComparison(params) };
-      }
+      const res = await fetch(`${API_BASE}/api/compare`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: params.prompt,
+          systemPrompt: params.systemPrompt || undefined,
+          providers: params.providers,
+          options: { temperature: 0.7, maxTokens: 1024, evaluateTrust: true, evaluateSafety: true }
+        })
+      });
+      if (!res.ok) throw new Error('Failed to run comparison');
+      return res.json();
     },
     onSuccess: (data) => {
       setCurrentResult(data.comparison);
@@ -330,7 +197,6 @@ export default function ComparePage() {
             <CardTitle>Compare Models</CardTitle>
             <CardDescription>
               Select 2-5 models to compare
-              {apiError && <span className="text-amber-600 ml-2">({apiError})</span>}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -338,24 +204,24 @@ export default function ComparePage() {
             <div className="space-y-2">
               <Label>Model Providers</Label>
               <div className="space-y-2">
-                {availableProviders.map(({ provider, available }) => (
+                {providers?.map(({ provider, available, modelId }) => (
                   <div key={provider} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Checkbox
                         id={provider}
                         checked={selectedProviders.includes(provider)}
                         onCheckedChange={() => toggleProvider(provider)}
-                        disabled={!available && !provider.startsWith('demo-') && provider !== 'mock'}
+                        disabled={!available && provider !== 'mock'}
                       />
                       <label 
                         htmlFor={provider}
-                        className={`text-sm ${!available && !provider.startsWith('demo-') && provider !== 'mock' ? 'text-muted-foreground' : ''}`}
+                        className={`text-sm ${!available && provider !== 'mock' ? 'text-muted-foreground' : ''}`}
                       >
                         {providerLabels[provider]}
                       </label>
                     </div>
-                    <Badge variant={available || provider.startsWith('demo-') ? 'default' : 'secondary'} className="text-xs">
-                      {provider.startsWith('demo-') ? 'Demo' : available ? 'Ready' : 'Not Configured'}
+                    <Badge variant={available ? 'default' : 'secondary'} className="text-xs">
+                      {available ? 'Ready' : 'Not Configured'}
                     </Badge>
                   </div>
                 ))}

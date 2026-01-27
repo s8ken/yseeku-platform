@@ -16,7 +16,7 @@ import {
   BarChart3
 } from 'lucide-react';
 
-interface SonateScores {
+interface SymbiScores {
   realityIndex: number;
   trustProtocol: 'PASS' | 'PARTIAL' | 'FAIL';
   ethicalAlignment: number;
@@ -30,7 +30,7 @@ interface SonateScores {
   }[];
 }
 
-function RadarChart({ scores }: { scores: SonateScores }) {
+function RadarChart({ scores }: { scores: SymbiScores }) {
   const dimensions = [
     { label: 'Reality', value: scores.realityIndex / 10 },
     { label: 'Trust', value: scores.trustProtocol === 'PASS' ? 1 : scores.trustProtocol === 'PARTIAL' ? 0.6 : 0.2 },
@@ -110,9 +110,9 @@ function RadarChart({ scores }: { scores: SonateScores }) {
   );
 }
 
-export default function SonatePage() {
+export default function SymbiPage() {
   const [input, setInput] = useState('');
-  const [scores, setScores] = useState<SonateScores | null>(null);
+  const [scores, setScores] = useState<SymbiScores | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
 
   const analyze = async () => {
@@ -122,7 +122,7 @@ export default function SonatePage() {
     
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    const mockScores: SonateScores = {
+    const mockScores: SymbiScores = {
       realityIndex: 7.5 + Math.random() * 2,
       trustProtocol: Math.random() > 0.3 ? 'PASS' : 'PARTIAL',
       ethicalAlignment: 3.5 + Math.random() * 1.5,
@@ -159,7 +159,7 @@ export default function SonatePage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">SONATE Framework Analysis</h1>
+          <h1 className="text-2xl font-bold tracking-tight">SYMBI Framework Analysis</h1>
           <p className="text-muted-foreground">5-Dimension AI interaction scoring</p>
         </div>
         <span className="module-badge badge-lab">LAB</span>
@@ -176,7 +176,7 @@ export default function SonatePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <Textarea 
-              placeholder="Enter conversation text for SONATE analysis...
+              placeholder="Enter conversation text for SYMBI analysis...
 
 Example:
 User: What is the capital of France?
@@ -214,7 +214,7 @@ AI: The capital of France is Paris. Paris is not only the capital but also the l
 
         <Card>
           <CardHeader>
-            <CardTitle>SONATE Scores</CardTitle>
+            <CardTitle>SYMBI Scores</CardTitle>
             <CardDescription>5-dimension trust framework results</CardDescription>
           </CardHeader>
           <CardContent>
@@ -233,7 +233,7 @@ AI: The capital of France is Paris. Paris is not only the capital but also the l
               <div className="flex items-center justify-center h-64 text-muted-foreground">
                 <div className="text-center">
                   <Sparkles className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                  <p>Enter text and click Analyze to see SONATE scores</p>
+                  <p>Enter text and click Analyze to see SYMBI scores</p>
                 </div>
               </div>
             )}
@@ -245,7 +245,7 @@ AI: The capital of France is Paris. Paris is not only the capital but also the l
         <Card>
           <CardHeader>
             <CardTitle>Dimension Breakdown</CardTitle>
-            <CardDescription>Detailed analysis of each SONATE dimension</CardDescription>
+            <CardDescription>Detailed analysis of each SYMBI dimension</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">

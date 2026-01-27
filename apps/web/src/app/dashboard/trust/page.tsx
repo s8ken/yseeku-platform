@@ -313,7 +313,7 @@ function StatusDistributionChart({ analytics }: { analytics: Analytics }) {
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
+              label={((props: { name?: string; percent?: number }) => `${props.name} ${((props.percent ?? 0) * 100).toFixed(1)}%`) as import('recharts').PieLabel}
               outerRadius={100}
               fill="#8884d8"
               dataKey="value"
@@ -323,10 +323,10 @@ function StatusDistributionChart({ analytics }: { analytics: Analytics }) {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: number, name: string, props: any) => [
-                `${value.toFixed(1)}% (${props.payload.count} messages)`,
+              formatter={((value: number, name: string, props: { payload?: { count?: number } }) => [
+                `${value.toFixed(1)}% (${props.payload?.count ?? 0} messages)`,
                 name
-              ]}
+              ]) as never}
             />
             <Legend />
           </PieChart>

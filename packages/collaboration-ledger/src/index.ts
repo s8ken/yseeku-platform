@@ -199,7 +199,7 @@ export class SonateCollaborationLedger {
         // Attempt ECDSA/RSA using SHA-256 if PEM provided
         const keyObj = crypto.createPublicKey(pubKey);
         const ok = crypto.verify('sha256', msgHash, keyObj, sig);
-        if (ok) { return true; }
+          const ok = crypto.verify('sha256', Buffer.from(payload), keyObj, sig);
       } catch {}
       return false;
     } catch {

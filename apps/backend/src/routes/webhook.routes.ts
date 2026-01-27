@@ -18,7 +18,7 @@ const channelSchema = z.object({
   name: z.string().min(1).max(100),
   url: z.string().url(),
   method: z.enum(['POST', 'PUT', 'PATCH']).optional().default('POST'),
-  headers: z.record(z.string()).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
   enabled: z.boolean().optional().default(true),
 });
 
@@ -79,7 +79,7 @@ const validate = (schema: z.ZodSchema) => {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           error: 'Validation error',
-          details: error.errors.map(e => ({
+          details: error.issues.map(e => ({
             path: e.path.join('.'),
             message: e.message,
           })),

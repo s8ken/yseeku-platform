@@ -117,7 +117,7 @@ class KeysService {
     const ed25519 = await loadEd25519();
 
     // Generate random 32-byte private key
-    const privateKey = ed25519.utils.randomPrivateKey();
+    const privateKey = new Uint8Array(crypto.randomBytes(32));
     const publicKey = await ed25519.getPublicKey(privateKey);
 
     const privateKeyHex = Buffer.from(privateKey).toString('hex');

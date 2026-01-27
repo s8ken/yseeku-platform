@@ -25,7 +25,7 @@ import { format } from 'date-fns';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-type ReportType = 'SONATE' | 'GDPR' | 'SOC2' | 'ISO27001' | 'CUSTOM';
+type ReportType = 'SYMBI' | 'GDPR' | 'SOC2' | 'ISO27001' | 'CUSTOM';
 type ReportStatus = 'PENDING' | 'GENERATING' | 'COMPLETED' | 'FAILED';
 
 interface ComplianceReport {
@@ -46,7 +46,7 @@ interface ComplianceReport {
 }
 
 const reportTypeDescriptions: Record<ReportType, string> = {
-  SONATE: 'SONATE Framework compliance - consent, inspection, validation, ethical override',
+  SYMBI: 'SYMBI Framework compliance - consent, inspection, validation, ethical override',
   GDPR: 'General Data Protection Regulation compliance assessment',
   SOC2: 'Service Organization Control 2 security and availability',
   ISO27001: 'Information Security Management System compliance',
@@ -62,7 +62,7 @@ const riskLevelColors: Record<string, string> = {
 
 export default function ReportsPage() {
   const queryClient = useQueryClient();
-  const [selectedType, setSelectedType] = useState<ReportType>('SONATE');
+  const [selectedType, setSelectedType] = useState<ReportType>('SYMBI');
   const [customCriteria, setCustomCriteria] = useState('');
   const [viewingReport, setViewingReport] = useState<ComplianceReport | null>(null);
 
@@ -177,7 +177,7 @@ export default function ReportsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="SONATE">SONATE Framework</SelectItem>
+                  <SelectItem value="SYMBI">SYMBI Framework</SelectItem>
                   <SelectItem value="GDPR">GDPR</SelectItem>
                   <SelectItem value="SOC2">SOC2</SelectItem>
                   <SelectItem value="ISO27001">ISO 27001</SelectItem>
@@ -464,7 +464,7 @@ export default function ReportsPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Shield className="h-4 w-4 text-blue-600" />
-              SONATE
+              SYMBI
             </CardTitle>
           </CardHeader>
           <CardContent>

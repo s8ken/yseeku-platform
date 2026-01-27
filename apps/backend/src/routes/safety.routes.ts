@@ -66,7 +66,7 @@ router.post('/scan', protect, async (req: Request, res: Response): Promise<void>
       res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
       return;
     }
@@ -127,7 +127,7 @@ router.post('/batch', protect, async (req: Request, res: Response): Promise<void
       res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
       return;
     }
@@ -158,7 +158,7 @@ router.post('/check', protect, async (req: Request, res: Response): Promise<void
       res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
       return;
     }
@@ -190,7 +190,7 @@ router.post('/sanitize', protect, async (req: Request, res: Response): Promise<v
       res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
       return;
     }

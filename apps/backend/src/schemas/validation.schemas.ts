@@ -119,7 +119,7 @@ export const createExperimentSchema = z.object({
       z.object({
         name: nonEmptyString,
         description: z.string().optional(),
-        parameters: z.record(z.unknown()).default({}),
+        parameters: z.record(z.string(), z.unknown()).default({}),
       })
     )
     .min(2, 'At least 2 variants are required'),
@@ -170,7 +170,7 @@ export const overrideDecisionSchema = z.object({
 
 export const createTenantSchema = z.object({
   name: nonEmptyString.min(2, 'Tenant name must be at least 2 characters').max(100),
-  config: z.record(z.unknown()).default({}),
+  config: z.record(z.string(), z.unknown()).default({}),
 });
 
 export const updateTenantSchema = createTenantSchema.partial();

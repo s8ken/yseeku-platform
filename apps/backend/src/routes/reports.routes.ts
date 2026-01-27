@@ -63,7 +63,7 @@ router.post('/generate', protect, async (req: Request, res: Response): Promise<v
       res.status(400).json({
         success: false,
         error: 'Validation error',
-        details: error.errors,
+        details: error.issues,
       });
       return;
     }

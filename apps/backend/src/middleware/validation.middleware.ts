@@ -34,7 +34,7 @@ function formatZodError(error: ZodError): ValidationErrorResponse {
     error: {
       code: 'VALIDATION_ERROR',
       message: 'Request validation failed',
-      details: error.errors.map((err) => ({
+      details: error.issues.map((err: z.ZodIssue) => ({
         path: err.path.join('.'),
         message: err.message,
         code: err.code,
@@ -55,7 +55,7 @@ export function validateBody<T extends ZodSchema>(schema: T) {
         logger.warn('Request body validation failed', {
           path: req.path,
           method: req.method,
-          errors: result.error.errors,
+          errors: result.error.issues,
         });
         
         res.status(400).json(formatZodError(result.error));
@@ -87,7 +87,7 @@ export function validateQuery<T extends ZodSchema>(schema: T) {
         logger.warn('Query params validation failed', {
           path: req.path,
           method: req.method,
-          errors: result.error.errors,
+          errors: result.error.issues,
         });
         
         res.status(400).json(formatZodError(result.error));
@@ -95,7 +95,7 @@ export function validateQuery<T extends ZodSchema>(schema: T) {
       }
       
       // Replace query with parsed/transformed data
-      req.query = result.data;
+      req.query = result.data as typeof req.query;
       next();
     } catch (error) {
       logger.error('Query validation middleware error', { error });
@@ -119,14 +119,14 @@ export function validateParams<T extends ZodSchema>(schema: T) {
         logger.warn('Route params validation failed', {
           path: req.path,
           method: req.method,
-          errors: result.error.errors,
+          errors: result.error.issues,
         });
         
         res.status(400).json(formatZodError(result.error));
         return;
       }
       
-      req.params = result.data;
+      req.params = result.data as typeof req.params;
       next();
     } catch (error) {
       logger.error('Params validation middleware error', { error });
@@ -156,25 +156,25 @@ export function validate<
     if (schemas.params) {
       const result = schemas.params.safeParse(req.params);
       if (!result.success) {
-        errors.push({ location: 'params', issues: result.error.errors });
+        errors.push({ location: 'params', issues: result.error.issues });
       } else {
-        req.params = result.data;
+        req.params = result.data as typeof req.params;
       }
     }
 
     if (schemas.query) {
       const result = schemas.query.safeParse(req.query);
       if (!result.success) {
-        errors.push({ location: 'query', issues: result.error.errors });
+        errors.push({ location: 'query', issues: result.error.issues });
       } else {
-        req.query = result.data;
+        req.query = result.data as typeof req.query;
       }
     }
 
     if (schemas.body) {
       const result = schemas.body.safeParse(req.body);
       if (!result.success) {
-        errors.push({ location: 'body', issues: result.error.errors });
+        errors.push({ location: 'body', issues: result.error.issues });
       } else {
         req.body = result.data;
       }

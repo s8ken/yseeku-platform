@@ -74,7 +74,6 @@ export {
   createBedauIndexCalculator,
   calculateBedauIndex,
   type BedauMetrics,
-  type EmergenceTrajectory,
   type SemanticIntent,
   type SurfacePattern,
 } from './bedau-index';

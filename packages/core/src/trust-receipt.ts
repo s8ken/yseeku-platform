@@ -20,10 +20,15 @@ let ed25519Promise: Promise<any> | null = null;
 
 async function loadEd25519(): Promise<any> {
   if (!ed25519Promise) {
-    ed25519Promise = Promise.resolve().then(() => {
-      const ed25519 = require('@noble/ed25519');
-      ed25519.etc.sha512Sync = (...m: Uint8Array[]) =>
-        new Uint8Array(createHash('sha512').update(m[0]).digest());
+    ed25519Promise = Promise.all([
+      new Function('return import("@noble/ed25519")')() as Promise<any>,
+      new Function('return import("@noble/hashes/sha512")')() as Promise<any>,
+    ]).then(([ed25519Mod, hashMod]) => {
+      const ed25519 = ed25519Mod.default || ed25519Mod;
+      const { sha512 } = hashMod;
+      if (ed25519.etc) {
+        ed25519.etc.sha512Sync = (...m: Uint8Array[]) => sha512(m[0]);
+      }
       return ed25519;
     });
   }
