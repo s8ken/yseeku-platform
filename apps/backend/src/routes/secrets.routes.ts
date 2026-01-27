@@ -30,7 +30,7 @@ router.post('/', protect, requireScopes(['secrets:manage']), async (req: Request
 
 router.get('/:name', protect, requireScopes(['secrets:manage']), async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name } = req.params;
+    const name = String(req.params.name);
     const value = await getSecret(name);
     if (value == null) {
       secretsOperationsTotal.inc({ operation: 'get', provider: 'unknown', status: 'miss' });

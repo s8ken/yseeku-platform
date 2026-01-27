@@ -662,7 +662,7 @@ router.get('/receipts/by-did/:did', protect, async (req: Request, res: Response)
     const { role = 'subject', limit = 50, offset = 0 } = req.query;
 
     // Decode the DID (might be URL encoded)
-    const decodedDID = decodeURIComponent(did);
+    const decodedDID = decodeURIComponent(String(did));
 
     // Build query based on role
     const query: any = {};

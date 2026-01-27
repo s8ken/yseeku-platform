@@ -159,7 +159,8 @@ router.post(
  */
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const config = await webhookService.getConfig(req.params.id);
+    const id = String(req.params.id);
+    const config = await webhookService.getConfig(id);
     
     if (!config) {
       res.status(404).json({ error: 'Webhook configuration not found' });
@@ -187,7 +188,8 @@ router.put(
   validate(updateWebhookSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const existing = await webhookService.getConfig(req.params.id);
+      const id = String(req.params.id);
+      const existing = await webhookService.getConfig(id);
       
       if (!existing) {
         res.status(404).json({ error: 'Webhook configuration not found' });
@@ -207,7 +209,7 @@ router.put(
         }));
       }
       
-      const config = await webhookService.updateConfig(req.params.id, req.body);
+      const config = await webhookService.updateConfig(id, req.body);
       
       res.json({
         message: 'Webhook configuration updated',
@@ -225,7 +227,8 @@ router.put(
  */
 router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existing = await webhookService.getConfig(req.params.id);
+    const id = String(req.params.id);
+    const existing = await webhookService.getConfig(id);
     
     if (!existing) {
       res.status(404).json({ error: 'Webhook configuration not found' });
@@ -237,7 +240,7 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
       return;
     }
     
-    await webhookService.deleteConfig(req.params.id);
+    await webhookService.deleteConfig(id);
     
     res.json({ message: 'Webhook configuration deleted' });
   } catch (error) {
@@ -251,7 +254,8 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
  */
 router.post('/:id/test', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existing = await webhookService.getConfig(req.params.id);
+    const id = String(req.params.id);
+    const existing = await webhookService.getConfig(id);
     
     if (!existing) {
       res.status(404).json({ error: 'Webhook configuration not found' });
@@ -270,7 +274,7 @@ router.post('/:id/test', async (req: Request, res: Response, next: NextFunction)
       return;
     }
     
-    const result = await webhookService.testWebhook(req.params.id);
+    const result = await webhookService.testWebhook(id);
     
     res.json({
       message: result.success ? 'Test webhook delivered successfully' : 'Test webhook failed',
@@ -287,7 +291,8 @@ router.post('/:id/test', async (req: Request, res: Response, next: NextFunction)
  */
 router.post('/:id/toggle', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existing = await webhookService.getConfig(req.params.id);
+    const id = String(req.params.id);
+    const existing = await webhookService.getConfig(id);
     
     if (!existing) {
       res.status(404).json({ error: 'Webhook configuration not found' });
@@ -299,7 +304,7 @@ router.post('/:id/toggle', async (req: Request, res: Response, next: NextFunctio
       return;
     }
     
-    const config = await webhookService.updateConfig(req.params.id, {
+    const config = await webhookService.updateConfig(id, {
       enabled: !existing.enabled,
     });
     
@@ -318,7 +323,8 @@ router.post('/:id/toggle', async (req: Request, res: Response, next: NextFunctio
  */
 router.get('/:id/deliveries', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existing = await webhookService.getConfig(req.params.id);
+    const id = String(req.params.id);
+    const existing = await webhookService.getConfig(id);
     
     if (!existing) {
       res.status(404).json({ error: 'Webhook configuration not found' });
@@ -331,7 +337,7 @@ router.get('/:id/deliveries', async (req: Request, res: Response, next: NextFunc
     }
     
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
-    const deliveries = await webhookService.getDeliveryHistory(req.params.id, limit);
+    const deliveries = await webhookService.getDeliveryHistory(id, limit);
     
     res.json({
       data: deliveries.map(d => ({
@@ -360,7 +366,8 @@ router.get('/:id/deliveries', async (req: Request, res: Response, next: NextFunc
  */
 router.get('/:id/stats', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existing = await webhookService.getConfig(req.params.id);
+    const id = String(req.params.id);
+    const existing = await webhookService.getConfig(id);
     
     if (!existing) {
       res.status(404).json({ error: 'Webhook configuration not found' });
@@ -373,7 +380,7 @@ router.get('/:id/stats', async (req: Request, res: Response, next: NextFunction)
     }
     
     const hours = parseInt(req.query.hours as string) || 24;
-    const stats = await webhookService.getDeliveryStats(req.params.id, hours);
+    const stats = await webhookService.getDeliveryStats(id, hours);
     
     res.json({
       data: {

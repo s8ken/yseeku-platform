@@ -90,7 +90,7 @@ router.post('/workflows/:id/execute', protect, async (req: Request, res: Respons
     }
 
     const execution = await orchestrationService.executeWorkflow(
-      req.params.id,
+      String(req.params.id),
       input,
       userTenant
     );
@@ -115,7 +115,7 @@ router.get('/executions/:id', protect, async (req: Request, res: Response): Prom
     // For expediency, I'll add a quick find here or assume service will handle
     // Ideally service should handle. But model import is available.
     const { WorkflowExecution } = await import('../models/workflow-execution.model');
-    const execution = await WorkflowExecution.findById(req.params.id);
+    const execution = await WorkflowExecution.findById(String(req.params.id));
     
     if (!execution) {
       res.status(404).json({ success: false, message: 'Execution not found' });

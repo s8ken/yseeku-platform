@@ -1,10 +1,13 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { Request } from 'express';
 
 function keyGenerator(req: Request): string {
   const apiKey = req.header('x-api-key');
   const userId = (req as any).user?.id || (req as any).userId;
-  return (userId as string) || (apiKey as string) || req.ip || 'anonymous';
+  if (userId) return String(userId);
+  if (apiKey) return apiKey;
+  if (req.ip) return ipKeyGenerator(req.ip);
+  return 'anonymous';
 }
 
 export const rateLimiter = rateLimit({
@@ -14,4 +17,3 @@ export const rateLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator,
 });
-

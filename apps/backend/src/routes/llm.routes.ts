@@ -48,7 +48,15 @@ router.get('/providers', protect, requireScopes(['read:all']), llmLimiter, async
  */
 router.get('/models/:provider', protect, requireScopes(['read:all']), llmLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { provider } = req.params;
+    const provider = String(req.params.provider);
+    if (!LLM_PROVIDERS[provider]) {
+      res.status(404).json({
+        success: false,
+        message: `Provider '${provider}' not found`,
+      });
+      return;
+    }
+
     const cacheKey = `llm:models:${provider}`;
     const cached = await cacheGet<ReturnType<typeof llmService.getModels>>(cacheKey);
     const models = cached || llmService.getModels(provider);

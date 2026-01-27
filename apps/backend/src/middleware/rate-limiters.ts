@@ -1,7 +1,16 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { Request } from 'express';
 
-const key = (req: Request) => ((req as any).user?.id || (req as any).userId || req.header('x-api-key') || req.ip || 'anonymous') as string;
+const key = (req: Request) => {
+  const userId = (req as any).user?.id || (req as any).userId;
+  if (userId) return String(userId);
+
+  const apiKey = req.header('x-api-key');
+  if (apiKey) return apiKey;
+
+  if (req.ip) return ipKeyGenerator(req.ip);
+  return 'anonymous';
+};
 
 export const llmLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -18,4 +27,3 @@ export const apiGatewayLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: key,
 });
-

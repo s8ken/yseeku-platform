@@ -167,7 +167,7 @@ router.delete('/keys/:id', protect, requireScopes(['gateway:manage']), apiGatewa
     await PlatformApiKey.deleteOne({ _id: id });
 
     // Log audit
-    await logSuccess(req, 'api_key_revoke', 'platform-key', id, {
+    await logSuccess(req, 'api_key_revoke', 'platform-key', String(id), {
       name: apiKey.name,
     });
 

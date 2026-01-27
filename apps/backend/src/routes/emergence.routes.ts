@@ -35,7 +35,7 @@ router.get('/conversation/:conversationId', async (req: Request, res: Response) 
 
     const signals = await emergenceDetector.recallRecentSignals(
       tenantId,
-      conversationId,
+      (typeof conversationId === 'string' ? conversationId : undefined),
       100 // Get up to 100 signals for the conversation
     );
 

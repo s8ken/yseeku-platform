@@ -19,7 +19,7 @@ const router = Router();
 router.get('/management', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { status, severity, search, limit, offset } = req.query;
-    const tenantId = req.tenant || 'default';
+    const tenantId = String(req.tenant || 'default');
 
     // Get all alerts for filtering
     let alerts = await alertsService.list(tenantId, {
@@ -77,7 +77,7 @@ router.post('/:id/acknowledge', protect, async (req: Request, res: Response): Pr
     const tenantId = req.tenant || 'default';
     const userEmail = (req as any).userEmail || req.userId || 'unknown';
 
-    const alert = await alertsService.acknowledge(id, userEmail, tenantId);
+    const alert = await alertsService.acknowledge(String(id), String(userEmail), tenantId);
 
     if (!alert) {
       res.status(404).json({
@@ -113,10 +113,10 @@ router.post('/:id/acknowledge', protect, async (req: Request, res: Response): Pr
 router.post('/:id/resolve', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const tenantId = req.tenant || 'default';
+    const tenantId = String(req.tenant || 'default');
     const userEmail = (req as any).userEmail || req.userId || 'unknown';
 
-    const alert = await alertsService.resolve(id, userEmail, tenantId);
+    const alert = await alertsService.resolve(String(id), String(userEmail), tenantId);
 
     if (!alert) {
       res.status(404).json({
@@ -153,7 +153,7 @@ router.post('/:id/suppress', protect, async (req: Request, res: Response): Promi
   try {
     const { id } = req.params;
     const { duration } = req.body;
-    const tenantId = req.tenant || 'default';
+    const tenantId = String(req.tenant || 'default');
     const userEmail = (req as any).userEmail || req.userId || 'unknown';
 
     if (!duration || typeof duration !== 'number') {
@@ -164,7 +164,7 @@ router.post('/:id/suppress', protect, async (req: Request, res: Response): Promi
       return;
     }
 
-    const alert = await alertsService.suppress(id, userEmail, tenantId);
+    const alert = await alertsService.suppress(String(id), String(userEmail), tenantId);
 
     if (!alert) {
       res.status(404).json({
@@ -199,7 +199,7 @@ router.post('/:id/suppress', protect, async (req: Request, res: Response): Promi
  */
 router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
   try {
-    const tenantId = req.tenant || 'default';
+    const tenantId = String(req.tenant || 'default');
 
     // Get active alerts, sorted by timestamp, limited to 10
     const alerts = await alertsService.list(tenantId, {
@@ -249,7 +249,7 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
 router.post('/', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { type, title, description, severity, details, agentId, conversationId } = req.body;
-    const tenantId = req.tenant || 'default';
+    const tenantId = String(req.tenant || 'default');
 
     if (!type || !title || !severity) {
       res.status(400).json({ success: false, message: 'type, title, severity required' });
@@ -285,9 +285,9 @@ router.post('/', protect, async (req: Request, res: Response): Promise<void> => 
 router.get('/:id', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const tenantId = req.tenant || 'default';
+    const tenantId = String(req.tenant || 'default');
 
-    const alert = await alertsService.get(id, tenantId);
+    const alert = await alertsService.get(String(id), tenantId);
 
     if (!alert) {
       res.status(404).json({
@@ -321,7 +321,7 @@ router.get('/:id', protect, async (req: Request, res: Response): Promise<void> =
  */
 router.delete('/clear', protect, async (req: Request, res: Response): Promise<void> => {
   try {
-    const tenantId = req.tenant || 'default';
+    const tenantId = String(req.tenant || 'default');
 
     await alertsService.clear(tenantId);
 

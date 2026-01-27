@@ -62,7 +62,7 @@ router.get('/did.json', async (req: Request, res: Response) => {
  */
 router.get('/did/agents/:agentId/did.json', async (req: Request, res: Response) => {
   try {
-    const { agentId } = req.params;
+    const agentId = String(req.params.agentId);
 
     // Find the agent in the database
     const agent = await Agent.findById(agentId);
@@ -189,7 +189,7 @@ router.get('/resolve/:did', async (req: Request, res: Response) => {
     const { did } = req.params;
 
     // Decode the DID (might be URL encoded)
-    const decodedDID = decodeURIComponent(did);
+    const decodedDID = decodeURIComponent(String(did));
 
     const didDocument = await didService.resolveDID(decodedDID);
 

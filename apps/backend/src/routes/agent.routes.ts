@@ -526,7 +526,7 @@ router.put('/:id/external-systems/:systemName/toggle', protect, async (req: Requ
 
     const { isActive } = req.body;
 
-    await agent.toggleExternalSystem(req.params.systemName, isActive);
+    await agent.toggleExternalSystem(String(req.params.systemName), Boolean(isActive));
 
     res.json({
       success: true,
@@ -550,8 +550,11 @@ router.put('/:id/external-systems/:systemName/toggle', protect, async (req: Requ
  */
 router.post('/:id/external-systems/:systemName/sync', protect, async (req: Request, res: Response): Promise<void> => {
   try {
+    const agentId = String(req.params.id);
+    const systemName = String(req.params.systemName);
+
     const agent = await Agent.findOne({
-      _id: req.params.id,
+      _id: agentId,
       user: req.userId,
     });
 
@@ -563,7 +566,7 @@ router.post('/:id/external-systems/:systemName/sync', protect, async (req: Reque
       return;
     }
 
-    await agent.updateExternalSystemSync(req.params.systemName);
+    await agent.updateExternalSystemSync(systemName);
 
     res.json({
       success: true,
