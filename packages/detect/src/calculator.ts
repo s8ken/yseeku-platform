@@ -187,7 +187,7 @@ export async function explainableSonateResonance(
 ): Promise<ExplainedResonance> {
   // 1. CLASSIFIERS (already deployed)
   const stakes = classifyStakes(transcript.text);
-  const adversarial = adversarialCheck(transcript.text, CANONICAL_SCAFFOLD_VECTOR);
+  const adversarial = await adversarialCheck(transcript.text, CANONICAL_SCAFFOLD_VECTOR);
 
   const audit_trail: string[] = [];
   audit_trail.push(
@@ -312,11 +312,11 @@ function calculateRawResonance(transcript: Transcript): { r_m: number; breakdown
   };
 }
 
-export function robustSonateResonance(transcript: Transcript): RobustResonanceResult {
+export async function robustSonateResonance(transcript: Transcript): Promise<RobustResonanceResult> {
   const text = transcript.text;
 
   // ADVERSARIAL CHECK (blocks gaming)
-  const { is_adversarial, penalty, evidence } = adversarialCheck(text, CANONICAL_SCAFFOLD_VECTOR);
+  const { is_adversarial, penalty, evidence } = await adversarialCheck(text, CANONICAL_SCAFFOLD_VECTOR);
 
   if (is_adversarial) {
     return {

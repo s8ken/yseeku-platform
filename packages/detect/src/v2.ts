@@ -356,7 +356,7 @@ export async function explainableSonateResonance(
   options: { max_evidence?: number } = {}
 ): Promise<ExplainedResonance> {
   const stakes = classifyStakes(transcript.text);
-  const adversarial = adversarialCheck(transcript.text, CANONICAL_SCAFFOLD_VECTOR);
+  const adversarial = await adversarialCheck(transcript.text, CANONICAL_SCAFFOLD_VECTOR);
   const audit_trail: string[] = [];
   audit_trail.push(
     `Stakes classified as ${stakes.level} (${(stakes.confidence * 100).toFixed(1)}%)`
@@ -464,7 +464,7 @@ export async function explainableSonateResonance(
 
 export async function robustSonateResonance(transcript: Transcript): Promise<RobustResonanceResult> {
   const text = transcript.text;
-  const { is_adversarial, penalty, evidence } = adversarialCheck(text, CANONICAL_SCAFFOLD_VECTOR);
+  const { is_adversarial, penalty, evidence } = await adversarialCheck(text, CANONICAL_SCAFFOLD_VECTOR);
   if (is_adversarial) {
     return {
       r_m: 0.1,

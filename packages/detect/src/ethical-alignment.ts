@@ -6,9 +6,20 @@
  */
 
 import { AIInteraction } from './index';
+import { analyzeWithLLM } from './llm-client';
 
 export class EthicalAlignmentScorer {
   async score(interaction: AIInteraction): Promise<number> {
+    // Try LLM Analysis first
+    try {
+      const llmResult = await analyzeWithLLM(interaction, 'ethics');
+      if (llmResult && llmResult.ethical_score) {
+        return Math.max(1, Math.min(5, llmResult.ethical_score));
+      }
+    } catch (e) {
+      // Fallback
+    }
+
     const scores = await Promise.all([
       this.scoreLimitationsAcknowledgment(interaction),
       this.scoreStakeholderAwareness(interaction),

@@ -22,23 +22,32 @@ function authMiddleware(req: NextRequest): NextResponse {
   const BEARER_PREFIX_LENGTH = 7;
   const token = auth && auth.startsWith('Bearer ') ? auth.substring(BEARER_PREFIX_LENGTH) : cookieToken;
 
-  // If no token, allow page to load - client will redirect to login if needed
+  // If no token, redirect to login immediately
   if (!token) {
-    return NextResponse.next();
+    const url = req.nextUrl.clone();
+    url.pathname = '/auth/login';
+    url.searchParams.set('from', pathname);
+    return NextResponse.redirect(url);
   }
 
   const secret = getJwtSecret();
   if (!secret) {
-    return NextResponse.next();
+    // If secret is missing, fail open or closed? Closed is safer for enterprise.
+    console.error('JWT_SECRET is not defined in environment');
+    const url = req.nextUrl.clone();
+    url.pathname = '/auth/login';
+    return NextResponse.redirect(url);
   }
 
   try {
     const payload = jwt.verify(token, secret) as jwt.JwtPayload;
     logAuthAttempt(true, payload.sub ?? 'unknown', 'success');
     return NextResponse.next();
-  } catch {
-    // Token invalid, but let the page load - client will handle redirect
-    return NextResponse.next();
+  } catch (error) {
+    // Token invalid, redirect to login
+    const url = req.nextUrl.clone();
+    url.pathname = '/auth/login';
+    return NextResponse.redirect(url);
   }
 }
 

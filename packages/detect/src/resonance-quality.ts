@@ -9,6 +9,7 @@
  */
 
 import { ResonanceEngineClient, ResonanceResult } from './resonance-engine-client';
+import { analyzeWithLLM } from './llm-client';
 
 import { AIInteraction } from './index';
 
@@ -47,7 +48,21 @@ export class ResonanceQualityMeasurer {
       // console.warn("Resonance Engine unavailable, using fallback logic");
     }
 
-    // FALLBACK LOGIC
+    // Try LLM Analysis (Enterprise Grade)
+    try {
+      const llmResult = await analyzeWithLLM(interaction, 'resonance');
+      if (llmResult) {
+        const total = (llmResult.creativity_score || 0) + (llmResult.synthesis_score || 0) + (llmResult.innovation_score || 0);
+        // Scores are 0-10 each, total 0-30.
+        if (total >= 24) return 'BREAKTHROUGH';
+        if (total >= 18) return 'ADVANCED';
+        return 'STRONG';
+      }
+    } catch (e) {
+      // Ignore and proceed to heuristic fallback
+    }
+
+    // FALLBACK LOGIC (Heuristic)
     const scores = {
       creativity: await this.scoreCreativity(interaction),
       synthesis: await this.scoreSynthesis(interaction),

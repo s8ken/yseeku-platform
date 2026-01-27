@@ -10,11 +10,11 @@ export interface AdversarialEvidence {
   repetition_entropy: number; // <0.1 = copy-paste attack
 }
 
-export function adversarialCheck(
+export async function adversarialCheck(
   text: string,
   canonical_scaffold_vector: number[],
   options: { max_keywords?: number } = {}
-): { is_adversarial: boolean; evidence: AdversarialEvidence; penalty: number } {
+): Promise<{ is_adversarial: boolean; evidence: AdversarialEvidence; penalty: number }> {
   const evidence: AdversarialEvidence = {
     keyword_density: 0,
     semantic_drift: 0,
@@ -44,13 +44,34 @@ export function adversarialCheck(
   // 5. REPETITION ENTROPY (copy-paste attacks)
   evidence.repetition_entropy = ngramEntropy(text, 4);
 
+  // 6. LLM ADVERSARIAL CHECK (Deep Semantic Analysis)
+  // If we have an LLM available, ask it directly if this looks like an attack
+  let llmPenalty = 0;
+  try {
+    // This function is dynamically imported to avoid circular dependencies if needed
+    // or just assume we can use the LLM client here
+    const { analyzeWithLLM } = require('./llm-client');
+    const llmResult = await analyzeWithLLM({ content: text } as any, 'comprehensive');
+    
+    if (llmResult && llmResult.is_adversarial) {
+      // High penalty if LLM flags it
+      llmPenalty = 1.0;
+      // Override evidence
+      evidence.ethics_bypass_score = 0; 
+      evidence.reconstruction_error = 1.0;
+    }
+  } catch (e) {
+    // Silent fail on LLM check, fallback to heuristics
+  }
+
   // Composite adversarial score (0-1, higher = more adversarial)
   const adv_score = Math.max(
     evidence.keyword_density - 0.25, // threshold 25%
     evidence.semantic_drift,
     evidence.reconstruction_error, // Fixed: was 1 - error (inverted)
     1 - evidence.ethics_bypass_score,
-    1 - evidence.repetition_entropy
+    1 - evidence.repetition_entropy,
+    llmPenalty // Include LLM judgment
   );
 
   const is_adversarial = adv_score > 0.3;

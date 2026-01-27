@@ -22,7 +22,8 @@
     "lint": "npm --workspace @sonate/detect run build && tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@sonate/detect": "file:../detect"
+    "@anthropic-ai/sdk": "^0.71.2",
+    "@sonate/detect": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
