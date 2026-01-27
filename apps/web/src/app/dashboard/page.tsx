@@ -115,7 +115,7 @@ function TrendIndicator({ change, direction }: { change: number; direction: stri
   );
 }
 
-function SonatePrincipleCard({ 
+function SymbiPrincipleCard({ 
   name, 
   shortName,
   score, 
@@ -238,19 +238,20 @@ export default function DashboardPage() {
   });
 
   const kpis = kpiData;
+  const alerts = (alertData as any)?.data || alertData;
+  const experiments = (experimentData as any)?.data || experimentData;
+
   const displayKpis = kpis || {
     complianceRate: 0,
-    alertsCount: 0,
+    alertsCount: (alerts as any)?.summary?.total ?? 0,
     sonateDimensions: {
       realityIndex: 0,
       trustProtocol: 'UNKNOWN',
       ethicalAlignment: 0,
+      canvasParity: 0,
       resonanceQuality: 'UNKNOWN',
-      canvasParity: 0
-    }
-  };
-  const alerts = (alertData as any)?.data || alertData;
-  const experiments = (experimentData as any)?.data || experimentData;
+    },
+  } as Partial<KPIData> as KPIData;
 
   if (kpiLoading) {
     return <DashboardPageSkeleton />;
@@ -382,16 +383,16 @@ export default function DashboardPage() {
                     <CardTitle className="flex items-center gap-2">
                       <Shield className="h-5 w-5 text-purple-500" />
                       Constitutional Compliance
-                      <InfoTooltip term="SONATE Framework" />
+                      <InfoTooltip term="SYMBI Framework" />
                     </CardTitle>
-                    <CardDescription>6 SONATE Principles (Layer 1)</CardDescription>
+                    <CardDescription>6 SYMBI Principles (Layer 1)</CardDescription>
                   </div>
                   <span className="module-badge badge-detect">CORE</span>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  <SonatePrincipleCard 
+                  <SymbiPrincipleCard 
                     name="Consent Architecture"
                     shortName="Consent"
                     score={8.5}
@@ -400,7 +401,7 @@ export default function DashboardPage() {
                     icon={UserCheck}
                     tooltipTerm="Consent Architecture"
                   />
-                  <SonatePrincipleCard 
+                  <SymbiPrincipleCard 
                     name="Inspection Mandate"
                     shortName="Inspection"
                     score={9.0}
@@ -409,7 +410,7 @@ export default function DashboardPage() {
                     icon={Eye}
                     tooltipTerm="Inspection Mandate"
                   />
-                  <SonatePrincipleCard 
+                  <SymbiPrincipleCard 
                     name="Continuous Validation"
                     shortName="Validation"
                     score={8.0}
@@ -418,7 +419,7 @@ export default function DashboardPage() {
                     icon={Activity}
                     tooltipTerm="Continuous Validation"
                   />
-                  <SonatePrincipleCard 
+                  <SymbiPrincipleCard 
                     name="Ethical Override"
                     shortName="Override"
                     score={9.5}
@@ -427,7 +428,7 @@ export default function DashboardPage() {
                     icon={AlertTriangle}
                     tooltipTerm="Ethical Override"
                   />
-                  <SonatePrincipleCard 
+                  <SymbiPrincipleCard 
                     name="Right to Disconnect"
                     shortName="Disconnect"
                     score={10.0}
@@ -436,7 +437,7 @@ export default function DashboardPage() {
                     icon={Power}
                     tooltipTerm="Right to Disconnect"
                   />
-                  <SonatePrincipleCard 
+                  <SymbiPrincipleCard 
                     name="Moral Recognition"
                     shortName="Moral"
                     score={8.0}
