@@ -206,13 +206,13 @@ async function testCanonicalizeJSON() {
 
 async function testSecp256k1Verification() {
   const secp = await import('@noble/secp256k1');
-  const priv = secp.utils.randomPrivateKey();
+  const priv = secp.utils.randomSecretKey();
   const pub = secp.getPublicKey(priv);
   const data = { x: 1 };
   const canonical = canonicalizeJSON(data);
   const pubHex = Buffer.from(pub as any).toString('hex');
   // Use an invalid random signature to exercise the code path
-  const invalidSigHex = Buffer.from(secp.utils.randomPrivateKey()).toString('hex');
+  const invalidSigHex = Buffer.from(secp.utils.randomSecretKey()).toString('hex');
   const res = await verifySecp256k1Signature(data, invalidSigHex, pubHex);
   assert(res.valid === false, 'secp256k1 invalid signature should fail');
 }
