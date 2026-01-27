@@ -118,11 +118,10 @@ const ConversationSchema = new Schema<IConversation>({
 });
 
 // Update lastActivity timestamp when new messages are added
-ConversationSchema.pre('save', function (next) {
+ConversationSchema.pre('save', function () {
   if (this.isModified('messages')) {
     this.lastActivity = new Date();
   }
-  next();
 });
 
 // Create indexes for search and filtering

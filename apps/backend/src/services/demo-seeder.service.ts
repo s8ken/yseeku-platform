@@ -60,12 +60,6 @@ async function seedTenant(): Promise<void> {
     name: 'Demo Organization',
     description: 'Enterprise AI Trust Platform - Live Demo',
     status: 'active',
-    plan: 'enterprise',
-    settings: {
-      trustThreshold: 7.5,
-      alertsEnabled: true,
-      complianceLevel: 'high',
-    },
     createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 90 days ago
   });
 
@@ -83,9 +77,7 @@ async function seedUser(): Promise<string> {
     name: 'Demo User',
     email: 'demo@yseeku.com',
     password: 'demo-password-' + crypto.randomBytes(16).toString('hex'),
-    role: 'admin',
-    tenantId: DEMO_TENANT_ID,
-    isVerified: true,
+    role: 'admin'
   });
 
   logger.info('Demo user created');
@@ -181,6 +173,7 @@ async function seedAgents(userId: string): Promise<string[]> {
     const agent = await Agent.create({
       ...config,
       user: userId,
+      apiKeyId: new (require('mongoose')).Types.ObjectId(),
       isPublic: true,
       maxTokens: 2048,
       banStatus: 'active',
@@ -198,7 +191,7 @@ async function seedAgents(userId: string): Promise<string[]> {
  * Create demo conversations with trust-scored messages
  */
 async function seedConversations(userId: string, agentIds: string[]): Promise<void> {
-  const existingCount = await Conversation.countDocuments({ userId });
+  const existingCount = await Conversation.countDocuments({ user: userId });
   if (existingCount >= 5) return;
 
   const conversationTemplates = [
@@ -235,7 +228,7 @@ async function seedConversations(userId: string, agentIds: string[]): Promise<vo
     
     await Conversation.create({
       title: template.title,
-      userId,
+      user: userId,
       agents: [agentId],
       messages: template.messages.map((msg, idx) => ({
         sender: msg.sender,
@@ -244,7 +237,6 @@ async function seedConversations(userId: string, agentIds: string[]): Promise<vo
         timestamp: new Date(Date.now() - (template.messages.length - idx) * 5 * 60 * 1000),
       })),
       lastActivity: new Date(),
-      status: 'active',
     });
   }
 
@@ -366,33 +358,37 @@ async function seedExperiments(): Promise<void> {
     {
       name: 'Temperature Optimization',
       description: 'A/B test temperature settings for customer support responses',
+      hypothesis: 'Lower temperature improves trust and reduces variance',
       status: 'running',
+      type: 'ab_test',
       variants: [
-        { name: 'Control (0.5)', config: { temperature: 0.5 }, metrics: { avgTrust: 8.2, responseTime: 1.2 } },
-        { name: 'Low Temp (0.3)', config: { temperature: 0.3 }, metrics: { avgTrust: 8.7, responseTime: 1.4 } },
-        { name: 'High Temp (0.7)', config: { temperature: 0.7 }, metrics: { avgTrust: 7.8, responseTime: 1.1 } },
+        { name: 'Control (0.5)', description: 'Baseline', parameters: { temperature: 0.5 } },
+        { name: 'Low Temp (0.3)', description: 'Lower temperature', parameters: { temperature: 0.3 } }
       ],
-      metrics: ['trustScore', 'responseTime', 'userSatisfaction'],
-      startedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      sampleSize: 1500,
-      progress: 65,
+      tenantId: DEMO_TENANT_ID,
+      createdBy: DEMO_USER_ID,
+      targetSampleSize: 1000,
+      currentSampleSize: 150,
+      metrics: { significant: false }
     },
     {
       name: 'System Prompt Comparison',
       description: 'Evaluate different system prompt strategies for accuracy',
+      hypothesis: 'Structured prompts yield higher accuracy',
       status: 'completed',
+      type: 'ab_test',
       variants: [
-        { name: 'Baseline', config: { promptStyle: 'standard' }, metrics: { avgTrust: 7.9, accuracy: 0.84 } },
-        { name: 'Chain-of-Thought', config: { promptStyle: 'cot' }, metrics: { avgTrust: 8.5, accuracy: 0.91 } },
-        { name: 'Few-Shot', config: { promptStyle: 'fewshot' }, metrics: { avgTrust: 8.3, accuracy: 0.89 } },
+        { name: 'Baseline', description: 'Standard prompt', parameters: { promptStyle: 'standard' } },
+        { name: 'Chain-of-Thought', description: 'CoT prompt', parameters: { promptStyle: 'cot' } }
       ],
-      metrics: ['trustScore', 'accuracy', 'coherence'],
+      tenantId: DEMO_TENANT_ID,
+      createdBy: DEMO_USER_ID,
+      targetSampleSize: 5000,
+      currentSampleSize: 5000,
+      metrics: { significant: true },
       startedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-      completedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      sampleSize: 5000,
-      progress: 100,
-      winner: 'Chain-of-Thought',
-    },
+      completedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+    }
   ];
 
   await Experiment.insertMany(experiments);

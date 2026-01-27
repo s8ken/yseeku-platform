@@ -7,7 +7,7 @@
 import crypto from 'crypto';
 
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
 import { AuthenticationError, SecurityUtils, SECURITY_CONSTANTS } from './index';
 

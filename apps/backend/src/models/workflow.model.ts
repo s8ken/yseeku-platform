@@ -52,9 +52,8 @@ const WorkflowSchema = new Schema<IWorkflow>({
   updatedAt: { type: Date, default: Date.now }
 });
 
-WorkflowSchema.pre('save', function(next) {
+WorkflowSchema.pre('save', function() {
   this.updatedAt = new Date();
-  next();
 });
 
 export const Workflow = mongoose.model<IWorkflow>('Workflow', WorkflowSchema);

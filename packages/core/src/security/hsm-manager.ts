@@ -5,7 +5,7 @@
  * Fallback to software-based management when HSM is unavailable
  */
 
-import crypto, { createHash } from 'crypto';
+import * as crypto from 'crypto';
 
 export interface HSMConfig {
   enabled: boolean;
@@ -276,7 +276,7 @@ export class HSMManager {
    */
   private generateKeyPairSoftware(keyId: string): KeyPair {
     const ed25519 = require('@noble/ed25519');
-    const privateKey = ed25519.utils.randomPrivateKey();
+    const privateKey = new Uint8Array(crypto.randomBytes(32));
     const publicKey = ed25519.getPublicKey(privateKey);
 
     return {

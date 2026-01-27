@@ -65,9 +65,8 @@ const PlatformApiKeySchema = new Schema<IPlatformApiKey>({
 });
 
 // Update timestamps on save
-PlatformApiKeySchema.pre('save', function (next) {
+PlatformApiKeySchema.pre('save', function () {
   this.updatedAt = new Date();
-  next();
 });
 
 export const PlatformApiKey = mongoose.model<IPlatformApiKey>('PlatformApiKey', PlatformApiKeySchema);

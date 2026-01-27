@@ -5,7 +5,7 @@
  * P0 CRITICAL: Required for pilot
  */
 
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 import { canonicalize } from 'json-canonicalize';
 
@@ -30,13 +30,12 @@ let secp256k1Promise: Promise<any> | null = null;
 
 async function loadEd25519(): Promise<any> {
   if (!ed25519Promise) {
-    ed25519Promise = (new Function('return import("@noble/ed25519")')() as Promise<any>).then(
-      (ed25519) => {
-        (ed25519).etc.sha512Sync = (...m: Uint8Array[]) =>
-          new Uint8Array(crypto.createHash('sha512').update(m[0]).digest());
-        return ed25519;
-      }
-    );
+    ed25519Promise = Promise.resolve().then(() => {
+      const ed25519 = require('@noble/ed25519');
+      ed25519.etc.sha512Sync = (...m: Uint8Array[]) =>
+        new Uint8Array(crypto.createHash('sha512').update(m[0]).digest());
+      return ed25519;
+    });
   }
 
   return ed25519Promise;

@@ -4,7 +4,7 @@
  * Comprehensive cryptographic implementation security analysis
  */
 
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 import { hashChain, verifyHashChain } from '../utils/hash-chain';
 import { signPayload, verifySignature, generateKeyPair } from '../utils/signatures';

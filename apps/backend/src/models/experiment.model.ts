@@ -187,11 +187,10 @@ ExperimentSchema.index({ tenantId: 1, createdBy: 1, createdAt: -1 });
 ExperimentSchema.index({ tenantId: 1, tags: 1 });
 
 // Update progress when sample size changes
-ExperimentSchema.pre('save', function(next) {
+ExperimentSchema.pre('save', function() {
   if (this.targetSampleSize > 0) {
     this.progress = Math.min(100, Math.round((this.currentSampleSize / this.targetSampleSize) * 100));
   }
-  next();
 });
 
 export const Experiment = mongoose.model<IExperiment>('Experiment', ExperimentSchema);
