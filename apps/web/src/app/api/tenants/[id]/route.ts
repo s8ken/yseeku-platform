@@ -14,23 +14,25 @@ function parseToken(req: NextRequest) {
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const payload = parseToken(request);
   if (!payload || !Array.isArray(payload.permissions) || !payload.permissions.includes('manage_tenants')) {
     return new Response(JSON.stringify({ success: false }), { status: 403, headers: { 'content-type': 'application/json' } });
   }
 
   const body = await request.json();
-  const updated = await updateTenant(params.id, body);
+  const updated = await updateTenant(id, body);
   return new Response(JSON.stringify({ success: true, data: updated }), { status: 200, headers: { 'content-type': 'application/json' } });
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const payload = parseToken(request);
   if (!payload || !Array.isArray(payload.permissions) || !payload.permissions.includes('manage_tenants')) {
     return new Response(JSON.stringify({ success: false }), { status: 403, headers: { 'content-type': 'application/json' } });
   }
 
-  const ok = await deleteTenant(params.id);
+  const ok = await deleteTenant(id);
   return new Response(JSON.stringify({ success: ok }), { status: 200, headers: { 'content-type': 'application/json' } });
 }

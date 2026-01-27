@@ -298,7 +298,7 @@ export async function generateEd25519KeyPair(): Promise<{
   privateKey: Uint8Array;
 }> {
   const ed25519 = await loadEd25519();
-  const privateKey = ed25519.utils.randomPrivateKey();
+  const privateKey = (ed25519.utils.randomPrivateKey ?? ed25519.utils.randomSecretKey)();
   const publicKey = await ed25519.getPublicKey(privateKey);
   return { publicKey, privateKey };
 }

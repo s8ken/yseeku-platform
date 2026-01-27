@@ -10,11 +10,6 @@ const nextConfig = {
     // Type checking enabled - fix errors instead of ignoring them
     ignoreBuildErrors: false,
   },
-  eslint: {
-    // Temporarily ignore ESLint during builds to allow deployment
-    // Linting is still active in development mode
-    ignoreDuringBuilds: true,
-  },
   async headers() {
     return [
       {
@@ -112,23 +107,30 @@ const nextConfig = {
     '@sonate/orchestrate',
     '@sonate/persistence'
   ],
+  serverExternalPackages: [
+    '@noble/hashes',
+    '@noble/ed25519',
+    '@noble/secp256k1',
+    'bcrypt',
+    'bcryptjs',
+    'jsonwebtoken',
+    'prom-client',
+    'winston'
+  ],
   experimental: {
-    // This is needed to handle some node modules in newer Next.js versions
-    serverComponentsExternalPackages: [
-      '@noble/hashes',
-      '@noble/ed25519',
-      '@noble/secp256k1',
-      'bcrypt',
-      'bcryptjs',
-      'jsonwebtoken',
-      'prom-client',
-      'winston'
-    ],
     optimizePackageImports: [
       'react',
       '@radix-ui/react-dropdown-menu',
       '@radix-ui/react-dialog'
     ]
+  },
+  turbopack: {
+    resolveAlias: {
+      'node:crypto': 'crypto',
+      'node:fs': { browser: '' },
+      'node:path': { browser: '' },
+      'node:perf_hooks': { browser: '' },
+    },
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {

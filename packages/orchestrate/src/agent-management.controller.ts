@@ -482,7 +482,7 @@ export const toggleExternalSystem = asyncHandler(
     }
 
     const { isActive } = req.body;
-    await agent.toggleExternalSystem(req.params.systemName, isActive);
+    await agent.toggleExternalSystem(req.params.systemName as string, isActive);
 
     res.status(200).json({
       success: true,
@@ -550,7 +550,7 @@ export const syncExternalSystem = asyncHandler(async (req: AuthenticatedRequest,
   }
 
   // Update sync timestamp
-  await agent.updateExternalSystemSync(systemName);
+  await agent.updateExternalSystemSync(systemName as string);
 
   // Here you would implement the actual sync logic based on system type
   // For now, we'll just return success

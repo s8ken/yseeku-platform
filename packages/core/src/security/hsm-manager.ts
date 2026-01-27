@@ -276,7 +276,7 @@ export class HSMManager {
    */
   private generateKeyPairSoftware(keyId: string): KeyPair {
     const ed25519 = require('@noble/ed25519');
-    const privateKey = ed25519.utils.randomPrivateKey();
+    const privateKey = (ed25519.utils.randomPrivateKey ?? ed25519.utils.randomSecretKey)();
     const publicKey = ed25519.getPublicKey(privateKey);
 
     return {
