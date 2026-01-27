@@ -123,8 +123,16 @@ async function gatherAgentHealth(tenantId: string): Promise<AgentHealthSummary> 
   try {
     const agents = await Agent.find({}).lean();
 
-    // Filter by tenant if multi-tenant
-    const tenantAgents = agents; // TODO: Add tenant filtering when agent model supports it
+    // Filter by tenant when Agent model supports tenant field
+    // Currently, Agent model doesn't have tenant_id field, so we use all agents
+    const tenantAgents = agents;
+    if (tenantId && tenantId !== 'default') {
+      logger.warn('Agent model does not support tenant filtering yet', {
+        tenantId,
+        agentCount: agents.length,
+        note: 'Add tenant_id field to Agent schema for proper multi-tenancy'
+      });
+    }
 
     const banned = tenantAgents.filter((a: any) => a.banStatus?.isBanned);
     const restricted = tenantAgents.filter((a: any) =>

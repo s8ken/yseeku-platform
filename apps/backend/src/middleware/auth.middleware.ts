@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import { SecureAuthService } from '@sonate/core';
 import { User, IUser } from '../models/user.model';
 import { getErrorMessage } from '../utils/error-utils';
+import logger from '../utils/logger';
 
 // Extend Express Request type to include user
 declare global {
@@ -25,7 +26,7 @@ declare global {
 
 // Initialize SecureAuthService
 if (!process.env.JWT_SECRET) {
-  console.warn('⚠️  JWT_SECRET is not set. A random secret will be generated, which may cause session invalidation on restart.');
+  logger.warn('JWT_SECRET is not set. A random secret will be generated, which may cause session invalidation on restart.');
 }
 
 const authService = new SecureAuthService({
@@ -41,7 +42,7 @@ const authService = new SecureAuthService({
  */
 export async function protect(req: Request, res: Response, next: NextFunction): Promise<void> {
   const requestId = Math.random().toString(36).substring(7);
-  console.log(`[Auth:${requestId}] Processing request to ${req.path}`);
+  logger.debug('Processing auth request', { requestId, path: req.path });
 
   try {
     let token: string | undefined;
@@ -52,7 +53,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     }
 
     if (!token) {
-      console.log(`[Auth:${requestId}] No token provided`);
+      logger.debug('No token provided', { requestId, path: req.path });
       res.status(401).json({
         success: false,
         message: 'Not authorized, no token provided'
@@ -64,9 +65,12 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     let payload: any;
     try {
       payload = authService.verifyToken(token);
-      console.log(`[Auth:${requestId}] Token verified for user: ${payload.username || 'unknown'}`);
+      logger.debug('Token verified', { requestId, username: payload.username || 'unknown' });
     } catch (verifyError: any) {
-      console.error(`[Auth:${requestId}] Token verification failed:`, verifyError.message);
+      logger.warn('Token verification failed', {
+        requestId,
+        error: verifyError.message
+      });
       res.status(401).json({
         success: false,
         message: `Token verification failed: ${verifyError.message}`,
@@ -79,7 +83,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     const email = payload.email;
 
     if (!userId) {
-      console.error(`[Auth:${requestId}] Invalid payload: missing userId`);
+      logger.error('Invalid token payload: missing userId', { requestId });
       res.status(401).json({
         success: false,
         message: 'Invalid token payload: missing user identifier'
@@ -94,23 +98,23 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
       try {
         user = await User.findById(userId).select('-password');
       } catch (dbError: any) {
-        console.error(`[Auth:${requestId}] DB Error finding user by ID:`, dbError);
+        logger.error('DB error finding user by ID', { requestId, userId, error: dbError });
         // Don't fail yet, try by email
       }
     }
 
     // If not found by ID, try by email (handle users coming from Next.js/Postgres)
     if (!user && email) {
-      console.log(`[Auth:${requestId}] User not found by ID, trying email: ${email}`);
+      logger.debug('User not found by ID, trying email', { requestId, email });
       try {
         user = await User.findOne({ email }).select('-password');
       } catch (dbError: any) {
-        console.error(`[Auth:${requestId}] DB Error finding user by email:`, dbError);
+        logger.error('DB error finding user by email', { requestId, email, error: dbError });
       }
-      
+
       // If still not found, create a shadow user in MongoDB so they can store API keys
       if (!user) {
-        console.log(`[Auth:${requestId}] Creating shadow MongoDB user for ${email} (${userId})`);
+        logger.info('Creating shadow MongoDB user', { requestId, email, userId });
         try {
           user = await User.create({
             name: payload.username || payload.name || email.split('@')[0],
@@ -118,14 +122,14 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
             password: 'external-auth-no-password-' + Math.random().toString(36),
             apiKeys: [],
           });
-          console.log(`[Auth:${requestId}] Shadow user created: ${user._id}`);
+          logger.info('Shadow user created', { requestId, userId: user._id });
         } catch (createError: any) {
-          console.error(`[Auth:${requestId}] Failed to create shadow user:`, createError);
+          logger.error('Failed to create shadow user', { requestId, error: createError });
           // Check if user was created by another concurrent request
           try {
             user = await User.findOne({ email }).select('-password');
           } catch (retryError) {
-             console.error(`[Auth:${requestId}] Retry find failed:`, retryError);
+             logger.error('Retry find failed', { requestId, error: retryError });
           }
           
           if (!user) {
@@ -142,7 +146,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     }
 
     if (!user) {
-      console.error(`[Auth:${requestId}] User not found and could not be provisioned`);
+      logger.error('User not found and could not be provisioned', { requestId });
       res.status(401).json({
         success: false,
         message: 'User not found and could not be provisioned'
@@ -158,11 +162,12 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     req.userEmail = user.email;
     req.sessionId = payload.session_id || payload.sessionId;
 
-    console.log(`[Auth:${requestId}] Auth successful for ${user.email}`);
+    logger.debug('Auth successful', { requestId, email: user.email, tenant: req.tenant });
     next();
   } catch (error: unknown) {
     const err = error as Error;
-    console.error(`[Auth:${requestId}] CRITICAL AUTH ERROR:`, {
+    logger.error('CRITICAL AUTH ERROR', {
+      requestId,
       message: getErrorMessage(error),
       stack: err?.stack,
       name: err?.name

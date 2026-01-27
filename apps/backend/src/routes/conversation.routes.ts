@@ -643,7 +643,9 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
               { upsert: true }
             );
           } catch (persistErr: any) {
-            console.warn('Failed to persist AI trust receipt:', persistErr?.message || persistErr);
+            logger.warn('Failed to persist AI trust receipt', {
+              error: persistErr?.message || persistErr
+            });
           }
 
           // Update message trust score (convert 0-10 to 0-5 scale)
@@ -651,7 +653,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
 
           // Log trust violations for AI responses
           if (aiTrustEval.status === 'FAIL' || aiTrustEval.status === 'PARTIAL') {
-            console.warn(`Trust violation in AI response:`, {
+            logger.warn('Trust violation in AI response', {
               conversationId: conversation._id,
               agentId: agent._id,
               status: aiTrustEval.status,
