@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
-    "@sonate/detect": "workspace:*"
+    "@sonate/detect": "^1.4.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
@@ -31,6 +31,6 @@
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
-    "@sonate/detect": "workspace:*"
+    "@sonate/detect": "^1.4.0"
   }
 }

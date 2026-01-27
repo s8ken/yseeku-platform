@@ -1,31 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import React from 'react';
+import { ChatContainer } from '@/components/chat/ChatContainer';
 
 export default function TrustPage() {
-  const [data, setData] = useState('');
-  const [receipt, setReceipt] = useState<{id: string, hash: string, signature: string} | null>(null);
-
-  const generateReceipt = async () => {
-    // Mock using @sonate/core
-    const mockReceipt = { id: 'receipt-' + Date.now(), hash: 'abc123', signature: 'sig456' };
-    setReceipt(mockReceipt);
-  };
-
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Trust Protocol Simulator</h1>
-      <Input value={data} onChange={(e) => setData(e.target.value)} placeholder="Enter data" />
-      <Button onClick={generateReceipt}>Generate Receipt</Button>
-      {receipt && (
-        <div className="p-4 bg-muted rounded">
-          <p>Receipt ID: {receipt.id}</p>
-          <p>Hash: {receipt.hash}</p>
-          <p>Signature: {receipt.signature}</p>
-        </div>
-      )}
+    <div className="container mx-auto max-w-5xl py-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Trust-Aware Session Interface</h1>
+        <p className="text-muted-foreground">
+          Real-time conversation with constitutional AI alignment and cryptographic receipts.
+          All interactions are verified and logged to the Trust Ledger.
+        </p>
+      </div>
+      <ChatContainer />
     </div>
   );
 }
