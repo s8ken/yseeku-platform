@@ -30,7 +30,7 @@ const PolicyRuleSchema = z.object({
   }),
   action: z.object({
     type: z.enum(['alert', 'block', 'log', 'escalate', 'report', 'notify', 'adjust_weights']),
-    parameters: z.record(z.any()),
+    parameters: z.object({}).catchall(z.any()),
     escalationLevel: z.enum(['level_1', 'level_2', 'level_3', 'level_4', 'level_5']).optional()
   }),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
@@ -43,12 +43,12 @@ const IndustryPolicySchema = z.object({
   industry: z.enum(['healthcare', 'finance', 'government', 'education', 'technology', 'manufacturing', 'retail', 'energy', 'transportation', 'legal']),
   description: z.string(),
   basePrinciples: z.array(z.enum(['CONSENT_ARCHITECTURE', 'INSPECTION_MANDATE', 'CONTINUOUS_VALIDATION', 'ETHICAL_OVERRIDE', 'RIGHT_TO_DISCONNECT', 'MORAL_RECOGNITION'])),
-  customWeights: z.record(z.number()).optional(),
+  customWeights: z.object({}).catchall(z.number()).optional(),
   complianceFrameworks: z.array(z.object({
     id: z.string(),
     name: z.string(),
     version: z.string(),
-    principleMappings: z.record(z.array(z.object({
+    principleMappings: z.object({}).catchall(z.array(z.object({
       id: z.string(),
       description: z.string(),
       mandatory: z.boolean(),
@@ -76,7 +76,7 @@ const IndustryPolicySchema = z.object({
       warning: z.number(),
       critical: z.number()
     }),
-    principleScores: z.record(z.object({
+    principleScores: z.object({}).catchall(z.object({
       minimum: z.number(),
       warning: z.number(),
       critical: z.number()
@@ -148,7 +148,7 @@ export class PolicyValidator {
       
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(`Invalid policy composition request: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`);
+        throw new Error(`Invalid policy composition request: ${error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ')}`);
       }
       throw error;
     }
@@ -166,7 +166,7 @@ export class PolicyValidator {
       
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(`Invalid policy: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`);
+        throw new Error(`Invalid policy: ${error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ')}`);
       }
       throw error;
     }
