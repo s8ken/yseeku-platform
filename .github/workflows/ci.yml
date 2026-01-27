@@ -8,6 +8,8 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      TURBO_TELEMETRY_DISABLED: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -29,6 +31,10 @@ jobs:
 
       - name: Unit tests (packages)
         run: npm run test
+
+      - name: Backend unit tests
+        run: npm run test --workspace=backend
+        continue-on-error: true
 
       - name: Build backend
         run: npm run build:backend
@@ -58,4 +64,3 @@ jobs:
       - name: E2E tests (web)
         working-directory: apps/web
         run: npx playwright test
-

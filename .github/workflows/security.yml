@@ -6,6 +6,8 @@ on:
 jobs:
   zap-baseline:
     runs-on: ubuntu-latest
+    env:
+      TURBO_TELEMETRY_DISABLED: '1'
     steps:
       - uses: actions/checkout@v6
       - name: Start backend
@@ -19,5 +21,27 @@ jobs:
         uses: zaproxy/action-baseline@v0.14.0
         with:
           target: 'http://localhost:3001'
+          rules_file_name: '.zap/rules.tsv'
+          fail_action: false
+
+  zap-web:
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install and build web
+        run: |
+          npm ci
+          npm run build --workspace=web
+      - name: Start web
+        run: |
+          npm run start --workspace=web &
+          for i in {1..60}; do
+            if curl -sSf http://localhost:5000/ >/dev/null; then break; fi; sleep 1; done
+      - name: ZAP Baseline Scan (web)
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: 'http://localhost:5000'
           rules_file_name: '.zap/rules.tsv'
           fail_action: false

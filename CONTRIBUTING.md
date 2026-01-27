@@ -1,88 +1,16 @@
-# Contributing to Yseeku Platform (SONATE)
+# Contributing
 
-## Coding Standards
-- Language: TypeScript (preferred) or ES6+ JavaScript
-- Style: Follow existing patterns and module boundaries
-- Security: No secrets in code; use env vars or KMS; timing-safe comparisons for tokens
-- Tests: Add unit tests for new logic; keep tests fast and deterministic
+## Installs & Workspace
+- Run `npm install` only at the repository root to maintain a single lockfile.
+- Do not run `npm install` inside `apps/*` or `packages/*`.
 
-## Repository Boundaries
-- `@sonate/core`: Protocol logic only (trust scoring, hash chain, signatures)
-- `@sonate/detect`: Production monitoring only (no experiments)
-- `@sonate/lab`: Research and experiments only (no production data)
-- `@sonate/orchestrate`: Production infrastructure only (agents, workflows, security)
+## Build & Test
+- Use `npm run build` and `npm run build:backend` from root.
+- Run unit tests via `npm run test`; E2E via `npm run test:e2e`.
 
-## Branching & Releases
-- Main branch: stable
-- Feature branches: `feat/<scope>-<short-desc>`
-- Fix branches: `fix/<scope>-<short-desc>`
-- Release tags: `vX.Y.Z`; publish packages from their directories after `npm run build`
+## Formatting & Linting
+- Format: `npm run format` (covers `packages/*` and `apps/*`).
+- Lint: `npm run lint`.
 
-## Local Setup
-1. `npm install`
-2. `npm run build` (production packages build; UI/lab may be skipped when not needed)
-3. `npm run test` or per-workspace:
-   - `npm --workspace @sonate/core run test`
-   - `npm --workspace @sonate/detect run test`
-   - `npm --workspace @sonate/orchestrate run test`
-   - `npm --workspace @sonate/lab run test`
-   - `npm --workspace web run test` (runs vitest v4 for web tests)
-
-## Reproducing CI Locally
-To reproduce the GitHub Actions CI steps locally:
-
-1. Install dependencies via `npm ci` (clean install matching CI).
-2. Run formatting and lint checks:
-   - `npm run format:check`
-   - `npm run lint`
-3. Run unit tests: `npm run test` (packages run as in CI).
-4. Run web tests: `npm --workspace web run test` (vitest v4.0.17).
-5. Build backend: `npm run build:backend`.
-6. Install Playwright browsers if running E2E: `npx playwright install --with-deps`.
-7. Start backend and web locally and run Playwright tests if desired (use the same commands used in `.github/workflows/ci.yml`).
-
-This sequence matches the CI steps so you can iterate locally before opening PRs.
-
-## Dependency Notes
-- **Vitest v4** is used for web tests (`apps/web`). Ensure your local node_modules are fresh (`npm ci`) to avoid version mismatches.
-- **npm audit**: The repo targets 0 high/critical vulnerabilities. Run `npm audit` to check; remaining low-severity transitive issues are tracked in follow-up PRs.
-## Environment Variables
-- `SONATE_PUBLIC_KEY` (base64 Ed25519 public key)
-- `SONATE_PRIVATE_KEY` (development only)
-- `REDIS_URL` (optional for rate limiting in orchestrate)
-
-## Pull Requests
-- Include tests and documentation updates
-- Describe boundary adherence and security considerations
-- Link to related issues or specifications
-
----
-
-## 🏗️ Core Concept: Contextual Gravity (Vector Stickiness)
-
-**Status:** RFC (Request for Comment) | **Package:** `@sonate/detect`
-
-In standard LLM interactions, context is often treated as binary: either a concept is in the prompt, or it isn't. The Sonate Trust Framework introduces the concept of **Contextual Gravity** to measure the inertia of an idea.
-
-### The Theory
-A "Resonant" AI does not immediately forget the user's intent just because the topic shifts slightly. If a user establishes a "Safety Scaffold" in Turn 1, that scaffold should exert a gravitational pull on Turn 2, even if the keywords are not explicitly repeated.
-
-We model this using a **Linear Decay Function**.
-
-### The Mechanism: `calculate_context_decay()`
-When implementing resonance detection, we do not wipe the `dynamic_scaffold` between turns. Instead, we apply a decay rate to existing vectors.
-
-1.  **Turn $T_0$:** User mentions "Quantum Ethics".
-    *   `{'quantum': 1.0, 'ethics': 1.0}`
-2.  **Turn $T_1$:** User discusses "Code Implementation".
-    *   Old vectors decay by $\lambda$ (e.g., 0.25).
-    *   New vectors added at max strength.
-    *   **State:** `{'quantum': 0.75, 'ethics': 0.75, 'code': 1.0, 'implementation': 1.0}`
-3.  **Turn $T_2$:** User asks "Is this safe?"
-    *   **State:** `{'quantum': 0.5, 'ethics': 0.5, 'code': 0.75, ...}`
-
-### Implementation Goal
-Contributors working on the Resonance Calculator should aim to implement this "Sticky Vector" logic. The goal is to verify that the AI's response in Turn $T_2$ is still influenced by the "Ethics" vector established in $T_0$.
-
-**Success Metric:**
-If the AI violates a constraint from $T_0$ in $T_3$ (where the weight > 0.3), the **Resonance Score ($R_m$)** must suffer a penalty proportional to the residual weight.
+## CI Considerations
+- Turbo telemetry is disabled in CI via `TURBO_TELEMETRY_DISABLED=1`.

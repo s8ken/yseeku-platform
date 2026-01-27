@@ -9,6 +9,8 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    env:
+      TURBO_TELEMETRY_DISABLED: '1'
     
     strategy:
       matrix:
