@@ -16,8 +16,11 @@ let retryCount = 0;
 export async function connectDatabase(): Promise<void> {
   try {
     await mongoose.connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 30000,  // Increased from 5s to 30s for Railway network latency
       socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,  // Added connection timeout
+      maxPoolSize: 10,  // Connection pool settings
+      minPoolSize: 2,
     });
 
     logger.info('MongoDB connected', { host: mongoose.connection.host });

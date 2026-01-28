@@ -7,6 +7,7 @@
 import { Router, Request, Response } from 'express';
 import { authService, protect } from '../middleware/auth.middleware';
 import { validateBody } from '../middleware/validation.middleware';
+import { loginRateLimiter, registerRateLimiter, passwordResetRateLimiter } from '../middleware/auth-rate-limit';
 import { LoginSchema, RegisterSchema } from '../schemas/validation.schemas';
 import { User, IUser } from '../models/user.model';
 import { logSuccess, logFailure } from '../utils/audit-logger';
@@ -41,7 +42,7 @@ router.get('/debug', protect, (req: Request, res: Response) => {
  * @desc    Register new user
  * @access  Public
  */
-router.post('/register', validateBody(RegisterSchema), async (req: Request, res: Response): Promise<void> => {
+router.post('/register', registerRateLimiter, validateBody(RegisterSchema), async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, email, password } = req.body;
 
@@ -154,7 +155,7 @@ router.post('/guest', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-router.post('/login', validateBody(LoginSchema), async (req: Request, res: Response): Promise<void> => {
+router.post('/login', loginRateLimiter, validateBody(LoginSchema), async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, username } = req.body;
 
