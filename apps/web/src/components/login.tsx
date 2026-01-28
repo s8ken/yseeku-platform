@@ -56,25 +56,18 @@ export function Login() {
         },
         credentials: 'include',
         body: JSON.stringify({
+          email: data.username,
           username: data.username,
           password: data.password,
         }),
       });
 
-      if (response.ok) {
-        return response.json() as Promise<LoginResponse & { token?: string; data?: any }>;
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || err.error || 'Invalid credentials');
       }
 
-      // Fallback to guest provisioning to avoid blocking access when credentials fail or backend user missing
-      const guestRes = await fetch('/api/auth/guest', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
-      if (!guestRes.ok) {
-        throw new Error('Login failed');
-      }
-      return guestRes.json() as Promise<LoginResponse & { token?: string; data?: any }>;
+      return response.json() as Promise<LoginResponse & { token?: string; data?: any }>;
     },
     onSuccess: (data) => {
       sessionStorage.setItem('tenant', (data as any)?.data?.tenant || 'default');

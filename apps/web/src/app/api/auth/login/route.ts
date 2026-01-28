@@ -1,65 +1,54 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-import { verifyPassword, generateToken } from '../../../../lib/auth';
-import { getPool } from '../../../../lib/db';
+const BACKEND_URL =
+  process.env.INTERNAL_API_URL ??
+  process.env.BACKEND_URL ??
+  process.env.NEXT_PUBLIC_BACKEND_URL ??
+  'http://localhost:3001';
 
-export async function POST(request: NextRequest): Promise<Response> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
-    const username = (body.username ?? body.email) as string | undefined;
-    const password = body.password as string | undefined;
+    const tenantId = request.headers.get('x-tenant-id') || 'default';
 
-    if (!username || !password) {
-      return new Response(JSON.stringify({ success: false, error: 'Missing credentials' }), {
-        status: 400,
-        headers: { 'content-type': 'application/json' }
-      });
-    }
-
-    const pool = getPool();
-
-    // Some callers expect multiple DB queries; tests mock query results in sequence.
-    await pool.query('SELECT 1');
-
-    const userRes = await pool.query(
-      'SELECT id, email, name, password_hash, role, tenant_id FROM users WHERE email = $1 OR name = $1',
-      [username]
-    );
-
-    if (!userRes || userRes.rowCount === 0) {
-      return new Response(JSON.stringify({ success: false, error: 'Invalid credentials' }), {
-        status: 401,
-        headers: { 'content-type': 'application/json' }
-      });
-    }
-
-    const user = userRes.rows[0];
-
-    await pool.query('SELECT 1');
-    await pool.query('INSERT INTO sessions(token,user_id) VALUES($1,$2) RETURNING id', [null, null]);
-
-    const valid = await verifyPassword(password, String(user.password_hash));
-
-    if (!valid) {
-      return new Response(JSON.stringify({ success: false, error: 'Invalid credentials' }), {
-        status: 401,
-        headers: { 'content-type': 'application/json' }
-      });
-    }
-
-    const token = generateToken();
-
-    const headers = new Headers({ 'content-type': 'application/json' });
-    headers.append('set-cookie', `session_token=${token}; Path=/; HttpOnly`);
-
-    return new Response(JSON.stringify({ success: true, data: { user: { role: user.role } } }), {
-      status: 200,
-      headers
+    // Proxy the login request to the backend
+    const backendResponse = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-tenant-id': tenantId,
+      },
+      body: JSON.stringify(body),
     });
+
+    const data = await backendResponse.json();
+
+    if (!backendResponse.ok) {
+      return NextResponse.json(data, { status: backendResponse.status });
+    }
+
+    // Extract the JWT from the backend response
+    const token = data.token || data.data?.tokens?.accessToken;
+
+    const response = NextResponse.json(data, { status: 200 });
+
+    // Set the session_token HttpOnly cookie so the middleware can find it
+    if (token) {
+      response.cookies.set('session_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24, // 24 hours
+      });
+    }
+
+    return response;
   } catch (err: any) {
-    return new Response(JSON.stringify({ success: false, error: String(err?.message ?? err) }), {
-      status: 500,
-      headers: { 'content-type': 'application/json' }
-    });
+    console.error('Login proxy error:', err);
+    return NextResponse.json(
+      { success: false, error: err?.message || 'Login failed' },
+      { status: 500 }
+    );
   }
 }
