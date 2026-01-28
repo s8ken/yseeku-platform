@@ -1,22 +1,21 @@
-import jwt from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { withMonitoring, logAuthAttempt } from './middleware/monitoring-middleware';
+const getJwtSecret = (): Uint8Array | null => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) return null;
+  return new TextEncoder().encode(secret);
+};
 
-const getJwtSecret = (): string => process.env.JWT_SECRET ?? '';
-
-function authMiddleware(req: NextRequest): NextResponse {
+async function authMiddleware(req: NextRequest): Promise<NextResponse> {
   const { pathname } = req.nextUrl;
 
   // Skip auth for non-dashboard routes
   if (!pathname.startsWith('/dashboard')) {
     return NextResponse.next();
   }
-  
-  // For dashboard pages, allow access - client-side will handle auth
-  // This is needed because cookies don't work reliably in iframe environments
-  // The dashboard components will check localStorage for the token
+
   const auth = req.headers.get('authorization');
   const cookieToken = req.cookies.get('session_token')?.value;
   const BEARER_PREFIX_LENGTH = 7;
@@ -32,7 +31,6 @@ function authMiddleware(req: NextRequest): NextResponse {
 
   const secret = getJwtSecret();
   if (!secret) {
-    // If secret is missing, fail open or closed? Closed is safer for enterprise.
     console.error('JWT_SECRET is not defined in environment');
     const url = req.nextUrl.clone();
     url.pathname = '/auth/login';
@@ -40,10 +38,9 @@ function authMiddleware(req: NextRequest): NextResponse {
   }
 
   try {
-    const payload = jwt.verify(token, secret) as jwt.JwtPayload;
-    logAuthAttempt(true, payload.sub ?? 'unknown', 'success');
+    await jwtVerify(token, secret);
     return NextResponse.next();
-  } catch (error) {
+  } catch {
     // Token invalid, redirect to login
     const url = req.nextUrl.clone();
     url.pathname = '/auth/login';
@@ -51,12 +48,8 @@ function authMiddleware(req: NextRequest): NextResponse {
   }
 }
 
-export const middleware = withMonitoring(authMiddleware, {
-  logRequests: true,
-  logErrors: true,
-  recordMetrics: true
-})
+export const middleware = authMiddleware;
 
 export const config = {
   matcher: ['/dashboard/:path*']
-}
+};
