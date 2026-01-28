@@ -107,7 +107,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     // Get user from database (exclude password)
     // First try by ID (if it's a valid MongoDB ObjectId)
     let user;
-    if (mongoose.Types.ObjectId.isValid(userId)) {
+    if (mongoose.isValidObjectId(userId)) {
       try {
         user = await User.findById(userId).select('-password');
       } catch (dbError: unknown) {

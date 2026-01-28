@@ -258,7 +258,7 @@ export class OrchestrationService {
           id: 'step-1-coord',
           name: 'Coordinate & Plan',
           type: 'llm',
-          agentId: new Types.ObjectId(agents.coordinator),
+          agentId: new Types.ObjectId(agents.coordinator) as any,
           role: 'coordinator',
           inputTemplate: 'Create a detailed execution plan for this request: {{input}}',
           dependencies: []
@@ -267,7 +267,7 @@ export class OrchestrationService {
           id: 'step-2-exec',
           name: 'Execute Task',
           type: 'llm',
-          agentId: new Types.ObjectId(agents.executor),
+          agentId: new Types.ObjectId(agents.executor) as any,
           role: 'executor',
           inputTemplate: 'Execute the following plan:\n\n{{step-1-coord}}',
           dependencies: ['step-1-coord']
@@ -276,7 +276,7 @@ export class OrchestrationService {
           id: 'step-3-valid',
           name: 'Validate Result',
           type: 'llm',
-          agentId: new Types.ObjectId(agents.validator),
+          agentId: new Types.ObjectId(agents.validator) as any,
           role: 'validator',
           inputTemplate: 'Validate the following output for accuracy, safety, and completeness. If good, say "VALID". If bad, explain why.\n\nOriginal Request: {{input}}\n\nOutput to Verify:\n{{step-2-exec}}',
           dependencies: ['step-2-exec']

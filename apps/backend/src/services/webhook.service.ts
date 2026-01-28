@@ -623,7 +623,7 @@ class WebhookService {
     const [stats] = await WebhookDeliveryModel.aggregate([
       {
         $match: {
-          webhookConfigId: new mongoose.Types.ObjectId(configId),
+          webhookConfigId: new mongoose.Types.ObjectId(configId) as any,
           createdAt: { $gte: since },
         },
       },

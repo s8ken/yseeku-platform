@@ -33,7 +33,7 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
     for (const conv of conversations) {
       for (const agent of (conv.agents || [])) {
         if (agent && typeof agent === 'object' && '_id' in agent) {
-          agentMap.set(agent._id.toString(), agent);
+          agentMap.set((agent as any)._id.toString(), agent);
         }
       }
     }
