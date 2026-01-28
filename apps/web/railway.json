@@ -2,12 +2,12 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "cd ../.. && npm install && npm run build",
-    "watchPatterns": ["src/**", "package.json", "next.config.mjs"]
+    "buildCommand": "npm install && npm run build",
+    "watchPatterns": ["apps/web/src/**", "apps/web/package.json", "apps/web/next.config.mjs", "packages/*/src/**"]
   },
   "deploy": {
-    "startCommand": "node .next/standalone/apps/web/server.js",
-    "healthcheckPath": "/health",
+    "startCommand": "node apps/web/.next/standalone/apps/web/server.js",
+    "healthcheckPath": "/api/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10

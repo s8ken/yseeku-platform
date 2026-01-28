@@ -120,11 +120,22 @@ app.get('/', (req, res) => {
 
 // Basic health check (simple version)
 app.get('/health', (req, res) => {
-  res.json({
+  // Always return 200 - let the app handle MongoDB reconnection gracefully
+  // Railway health checks should not fail if MongoDB is temporarily down
+  const health = {
     status: 'ok',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-  });
+    uptime: process.uptime(),
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    memory: {
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+    },
+  };
+  
+  // Always return 200 status code for health checks
+  res.status(200).json(health);
 });
 
 // API Routes
