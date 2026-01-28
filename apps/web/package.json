@@ -13,6 +13,7 @@
     "e2e": "node scripts/e2e.js"
   },
   "dependencies": {
+    "@alloc/quick-lru": "^5.2.0",
     "@hookform/resolvers": "^5.2.2",
     "@ioredis/commands": "^1.5.0",
     "@lit-protocol/lit-node-client": "7.4.0",
@@ -39,6 +40,7 @@
     "@types/react": "18.3.5",
     "@types/react-dom": "18.3.1",
     "@types/three": "^0.182.0",
+    "busboy": "^1.6.0",
     "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.1",
     "client-only": "^0.0.1",
@@ -62,6 +64,7 @@
     "redis-parser": "^3.0.0",
     "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
+    "set-function-length": "^1.2.2",
     "socket.io-client": "^4.8.3",
     "sonner": "^2.0.7",
     "standard-as-callback": "^2.1.0",
