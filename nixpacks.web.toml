@@ -1,0 +1,24 @@
+# Nixpacks configuration for Railway - Web Frontend Service
+# Use this at the ROOT level when configuring Railway
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "npm"]
+
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+# Next.js standalone output copies server.js to .next/standalone/apps/web/
+# Static assets need to be copied manually
+[phases.postbuild]
+cmds = ["cp -r apps/web/public apps/web/.next/standalone/apps/web/public || true", "cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static || true"]
+
+[start]
+cmd = "node apps/web/.next/standalone/apps/web/server.js"
+
+[variables]
+NODE_ENV = "production"
+NEXT_TELEMETRY_DISABLED = "1"
+PORT = "3000"

@@ -1,0 +1,17 @@
+# Nixpacks configuration for Railway - Web Frontend
+[phases.setup]
+nixPkgs = ["nodejs_20", "npm"]
+
+[phases.install]
+cmds = ["cd ../.. && npm install"]
+
+[phases.build]
+cmds = ["cd ../.. && npm run build"]
+
+[start]
+cmd = "node .next/standalone/apps/web/server.js"
+
+[variables]
+NODE_ENV = "production"
+NEXT_TELEMETRY_DISABLED = "1"
+PORT = "3000"

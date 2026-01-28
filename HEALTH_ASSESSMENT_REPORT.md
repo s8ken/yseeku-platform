@@ -137,6 +137,55 @@ The platform implements a **Constitutional AI Governance** framework called SONA
 
 ---
 
+## 🚂 Railway Deployment Configuration
+
+### Fixed Configuration Issues
+
+| Issue | Fix Applied |
+|-------|-------------|
+| Empty `apps/web/railway.json` | Added proper Next.js standalone config |
+| Missing `.nvmrc` | Created with Node 20 specification |
+| Missing `.node-version` | Created for platform compatibility |
+| Missing `apps/web/nixpacks.toml` | Added Nixpacks config for web frontend |
+
+### Railway Setup Instructions
+
+For a **monorepo deployment** on Railway, you have two options:
+
+#### Option A: Deploy from Root (Recommended)
+
+1. **Backend Service:**
+   - Root Directory: `/` (repository root)
+   - Use `nixpacks.backend.toml` by renaming it to `nixpacks.toml` or set build command manually
+   - Build: `npm install && npm run build:backend`
+   - Start: `node apps/backend/dist/index.js`
+
+2. **Web Frontend Service:**
+   - Root Directory: `/` (repository root)
+   - Use `nixpacks.web.toml` by renaming it to `nixpacks.toml` or set build command manually
+   - Build: `npm install && npm run build`
+   - Start: `node apps/web/.next/standalone/apps/web/server.js`
+
+#### Option B: Service-Specific Directories
+
+If using service-specific root directories (e.g., `apps/backend`), Railway may have issues with `cd ../..` patterns. In this case:
+
+- Ensure Railway's "Root Directory" is set to the **repository root** (`/`), not `apps/backend` or `apps/web`
+- Use the service-specific `railway.json` files which handle the directory change
+
+### Environment Variables Required
+
+**Backend:**
+- `MONGODB_URI` - MongoDB connection string
+- `JWT_SECRET` - JWT signing secret
+- `CORS_ORIGIN` - Allowed CORS origins
+
+**Web Frontend:**
+- `NEXT_PUBLIC_BACKEND_URL` - Backend API URL (e.g., `https://your-backend.railway.app`)
+- `PORT` - Defaults to 3000
+
+---
+
 ## Bottom Line
 
 This is a **well-designed platform with a compelling value proposition** that is now **deployable**. All critical build issues have been resolved:
@@ -145,6 +194,8 @@ This is a **well-designed platform with a compelling value proposition** that is
 2. ✅ Web frontend builds successfully (80 pages)
 3. ✅ All 12 test suites pass
 4. ✅ ESM import issues fixed for @noble packages
+5. ✅ TypeScript declaration generation fixed for 6 packages
+6. ✅ Railway configuration files created and fixed
 
 **Remaining work:** Address low-priority lint warnings, update deprecated packages, and run security audit fixes.
 

@@ -1,0 +1,17 @@
+# Nixpacks configuration for Railway - Backend Service
+# Use this at the ROOT level when configuring Railway
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "npm"]
+
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = ["npm run build:backend"]
+
+[start]
+cmd = "node apps/backend/dist/index.js"
+
+[variables]
+NODE_ENV = "production"
