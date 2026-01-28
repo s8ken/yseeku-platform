@@ -1,7 +1,10 @@
-# Multi-stage Dockerfile for YSEEKU Backend
-FROM node:20-alpine AS builder
+# Simple single-stage Dockerfile for YSEEKU Backend
+FROM node:20-alpine
 
 WORKDIR /app
+
+# Install build dependencies for native modules
+RUN apk add --no-cache python3 make g++
 
 # Copy package files and configs
 COPY package*.json ./
@@ -11,21 +14,14 @@ COPY tsconfig.json ./
 COPY packages/ ./packages/
 COPY apps/backend/ ./apps/backend/
 
-# Install dependencies and build
+# Install ALL dependencies (not just prod, we need dev for build)
 RUN npm ci --legacy-peer-deps
+
+# Build the backend
 RUN npm run build:backend
 
-# Production stage
-FROM node:20-alpine AS runner
-
-WORKDIR /app
-
-# Copy built artifacts and node_modules
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/apps/backend ./apps/backend
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/turbo.json ./
+# Clean up dev dependencies to reduce image size (optional)
+# RUN npm prune --production --legacy-peer-deps
 
 # Environment
 ENV NODE_ENV=production

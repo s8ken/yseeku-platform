@@ -7,8 +7,15 @@ import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import logger from '../utils/logger';
 import { getMetrics } from '../observability/metrics';
-import { trace } from '@opentelemetry/api';
 import { getErrorMessage, getErrorStack } from '../utils/error-utils';
+
+// Optional OpenTelemetry - use try/catch to avoid crashes
+let traceApi: { trace: { getActiveSpan: () => unknown } } | null = null;
+try {
+  traceApi = require('@opentelemetry/api');
+} catch {
+  // OpenTelemetry not available
+}
 
 const router = Router();
 
