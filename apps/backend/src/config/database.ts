@@ -57,10 +57,13 @@ export async function connectDatabase(): Promise<void> {
     if (retryCount < MAX_RETRIES) {
       retryCount++;
       logger.info('Retrying MongoDB connection', { retryIn: `${RETRY_INTERVAL / 1000}s` });
-      setTimeout(connectDatabase, RETRY_INTERVAL);
+      await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+      return connectDatabase(); // Retry
     } else {
-      logger.error('Max connection retries reached. Exiting...');
-      process.exit(1);
+      logger.error('Max connection retries reached. Server will continue without database.');
+      // Don't exit - let the server keep running for health checks
+      // Features requiring DB will fail gracefully
+      throw new Error('MongoDB connection failed after max retries');
     }
   }
 }

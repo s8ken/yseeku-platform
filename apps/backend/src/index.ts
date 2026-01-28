@@ -174,8 +174,18 @@ app.use(globalErrorHandler);
 
 // Start server
 async function startServer() {
+  // Start listening FIRST so health checks pass immediately
+  server.listen(PORT, () => {
+    logger.info('YSEEKU Platform Backend Server started', {
+      port: PORT,
+      environment: process.env.NODE_ENV || 'development',
+      version: '1.12.0',
+    });
+    console.log(`Server listening on port ${PORT}`);
+  });
+
   try {
-    // Connect to database
+    // Connect to database (non-blocking for health checks)
     await connectDatabase();
     logger.info('Database connected successfully', {
       host: 'MongoDB',
@@ -274,46 +284,22 @@ async function startServer() {
       liveMetrics: 'enabled',
     });
 
-    // Start listening
-    server.listen(PORT, () => {
-      logger.info('YSEEKU Platform Backend Server started', {
-        port: PORT,
-        environment: process.env.NODE_ENV || 'development',
-        database: 'MongoDB Connected',
-        security: 'SecureAuthService Enabled',
-        trust: 'SONATE Protocol Active',
-        realtime: 'Socket.IO Enabled',
-        version: '1.12.0',
-      });
+    // Start background scheduler
+    startOverseerScheduler().catch(() => {});
 
-      // Pretty console output for development
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`
-╔═══════════════════════════════════════════════════╗
-║                                                   ║
-║   🚀 YSEEKU Platform Backend Server               ║
-║                                                   ║
-║   Port:        ${PORT.toString().padEnd(36)}║
-║   Environment: ${(process.env.NODE_ENV || 'development').padEnd(36)}║
-║   Database:    MongoDB Connected                  ║
-║   Security:    SecureAuthService Enabled          ║
-║   Trust:       SONATE Protocol Active              ║
-║   Real-time:   Socket.IO Enabled                  ║
-║   Logging:     Winston Structured Logging         ║
-║                                                   ║
-╚═══════════════════════════════════════════════════╝
-        `);
-      }
-
-      startOverseerScheduler().catch(() => {});
+    logger.info('Backend fully initialized', {
+      database: 'MongoDB Connected',
+      security: 'SecureAuthService Enabled',
+      trust: 'SONATE Protocol Active',
+      realtime: 'Socket.IO Enabled',
     });
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
-    logger.error('Failed to start server', {
+    logger.error('Backend initialization error (server still running)', {
       error: err.message,
       stack: err.stack,
     });
-    process.exit(1);
+    // Don't exit - let health checks still work, just log the error
   }
 }
 
