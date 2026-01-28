@@ -5,17 +5,17 @@ services:
   # Backend API
   - type: web
     name: yseeku-backend
-    runtime: node
+    runtime: docker
     region: singapore
     plan: starter
-    buildCommand: npm install && npm run build:backend
-    startCommand: node apps/backend/dist/index.js
+    dockerfilePath: ./Dockerfile.backend
+    dockerContext: .
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3001
+        value: 8080
       - key: MONGODB_URI
         sync: false  # Set manually in dashboard
       - key: JWT_SECRET
