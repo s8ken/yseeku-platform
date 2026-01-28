@@ -1,14 +1,15 @@
 import { tenantContext } from '@sonate/core';
 import Ajv from 'ajv';
-import { Request, Response } from 'express';
+import { Request, Response, ParamsDictionary } from 'express';
+import { ParsedQs } from 'qs';
 import asyncHandler from 'express-async-handler';
 
 import { Agent, UserModel as User } from './agent.model';
 import { appendEvent } from './services/ledger.service';
 
 
-// Custom Request type to include user
-interface AuthenticatedRequest extends Request {
+// Custom Request type to include user - extends Express Request with all properties
+interface AuthenticatedRequest extends Request<ParamsDictionary, unknown, unknown, ParsedQs> {
   user?: {
     id: string;
     username: string;

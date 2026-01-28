@@ -54,7 +54,7 @@ import { initializeSocket } from './socket';
 import { liveMetricsService } from './services/live-metrics.service';
 import { User } from './models/user.model';
 import { Agent } from './models/agent.model';
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { startOverseerScheduler } from './services/brain/scheduler';
 import logger from './utils/logger';
 import { requestLogger, errorLogger } from './middleware/request-logger';

@@ -1,4 +1,5 @@
-# Simple single-stage Dockerfile for YSEEKU Backend
+# Dockerfile for YSEEKU Backend
+# Fixes transitive dependency resolution issues
 FROM node:20-alpine
 
 WORKDIR /app
@@ -14,23 +15,21 @@ COPY tsconfig.json ./
 COPY packages/ ./packages/
 COPY apps/backend/ ./apps/backend/
 
-# Install ALL dependencies (not just prod, we need dev for build)
-RUN npm ci --legacy-peer-deps
+# Install dependencies
+RUN npm install --legacy-peer-deps
+
+# FIX: Install missing transitive dependencies directly into packages that need them
+RUN cd node_modules/mongoose && npm install sift mpath kareem --legacy-peer-deps
+RUN cd node_modules/@aws-sdk/client-kms && npm install --legacy-peer-deps
 
 # Build the backend
 RUN npm run build:backend
 
-# Clean up dev dependencies to reduce image size (optional)
-# RUN npm prune --production --legacy-peer-deps
-
 # Environment
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=8080
 
-EXPOSE 3001
+EXPOSE 8080
 
-# No Docker HEALTHCHECK - let Railway handle it via railway.json
-# Railway's healthcheck is more reliable in their infrastructure
-
-# Start
+# Start from root
 CMD ["node", "apps/backend/dist/index.js"]
