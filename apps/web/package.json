@@ -71,8 +71,10 @@
     "socket.io-client": "^4.8.3",
     "sonner": "^2.0.7",
     "standard-as-callback": "^2.1.0",
+    "sucrase": "^3.35.1",
     "tailwind-merge": "^3.4.0",
     "three": "^0.182.0",
+    "ts-interface-checker": "^1.0.2",
     "victory-vendor": "^37.3.6",
     "zustand": "^5.0.9"
   },
