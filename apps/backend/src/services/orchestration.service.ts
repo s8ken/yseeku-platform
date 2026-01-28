@@ -258,7 +258,7 @@ export class OrchestrationService {
           id: 'step-1-coord',
           name: 'Coordinate & Plan',
           type: 'llm',
-          agentId: Types.ObjectId.createFromHexString(agents.coordinator) as any,
+          agentId: new (Types as any).ObjectId(agents.coordinator),
           role: 'coordinator',
           inputTemplate: 'Create a detailed execution plan for this request: {{input}}',
           dependencies: []
@@ -267,7 +267,7 @@ export class OrchestrationService {
           id: 'step-2-exec',
           name: 'Execute Task',
           type: 'llm',
-          agentId: Types.ObjectId.createFromHexString(agents.executor) as any,
+          agentId: new (Types as any).ObjectId(agents.executor),
           role: 'executor',
           inputTemplate: 'Execute the following plan:\n\n{{step-1-coord}}',
           dependencies: ['step-1-coord']
@@ -276,7 +276,7 @@ export class OrchestrationService {
           id: 'step-3-valid',
           name: 'Validate Result',
           type: 'llm',
-          agentId: Types.ObjectId.createFromHexString(agents.validator) as any,
+          agentId: new (Types as any).ObjectId(agents.validator),
           role: 'validator',
           inputTemplate: 'Validate the following output for accuracy, safety, and completeness. If good, say "VALID". If bad, explain why.\n\nOriginal Request: {{input}}\n\nOutput to Verify:\n{{step-2-exec}}',
           dependencies: ['step-2-exec']
