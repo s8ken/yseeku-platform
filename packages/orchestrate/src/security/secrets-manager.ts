@@ -27,7 +27,7 @@ export class AWSKMSSecretsManager implements SecretsManager {
         Plaintext: Buffer.from(data, 'utf-8'),
       });
 
-      const response = await this.kmsClient.send(command);
+      const response = await (this.kmsClient as any).send(command);
       return Buffer.from(response.CiphertextBlob || new Uint8Array()).toString('base64');
     } catch (error) {
       logger.error('KMS encryption failed', { error: (error as Error).message });
@@ -41,7 +41,7 @@ export class AWSKMSSecretsManager implements SecretsManager {
         CiphertextBlob: Buffer.from(encryptedData, 'base64'),
       });
 
-      const response = await this.kmsClient.send(command);
+      const response = await (this.kmsClient as any).send(command);
       return Buffer.from(response.Plaintext || new Uint8Array()).toString('utf-8');
     } catch (error) {
       logger.error('KMS decryption failed', { error: (error as Error).message });
@@ -52,7 +52,7 @@ export class AWSKMSSecretsManager implements SecretsManager {
   async healthCheck(): Promise<boolean> {
     try {
       // Try to describe the key
-      await this.kmsClient.send(
+      await (this.kmsClient as any).send(
         new (
           await import('@aws-sdk/client-kms')
         ).DescribeKeyCommand({
