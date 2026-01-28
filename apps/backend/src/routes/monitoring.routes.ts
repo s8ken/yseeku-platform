@@ -8,14 +8,7 @@ import mongoose from 'mongoose';
 import logger from '../utils/logger';
 import { getMetrics } from '../observability/metrics';
 import { getErrorMessage, getErrorStack } from '../utils/error-utils';
-
-// Optional OpenTelemetry - use try/catch to avoid crashes
-let traceApi: { trace: { getActiveSpan: () => unknown } } | null = null;
-try {
-  traceApi = require('@opentelemetry/api');
-} catch {
-  // OpenTelemetry not available
-}
+import { tracer } from '../observability/tracing';
 
 const router = Router();
 
@@ -239,18 +232,12 @@ router.get('/health/ready', async (req: Request, res: Response): Promise<void> =
  */
 router.get('/observability/test-trace', async (req: Request, res: Response): Promise<void> => {
   try {
-    const tracer = trace.getTracer('yseeku-backend');
-    const span = tracer.startSpan('sanity_trace', {
-      attributes: {
-        component: 'backend',
-        route: '/api/observability/test-trace',
-      }
-    });
+    const span = tracer.startSpan('sanity_trace');
     span.addEvent('sanity_trace_start');
     await new Promise(resolve => setTimeout(resolve, 50));
     span.addEvent('sanity_trace_end');
     span.end();
-    res.json({ success: true, message: 'Trace emitted' });
+    res.json({ success: true, message: 'Trace emitted (no-op mode)' });
   } catch (error: unknown) {
     res.status(500).json({ success: false, message: 'Failed to emit trace', error: getErrorMessage(error) });
   }

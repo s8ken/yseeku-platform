@@ -95,16 +95,14 @@ app.use(rateLimiter);
 // HTTP metrics
 app.use(httpMetrics);
 
-// Annotate tracing span with user/tenant and expose trace id
+// Annotate tracing span with user/tenant (no-op when OTEL disabled)
 app.use((req, res, next) => {
   annotateActiveSpan({
     'user.id': req.userId || 'anonymous',
     'tenant.id': req.tenant || 'default',
     'http.client_ip': req.ip || req.socket.remoteAddress || 'unknown',
   });
-  const span = require('@opentelemetry/api').trace.getActiveSpan();
-  const traceId = span?.spanContext().traceId;
-  if (traceId) res.setHeader('x-trace-id', traceId);
+  // Trace ID header disabled - OTEL not in use
   next();
 });
 
