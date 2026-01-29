@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "npx tsc",
+    "build": "npm exec tsc",
     "dev": "npx tsc --watch",
     "clean": "node -e \"const fs=require('fs'); try{fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('tsconfig.tsbuildinfo',{force:true})}catch(e){console.error(e);process.exit(1)}\"",
     "test": "jest",

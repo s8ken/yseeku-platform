@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "npm run clean && npx tsc",
+    "build": "npm run clean && npm exec tsc",
     "dev": "tsc --watch",
     "clean": "node -e \"const fs=require('fs'); try{fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('tsconfig.tsbuildinfo',{force:true})}catch(e){console.error(e);process.exit(1)}\"",
     "test": "npm run build && c8 --check-coverage --branches 55 --functions 55 --lines 60 --statements 60 node dist/tests/run-tests.js",

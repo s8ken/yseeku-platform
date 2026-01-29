@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "npx tsc",
+    "build": "npm exec tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "test": "npm run build && node dist/tests/run-tests.js"
