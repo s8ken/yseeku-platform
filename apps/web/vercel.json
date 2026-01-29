@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "installCommand": "cd ../.. && npm install --legacy-peer-deps",
+  "installCommand": "cd ../.. && npm ci --legacy-peer-deps || npm install --legacy-peer-deps",
   "buildCommand": "cd ../.. && turbo run build --filter=web",
   "outputDirectory": ".next",
   "env": {

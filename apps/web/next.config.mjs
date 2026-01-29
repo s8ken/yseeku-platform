@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // Note: 'standalone' output is for Docker deployments, not Vercel
+  // Vercel handles this automatically
   allowedDevOrigins: [
     '9f73a528-7d23-48b3-b0f0-5361465380d6-00-18ub8blylv2ys.worf.replit.dev',
     '*.worf.replit.dev',
