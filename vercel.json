@@ -1,5 +1,5 @@
 {
-  "buildCommand": "turbo run build --filter=web",
+  "buildCommand": "turbo run build --filter=web --force --output-logs=full",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "nextjs",
   "outputDirectory": "apps/web/.next",
