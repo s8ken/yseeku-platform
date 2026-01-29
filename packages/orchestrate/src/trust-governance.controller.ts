@@ -4,6 +4,9 @@ import asyncHandler from 'express-async-handler';
 import { TrustArticles, TrustScores, TrustAuditEntry } from './agent-types-enhanced';
 import { TrustDeclaration, ITrustDeclarationDocument } from './agent.model';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TrustData = any;
+
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
@@ -13,9 +16,9 @@ interface AuthenticatedRequest extends Request {
     permissions: string[];
     tenantId?: string;
   };
-  validatedTrustDeclaration?: Record<string, unknown>;
-  validationMetadata?: Record<string, unknown>;
-  validatedUpdateData?: Record<string, unknown>;
+  validatedTrustDeclaration?: TrustData;
+  validationMetadata?: TrustData;
+  validatedUpdateData?: TrustData;
 }
 
 /**
