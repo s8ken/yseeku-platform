@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "npm exec tsc",
-    "dev": "npx tsc --watch",
+    "build": "node ./node_modules/typescript/bin/tsc",
+    "dev": "node ./node_modules/typescript/bin/tsc --watch",
     "clean": "node -e \"const fs=require('fs'); try{fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('tsconfig.tsbuildinfo',{force:true})}catch(e){console.error(e);process.exit(1)}\"",
     "test": "npm run build && c8 --check-coverage --branches 60 --functions 60 --lines 60 --statements 60 node dist/tests/run-tests.js",
     "test:canonical": "jest src/__tests__/canonicalize.spec.ts",

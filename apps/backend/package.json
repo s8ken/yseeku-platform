@@ -4,7 +4,7 @@
   "description": "Express API backend for Yseeku platform",
   "main": "dist/index.js",
   "scripts": {
-    "build": "npm exec tsc",
+    "build": "node ./node_modules/typescript/bin/tsc",
     "start": "node dist/index.js",
     "dev": "ts-node-dev src/index.ts",
     "test": "jest",
