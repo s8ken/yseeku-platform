@@ -1,13 +1,12 @@
 {
-  "buildCommand": "cd apps/web && npm run build",
+  "buildCommand": "cd apps/web && NODE_OPTIONS='--max_old_space_size=4096' npm run build",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "nextjs",
   "outputDirectory": "apps/web/.next",
   "devCommand": "npm run dev",
   "env": {
     "NODE_ENV": "production",
-    "NEXT_TELEMETRY_DISABLED": "1",
-    "NODE_OPTIONS": "--max_old_space_size=4096"
+    "NEXT_TELEMETRY_DISABLED": "1"
   },
   "headers": [
     {
