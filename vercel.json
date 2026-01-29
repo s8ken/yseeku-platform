@@ -6,7 +6,8 @@
   "devCommand": "npm run dev",
   "env": {
     "NODE_ENV": "production",
-    "NEXT_TELEMETRY_DISABLED": "1"
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "NODE_OPTIONS": "--max_old_space_size=4096"
   },
   "headers": [
     {
