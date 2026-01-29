@@ -1,8 +1,8 @@
 {
-  "buildCommand": "npm install --legacy-peer-deps && npx turbo run build --filter=@sonate/core --filter=@sonate/detect --filter=@sonate/lab --filter=@sonate/orchestrate --filter=@sonate/persistence && cd apps/resonate-dashboard && npx next build",
+  "buildCommand": "turbo run build --filter=web",
   "installCommand": "npm install --legacy-peer-deps",
-  "framework": null,
-  "outputDirectory": "apps/resonate-dashboard/.next",
+  "framework": "nextjs",
+  "outputDirectory": "apps/web/.next",
   "devCommand": "npm run dev",
   "env": {
     "NODE_ENV": "production",
