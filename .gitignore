@@ -2,7 +2,7 @@
 node_modules/
 
 # Build outputs
-dist/
+
 build/
 .turbo/
 .next/
@@ -79,4 +79,4 @@ demo.html
 comprehensive-demo.html
 
 # Duplicate Python files (if already in packages/)
-symbi_resonance_calculator.py
+symbi_resonance_calculator.py# Allow dist folders for packages to avoid Vercel build memory issues

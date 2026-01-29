@@ -1,0 +1,128 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PerformanceProfiler = exports.runQuickPerformanceBenchmark = exports.createPerformanceBenchmarkingEngine = exports.PerformanceBenchmarkingEngine = exports.getWithdrawalResponse = exports.detectConsentWithdrawal = exports.validateCrossModalityCoherence = exports.analyzeCrossModalityCoherence = exports.createCrossModalityCoherenceValidator = exports.CrossModalityCoherenceValidator = exports.createEmergenceFingerprint = exports.createEmergenceFingerprintingEngine = exports.EmergenceFingerprintingEngine = exports.createTemporalBedauTracker = exports.TemporalBedauTracker = exports.detectEmergence = exports.calculateBedauIndex = exports.createBedauIndexCalculator = exports.ResonanceClient = exports.DYNAMIC_THRESHOLDS_V2 = exports.CANONICAL_WEIGHTS_V2 = exports.robustSonateResonanceV2 = exports.explainableSonateResonanceV2 = exports.CalculatorV2 = exports.normalizeEmbedding = exports.normalizeScore = exports.classifyStakes = exports.adversarialCheck = exports.resonanceWithStickiness = exports.explainableSonateResonance = exports.CanvasParityCalculator = exports.ResonanceQualityMeasurer = exports.EthicalAlignmentScorer = exports.TrustProtocolValidator = exports.RealityIndexCalculator = exports.DriftDetector = exports.CalibratedSonateDetector = exports.BalancedSonateDetector = exports.EnhancedDetector = exports.OptimizedFrameworkDetector = exports.SonateFrameworkDetector = exports.VERSION = void 0;
+exports.detect = detect;
+exports.VERSION = '1.4.0';
+/**
+ * @sonate/detect - Real-time AI Detection & Scoring
+ *
+ * SONATE Detect provides real-time monitoring and scoring of AI interactions
+ * using the 5-dimension SONATE Framework.
+ *
+ * HARD BOUNDARY: Production use only. For experiments, use @sonate/lab.
+ */
+const core_1 = require("@sonate/core");
+const resonance_metrics_1 = require("./resonance-metrics");
+// Core detector
+var framework_detector_1 = require("./framework-detector");
+Object.defineProperty(exports, "SonateFrameworkDetector", { enumerable: true, get: function () { return framework_detector_1.SonateFrameworkDetector; } });
+var optimized_framework_detector_1 = require("./optimized-framework-detector");
+Object.defineProperty(exports, "OptimizedFrameworkDetector", { enumerable: true, get: function () { return optimized_framework_detector_1.OptimizedFrameworkDetector; } });
+var detector_enhanced_1 = require("./detector-enhanced");
+Object.defineProperty(exports, "EnhancedDetector", { enumerable: true, get: function () { return detector_enhanced_1.EnhancedSonateFrameworkDetector; } });
+var balanced_detector_1 = require("./balanced-detector");
+Object.defineProperty(exports, "BalancedSonateDetector", { enumerable: true, get: function () { return balanced_detector_1.BalancedSonateDetector; } });
+var calibrated_detector_1 = require("./calibrated-detector");
+Object.defineProperty(exports, "CalibratedSonateDetector", { enumerable: true, get: function () { return calibrated_detector_1.CalibratedSonateDetector; } });
+var drift_detection_1 = require("./drift-detection");
+Object.defineProperty(exports, "DriftDetector", { enumerable: true, get: function () { return drift_detection_1.DriftDetector; } });
+// 5 Dimension scorers
+var reality_index_1 = require("./reality-index");
+Object.defineProperty(exports, "RealityIndexCalculator", { enumerable: true, get: function () { return reality_index_1.RealityIndexCalculator; } });
+var trust_protocol_validator_1 = require("./trust-protocol-validator");
+Object.defineProperty(exports, "TrustProtocolValidator", { enumerable: true, get: function () { return trust_protocol_validator_1.TrustProtocolValidator; } });
+var ethical_alignment_1 = require("./ethical-alignment");
+Object.defineProperty(exports, "EthicalAlignmentScorer", { enumerable: true, get: function () { return ethical_alignment_1.EthicalAlignmentScorer; } });
+var resonance_quality_1 = require("./resonance-quality");
+Object.defineProperty(exports, "ResonanceQualityMeasurer", { enumerable: true, get: function () { return resonance_quality_1.ResonanceQualityMeasurer; } });
+var canvas_parity_1 = require("./canvas-parity");
+Object.defineProperty(exports, "CanvasParityCalculator", { enumerable: true, get: function () { return canvas_parity_1.CanvasParityCalculator; } });
+// Types
+__exportStar(require("./sonate-types"), exports);
+// New V2.1 Exports
+var calculator_1 = require("./calculator");
+Object.defineProperty(exports, "explainableSonateResonance", { enumerable: true, get: function () { return calculator_1.explainableSonateResonance; } });
+var stickiness_1 = require("./stickiness");
+Object.defineProperty(exports, "resonanceWithStickiness", { enumerable: true, get: function () { return stickiness_1.resonanceWithStickiness; } });
+var adversarial_1 = require("./adversarial");
+Object.defineProperty(exports, "adversarialCheck", { enumerable: true, get: function () { return adversarial_1.adversarialCheck; } });
+var stakes_1 = require("./stakes");
+Object.defineProperty(exports, "classifyStakes", { enumerable: true, get: function () { return stakes_1.classifyStakes; } });
+var model_normalize_1 = require("./model-normalize");
+Object.defineProperty(exports, "normalizeScore", { enumerable: true, get: function () { return model_normalize_1.normalizeScore; } });
+Object.defineProperty(exports, "normalizeEmbedding", { enumerable: true, get: function () { return model_normalize_1.normalizeEmbedding; } });
+var v2_1 = require("./v2");
+Object.defineProperty(exports, "CalculatorV2", { enumerable: true, get: function () { return v2_1.CalculatorV2; } });
+Object.defineProperty(exports, "explainableSonateResonanceV2", { enumerable: true, get: function () { return v2_1.explainableSonateResonance; } });
+Object.defineProperty(exports, "robustSonateResonanceV2", { enumerable: true, get: function () { return v2_1.robustSonateResonance; } });
+Object.defineProperty(exports, "CANONICAL_WEIGHTS_V2", { enumerable: true, get: function () { return v2_1.CANONICAL_WEIGHTS; } });
+Object.defineProperty(exports, "DYNAMIC_THRESHOLDS_V2", { enumerable: true, get: function () { return v2_1.DYNAMIC_THRESHOLDS; } });
+// Resonance Engine Client
+var ResonanceClient_1 = require("./ResonanceClient");
+Object.defineProperty(exports, "ResonanceClient", { enumerable: true, get: function () { return ResonanceClient_1.ResonanceClient; } });
+// Bedau Index & Emergence Research
+var bedau_index_1 = require("./bedau-index");
+Object.defineProperty(exports, "createBedauIndexCalculator", { enumerable: true, get: function () { return bedau_index_1.createBedauIndexCalculator; } });
+Object.defineProperty(exports, "calculateBedauIndex", { enumerable: true, get: function () { return bedau_index_1.calculateBedauIndex; } });
+var emergence_detection_1 = require("./emergence-detection");
+Object.defineProperty(exports, "detectEmergence", { enumerable: true, get: function () { return emergence_detection_1.detectEmergence; } });
+// Emergence Research Framework (PHASE 2)
+var temporal_bedau_tracker_1 = require("./temporal-bedau-tracker");
+Object.defineProperty(exports, "TemporalBedauTracker", { enumerable: true, get: function () { return temporal_bedau_tracker_1.TemporalBedauTracker; } });
+Object.defineProperty(exports, "createTemporalBedauTracker", { enumerable: true, get: function () { return temporal_bedau_tracker_1.createTemporalBedauTracker; } });
+var emergence_fingerprinting_1 = require("./emergence-fingerprinting");
+Object.defineProperty(exports, "EmergenceFingerprintingEngine", { enumerable: true, get: function () { return emergence_fingerprinting_1.EmergenceFingerprintingEngine; } });
+Object.defineProperty(exports, "createEmergenceFingerprintingEngine", { enumerable: true, get: function () { return emergence_fingerprinting_1.createEmergenceFingerprintingEngine; } });
+Object.defineProperty(exports, "createEmergenceFingerprint", { enumerable: true, get: function () { return emergence_fingerprinting_1.createEmergenceFingerprint; } });
+var cross_modality_coherence_1 = require("./cross-modality-coherence");
+Object.defineProperty(exports, "CrossModalityCoherenceValidator", { enumerable: true, get: function () { return cross_modality_coherence_1.CrossModalityCoherenceValidator; } });
+Object.defineProperty(exports, "createCrossModalityCoherenceValidator", { enumerable: true, get: function () { return cross_modality_coherence_1.createCrossModalityCoherenceValidator; } });
+Object.defineProperty(exports, "analyzeCrossModalityCoherence", { enumerable: true, get: function () { return cross_modality_coherence_1.analyzeCrossModalityCoherence; } });
+Object.defineProperty(exports, "validateCrossModalityCoherence", { enumerable: true, get: function () { return cross_modality_coherence_1.validateCrossModalityCoherence; } });
+// Consent Withdrawal Detection
+var consent_withdrawal_1 = require("./consent-withdrawal");
+Object.defineProperty(exports, "detectConsentWithdrawal", { enumerable: true, get: function () { return consent_withdrawal_1.detectConsentWithdrawal; } });
+Object.defineProperty(exports, "getWithdrawalResponse", { enumerable: true, get: function () { return consent_withdrawal_1.getWithdrawalResponse; } });
+// Integration & Testing Infrastructure (PHASE 4)
+var performance_benchmarks_1 = require("./performance-benchmarks");
+Object.defineProperty(exports, "PerformanceBenchmarkingEngine", { enumerable: true, get: function () { return performance_benchmarks_1.PerformanceBenchmarkingEngine; } });
+Object.defineProperty(exports, "createPerformanceBenchmarkingEngine", { enumerable: true, get: function () { return performance_benchmarks_1.createPerformanceBenchmarkingEngine; } });
+Object.defineProperty(exports, "runQuickPerformanceBenchmark", { enumerable: true, get: function () { return performance_benchmarks_1.runQuickPerformanceBenchmark; } });
+// Performance monitoring
+var performance_profiler_1 = require("./performance-profiler");
+Object.defineProperty(exports, "PerformanceProfiler", { enumerable: true, get: function () { return performance_profiler_1.PerformanceProfiler; } });
+function detect(input) {
+    try {
+        return (0, resonance_metrics_1.calculateResonanceMetrics)(input);
+    }
+    catch (error) {
+        if (error instanceof core_1.CalculationError) {
+            console.error('Math error in detection:', error.message);
+            return {
+                R_m: 0.5,
+                vectorAlignment: 0.5,
+                contextualContinuity: 0.5,
+                semanticMirroring: 0.5,
+                entropyDelta: 0.5,
+                alertLevel: 'YELLOW',
+                interpretation: 'Fallback due to calculation error',
+                error: error.message,
+            };
+        }
+        throw error;
+    }
+}

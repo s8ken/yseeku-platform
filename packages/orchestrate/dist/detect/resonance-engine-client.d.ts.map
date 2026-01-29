@@ -1,0 +1,1 @@
+{"version":3,"file":"resonance-engine-client.d.ts","sourceRoot":"","sources":["../../src/detect/resonance-engine-client.ts"],"names":[],"mappings":"AACA,MAAM,WAAW,qBAAqB;IACpC,OAAO,IAAI,OAAO,CAAC,IAAI,CAAC,CAAC;IACzB,UAAU,IAAI,OAAO,CAAC,IAAI,CAAC,CAAC;IAC5B,OAAO,CAAC,IAAI,EAAE,GAAG,GAAG,OAAO,CAAC,GAAG,CAAC,CAAC;CAClC;AAED,wBAAgB,2BAA2B,IAAI,qBAAqB,CAYnE"}

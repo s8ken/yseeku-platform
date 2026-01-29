@@ -1,0 +1,1 @@
+{"version":3,"file":"emergence-detection.d.ts","sourceRoot":"","sources":["../src/emergence-detection.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,gBAAgB,EAAE,MAAM,gBAAgB,CAAC;AAElD,MAAM,WAAW,eAAe;IAC9B,KAAK,EAAE,MAAM,GAAG,MAAM,GAAG,UAAU,GAAG,QAAQ,CAAC;IAC/C,OAAO,EAAE,MAAM,EAAE,CAAC;CACnB;AAED,wBAAgB,eAAe,CAAC,MAAM,EAAE,gBAAgB,GAAG,eAAe,CAqBzE"}

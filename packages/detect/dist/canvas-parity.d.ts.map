@@ -1,0 +1,1 @@
+{"version":3,"file":"canvas-parity.d.ts","sourceRoot":"","sources":["../src/canvas-parity.ts"],"names":[],"mappings":"AAAA;;;;;GAKG;AAEH,OAAO,EAAE,aAAa,EAAE,MAAM,SAAS,CAAC;AAExC,qBAAa,sBAAsB;IAC3B,SAAS,CAAC,WAAW,EAAE,aAAa,GAAG,OAAO,CAAC,MAAM,CAAC;YAa9C,gBAAgB;YAMhB,mBAAmB;YAOnB,iBAAiB;YAMjB,yBAAyB;CAKxC"}
