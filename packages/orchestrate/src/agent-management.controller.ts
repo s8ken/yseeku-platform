@@ -1,15 +1,14 @@
 import { tenantContext } from '@sonate/core';
 import Ajv from 'ajv';
-import { Request, Response, ParamsDictionary } from 'express';
-import { ParsedQs } from 'qs';
+import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { Agent, UserModel as User } from './agent.model';
 import { appendEvent } from './services/ledger.service';
 
 
-// Custom Request type to include user - extends Express Request with all properties
-interface AuthenticatedRequest extends Request<ParamsDictionary, unknown, unknown, ParsedQs> {
+// Custom Request type to include user
+interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     username: string;
@@ -17,7 +16,7 @@ interface AuthenticatedRequest extends Request<ParamsDictionary, unknown, unknow
     role: string;
     permissions: string[];
     tenantId?: string;
-    roles?: string[]; // Added roles for bonding check
+    roles?: string[];
   };
 }
 

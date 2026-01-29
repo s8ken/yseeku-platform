@@ -1,11 +1,10 @@
-import { Request, Response, ParamsDictionary } from 'express';
-import { ParsedQs } from 'qs';
+import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 
 import { TrustArticles, TrustScores, TrustAuditEntry } from './agent-types-enhanced';
 import { TrustDeclaration, ITrustDeclarationDocument } from './agent.model';
 
-interface AuthenticatedRequest extends Request<ParamsDictionary, unknown, unknown, ParsedQs> {
+interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     username: string;
@@ -14,9 +13,9 @@ interface AuthenticatedRequest extends Request<ParamsDictionary, unknown, unknow
     permissions: string[];
     tenantId?: string;
   };
-  validatedTrustDeclaration?: unknown;
-  validationMetadata?: unknown;
-  validatedUpdateData?: unknown;
+  validatedTrustDeclaration?: Record<string, unknown>;
+  validationMetadata?: Record<string, unknown>;
+  validatedUpdateData?: Record<string, unknown>;
 }
 
 /**
