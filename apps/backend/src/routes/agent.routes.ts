@@ -26,15 +26,8 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
     const { status, tenant } = req.query;
     const userTenant = req.userTenant || 'default';
 
-    // For live-tenant, return empty agents (blank slate)
-    if (userTenant === 'live-tenant') {
-      res.json({
-        success: true,
-        data: [],
-        count: 0,
-      });
-      return;
-    }
+    // Query real agents for any tenant (including live-tenant)
+    // If no agents exist, the query naturally returns empty results
 
     const query: any = { user: req.userId };
 

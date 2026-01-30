@@ -54,23 +54,8 @@ router.get('/experiments', protect, async (req: Request, res: Response): Promise
     const userTenant = req.userTenant || 'default';
     const { status, limit = '50', offset = '0' } = req.query;
 
-    // For live-tenant, return empty experiments (blank slate)
-    if (userTenant === 'live-tenant') {
-      res.json({
-        success: true,
-        data: {
-          experiments: [],
-          summary: {
-            total: 0,
-            running: 0,
-            completed: 0,
-            significant: 0,
-          },
-          total: 0,
-        },
-      });
-      return;
-    }
+    // Query real experiments for any tenant (including live-tenant)
+    // If no experiments exist, the query naturally returns empty results
 
     const limitNum = Math.min(100, Math.max(1, parseInt(limit as string)));
     const offsetNum = Math.max(0, parseInt(offset as string));

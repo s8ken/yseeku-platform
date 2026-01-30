@@ -7,6 +7,9 @@ import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import { Conversation } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
+import { TrustReceiptModel } from '../models/trust-receipt.model';
+import { AlertModel } from '../models/alert.model';
+import { Experiment } from '../models/experiment.model';
 import { bedauService } from '../services/bedau.service';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
@@ -27,38 +30,128 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
     const userId = req.userId;
     const tenantId = req.userTenant || 'default';
     const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const twoDaysAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
-    // For live-tenant, return blank slate / fresh start data
+    // For live-tenant, query REAL data from Trust Receipts (populated by chat interactions)
+    // This makes live mode a production-ready experience that updates as users interact
     if (tenantId === 'live-tenant') {
-      const blankSlateKPIs = {
-        tenant: 'live-tenant',
-        timestamp: now.toISOString(),
-        trustScore: 0,
-        principleScores: {
+      // Fetch trust receipts for this tenant
+      const [recentReceipts, previousReceipts, allReceipts] = await Promise.all([
+        TrustReceiptModel.find({
+          tenant_id: 'live-tenant',
+          timestamp: { $gte: oneDayAgo },
+        }).lean(),
+        TrustReceiptModel.find({
+          tenant_id: 'live-tenant',
+          timestamp: { $gte: twoDaysAgo, $lt: oneDayAgo },
+        }).lean(),
+        TrustReceiptModel.find({ tenant_id: 'live-tenant' }).lean(),
+      ]);
+
+      // Fetch related metrics
+      const [activeAgentsCount, alertsCount, experimentsCount] = await Promise.all([
+        Agent.countDocuments({ user: userId, lastActive: { $gte: oneDayAgo } }),
+        AlertModel.countDocuments({ tenantId: 'live-tenant', status: 'active' }),
+        Experiment.countDocuments({ tenantId: 'live-tenant', status: 'running' }),
+      ]);
+
+      // Calculate metrics from receipts
+      const calculateReceiptMetrics = (receipts: any[]) => {
+        if (receipts.length === 0) {
+          return {
+            trustScore: 0,
+            count: 0,
+            complianceRate: 0,
+            principleScores: {
+              transparency: 0,
+              fairness: 0,
+              privacy: 0,
+              safety: 0,
+              accountability: 0,
+            },
+          };
+        }
+
+        let totalTrust = 0;
+        let passCount = 0;
+        const principleScores = {
           transparency: 0,
           fairness: 0,
           privacy: 0,
           safety: 0,
           accountability: 0,
-        },
-        totalInteractions: 0,
-        activeAgents: 0,
-        complianceRate: 0,
-        riskScore: 0,
-        alertsCount: 0,
-        experimentsRunning: 0,
+        };
+
+        for (const receipt of receipts) {
+          // CIQ metrics contain clarity, integrity, quality
+          const ciq = receipt.ciq_metrics || { clarity: 0, integrity: 0, quality: 0 };
+          const score = (ciq.clarity + ciq.integrity + ciq.quality) / 3 * 10; // Scale to 0-10
+          totalTrust += score;
+          if (score >= 6) passCount++;
+
+          // Map CIQ to principle scores
+          principleScores.transparency += ciq.clarity || 0;
+          principleScores.fairness += ciq.integrity || 0;
+          principleScores.privacy += ciq.quality || 0;
+          principleScores.safety += (ciq.integrity || 0);
+          principleScores.accountability += (ciq.clarity || 0);
+        }
+
+        const count = receipts.length;
+        return {
+          trustScore: Math.round((totalTrust / count) * 10) / 10,
+          count,
+          complianceRate: Math.round((passCount / count) * 100 * 10) / 10,
+          principleScores: {
+            transparency: Math.round((principleScores.transparency / count) * 100) / 100,
+            fairness: Math.round((principleScores.fairness / count) * 100) / 100,
+            privacy: Math.round((principleScores.privacy / count) * 100) / 100,
+            safety: Math.round((principleScores.safety / count) * 100) / 100,
+            accountability: Math.round((principleScores.accountability / count) * 100) / 100,
+          },
+        };
+      };
+
+      const currentMetrics = calculateReceiptMetrics(recentReceipts);
+      const previousMetrics = calculateReceiptMetrics(previousReceipts);
+      const allMetrics = calculateReceiptMetrics(allReceipts);
+
+      // Calculate trends
+      const calculateTrend = (current: number, previous: number) => {
+        if (previous === 0) return { change: 0, direction: 'stable' };
+        const change = Math.round(((current - previous) / previous) * 100 * 10) / 10;
+        const direction = change > 0 ? 'up' : change < 0 ? 'down' : 'stable';
+        return { change: Math.abs(change), direction };
+      };
+
+      const liveKPIs = {
+        tenant: 'live-tenant',
+        timestamp: now.toISOString(),
+        trustScore: allMetrics.trustScore,
+        principleScores: allMetrics.principleScores,
+        totalInteractions: allReceipts.length,
+        activeAgents: activeAgentsCount,
+        complianceRate: allMetrics.complianceRate,
+        riskScore: allMetrics.trustScore > 0 ? Math.round((100 - allMetrics.trustScore) / 10) : 0,
+        alertsCount,
+        experimentsRunning: experimentsCount,
         orchestratorsActive: 0,
         sonateDimensions: {
-          realityIndex: 0,
-          trustProtocol: 'N/A',
-          ethicalAlignment: 0,
-          resonanceQuality: 'NONE',
-          canvasParity: 0,
+          realityIndex: allMetrics.principleScores.transparency * 10 || 0,
+          trustProtocol: allMetrics.count === 0 ? 'N/A' : 
+            allMetrics.complianceRate >= 80 ? 'PASS' : 
+            allMetrics.complianceRate >= 60 ? 'PARTIAL' : 'FAIL',
+          ethicalAlignment: Math.round((allMetrics.trustScore / 20) * 10) / 10,
+          resonanceQuality: allMetrics.count === 0 ? 'NONE' :
+            allMetrics.trustScore >= 85 ? 'ADVANCED' : 
+            allMetrics.trustScore >= 70 ? 'STRONG' : 'BASIC',
+          canvasParity: Math.round(allMetrics.complianceRate),
         },
         trends: {
-          trustScore: { change: 0, direction: 'stable' },
-          interactions: { change: 0, direction: 'stable' },
-          compliance: { change: 0, direction: 'stable' },
+          trustScore: calculateTrend(currentMetrics.trustScore, previousMetrics.trustScore),
+          interactions: calculateTrend(currentMetrics.count, previousMetrics.count),
+          compliance: calculateTrend(currentMetrics.complianceRate, previousMetrics.complianceRate),
           risk: { change: 0, direction: 'stable' },
         },
         bedau: {
@@ -69,18 +162,22 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
         },
       };
 
-      logger.info('Returning blank slate KPIs for live-tenant', { userId, tenantId });
+      logger.info('Live tenant KPIs calculated from receipts', { 
+        userId, 
+        tenantId, 
+        receiptCount: allReceipts.length,
+        trustScore: liveKPIs.trustScore,
+      });
+
       res.json({
         success: true,
-        data: blankSlateKPIs,
+        data: liveKPIs,
       });
       return;
     }
 
+    // For other tenants (including default), use conversation-based metrics
     // Time ranges for current and previous periods
-    const now = new Date();
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const twoDaysAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
     // Fetch user's conversations
     const [recentConversations, previousConversations] = await Promise.all([
@@ -253,14 +350,8 @@ router.get('/policy-status', protect, async (req: Request, res: Response): Promi
     const userId = req.userId;
     const tenantId = req.userTenant || 'default';
     
-    // For live-tenant, return clean policy status (blank slate)
-    if (tenantId === 'live-tenant') {
-      res.json({
-        overallPass: true,
-        violations: []
-      });
-      return;
-    }
+    // Query real data for any tenant (including live-tenant)
+    // If no violations exist, the result is naturally compliant
     
     // Quick check on recent conversations for any critical violations
     const recentViolations = await Conversation.find({
@@ -284,21 +375,25 @@ router.get('/policy-status', protect, async (req: Request, res: Response): Promi
  * GET /api/dashboard/risk
  * Get risk assessment metrics and compliance reports
  *
- * Uses tenant for multi-tenant support:
- * - live-tenant: Returns blank slate risk data
- * - other: Returns real user data from database
+ * Uses tenant for multi-tenant support - queries real data for all tenants.
+ * If no data exists for a tenant, the result naturally shows no risk.
  */
 router.get('/risk', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
     const tenantId = req.userTenant || 'default';
 
-    // For live-tenant, return blank slate risk data
-    if (tenantId === 'live-tenant') {
+    // Fetch user's conversations for risk analysis
+    const conversations = await Conversation.find({ user: userId })
+      .select('messages ethicalScore lastActivity createdAt')
+      .sort({ lastActivity: -1 });
+
+    // If no conversations exist (including for live-tenant), return no-risk state
+    if (conversations.length === 0) {
       res.json({
         success: true,
         data: {
-          tenant: 'live-tenant',
+          tenant: tenantId,
           timestamp: new Date().toISOString(),
           trustScore: 0,
           complianceScore: 0,
@@ -321,11 +416,6 @@ router.get('/risk', protect, async (req: Request, res: Response): Promise<void> 
       });
       return;
     }
-
-    // Fetch user's conversations for risk analysis
-    const conversations = await Conversation.find({ user: userId })
-      .select('messages ethicalScore lastActivity createdAt')
-      .sort({ lastActivity: -1 });
 
     // Calculate trust principle scores from messages
     const principleScores = {

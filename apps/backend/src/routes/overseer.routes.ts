@@ -65,11 +65,8 @@ router.get('/cycles', protect, requireTenant, requireScopes(['overseer:read']), 
   try {
     const tenant = req.userTenant || 'default';
     
-    // For live-tenant, return empty cycles (blank slate)
-    if (tenant === 'live-tenant') {
-      res.json({ success: true, data: [] });
-      return;
-    }
+    // Query real cycles for any tenant (including live-tenant)
+    // If no cycles exist, the query naturally returns empty results
     
     const cycles = await BrainCycle.find({ tenantId: tenant }).sort({ startedAt: -1 }).limit(50);
     res.json({ success: true, data: cycles });

@@ -22,34 +22,6 @@ router.get('/metrics', protect, async (req: Request, res: Response): Promise<voi
   try {
     const userTenant = req.userTenant || 'default';
     const now = new Date();
-
-    // For live-tenant, return blank slate metrics
-    if (userTenant === 'live-tenant') {
-      res.json({
-        success: true,
-        data: {
-          timestamp: now.toISOString(),
-          trust: {
-            current: 0,
-            status: 'no_data',
-          },
-          system: {
-            activeAgents: 0,
-            totalAgents: 0,
-            conversationsToday: 0,
-            messagesProcessed: 0,
-          },
-          alerts: {
-            total: 0,
-            critical: 0,
-            warning: 0,
-            info: 0,
-          },
-        },
-      });
-      return;
-    }
-
     const oneHourAgo = new Date(now.getTime() - 3600000);
     const oneDayAgo = new Date(now.getTime() - 24 * 3600000);
     
@@ -220,16 +192,6 @@ router.get('/events', protect, async (req: Request, res: Response): Promise<void
 router.get('/agents', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const userTenant = req.userTenant || 'default';
-
-    // For live-tenant, return empty agents (blank slate)
-    if (userTenant === 'live-tenant') {
-      res.json({
-        success: true,
-        data: [],
-      });
-      return;
-    }
-
     const oneHourAgo = new Date(Date.now() - 3600000);
     
     const agents = await Agent.find()
