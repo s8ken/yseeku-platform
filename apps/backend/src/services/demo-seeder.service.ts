@@ -51,19 +51,23 @@ async function isDemoSeeded(): Promise<boolean> {
 /**
  * Create demo tenant
  */
-async function seedTenant(): Promise<void> {
-  const existingTenant = await Tenant.findById(DEMO_TENANT_ID);
-  if (existingTenant) return;
+async function seedTenant(): Promise<string> {
+  // Check by name instead of ID since we can't use string as ObjectId
+  const existingTenant = await Tenant.findOne({ name: 'Demo Organization' });
+  if (existingTenant) return existingTenant._id.toString();
 
-  await Tenant.create({
-    _id: DEMO_TENANT_ID,
+  const tenant = await Tenant.create({
     name: 'Demo Organization',
     description: 'Enterprise AI Trust Platform - Live Demo',
     status: 'active',
+    complianceStatus: 'compliant',
+    trustScore: 87,
+    lastActivity: new Date(),
     createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 90 days ago
   });
 
-  logger.info('Demo tenant created');
+  logger.info('Demo tenant created', { tenantId: tenant._id });
+  return tenant._id.toString();
 }
 
 /**
