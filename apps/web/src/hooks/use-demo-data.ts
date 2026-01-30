@@ -21,18 +21,12 @@ interface DemoDataConfig<T> {
   options?: Omit<UseQueryOptions<T, Error>, 'queryKey' | 'queryFn'>;
 }
 
-function getCurrentTenantId(): string {
-  if (typeof window === 'undefined') return 'default';
-  const isDemo = localStorage.getItem('yseeku-demo-mode') === 'true';
-  return isDemo ? 'demo-tenant' : 'live-tenant';
-}
-
 async function fetchData<T>(
   endpoint: string,
+  tenantId: string,
   transform?: (data: any) => T
 ): Promise<T> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  const tenantId = getCurrentTenantId();
   
   const res = await fetch(`${API_BASE}${endpoint}`, {
     headers: {
@@ -53,13 +47,13 @@ async function fetchData<T>(
 }
 
 export function useDemoData<T>(config: DemoDataConfig<T>) {
-  const { isDemo, isLoaded } = useDemo();
+  const { isDemo, isLoaded, currentTenantId } = useDemo();
   
   const endpoint = isDemo ? config.demoEndpoint : config.liveEndpoint;
   
   return useQuery<T, Error>({
     queryKey: [...config.queryKey, isDemo ? 'demo' : 'live'],
-    queryFn: () => fetchData<T>(endpoint, config.transform),
+    queryFn: () => fetchData<T>(endpoint, currentTenantId, config.transform),
     enabled: isLoaded, // Don't fetch until we know if we're in demo mode
     staleTime: 30000,
     ...config.options,
