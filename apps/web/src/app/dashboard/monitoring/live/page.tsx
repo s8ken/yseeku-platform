@@ -174,7 +174,7 @@ export default function LiveDashboardPage() {
   const [metrics, setMetrics] = useState<LiveMetrics | null>(null);
   const [events, setEvents] = useState<TrustEvent[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const { isDemo } = useDemo();
+  const { isDemo, isLoaded } = useDemo();
 
   // Use demo-aware hooks for consistent data
   const { data: kpisData, refetch: refetchKpis } = useDashboardKPIs();

@@ -306,6 +306,9 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
 export default function TrustReceiptsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const { isDemo } = useDemo();
+  
+  // Determine data source for display
+  const dataSource = isDemo ? 'demo' : 'live';
 
   // Use demo-aware hook for receipts
   const { data: receiptsData, isLoading, refetch } = useReceiptsData(50);
