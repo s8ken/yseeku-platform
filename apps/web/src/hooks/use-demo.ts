@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 const DEMO_TENANT_ID = 'demo-tenant';
 const DEMO_STORAGE_KEY = 'yseeku-demo-mode';
@@ -33,6 +34,9 @@ export function useDemo() {
   const [showExpiryWarning, setShowExpiryWarning] = useState(false);
   const expiryTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Get query client to invalidate queries when demo mode changes
+  const queryClient = useQueryClient();
 
   // Initialize demo mode and seed data if needed
   const initializeDemo = useCallback(async () => {
@@ -166,7 +170,9 @@ export function useDemo() {
     setIsFirstVisit(true);
     await initializeDemo();
     startExpiryTimer();
-  }, [initializeDemo, startExpiryTimer]);
+    // Invalidate all queries to force refetch with demo data
+    queryClient.invalidateQueries();
+  }, [initializeDemo, startExpiryTimer, queryClient]);
 
   const disableDemo = useCallback(() => {
     localStorage.removeItem(DEMO_STORAGE_KEY);
@@ -187,7 +193,10 @@ export function useDemo() {
       url.searchParams.delete('demo');
       window.history.replaceState({}, '', url.toString());
     }
-  }, []);
+    
+    // Invalidate all queries to force refetch with live data
+    queryClient.invalidateQueries();
+  }, [queryClient]);
 
   const toggleDemo = useCallback(async () => {
     if (isDemo) {
