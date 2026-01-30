@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Shield,
@@ -9,11 +9,13 @@ import {
   Clock,
   Activity,
   AlertTriangle,
-  FileX
+  FileX,
+  RefreshCw
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { ConstitutionalPrinciples } from '@/components/ConstitutionalPrinciples';
-import { api } from '@/lib/api';
+import { agentsApi } from '@/lib/api';
+import { useDashboardKPIs, useTrustAnalytics } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
 
 interface AgentTrustData {
@@ -112,136 +114,83 @@ function EmptyState() {
 
 export default function TrustScoresPage() {
   const [agents, setAgents] = useState<AgentTrustData[]>([]);
-  const { isDemo, isLoaded } = useDemo();
+  const queryClient = useQueryClient();
+  const { isDemo } = useDemo();
 
-  // Fetch real KPIs
-  const { data: kpiData } = useQuery<KPIResponse>({
-    queryKey: ['kpis', 'default'],
-    queryFn: async () => {
-      const response = await fetch('/api/dashboard/kpis?tenant=default');
-      if (!response.ok) throw new Error('Failed to fetch KPIs');
-      return response.json();
-    },
-    enabled: !isDemo && isLoaded,
-  });
+  // Use demo-aware hooks for consistent data
+  const { data: kpisData, isLoading: kpisLoading, refetch: refetchKpis } = useDashboardKPIs();
+  const { data: analyticsData, isLoading: analyticsLoading } = useTrustAnalytics();
 
-  // Fetch demo KPIs when in demo mode
-  const { data: demoKpiData } = useQuery({
-    queryKey: ['demo-kpis'],
-    queryFn: () => api.getDemoKpis(),
-    staleTime: 60000,
-    enabled: isDemo && isLoaded,
-  });
-
-  // Fetch real agents
-  const { data: agentsData, isLoading: agentsLoadingReal, isError: agentsError } = useQuery({
+  // Fetch real agents (these are user's agents, not demo data)
+  const { data: agentsData, isLoading: agentsLoading } = useQuery({
     queryKey: ['agents'],
-    queryFn: async () => {
-      const response = await fetch('/api/agents');
-      if (!response.ok) throw new Error('Failed to fetch agents');
-      return response.json() as Promise<{ success: boolean; data: { agents: any[]; summary: any }; source: string }>;
-    },
-    enabled: !isDemo && isLoaded,
+    queryFn: () => agentsApi.getAgents(),
+    staleTime: 30000,
   });
 
-  // Fetch demo agents when in demo mode
-  const { data: demoAgentsData, isLoading: agentsLoadingDemo } = useQuery({
-    queryKey: ['demo-agents'],
-    queryFn: () => api.getDemoAgents(),
-    staleTime: 60000,
-    enabled: isDemo && isLoaded,
-  });
+  const isLoading = kpisLoading || analyticsLoading || agentsLoading;
 
-  const isLoading = !isLoaded || (isDemo ? agentsLoadingDemo : agentsLoadingReal);
-
+  // Process agents data
   useEffect(() => {
-    if (!isLoaded) return;
-
-    // demoAgentsData can be array directly or object with data property
-    const demoAgentsArray = Array.isArray(demoAgentsData) 
-      ? demoAgentsData 
-      : (demoAgentsData && typeof demoAgentsData === 'object' && 'data' in demoAgentsData) 
-        ? (demoAgentsData as { data: any[] }).data 
-        : null;
-
-    if (isDemo && demoAgentsArray) {
-      // Use demo agents
-      const demoAgents = demoAgentsArray.map((agent: any) => ({
-        id: agent._id || agent.id,
-        name: agent.name,
-        model: agent.model || 'unknown',
-        trustScore: agent.traits?.ethical_alignment ? Math.round(agent.traits.ethical_alignment * 20) : 85,
-        sonateDimensions: {
-          realityIndex: 8.5,
-          trustProtocol: 'PASS',
-          ethicalAlignment: agent.traits?.ethical_alignment || 4.2,
-          resonanceQuality: 'ADVANCED',
-          canvasParity: 90,
-        },
-        lastInteraction: agent.lastActive || new Date().toISOString(),
-        interactions24h: Math.floor(Math.random() * 2000) + 500,
-        status: 'healthy' as const
-      }));
-      setAgents(demoAgents);
-      return;
-    }
-
-    if (!isDemo && agentsData?.data?.agents?.length) {
-      // Use real agents
-      const apiAgents = agentsData.data.agents.map((agent: any) => ({
-        id: agent.id,
-        name: agent.name,
-        model: agent.type || 'unknown',
-        trustScore: agent.trustScore,
-        sonateDimensions: {
-          realityIndex: Number(agent.sonateDimensions?.realityIndex) || 8.0,
-          trustProtocol: agent.sonateDimensions?.trustProtocol || 'PARTIAL',
-          ethicalAlignment: Number(agent.sonateDimensions?.ethicalAlignment) || 4.0,
-          resonanceQuality: agent.sonateDimensions?.resonanceQuality || 'STRONG',
-          canvasParity: Number(agent.sonateDimensions?.canvasParity) || 85,
-        },
-        lastInteraction: agent.lastInteraction || new Date().toISOString(),
-        interactions24h: agent.interactionCount || 0,
-        status: (agent.trustScore >= 85 ? 'healthy' : agent.trustScore >= 70 ? 'warning' : 'critical') as 'healthy' | 'warning' | 'critical'
-      }));
+    if (agentsData?.data?.agents?.length) {
+      // Use KPIs trust score for consistency
+      const avgScore = kpisData?.trustScore || 8.5;
+      
+      const apiAgents = agentsData.data.agents.map((agent: any) => {
+        // Calculate trust score from KPIs or agent data
+        const trustScore = agent.trustScore || Math.round(avgScore * 10);
+        return {
+          id: agent.id || agent._id,
+          name: agent.name,
+          model: agent.model || agent.type || 'unknown',
+          trustScore,
+          sonateDimensions: {
+            realityIndex: Number(agent.sonateDimensions?.realityIndex) || kpisData?.sonateDimensions?.realityIndex || avgScore * 0.8,
+            trustProtocol: trustScore >= 85 ? 'PASS' : trustScore >= 70 ? 'PARTIAL' : 'FAIL',
+            ethicalAlignment: Number(agent.sonateDimensions?.ethicalAlignment) || kpisData?.sonateDimensions?.ethicalAlignment || avgScore * 0.5,
+            resonanceQuality: kpisData?.sonateDimensions?.resonanceQuality || (trustScore >= 85 ? 'ADVANCED' : 'STRONG'),
+            canvasParity: Number(agent.sonateDimensions?.canvasParity) || kpisData?.sonateDimensions?.canvasParity || trustScore,
+          },
+          lastInteraction: agent.lastInteraction || agent.updatedAt || new Date().toISOString(),
+          interactions24h: kpisData?.totalInteractions || agent.interactionCount || 0,
+          status: (trustScore >= 85 ? 'healthy' : trustScore >= 70 ? 'warning' : 'critical') as 'healthy' | 'warning' | 'critical'
+        };
+      });
       setAgents(apiAgents);
-      return;
+    } else {
+      setAgents([]);
     }
+  }, [agentsData, kpisData]);
 
-    // No data available - leave agents empty
-    setAgents([]);
-  }, [isDemo, isLoaded, agentsData, demoAgentsData]);
-
-  // Handle both array and {data: ...} response shapes for KPI data
-  const getDemoKpis = () => {
-    if (!demoKpiData) return null;
-    if (typeof demoKpiData === 'object' && 'data' in demoKpiData) {
-      return (demoKpiData as { data: any }).data;
-    }
-    return demoKpiData;
-  };
-  const getRealKpis = () => {
-    if (!kpiData) return null;
-    if (typeof kpiData === 'object' && 'data' in kpiData) {
-      return (kpiData as { data: any }).data;
-    }
-    return kpiData;
-  };
-  const kpis = isDemo ? getDemoKpis() : getRealKpis();
-  const avgTrust = kpis?.trustScore ?? (agents.length > 0 ? Math.round(agents.reduce((sum, a) => sum + a.trustScore, 0) / agents.length) : 0);
+  // Extract metrics from the unified KPI data
+  const avgTrust = kpisData?.trustScore 
+    ? Math.round(kpisData.trustScore * 10) 
+    : (agents.length > 0 ? Math.round(agents.reduce((sum, a) => sum + a.trustScore, 0) / agents.length) : 0);
+  
   const healthyCount = agents.filter(a => a.status === 'healthy').length;
-  const totalInteractions = kpis?.totalInteractions ?? agents.reduce((sum, a) => sum + a.interactions24h, 0);
-  const passRate = agents.length > 0 ? Math.round((agents.filter(a => a.sonateDimensions.trustProtocol === 'PASS').length / agents.length) * 100) : 0;
-  const dataSource = isDemo ? 'demo' : 'live';
+  const totalInteractions = kpisData?.totalInteractions || agents.reduce((sum, a) => sum + a.interactions24h, 0);
+  const passRate = kpisData?.complianceRate ?? (agents.length > 0 
+    ? Math.round((agents.filter(a => a.sonateDimensions.trustProtocol === 'PASS').length / agents.length) * 100) 
+    : 0);
+  
+  // Calculate trend from KPIs
+  const trendChange = kpisData?.trends?.trustScore?.change || 0;
+
+  const hasData = totalInteractions > 0 || agents.length > 0;
+
+  const handleRefresh = () => {
+    refetchKpis();
+    queryClient.invalidateQueries({ queryKey: ['agents'] });
+  };
 
   return (
     <div className="space-y-6">
-      {isDemo && (
-        <div className="demo-notice mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+      {!hasData && !isLoading && (
+        <div className="demo-notice mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex items-start gap-3">
+          <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
           <div>
-            <strong className="text-amber-800 dark:text-amber-200">Demo Mode</strong>
-            <p className="text-sm text-amber-700 dark:text-amber-300">Showing sample agent data for demonstration. Connect your AI agents for real trust monitoring.</p>
+            <strong className="text-blue-800 dark:text-blue-200">No Interaction Data Yet</strong>
+            <p className="text-sm text-blue-700 dark:text-blue-300">Start chatting with an AI agent to see your trust metrics populate here.</p>
           </div>
         </div>
       )}
@@ -254,17 +203,16 @@ export default function TrustScoresPage() {
           </h1>
           <p className="text-muted-foreground flex items-center gap-2">
             <span className="live-indicator">Live</span>
-            Agent trust monitoring across all deployments
+            Agent trust monitoring from your conversations
           </p>
         </div>
-        <span className={`data-source-badge px-2 py-1 text-xs rounded-full flex items-center gap-2 ${
-          dataSource === 'live'
-            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-        }`}>
-          <span className="h-1.5 w-1.5 rounded-full bg-current" />
-          {dataSource === 'live' ? 'Production Data' : 'Demo Data'}
-        </span>
+        <button 
+          onClick={handleRefresh}
+          className="px-3 py-1.5 text-xs rounded-md bg-muted hover:bg-muted/80 flex items-center gap-2"
+        >
+          <RefreshCw className="h-3 w-3" />
+          Refresh
+        </button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -276,10 +224,14 @@ export default function TrustScoresPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{avgTrust}</div>
+            <div className="text-3xl font-bold">{avgTrust}%</div>
             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-              <TrendingUp className="h-3 w-3 text-emerald-500" />
-              +{kpis?.trends?.trustScore?.change ?? 2.1}% from yesterday
+              {trendChange >= 0 ? (
+                <TrendingUp className="h-3 w-3 text-emerald-500" />
+              ) : (
+                <TrendingUp className="h-3 w-3 text-red-500 rotate-180" />
+              )}
+              {trendChange >= 0 ? '+' : ''}{trendChange}% trend
             </p>
           </CardContent>
         </Card>

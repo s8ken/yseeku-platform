@@ -71,7 +71,7 @@ export const createAgentSchema = z.object({
   maxTokens: z.number().int().min(1).max(128000).default(4096),
   isPublic: z.boolean().default(false),
   apiKeyId: z.string().optional(),
-  ciModel: z.enum(['none', 'detect', 'enforce']).default('detect'),
+  ciModel: z.enum(['none', 'sonate-core', 'overseer', 'system-brain']).default('sonate-core'),
 });
 
 export const updateAgentSchema = createAgentSchema.partial();

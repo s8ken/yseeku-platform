@@ -21,10 +21,12 @@ import {
   Loader2,
   ShieldCheck,
   ShieldAlert,
-  FileX
+  FileX,
+  RefreshCw,
+  Activity
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
-import { api } from '@/lib/api';
+import { useReceiptsData } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
 
 interface TrustReceipt {
@@ -303,104 +305,42 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
 
 export default function TrustReceiptsPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [tenant, setTenant] = useState('default');
-  const { isDemo, isLoaded } = useDemo();
+  const { isDemo } = useDemo();
 
-  useEffect(() => {
-    try {
-      const t = typeof window !== 'undefined' ? localStorage.getItem('tenant') : null;
-      setTenant(t || 'default');
-    } catch {
-      setTenant('default');
-    }
-  }, []);
+  // Use demo-aware hook for receipts
+  const { data: receiptsData, isLoading, refetch } = useReceiptsData(50);
 
-  // Fetch real receipts from API
-  const { data: receiptsData, isLoading: isLoadingReal } = useQuery({
-    queryKey: ['trust-receipts', tenant],
-    queryFn: async () => {
-      const res = await api.getTrustReceiptsList({ limit: 50 });
-      const rows = (res as any)?.receipts || (res as any)?.data || [];
-      const mapped: TrustReceipt[] = rows.map((r: any) => ({
-        id: r._id || r.self_hash,
-        hash: r.self_hash,
-        agentId: r.agent_id || '',
-        agentName: r.agent_id ? `Agent ${String(r.agent_id).slice(-4)}` : 'Unknown Agent',
-        timestamp: r.timestamp || r.createdAt || new Date().toISOString(),
-        trustScore: r.ciq_metrics?.quality ? Math.round(r.ciq_metrics.quality * 100) / 10 : 0,
-        sonateDimensions: {
-          realityIndex: r.ciq_metrics?.quality ? r.ciq_metrics.quality * 10 : 0,
-          trustProtocol: 'PASS',
-          ethicalAlignment: r.ciq_metrics?.integrity ? r.ciq_metrics.integrity * 5 : 0,
-          resonanceQuality: 'STRONG',
-          canvasParity: r.ciq_metrics?.clarity ? Math.round(r.ciq_metrics.clarity * 100) : 0,
-        },
-        verified: !!r.signature,
-        chainPosition: 1,
-        previousHash: r.previous_hash || '',
-        receiptData: r,
-        issuer: r.issuer,
-        subject: r.subject,
-        proof: r.proof,
-      }));
-      return {
-        success: true,
-        data: mapped,
-        stats: {
-          total: mapped.length,
-          verified: mapped.filter((x) => x.verified).length,
-          invalid: mapped.filter((x) => !x.verified).length,
-          chainLength: mapped.length,
-        },
-        source: 'backend',
-      };
-    },
-    staleTime: 30000,
-    enabled: !isDemo && isLoaded,
-  });
-
-  // Fetch demo receipts when in demo mode
-  const { data: demoData, isLoading: isLoadingDemo } = useQuery({
-    queryKey: ['demo-receipts'],
-    queryFn: () => api.getDemoReceipts(),
-    staleTime: 60000,
-    enabled: isDemo && isLoaded,
-  });
-
-  const isLoading = !isLoaded || (isDemo ? isLoadingDemo : isLoadingReal);
-  const hasRealData = receiptsData?.data && receiptsData.data.length > 0;
-  const demoDataTyped = demoData as { data?: { receipts?: any[] } } | undefined;
-  const hasDemoData = demoDataTyped?.data?.receipts && demoDataTyped.data.receipts.length > 0;
-
-  // Map demo receipts to match TrustReceipt interface
-  const demoReceipts: TrustReceipt[] = (demoDataTyped?.data?.receipts || []).map((r: any) => ({
-    id: r._id || r.id,
-    hash: r.hash || r.receipt_hash || '',
+  // Transform the receipts data to match our interface
+  const receipts: TrustReceipt[] = (receiptsData?.receipts || []).map((r: any) => ({
+    id: r._id || r.id || r.self_hash,
+    hash: r.hash || r.self_hash || `hash-${r.id}`,
     agentId: r.agent_id || '',
-    agentName: r.agent_name || 'Demo Agent',
-    timestamp: r.timestamp || new Date().toISOString(),
-    trustScore: r.trust_score || 85,
-    sonateDimensions: r.sonate_dimensions || {
-      realityIndex: 8.5,
+    agentName: r.agent_id ? `Agent ${String(r.agent_id).slice(-4)}` : 'Unknown Agent',
+    timestamp: r.created_at || r.timestamp || r.createdAt || new Date().toISOString(),
+    trustScore: r.trust_score || (r.ciq_metrics?.quality ? Math.round(r.ciq_metrics.quality * 100) / 10 : 0),
+    sonateDimensions: {
+      realityIndex: r.ciq_metrics?.quality ? r.ciq_metrics.quality * 10 : 8.5,
       trustProtocol: 'PASS',
-      ethicalAlignment: 4.2,
-      resonanceQuality: 'ADVANCED',
-      canvasParity: 90
+      ethicalAlignment: r.ciq_metrics?.integrity ? r.ciq_metrics.integrity * 5 : 4.2,
+      resonanceQuality: 'STRONG',
+      canvasParity: r.ciq_metrics?.clarity ? Math.round(r.ciq_metrics.clarity * 100) : 87,
     },
-    verified: r.verified ?? true,
-    chainPosition: r.chain_position || 1,
+    verified: r.verified ?? !!r.signature,
+    chainPosition: 1,
     previousHash: r.previous_hash || '',
-    receiptData: r.receipt_data || {}
+    receiptData: r,
+    issuer: r.issuer,
+    subject: r.subject,
+    proof: r.proof,
   }));
 
-  const receipts = isDemo ? demoReceipts : (receiptsData?.data || []);
-  const stats = receiptsData?.stats || {
+  const stats = {
     total: receipts.length,
     verified: receipts.filter(r => r.verified).length,
     invalid: receipts.filter(r => !r.verified).length,
     chainLength: receipts.length
   };
-  const dataSource = isDemo ? 'demo' : 'live';
+  const hasData = receipts.length > 0;
 
   const filteredReceipts = receipts.filter(r => 
     r.agentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -409,12 +349,12 @@ export default function TrustReceiptsPage() {
 
   return (
     <div className="space-y-6">
-      {dataSource === 'demo' && (
-        <div className="demo-notice mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+      {!hasData && !isLoading && (
+        <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex items-start gap-3">
+          <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
           <div>
-            <strong className="text-amber-800 dark:text-amber-200">Demo Data</strong>
-            <p className="text-sm text-amber-700 dark:text-amber-300">Trust receipts shown are demonstration examples. Real receipts will appear once agents are connected.</p>
+            <strong className="text-blue-800 dark:text-blue-200">No Trust Receipts Yet</strong>
+            <p className="text-sm text-blue-700 dark:text-blue-300">Trust receipts are generated when you chat with AI agents. Start a conversation to see receipts here.</p>
           </div>
         </div>
       )}

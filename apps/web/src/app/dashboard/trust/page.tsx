@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api, TrustAnalyticsResponse } from '@/lib/api';
-import { useDemo } from '@/hooks/use-demo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -38,8 +36,9 @@ import {
   Legend
 } from 'recharts';
 import { toast } from 'sonner';
-import { WithDemoWatermark } from '@/components/demo-watermark';
 import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
+import { useTrustAnalytics, useDashboardKPIs } from '@/hooks/use-demo-data';
+import { useDemo } from '@/hooks/use-demo';
 
 interface Analytics {
   averageTrustScore: number;
@@ -60,38 +59,28 @@ interface Analytics {
 }
 
 export default function TrustAnalyticsPage() {
-  const { isDemo, isLoaded } = useDemo();
-  const [analytics, setAnalytics] = useState<Analytics | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { isDemo } = useDemo();
+  const { data: analyticsData, isLoading, refetch } = useTrustAnalytics();
+  const { data: kpisData } = useDashboardKPIs();
   const [timeRange, setTimeRange] = useState({ days: 7, start: '', end: '' });
 
+  // Build analytics from the demo-aware data
+  const analytics = analyticsData ? {
+    averageTrustScore: analyticsData.averageTrustScore || 0,
+    totalInteractions: analyticsData.totalInteractions || 0,
+    passRate: analyticsData.passRate || 0,
+    partialRate: analyticsData.partialRate || 0,
+    failRate: analyticsData.failRate || 0,
+    commonViolations: analyticsData.commonViolations || [],
+    recentTrends: analyticsData.recentTrends || [],
+  } : null;
+
   const loadAnalytics = async () => {
-    if (!isLoaded) return;
-    
-    setLoading(true);
-    try {
-      // Use same API for both demo and real mode
-      const response = await api.getTrustAnalytics();
-      if (response?.data) {
-        setAnalytics(response.data.analytics);
-        setTimeRange(response.data.timeRange);
-      }
-      toast.success('Analytics refreshed');
-    } catch (error: any) {
-      console.error('Failed to load analytics:', error);
-      toast.error('Failed to load analytics', {
-        description: error.message || 'Please try again later'
-      });
-    } finally {
-      setLoading(false);
-    }
+    refetch();
+    toast.success('Analytics refreshed');
   };
 
-  useEffect(() => {
-    loadAnalytics();
-  }, [isDemo, isLoaded]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="container mx-auto py-6">
         <DashboardPageSkeleton />

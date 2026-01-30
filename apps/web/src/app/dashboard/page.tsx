@@ -27,9 +27,11 @@ import {
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { OverseerWidget } from '@/components/overseer-widget';
-import { api } from '@/lib/api';
 import { WithDemoWatermark } from '@/components/demo-watermark';
 import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
+import { useDashboardKPIs, useAlertsData } from '@/hooks/use-demo-data';
+import { useDemo } from '@/hooks/use-demo';
+import { api } from '@/lib/api';
 
 interface KPIData {
   tenant: string;
@@ -204,21 +206,11 @@ function DetectionMetricCard({
 }
 
 export default function DashboardPage() {
-  const [tenant, setTenant] = useState('default');
-  
-  useEffect(() => {
-    try {
-      const t = typeof window !== 'undefined' ? localStorage.getItem('tenant') : null;
-      setTenant(t || 'default');
-    } catch {
-      setTenant('default');
-    }
-  }, []);
+  const { isDemo } = useDemo();
 
-  const { data: kpiData, isLoading: kpiLoading } = useQuery({
-    queryKey: ['kpis', tenant],
-    queryFn: () => api.getKPIs(tenant),
-  });
+  // Use demo-aware hooks for consistent data
+  const { data: kpis, isLoading: kpiLoading } = useDashboardKPIs();
+  const { data: alertData, isLoading: alertLoading } = useAlertsData();
 
   const { data: policyStatus } = useQuery({
     queryKey: ['policy-status'],
@@ -233,18 +225,13 @@ export default function DashboardPage() {
     },
   });
 
-  const { data: alertData, isLoading: alertLoading } = useQuery({
-    queryKey: ['alerts', tenant],
-    queryFn: () => api.getAlerts(tenant),
-  });
-
   const { data: experimentData, isLoading: experimentLoading } = useQuery({
-    queryKey: ['experiments', tenant],
+    queryKey: ['experiments'],
     queryFn: () => api.getExperiments(),
+    enabled: !isDemo, // Only fetch in live mode
   });
 
-  const kpis = kpiData;
-  const alerts = (alertData as any)?.data || alertData;
+  const alerts = alertData;
   const experiments = (experimentData as any)?.data || experimentData;
 
   const displayKpis = kpis || {

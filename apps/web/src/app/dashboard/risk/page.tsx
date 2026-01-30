@@ -16,10 +16,11 @@ import {
   BarChart3,
   PieChart,
   FileText,
-  Download
+  Download,
+  Activity
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
-import { api } from '@/lib/api';
+import { useDashboardKPIs, useTrustAnalytics, useAlertsData, useRiskData } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
 
 const defaultTrustPrinciples = [
@@ -211,109 +212,73 @@ function RiskAlerts({ alerts }: { alerts: RiskEvent[] }) {
 }
 
 export default function RiskManagementPage() {
-  const [tenant, setTenant] = useState('default');
-  const { isDemo, isLoaded } = useDemo();
+  const { isDemo } = useDemo();
 
-  useEffect(() => {
-    try {
-      const t = typeof window !== 'undefined' ? localStorage.getItem('tenant') : null;
-      setTenant(t || 'default');
-    } catch {
-      setTenant('default');
-    }
-  }, []);
+  // Use demo-aware hooks for consistent data
+  const { data: kpisData } = useDashboardKPIs();
+  const { data: analyticsData } = useTrustAnalytics();
+  const { data: alertsData } = useAlertsData();
 
-  // Fetch real risk metrics
-  const { data: riskMetrics } = useQuery({
-    queryKey: ['risk-metrics', tenant],
-    queryFn: async () => {
-      const response = await fetch(`/api/dashboard/risk?tenant=${tenant}`);
-      if (!response.ok) throw new Error('Failed to fetch risk metrics');
-      return response.json() as Promise<{ success: boolean; data: RiskMetrics & { recentRiskEvents?: RiskEvent[]; trustPrinciples?: typeof defaultTrustPrinciples; complianceReports?: typeof defaultComplianceReports } }>;
-    },
-    retry: false,
-    staleTime: Infinity,
-    enabled: !isDemo && isLoaded,
-  });
-
-  // Fetch demo risk data when in demo mode
-  const { data: demoRiskData } = useQuery({
-    queryKey: ['demo-risk'],
-    queryFn: () => api.getDemoRisk(),
-    staleTime: 60000,
-    enabled: isDemo && isLoaded,
-  });
-
-  // Fetch real risk events
+  // Fetch real risk events (only in live mode)
   const { data: riskEventsData } = useQuery({
-    queryKey: ['risk-events', tenant],
+    queryKey: ['risk-events'],
     queryFn: async () => {
-      const response = await fetch(`/api/risk-events?tenant=${tenant}&resolved=false`);
-      if (!response.ok) throw new Error('Failed to fetch risk events');
-      return response.json() as Promise<{ success: boolean; data: RiskEvent[]; meta?: { source?: string } }>;
+      const response = await fetch(`/api/risk-events?resolved=false`);
+      if (!response.ok) return { data: [] };
+      return response.json() as Promise<{ success: boolean; data: RiskEvent[] }>;
     },
-    retry: false,
     staleTime: 30000,
-    enabled: !isDemo && isLoaded,
+    enabled: !isDemo, // Only fetch in live mode
   });
 
-  // Use demo data when in demo mode
-  const demoData = (demoRiskData as { data?: any })?.data;
-  const trustPrinciples = isDemo
-    ? (demoData?.trustPrinciples || defaultTrustPrinciples)
-    : (riskMetrics?.data?.trustPrinciples || defaultTrustPrinciples);
-  const complianceReports = isDemo
-    ? (demoData?.complianceReports?.map((r: any) => ({
-        id: r.framework,
-        title: r.framework,
-        status: r.status,
-        lastChecked: r.lastAudit,
-        score: r.score
-      })) || defaultComplianceReports)
-    : (riskMetrics?.data?.complianceReports || defaultComplianceReports);
-  const riskAlerts = isDemo
-    ? []
-    : (riskEventsData?.data?.length ? riskEventsData.data : (riskMetrics?.data?.recentRiskEvents || []));
-  const dataSource = isDemo ? 'demo' : 'live';
+  // Build trust principles from demo-aware KPI data
+  const avgScore = kpisData?.trustScore ? kpisData.trustScore * 10 : 85;
+  
+  const trustPrinciples: TrustPrinciple[] = kpisData?.principleScores ? [
+    { name: 'Consent Architecture', weight: 25, score: kpisData.principleScores.consent || Math.round(avgScore), critical: true },
+    { name: 'Inspection Mandate', weight: 20, score: kpisData.principleScores.inspection || Math.round(avgScore * 1.08), critical: false },
+    { name: 'Continuous Validation', weight: 20, score: kpisData.principleScores.validation || Math.round(avgScore * 0.92), critical: false },
+    { name: 'Ethical Override', weight: 15, score: kpisData.principleScores.override || Math.round(avgScore * 1.03), critical: true },
+    { name: 'Right to Disconnect', weight: 10, score: kpisData.principleScores.disconnect || Math.round(Math.min(avgScore * 1.12, 100)), critical: false },
+    { name: 'Moral Recognition', weight: 10, score: kpisData.principleScores.moral || Math.round(avgScore * 0.96), critical: false },
+  ] : defaultTrustPrinciples;
+
+  const passRate = kpisData?.complianceRate || analyticsData?.passRate || 90;
+  const failRate = kpisData?.riskScore || analyticsData?.failRate || 5;
+
+  const complianceReports: ComplianceReport[] = [
+    { id: '1', title: 'EU AI Act Compliance', status: passRate >= 90 ? 'compliant' : 'warning', lastChecked: new Date().toISOString(), score: Math.round(passRate) },
+    { id: '2', title: 'GDPR Data Protection', status: 'compliant', lastChecked: new Date().toISOString(), score: 96 },
+    { id: '3', title: 'ISO 27001 Security', status: failRate > 5 ? 'warning' : 'compliant', lastChecked: new Date().toISOString(), score: Math.round(100 - failRate) },
+    { id: '4', title: 'Trust Protocol Validation', status: passRate >= 85 ? 'compliant' : 'warning', lastChecked: new Date().toISOString(), score: Math.round(passRate) },
+  ];
+
+  const riskAlerts = riskEventsData?.data || [];
 
   const overallTrustScore = trustPrinciples.reduce((acc: number, principle: TrustPrinciple) => {
     return acc + (principle.score * principle.weight / 100);
   }, 0);
 
-  const metrics = isDemo
-    ? {
-        overallRiskScore: demoData?.overallRiskScore ?? 12,
-        trustScore: overallTrustScore,
-        complianceRate: 98,
-        activeAlerts: 0,
-        criticalViolations: 0,
-        riskTrend: 'improving' as const
-      }
-    : (riskMetrics?.data || {
-        overallRiskScore: 15,
-        trustScore: overallTrustScore,
-        complianceRate: 92,
-        activeAlerts: riskAlerts.length,
-        criticalViolations: 1,
-        riskTrend: 'stable' as const
-      });
+  const metrics: RiskMetrics = {
+    overallRiskScore: kpisData?.riskScore || Math.round(Math.max(0, 100 - overallTrustScore) * 0.2),
+    trustScore: overallTrustScore,
+    complianceRate: passRate,
+    activeAlerts: alertsData?.summary?.total || riskAlerts.length,
+    criticalViolations: analyticsData?.commonViolations?.length || 0,
+    riskTrend: kpisData?.trends?.risk?.direction === 'down' ? 'improving' : 
+               kpisData?.trends?.risk?.direction === 'up' ? 'declining' : 'stable'
+  };
+
+  const hasData = kpisData && kpisData.totalInteractions > 0;
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
-      {dataSource === 'demo' ? (
-        <div className="demo-notice mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+      {!hasData && (
+        <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex items-start gap-3">
+          <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
           <div>
-            <strong className="text-amber-800 dark:text-amber-200">Demo Data</strong>
-            <p className="text-sm text-amber-700 dark:text-amber-300">Risk metrics shown are demonstration data. Connect your production systems for real monitoring.</p>
-          </div>
-        </div>
-      ) : (
-        <div className="live-notice mb-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 flex items-start gap-3">
-          <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
-          <div>
-            <strong className="text-green-800 dark:text-green-200">Live Data</strong>
-            <p className="text-sm text-green-700 dark:text-green-300">Risk events are being monitored in real-time from your production systems.</p>
+            <strong className="text-blue-800 dark:text-blue-200">No Interaction Data Yet</strong>
+            <p className="text-sm text-blue-700 dark:text-blue-300">Risk metrics will populate once you start chatting with AI agents.</p>
           </div>
         </div>
       )}
@@ -323,13 +288,6 @@ export default function RiskManagementPage() {
           Risk Management
           <InfoTooltip term="Drift" />
         </h2>
-        <span className={`data-source-badge px-2 py-1 text-xs rounded-full ${
-          dataSource === 'live' 
-            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-            : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-        }`}>
-          {dataSource === 'live' ? 'Live Data' : 'Demo Data'}
-        </span>
       </div>
 
       {/* Key Metrics */}
