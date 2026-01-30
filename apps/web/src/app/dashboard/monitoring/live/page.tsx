@@ -476,10 +476,10 @@ export default function LiveDashboardPage() {
 
           {/* Secondary Content */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* SYMBI Principles */}
+            {/* SONATE Principles */}
             <Card className="lg:col-span-1">
               <CardHeader>
-                <CardTitle className="text-lg">SYMBI Principles</CardTitle>
+                <CardTitle className="text-lg">SONATE Principles</CardTitle>
                 <CardDescription>Real-time compliance scores</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

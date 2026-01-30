@@ -376,9 +376,9 @@ export default function DashboardPage() {
                     <CardTitle className="flex items-center gap-2">
                       <Shield className="h-5 w-5 text-purple-500" />
                       Constitutional Compliance
-                      <InfoTooltip term="SYMBI Framework" />
+                      <InfoTooltip term="SONATE Framework" />
                     </CardTitle>
-                    <CardDescription>6 SYMBI Principles (Layer 1)</CardDescription>
+                    <CardDescription>6 SONATE Principles (Layer 1)</CardDescription>
                   </div>
                   <span className="module-badge badge-detect">CORE</span>
                 </div>

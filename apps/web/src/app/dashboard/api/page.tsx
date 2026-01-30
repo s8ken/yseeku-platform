@@ -448,7 +448,7 @@ export default function ApiGatewayPage() {
                 <Badge className="bg-green-100 text-green-800">GET</Badge>
                 <code className="text-sm font-mono">/api/v1/trust/scores/:agentId</code>
               </div>
-              <p className="text-sm text-muted-foreground">Get detailed SYMBI trust scores for a specific agent</p>
+              <p className="text-sm text-muted-foreground">Get detailed SONATE trust scores for a specific agent</p>
             </div>
             <div className="p-4 border rounded-lg">
               <div className="flex items-center gap-2 mb-2">

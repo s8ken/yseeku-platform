@@ -420,11 +420,11 @@ export default function TrustSettingsPage() {
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="show-symbi-dimensions">Show SYMBI Dimensions</Label>
+              <Label htmlFor="show-sonate-dimensions">Show SONATE Dimensions</Label>
               <p className="text-sm text-muted-foreground">Display Reality Index, Canvas Parity, etc.</p>
             </div>
             <Switch
-              id="show-symbi-dimensions"
+              id="show-sonate-dimensions"
               checked={settings.display.showSymbiDimensions}
               onCheckedChange={(checked) =>
                 setSettings({
