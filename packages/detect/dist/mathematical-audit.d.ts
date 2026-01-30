@@ -104,4 +104,3 @@ export declare class MathematicalAuditLogger {
 export declare const mathematicalAuditLogger: MathematicalAuditLogger;
 export declare function logEmbeddingOperation(sessionId: string, text: string, result: any, executionTime: number, confidence?: number): string;
 export declare function logConfidenceCalculation(sessionId: string, inputs: any, result: any, executionTime: number): string;
-//# sourceMappingURL=mathematical-audit.d.ts.map

@@ -22,7 +22,7 @@ export declare const workflowFailuresTotal: Counter<"workflow_name" | "error_typ
  * Agent Metrics
  */
 export declare const activeAgentsGauge: Gauge<"status">;
-export declare const agentOperationsTotal: Counter<"operation" | "agent_id" | "status">;
+export declare const agentOperationsTotal: Counter<"operation" | "status" | "agent_id">;
 export declare const agentResponseTimeHistogram: Histogram<"agent_id" | "action">;
 /**
  * Resonance Metrics

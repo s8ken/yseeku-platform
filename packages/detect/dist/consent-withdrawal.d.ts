@@ -29,4 +29,3 @@ export declare function detectConsentWithdrawal(message: string): ConsentWithdra
  */
 export declare function getWithdrawalResponse(result: ConsentWithdrawalResult): string;
 export default detectConsentWithdrawal;
-//# sourceMappingURL=consent-withdrawal.d.ts.map

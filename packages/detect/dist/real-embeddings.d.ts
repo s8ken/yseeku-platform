@@ -86,4 +86,3 @@ export declare class SemanticEmbedder {
 export declare function cosineSimilarity(a: number[], b: number[]): number;
 export declare const embedder: SemanticEmbedder;
 export declare function embed(text: string): Promise<number[]>;
-//# sourceMappingURL=real-embeddings.d.ts.map

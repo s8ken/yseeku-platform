@@ -20,7 +20,7 @@
   "author": "YSEEKU",
   "license": "MIT",
   "dependencies": {
-    "@sonate/core": "file:../core",
+    "@sonate/core": "*",
     "prom-client": "^15.1.0"
   },
   "devDependencies": {

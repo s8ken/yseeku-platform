@@ -1,10 +1,9 @@
 // apps/web/src/app/api/detect/resonance/explain/route.ts
 import { NextResponse } from 'next/server';
 
-import { resonanceWithStickiness, SessionState, Transcript, ResonanceClient } from '@sonate/detect';
+import { resonanceWithStickiness, SessionState, Transcript } from '@sonate/detect';
 
-// Initialize client for Python Sidecar (Optional fallback)
-const resonanceClient = new ResonanceClient(process.env.RESONANCE_ENGINE_URL ?? 'http://localhost:8000');
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:3001';
 
 // Mock KV Store (Shared with trust receipt route for demo)
 const globalKv = globalThis as unknown as { mockKv: Map<string, { value: any, expiry: number }> };
@@ -35,19 +34,24 @@ export async function POST(req: Request): Promise<NextResponse> {
         const body = await req.json();
         const { userInput, aiResponse, history, session_id } = body;
 
-        // 1. Attempt to get "Ground Truth" from Python Resonance Engine if online
-        let pythonReceipt = null;
+        let backendEvaluation: any = null;
         try {
-            const isEngineOnline = await resonanceClient.healthCheck();
-            if (isEngineOnline) {
-                pythonReceipt = await resonanceClient.generateReceipt({
-                    user_input: userInput,
-                    ai_response: aiResponse,
-                    history: history || []
-                });
+            const resp = await fetch(`${BACKEND_URL}/api/trust/evaluate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: aiResponse,
+                    previousMessages: Array.isArray(history) ? history : [],
+                    sessionId: session_id || `lab-${Date.now()}`,
+                }),
+                cache: 'no-store'
+            });
+            if (resp.ok) {
+                const json = await resp.json();
+                backendEvaluation = json?.data?.evaluation || null;
             }
-        } catch (err) {
-            pythonReceipt = null;
+        } catch (_) {
+            backendEvaluation = null;
         }
 
         // 2. Construct Transcript for TS Library (Stickiness & Explainability)
@@ -76,13 +80,11 @@ export async function POST(req: Request): Promise<NextResponse> {
         // 3. Calculate Resonance with Stickiness
         const result = await resonanceWithStickiness(transcript, sessionState || undefined);
 
-        // 4. Merge Python Engine results if available for "Multi-Engine" validation
-        if (pythonReceipt) {
-            // Adjust R_m based on Python engine's more sophisticated semantic analysis
-            // We use a weighted average or replace if Python is considered "Ground Truth"
-            const pythonRm = Math.max(0, Math.min(1, pythonReceipt.sonate_dimensions.reality_index / 10));
-            result.r_m = (result.r_m * 0.4) + (pythonRm * 0.6); // 60% weight to Python Engine
-            result.audit_trail.push(`Python Resonance Engine Validation: ${pythonRm.toFixed(3)} (Weighted 60%)`);
+        // 4. Merge Backend trust evaluation if available
+        if (backendEvaluation) {
+            const backendRm = Math.max(0, Math.min(1, backendEvaluation.trustScore?.overall ?? result.r_m));
+            result.r_m = (result.r_m * 0.4) + (backendRm * 0.6);
+            result.audit_trail.push(`Backend Trust Evaluation merged: ${backendRm.toFixed(3)} (Weighted 60%)`);
         }
 
         // Store new state (30 days TTL)
@@ -102,7 +104,7 @@ export async function POST(req: Request): Promise<NextResponse> {
                 adversarial: result.adversarial,
                 componentBreakdown: result.breakdown,
                 audit_trail: result.audit_trail,
-                engine_source: pythonReceipt ? 'hybrid (Python + TS)' : 'local (TS)'
+                engine_source: backendEvaluation ? 'hybrid (Backend + TS)' : 'local (TS)'
             }
         };
 

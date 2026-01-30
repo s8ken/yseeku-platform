@@ -16,4 +16,3 @@ export declare class BalancedSonateDetector {
     private weightedOverall;
     private rewriteInsights;
 }
-//# sourceMappingURL=balanced-detector.d.ts.map

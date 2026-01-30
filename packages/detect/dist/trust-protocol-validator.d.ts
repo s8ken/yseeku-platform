@@ -11,4 +11,3 @@ export declare class TrustProtocolValidator {
     private checkBoundaries;
     private checkSecurity;
 }
-//# sourceMappingURL=trust-protocol-validator.d.ts.map

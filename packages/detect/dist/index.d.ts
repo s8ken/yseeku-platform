@@ -50,4 +50,3 @@ export declare function detect(input: any): import("@sonate/core").ResonanceMetr
     interpretation: string;
     error: string;
 };
-//# sourceMappingURL=index.d.ts.map

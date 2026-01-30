@@ -15,7 +15,7 @@ const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
  */
 exports.loginRateLimiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // 5 attempts per window
+    max: 50, // 50 attempts per window (increased for initial setup)
     message: {
         success: false,
         message: 'Too many login attempts from this IP. Please try again in 15 minutes.',

@@ -4,4 +4,3 @@ export interface EmergenceSignal {
     reasons: string[];
 }
 export declare function detectEmergence(result: AssessmentResult): EmergenceSignal;
-//# sourceMappingURL=emergence-detection.d.ts.map

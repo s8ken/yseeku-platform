@@ -116,4 +116,3 @@ export declare function analyzeCrossModalityCoherence(modalityMetrics: ModalityM
  * Quick coherence validation function
  */
 export declare function validateCrossModalityCoherence(modalityMetrics: ModalityMetrics, threshold?: number): CoherenceValidation;
-//# sourceMappingURL=cross-modality-coherence.d.ts.map

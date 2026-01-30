@@ -1,13 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ResonanceEngineClient = void 0;
+const core_1 = require("@sonate/core");
 class ResonanceEngineClient {
     constructor(baseUrl = 'http://localhost:8000') {
         this.baseUrl = baseUrl || process.env.RESONANCE_ENGINE_URL || 'http://localhost:8000';
     }
     async calculateResonance(userInput, aiResponse, conversationHistory = [], interactionId = 'unknown') {
         try {
-            const response = await fetch(`${this.baseUrl}/calculate_resonance`, {
+            const { ok, data } = await (0, core_1.robustFetch)(`${this.baseUrl}/calculate_resonance`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -18,11 +19,13 @@ class ResonanceEngineClient {
                     conversation_history: conversationHistory,
                     interaction_id: interactionId,
                 }),
+                timeout: 5000, // 5s timeout for real-time path
+                retries: 1, // Minimal retries for real-time
             });
-            if (!response.ok) {
+            if (!ok || !data) {
                 return null;
             }
-            return (await response.json());
+            return data;
         }
         catch (error) {
             return null;
@@ -30,7 +33,7 @@ class ResonanceEngineClient {
     }
     async detectDrift(conversationScores) {
         try {
-            const response = await fetch(`${this.baseUrl}/detect_drift`, {
+            const { ok, data } = await (0, core_1.robustFetch)(`${this.baseUrl}/detect_drift`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -39,10 +42,9 @@ class ResonanceEngineClient {
                     conversation_scores: conversationScores,
                 }),
             });
-            if (!response.ok) {
+            if (!ok || !data) {
                 return false;
             }
-            const data = (await response.json());
             return data.drift_detected;
         }
         catch (error) {

@@ -261,6 +261,42 @@ export class LLMService {
   }
 
   /**
+   * Execute an async operation with retry logic
+   */
+  private async withRetry<T>(
+    operation: () => Promise<T>,
+    context: string,
+    retries = 3,
+    backoff = 1000
+  ): Promise<T> {
+    let lastError: any;
+    
+    for (let i = 0; i <= retries; i++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        lastError = error;
+        
+        // Don't retry on auth errors or bad requests
+        if (error.status === 401 || error.status === 403 || error.status === 400) {
+          throw error;
+        }
+
+        if (i === retries) break;
+
+        logger.warn(`LLM operation failed, retrying (${i + 1}/${retries})`, {
+          context,
+          error: error.message
+        });
+
+        await new Promise(resolve => setTimeout(resolve, backoff * Math.pow(1.5, i)));
+      }
+    }
+
+    throw lastError;
+  }
+
+  /**
    * Generate response from OpenAI
    */
   private async generateOpenAI(
@@ -280,23 +316,25 @@ export class LLMService {
     }
 
     try {
-      const completion = await client.chat.completions.create({
-        model,
-        messages,
-        temperature,
-        max_tokens: maxTokens,
-      });
+      return await this.withRetry(async () => {
+        const completion = await client.chat.completions.create({
+          model,
+          messages,
+          temperature,
+          max_tokens: maxTokens,
+        });
 
-      return {
-        content: completion.choices[0].message.content || '',
-        usage: {
-          promptTokens: completion.usage?.prompt_tokens,
-          completionTokens: completion.usage?.completion_tokens,
-          totalTokens: completion.usage?.total_tokens,
-        },
-        model,
-        provider: 'openai',
-      };
+        return {
+          content: completion.choices[0].message.content || '',
+          usage: {
+            promptTokens: completion.usage?.prompt_tokens,
+            completionTokens: completion.usage?.completion_tokens,
+            totalTokens: completion.usage?.total_tokens,
+          },
+          model,
+          provider: 'openai',
+        };
+      }, `openai:${model}`);
     } catch (error: unknown) {
       logger.error('OpenAI API Error', { error: getErrorMessage(error) });
       throw new Error(`OpenAI API Error: ${getErrorMessage(error)}`);
@@ -332,35 +370,37 @@ export class LLMService {
     const resolvedModel = modelMapping[model] || model;
 
     try {
-      // Convert OpenAI format to Anthropic format
-      const systemMessage = messages.find(msg => msg.role === 'system');
-      const conversationMessages = messages
-        .filter(msg => msg.role !== 'system')
-        .map(msg => ({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content,
-        }));
+      return await this.withRetry(async () => {
+        // Convert OpenAI format to Anthropic format
+        const systemMessage = messages.find(msg => msg.role === 'system');
+        const conversationMessages = messages
+          .filter(msg => msg.role !== 'system')
+          .map(msg => ({
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content,
+          }));
 
-      const response = await client.messages.create({
-        model: resolvedModel,
-        max_tokens: maxTokens,
-        temperature,
-        system: systemMessage?.content || '',
-        messages: conversationMessages,
-      });
+        const response = await client.messages.create({
+          model: resolvedModel,
+          max_tokens: maxTokens,
+          temperature,
+          system: systemMessage?.content || '',
+          messages: conversationMessages,
+        });
 
-      const content = response.content[0];
-      const text = content.type === 'text' ? content.text : '';
+        const content = response.content[0];
+        const text = content.type === 'text' ? content.text : '';
 
-      return {
-        content: text,
-        usage: {
-          inputTokens: response.usage.input_tokens,
-          outputTokens: response.usage.output_tokens,
-        },
-        model,
-        provider: 'anthropic',
-      };
+        return {
+          content: text,
+          usage: {
+            inputTokens: response.usage.input_tokens,
+            outputTokens: response.usage.output_tokens,
+          },
+          model,
+          provider: 'anthropic',
+        };
+      }, `anthropic:${resolvedModel}`);
     } catch (error: unknown) {
       logger.error('Anthropic API Error', { error: getErrorMessage(error) });
       throw new Error(`Anthropic API Error: ${getErrorMessage(error)}`);

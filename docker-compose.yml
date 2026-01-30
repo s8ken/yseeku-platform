@@ -21,7 +21,7 @@ services:
       NODE_ENV: development
       PORT: 3001
       CORS_ORIGIN: http://localhost:5000
-      MONGODB_URI: mongodb://mongo:27017/yseeku-platform
+      MONGO_URI: mongodb://mongo:27017/yseeku
     ports:
       - '3001:3001'
     volumes:
@@ -58,3 +58,4 @@ services:
 
 volumes:
   mongo_data:
+

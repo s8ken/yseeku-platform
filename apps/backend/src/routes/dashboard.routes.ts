@@ -7,6 +7,7 @@ import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import { Conversation } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
+import { bedauService } from '../services/bedau.service';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 
@@ -44,13 +45,14 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
     const allConversations = await Conversation.find({ user: userId })
       .select('messages ethicalScore lastActivity createdAt');
 
-    // Fetch agents
-    const [activeAgents, allAgents] = await Promise.all([
+    // Fetch agents and Bedau metrics
+    const [activeAgents, allAgents, bedauMetrics] = await Promise.all([
       Agent.find({
         user: userId,
         lastActive: { $gte: oneDayAgo },
       }).countDocuments(),
       Agent.find({ user: userId }).countDocuments(),
+      bedauService.getMetrics('default'), // Using 'default' tenant for now
     ]);
 
     // Calculate trust scores from conversations
@@ -157,6 +159,12 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
       orchestratorsActive: 0, // Orchestrators not yet implemented
       sonateDimensions,
       trends,
+      bedau: {
+        index: bedauMetrics.bedau_index,
+        type: bedauMetrics.emergence_type,
+        confidenceInterval: bedauMetrics.confidence_interval,
+        kolmogorovComplexity: bedauMetrics.kolmogorov_complexity,
+      },
     };
 
     logger.info('KPI metrics calculated', {

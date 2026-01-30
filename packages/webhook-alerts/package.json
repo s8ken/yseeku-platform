@@ -21,7 +21,7 @@
   "author": "YSEEKU",
   "license": "MIT",
   "dependencies": {
-    "@sonate/core": "file:../core",
+    "@sonate/core": "*",
     "axios": "^1.6.0",
     "crypto-js": "^4.2.0",
     "zod": "^4.3.6"

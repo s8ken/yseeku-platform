@@ -1,35 +1,38 @@
-# Dockerfile for YSEEKU Backend
-# Fixes transitive dependency resolution issues
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install build dependencies for native modules
-RUN apk add --no-cache python3 make g++
-
-# Copy package files and configs
+# Copy package files
 COPY package*.json ./
-COPY turbo.json ./
-COPY tsconfig.base.json ./
-COPY tsconfig.json ./
-COPY packages/ ./packages/
-COPY apps/backend/ ./apps/backend/
+COPY apps/backend/package*.json ./apps/backend/
+COPY packages/core/package*.json ./packages/core/
+COPY packages/persistence/package*.json ./packages/persistence/
+COPY packages/detect/package*.json ./packages/detect/
+COPY packages/orchestrate/package*.json ./packages/orchestrate/
+COPY packages/lab/package*.json ./packages/lab/
 
 # Install dependencies
 RUN npm install --legacy-peer-deps
 
-# FIX: Install missing transitive dependencies directly into packages that need them
-RUN cd node_modules/mongoose && npm install sift mpath kareem --legacy-peer-deps
-RUN cd node_modules/@aws-sdk/client-kms && npm install --legacy-peer-deps
+# Fix transitive dependency issues for Express 5.x and express-rate-limit
+RUN cd apps/backend && npm install router ip-address --legacy-peer-deps
 
-# Build the backend
-RUN npm run build:backend
+# Copy source code
+COPY . .
 
-# Environment
-ENV NODE_ENV=production
+# Build packages
+RUN npm run build --workspace=@sonate/core
+RUN npm run build --workspace=@sonate/persistence
+RUN npm run build --workspace=@sonate/detect
+RUN npm run build --workspace=@sonate/orchestrate
+RUN npm run build --workspace=@sonate/lab
+
+# Build backend
+RUN npm run build --workspace=backend
+
+# Expose port
 ENV PORT=8080
-
 EXPOSE 8080
 
-# Start from root
-CMD ["node", "apps/backend/dist/index.js"]
+# Start the backend
+CMD ["npm", "run", "start", "--workspace=backend"]

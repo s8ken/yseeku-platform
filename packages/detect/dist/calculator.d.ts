@@ -31,4 +31,3 @@ export declare function explainableSonateResonance(transcript: Transcript, optio
     max_evidence?: number;
 }): Promise<ExplainedResonance>;
 export declare function robustSonateResonance(transcript: Transcript): Promise<RobustResonanceResult>;
-//# sourceMappingURL=calculator.d.ts.map

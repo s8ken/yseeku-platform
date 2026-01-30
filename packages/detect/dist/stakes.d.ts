@@ -9,4 +9,3 @@ export interface StakesEvidence {
     };
 }
 export declare function classifyStakes(text: string): StakesEvidence;
-//# sourceMappingURL=stakes.d.ts.map

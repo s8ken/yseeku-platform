@@ -17,4 +17,3 @@ export declare class ResonanceQualityMeasurer {
     private scoreSynthesis;
     private scoreInnovation;
 }
-//# sourceMappingURL=resonance-quality.d.ts.map

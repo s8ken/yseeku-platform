@@ -28,4 +28,3 @@ export interface ExplainedResonance {
     top_evidence: EvidenceChunk[];
     audit_trail: string[];
 }
-//# sourceMappingURL=explainable.d.ts.map

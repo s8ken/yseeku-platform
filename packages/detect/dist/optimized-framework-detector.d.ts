@@ -69,4 +69,3 @@ export declare class OptimizedFrameworkDetector {
         hitRate: number;
     };
 }
-//# sourceMappingURL=optimized-framework-detector.d.ts.map

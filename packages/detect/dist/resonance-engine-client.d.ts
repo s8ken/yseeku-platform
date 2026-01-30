@@ -28,4 +28,3 @@ export declare class ResonanceEngineClient {
     detectDrift(conversationScores: number[]): Promise<boolean>;
     static toResonanceQuality(result: ResonanceResult): ResonanceQuality;
 }
-//# sourceMappingURL=resonance-engine-client.d.ts.map

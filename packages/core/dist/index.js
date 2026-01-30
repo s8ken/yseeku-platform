@@ -54,6 +54,7 @@ Object.defineProperty(exports, "signPayload", { enumerable: true, get: function 
 Object.defineProperty(exports, "verifySignature", { enumerable: true, get: function () { return signatures_1.verifySignature; } });
 Object.defineProperty(exports, "generateKeyPair", { enumerable: true, get: function () { return signatures_1.generateKeyPair; } });
 __exportStar(require("./utils/crypto-advanced"), exports);
+__exportStar(require("./utils/robust-fetch"), exports);
 __exportStar(require("./canonicalize"), exports);
 // Logging infrastructure (Phase 2)
 var logger_1 = require("./logger");

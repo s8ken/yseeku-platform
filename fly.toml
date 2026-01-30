@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for yseeku-backend-shy-sunset-8557 on 2026-01-29T03:47:50+11:00
+# fly.toml app configuration file for yseeku-backend
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'yseeku-backend-shy-sunset-8557'
+app = 'yseeku-backend'
 primary_region = 'syd'
 
 [build]

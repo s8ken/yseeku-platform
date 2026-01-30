@@ -166,4 +166,3 @@ export declare function createPerformanceBenchmarkingEngine(): PerformanceBenchm
  * Quick performance benchmark function
  */
 export declare function runQuickPerformanceBenchmark(): Promise<BenchmarkSummary>;
-//# sourceMappingURL=performance-benchmarks.d.ts.map

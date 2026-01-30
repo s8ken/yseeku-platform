@@ -9,4 +9,3 @@ export declare class DriftDetector {
     private lastMetrics;
     analyze(input: AssessmentInput): DriftResult;
 }
-//# sourceMappingURL=drift-detection.d.ts.map

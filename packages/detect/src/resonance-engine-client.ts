@@ -1,3 +1,4 @@
+import { robustFetch } from '@sonate/core';
 import { ResonanceLevel, ResonanceQuality } from './sonate-types';
 
 export interface ResonanceMetrics {
@@ -38,7 +39,7 @@ export class ResonanceEngineClient {
     interactionId: string = 'unknown'
   ): Promise<ResonanceResult | null> {
     try {
-      const response = await fetch(`${this.baseUrl}/calculate_resonance`, {
+      const { ok, data } = await robustFetch<ResonanceResult>(`${this.baseUrl}/calculate_resonance`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,13 +50,15 @@ export class ResonanceEngineClient {
           conversation_history: conversationHistory,
           interaction_id: interactionId,
         }),
+        timeout: 5000, // 5s timeout for real-time path
+        retries: 1, // Minimal retries for real-time
       });
 
-      if (!response.ok) {
+      if (!ok || !data) {
         return null;
       }
 
-      return (await response.json()) as ResonanceResult;
+      return data;
     } catch (error) {
       return null;
     }
@@ -63,7 +66,7 @@ export class ResonanceEngineClient {
 
   async detectDrift(conversationScores: number[]): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/detect_drift`, {
+      const { ok, data } = await robustFetch<{ drift_detected: boolean }>(`${this.baseUrl}/detect_drift`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,11 +76,10 @@ export class ResonanceEngineClient {
         }),
       });
 
-      if (!response.ok) {
+      if (!ok || !data) {
         return false;
       }
 
-      const data = (await response.json()) as { drift_detected: boolean };
       return data.drift_detected;
     } catch (error) {
       return false;

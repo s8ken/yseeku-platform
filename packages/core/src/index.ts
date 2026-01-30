@@ -45,6 +45,7 @@ export * from './errors';
 export { hashChain, genesisHash } from './utils/hash-chain';
 export { signPayload, verifySignature, generateKeyPair } from './utils/signatures';
 export * from './utils/crypto-advanced';
+export * from './utils/robust-fetch';
 
 export * from './canonicalize';
 

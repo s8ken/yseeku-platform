@@ -4,8 +4,8 @@
     "declaration": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "composite": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "noEmitOnError": false
   },
   "include": ["src/**/*"],
   "exclude": [

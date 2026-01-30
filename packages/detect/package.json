@@ -23,7 +23,7 @@
   "author": "YSEEKU",
   "license": "MIT",
   "dependencies": {
-    "@sonate/core": "file:../core/sonate-core-1.4.0.tgz",
+    "@sonate/core": "*",
     "axios": "^1.6.0",
     "ioredis": "^5.9.2",
     "uuid": "^13.0.0"

@@ -142,4 +142,3 @@ export declare function detectResonance(userInput: string, aiResponse: string, c
  * Check alert level for given R_m score
  */
 export declare function checkResonanceAlert(R_m: number): ResonanceMetrics['alertLevel'];
-//# sourceMappingURL=resonance-detector.d.ts.map

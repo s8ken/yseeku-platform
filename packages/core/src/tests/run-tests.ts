@@ -110,47 +110,39 @@ async function testHashChain() {
 }
 
 async function testSignAndVerify() {
-  try {
-    const { privateKey, publicKey } = await generateKeyPair();
-    const payload = 'test-payload';
-    const sig = await signPayload(payload, privateKey);
-    const valid = await verifySignature(sig, payload, publicKey);
-    assert(valid, 'Ed25519 signature verification failed');
-  } catch (e) {
-    console.warn('SKIP: Ed25519 sign/verify due to environment sha512 configuration');
-  }
+  const { privateKey, publicKey } = await generateKeyPair();
+  const payload = 'test-payload';
+  const sig = await signPayload(payload, privateKey);
+  const valid = await verifySignature(sig, payload, publicKey);
+  assert(valid, 'Ed25519 signature verification failed');
 }
 
 async function testTrustReceiptChainAndVerify() {
-  try {
-    const { privateKey, publicKey } = await generateKeyPair();
-    const r1 = new TrustReceipt({
-      version: '1.0',
-      session_id: 's1',
-      timestamp: Date.now(),
-      mode: 'constitutional',
-      ciq_metrics: { clarity: 0.9, integrity: 0.9, quality: 0.9 },
-    });
-    await r1.sign(privateKey);
-    assert(await r1.verify(publicKey), 'Receipt 1 signature verification failed');
+  const { privateKey, publicKey } = await generateKeyPair();
+  const r1 = new TrustReceipt({
+    version: '1.0',
+    session_id: 's1',
+    timestamp: Date.now(),
+    mode: 'constitutional',
+    ciq_metrics: { clarity: 0.9, integrity: 0.9, quality: 0.9 },
+  });
+  await r1.sign(privateKey);
+  assert(await r1.verify(publicKey), 'Receipt 1 signature verification failed');
 
-    const r2 = new TrustReceipt({
-      version: '1.0',
-      session_id: 's1',
-      timestamp: Date.now() + 1,
-      mode: 'directive',
-      ciq_metrics: { clarity: 0.8, integrity: 0.8, quality: 0.8 },
-      previous_hash: r1.self_hash,
-    });
-    await r2.sign(privateKey);
-    assert(r2.verifyChain(r1), 'Hash chain integrity failed');
+  const r2 = new TrustReceipt({
+    version: '1.0',
+    session_id: 's1',
+    timestamp: Date.now() + 1,
+    mode: 'directive',
+    ciq_metrics: { clarity: 0.8, integrity: 0.8, quality: 0.8 },
+    previous_hash: r1.self_hash,
+  });
+  await r2.sign(privateKey);
+  assert(r2.verifyChain(r1), 'Hash chain integrity failed');
 
-    const json = r2.toJSON();
-    const r2copy = TrustReceipt.fromJSON(json);
-    assert(r2copy.self_hash === r2.self_hash, 'fromJSON/toJSON mismatch');
-  } catch (e) {
-    console.warn('SKIP: TrustReceipt sign/verify due to environment sha512 configuration');
-  }
+  const json = r2.toJSON();
+  const r2copy = TrustReceipt.fromJSON(json);
+  assert(r2copy.self_hash === r2.self_hash, 'fromJSON/toJSON mismatch');
 }
 
 async function testTrustReceiptCanonicalization() {
@@ -177,27 +169,23 @@ async function testTrustReceiptCanonicalization() {
 }
 
 async function testSignBoundVerifyBound() {
-  try {
-    const { privateKey, publicKey } = await generateKeyPair();
-    const r = new TrustReceipt({
-      version: '1.0',
-      session_id: 'sbind',
-      timestamp: Date.now(),
-      mode: 'directive',
-      ciq_metrics: { clarity: 0.6, integrity: 0.6, quality: 0.6 },
-      session_nonce: 'nonce123',
-    });
+  const { privateKey, publicKey } = await generateKeyPair();
+  const r = new TrustReceipt({
+    version: '1.0',
+    session_id: 'sbind',
+    timestamp: Date.now(),
+    mode: 'directive',
+    ciq_metrics: { clarity: 0.6, integrity: 0.6, quality: 0.6 },
+    session_nonce: 'nonce123',
+  });
 
-    await r.signBound(privateKey);
-    assert(await r.verifyBound(publicKey), 'signBound/verifyBound should succeed');
+  await r.signBound(privateKey);
+  assert(await r.verifyBound(publicKey), 'signBound/verifyBound should succeed');
 
-    const original = r.signature;
-    r.signature = r.signature.length > 2 ? '00' + r.signature.substring(2) : '00';
-    assert(!(await r.verifyBound(publicKey)), 'verifyBound should fail on tampered signature');
-    r.signature = original;
-  } catch (e) {
-    console.warn('SKIP: TrustReceipt signBound/verifyBound due to environment sha512 configuration');
-  }
+  const original = r.signature;
+  r.signature = r.signature.length > 2 ? '00' + r.signature.substring(2) : '00';
+  assert(!(await r.verifyBound(publicKey)), 'verifyBound should fail on tampered signature');
+  r.signature = original;
 }
 
 async function testCanonicalizeJSON() {
@@ -254,20 +242,16 @@ async function testEd25519MultibaseInvalid() {
 }
 
 async function testTrustReceiptVerifyWithoutSignature() {
-  try {
-    const r = new TrustReceipt({
-      version: '1.0',
-      session_id: 's2',
-      timestamp: Date.now(),
-      mode: 'directive',
-      ciq_metrics: { clarity: 0.5, integrity: 0.5, quality: 0.5 },
-    });
-    const { publicKey } = await generateKeyPair();
-    const ok = await r.verify(publicKey);
-    assert(!ok, 'Verify should fail when no signature present');
-  } catch (e) {
-    console.warn('SKIP: TrustReceipt verify without signature due to environment sha512 configuration');
-  }
+  const r = new TrustReceipt({
+    version: '1.0',
+    session_id: 's2',
+    timestamp: Date.now(),
+    mode: 'directive',
+    ciq_metrics: { clarity: 0.5, integrity: 0.5, quality: 0.5 },
+  });
+  const { publicKey } = await generateKeyPair();
+  const ok = await r.verify(publicKey);
+  assert(!ok, 'Verify should fail when no signature present');
 }
 
 async function testTimingSafeEqualMismatch() {

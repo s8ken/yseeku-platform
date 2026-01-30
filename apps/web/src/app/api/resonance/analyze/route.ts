@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const RESONANCE_ENGINE_URL = process.env.RESONANCE_ENGINE_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:3001';
 
 interface AnalyzeRequest {
   user_input: string;
@@ -34,25 +34,24 @@ interface ResonanceResult {
   };
 }
 
-async function callResonanceEngine(request: AnalyzeRequest): Promise<{ result: ResonanceResult | null; success: boolean }> {
+async function callBackendAnalyze(request: AnalyzeRequest): Promise<{ result: ResonanceResult | null; success: boolean }> {
   try {
-    const response = await fetch(`${RESONANCE_ENGINE_URL}/v1/analyze`, {
+    const response = await fetch(`${BACKEND_URL}/api/trust/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(request),
+      cache: 'no-store'
     });
-    
+
     if (!response.ok) {
-      console.error('Resonance engine error:', response.status);
       return { result: null, success: false };
     }
-    
+
     const result = await response.json();
     return { result, success: true };
   } catch (error) {
-    console.error('Failed to call resonance engine:', error);
     return { result: null, success: false };
   }
 }
@@ -119,30 +118,30 @@ function generateFallbackResonance(userInput: string, aiResponse: string): Reson
 export async function POST(request: NextRequest) {
   try {
     const body: AnalyzeRequest = await request.json();
-    
+
     if (!body.user_input || !body.ai_response) {
       return NextResponse.json(
         { success: false, error: 'user_input and ai_response are required' },
         { status: 400 }
       );
     }
-    
-    const { result, success } = await callResonanceEngine(body);
-    
+
+    const { result, success } = await callBackendAnalyze(body);
+
     if (success && result) {
       return NextResponse.json({
         success: true,
         data: result,
-        source: 'resonance_engine'
+        source: 'backend'
       });
     }
-    
+
     const fallbackResult = generateFallbackResonance(body.user_input, body.ai_response);
     return NextResponse.json({
       success: true,
       data: fallbackResult,
       source: 'fallback',
-      note: 'Resonance engine unavailable, using fallback calculations'
+      note: 'Backend unavailable, using fallback calculations'
     });
   } catch (error) {
     return NextResponse.json(
@@ -154,16 +153,15 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const response = await fetch(`${RESONANCE_ENGINE_URL}/health`, {
+    const response = await fetch(`${BACKEND_URL}/api/health`, {
       signal: AbortSignal.timeout(5000)
     });
     const health = await response.json();
-    
+
     return NextResponse.json({
       success: true,
       data: {
-        resonanceEngine: health,
-        bridge: 'operational',
+        backend: health,
         status: 'connected'
       }
     });
@@ -171,10 +169,9 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       data: {
-        resonanceEngine: { status: 'offline', model_loaded: false },
-        bridge: 'operational',
+        backend: { status: 'offline' },
         status: 'disconnected',
-        note: 'Resonance engine not available, fallback mode active'
+        note: 'Backend not available, fallback mode active'
       }
     });
   }

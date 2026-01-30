@@ -10,4 +10,3 @@ export declare class CalibratedSonateDetector {
     private applyCalibration;
     private recalculateOverall;
 }
-//# sourceMappingURL=calibrated-detector.d.ts.map

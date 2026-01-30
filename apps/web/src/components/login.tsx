@@ -47,12 +47,14 @@ export function Login() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: { username: string; password: string; tenant: string }) => {
+      console.log('Login attempt with:', { email: data.username, tenant: data.tenant, hasCsrf: !!csrfToken });
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-tenant-id': data.tenant,
-          'x-csrf-token': csrfToken,
+          ...(csrfToken && { 'x-csrf-token': csrfToken }),
         },
         credentials: 'include',
         body: JSON.stringify({
@@ -62,12 +64,19 @@ export function Login() {
         }),
       });
 
+      console.log('Login response status:', response.status);
+      const responseData = await response.json().catch(() => ({}));
+      console.log('Login response data:', responseData);
+
       if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.message || err.error || 'Invalid credentials');
+        throw new Error(responseData.message || responseData.error || `Login failed (${response.status})`);
       }
 
-      return response.json() as Promise<LoginResponse & { token?: string; data?: any }>;
+      if (!responseData.success) {
+        throw new Error(responseData.message || responseData.error || 'Login unsuccessful');
+      }
+
+      return responseData as LoginResponse & { token?: string; data?: any };
     },
     onSuccess: (data) => {
       sessionStorage.setItem('tenant', (data as any)?.data?.tenant || 'default');
@@ -182,7 +191,7 @@ export function Login() {
                 )}
                 {loginMutation.isError && (
                   <p id="error-message" className="mt-3 text-red-400 text-sm text-center" role="alert">
-                    Login failed. Please check your credentials and try again.
+                    {loginMutation.error?.message || 'Login failed. Please check your credentials and try again.'}
                   </p>
                 )}
               </div>

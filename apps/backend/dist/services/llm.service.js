@@ -205,6 +205,32 @@ class LLMService {
         }
     }
     /**
+     * Execute an async operation with retry logic
+     */
+    async withRetry(operation, context, retries = 3, backoff = 1000) {
+        let lastError;
+        for (let i = 0; i <= retries; i++) {
+            try {
+                return await operation();
+            }
+            catch (error) {
+                lastError = error;
+                // Don't retry on auth errors or bad requests
+                if (error.status === 401 || error.status === 403 || error.status === 400) {
+                    throw error;
+                }
+                if (i === retries)
+                    break;
+                logger_1.logger.warn(`LLM operation failed, retrying (${i + 1}/${retries})`, {
+                    context,
+                    error: error.message
+                });
+                await new Promise(resolve => setTimeout(resolve, backoff * Math.pow(1.5, i)));
+            }
+        }
+        throw lastError;
+    }
+    /**
      * Generate response from OpenAI
      */
     async generateOpenAI(model, messages, temperature, maxTokens, apiKey) {
@@ -216,22 +242,24 @@ class LLMService {
             throw new Error('OpenAI API key not configured. Please add your API key in settings.');
         }
         try {
-            const completion = await client.chat.completions.create({
-                model,
-                messages,
-                temperature,
-                max_tokens: maxTokens,
-            });
-            return {
-                content: completion.choices[0].message.content || '',
-                usage: {
-                    promptTokens: completion.usage?.prompt_tokens,
-                    completionTokens: completion.usage?.completion_tokens,
-                    totalTokens: completion.usage?.total_tokens,
-                },
-                model,
-                provider: 'openai',
-            };
+            return await this.withRetry(async () => {
+                const completion = await client.chat.completions.create({
+                    model,
+                    messages,
+                    temperature,
+                    max_tokens: maxTokens,
+                });
+                return {
+                    content: completion.choices[0].message.content || '',
+                    usage: {
+                        promptTokens: completion.usage?.prompt_tokens,
+                        completionTokens: completion.usage?.completion_tokens,
+                        totalTokens: completion.usage?.total_tokens,
+                    },
+                    model,
+                    provider: 'openai',
+                };
+            }, `openai:${model}`);
         }
         catch (error) {
             logger_1.logger.error('OpenAI API Error', { error: (0, error_utils_1.getErrorMessage)(error) });
@@ -257,32 +285,34 @@ class LLMService {
         };
         const resolvedModel = modelMapping[model] || model;
         try {
-            // Convert OpenAI format to Anthropic format
-            const systemMessage = messages.find(msg => msg.role === 'system');
-            const conversationMessages = messages
-                .filter(msg => msg.role !== 'system')
-                .map(msg => ({
-                role: msg.role,
-                content: msg.content,
-            }));
-            const response = await client.messages.create({
-                model: resolvedModel,
-                max_tokens: maxTokens,
-                temperature,
-                system: systemMessage?.content || '',
-                messages: conversationMessages,
-            });
-            const content = response.content[0];
-            const text = content.type === 'text' ? content.text : '';
-            return {
-                content: text,
-                usage: {
-                    inputTokens: response.usage.input_tokens,
-                    outputTokens: response.usage.output_tokens,
-                },
-                model,
-                provider: 'anthropic',
-            };
+            return await this.withRetry(async () => {
+                // Convert OpenAI format to Anthropic format
+                const systemMessage = messages.find(msg => msg.role === 'system');
+                const conversationMessages = messages
+                    .filter(msg => msg.role !== 'system')
+                    .map(msg => ({
+                    role: msg.role,
+                    content: msg.content,
+                }));
+                const response = await client.messages.create({
+                    model: resolvedModel,
+                    max_tokens: maxTokens,
+                    temperature,
+                    system: systemMessage?.content || '',
+                    messages: conversationMessages,
+                });
+                const content = response.content[0];
+                const text = content.type === 'text' ? content.text : '';
+                return {
+                    content: text,
+                    usage: {
+                        inputTokens: response.usage.input_tokens,
+                        outputTokens: response.usage.output_tokens,
+                    },
+                    model,
+                    provider: 'anthropic',
+                };
+            }, `anthropic:${resolvedModel}`);
         }
         catch (error) {
             logger_1.logger.error('Anthropic API Error', { error: (0, error_utils_1.getErrorMessage)(error) });

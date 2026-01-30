@@ -29,6 +29,12 @@ export interface KPIData {
     compliance: { change: number; direction: string };
     risk: { change: number; direction: string };
   };
+  bedau?: {
+    index: number;
+    type: 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE';
+    confidenceInterval: [number, number];
+    kolmogorovComplexity: number;
+  };
 }
 
 export interface Alert {

@@ -10,10 +10,10 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives"
   },
   "dependencies": {
-    "@sonate/core": "file:../../packages/core",
-    "@sonate/detect": "file:../../packages/detect",
-    "@sonate/lab": "file:../../packages/lab",
-    "@sonate/orchestrate": "file:../../packages/orchestrate",
+    "@sonate/core": "*",
+    "@sonate/detect": "*",
+    "@sonate/lab": "*",
+    "@sonate/orchestrate": "*",
     "clsx": "^2.0.0",
     "lucide-react": "^0.563.0",
     "react": "^18.2.0",

@@ -14,7 +14,7 @@
   "author": "YSEEKU",
   "license": "MIT",
   "dependencies": {
-    "@sonate/core": "file:../core",
+    "@sonate/core": "*",
     "pg": "^8.17.2",
     "bcryptjs": "^3.0.3"
   },

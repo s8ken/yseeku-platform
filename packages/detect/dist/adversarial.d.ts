@@ -12,4 +12,3 @@ export declare function adversarialCheck(text: string, canonical_scaffold_vector
     evidence: AdversarialEvidence;
     penalty: number;
 }>;
-//# sourceMappingURL=adversarial.d.ts.map

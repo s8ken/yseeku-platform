@@ -11,4 +11,3 @@ export interface LLMAnalysisResult {
     is_adversarial?: boolean;
 }
 export declare function analyzeWithLLM(interaction: AIInteraction, type: 'resonance' | 'ethics' | 'comprehensive'): Promise<LLMAnalysisResult | null>;
-//# sourceMappingURL=llm-client.d.ts.map

@@ -13,4 +13,3 @@ export declare class BayesianOnlineChangePointDetector {
 export declare class CUSUMDetector {
     getAdaptiveThreshold(): number;
 }
-//# sourceMappingURL=adaptive-thresholds.d.ts.map

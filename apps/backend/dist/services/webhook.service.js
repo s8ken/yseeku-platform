@@ -8,6 +8,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const webhook_config_model_1 = require("../models/webhook-config.model");
 const webhook_delivery_model_1 = require("../models/webhook-delivery.model");
 const logger_1 = require("../utils/logger");
+const core_1 = require("@sonate/core");
 const crypto_1 = __importDefault(require("crypto"));
 class WebhookService {
     constructor() {
@@ -326,20 +327,24 @@ class WebhookService {
     async attemptDelivery(delivery, config) {
         const startTime = Date.now();
         try {
-            const response = await fetch(delivery.url, {
+            const { ok, status, data, error } = await (0, core_1.robustFetch)(delivery.url, {
                 method: delivery.method,
                 headers: delivery.requestHeaders,
                 body: delivery.requestBody,
-                signal: AbortSignal.timeout(config.retryConfig?.timeoutMs ?? 30000),
+                timeout: config.retryConfig?.timeoutMs ?? 30000,
+                retries: 2, // 2 retries within this attempt
             });
             const responseTime = Date.now() - startTime;
-            const responseBody = await response.text();
-            if (response.ok) {
+            // robustFetch handles JSON parsing, but for webhooks we might want raw text or whatever
+            // robustFetch returns data as parsed JSON or text if not JSON.
+            // But we need to store string in responseBody.
+            const responseBody = typeof data === 'string' ? data : JSON.stringify(data);
+            if (ok) {
                 // Success!
                 await webhook_delivery_model_1.WebhookDeliveryModel.findByIdAndUpdate(delivery._id, {
                     status: 'success',
-                    responseStatus: response.status,
-                    responseBody: responseBody.slice(0, 10000), // Limit stored response
+                    responseStatus: status,
+                    responseBody: (responseBody || '').slice(0, 10000), // Limit stored response
                     responseTime,
                     deliveredAt: new Date(),
                 });
@@ -351,7 +356,7 @@ class WebhookService {
                 return true;
             }
             else {
-                throw new Error(`HTTP ${response.status}: ${responseBody.slice(0, 500)}`);
+                throw new Error(error || `HTTP ${status}`);
             }
         }
         catch (error) {

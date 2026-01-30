@@ -10,6 +10,7 @@
   "scripts": {
     "build": "turbo run build --filter=web",
     "build:packages": "npm run build --workspace=@sonate/core && npm run build --workspace=@sonate/detect && npm run build --workspace=@sonate/orchestrate && npm run build --workspace=@sonate/lab && npm run build --workspace=@sonate/persistence",
+    "build:vercel": "rm -rf packages/*/dist && npm run build --workspace=@sonate/core && ls packages/core/dist/*.d.ts && npm run build --workspace=@sonate/detect && npm run build --workspace=@sonate/persistence && ls packages/persistence/dist/*.d.ts && npm run build --workspace=@sonate/orchestrate && npm run build --workspace=@sonate/lab && npm run build --workspace=web",
     "start": "npm start --workspace=web",
     "build:backend": "turbo run build --filter=backend",
     "dev": "turbo run dev --parallel",

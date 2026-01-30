@@ -14,6 +14,7 @@ import {
 import { WebhookDeliveryModel, IWebhookDelivery, DeliveryStatus } from '../models/webhook-delivery.model';
 import { AlertModel, IAlert } from '../models/alert.model';
 import { logger } from '../utils/logger';
+import { robustFetch } from '@sonate/core';
 import crypto from 'crypto';
 
 /**
@@ -436,22 +437,26 @@ class WebhookService {
     const startTime = Date.now();
     
     try {
-      const response = await fetch(delivery.url, {
+      const { ok, status, data, error } = await robustFetch(delivery.url, {
         method: delivery.method,
         headers: delivery.requestHeaders as Record<string, string>,
         body: delivery.requestBody,
-        signal: AbortSignal.timeout(config.retryConfig?.timeoutMs ?? 30000),
+        timeout: config.retryConfig?.timeoutMs ?? 30000,
+        retries: 2, // 2 retries within this attempt
       });
       
       const responseTime = Date.now() - startTime;
-      const responseBody = await response.text();
+      // robustFetch handles JSON parsing, but for webhooks we might want raw text or whatever
+      // robustFetch returns data as parsed JSON or text if not JSON.
+      // But we need to store string in responseBody.
+      const responseBody = typeof data === 'string' ? data : JSON.stringify(data);
       
-      if (response.ok) {
+      if (ok) {
         // Success!
         await WebhookDeliveryModel.findByIdAndUpdate(delivery._id, {
           status: 'success',
-          responseStatus: response.status,
-          responseBody: responseBody.slice(0, 10000), // Limit stored response
+          responseStatus: status,
+          responseBody: (responseBody || '').slice(0, 10000), // Limit stored response
           responseTime,
           deliveredAt: new Date(),
         });
@@ -464,7 +469,7 @@ class WebhookService {
         
         return true;
       } else {
-        throw new Error(`HTTP ${response.status}: ${responseBody.slice(0, 500)}`);
+        throw new Error(error || `HTTP ${status}`);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';

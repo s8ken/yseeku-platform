@@ -27,4 +27,3 @@ export declare class ResonanceClient {
     generateReceipt(data: InteractionData): Promise<ResonanceReceipt>;
     healthCheck(): Promise<boolean>;
 }
-//# sourceMappingURL=ResonanceClient.d.ts.map

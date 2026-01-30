@@ -96,46 +96,36 @@ async function testHashChain() {
     assert(/^[a-f0-9]{64}$/.test(h), 'HashChain must produce 64-char hex sha256');
 }
 async function testSignAndVerify() {
-    try {
-        const { privateKey, publicKey } = await (0, index_1.generateKeyPair)();
-        const payload = 'test-payload';
-        const sig = await (0, index_1.signPayload)(payload, privateKey);
-        const valid = await (0, index_1.verifySignature)(sig, payload, publicKey);
-        assert(valid, 'Ed25519 signature verification failed');
-    }
-    catch (e) {
-        console.warn('SKIP: Ed25519 sign/verify due to environment sha512 configuration');
-    }
+    const { privateKey, publicKey } = await (0, index_1.generateKeyPair)();
+    const payload = 'test-payload';
+    const sig = await (0, index_1.signPayload)(payload, privateKey);
+    const valid = await (0, index_1.verifySignature)(sig, payload, publicKey);
+    assert(valid, 'Ed25519 signature verification failed');
 }
 async function testTrustReceiptChainAndVerify() {
-    try {
-        const { privateKey, publicKey } = await (0, index_1.generateKeyPair)();
-        const r1 = new index_1.TrustReceipt({
-            version: '1.0',
-            session_id: 's1',
-            timestamp: Date.now(),
-            mode: 'constitutional',
-            ciq_metrics: { clarity: 0.9, integrity: 0.9, quality: 0.9 },
-        });
-        await r1.sign(privateKey);
-        assert(await r1.verify(publicKey), 'Receipt 1 signature verification failed');
-        const r2 = new index_1.TrustReceipt({
-            version: '1.0',
-            session_id: 's1',
-            timestamp: Date.now() + 1,
-            mode: 'directive',
-            ciq_metrics: { clarity: 0.8, integrity: 0.8, quality: 0.8 },
-            previous_hash: r1.self_hash,
-        });
-        await r2.sign(privateKey);
-        assert(r2.verifyChain(r1), 'Hash chain integrity failed');
-        const json = r2.toJSON();
-        const r2copy = index_1.TrustReceipt.fromJSON(json);
-        assert(r2copy.self_hash === r2.self_hash, 'fromJSON/toJSON mismatch');
-    }
-    catch (e) {
-        console.warn('SKIP: TrustReceipt sign/verify due to environment sha512 configuration');
-    }
+    const { privateKey, publicKey } = await (0, index_1.generateKeyPair)();
+    const r1 = new index_1.TrustReceipt({
+        version: '1.0',
+        session_id: 's1',
+        timestamp: Date.now(),
+        mode: 'constitutional',
+        ciq_metrics: { clarity: 0.9, integrity: 0.9, quality: 0.9 },
+    });
+    await r1.sign(privateKey);
+    assert(await r1.verify(publicKey), 'Receipt 1 signature verification failed');
+    const r2 = new index_1.TrustReceipt({
+        version: '1.0',
+        session_id: 's1',
+        timestamp: Date.now() + 1,
+        mode: 'directive',
+        ciq_metrics: { clarity: 0.8, integrity: 0.8, quality: 0.8 },
+        previous_hash: r1.self_hash,
+    });
+    await r2.sign(privateKey);
+    assert(r2.verifyChain(r1), 'Hash chain integrity failed');
+    const json = r2.toJSON();
+    const r2copy = index_1.TrustReceipt.fromJSON(json);
+    assert(r2copy.self_hash === r2.self_hash, 'fromJSON/toJSON mismatch');
 }
 async function testTrustReceiptCanonicalization() {
     const k1 = { clarity: 0.9, integrity: 0.9, quality: 0.9 };
@@ -157,26 +147,21 @@ async function testTrustReceiptCanonicalization() {
     assert(r1.self_hash === r2.self_hash, 'TrustReceipt hash should be canonicalized and deterministic');
 }
 async function testSignBoundVerifyBound() {
-    try {
-        const { privateKey, publicKey } = await (0, index_1.generateKeyPair)();
-        const r = new index_1.TrustReceipt({
-            version: '1.0',
-            session_id: 'sbind',
-            timestamp: Date.now(),
-            mode: 'directive',
-            ciq_metrics: { clarity: 0.6, integrity: 0.6, quality: 0.6 },
-            session_nonce: 'nonce123',
-        });
-        await r.signBound(privateKey);
-        assert(await r.verifyBound(publicKey), 'signBound/verifyBound should succeed');
-        const original = r.signature;
-        r.signature = r.signature.length > 2 ? '00' + r.signature.substring(2) : '00';
-        assert(!(await r.verifyBound(publicKey)), 'verifyBound should fail on tampered signature');
-        r.signature = original;
-    }
-    catch (e) {
-        console.warn('SKIP: TrustReceipt signBound/verifyBound due to environment sha512 configuration');
-    }
+    const { privateKey, publicKey } = await (0, index_1.generateKeyPair)();
+    const r = new index_1.TrustReceipt({
+        version: '1.0',
+        session_id: 'sbind',
+        timestamp: Date.now(),
+        mode: 'directive',
+        ciq_metrics: { clarity: 0.6, integrity: 0.6, quality: 0.6 },
+        session_nonce: 'nonce123',
+    });
+    await r.signBound(privateKey);
+    assert(await r.verifyBound(publicKey), 'signBound/verifyBound should succeed');
+    const original = r.signature;
+    r.signature = r.signature.length > 2 ? '00' + r.signature.substring(2) : '00';
+    assert(!(await r.verifyBound(publicKey)), 'verifyBound should fail on tampered signature');
+    r.signature = original;
 }
 async function testCanonicalizeJSON() {
     const a = { b: 2, a: 1 };
@@ -225,21 +210,16 @@ async function testEd25519MultibaseInvalid() {
     assert(!res.valid, 'Invalid multibase should fail');
 }
 async function testTrustReceiptVerifyWithoutSignature() {
-    try {
-        const r = new index_1.TrustReceipt({
-            version: '1.0',
-            session_id: 's2',
-            timestamp: Date.now(),
-            mode: 'directive',
-            ciq_metrics: { clarity: 0.5, integrity: 0.5, quality: 0.5 },
-        });
-        const { publicKey } = await (0, index_1.generateKeyPair)();
-        const ok = await r.verify(publicKey);
-        assert(!ok, 'Verify should fail when no signature present');
-    }
-    catch (e) {
-        console.warn('SKIP: TrustReceipt verify without signature due to environment sha512 configuration');
-    }
+    const r = new index_1.TrustReceipt({
+        version: '1.0',
+        session_id: 's2',
+        timestamp: Date.now(),
+        mode: 'directive',
+        ciq_metrics: { clarity: 0.5, integrity: 0.5, quality: 0.5 },
+    });
+    const { publicKey } = await (0, index_1.generateKeyPair)();
+    const ok = await r.verify(publicKey);
+    assert(!ok, 'Verify should fail when no signature present');
 }
 async function testTimingSafeEqualMismatch() {
     const a = 'abcd';

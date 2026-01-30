@@ -3,4 +3,3 @@ export declare const ETHICS_VIOLATIONS: readonly ["ignore safety", "bypass ethic
 export declare const HIGH_STAKES_KEYWORDS: readonly ["patient", "clinical", "medical", "health", "drug", "trial", "dose", "contract", "legal", "lawyer", "attorney", "lawsuit", "compliance", "bank", "finance", "money", "fraud", "transaction", "account", "admin", "root", "password", "credential", "authentication", "access"];
 export declare const LOW_STAKES_KEYWORDS: readonly ["equation", "calculate", "formula", "math", "algebra", "geometry", "button", "click", "interface", "layout", "color", "style", "function", "code", "javascript", "python", "bug", "algorithm"];
 export declare const CANONICAL_SCAFFOLD_VECTOR: (0.1 | -0.1)[];
-//# sourceMappingURL=constants.d.ts.map

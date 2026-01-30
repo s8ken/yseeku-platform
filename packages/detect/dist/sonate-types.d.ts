@@ -79,4 +79,3 @@ export interface AssessmentResult {
         validationNotes?: string;
     };
 }
-//# sourceMappingURL=sonate-types.d.ts.map

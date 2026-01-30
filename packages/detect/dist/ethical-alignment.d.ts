@@ -11,4 +11,3 @@ export declare class EthicalAlignmentScorer {
     private scoreStakeholderAwareness;
     private scoreEthicalReasoning;
 }
-//# sourceMappingURL=ethical-alignment.d.ts.map

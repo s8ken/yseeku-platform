@@ -56,4 +56,3 @@ export declare class MathematicalConfidenceCalculator {
     private calculatePredictionError;
     private estimateUncertainty;
 }
-//# sourceMappingURL=mathematical-confidence.d.ts.map

@@ -21,7 +21,7 @@
   "author": "YSEEKU",
   "license": "MIT",
   "dependencies": {
-    "@sonate/core": "file:../core",
+    "@sonate/core": "*",
     "zod": "^4.3.6"
   },
   "devDependencies": {

@@ -56,6 +56,12 @@ interface KPIData {
     compliance: { change: number; direction: string };
     risk: { change: number; direction: string };
   };
+  bedau?: {
+    index: number;
+    type: 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE';
+    confidenceInterval: [number, number];
+    kolmogorovComplexity: number;
+  };
 }
 
 interface AlertData {
@@ -477,6 +483,20 @@ export default function DashboardPage() {
                     type="score"
                     icon={Fingerprint}
                     tooltipTerm="Reality Index"
+                  />
+                  <DetectionMetricCard 
+                    title="Bedau Index" 
+                    value={displayKpis.bedau?.index ?? 0} 
+                    type="score"
+                    icon={Sparkles}
+                    tooltipTerm="Bedau Index"
+                  />
+                  <DetectionMetricCard 
+                    title="Confidence" 
+                    value={displayKpis.bedau ? `±${((displayKpis.bedau.confidenceInterval[1] - displayKpis.bedau.confidenceInterval[0])/2).toFixed(2)}` : 'N/A'} 
+                    type="status"
+                    icon={Scale}
+                    tooltipTerm="Confidence Interval"
                   />
                   <DetectionMetricCard 
                     title="Trust Protocol" 

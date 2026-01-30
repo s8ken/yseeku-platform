@@ -103,4 +103,3 @@ export declare class PerformanceProfiler {
         threshold: number;
     }[];
 }
-//# sourceMappingURL=performance-profiler.d.ts.map

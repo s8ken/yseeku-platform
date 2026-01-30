@@ -12,4 +12,3 @@ export declare class RealityIndexCalculator {
     private scoreTechnicalAccuracy;
     private scoreAuthenticity;
 }
-//# sourceMappingURL=reality-index.d.ts.map

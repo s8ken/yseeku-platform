@@ -8,6 +8,12 @@ const getJwtSecret = (): Uint8Array | null => {
   return new TextEncoder().encode(secret);
 };
 
+const BACKEND_URL =
+  process.env.INTERNAL_API_URL ??
+  process.env.BACKEND_URL ??
+  process.env.NEXT_PUBLIC_BACKEND_URL ??
+  'http://127.0.0.1:3001';
+
 async function authMiddleware(req: NextRequest): Promise<NextResponse> {
   const { pathname } = req.nextUrl;
 
@@ -31,7 +37,16 @@ async function authMiddleware(req: NextRequest): Promise<NextResponse> {
 
   const secret = getJwtSecret();
   if (!secret) {
-    console.error('JWT_SECRET is not defined in environment');
+    // Fallback: verify token with backend to avoid coupling secrets to frontend env
+    try {
+      const resp = await fetch(`${BACKEND_URL}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store'
+      });
+      if (resp.ok) {
+        return NextResponse.next();
+      }
+    } catch {}
     const url = req.nextUrl.clone();
     url.pathname = '/auth/login';
     return NextResponse.redirect(url);

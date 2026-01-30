@@ -77,4 +77,3 @@ export declare function createBedauIndexCalculator(): BedauIndexCalculator;
  * Convenience function for direct calculation
  */
 export declare function calculateBedauIndex(semanticIntent: SemanticIntent, surfacePattern: SurfacePattern): Promise<BedauMetrics>;
-//# sourceMappingURL=bedau-index.d.ts.map

@@ -12,4 +12,3 @@ export declare class CanvasParityCalculator {
     private scoreTransparency;
     private scoreCollaborationQuality;
 }
-//# sourceMappingURL=canvas-parity.d.ts.map

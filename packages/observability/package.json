@@ -21,7 +21,7 @@
   "author": "YSEEKU",
   "license": "MIT",
   "dependencies": {
-    "@sonate/core": "file:../core",
+    "@sonate/core": "*",
     "@opentelemetry/api": "^1.8.0",
     "@opentelemetry/sdk-node": "^0.211.0",
     "@opentelemetry/sdk-metrics": "^1.22.0",

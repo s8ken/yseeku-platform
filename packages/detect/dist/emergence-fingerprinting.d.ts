@@ -119,4 +119,3 @@ export declare function createEmergenceFingerprintingEngine(): EmergenceFingerpr
  * Quick fingerprint creation function
  */
 export declare function createEmergenceFingerprint(signature: EmergenceSignature, sessionId: string, contextMetadata: any): EmergenceFingerprint;
-//# sourceMappingURL=emergence-fingerprinting.d.ts.map

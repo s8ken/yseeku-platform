@@ -102,4 +102,3 @@ export declare class EnhancedSonateFrameworkDetector {
      */
     invalidateAssessment(assessment: SonateFrameworkAssessment, _validatedBy: string, _reason: string): SonateFrameworkAssessment;
 }
-//# sourceMappingURL=detector-enhanced.d.ts.map

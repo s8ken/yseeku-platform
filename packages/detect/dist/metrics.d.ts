@@ -8,4 +8,3 @@ export interface TextMetrics {
 }
 export declare function computeTextMetrics(input: AssessmentInput | string): TextMetrics;
 export declare function boundedScore(value: number, min: number, max: number): number;
-//# sourceMappingURL=metrics.d.ts.map

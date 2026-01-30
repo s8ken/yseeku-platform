@@ -30,4 +30,3 @@ export declare class SonateFrameworkDetector {
      */
     private calculateClarity;
 }
-//# sourceMappingURL=framework-detector.d.ts.map

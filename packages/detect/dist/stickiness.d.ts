@@ -17,4 +17,3 @@ export interface StickyResonance {
     session_state?: SessionState;
 }
 export declare function resonanceWithStickiness(transcript: Transcript, session_state?: SessionState): Promise<StickyResonance>;
-//# sourceMappingURL=stickiness.d.ts.map

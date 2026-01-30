@@ -8,7 +8,7 @@
     "test": "node src/run-tests.js && node src/compare-detectors.js"
   },
   "dependencies": {
-    "@sonate/core": "file:../../packages/core",
-    "@sonate/detect": "file:../../packages/detect"
+    "@sonate/core": "*",
+    "@sonate/detect": "*"
   }
 }
