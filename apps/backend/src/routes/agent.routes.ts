@@ -24,6 +24,17 @@ const router = Router();
 router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { status, tenant } = req.query;
+    const userTenant = req.userTenant || 'default';
+
+    // For live-tenant, return empty agents (blank slate)
+    if (userTenant === 'live-tenant') {
+      res.json({
+        success: true,
+        data: [],
+        count: 0,
+      });
+      return;
+    }
 
     const query: any = { user: req.userId };
 

@@ -21,6 +21,27 @@ router.get('/management', protect, async (req: Request, res: Response): Promise<
     const { status, severity, search, limit, offset } = req.query;
     const tenantId = String(req.tenant || 'default');
 
+    // For live-tenant, return empty alerts (blank slate)
+    if (tenantId === 'live-tenant') {
+      res.json({
+        success: true,
+        data: {
+          alerts: [],
+          total: 0,
+          summary: {
+            critical: 0,
+            error: 0,
+            warning: 0,
+            info: 0,
+            total: 0,
+            newToday: 0,
+            pending: 0,
+          },
+        },
+      });
+      return;
+    }
+
     // Get all alerts for filtering
     let alerts = await alertsService.list(tenantId, {
       status: status && status !== 'all' ? status as AlertStatus : undefined,
@@ -200,6 +221,21 @@ router.post('/:id/suppress', protect, async (req: Request, res: Response): Promi
 router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const tenantId = String(req.tenant || 'default');
+
+    // For live-tenant, return empty alerts (blank slate)
+    if (tenantId === 'live-tenant') {
+      res.json({
+        tenant: tenantId,
+        summary: {
+          critical: 0,
+          error: 0,
+          warning: 0,
+          total: 0,
+        },
+        alerts: [],
+      });
+      return;
+    }
 
     // Get active alerts, sorted by timestamp, limited to 10
     const alerts = await alertsService.list(tenantId, {

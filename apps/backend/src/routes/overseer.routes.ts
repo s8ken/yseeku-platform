@@ -64,6 +64,13 @@ router.post('/think', protect, requireTenant, requireScopes(['overseer:plan']), 
 router.get('/cycles', protect, requireTenant, requireScopes(['overseer:read']), async (req: Request, res: Response): Promise<void> => {
   try {
     const tenant = req.userTenant || 'default';
+    
+    // For live-tenant, return empty cycles (blank slate)
+    if (tenant === 'live-tenant') {
+      res.json({ success: true, data: [] });
+      return;
+    }
+    
     const cycles = await BrainCycle.find({ tenantId: tenant }).sort({ startedAt: -1 }).limit(50);
     res.json({ success: true, data: cycles });
   } catch (error: unknown) {

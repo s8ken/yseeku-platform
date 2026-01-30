@@ -40,6 +40,20 @@ export class ApiError extends Error {
 }
 
 /**
+ * Get current tenant ID from localStorage
+ */
+export function getCurrentTenant(): string {
+  if (typeof window === 'undefined') return 'default';
+  
+  // Check demo mode
+  const isDemo = localStorage.getItem('yseeku-demo-mode') === 'true';
+  if (isDemo) return 'demo-tenant';
+  
+  // Return live tenant for blank slate mode
+  return localStorage.getItem('tenant') || 'live-tenant';
+}
+
+/**
  * Core fetch wrapper with authentication and error handling
  */
 export async function fetchAPI<T>(
@@ -84,6 +98,12 @@ export async function fetchAPI<T>(
   
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  // Add tenant header for multi-tenant support
+  const tenant = getCurrentTenant();
+  if (tenant) {
+    headers['X-Tenant-ID'] = tenant;
   }
 
   const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;

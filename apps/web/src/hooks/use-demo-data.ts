@@ -21,15 +21,23 @@ interface DemoDataConfig<T> {
   options?: Omit<UseQueryOptions<T, Error>, 'queryKey' | 'queryFn'>;
 }
 
+function getCurrentTenantId(): string {
+  if (typeof window === 'undefined') return 'default';
+  const isDemo = localStorage.getItem('yseeku-demo-mode') === 'true';
+  return isDemo ? 'demo-tenant' : 'live-tenant';
+}
+
 async function fetchData<T>(
   endpoint: string,
   transform?: (data: any) => T
 ): Promise<T> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const tenantId = getCurrentTenantId();
   
   const res = await fetch(`${API_BASE}${endpoint}`, {
     headers: {
       'Content-Type': 'application/json',
+      'X-Tenant-ID': tenantId,
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });

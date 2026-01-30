@@ -17,12 +17,65 @@ const router = Router();
  * GET /api/dashboard/kpis
  * Get aggregated KPI metrics for dashboard
  *
- * Query params:
- * - tenant?: string (currently unused, for future multi-tenant support)
+ * Uses X-Tenant-ID header for multi-tenant support:
+ * - demo-tenant: Returns pre-seeded demo data (handled by /api/demo/kpis)
+ * - live-tenant: Returns blank slate data for new user experience
+ * - other: Returns real user data from database
  */
 router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
+    const tenantId = req.userTenant || 'default';
+    const now = new Date();
+
+    // For live-tenant, return blank slate / fresh start data
+    if (tenantId === 'live-tenant') {
+      const blankSlateKPIs = {
+        tenant: 'live-tenant',
+        timestamp: now.toISOString(),
+        trustScore: 0,
+        principleScores: {
+          transparency: 0,
+          fairness: 0,
+          privacy: 0,
+          safety: 0,
+          accountability: 0,
+        },
+        totalInteractions: 0,
+        activeAgents: 0,
+        complianceRate: 0,
+        riskScore: 0,
+        alertsCount: 0,
+        experimentsRunning: 0,
+        orchestratorsActive: 0,
+        sonateDimensions: {
+          realityIndex: 0,
+          trustProtocol: 'N/A',
+          ethicalAlignment: 0,
+          resonanceQuality: 'NONE',
+          canvasParity: 0,
+        },
+        trends: {
+          trustScore: { change: 0, direction: 'stable' },
+          interactions: { change: 0, direction: 'stable' },
+          compliance: { change: 0, direction: 'stable' },
+          risk: { change: 0, direction: 'stable' },
+        },
+        bedau: {
+          index: 0,
+          type: 'LINEAR',
+          confidenceInterval: [0, 0],
+          kolmogorovComplexity: 0,
+        },
+      };
+
+      logger.info('Returning blank slate KPIs for live-tenant', { userId, tenantId });
+      res.json({
+        success: true,
+        data: blankSlateKPIs,
+      });
+      return;
+    }
 
     // Time ranges for current and previous periods
     const now = new Date();
@@ -198,6 +251,16 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
 router.get('/policy-status', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
+    const tenantId = req.userTenant || 'default';
+    
+    // For live-tenant, return clean policy status (blank slate)
+    if (tenantId === 'live-tenant') {
+      res.json({
+        overallPass: true,
+        violations: []
+      });
+      return;
+    }
     
     // Quick check on recent conversations for any critical violations
     const recentViolations = await Conversation.find({
@@ -221,12 +284,43 @@ router.get('/policy-status', protect, async (req: Request, res: Response): Promi
  * GET /api/dashboard/risk
  * Get risk assessment metrics and compliance reports
  *
- * Query params:
- * - tenant?: string (currently unused, for future multi-tenant support)
+ * Uses tenant for multi-tenant support:
+ * - live-tenant: Returns blank slate risk data
+ * - other: Returns real user data from database
  */
 router.get('/risk', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
+    const tenantId = req.userTenant || 'default';
+
+    // For live-tenant, return blank slate risk data
+    if (tenantId === 'live-tenant') {
+      res.json({
+        success: true,
+        data: {
+          tenant: 'live-tenant',
+          timestamp: new Date().toISOString(),
+          trustScore: 0,
+          complianceScore: 0,
+          overallRisk: 'none',
+          principleScores: {
+            consent: 0,
+            inspection: 0,
+            validation: 0,
+            ethics: 0,
+            disconnect: 0,
+            moral: 0,
+          },
+          riskFactors: [],
+          recentViolations: [],
+          complianceReport: {
+            status: 'no_data',
+            checks: [],
+          },
+        },
+      });
+      return;
+    }
 
     // Fetch user's conversations for risk analysis
     const conversations = await Conversation.find({ user: userId })

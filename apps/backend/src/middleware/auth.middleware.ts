@@ -174,12 +174,15 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     // Attach user to request
     req.user = user;
     req.userId = user._id.toString();
-    req.tenant = payload.tenant || payload.tenant_id || 'default';
+    
+    // Tenant resolution: X-Tenant-ID header takes precedence, then JWT payload, then default
+    const headerTenant = req.headers['x-tenant-id'] as string | undefined;
+    req.tenant = headerTenant || payload.tenant || payload.tenant_id || 'default';
     req.userTenant = req.tenant; // Alias for compatibility
     req.userEmail = user.email;
     req.sessionId = payload.session_id || payload.sessionId;
 
-    securityLogger.info('Auth successful', { requestId, email: user.email });
+    securityLogger.info('Auth successful', { requestId, email: user.email, tenant: req.tenant });
     next();
   } catch (error: unknown) {
     const err = error as Error;

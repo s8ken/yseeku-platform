@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 const DEMO_TENANT_ID = 'demo-tenant';
+const LIVE_TENANT_ID = 'live-tenant';
 const DEMO_STORAGE_KEY = 'yseeku-demo-mode';
 const DEMO_INITIALIZED_KEY = 'yseeku-demo-initialized';
 const DEMO_START_TIME_KEY = 'yseeku-demo-start-time';
@@ -230,6 +231,8 @@ export function useDemo() {
     markFirstVisitComplete,
     extendDemo,
     DEMO_TENANT_ID,
+    LIVE_TENANT_ID,
+    currentTenantId: isDemo ? DEMO_TENANT_ID : LIVE_TENANT_ID,
   };
 }
 
