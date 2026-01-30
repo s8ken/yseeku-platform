@@ -37,6 +37,7 @@ import {
 } from 'recharts';
 import { toast } from 'sonner';
 import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
+import { WithDemoWatermark } from '@/components/demo-watermark';
 import { useTrustAnalytics, useDashboardKPIs } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
 
