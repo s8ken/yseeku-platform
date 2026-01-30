@@ -44,7 +44,8 @@ import {
   Brain,
   Webhook,
   MessageSquare,
-  Compass
+  Compass,
+  GraduationCap
 } from 'lucide-react';
 import { useTutorialStore } from '@/store/useTutorialStore';
 import { dashboardTutorialSteps } from '@/components/tutorial/steps';
@@ -103,7 +104,7 @@ const moduleSections: ModuleSection[] = [
     items: [
       { title: 'Experiments', href: '/dashboard/lab/experiments', icon: FlaskConical, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Model Compare', href: '/dashboard/compare', icon: Beaker, roles: ['admin', 'user'], module: 'lab' },
-      { title: 'SYMBI Analysis', href: '/dashboard/lab/symbi', icon: Sparkles, roles: ['admin', 'user'], module: 'lab' },
+      { title: 'SONATE Analysis', href: '/dashboard/lab/sonate', icon: Sparkles, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Emergence Testing', href: '/dashboard/lab/emergence', icon: TestTube2, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Bedau Index', href: '/dashboard/lab/bedau', icon: BarChart3, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Linguistic Vector', href: '/dashboard/lab/vls', icon: Compass, roles: ['admin', 'user'], module: 'lab' },
@@ -123,6 +124,7 @@ const moduleSections: ModuleSection[] = [
       { title: 'Compliance Reports', href: '/dashboard/reports', icon: ClipboardList, roles: ['admin'], module: 'orchestrate' },
       { title: 'Trust Receipts', href: '/dashboard/receipts', icon: Fingerprint, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'API Gateway', href: '/dashboard/api', icon: Server, roles: ['admin'], module: 'orchestrate' },
+      { title: 'Learn', href: '/dashboard/learn', icon: GraduationCap, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
       { title: 'Documentation', href: '/dashboard/docs', icon: Book, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
       { title: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['admin'], module: 'orchestrate' },
     ]
