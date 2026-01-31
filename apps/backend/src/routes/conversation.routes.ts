@@ -15,6 +15,7 @@ import { llmService } from '../services/llm.service';
 import { TrustReceiptModel } from '../models/trust-receipt.model';
 import { trustService } from '../services/trust.service';
 import { llmTrustEvaluator } from '../services/llm-trust-evaluator.service';
+import { overseerEventBus } from '../services/brain/event-bus';
 import { getErrorMessage } from '../utils/error-utils';
 import logger from '../utils/logger';
 import { EvaluationContext } from '@sonate/core';
@@ -385,6 +386,20 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
       conversation.lastActivity = new Date();
       await conversation.save();
 
+      // Notify Overseer of consent withdrawal
+      overseerEventBus.notify({
+        type: 'consent:withdrawal',
+        tenantId: req.userTenant || 'live-tenant',
+        timestamp: new Date(),
+        severity: 'high',
+        data: {
+          conversationId: conversation._id.toString(),
+          withdrawalType: consentWithdrawal.type,
+          userId: req.userId,
+          confidence: consentWithdrawal.confidence,
+        },
+      });
+
       res.json({
         success: true,
         message: 'Consent withdrawal detected',
@@ -673,6 +688,44 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
 
           // Update message trust score (convert 0-10 to 0-5 scale)
           aiMessage.trustScore = Math.round((aiTrustEval.trustScore.overall / 10) * 5 * 10) / 10;
+
+          // Notify Overseer of trust evaluation results
+          const tenantId = req.userTenant || 'live-tenant';
+          if (aiTrustEval.status === 'FAIL') {
+            // Critical: notify Overseer immediately
+            overseerEventBus.notify({
+              type: 'trust:violation',
+              tenantId,
+              timestamp: new Date(),
+              severity: aiTrustEval.trustScore.overall < 40 ? 'critical' : 'high',
+              data: {
+                conversationId: conversation._id.toString(),
+                agentId: agent._id?.toString(),
+                messageId: aiMessage.metadata?.messageId,
+                trustScore: aiTrustEval.trustScore.overall,
+                status: aiTrustEval.status,
+                violations: aiTrustEval.trustScore.violations,
+              },
+            });
+          } else if (aiTrustEval.status === 'PARTIAL') {
+            // Warning: notify Overseer for pattern tracking
+            overseerEventBus.notify({
+              type: 'trust:partial',
+              tenantId,
+              timestamp: new Date(),
+              severity: 'medium',
+              data: {
+                conversationId: conversation._id.toString(),
+                agentId: agent._id?.toString(),
+                trustScore: aiTrustEval.trustScore.overall,
+                status: aiTrustEval.status,
+                violations: aiTrustEval.trustScore.violations,
+              },
+            });
+          } else {
+            // PASS: clear any consecutive failure tracking
+            overseerEventBus.clearFailureCount(conversation._id.toString());
+          }
 
           // Log trust violations for AI responses
           if (aiTrustEval.status === 'FAIL' || aiTrustEval.status === 'PARTIAL') {
