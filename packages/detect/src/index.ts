@@ -142,6 +142,19 @@ export {
 // Performance monitoring
 export { PerformanceProfiler } from './performance-profiler';
 
+// Semantic Coprocessor Client (Phase 1 - Stub)
+export {
+  SemanticCoprocessorClient,
+  semanticCoprocessor,
+  isSemanticCoprocessorEnabled,
+  DEFAULT_CONFIG as SEMANTIC_COPROCESSOR_DEFAULT_CONFIG,
+  type SemanticCoprocessorConfig,
+  type EmbeddingRequest,
+  type EmbeddingResponse,
+  type SimilarityRequest,
+  type SimilarityResponse,
+} from './semantic-coprocessor-client';
+
 export function detect(input: any) {
   try {
     return calculateResonanceMetrics(input);

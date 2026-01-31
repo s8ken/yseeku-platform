@@ -36,6 +36,7 @@ export { CrossModalityCoherenceValidator, createCrossModalityCoherenceValidator,
 export { detectConsentWithdrawal, getWithdrawalResponse, type ConsentWithdrawalResult, type ConsentWithdrawalType, type SuggestedAction, } from './consent-withdrawal';
 export { PerformanceBenchmarkingEngine, createPerformanceBenchmarkingEngine, runQuickPerformanceBenchmark, type BenchmarkResult, type PerformanceMetrics, type PerformanceTargets, type BenchmarkDetails, type ScalabilityResult, type LoadLevel, type RegressionReport, type BenchmarkSummary, } from './performance-benchmarks';
 export { PerformanceProfiler } from './performance-profiler';
+export { SemanticCoprocessorClient, semanticCoprocessor, isSemanticCoprocessorEnabled, DEFAULT_CONFIG as SEMANTIC_COPROCESSOR_DEFAULT_CONFIG, type SemanticCoprocessorConfig, type EmbeddingRequest, type EmbeddingResponse, type SimilarityRequest, type SimilarityResponse, } from './semantic-coprocessor-client';
 export declare function detect(input: any): import("@sonate/core").ResonanceMetrics | {
     R_m: number;
     vectorAlignment: number;
