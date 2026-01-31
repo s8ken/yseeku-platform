@@ -120,12 +120,31 @@ export async function fetchAPI<T>(
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        clearAuthToken();
-        
-        if (!isAuthInitEndpoint && retryCount < 1) {
-          return fetchAPI<T>(endpoint, options, retryCount + 1);
+      if (response.status === 401 && !isAuthInitEndpoint && retryCount < 1) {
+        // On 401, try to get a new token via guest login before giving up
+        // Don't clear existing token until we've tried to refresh
+        try {
+          const guestRes = await fetch(`${API_BASE}/api/auth/guest`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          
+          if (guestRes.ok) {
+            const data = await guestRes.json();
+            if (data.success && data.data?.tokens?.accessToken) {
+              setAuthToken(data.data.tokens.accessToken);
+              if (data.data.tokens.refreshToken) {
+                localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
+              }
+              // Retry with new token
+              return fetchAPI<T>(endpoint, options, retryCount + 1);
+            }
+          }
+        } catch {
+          // Guest login failed, continue with error
         }
+        // Only clear token if guest login also failed
+        clearAuthToken();
       }
 
       let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
