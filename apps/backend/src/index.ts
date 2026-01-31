@@ -63,6 +63,11 @@ import { httpMetrics } from './middleware/http-metrics';
 import { correlationMiddleware } from './middleware/correlation.middleware';
 import { annotateActiveSpan } from './observability/tracing';
 import { globalErrorHandler, notFoundHandler } from './middleware/error-handler';
+import { securityHeaders } from './middleware/security-headers';
+import { tenantRateLimiter } from './middleware/tenant-rate-limit';
+// Note: input-validation.ts provides additional sanitization and security features
+// Available for use on sensitive routes requiring extra validation
+// import { sanitizeInput } from './middleware/input-validation';
 
 const app = express();
 const server = http.createServer(app);
@@ -70,6 +75,9 @@ const PORT = process.env.PORT || 3001;
 
 // Security middleware
 app.use(helmet());
+
+// Custom security headers (comprehensive, works with helmet)
+app.use(securityHeaders);
 
 // CORS configuration
 const corsOrigin = process.env.CORS_ORIGIN 
@@ -88,6 +96,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Request logging middleware (all environments)
 app.use(correlationMiddleware);
 app.use(requestLogger);
+
+// Tenant-aware rate limiting (before global rate limiter for more specific control)
+app.use(tenantRateLimiter);
 
 // Per-user/IP rate limiting
 app.use(rateLimiter);

@@ -79,4 +79,8 @@ demo.html
 comprehensive-demo.html
 
 # Duplicate Python files (if already in packages/)
-symbi_resonance_calculator.py# Allow dist folders for packages to avoid Vercel build memory issues
+symbi_resonance_calculator.py
+
+# Build outputs (dist directories)
+**/dist/
+dist/
