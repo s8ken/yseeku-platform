@@ -64,7 +64,7 @@ import { correlationMiddleware } from './middleware/correlation.middleware';
 import { annotateActiveSpan } from './observability/tracing';
 import { globalErrorHandler, notFoundHandler } from './middleware/error-handler';
 import { securityHeaders } from './middleware/security-headers';
-import { tenantRateLimiter } from './middleware/tenant-rate-limit';
+import { createTenantRateLimiter } from './middleware/tenant-rate-limit';
 // Note: input-validation.ts provides additional sanitization and security features
 // Available for use on sensitive routes requiring extra validation
 // import { sanitizeInput } from './middleware/input-validation';
@@ -98,7 +98,7 @@ app.use(correlationMiddleware);
 app.use(requestLogger);
 
 // Tenant-aware rate limiting (before global rate limiter for more specific control)
-app.use(tenantRateLimiter);
+app.use(createTenantRateLimiter());
 
 // Per-user/IP rate limiting
 app.use(rateLimiter);
