@@ -6,4 +6,3 @@ export interface TrustProtocolEnhanced {
     verifySignature(data: any): Promise<boolean>;
 }
 export declare function createTrustProtocolEnhanced(): TrustProtocolEnhanced;
-//# sourceMappingURL=trust-protocol-enhanced.d.ts.map

@@ -11,4 +11,3 @@ export { getRBACManager, Permission, Role, requirePermission, requireRole } from
 export { getAuditLogger, initializeAuditLogger, AuditEventType, AuditSeverity, auditMiddleware, InMemoryAuditStorage, DatabaseAuditStorage, } from './audit';
 export { createRateLimiter, createEndpointRateLimiters, InMemoryRateLimitStore, RedisRateLimitStore, } from './rate-limiter';
 export { getAPIKeyManager, APIKeyManager } from './api-keys';
-//# sourceMappingURL=index.d.ts.map

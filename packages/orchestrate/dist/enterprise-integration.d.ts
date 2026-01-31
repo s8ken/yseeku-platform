@@ -118,4 +118,3 @@ export declare class EnterpriseIntegration extends EventEmitter {
     updateTenantConfig(tenantId: string, updates: Partial<TenantConfig>): Promise<void>;
 }
 export default EnterpriseIntegration;
-//# sourceMappingURL=enterprise-integration.d.ts.map

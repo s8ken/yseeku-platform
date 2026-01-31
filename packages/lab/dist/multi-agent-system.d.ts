@@ -33,4 +33,3 @@ export declare class MultiAgentSystem {
     private calculateAggregates;
     private average;
 }
-//# sourceMappingURL=multi-agent-system.d.ts.map

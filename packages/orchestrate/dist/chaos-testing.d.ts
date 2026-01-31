@@ -166,4 +166,3 @@ export declare function createChaosTestingFramework(): ChaosTestingFramework;
  * Global instance
  */
 export declare const chaosTestingFramework: ChaosTestingFramework;
-//# sourceMappingURL=chaos-testing.d.ts.map

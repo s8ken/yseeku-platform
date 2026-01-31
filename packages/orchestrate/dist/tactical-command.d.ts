@@ -38,4 +38,3 @@ export declare class TacticalCommand {
      */
     clearAlerts(): void;
 }
-//# sourceMappingURL=tactical-command.d.ts.map

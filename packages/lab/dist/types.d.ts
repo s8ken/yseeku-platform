@@ -129,4 +129,3 @@ export interface StatisticalResult {
     effectSize?: number;
 }
 export type SonateDimension = 'reality_index' | 'trust_protocol' | 'ethical_alignment' | 'canvas_parity' | 'resonance_quality';
-//# sourceMappingURL=types.d.ts.map

@@ -18,4 +18,3 @@ declare function runComprehensiveAnalysis(): Promise<{
  */
 declare function generateDetailedConversationReport(conversation: any): void;
 export { runComprehensiveAnalysis, generateDetailedConversationReport };
-//# sourceMappingURL=comprehensive-analysis-demo.d.ts.map

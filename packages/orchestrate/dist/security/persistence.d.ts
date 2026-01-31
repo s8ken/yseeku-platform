@@ -31,4 +31,3 @@ export declare class InMemoryRevocationStore implements RevocationStore {
 }
 export declare function createNonceStore(redisUrl?: string): NonceStore;
 export declare function createRevocationStore(redisUrl?: string): RevocationStore;
-//# sourceMappingURL=persistence.d.ts.map

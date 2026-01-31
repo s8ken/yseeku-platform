@@ -89,4 +89,3 @@ export declare class ArchiveAnalyzer {
         avgCanvas: number;
     };
 }
-//# sourceMappingURL=archive-analyzer.d.ts.map

@@ -4,4 +4,3 @@ export interface ResonanceEngineClient {
     analyze(data: any): Promise<any>;
 }
 export declare function createResonanceEngineClient(): ResonanceEngineClient;
-//# sourceMappingURL=resonance-engine-client.d.ts.map

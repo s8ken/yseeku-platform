@@ -21,4 +21,3 @@ export declare const recordApiKeyValidation: (result: "valid" | "invalid" | "exp
 export declare const updateActiveAgents: (count: number) => void;
 export declare const updateWorkflowsRunning: (count: number) => void;
 export declare const updateTrustScoreAverage: (score: number) => void;
-//# sourceMappingURL=metrics.d.ts.map

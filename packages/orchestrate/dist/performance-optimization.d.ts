@@ -228,4 +228,3 @@ export declare class PerformanceOptimization extends EventEmitter {
     updateRule(ruleId: string, updates: Partial<OptimizationRule>): void;
 }
 export default PerformanceOptimization;
-//# sourceMappingURL=performance-optimization.d.ts.map

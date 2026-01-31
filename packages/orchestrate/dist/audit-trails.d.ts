@@ -160,4 +160,3 @@ export declare class AuditTrails extends EventEmitter {
     private convertToXML;
 }
 export default AuditTrails;
-//# sourceMappingURL=audit-trails.d.ts.map

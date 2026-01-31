@@ -93,4 +93,3 @@ export declare class APIGateway extends EventEmitter {
     private cleanupRateLimitStore;
 }
 export default APIGateway;
-//# sourceMappingURL=api-gateway.d.ts.map

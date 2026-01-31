@@ -144,4 +144,3 @@ export declare function getAuditLogger(): AuditLogger;
  * Middleware for Express to automatically log HTTP requests
  */
 export declare function auditMiddleware(): (req: any, res: any, next: any) => Promise<void>;
-//# sourceMappingURL=audit.d.ts.map

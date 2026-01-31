@@ -201,4 +201,3 @@ export declare class IntegrityError extends ExperimentError {
     actualHash: string;
     constructor(message: string, expectedHash: string, actualHash: string);
 }
-//# sourceMappingURL=experiment-types.d.ts.map

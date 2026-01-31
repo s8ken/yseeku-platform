@@ -16,6 +16,7 @@ export interface SonateTrustReceipt {
     telemetry: {
         resonance_score: number;
         resonance_quality: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
+        /** @deprecated v2.0.1 - RealityIndex calculator was removed (always 0) */
         reality_index: number;
         bedau_index?: number;
         emergence_type?: 'LINEAR' | 'WEAK_EMERGENCE';

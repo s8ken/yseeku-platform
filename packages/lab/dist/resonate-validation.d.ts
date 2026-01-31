@@ -86,4 +86,3 @@ export declare class ResonateValidationSuite {
      */
     demonstrateConversationIdentification(): Promise<string>;
 }
-//# sourceMappingURL=resonate-validation.d.ts.map

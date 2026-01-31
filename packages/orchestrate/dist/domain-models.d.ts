@@ -497,4 +497,3 @@ export interface RemediationTask {
     effort: 'low' | 'medium' | 'high';
     dependencies: string[];
 }
-//# sourceMappingURL=domain-models.d.ts.map

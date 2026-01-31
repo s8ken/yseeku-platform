@@ -184,4 +184,3 @@ export declare function createComplianceAuditor(): ComplianceAuditor;
  * Global instance
  */
 export declare const complianceAuditor: ComplianceAuditor;
-//# sourceMappingURL=compliance-auditor.d.ts.map

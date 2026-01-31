@@ -70,4 +70,3 @@ export interface TelemetryEvent {
     timestamp: number;
     attributes?: Record<string, any>;
 }
-//# sourceMappingURL=types.d.ts.map

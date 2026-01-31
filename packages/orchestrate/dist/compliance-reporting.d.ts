@@ -143,4 +143,3 @@ export declare class ComplianceReporting extends EventEmitter {
     addFramework(framework: ComplianceFramework): void;
 }
 export default ComplianceReporting;
-//# sourceMappingURL=compliance-reporting.d.ts.map

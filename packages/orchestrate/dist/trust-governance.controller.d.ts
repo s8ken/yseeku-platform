@@ -46,4 +46,3 @@ export declare const auditTrustDeclaration: import("express").RequestHandler<imp
  * @access  Protected
  */
 export declare const getTrustAnalytics: import("express").RequestHandler<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>;
-//# sourceMappingURL=trust-governance.controller.d.ts.map

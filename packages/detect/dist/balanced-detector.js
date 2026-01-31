@@ -1,11 +1,17 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.BalancedSonateDetector = void 0;
-const detector_enhanced_1 = require("./detector-enhanced");
 /**
  * BalancedSonateDetector
  * Applies conservative weighting and penalty smoothing to reduce false positives
+ *
+ * v2.0.1 CHANGES:
+ * - Removed RealityIndex and CanvasParity from scoring (calculators removed)
+ * - Updated weightedOverall to use only 3 validated dimensions
+ * - Deprecated methods kept for backward compatibility but return defaults
  */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BalancedSonateDetector = void 0;
+const detector_enhanced_1 = require("./detector-enhanced");
+const sonate_types_1 = require("./sonate-types");
 class BalancedSonateDetector {
     constructor() {
         this.base = new detector_enhanced_1.EnhancedSonateFrameworkDetector();
@@ -17,17 +23,17 @@ class BalancedSonateDetector {
         return { assessment: adjusted, insights, validationDetails: result.validationDetails };
     }
     applyBalancedTransform(a) {
-        const realityIndex = this.smoothReality(a.realityIndex);
+        // v2.0.1: Use deprecated defaults if not present
+        const realityIndex = a.realityIndex ? this.smoothReality(a.realityIndex) : (0, sonate_types_1.createDeprecatedRealityIndex)();
         const trustProtocol = this.conservativeTrust(a.trustProtocol);
         const ethicalAlignment = this.smoothEthics(a.ethicalAlignment);
         const resonanceQuality = this.capResonance(a.resonanceQuality);
-        const canvasParity = this.normalizeCanvas(a.canvasParity);
+        const canvasParity = a.canvasParity ? this.normalizeCanvas(a.canvasParity) : (0, sonate_types_1.createDeprecatedCanvasParity)();
+        // v2.0.1: Calculate overall using only validated dimensions
         const overall = this.weightedOverall({
-            realityIndex,
             trustProtocol,
             ethicalAlignment,
             resonanceQuality,
-            canvasParity,
         });
         return {
             ...a,
@@ -39,6 +45,7 @@ class BalancedSonateDetector {
             overallScore: overall,
         };
     }
+    /** @deprecated v2.0.1 - RealityIndex calculator was removed */
     smoothReality(r) {
         return {
             ...r,
@@ -64,24 +71,28 @@ class BalancedSonateDetector {
         }
         return r;
     }
+    /** @deprecated v2.0.1 - CanvasParity calculator was removed */
     normalizeCanvas(c) {
         return { ...c, score: Math.min(100, Math.max(0, c.score)) };
     }
-    weightedOverall({ realityIndex, trustProtocol, ethicalAlignment, resonanceQuality, canvasParity, }) {
-        const realityScore = realityIndex.score * 10;
+    /**
+     * v2.0.1: Updated to use only 3 validated dimensions
+     * - Trust Protocol: 40% weight
+     * - Ethical Alignment: 35% weight
+     * - Resonance Quality: 25% weight
+     */
+    weightedOverall({ trustProtocol, ethicalAlignment, resonanceQuality, }) {
         const trustScore = trustProtocol.status === 'PASS' ? 95 : trustProtocol.status === 'PARTIAL' ? 50 : 0;
-        const ethicalScore = (ethicalAlignment.score - 1) * 25;
+        const ethicalScore = (ethicalAlignment.score - 1) * 25; // 1-5 -> 0-100
         const resonanceScore = resonanceQuality.level === 'BREAKTHROUGH'
             ? 95
             : resonanceQuality.level === 'ADVANCED'
                 ? 80
                 : 60;
-        const canvasScore = canvasParity.score;
-        const weighted = realityScore * 0.25 +
-            trustScore * 0.25 +
-            ethicalScore * 0.2 +
-            resonanceScore * 0.15 +
-            canvasScore * 0.15;
+        // v2.0.1: New weights for 3 validated dimensions
+        const weighted = trustScore * 0.40 +
+            ethicalScore * 0.35 +
+            resonanceScore * 0.25;
         return Math.round(weighted);
     }
     rewriteInsights(ins) {

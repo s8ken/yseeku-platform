@@ -109,4 +109,3 @@ export declare class AdvancedTrustProtocol {
     private generateVerificationKey;
 }
 export declare const advancedTrustProtocol: AdvancedTrustProtocol;
-//# sourceMappingURL=advanced-trust-protocol.d.ts.map

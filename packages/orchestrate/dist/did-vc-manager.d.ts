@@ -43,4 +43,3 @@ export declare class DIDVCManager {
     private hashData;
     private generateUUID;
 }
-//# sourceMappingURL=did-vc-manager.d.ts.map

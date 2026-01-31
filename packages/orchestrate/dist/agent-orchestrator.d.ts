@@ -55,4 +55,3 @@ export declare class AgentOrchestrator {
     getDashboard(): Promise<import("./types").TacticalDashboard>;
 }
 export {};
-//# sourceMappingURL=agent-orchestrator.d.ts.map

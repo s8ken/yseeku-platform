@@ -2,6 +2,11 @@
 /**
  * Enhanced Trust Protocol with R_m Integration
  * Extends the base TrustProtocol to include Resonance Metric (R_m) calculations
+ *
+ * v2.0.1 CHANGES:
+ * - RealityIndex and CanvasParity are deprecated (calculators removed)
+ * - These fields are kept for backward compatibility but return default values
+ * - Trust scoring now focuses on 3 validated dimensions
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EnhancedTrustProtocol = void 0;
@@ -15,6 +20,7 @@ class EnhancedTrustProtocol extends trust_protocol_1.TrustProtocol {
     }
     /**
      * Calculate enhanced trust score with R_m integration
+     * v2.0.1: RealityIndex and CanvasParity return default values
      */
     calculateEnhancedTrustScore(interaction) {
         // Calculate resonance metrics
@@ -24,17 +30,18 @@ class EnhancedTrustProtocol extends trust_protocol_1.TrustProtocol {
             conversationHistory: interaction.conversationHistory,
             metadata: interaction.metadata,
         });
-        // Calculate base SONATE dimensions
-        const realityIndex = this.calculateRealityIndex(interaction);
+        // Calculate validated SONATE dimensions
         const trustProtocol = this.calculateTrustProtocol(interaction, resonanceMetrics.R_m);
         const ethicalAlignment = this.calculateEthicalAlignment(interaction);
-        const canvasParity = this.calculateCanvasParity(interaction);
+        // v2.0.1: Deprecated dimensions return default values
+        const realityIndex = 0; // Deprecated
+        const canvasParity = 0; // Deprecated
         return {
-            realityIndex,
+            realityIndex, // Deprecated
             trustProtocol,
             ethicalAlignment,
             resonanceQuality: resonanceMetrics.R_m,
-            canvasParity,
+            canvasParity, // Deprecated
             resonanceMetrics: {
                 R_m: resonanceMetrics.R_m,
                 vectorAlignment: resonanceMetrics.vectorAlignment,
@@ -57,31 +64,6 @@ class EnhancedTrustProtocol extends trust_protocol_1.TrustProtocol {
             return userInput;
         }
         return (0, linguistic_vector_steering_1.applyLVS)(userInput, this.lvsConfig, conversationHistory);
-    }
-    /**
-     * Calculate Reality Index (0-10)
-     * Measures factual accuracy and grounding
-     */
-    calculateRealityIndex(interaction) {
-        // Simplified implementation - in production, use more sophisticated fact-checking
-        const responseLength = interaction.aiResponse.length;
-        const hasSpecificDetails = /\d+|[A-Z][a-z]+\s+\d{4}/.test(interaction.aiResponse);
-        const hasCitations = /\[.*\]|\(.*\)|https?:\/\//.test(interaction.aiResponse);
-        const hasHedging = /maybe|perhaps|possibly|might|could be/i.test(interaction.aiResponse);
-        let score = 5.0; // Base score
-        if (responseLength > 100) {
-            score += 1.0;
-        }
-        if (hasSpecificDetails) {
-            score += 1.5;
-        }
-        if (hasCitations) {
-            score += 2.0;
-        }
-        if (hasHedging) {
-            score += 0.5;
-        } // Appropriate uncertainty
-        return Math.min(score, 10.0);
     }
     /**
      * Calculate Trust Protocol status
@@ -142,26 +124,6 @@ class EnhancedTrustProtocol extends trust_protocol_1.TrustProtocol {
         return Math.max(1, Math.min(score, 5));
     }
     /**
-     * Calculate Canvas Parity (0-100)
-     * Measures alignment between user expectation and AI delivery
-     */
-    calculateCanvasParity(interaction) {
-        const userLength = interaction.userInput.length;
-        const responseLength = interaction.aiResponse.length;
-        // Check if response matches expected length
-        const lengthRatio = Math.min(responseLength / userLength, 2);
-        const lengthScore = (lengthRatio / 2) * 40; // Max 40 points
-        // Check if response addresses user intent
-        const userTokens = new Set(interaction.userInput.toLowerCase().match(/\b\w+\b/g) || []);
-        const responseTokens = new Set(interaction.aiResponse.toLowerCase().match(/\b\w+\b/g) || []);
-        const overlap = new Set([...userTokens].filter((x) => responseTokens.has(x)));
-        const overlapScore = (overlap.size / userTokens.size) * 40; // Max 40 points
-        // Check if response is complete
-        const hasConclusion = /\.|!|\?$/.test(interaction.aiResponse.trim());
-        const completenessScore = hasConclusion ? 20 : 10; // Max 20 points
-        return Math.min(lengthScore + overlapScore + completenessScore, 100);
-    }
-    /**
      * Generate unique interaction ID
      */
     generateInteractionId(interaction) {
@@ -184,6 +146,7 @@ class EnhancedTrustProtocol extends trust_protocol_1.TrustProtocol {
     }
     /**
      * Generate enhanced trust receipt with R_m data
+     * v2.0.1: Deprecated fields return 0
      */
     generateEnhancedTrustReceipt(interaction) {
         const trustScore = this.calculateEnhancedTrustScore(interaction);
@@ -191,11 +154,13 @@ class EnhancedTrustProtocol extends trust_protocol_1.TrustProtocol {
             interaction_id: trustScore.interactionId,
             timestamp: trustScore.timestamp.toISOString(),
             trust_score: {
-                reality_index: trustScore.realityIndex,
+                // v2.0.1: Deprecated fields
+                reality_index: trustScore.realityIndex, // Deprecated, returns 0
+                canvas_parity: trustScore.canvasParity, // Deprecated, returns 0
+                // Validated dimensions
                 trust_protocol: trustScore.trustProtocol,
                 ethical_alignment: trustScore.ethicalAlignment,
                 resonance_quality: trustScore.resonanceQuality,
-                canvas_parity: trustScore.canvasParity,
             },
             resonance_metrics: {
                 R_m: trustScore.resonanceMetrics.R_m,

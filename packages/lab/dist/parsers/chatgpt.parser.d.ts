@@ -6,4 +6,3 @@ export type ParsedTurn = {
     content: string;
 };
 export declare function parseChatGptHtml(content: RawText): ParsedTurn[];
-//# sourceMappingURL=chatgpt.parser.d.ts.map

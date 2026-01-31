@@ -12,4 +12,3 @@ export declare class DoubleBlindProtocol {
     unblind(experiment_id: string): Promise<void>;
     isBlinded(experiment_id: string): boolean;
 }
-//# sourceMappingURL=double-blind-protocol.d.ts.map

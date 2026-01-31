@@ -6,4 +6,3 @@ export type ParsedTurn = {
     content: string;
 };
 export declare function parseGrokHtml(content: RawText): ParsedTurn[];
-//# sourceMappingURL=grok.parser.d.ts.map

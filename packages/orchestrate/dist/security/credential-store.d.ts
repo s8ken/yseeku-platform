@@ -112,4 +112,3 @@ export declare class SonateVaultStorageBackend implements StorageBackend {
     update(id: string, updates: Partial<Credential>): Promise<boolean>;
     healthCheck(): Promise<boolean>;
 }
-//# sourceMappingURL=credential-store.d.ts.map

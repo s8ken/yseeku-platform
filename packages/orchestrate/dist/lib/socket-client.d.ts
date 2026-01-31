@@ -7,4 +7,3 @@ export interface SocketClient {
 }
 export declare function createSocketClient(): SocketClient;
 export declare const socketManager: SocketClient;
-//# sourceMappingURL=socket-client.d.ts.map

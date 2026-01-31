@@ -144,4 +144,3 @@ export declare class MessageRouter {
     broadcast(agentIds: string[], messageType: string, message: any): void;
 }
 export declare const agentOrchestrator: AgentOrchestrator;
-//# sourceMappingURL=multi-agent-orchestrator.d.ts.map

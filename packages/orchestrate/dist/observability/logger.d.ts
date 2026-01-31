@@ -8,4 +8,3 @@ export declare class Logger {
     http(message: string, meta?: any): void;
 }
 export declare function getLogger(name: string): Logger;
-//# sourceMappingURL=logger.d.ts.map

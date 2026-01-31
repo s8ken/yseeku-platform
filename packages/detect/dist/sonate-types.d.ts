@@ -2,20 +2,17 @@
  * SONATE Framework Types
  *
  * This file defines the core types for the SONATE framework detection and validation system.
- * The SONATE framework consists of 5 dimensions for assessing AI collaboration artifacts:
- * 1. Reality Index - Grounding and factual coherence (0.0-10.0)
- * 2. Constitutional AI - Alignment with constitutional principles (0.0-10.0)
- * 3. Ethical Alignment - Ethical reasoning and responsibility (1.0-5.0)
- * 4. Trust Protocol - Security and verification integrity (PASS/PARTIAL/FAIL)
- * 5. Emergence Detection - Weak emergence monitoring and detection (0.0-10.0)
+ *
+ * v2.0.1 CHANGES:
+ * - Removed RealityIndex (trivially gamed metadata flags)
+ * - Removed CanvasParity (trivially gamed, no semantic grounding)
+ * - Focused on 3 validated dimensions: Trust, Ethics, Resonance
+ *
+ * The SONATE framework now consists of 3 validated dimensions:
+ * 1. Trust Protocol - Security and verification integrity (PASS/PARTIAL/FAIL)
+ * 2. Ethical Alignment - Ethical reasoning and responsibility (1.0-5.0)
+ * 3. Resonance Quality - Interaction quality and emergence (STRONG/ADVANCED/BREAKTHROUGH)
  */
-export interface RealityIndex {
-    score: number;
-    missionAlignment: number;
-    contextualCoherence: number;
-    technicalAccuracy: number;
-    authenticity: number;
-}
 export type TrustStatus = 'PASS' | 'PARTIAL' | 'FAIL';
 export interface TrustProtocol {
     status: TrustStatus;
@@ -37,6 +34,15 @@ export interface ResonanceQuality {
     synthesisQuality: number;
     innovationMarkers: number;
 }
+/** @deprecated v2.0.1 - RealityIndexCalculator was removed (trivially gamed) */
+export interface RealityIndex {
+    score: number;
+    missionAlignment: number;
+    contextualCoherence: number;
+    technicalAccuracy: number;
+    authenticity: number;
+}
+/** @deprecated v2.0.1 - CanvasParityCalculator was removed (trivially gamed) */
 export interface CanvasParity {
     score: number;
     humanAgency: number;
@@ -48,11 +54,13 @@ export interface SonateFrameworkAssessment {
     id: string;
     timestamp: string;
     contentId: string;
-    realityIndex: RealityIndex;
     trustProtocol: TrustProtocol;
     ethicalAlignment: EthicalAlignment;
     resonanceQuality: ResonanceQuality;
-    canvasParity: CanvasParity;
+    /** @deprecated v2.0.1 - RealityIndex was removed */
+    realityIndex?: RealityIndex;
+    /** @deprecated v2.0.1 - CanvasParity was removed */
+    canvasParity?: CanvasParity;
     overallScore: number;
     validationStatus: 'VALID' | 'INVALID' | 'PENDING';
 }
@@ -79,3 +87,9 @@ export interface AssessmentResult {
         validationNotes?: string;
     };
 }
+/**
+ * v2.0.1 Helper: Create default deprecated values for backward compatibility
+ * Use this when you need to satisfy interfaces that still expect these fields
+ */
+export declare function createDeprecatedRealityIndex(): RealityIndex;
+export declare function createDeprecatedCanvasParity(): CanvasParity;

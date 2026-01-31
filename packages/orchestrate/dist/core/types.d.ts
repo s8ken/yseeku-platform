@@ -10,4 +10,3 @@ export interface LVSScaffolding {
     requirements: string[];
 }
 export declare const DEFAULT_LVS_SCAFFOLDING: LVSScaffolding;
-//# sourceMappingURL=types.d.ts.map

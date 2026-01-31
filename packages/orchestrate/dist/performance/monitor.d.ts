@@ -46,4 +46,3 @@ export declare class PerformanceMonitor extends EventEmitter {
     private countWarnings;
     private generateRecommendations;
 }
-//# sourceMappingURL=monitor.d.ts.map

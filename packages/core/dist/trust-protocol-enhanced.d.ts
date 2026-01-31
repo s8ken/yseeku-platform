@@ -1,15 +1,22 @@
 /**
  * Enhanced Trust Protocol with R_m Integration
  * Extends the base TrustProtocol to include Resonance Metric (R_m) calculations
+ *
+ * v2.0.1 CHANGES:
+ * - RealityIndex and CanvasParity are deprecated (calculators removed)
+ * - These fields are kept for backward compatibility but return default values
+ * - Trust scoring now focuses on 3 validated dimensions
  */
 import { LVSConfig } from './linguistic-vector-steering';
 import { InteractionContext } from './resonance-metric';
 import { TrustProtocol } from './trust-protocol';
 export interface EnhancedTrustScore {
-    realityIndex: number;
     trustProtocol: 'PASS' | 'PARTIAL' | 'FAIL';
     ethicalAlignment: number;
     resonanceQuality: number;
+    /** @deprecated v2.0.1 - RealityIndex calculator was removed */
+    realityIndex: number;
+    /** @deprecated v2.0.1 - CanvasParity calculator was removed */
     canvasParity: number;
     resonanceMetrics: {
         R_m: number;
@@ -33,6 +40,7 @@ export declare class EnhancedTrustProtocol extends TrustProtocol {
     constructor(lvsConfig?: LVSConfig);
     /**
      * Calculate enhanced trust score with R_m integration
+     * v2.0.1: RealityIndex and CanvasParity return default values
      */
     calculateEnhancedTrustScore(interaction: EnhancedInteraction): EnhancedTrustScore;
     /**
@@ -42,11 +50,6 @@ export declare class EnhancedTrustProtocol extends TrustProtocol {
         role: string;
         content: string;
     }>): string;
-    /**
-     * Calculate Reality Index (0-10)
-     * Measures factual accuracy and grounding
-     */
-    private calculateRealityIndex;
     /**
      * Calculate Trust Protocol status
      * Integrates R_m score for trust determination
@@ -63,11 +66,6 @@ export declare class EnhancedTrustProtocol extends TrustProtocol {
      */
     private calculateEthicalAlignment;
     /**
-     * Calculate Canvas Parity (0-100)
-     * Measures alignment between user expectation and AI delivery
-     */
-    private calculateCanvasParity;
-    /**
      * Generate unique interaction ID
      */
     private generateInteractionId;
@@ -77,6 +75,7 @@ export declare class EnhancedTrustProtocol extends TrustProtocol {
     private simpleHash;
     /**
      * Generate enhanced trust receipt with R_m data
+     * v2.0.1: Deprecated fields return 0
      */
     generateEnhancedTrustReceipt(interaction: EnhancedInteraction): any;
     /**

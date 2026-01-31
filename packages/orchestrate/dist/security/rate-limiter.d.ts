@@ -65,4 +65,3 @@ export declare class RedisRateLimitStore implements RateLimitStore {
     getCount(key: string): Promise<number | null>;
 }
 export default RateLimiter;
-//# sourceMappingURL=rate-limiter.d.ts.map

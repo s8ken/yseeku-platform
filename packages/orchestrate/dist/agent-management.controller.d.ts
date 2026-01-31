@@ -10,4 +10,3 @@ export declare const toggleExternalSystem: import("express").RequestHandler<impo
 export declare const syncExternalSystem: import("express").RequestHandler<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>;
 export declare const initiateBonding: import("express").RequestHandler<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>;
 export declare const completeBonding: import("express").RequestHandler<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>;
-//# sourceMappingURL=agent-management.controller.d.ts.map

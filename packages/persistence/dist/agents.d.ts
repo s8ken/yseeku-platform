@@ -5,10 +5,12 @@ export interface Agent {
     status: 'active' | 'inactive' | 'suspended';
     trust_score: number;
     sonate_dimensions: {
+        /** @deprecated v2.0.1 - RealityIndex calculator was removed (always 0) */
         reality_index: number;
         trust_protocol: string;
         ethical_alignment: number;
         resonance_quality: string;
+        /** @deprecated v2.0.1 - CanvasParity calculator was removed (always 0) */
         canvas_parity: number;
     };
     last_interaction: Date;

@@ -493,4 +493,3 @@ export interface Agent {
     updatedAt: Date;
     lastActivity: Date;
 }
-//# sourceMappingURL=agent-types-enhanced.d.ts.map

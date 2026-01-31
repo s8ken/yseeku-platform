@@ -79,4 +79,3 @@ export declare const TrustDeclaration: mongoose.Model<ITrustDeclarationDocument,
     id: string;
 }, any, ITrustDeclarationDocument>;
 export default Agent;
-//# sourceMappingURL=agent.model.d.ts.map

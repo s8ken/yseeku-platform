@@ -34,4 +34,3 @@ export declare class StatisticalEngine {
     private normalCDF;
     private erf;
 }
-//# sourceMappingURL=statistical-engine.d.ts.map

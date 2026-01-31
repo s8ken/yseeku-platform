@@ -23,4 +23,3 @@ export declare class AuditWrappedSigner implements SignerProvider {
 }
 export declare function bindingMessage(input: SignRequest): Buffer;
 export declare function getDefaultSigner(): SignerProvider;
-//# sourceMappingURL=signer.d.ts.map

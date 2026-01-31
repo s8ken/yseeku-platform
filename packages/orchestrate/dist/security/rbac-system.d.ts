@@ -106,4 +106,3 @@ export declare class RBACService {
     canGrantRole(granterRole: Role, targetRole: Role): boolean;
 }
 export declare const rbacService: RBACService;
-//# sourceMappingURL=rbac-system.d.ts.map

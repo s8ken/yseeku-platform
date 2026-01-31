@@ -112,4 +112,3 @@ export declare class MultiTenantIsolation extends EventEmitter {
     stopIsolationMonitoring(): Promise<void>;
 }
 export default MultiTenantIsolation;
-//# sourceMappingURL=multi-tenant-isolation.d.ts.map

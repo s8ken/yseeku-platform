@@ -13,4 +13,3 @@ export declare function demonstrateThread3VelocityDetection(): {
     alertLevels: any[];
     results: any[];
 };
-//# sourceMappingURL=thread3-velocity-test.d.ts.map

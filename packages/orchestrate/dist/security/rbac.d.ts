@@ -124,4 +124,3 @@ export declare function requirePermission(...permissions: Permission[]): (req: a
  * Middleware factory for Express to check roles
  */
 export declare function requireRole(...roles: Role[]): (req: any, res: any, next: any) => any;
-//# sourceMappingURL=rbac.d.ts.map

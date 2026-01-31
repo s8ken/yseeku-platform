@@ -86,4 +86,3 @@ export declare class ArchiveBenchmarkSuite {
      */
     generateReport(result: BenchmarkResult): string;
 }
-//# sourceMappingURL=archive-benchmark.d.ts.map

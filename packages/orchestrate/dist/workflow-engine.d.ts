@@ -33,4 +33,3 @@ export declare class WorkflowEngine {
      */
     getActiveWorkflows(): Workflow[];
 }
-//# sourceMappingURL=workflow-engine.d.ts.map

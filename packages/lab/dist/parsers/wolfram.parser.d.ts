@@ -6,4 +6,3 @@ export type ParsedTurn = {
     content: string;
 };
 export declare function parseWolframHtml(content: RawText): ParsedTurn[];
-//# sourceMappingURL=wolfram.parser.d.ts.map

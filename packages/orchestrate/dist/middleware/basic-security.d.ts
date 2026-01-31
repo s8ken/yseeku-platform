@@ -18,4 +18,3 @@ export declare function corsHeaders(req: Request, res: Response, next: NextFunct
  * Use this in your Express app setup
  */
 export declare function applyBasicSecurity(app: any): void;
-//# sourceMappingURL=basic-security.d.ts.map

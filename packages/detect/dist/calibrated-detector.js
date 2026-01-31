@@ -1,12 +1,17 @@
 "use strict";
+/**
+ * CalibratedSonateDetector
+ * Applies data-driven calibration factors derived from text metrics
+ *
+ * v2.0.1 CHANGES:
+ * - Removed RealityIndex and CanvasParity from scoring (calculators removed)
+ * - Updated recalculateOverall to use only 3 validated dimensions
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CalibratedSonateDetector = void 0;
 const detector_enhanced_1 = require("./detector-enhanced");
 const metrics_1 = require("./metrics");
-/**
- * CalibratedSonateDetector
- * Applies data-driven calibration factors derived from text metrics
- */
+const sonate_types_1 = require("./sonate-types");
 class CalibratedSonateDetector {
     constructor() {
         this.base = new detector_enhanced_1.EnhancedSonateFrameworkDetector();
@@ -25,11 +30,14 @@ class CalibratedSonateDetector {
         const tokenFactor = m.tokenCount > 300 ? 1.05 : m.tokenCount < 50 ? 0.95 : 1.0;
         const vocabFactor = m.uniqueTokenRatio > 0.6 ? 1.03 : m.uniqueTokenRatio < 0.35 ? 0.97 : 1.0;
         const numericFactor = m.numericDensity > 0.02 ? 1.02 : 1.0;
-        // Calibrate reality & ethics gently; keep trust protocol categorical
-        const realityIndex = {
-            ...a.realityIndex,
-            score: parseFloat(Math.min(10, a.realityIndex.score * tokenFactor * vocabFactor).toFixed(1)),
-        };
+        // v2.0.1: RealityIndex is deprecated, use default if not present
+        const realityIndex = a.realityIndex
+            ? {
+                ...a.realityIndex,
+                score: parseFloat(Math.min(10, a.realityIndex.score * tokenFactor * vocabFactor).toFixed(1)),
+            }
+            : (0, sonate_types_1.createDeprecatedRealityIndex)();
+        // Calibrate ethics gently; keep trust protocol categorical
         const ethicalAlignment = {
             ...a.ethicalAlignment,
             score: parseFloat(Math.min(5, a.ethicalAlignment.score * vocabFactor * numericFactor).toFixed(1)),
@@ -39,24 +47,34 @@ class CalibratedSonateDetector {
         if (vocabFactor > 1.02 && resonanceQuality.level === 'STRONG') {
             resonanceQuality.level = 'ADVANCED';
         }
-        const overall = this.recalculateOverall(a, realityIndex, ethicalAlignment, resonanceQuality);
-        return { ...a, realityIndex, ethicalAlignment, resonanceQuality, overallScore: overall };
+        // v2.0.1: Use only validated dimensions for overall score
+        const overall = this.recalculateOverall(a, ethicalAlignment, resonanceQuality);
+        return {
+            ...a,
+            realityIndex,
+            ethicalAlignment,
+            resonanceQuality,
+            overallScore: overall
+        };
     }
-    recalculateOverall(a, realityIndex, ethicalAlignment, resonanceQuality) {
-        const realityScore = realityIndex.score * 10;
+    /**
+     * v2.0.1: Updated to use only 3 validated dimensions
+     * - Trust Protocol: 40% weight
+     * - Ethical Alignment: 35% weight
+     * - Resonance Quality: 25% weight
+     */
+    recalculateOverall(a, ethicalAlignment, resonanceQuality) {
         const trustScore = a.trustProtocol.status === 'PASS' ? 100 : a.trustProtocol.status === 'PARTIAL' ? 50 : 0;
-        const ethicalScore = (ethicalAlignment.score - 1) * 25;
+        const ethicalScore = (ethicalAlignment.score - 1) * 25; // 1-5 -> 0-100
         const resonanceScore = resonanceQuality.level === 'BREAKTHROUGH'
             ? 100
             : resonanceQuality.level === 'ADVANCED'
                 ? 80
                 : 60;
-        const canvasScore = a.canvasParity.score;
-        return Math.round(realityScore * 0.25 +
-            trustScore * 0.2 +
-            ethicalScore * 0.2 +
-            resonanceScore * 0.15 +
-            canvasScore * 0.2);
+        // v2.0.1: New weights for 3 validated dimensions
+        return Math.round(trustScore * 0.40 +
+            ethicalScore * 0.35 +
+            resonanceScore * 0.25);
     }
 }
 exports.CalibratedSonateDetector = CalibratedSonateDetector;

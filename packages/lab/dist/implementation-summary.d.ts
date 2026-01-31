@@ -5,4 +5,3 @@
  * velocity tracking system that catches critical behavioral shifts.
  */
 export declare function generateImplementationSummary(): void;
-//# sourceMappingURL=implementation-summary.d.ts.map

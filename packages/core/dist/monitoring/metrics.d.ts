@@ -29,6 +29,10 @@ export declare const agentResponseTimeHistogram: Histogram<"agent_id" | "action"
  */
 export declare const resonanceQualityHistogram: Histogram<"interaction_type">;
 export declare const resonanceReceiptsTotal: Counter<"trust_protocol" | "resonance_level">;
+/**
+ * @deprecated v2.0.1 - RealityIndex calculator was removed (trivially gamed)
+ * This metric is kept for backward compatibility but will always be 0
+ */
 export declare const realityIndexGauge: Gauge<"session_id">;
 /**
  * Security Metrics

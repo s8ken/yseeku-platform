@@ -5,4 +5,3 @@
  * that occurs between AI turns, avoiding user turn interference.
  */
 export declare function runCorrectedIntraVelocityTest(): any;
-//# sourceMappingURL=corrected-intra-velocity-test.d.ts.map

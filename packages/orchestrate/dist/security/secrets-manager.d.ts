@@ -25,4 +25,3 @@ export declare class LocalSecretsManager implements SecretsManager {
     healthCheck(): Promise<boolean>;
 }
 export declare function createSecretsManager(): SecretsManager;
-//# sourceMappingURL=secrets-manager.d.ts.map

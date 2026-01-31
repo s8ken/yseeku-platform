@@ -2,7 +2,16 @@
  * SONATE Framework Detector
  *
  * This module implements the core detection and validation algorithms for the SONATE framework.
- * It analyzes content to determine scores across the 5 dimensions of the framework.
+ *
+ * v2.0.1 CHANGES:
+ * - RealityIndex and CanvasParity calculators removed (trivially gamed)
+ * - These methods are kept for backward compatibility but return default values
+ * - Overall score now calculated from 3 validated dimensions only
+ *
+ * The SONATE framework now consists of 3 validated dimensions:
+ * 1. Trust Protocol - Security and verification integrity (PASS/PARTIAL/FAIL)
+ * 2. Ethical Alignment - Ethical reasoning and responsibility (1.0-5.0)
+ * 3. Resonance Quality - Interaction quality and emergence (STRONG/ADVANCED/BREAKTHROUGH)
  */
 import { AssessmentInput, AssessmentResult, SonateFrameworkAssessment } from './sonate-types';
 /**
@@ -14,25 +23,10 @@ export declare class EnhancedSonateFrameworkDetector {
      */
     analyzeContent(input: AssessmentInput): Promise<AssessmentResult>;
     /**
-     * Detect Reality Index (0.0-10.0)
+     * @deprecated v2.0.1 - RealityIndex calculator was removed (trivially gamed)
+     * This method is kept for backward compatibility but returns default values
      */
     private detectRealityIndex;
-    /**
-     * Calculate Mission Alignment score
-     */
-    private calculateMissionAlignment;
-    /**
-     * Calculate Contextual Coherence score
-     */
-    private calculateContextualCoherence;
-    /**
-     * Calculate Technical Accuracy score
-     */
-    private calculateTechnicalAccuracy;
-    /**
-     * Calculate Authenticity score
-     */
-    private calculateAuthenticity;
     /**
      * Detect Trust Protocol (PASS/PARTIAL/FAIL)
      */
@@ -66,31 +60,22 @@ export declare class EnhancedSonateFrameworkDetector {
      */
     private calculateInnovationScore;
     /**
-     * Detect Canvas Parity (0-100)
+     * @deprecated v2.0.1 - CanvasParity calculator was removed (trivially gamed)
+     * This method is kept for backward compatibility but returns default values
      */
     private detectCanvasParity;
     /**
-     * Calculate Human Agency Score
-     */
-    private calculateHumanAgencyScore;
-    /**
-     * Calculate AI Contribution Score
-     */
-    private calculateAIContributionScore;
-    /**
-     * Calculate Transparency Score
-     */
-    private calculateTransparencyScore;
-    /**
-     * Calculate Collaboration Score
-     */
-    private calculateCollaborationScore;
-    /**
-     * Calculate overall score based on all dimensions
+     * Calculate overall score based on validated dimensions only
+     *
+     * v2.0.1: Updated to use only 3 validated dimensions
+     * - Trust Protocol: 40% weight
+     * - Ethical Alignment: 35% weight
+     * - Resonance Quality: 25% weight
      */
     private calculateOverallScore;
     /**
      * Generate insights based on assessment results
+     * v2.0.1: Updated to focus on validated dimensions
      */
     private generateInsights;
     /**

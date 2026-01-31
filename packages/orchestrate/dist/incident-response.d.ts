@@ -165,4 +165,3 @@ export declare function createIncidentResponseSystem(): IncidentResponseSystem;
  * Global instance
  */
 export declare const incidentResponseSystem: IncidentResponseSystem;
-//# sourceMappingURL=incident-response.d.ts.map
