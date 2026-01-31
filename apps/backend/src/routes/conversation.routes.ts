@@ -677,7 +677,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
                   issuer: aiTrustEval.issuer,
                   subject: aiTrustEval.subject,
                   agent_id: aiMessage.agentId,
-                  proof: aiTrustEval.proof,
+                  proof: (aiTrustEval as any).proof,
                 },
               },
               { upsert: true }

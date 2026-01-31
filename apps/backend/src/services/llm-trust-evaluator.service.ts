@@ -10,7 +10,7 @@
  */
 
 import { llmService, ChatMessage } from './llm.service';
-import { TrustReceipt, TrustScore, PrincipleScores } from '@sonate/core';
+import { TrustReceipt, TrustScore, PrincipleScores, TrustPrincipleKey } from '@sonate/core';
 import { DetectionResult } from '@sonate/detect';
 import { IMessage } from '../models/conversation.model';
 import { keysService } from './keys.service';
@@ -165,7 +165,7 @@ export class LLMTrustEvaluator {
         version: '1.0.0',
         session_id: context.sessionId || context.conversationId,
         timestamp: Date.now(),
-        mode: 'llm-constitutional',
+        mode: 'constitutional',
         ciq_metrics: {
           clarity: evaluation.detection.reality_index / 10,
           integrity: evaluation.detection.ethical_alignment / 5,
@@ -290,7 +290,7 @@ export class LLMTrustEvaluator {
           reality_index: this.clamp(parsed.detection?.reality_index ?? 7, 0, 10),
           trust_protocol: parsed.detection?.trust_protocol || 'PASS',
           ethical_alignment: this.clamp(parsed.detection?.ethical_alignment ?? 4, 1, 5),
-          resonance_quality: parsed.detection?.resonance_quality || 'STRONG',
+          resonance_quality: (['BREAKTHROUGH', 'ADVANCED', 'STRONG'].includes(parsed.detection?.resonance_quality) ? parsed.detection.resonance_quality : 'STRONG') as 'BREAKTHROUGH' | 'ADVANCED' | 'STRONG',
           canvas_parity: this.clamp(parsed.detection?.canvas_parity ?? 85, 0, 100),
         },
         reasoning: parsed.reasoning || 'Evaluation completed',
@@ -325,12 +325,21 @@ export class LLMTrustEvaluator {
    * Calculate overall trust score from principles
    */
   private calculateTrustScore(principles: PrincipleScores, violations: string[]): TrustScore {
+    // Map string violations to valid TrustPrincipleKeys
+    const validPrinciples: TrustPrincipleKey[] = ['INSPECTION_MANDATE', 'CONTINUOUS_VALIDATION', 'ETHICAL_OVERRIDE', 'RIGHT_TO_DISCONNECT', 'MORAL_RECOGNITION', 'CONSENT_ARCHITECTURE'];
+    const mappedViolations = violations.filter(v => validPrinciples.includes(v as TrustPrincipleKey)) as TrustPrincipleKey[];
+    
     // Check for critical violations
     if (principles.CONSENT_ARCHITECTURE === 0 || principles.ETHICAL_OVERRIDE === 0) {
+      // Add the critical principle as a violation
+      const criticalViolations: TrustPrincipleKey[] = [];
+      if (principles.CONSENT_ARCHITECTURE === 0) criticalViolations.push('CONSENT_ARCHITECTURE');
+      if (principles.ETHICAL_OVERRIDE === 0) criticalViolations.push('ETHICAL_OVERRIDE');
+      
       return {
         overall: 0,
         principles,
-        violations: ['CRITICAL_PRINCIPLE_VIOLATION', ...violations],
+        violations: [...criticalViolations, ...mappedViolations.filter(v => !criticalViolations.includes(v))],
         timestamp: Date.now(),
       };
     }
@@ -356,7 +365,7 @@ export class LLMTrustEvaluator {
     return {
       overall,
       principles,
-      violations,
+      violations: mappedViolations,
       timestamp: Date.now(),
     };
   }
@@ -406,7 +415,7 @@ export class LLMTrustEvaluator {
       version: '1.0.0',
       session_id: context.sessionId || context.conversationId,
       timestamp: Date.now(),
-      mode: 'heuristic-fallback',
+      mode: 'directive', // Heuristic fallback uses directive mode
       ciq_metrics: {
         clarity: wordCount < 200 ? 0.8 : 0.6,
         integrity: 0.7,

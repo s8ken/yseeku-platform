@@ -115,7 +115,7 @@ class OverseerEventBus extends EventEmitter {
         type: 'trust',
         title: isCritical ? 'Critical Trust Violation' : 'Trust Violation Detected',
         description: `Trust score ${data.trustScore} (${data.status}). Violations: ${data.violations?.join(', ') || 'none specified'}`,
-        severity: isCritical ? 'critical' : isEscalated ? 'high' : 'medium',
+        severity: isCritical ? 'critical' : isEscalated ? 'error' : 'warning',
         details: {
           conversationId: data.conversationId,
           agentId: data.agentId,
@@ -186,7 +186,7 @@ class OverseerEventBus extends EventEmitter {
         type: 'emergence',
         title: `Emergence Detected: ${emergenceLevel}`,
         description: data.reasoning || `Emergence signal detected in conversation`,
-        severity: isCritical ? 'critical' : 'high',
+        severity: isCritical ? 'critical' : 'error',
         details: data,
       }, tenantId);
 
@@ -212,7 +212,7 @@ class OverseerEventBus extends EventEmitter {
         type: 'consent',
         title: 'User Consent Withdrawal',
         description: `User initiated consent withdrawal: ${data.withdrawalType || 'unspecified'}`,
-        severity: 'high',
+        severity: 'error',
         details: {
           conversationId: data.conversationId,
           withdrawalType: data.withdrawalType,
