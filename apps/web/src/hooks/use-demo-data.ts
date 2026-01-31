@@ -42,25 +42,30 @@ async function fetchData<T>(
 }
 
 export function useDemoData<T>(config: DemoDataConfig<T>) {
-  const { isDemo, isLoaded, currentTenantId } = useDemo();
+  const { isDemo, isLoaded, isSwitching, currentTenantId } = useDemo();
   
   const endpoint = isDemo ? config.demoEndpoint : config.liveEndpoint;
   
-  console.log('[useDemoData] Query config:', {
-    queryKey: [...config.queryKey, isDemo ? 'demo' : 'live'],
-    endpoint,
-    currentTenantId,
-    isDemo,
-    isLoaded,
-  });
+  // Only log when not switching to reduce noise
+  if (!isSwitching) {
+    console.log('[useDemoData] Query config:', {
+      queryKey: [...config.queryKey, isDemo ? 'demo' : 'live'],
+      endpoint,
+      currentTenantId,
+      isDemo,
+      isLoaded,
+      isSwitching,
+    });
+  }
   
   return useQuery<T, Error>({
     queryKey: [...config.queryKey, isDemo ? 'demo' : 'live', currentTenantId],
     queryFn: () => {
-      console.log('[useDemoData] Fetching data:', { endpoint, currentTenantId });
+      console.log('[useDemoData] Fetching data:', { endpoint, currentTenantId, isDemo });
       return fetchData<T>(endpoint, currentTenantId, config.transform);
     },
-    enabled: isLoaded, // Don't fetch until we know if we're in demo mode
+    // CRITICAL: Don't fetch while switching modes - prevents race condition!
+    enabled: isLoaded && !isSwitching,
     staleTime: 30000,
     ...config.options,
   });
@@ -221,9 +226,12 @@ export interface TrustAnalytics {
 }
 
 export function useTrustAnalytics() {
-  const { isDemo, isLoaded, currentTenantId } = useDemo();
+  const { isDemo, isLoaded, isSwitching, currentTenantId } = useDemo();
   
-  console.log('[useTrustAnalytics] Hook called:', { isDemo, isLoaded, currentTenantId });
+  // Only log when not switching to reduce noise
+  if (!isSwitching) {
+    console.log('[useTrustAnalytics] Hook called:', { isDemo, isLoaded, isSwitching, currentTenantId });
+  }
   
   return useQuery<TrustAnalytics, Error>({
     // Include tenantId in query key to ensure data refreshes when tenant changes
@@ -291,7 +299,8 @@ export function useTrustAnalytics() {
         principleScores: kpis.principleScores || {},
       };
     },
-    enabled: isLoaded,
+    // CRITICAL: Don't fetch while switching modes - prevents race condition!
+    enabled: isLoaded && !isSwitching,
     staleTime: 30000,
   });
 }

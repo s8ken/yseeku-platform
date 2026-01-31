@@ -174,7 +174,7 @@ export default function LiveDashboardPage() {
   const [metrics, setMetrics] = useState<LiveMetrics | null>(null);
   const [events, setEvents] = useState<TrustEvent[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const { isDemo, isLoaded } = useDemo();
+  const { isDemo, isLoaded, isSwitching } = useDemo();
 
   // Use demo-aware hooks for consistent data
   const { data: kpisData, refetch: refetchKpis } = useDashboardKPIs();
@@ -201,7 +201,7 @@ export default function LiveDashboardPage() {
       return res.json();
     },
     staleTime: 30000,
-    enabled: !isDemo, // Only fetch in live mode
+    enabled: !isDemo && !isSwitching, // Only fetch in live mode, not during switch
   });
 
   // Initialize Socket.IO connection for real-time updates
