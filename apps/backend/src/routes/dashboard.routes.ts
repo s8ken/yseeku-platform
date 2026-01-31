@@ -140,8 +140,8 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
         alertsCount,
         experimentsRunning: experimentsCount,
         orchestratorsActive: 0,
+        // v2.0.1: Only 3 validated dimensions
         sonateDimensions: {
-          realityIndex: allMetrics.principleScores.transparency * 10 || 0,
           trustProtocol: allMetrics.count === 0 ? 'N/A' : 
             allMetrics.complianceRate >= 80 ? 'PASS' : 
             allMetrics.complianceRate >= 60 ? 'PARTIAL' : 'FAIL',
@@ -149,7 +149,9 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
           resonanceQuality: allMetrics.count === 0 ? 'NONE' :
             allMetrics.trustScore >= 85 ? 'ADVANCED' : 
             allMetrics.trustScore >= 70 ? 'STRONG' : 'BASIC',
-          canvasParity: Math.round(allMetrics.complianceRate),
+          // Deprecated fields - kept for backward compatibility, always return 0
+          realityIndex: 0,
+          canvasParity: 0,
         },
         trends: {
           trustScore: calculateTrend(currentMetrics.trustScore, previousMetrics.trustScore),
@@ -268,12 +270,14 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
     const allMetrics = calculateTrustMetrics(allConversations);
 
     // Calculate SONATE dimensions from recent data
+    // v2.0.1: Only 3 validated dimensions
     const sonateDimensions = {
-      realityIndex: allMetrics.principleScores.transparency || 8.5,
       trustProtocol: allMetrics.complianceRate >= 80 ? 'PASS' : allMetrics.complianceRate >= 60 ? 'PARTIAL' : 'FAIL',
       ethicalAlignment: Math.round((allMetrics.trustScore / 20) * 10) / 10, // Convert 0-10 to 0-5
       resonanceQuality: allMetrics.trustScore >= 85 ? 'ADVANCED' : allMetrics.trustScore >= 70 ? 'STRONG' : 'BASIC',
-      canvasParity: Math.round(allMetrics.complianceRate),
+      // Deprecated fields - kept for backward compatibility, always return 0
+      realityIndex: 0,
+      canvasParity: 0,
     };
 
     // Calculate trends

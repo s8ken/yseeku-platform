@@ -1,0 +1,227 @@
+{
+  "title": "SONATE Trust Platform",
+  "description": "AI Trust & Governance metrics for the SONATE platform",
+  "timezone": "browser",
+  "refresh": "30s",
+  "tags": ["sonate", "trust", "ai-governance"],
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Overall Trust Score",
+      "description": "Average trust score across all interactions (0-10)",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "targets": [{"expr": "avg(sonate_trust_score_gauge)"}],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 5 },
+              { "color": "yellow", "value": 7 },
+              { "color": "green", "value": 8 }
+            ]
+          },
+          "unit": "none",
+          "decimals": 1
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Trust Evaluations (24h)",
+      "description": "Total trust evaluations in the last 24 hours",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "targets": [{"expr": "sum(increase(sonate_trust_evaluations_total[24h]))"}],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Pass Rate",
+      "description": "Percentage of interactions passing trust threshold",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "targets": [{"expr": "sum(sonate_trust_evaluations_total{status=&quot;PASS&quot;}) / sum(sonate_trust_evaluations_total) * 100"}],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 70 },
+              { "color": "yellow", "value": 85 },
+              { "color": "green", "value": 95 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Active Alerts",
+      "description": "Number of active trust alerts",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "targets": [{"expr": "sum(sonate_alerts_active)"}],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 3 },
+              { "color": "orange", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Trust Score Trend",
+      "description": "Trust score over time by tenant",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "targets": [{"expr": "avg by (tenant_id) (sonate_trust_score_gauge)"}],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10
+          }
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Trust Evaluations by Status",
+      "description": "Rate of trust evaluations by status (PASS/PARTIAL/FAIL)",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "targets": [{"expr": "sum by (status) (rate(sonate_trust_evaluations_total[5m]))"}],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "fieldConfig": {
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "PASS" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "PARTIAL" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "FAIL" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "type": "piechart",
+      "title": "Principle Violations Distribution",
+      "description": "Distribution of trust violations by SONATE principle",
+      "gridPos": { "x": 0, "y": 12, "w": 8, "h": 8 },
+      "targets": [{"expr": "sum by (principle) (sonate_principle_violations_total)"}],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"}
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Overseer Brain Cycles",
+      "description": "System Brain thinking cycles over time",
+      "gridPos": { "x": 8, "y": 12, "w": 8, "h": 8 },
+      "targets": [
+        {"expr": "sum(rate(sonate_brain_cycles_total[5m]))", "legendFormat": "Cycles"},
+        {"expr": "sum(rate(sonate_brain_actions_total[5m]))", "legendFormat": "Actions"}
+      ],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"}
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Human Overrides",
+      "description": "Rate of human overrides on AI decisions",
+      "gridPos": { "x": 16, "y": 12, "w": 8, "h": 8 },
+      "targets": [{"expr": "sum by (status) (rate(sonate_overrides_total[5m]))"}],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"}
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Trust Receipts (Recent)",
+      "description": "Recent trust receipt generation",
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 6 },
+      "targets": [{"expr": "topk(10, sonate_trust_receipts_total)"}],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"}
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "CIQ Metrics (Clarity, Integrity, Quality)",
+      "description": "Average CIQ scores over time",
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 6 },
+      "targets": [
+        {"expr": "avg(sonate_ciq_clarity_gauge)", "legendFormat": "Clarity"},
+        {"expr": "avg(sonate_ciq_integrity_gauge)", "legendFormat": "Integrity"},
+        {"expr": "avg(sonate_ciq_quality_gauge)", "legendFormat": "Quality"}
+      ],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"}
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Demo Tenant Active",
+      "description": "Whether demo tenant has active sessions",
+      "gridPos": { "x": 0, "y": 26, "w": 4, "h": 3 },
+      "targets": [{"expr": "sum(sonate_active_sessions{tenant_id=&quot;demo-tenant&quot;}) > 0"}],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "Inactive", "color": "gray" }, "1": { "text": "Active", "color": "green" } } }
+          ]
+        }
+      }
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "Live Tenant Active",
+      "description": "Whether live tenant has active sessions",
+      "gridPos": { "x": 4, "y": 26, "w": 4, "h": 3 },
+      "targets": [{"expr": "sum(sonate_active_sessions{tenant_id=&quot;live-tenant&quot;}) > 0"}],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "Inactive", "color": "gray" }, "1": { "text": "Active", "color": "blue" } } }
+          ]
+        }
+      }
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "Agents Online",
+      "description": "Number of active AI agents",
+      "gridPos": { "x": 8, "y": 26, "w": 4, "h": 3 },
+      "targets": [{"expr": "sum(sonate_agents_active)"}],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"}
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "WebSocket Connections",
+      "description": "Active WebSocket connections",
+      "gridPos": { "x": 12, "y": 26, "w": 4, "h": 3 },
+      "targets": [{"expr": "sum(socket_connections_active)"}],
+      "datasource": {"type": "prometheus", "uid": "Prometheus"}
+    }
+  ]
+}

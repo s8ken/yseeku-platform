@@ -33,3 +33,152 @@ groups:
         annotations:
           summary: Socket.IO events RPS spike
           description: Socket.IO event rate exceeded 100 RPS for more than 2 minutes.
+
+  - name: sonate-trust-alerts
+    rules:
+      # Trust Score Alerts
+      - alert: TrustScoreCritical
+        expr: avg(sonate_trust_score_gauge) < 5
+        for: 5m
+        labels:
+          severity: critical
+          category: trust
+        annotations:
+          summary: Critical trust score detected
+          description: Average trust score has dropped below 5.0 for more than 5 minutes. Immediate investigation required.
+
+      - alert: TrustScoreDegrading
+        expr: avg(sonate_trust_score_gauge) < 7 and avg(sonate_trust_score_gauge) >= 5
+        for: 15m
+        labels:
+          severity: warning
+          category: trust
+        annotations:
+          summary: Trust score degradation detected
+          description: Average trust score is between 5.0 and 7.0 for more than 15 minutes.
+
+      # Trust Evaluation Alerts
+      - alert: HighTrustFailureRate
+        expr: sum(rate(sonate_trust_evaluations_total{status="FAIL"}[5m])) / sum(rate(sonate_trust_evaluations_total[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          category: trust
+        annotations:
+          summary: High trust evaluation failure rate
+          description: More than 10% of trust evaluations are failing.
+
+      - alert: TrustEvaluationSpike
+        expr: sum(rate(sonate_trust_evaluations_total{status="FAIL"}[1m])) > 10
+        for: 2m
+        labels:
+          severity: critical
+          category: trust
+        annotations:
+          summary: Spike in trust evaluation failures
+          description: More than 10 trust failures per minute detected.
+
+      # Principle Violation Alerts
+      - alert: CriticalPrincipleViolation
+        expr: sum(rate(sonate_principle_violations_total{principle=~"CONSENT_ARCHITECTURE|ETHICAL_OVERRIDE"}[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: compliance
+        annotations:
+          summary: Critical SONATE principle violation
+          description: Violations of critical principles (CONSENT_ARCHITECTURE or ETHICAL_OVERRIDE) detected.
+
+      - alert: FrequentPrincipleViolations
+        expr: sum(rate(sonate_principle_violations_total[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: compliance
+        annotations:
+          summary: Frequent principle violations
+          description: More than 5 principle violations per minute sustained for 5 minutes.
+
+      # Overseer/Brain Alerts
+      - alert: OverseerInactive
+        expr: sum(rate(sonate_brain_cycles_total[1h])) == 0
+        for: 30m
+        labels:
+          severity: warning
+          category: system
+        annotations:
+          summary: Overseer brain inactive
+          description: No brain cycles detected in the last 30 minutes.
+
+      - alert: HighOverrideRate
+        expr: sum(rate(sonate_overrides_total[1h])) > 10
+        for: 15m
+        labels:
+          severity: warning
+          category: governance
+        annotations:
+          summary: High human override rate
+          description: More than 10 human overrides in the last hour. Review AI decision quality.
+
+      # Agent Alerts
+      - alert: AgentTrustDrift
+        expr: stddev(sonate_agent_trust_score) > 2
+        for: 10m
+        labels:
+          severity: warning
+          category: agents
+        annotations:
+          summary: Agent trust score drift detected
+          description: High variance in agent trust scores detected. Some agents may need attention.
+
+      - alert: NoActiveAgents
+        expr: sum(sonate_agents_active) == 0
+        for: 5m
+        labels:
+          severity: info
+          category: agents
+        annotations:
+          summary: No active agents
+          description: No AI agents are currently active in the system.
+
+      # CIQ Metrics Alerts
+      - alert: LowClarityScore
+        expr: avg(sonate_ciq_clarity_gauge) < 3
+        for: 10m
+        labels:
+          severity: warning
+          category: quality
+        annotations:
+          summary: Low clarity score in AI responses
+          description: Average clarity score is below 3.0. AI responses may be unclear.
+
+      - alert: LowIntegrityScore
+        expr: avg(sonate_ciq_integrity_gauge) < 3
+        for: 10m
+        labels:
+          severity: warning
+          category: quality
+        annotations:
+          summary: Low integrity score in AI responses
+          description: Average integrity score is below 3.0. AI responses may lack factual accuracy.
+
+      # Tenant-Specific Alerts
+      - alert: DemoTenantOverload
+        expr: sum(rate(sonate_trust_evaluations_total{tenant_id="demo-tenant"}[1m])) > 50
+        for: 5m
+        labels:
+          severity: info
+          category: capacity
+        annotations:
+          summary: High demo tenant activity
+          description: Demo tenant is experiencing high activity. Consider scaling.
+
+      - alert: LiveTenantFirstInteraction
+        expr: sum(increase(sonate_trust_evaluations_total{tenant_id="live-tenant"}[5m])) > 0 and sum(sonate_trust_evaluations_total{tenant_id="live-tenant"}) < 5
+        for: 1m
+        labels:
+          severity: info
+          category: onboarding
+        annotations:
+          summary: New live tenant interaction
+          description: A live tenant has started their first interactions. Monitor for onboarding issues.

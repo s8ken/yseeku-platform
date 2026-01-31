@@ -137,6 +137,9 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
         trustProtocol: trustScore >= 7 ? 'PASS' : trustScore >= 5 ? 'PARTIAL' : 'FAIL',
         ethicalAlignment: Math.round(avgIntegrity * 10) / 10,
         resonanceQuality: trustScore >= 8.5 ? 'BREAKTHROUGH' : trustScore >= 7 ? 'ADVANCED' : 'STRONG',
+        // Deprecated fields - kept for backward compatibility, always return 0
+        realityIndex: 0,
+        canvasParity: 0,
       },
       trends: {
         trustScore: { change: 3.2, direction: 'up' },

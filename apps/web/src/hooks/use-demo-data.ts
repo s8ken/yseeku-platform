@@ -70,10 +70,14 @@ export interface DashboardKPIs {
   experimentsRunning: number;
   orchestratorsActive: number;
   sonateDimensions: {
-    realityIndex: number;
+    // v2.0.1: Only 3 validated dimensions
     trustProtocol: string;
     ethicalAlignment: number;
     resonanceQuality: string;
+    // Deprecated fields - kept for backward compatibility, always 0
+    /** @deprecated Removed in v2.0.1 - always returns 0 */
+    realityIndex: number;
+    /** @deprecated Removed in v2.0.1 - always returns 0 */
     canvasParity: number;
   };
   trends: {
