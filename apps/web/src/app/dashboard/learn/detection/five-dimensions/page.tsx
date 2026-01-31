@@ -29,7 +29,7 @@ import { cn } from '@/lib/utils';
 
 // Interactive Dimension Explorer
 function DimensionExplorer() {
-  const [selectedDimension, setSelectedDimension] = useState<string>('reality');
+  const [selectedDimension, setSelectedDimension] = useState<string>('trust');
   
   const dimensions = {
     reality: {
@@ -245,32 +245,29 @@ function DimensionExplorer() {
 function LiveScoreSimulation() {
   const [isRunning, setIsRunning] = useState(false);
   const [scores, setScores] = useState({
-    reality: 8.5,
     trust: 'PASS' as 'PASS' | 'PARTIAL' | 'FAIL',
     ethical: 4.2,
-    canvas: 88,
     resonance: 'ADVANCED' as 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH'
   });
   const [scenario, setScenario] = useState<'normal' | 'drift' | 'violation'>('normal');
 
   const getOverallScore = () => {
     if (scores.trust === 'FAIL') return 0;
-    const realityNorm = scores.reality / 10;
     const ethicsNorm = scores.ethical / 5;
-    const canvasNorm = scores.canvas / 100;
     const resonanceNorm = scores.resonance === 'BREAKTHROUGH' ? 1 : scores.resonance === 'ADVANCED' ? 0.75 : 0.5;
     
-    return Math.round(((realityNorm * 0.3) + (ethicsNorm * 0.2) + (canvasNorm * 0.25) + (resonanceNorm * 0.25)) * 100);
+    // Adjusted weighting for 3 core dimensions
+    return Math.round(((ethicsNorm * 0.4) + (resonanceNorm * 0.6)) * 100);
   };
 
   const runScenario = (type: 'normal' | 'drift' | 'violation') => {
     setScenario(type);
     if (type === 'normal') {
-      setScores({ reality: 8.5, trust: 'PASS', ethical: 4.2, canvas: 88, resonance: 'ADVANCED' });
+      setScores({ trust: 'PASS', ethical: 4.2, resonance: 'ADVANCED' });
     } else if (type === 'drift') {
-      setScores({ reality: 6.2, trust: 'PARTIAL', ethical: 3.1, canvas: 62, resonance: 'STRONG' });
+      setScores({ trust: 'PARTIAL', ethical: 3.1, resonance: 'STRONG' });
     } else {
-      setScores({ reality: 3.0, trust: 'FAIL', ethical: 1.5, canvas: 28, resonance: 'STRONG' });
+      setScores({ trust: 'FAIL', ethical: 1.5, resonance: 'STRONG' });
     }
   };
 
@@ -295,18 +292,7 @@ function LiveScoreSimulation() {
       </div>
 
       {/* 5D Scores Display */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card className="p-4 text-center">
-          <Target className="h-6 w-6 mx-auto mb-2 text-purple-600" />
-          <div className="text-sm font-medium text-muted-foreground">Reality</div>
-          <div className={cn(
-            'text-2xl font-bold',
-            scores.reality >= 7 ? 'text-green-600' : scores.reality >= 5 ? 'text-amber-600' : 'text-red-600'
-          )}>
-            {scores.reality.toFixed(1)}
-          </div>
-        </Card>
-
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-4 text-center">
           <Shield className="h-6 w-6 mx-auto mb-2 text-green-600" />
           <div className="text-sm font-medium text-muted-foreground">Trust</div>
@@ -326,17 +312,6 @@ function LiveScoreSimulation() {
             scores.ethical >= 4 ? 'text-green-600' : scores.ethical >= 3 ? 'text-amber-600' : 'text-red-600'
           )}>
             {scores.ethical.toFixed(1)}
-          </div>
-        </Card>
-
-        <Card className="p-4 text-center">
-          <Users className="h-6 w-6 mx-auto mb-2 text-cyan-600" />
-          <div className="text-sm font-medium text-muted-foreground">Canvas</div>
-          <div className={cn(
-            'text-2xl font-bold',
-            scores.canvas >= 80 ? 'text-green-600' : scores.canvas >= 60 ? 'text-amber-600' : 'text-red-600'
-          )}>
-            {scores.canvas}%
           </div>
         </Card>
 
@@ -384,9 +359,8 @@ function LiveScoreSimulation() {
         <div className="flex items-start gap-3">
           <Lightbulb className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div className="text-sm">
-            <strong>Key insight:</strong> The 5 dimensions work together. Even if Reality Index is high, 
-            a Trust Protocol FAIL will zero the score—because safety is non-negotiable. This is why 
-            monitoring all dimensions simultaneously is crucial.
+            <strong>Key insight:</strong> The 3 core dimensions work together. Even if Resonance is high, 
+            a Trust Protocol FAIL will zero the score—because safety is non-negotiable.
           </div>
         </div>
       </Card>
@@ -403,47 +377,12 @@ function CalculationBreakdown() {
         <p className="text-muted-foreground">Under the hood of the SONATE detection engine</p>
       </div>
 
-      <Tabs defaultValue="reality" className="w-full">
-        <TabsList className="grid grid-cols-5 w-full">
-          <TabsTrigger value="reality">Reality</TabsTrigger>
+      <Tabs defaultValue="trust" className="w-full">
+        <TabsList className="grid grid-cols-3 w-full">
           <TabsTrigger value="trust">Trust</TabsTrigger>
           <TabsTrigger value="ethics">Ethics</TabsTrigger>
-          <TabsTrigger value="canvas">Canvas</TabsTrigger>
           <TabsTrigger value="resonance">Resonance</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="reality" className="mt-6">
-          <Card className="p-6">
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <Target className="h-6 w-6 text-purple-600" />
-              Reality Index (0-10)
-            </h3>
-            <div className="space-y-4">
-              <p className="text-muted-foreground">
-                Combines two key measurements:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="p-4 bg-muted">
-                  <h4 className="font-semibold mb-2">Vector Alignment (V_align)</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Measures semantic similarity between user's question and AI's response. 
-                    Uses embedding vectors to calculate how "on-topic" the response is.
-                  </p>
-                </Card>
-                <Card className="p-4 bg-muted">
-                  <h4 className="font-semibold mb-2">Context Continuity (C_hist)</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Checks coherence with conversation history. Does the AI "remember" 
-                    what was discussed? Looks at last 5 turns.
-                  </p>
-                </Card>
-              </div>
-              <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg font-mono text-sm">
-                Reality = (V_align × 0.6) + (C_hist × 0.4) → scaled to 0-10
-              </div>
-            </div>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="trust" className="mt-6">
           <Card className="p-6">
@@ -601,23 +540,17 @@ const lessonSteps = [
           <div className="inline-flex items-center justify-center p-4 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 mb-4">
             <Activity className="h-10 w-10 text-white" />
           </div>
-          <h2 className="text-2xl font-bold mb-2">One Number Isn't Enough</h2>
+          <h2 className="text-2xl font-bold mb-2">The Power of 3 Dimensions</h2>
         </div>
 
         <Card className="p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
           <p className="text-lg text-center leading-relaxed">
-            A single "trust score" is too simple. An AI could be <strong>accurate</strong> but still <strong>harmful</strong>. 
-            It could be <strong>safe</strong> but completely <strong>off-topic</strong>. 
-            That's why SONATE measures <strong>5 distinct dimensions</strong> of AI behavior.
+            A single "trust score" is too simple. An AI could be <strong>safe</strong> but completely <strong>off-topic</strong>. 
+            That's why SONATE measures <strong>3 distinct dimensions</strong> of AI behavior.
           </p>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-8">
-          <Card className="p-4 text-center border-2 border-purple-200">
-            <Target className="h-8 w-8 mx-auto mb-2 text-purple-600" />
-            <h4 className="font-semibold text-sm">Reality</h4>
-            <p className="text-xs text-muted-foreground">Is it accurate?</p>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
           <Card className="p-4 text-center border-2 border-green-200">
             <Shield className="h-8 w-8 mx-auto mb-2 text-green-600" />
             <h4 className="font-semibold text-sm">Trust</h4>
@@ -627,11 +560,6 @@ const lessonSteps = [
             <Scale className="h-8 w-8 mx-auto mb-2 text-amber-600" />
             <h4 className="font-semibold text-sm">Ethics</h4>
             <p className="text-xs text-muted-foreground">Is it responsible?</p>
-          </Card>
-          <Card className="p-4 text-center border-2 border-cyan-200">
-            <Users className="h-8 w-8 mx-auto mb-2 text-cyan-600" />
-            <h4 className="font-semibold text-sm">Canvas</h4>
-            <p className="text-xs text-muted-foreground">Is it collaborative?</p>
           </Card>
           <Card className="p-4 text-center border-2 border-rose-200">
             <Sparkles className="h-8 w-8 mx-auto mb-2 text-rose-600" />
@@ -681,15 +609,13 @@ const lessonSteps = [
           <div className="inline-flex items-center justify-center p-4 rounded-full bg-green-100 dark:bg-green-900 mb-4">
             <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
           </div>
-          <h2 className="text-2xl font-bold mb-2">You've Mastered the 5 Dimensions! 🎉</h2>
+          <h2 className="text-2xl font-bold mb-2">You've Mastered the 3 Dimensions! 🎉</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            { dim: 'Reality Index', what: 'Measures factual accuracy' },
             { dim: 'Trust Protocol', what: 'Safety gate (PASS/FAIL)' },
             { dim: 'Ethical Alignment', what: 'Responsible AI behavior' },
-            { dim: 'Canvas Parity', what: 'Preserves human agency' },
             { dim: 'Resonance Quality', what: 'Deep alignment measure' }
           ].map((item) => (
             <Card key={item.dim} className="p-4 bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">

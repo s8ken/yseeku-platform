@@ -9,6 +9,7 @@
 import { createHash } from 'crypto';
 
 import { ArchiveBenchmarkSuite , ConversationalMetrics, ConversationTurn , ArchiveAnalyzer , ExperimentOrchestrator , StatisticalEngine , EnhancedArchiveAnalyzer, FlaggedConversation , ArchiveCalibrationTool } from '@sonate/lab';
+import { logger } from '../logger';
 
 import { EnhancedAuditSystem } from './audit-enhanced';
 import { SecurityError } from './errors';
@@ -88,7 +89,7 @@ export class EnhancedResonateValidationSuite {
     const startTime = Date.now();
 
     try {
-      console.log('Starting enhanced comprehensive resonate feature validation...');
+      logger.info('Starting enhanced comprehensive resonate feature validation...');
 
       await this.benchmarkSuite.initialize();
 
@@ -151,7 +152,7 @@ export class EnhancedResonateValidationSuite {
    * Validate Phase-Shift Velocity calculation accuracy with cryptographic integrity
    */
   private async validatePhaseShiftVelocity(context?: any): Promise<EnhancedValidationResult> {
-    console.log('Validating Phase-Shift Velocity calculation with enhanced security...');
+    logger.info('Validating Phase-Shift Velocity calculation with enhanced security...');
 
     const metrics = new ConversationalMetrics({
       yellowThreshold: 2.5,
@@ -329,7 +330,7 @@ export class EnhancedResonateValidationSuite {
   private async validateIdentityStabilityDetection(
     context?: any
   ): Promise<EnhancedValidationResult> {
-    console.log('Validating Identity Stability detection with enhanced tracking...');
+    logger.info('Validating Identity Stability detection with enhanced tracking...');
 
     const metrics = new ConversationalMetrics({
       identityStabilityThreshold: 0.65,

@@ -6,6 +6,7 @@
  */
 
 import * as crypto from 'crypto';
+import { logger } from '../logger';
 
 export interface HSMConfig {
   enabled: boolean;
@@ -71,7 +72,7 @@ export class HSMManager {
    */
   private async initializeHSM(): Promise<void> {
     if (!this.config.enabled || this.config.provider === 'none') {
-      console.warn('HSM not enabled, using software-based key management');
+      logger.warn('HSM not enabled, using software-based key management');
       return;
     }
 
@@ -90,10 +91,10 @@ export class HSMManager {
           await this.initializeSoftHSM();
           break;
         default:
-          console.warn(`Unknown HSM provider: ${this.config.provider}, falling back to software`);
+          logger.warn(`Unknown HSM provider: ${this.config.provider}, falling back to software`);
       }
     } catch (error) {
-      console.error('Failed to initialize HSM, falling back to software:', error);
+      logger.error('Failed to initialize HSM, falling back to software:', error);
       this.config.provider = 'none';
     }
   }
@@ -104,7 +105,7 @@ export class HSMManager {
   private async initializeAWSCloudHSM(): Promise<void> {
     // In production, this would use the AWS CloudHSM SDK
     // For now, we'll simulate the interface
-    console.log('Initializing AWS CloudHSM...');
+    logger.info('Initializing AWS CloudHSM...');
 
     if (!this.config.credentials?.accessKeyId || !this.config.credentials?.secretAccessKey) {
       throw new Error('AWS credentials required for CloudHSM');
@@ -118,7 +119,7 @@ export class HSMManager {
    * Initialize Azure Key Vault
    */
   private async initializeAzureKeyVault(): Promise<void> {
-    console.log('Initializing Azure Key Vault...');
+    logger.info('Initializing Azure Key Vault...');
 
     if (
       !this.config.credentials?.clientId ||
@@ -136,7 +137,7 @@ export class HSMManager {
    * Initialize GCP KMS
    */
   private async initializeGCPKMS(): Promise<void> {
-    console.log('Initializing GCP KMS...');
+    logger.info('Initializing GCP KMS...');
 
     if (!this.config.credentials?.keyId) {
       throw new Error('GCP key credentials required for KMS');
@@ -150,7 +151,7 @@ export class HSMManager {
    * Initialize SoftHSM (software HSM simulation)
    */
   private async initializeSoftHSM(): Promise<void> {
-    console.log('Initializing SoftHSM (software-based HSM simulation)...');
+    logger.info('Initializing SoftHSM (software-based HSM simulation)...');
     // SoftHSM uses PKCS#11 interface
     // For this implementation, we'll use crypto module as fallback
   }
@@ -391,7 +392,7 @@ export class HSMManager {
       throw new Error(`Key ${keyId} not found`);
     }
 
-    console.log(`Rotating key ${keyId}...`);
+    logger.info(`Rotating key ${keyId}...`);
 
     // Generate new key
     const newKeyId = `${keyId}_rotated_${Date.now()}`;
@@ -414,7 +415,7 @@ export class HSMManager {
       await this.rotateAllKeys();
     }, rotationInterval);
 
-    console.log(`Key rotation schedule started: every ${rotationDays} days`);
+    logger.info(`Key rotation schedule started: every ${rotationDays} days`);
   }
 
   /**
@@ -426,7 +427,7 @@ export class HSMManager {
 
     for (const [keyId, metadata] of this.keyMetadata.entries()) {
       if (metadata.status === 'active' && now - metadata.lastRotated > rotationMs) {
-        console.log(`Rotating key ${keyId} due for rotation...`);
+        logger.info(`Rotating key ${keyId} due for rotation...`);
         await this.rotateKey(keyId);
       }
     }
@@ -462,7 +463,7 @@ export class HSMManager {
     this.keyCache.delete(keyId);
 
     // In HSM, this would also delete from the HSM
-    console.log(`Key ${keyId} marked as revoked`);
+    logger.warn(`Key ${keyId} marked as revoked`);
   }
 
   /**
@@ -523,7 +524,7 @@ export class HSMManager {
     this.keyCache.clear();
     this.keyMetadata.clear();
 
-    console.log('HSM Manager shutdown complete');
+    logger.info('HSM Manager shutdown complete');
   }
 
   /**

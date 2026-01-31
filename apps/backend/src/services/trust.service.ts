@@ -24,6 +24,8 @@ import {
   EthicalAlignmentScorer,
   ResonanceQualityMeasurer,
   DriftDetector,
+  isLLMAvailable,
+  getLLMStatus,
 } from '@sonate/detect';
 // v2.0.1: Removed RealityIndexCalculator and CanvasParityCalculator imports
 // These calculators were cut as liabilities (trivially gamed metadata flags)
@@ -90,6 +92,15 @@ export interface TrustEvaluation {
   messageId?: string;
   conversationId?: string;
   agentId?: string;
+  
+  // Analysis method transparency (v2.1)
+  analysisMethod?: {
+    llmAvailable: boolean;
+    resonanceMethod: 'resonance-engine' | 'llm' | 'heuristic';
+    ethicsMethod: 'llm' | 'heuristic';
+    trustMethod: 'content-analysis' | 'metadata-only';
+    confidence: number; // 0-1, overall confidence in scores
+  };
 }
 
 export interface TrustAnalytics {
@@ -262,6 +273,23 @@ export class TrustService {
     // Extract agent ID from context if available
     const agentId = context.agentId || (message.metadata as Record<string, unknown>)?.agentId as string | undefined;
 
+    // Check LLM availability for analysis method transparency
+    const llmStatus = getLLMStatus();
+    
+    // Log analysis method for transparency
+    logger.info('Trust evaluation complete', {
+      conversationId: context.conversationId,
+      trustScore: trustScore.overall,
+      status,
+      llmAvailable: llmStatus.available,
+      llmReason: llmStatus.reason,
+      detection: {
+        trust: detection.trust_protocol,
+        ethics: detection.ethical_alignment,
+        resonance: detection.resonance_quality,
+      },
+    });
+
     return {
       trustScore,
       status,
@@ -279,6 +307,14 @@ export class TrustService {
       messageId: message.metadata?.messageId,
       conversationId: context.conversationId,
       agentId,
+      // Analysis method transparency
+      analysisMethod: {
+        llmAvailable: llmStatus.available,
+        resonanceMethod: 'heuristic', // Will be updated when using detectWithDetails
+        ethicsMethod: llmStatus.available ? 'llm' : 'heuristic',
+        trustMethod: 'content-analysis',
+        confidence: llmStatus.available ? 0.85 : 0.6,
+      },
     };
   }
 

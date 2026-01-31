@@ -6,6 +6,7 @@
  */
 
 import { EnhancedArchiveAnalyzer, FlaggedConversation } from '@sonate/lab';
+import { logger } from '../logger';
 
 import { EnhancedAuditSystem } from './audit-enhanced';
 import { SecurityError } from './errors';
@@ -120,7 +121,7 @@ export class EnhancedArchiveCalibrationTool {
     const calibrationId = context?.calibrationId || `calibration_${Date.now()}`;
 
     try {
-      console.log('🔍 Calibrating with enhanced manual archives...');
+      logger.info('🔍 Calibrating with enhanced manual archives...');
 
       const analysisResults = await this.analyzer.processArchivesWithIdentification(archivePath);
 

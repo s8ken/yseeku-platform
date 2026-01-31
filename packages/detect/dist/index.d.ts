@@ -1,13 +1,14 @@
 export declare const VERSION = "2.0.1";
-export { SonateFrameworkDetector } from './framework-detector';
+export { SonateFrameworkDetector, ExtendedDetectionResult } from './framework-detector';
 export { OptimizedFrameworkDetector } from './optimized-framework-detector';
 export { EnhancedSonateFrameworkDetector as EnhancedDetector } from './detector-enhanced';
 export { BalancedSonateDetector } from './balanced-detector';
 export { CalibratedSonateDetector } from './calibrated-detector';
 export { DriftDetector } from './drift-detection';
-export { TrustProtocolValidator } from './trust-protocol-validator';
-export { EthicalAlignmentScorer } from './ethical-alignment';
-export { ResonanceQualityMeasurer } from './resonance-quality';
+export { TrustProtocolValidator, ValidationResult } from './trust-protocol-validator';
+export { EthicalAlignmentScorer, EthicalAnalysisResult } from './ethical-alignment';
+export { ResonanceQualityMeasurer, ResonanceAnalysisResult, ResonanceLevel } from './resonance-quality';
+export { analyzeWithLLM, isLLMAvailable, getLLMStatus, LLMAnalysisResult } from './llm-client';
 export * from './sonate-types';
 export interface DetectionResult {
     trust_protocol: 'PASS' | 'PARTIAL' | 'FAIL';

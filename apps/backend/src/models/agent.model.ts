@@ -31,6 +31,7 @@ export interface IAgent extends Omit<Document, 'model'> {
   name: string;
   description: string;
   user: Types.ObjectId;
+  tenantId?: string;
   provider: 'openai' | 'together' | 'anthropic' | 'cohere' | 'custom';
   model: string;
   apiKeyId: Types.ObjectId;
@@ -116,6 +117,7 @@ const AgentSchema = new Schema<IAgent>({
     ref: 'User',
     required: true,
   },
+  tenantId: { type: String, index: true }, // Added for multi-tenancy support
   provider: {
     type: String,
     required: [true, 'LLM provider is required'],

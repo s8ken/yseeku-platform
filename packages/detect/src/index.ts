@@ -19,7 +19,7 @@ import { TrustProtocol , CalculationError } from '@sonate/core';
 import { calculateResonanceMetrics } from './resonance-metrics';
 
 // Core detector
-export { SonateFrameworkDetector } from './framework-detector';
+export { SonateFrameworkDetector, ExtendedDetectionResult } from './framework-detector';
 export { OptimizedFrameworkDetector } from './optimized-framework-detector';
 export { EnhancedSonateFrameworkDetector as EnhancedDetector } from './detector-enhanced';
 export { BalancedSonateDetector } from './balanced-detector';
@@ -27,9 +27,12 @@ export { CalibratedSonateDetector } from './calibrated-detector';
 export { DriftDetector } from './drift-detection';
 
 // 3 Validated Dimension scorers (v2.0.1)
-export { TrustProtocolValidator } from './trust-protocol-validator';
-export { EthicalAlignmentScorer } from './ethical-alignment';
-export { ResonanceQualityMeasurer } from './resonance-quality';
+export { TrustProtocolValidator, ValidationResult } from './trust-protocol-validator';
+export { EthicalAlignmentScorer, EthicalAnalysisResult } from './ethical-alignment';
+export { ResonanceQualityMeasurer, ResonanceAnalysisResult, ResonanceLevel } from './resonance-quality';
+
+// LLM Analysis utilities
+export { analyzeWithLLM, isLLMAvailable, getLLMStatus, LLMAnalysisResult } from './llm-client';
 
 // DEPRECATED in v2.0.1 - removed:
 // - RealityIndexCalculator (trivially gamed metadata flags)

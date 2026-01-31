@@ -191,24 +191,24 @@ const learningPaths: LearningPath[] = [
     modules: [
       {
         id: 'five-dimensions',
-        title: 'The 5 Detection Dimensions',
-        description: 'Overview of Reality Index, Trust Protocol, Ethical Alignment, Canvas Parity, and Resonance',
+        title: 'The 3 Core Dimensions',
+        description: 'Overview of Trust Protocol, Ethical Alignment, and Resonance Quality',
         duration: '12 min',
         icon: <Target className="h-5 w-5" />,
         difficulty: 'intermediate',
-        topics: ['5D Framework', 'Dimensions', 'Scoring'],
+        topics: ['3D Framework', 'Dimensions', 'Scoring'],
         prerequisites: ['trust-score-explained'],
         href: '/dashboard/learn/detection/five-dimensions',
         isInteractive: true
       },
       {
         id: 'reality-index-deep',
-        title: 'Reality Index Deep Dive',
-        description: 'Measuring factual accuracy and contextual grounding',
-        duration: '10 min',
+        title: 'Legacy Metrics: Reality Index',
+        description: 'Understanding deprecated metrics and their modern replacements',
+        duration: '5 min',
         icon: <Activity className="h-5 w-5" />,
         difficulty: 'intermediate',
-        topics: ['Reality Index', 'Accuracy', 'Context'],
+        topics: ['Legacy', 'Migration'],
         href: '/dashboard/learn/detection/reality-index',
         isInteractive: true
       },

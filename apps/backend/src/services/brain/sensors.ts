@@ -121,10 +121,13 @@ export async function gatherSensors(tenantId: string): Promise<SensorData> {
  */
 async function gatherAgentHealth(tenantId: string): Promise<AgentHealthSummary> {
   try {
-    const agents = await Agent.find({}).lean();
+    // Add tenant filtering when agent model supports it
+    const query: any = {};
+    if (tenantId) {
+      query.tenantId = tenantId;
+    }
 
-    // Filter by tenant if multi-tenant
-    const tenantAgents = agents; // TODO: Add tenant filtering when agent model supports it
+    const tenantAgents = await Agent.find(query).lean();
 
     const banned = tenantAgents.filter((a: any) => a.banStatus?.isBanned);
     const restricted = tenantAgents.filter((a: any) =>

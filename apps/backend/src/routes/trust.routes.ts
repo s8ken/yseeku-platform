@@ -12,6 +12,7 @@ import { TrustReceipt } from '@sonate/core';
 import { didService } from '../services/did.service';
 import { llmLimiter, apiGatewayLimiter } from '../middleware/rate-limiters';
 import { getErrorMessage } from '../utils/error-utils';
+import { isLLMAvailable, getLLMStatus } from '@sonate/detect';
 import logger from '../utils/logger';
 
 function validateReceiptPayload(data: any) {
@@ -27,6 +28,55 @@ function validateReceiptPayload(data: any) {
 }
 
 const router = Router();
+
+/**
+ * GET /api/trust/status
+ * Get trust evaluation system status including LLM availability
+ * This endpoint helps the frontend understand which scoring methods are active
+ */
+router.get('/status', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const llmStatus = getLLMStatus();
+    
+    res.json({
+      success: true,
+      data: {
+        version: '2.2.0',
+        llm: {
+          available: llmStatus.available,
+          reason: llmStatus.reason,
+          provider: llmStatus.available ? 'anthropic' : null,
+          model: llmStatus.available ? 'claude-3-haiku-20240307' : null,
+        },
+        scoringMethods: {
+          resonance: {
+            primary: 'resonance-engine',
+            secondary: llmStatus.available ? 'llm' : 'heuristic',
+            fallback: 'heuristic',
+          },
+          ethics: {
+            primary: llmStatus.available ? 'llm' : 'heuristic',
+            fallback: 'heuristic',
+          },
+          trust: {
+            method: 'content-analysis',
+            features: ['pii-detection', 'security-patterns', 'verification-checks'],
+          },
+        },
+        confidence: llmStatus.available ? 'high' : 'moderate',
+        message: llmStatus.available 
+          ? 'Full AI-powered content analysis active'
+          : 'Using enhanced heuristic analysis (set ANTHROPIC_API_KEY for LLM-based scoring)',
+      },
+    });
+  } catch (error: unknown) {
+    logger.error('Trust status error', { error: getErrorMessage(error) });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get trust status',
+    });
+  }
+});
 
 /**
  * POST /api/trust/receipts

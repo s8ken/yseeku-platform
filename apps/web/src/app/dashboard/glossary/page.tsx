@@ -99,7 +99,7 @@ const GLOSSARY: GlossaryTerm[] = [
   // Layer 2: Derived Monitoring Dimensions
   {
     term: 'Reality Index',
-    definition: 'Mission alignment and factual accuracy score (0-10). Derived from principles to measure grounding in user\'s reality, factual coherence, and context continuity. Used for real-time production monitoring.',
+    definition: 'Mission alignment and factual accuracy score (0-10). Note: This metric is deprecated in v2.0 in favor of direct Semantic Coprocessor verification.',
     category: 'dimensions',
     relatedTerms: ['CONTINUOUS_VALIDATION', 'Trust Score'],
   },
@@ -124,7 +124,7 @@ const GLOSSARY: GlossaryTerm[] = [
   },
   {
     term: 'Canvas Parity',
-    definition: 'Human agency preservation score (0-100%). Derived dimension measuring how much of user\'s linguistic structure, agency, contribution transparency, collaboration, and fairness is maintained.',
+    definition: 'Human Override Check. Confirms humans can intervene when needed. (Previously: Human agency preservation score).',
     category: 'dimensions',
     relatedTerms: ['ETHICAL_OVERRIDE', 'RIGHT_TO_DISCONNECT'],
   },

@@ -205,7 +205,6 @@ async function startServer() {
       environment: process.env.NODE_ENV || 'development',
       version: '1.12.0',
     });
-    console.log(`Server listening on port ${PORT}`);
   });
 
   try {
