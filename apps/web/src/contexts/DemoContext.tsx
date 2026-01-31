@@ -155,9 +155,13 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(DEMO_STORAGE_KEY, 'true');
     localStorage.removeItem(DEMO_START_TIME_KEY);
     localStorage.removeItem(DEMO_FIRST_VISIT_KEY);
-    // Reload to ensure clean state with demo data
-    window.location.reload();
-  }, []);
+    setIsDemo(true);
+    setIsFirstVisit(true);
+    await initializeDemo();
+    startExpiryTimer();
+    // Invalidate all queries to refetch with new tenant
+    await queryClient.invalidateQueries();
+  }, [initializeDemo, startExpiryTimer, queryClient]);
 
   const disableDemo = useCallback(() => {
     console.log('[DemoContext] Disabling demo mode (switching to live)');
@@ -165,17 +169,24 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(DEMO_START_TIME_KEY);
     localStorage.removeItem(DEMO_FIRST_VISIT_KEY);
     sessionStorage.removeItem(DEMO_INITIALIZED_KEY);
+    setIsDemo(false);
+    setIsFirstVisit(false);
+    setTimeRemaining(null);
+    setShowExpiryWarning(false);
     
     if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
     if (countdownRef.current) clearInterval(countdownRef.current);
     
-    // Remove demo param from URL and reload
+    // Remove demo param from URL
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
       url.searchParams.delete('demo');
-      window.location.href = url.toString();
+      window.history.replaceState({}, '', url.toString());
     }
-  }, []);
+    
+    // Invalidate all queries to refetch with new tenant
+    queryClient.invalidateQueries();
+  }, [queryClient]);
 
   const toggleDemo = useCallback(async () => {
     console.log('[DemoContext] Toggling demo mode. Current:', isDemo, '-> New:', !isDemo);

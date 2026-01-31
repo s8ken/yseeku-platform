@@ -12,7 +12,7 @@ function keyGenerator(req: Request): string {
 
 export const rateLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: Number(process.env.RATE_LIMIT_MAX) || 120,
+  max: Number(process.env.RATE_LIMIT_MAX) || 300, // Increased for development
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator,
