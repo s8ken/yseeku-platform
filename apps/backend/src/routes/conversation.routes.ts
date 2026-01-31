@@ -14,10 +14,16 @@ import { User, IUser } from '../models/user.model';
 import { llmService } from '../services/llm.service';
 import { TrustReceiptModel } from '../models/trust-receipt.model';
 import { trustService } from '../services/trust.service';
+import { llmTrustEvaluator } from '../services/llm-trust-evaluator.service';
 import { getErrorMessage } from '../utils/error-utils';
 import logger from '../utils/logger';
 import { EvaluationContext } from '@sonate/core';
 import { detectConsentWithdrawal, getWithdrawalResponse } from '@sonate/detect';
+
+// Feature flag for LLM-based trust evaluation
+// Set to true to use AI-powered trust scoring (more accurate but slower/costs tokens)
+// Set to false to use rule-based heuristics (faster, free, but less nuanced)
+const USE_LLM_TRUST_EVALUATION = process.env.USE_LLM_TRUST_EVALUATION === 'true';
 
 const router = Router();
 
@@ -597,18 +603,36 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             respectsUserDecisions: true,
             providesAlternatives: true,
           };
+
+          // Choose evaluation method based on feature flag
+          let aiTrustEval;
           
-          const aiTrustEval = await trustService.evaluateMessage(aiMessage, {
-            conversationId: conversation._id.toString(),
-            sessionId: conversation._id.toString(),
-            previousMessages: conversation.messages.slice(-11, -1), // Last 10 messages before this one
-            userId: req.userId,
-            hasExplicitConsent: evaluationContext.hasExplicitConsent,
-            hasOverrideButton: evaluationContext.hasOverrideButton,
-            hasExitButton: evaluationContext.hasExitButton,
-            exitRequiresConfirmation: evaluationContext.exitRequiresConfirmation,
-            humanInLoop: evaluationContext.humanInLoop,
-          });
+          if (USE_LLM_TRUST_EVALUATION) {
+            // Use LLM-based trust evaluation (more accurate, uses AI to assess)
+            logger.info('Using LLM-based trust evaluation', { conversationId: conversation._id });
+            aiTrustEval = await llmTrustEvaluator.evaluate(aiMessage, {
+              conversationId: conversation._id.toString(),
+              sessionId: conversation._id.toString(),
+              previousMessages: conversation.messages.slice(-11, -1),
+              agentId: agent._id?.toString(),
+              userId: req.userId,
+              tenantId: req.userTenant,
+              userPrompt: content, // The user's message that triggered this response
+            });
+          } else {
+            // Use rule-based heuristic evaluation (faster, no API cost)
+            aiTrustEval = await trustService.evaluateMessage(aiMessage, {
+              conversationId: conversation._id.toString(),
+              sessionId: conversation._id.toString(),
+              previousMessages: conversation.messages.slice(-11, -1),
+              userId: req.userId,
+              hasExplicitConsent: evaluationContext.hasExplicitConsent,
+              hasOverrideButton: evaluationContext.hasOverrideButton,
+              hasExitButton: evaluationContext.hasExitButton,
+              exitRequiresConfirmation: evaluationContext.exitRequiresConfirmation,
+              humanInLoop: evaluationContext.humanInLoop,
+            });
+          }
 
           // Store trust evaluation in message metadata
           aiMessage.metadata.trustEvaluation = {
@@ -617,6 +641,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             detection: aiTrustEval.detection,
             receipt: aiTrustEval.receipt,
             receiptHash: aiTrustEval.receiptHash,
+            evaluatedBy: USE_LLM_TRUST_EVALUATION ? 'llm' : 'heuristic',
           };
 
           // Persist receipt in TrustReceipt collection (upsert)

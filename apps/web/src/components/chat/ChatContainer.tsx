@@ -10,6 +10,7 @@ import { socketService, TrustViolationData } from '@/lib/socket';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useDemo } from '@/hooks/use-demo';
+import { useDashboardInvalidation } from '@/hooks/use-dashboard-invalidation';
 import { DemoWatermark } from '@/components/demo-watermark';
 
 // Demo sample messages for pre-population
@@ -84,6 +85,7 @@ Layer 1 principles are the foundation—they evaluate what the system *can do*. 
 
 export const ChatContainer: React.FC = () => {
   const { isDemo, isFirstVisit } = useDemo();
+  const { invalidateDashboard } = useDashboardInvalidation();
   const [messages, setMessages] = useState<ChatMessageProps[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -216,6 +218,9 @@ export const ChatContainer: React.FC = () => {
             description: `We noticed you may want to ${consentWithdrawal.type === 'HUMAN_ESCALATION' ? 'speak with a human' : 'modify your consent'}. Options are shown in the chat.`,
             duration: 6000,
           });
+          
+          // Invalidate dashboard queries for consent withdrawal interactions too
+          invalidateDashboard();
           return;
         }
 
@@ -247,6 +252,10 @@ export const ChatContainer: React.FC = () => {
             timestamp: Date.now(),
           };
           setMessages(prev => [...prev, assistantMessage]);
+          
+          // Invalidate dashboard queries so new interaction data appears
+          // This ensures KPIs, trust scores, and interaction counts update
+          invalidateDashboard();
         } else if (msg.sender === 'user') {
           // This is just a user message - no trust evaluation for user input
           toast.info('Message Sent', {
