@@ -49,7 +49,7 @@ const glossary: Record<string, string> = {
   "Moral": "Values Alignment. Assesses if the AI respects human values.",
   "Behavioral": "Tracks predictability and consistency in AI responses over time.",
   "Integrity": "Verifies truthfulness and resistance to manipulation or hallucination.",
-  "Bedau Index": "Creativity Score. Measures if the AI is generating new ideas or just repeating patterns. (Technically: A composite metric measuring emergent behavior)."
+  "Bedau Index": "Creativity Score. Measures if the AI is generating new ideas or just repeating patterns. (Technically: A composite metric measuring emergent behavior).",
   "Emergence": "Unexpected collective behaviors arising from multi-agent interactions that cannot be predicted from individual agents alone.",
   "Novelty": "Component of emergence measuring new, previously unobserved patterns in agent behavior.",
   "Unpredictability": "Component of emergence measuring deviation from expected behavioral models.",
