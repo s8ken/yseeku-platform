@@ -1,6 +1,18 @@
-numpy
-sentence-transformers
-scikit-learn
-fastapi
-uvicorn
-pydantic
+# SONATE Semantic Coprocessor Dependencies
+# Python 3.8+
+
+# FastAPI web framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# ML / NLP
+sentence-transformers>=2.2.2
+torch>=2.0.0
+numpy>=1.24.0
+
+# Data validation
+pydantic>=2.0.0
+
+# Optional: For better performance
+# transformers>=4.35.0
+# accelerate>=0.24.0

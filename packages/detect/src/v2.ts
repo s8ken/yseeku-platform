@@ -9,12 +9,23 @@
  * For true semantic analysis, see docs/SEMANTIC_COPROCESSOR.md for Python ML integration plans.
  * 
  * The projections capture lexical/structural patterns but do NOT understand meaning.
+ * 
+ * SEMANTIC COPROCESSOR INTEGRATION:
+ * When SONATE_SEMANTIC_COPROCESSOR_ENABLED=true, the calculator will use ML-based semantic embeddings
+ * from the Python coprocessor service. When unavailable, it falls back to structural projections.
  */
 
 import { adversarialCheck, AdversarialEvidence } from './adversarial';
 import { CANONICAL_SCAFFOLD_VECTOR } from './constants';
 import { normalizeScore } from './model-normalize';
 import { classifyStakes, StakesEvidence } from './stakes';
+import { 
+  semanticCoprocessor, 
+  isSemanticCoprocessorEnabled,
+  EmbeddingRequest,
+  SimilarityRequest,
+  ResonanceRequest
+} from './semantic-coprocessor-client';
 
 // Import constants - using inline definition to avoid circular dependency issues
 // See: https://github.com/s8ken/yseeku-platform/issues/XX for tracking
@@ -501,6 +512,71 @@ export async function explainableSonateResonance(
   };
 }
 
+/**
+ * Calculate resonance using Semantic Coprocessor (ML-based)
+ * 
+ * When SONATE_SEMANTIC_COPROCESSOR_ENABLED=true and the coprocessor is available,
+ * this function uses ML embeddings for more accurate resonance calculation.
+ * Falls back to structural projections if coprocessor is unavailable.
+ * 
+ * @param agentSystemPrompt - Agent's system prompt
+ * @param userMessage - User's message
+ * @param agentResponse - Agent's response
+ * @returns ML-based resonance result with fallback support
+ */
+async function calculateSemanticResonance(
+  agentSystemPrompt: string,
+  userMessage: string,
+  agentResponse: string
+): Promise<{ resonance_score: number; alignment_score: number; coherence_score: number; used_ml: boolean }> {
+  if (!isSemanticCoprocessorEnabled()) {
+    // Fallback to structural projections
+    const promptProj = createStructuralProjection(agentSystemPrompt);
+    const userProj = createStructuralProjection(userMessage);
+    const responseProj = createStructuralProjection(agentResponse);
+
+    const alignmentScore = projectionDistance(promptProj, responseProj);
+    const relevanceScore = projectionDistance(userProj, responseProj);
+    const coherenceScore = (alignmentScore + relevanceScore) / 2;
+    const resonanceScore = 0.5 * alignmentScore + 0.3 * relevanceScore + 0.2 * coherenceScore;
+
+    return { resonance_score: resonanceScore, alignment_score: alignmentScore, coherence_score: coherenceScore, used_ml: false };
+  }
+
+  try {
+    // Use Semantic Coprocessor for ML-based resonance
+    const resonanceRequest: ResonanceRequest = {
+      agent_system_prompt: agentSystemPrompt,
+      user_message: userMessage,
+      agent_response: agentResponse,
+      model: 'fast', // Use fast model for production
+    };
+
+    const resonanceResult = await semanticCoprocessor.resonance(resonanceRequest);
+
+    return {
+      resonance_score: resonanceResult.resonance_score,
+      alignment_score: resonanceResult.alignment_score,
+      coherence_score: resonanceResult.coherence_score,
+      used_ml: true,
+    };
+  } catch (error) {
+    console.warn('[CalculatorV2] Semantic Coprocessor failed, falling back to structural projections:', error);
+
+    // Fallback to structural projections
+    const promptProj = createStructuralProjection(agentSystemPrompt);
+    const userProj = createStructuralProjection(userMessage);
+    const responseProj = createStructuralProjection(agentResponse);
+
+    const alignmentScore = projectionDistance(promptProj, responseProj);
+    const relevanceScore = projectionDistance(userProj, responseProj);
+    const coherenceScore = (alignmentScore + relevanceScore) / 2;
+    const resonanceScore = 0.5 * alignmentScore + 0.3 * relevanceScore + 0.2 * coherenceScore;
+
+    return { resonance_score: resonanceScore, alignment_score: alignmentScore, coherence_score: coherenceScore, used_ml: false };
+  }
+}
+
 export async function robustSonateResonance(transcript: Transcript): Promise<RobustResonanceResult> {
   const text = transcript.text;
   const { is_adversarial, penalty, evidence } = await adversarialCheck(text, CANONICAL_SCAFFOLD_VECTOR);
@@ -581,6 +657,33 @@ export const CalculatorV2 = {
     options?: { max_evidence?: number }
   ): Promise<ExplainedResonance> {
     return explainableSonateResonance(transcript, options);
+  },
+  /**
+   * Calculate ML-based resonance using Semantic Coprocessor
+   * 
+   * @param agentSystemPrompt - Agent's system prompt
+   * @param userMessage - User's message
+   * @param agentResponse - Agent's response
+   * @returns Resonance score with alignment and coherence metrics
+   */
+  async computeSemanticResonance(
+    agentSystemPrompt: string,
+    userMessage: string,
+    agentResponse: string
+  ): Promise<{ resonance_score: number; alignment_score: number; coherence_score: number; used_ml: boolean }> {
+    return calculateSemanticResonance(agentSystemPrompt, userMessage, agentResponse);
+  },
+  /**
+   * Check if Semantic Coprocessor is available
+   */
+  async isSemanticCoprocessorAvailable(): Promise<boolean> {
+    return semanticCoprocessor.healthCheck();
+  },
+  /**
+   * Get Semantic Coprocessor statistics
+   */
+  getSemanticCoprocessorStats() {
+    return semanticCoprocessor.getStats();
   },
   getWeights() {
     return { ...CANONICAL_WEIGHTS };
