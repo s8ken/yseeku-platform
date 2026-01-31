@@ -1,114 +1,89 @@
-# Semantic Coprocessor & Middleware Integration Tasks
+# Frontend Deep Dive & Reimagination
 
-## Task Overview
-Complete the Semantic Coprocessor implementation, wire up new security middleware, and clean up dist artifacts.
+## Phase 1: Diagnose Current Issues
 
----
+### Demo/Live Mode Investigation
+- [x] Examine DemoContext.tsx - tenant switching logic
+- [x] Check use-demo-data.ts - data source for demo mode
+- [x] Verify dashboard data fetching for live mode
+- [x] Identify why live mode shows demo data instead of blank slate
+- [x] Check API routes: demo.routes.ts vs live.routes.ts vs dashboard.routes.ts
 
-## Phase 1: Wire Up New Middleware
+### Dashboard Update Issue Investigation
+- [x] Examine ChatContainer.tsx - chat interaction flow
+- [x] Check useDashboardInvalidation - query invalidation after chat
+- [x] Verify WebSocket events for real-time updates
+- [x] Check trust receipt creation after chat
+- [x] Identify why dashboard doesn't update after live interaction
 
-### Backend Index.ts Updates
-- [x] Examine current backend index.ts structure
-- [x] Determine optimal order for middleware (security headers → rate limiting → input validation)
-- [x] Wire up security-headers.ts middleware
-- [x] Wire up tenant-rate-limit.ts middleware
-- [x] Wire up input-validation.ts middleware
-- [x] Add appropriate error handling for middleware failures
-- [ ] Test middleware loading and execution order
-
----
-
-## Phase 2: Clean Up Dist Directory
-
-### Build Artifact Management
-- [x] Review .gitignore for dist/ directory handling
-- [x] Clean current dist/ changes
-- [x] Commit or ignore build artifacts properly
-- [x] Verify clean git status
+### Semantic Coprocessor Frontend Integration
+- [x] Review where resonance is displayed in UI
+- [x] Check if Semantic Coprocessor status is shown
+- [x] Identify opportunities to show ML vs structural usage
+- [x] Plan UI elements for semantic features
 
 ---
 
-## Phase 3: Complete Semantic Coprocessor
+## Phase 2: Reimagine Frontend Architecture
 
-### Python FastAPI Server Implementation
-- [x] Implement embedding endpoints using SentenceTransformer
-- [x] Add cosine similarity calculation
-- [x] Implement resonance calculator endpoint
-- [x] Add health check and metrics endpoints
-- [x] Configure CORS for development
-- [x] Add proper error handling and logging
-- [x] Create requirements.txt with dependencies
-- [x] Add Docker configuration
+### Design Principles
+- Clear separation between Demo (pre-seeded) and Live (blank slate) modes
+- Real-time updates for Live mode
+- Showcase Semantic Coprocessor features
+- Highlight v2.0.1 changes (3 validated dimensions)
 
-### TypeScript Client Implementation
-- [x] Complete semantic-coprocessor-client.ts implementation
-- [x] Add retry logic and timeout handling
-- [x] Implement fallback to structural projection
-- [x] Add connection pooling and health checks
-- [x] Create environment configuration
-- [x] Add TypeScript types for API responses
-- [ ] Write unit tests for client
+### Proposed Changes
+1. **Enhanced Demo/Live Mode Toggle**
+   - Visual indicator of current mode
+   - Mode-specific messaging
+   - Reset functionality for Live mode
 
-### Integration with Existing Code
-- [x] Update v2.ts to use Semantic Coprocessor when available
-- [x] Update resonance calculator to use ML embeddings
-- [x] Add configuration toggle for Semantic Coprocessor (enabled/disabled)
-- [x] Update documentation with deployment instructions
-- [ ] Add integration tests
-- [ ] Create deployment guide
+2. **Real-Time Dashboard Updates**
+   - WebSocket integration for live metrics
+   - Immediate reflection of interactions
+   - Animated counters
 
----
+3. **Semantic Coprocessor Dashboard**
+   - Show coprocessor availability status
+   - Display ML vs structural usage stats
+   - Resonance quality visualization
+   - Performance metrics
 
-## Phase 4: Testing & Validation
-
-### Middleware Testing
-- [ ] Test security headers are applied correctly
-- [ ] Test tenant rate limiting by tenant
-- [ ] Test input validation with malformed requests
-- [ ] Test error responses from middleware
-
-### Semantic Coprocessor Testing
-- [ ] Test Python server startup and health check
-- [ ] Test embedding generation with sample text
-- [ ] Test cosine similarity calculation
-- [ ] Test resonance calculation with embeddings
-- [ ] Test fallback to structural projection
-- [ ] Test error handling and retries
-- [ ] Performance benchmarking (embedding generation latency)
-
-### End-to-End Testing
-- [ ] Test trust evaluation with Semantic Coprocessor enabled
-- [ ] Test dashboard updates with ML-based resonance
-- [ ] Verify all integration tests pass
-- [ ] Test with and without Semantic Coprocessor available
+4. **Trust Analytics Dashboard Redesign**
+   - Show v2.0.1 validated dimensions only
+   - Real-time interaction counter
+   - Live mode: blank slate → populate as interactions happen
+   - Demo mode: pre-seeded with realistic data
 
 ---
 
-## Phase 5: Documentation & Deployment
+## Phase 3: Implementation Plan
 
-### Documentation
-- [ ] Update SEMANTIC_COPROCESSOR.md with complete implementation
-- [ ] Add deployment instructions for Python server
-- [ ] Update architecture diagrams
-- [ ] Add performance characteristics
-- [ ] Document fallback behavior
+### Critical Fixes
+- [x] Fix live mode data source (should use live.routes.ts not demo data)
+- [x] Fix dashboard real-time updates after chat
+- [x] Ensure trust receipts are created and queried correctly
+- [x] Add WebSocket listener for dashboard updates
 
-### Deployment Preparation
-- [ ] Create Docker Compose file for local development
-- [ ] Add deployment scripts
-- [ ] Configure environment variables
-- [ ] Add monitoring for Python server
-- [ ] Test deployment flow
+### Enhancements
+- [x] Add mode indicator in UI
+- [x] Add Semantic Coprocessor status panel
+- [x] Show ML vs structural fallback stats
+- [x] Add resonance quality visualization
+- [x] Update dashboard to show v2.0.1 dimensions only
+
+### Testing
+- [ ] Test live mode starts blank
+- [ ] Test chat populates dashboard
+- [ ] Test demo mode shows pre-seeded data
+- [ ] Test mode switching clears data
+- [ ] Test Semantic Coprocessor integration
 
 ---
 
-## Deliverables
+## Phase 4: Documentation & Deployment
 
-1. ✅ Middleware wired up in index.ts
-2. ✅ Clean git status (no dist/ artifacts)
-3. ✅ Complete Python FastAPI Semantic Coprocessor server
-4. ✅ Complete TypeScript client with fallback logic
-5. ✅ Integration with existing calculators
-6. ✅ Comprehensive tests
-7. ✅ Complete documentation
-8. ✅ Deployment ready
+- [ ] Update frontend documentation
+- [ ] Add user guide for Demo vs Live modes
+- [ ] Document Semantic Coprocessor features
+- [ ] Deploy and verify fixes
