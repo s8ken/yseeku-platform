@@ -47,11 +47,15 @@ interface KPIData {
   experimentsRunning: number;
   orchestratorsActive: number;
   sonateDimensions: {
-    realityIndex: number;
+    // v2.0.1: Only 3 validated dimensions
     trustProtocol: string;
     ethicalAlignment: number;
     resonanceQuality: string;
-    canvasParity: number;
+    // Deprecated fields - kept for backward compatibility, always 0
+    /** @deprecated Removed in v2.0.1 - always returns 0 */
+    realityIndex?: number;
+    /** @deprecated Removed in v2.0.1 - always returns 0 */
+    canvasParity?: number;
   };
   trends: {
     trustScore: { change: number; direction: string };
@@ -280,7 +284,10 @@ export default function DashboardPage() {
         />
       )}
 
-      <OverseerWidget />
+      <div className="grid gap-6 md:grid-cols-2">
+        <OverseerWidget />
+        <SemanticCoprocessorStatus />
+      </div>
 
       {kpis && (
         <>

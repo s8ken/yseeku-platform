@@ -9,6 +9,10 @@
  * For true semantic analysis, see docs/SEMANTIC_COPROCESSOR.md for Python ML integration plans.
  *
  * The projections capture lexical/structural patterns but do NOT understand meaning.
+ *
+ * SEMANTIC COPROCESSOR INTEGRATION:
+ * When SONATE_SEMANTIC_COPROCESSOR_ENABLED=true, the calculator will use ML-based semantic embeddings
+ * from the Python coprocessor service. When unavailable, it falls back to structural projections.
  */
 import { AdversarialEvidence } from './adversarial';
 import { StakesEvidence } from './stakes';
@@ -129,6 +133,28 @@ export declare const CalculatorV2: {
     computeExplainable(transcript: Transcript, options?: {
         max_evidence?: number;
     }): Promise<ExplainedResonance>;
+    /**
+     * Calculate ML-based resonance using Semantic Coprocessor
+     *
+     * @param agentSystemPrompt - Agent's system prompt
+     * @param userMessage - User's message
+     * @param agentResponse - Agent's response
+     * @returns Resonance score with alignment and coherence metrics
+     */
+    computeSemanticResonance(agentSystemPrompt: string, userMessage: string, agentResponse: string): Promise<{
+        resonance_score: number;
+        alignment_score: number;
+        coherence_score: number;
+        used_ml: boolean;
+    }>;
+    /**
+     * Check if Semantic Coprocessor is available
+     */
+    isSemanticCoprocessorAvailable(): Promise<boolean>;
+    /**
+     * Get Semantic Coprocessor statistics
+     */
+    getSemanticCoprocessorStats(): import("./semantic-coprocessor-client").ClientStats;
     getWeights(): {
         alignment: 0.3;
         continuity: 0.3;
