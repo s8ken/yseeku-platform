@@ -3,20 +3,7 @@
  * Initialization, status, and KPI endpoints for demo dashboard
  */
 
-import { Router, Request, Re      totalInteractions: demoInteractions,
-      activeAgents: 5,
-      complianceRate: 88.0,
-      riskScore: 2,
-      alertsCount: alertSummary.active || 3,
-      experimentsRunning: 2,
-      orchestratorsActive: 3,
-      sonateDimensions: {
-        realityIndex: 8.4,
-        trustProtocol: 'PASS',
-        ethicalAlignment: 8.6,
-        resonanceQuality: 'ADVANCED',
-        canvasParity: 88,
-      },'express';
+import { Router, Request, Response } from 'express';
 import { alertsService } from '../../services/alerts.service';
 import { demoSeederService } from '../../services/demo-seeder.service';
 import { Agent } from '../../models/agent.model';
