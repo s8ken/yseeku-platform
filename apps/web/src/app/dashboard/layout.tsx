@@ -56,8 +56,6 @@ import { DemoModeBanner } from '@/components/demo-mode-banner';
 import { DemoInitializer } from '@/components/demo-initializer';
 import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
 import { useDemo } from '@/hooks/use-demo';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api';
 
 type ModuleType = 'detect' | 'lab' | 'orchestrate';
 
@@ -149,37 +147,15 @@ const defaultUser = {
   tenantId: 'default'
 };
 
-const demoTenants = [
-  { id: 'demo-tenant', name: 'Demo Organization' },
-  { id: 'acme-corp', name: 'Acme Corp' },
-  { id: 'techstart', name: 'TechStart Inc' }
-];
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedModules, setExpandedModules] = useState<ModuleType[]>(['detect', 'lab', 'orchestrate']);
-  const [selectedTenantId, setSelectedTenantId] = useState('default');
   const pathname = usePathname();
   const startTutorial = useTutorialStore(state => state.startTutorial);
-  const { isDemo, isLoaded, toggleDemo, enableDemo } = useDemo();
+  const { isDemo, isLoaded, toggleDemo, enableDemo, currentTenantId, DEMO_TENANT_ID, LIVE_TENANT_ID } = useDemo();
 
-  // Fetch real tenants when not in demo mode
-  const { data: tenantsData } = useQuery({
-    queryKey: ['tenants-list'],
-    queryFn: () => api.getDemoTenants(),
-    staleTime: 60000,
-    enabled: isLoaded,
-  });
-
-  // Determine user and tenants based on mode
+  // Determine user based on mode
   const currentUser = isDemo ? demoUser : defaultUser;
-  // tenantsData can be array directly or object with data property
-  const tenantsArray = Array.isArray(tenantsData) 
-    ? tenantsData 
-    : (tenantsData && typeof tenantsData === 'object' && 'data' in tenantsData) 
-      ? (tenantsData as { data: Array<{ id: string; name: string }> }).data 
-      : null;
-  const tenants = isDemo ? demoTenants : (tenantsArray || [{ id: 'default', name: 'Default Tenant' }]);
 
   // Initialize demo mode on first load if URL has ?demo=true
   useEffect(() => {
@@ -382,18 +358,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Button variant="outline" size="sm" className="gap-2">
                   <Building2 className="h-4 w-4" />
                   <span className="hidden sm:inline">
-                    {tenants.find((t: any) => t.id === currentUser.tenantId || t._id === currentUser.tenantId)?.name || 'Select Tenant'}
+                    {isDemo ? 'Demo Organization' : 'Live Organization'}
                   </span>
                   <ChevronDown className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 dark:bg-slate-900">
-                {tenants.map((tenant: any) => (
-                  <DropdownMenuItem key={tenant.id || tenant._id} className="cursor-pointer">
-                    <Building2 className="mr-2 h-4 w-4" />
-                    {tenant.name}
-                  </DropdownMenuItem>
-                ))}
+                <DropdownMenuItem 
+                  className={cn("cursor-pointer", isDemo && "bg-muted")}
+                  onClick={() => !isDemo && toggleDemo()}
+                >
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Demo Organization
+                  {isDemo && <span className="ml-auto text-xs text-muted-foreground">Active</span>}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className={cn("cursor-pointer", !isDemo && "bg-muted")}
+                  onClick={() => isDemo && toggleDemo()}
+                >
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Live Organization
+                  {!isDemo && <span className="ml-auto text-xs text-muted-foreground">Active</span>}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 

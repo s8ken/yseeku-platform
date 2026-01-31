@@ -151,6 +151,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   }, [initializeDemo, startExpiryTimer]);
 
   const enableDemo = useCallback(async () => {
+    console.log('[DemoContext] Enabling demo mode');
     localStorage.setItem(DEMO_STORAGE_KEY, 'true');
     localStorage.removeItem(DEMO_START_TIME_KEY);
     localStorage.removeItem(DEMO_FIRST_VISIT_KEY);
@@ -158,11 +159,12 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     setIsFirstVisit(true);
     await initializeDemo();
     startExpiryTimer();
-    // Clear all cached queries and refetch
-    await queryClient.resetQueries();
+    // Clear cache completely and let queries refetch with new tenant
+    queryClient.clear();
   }, [initializeDemo, startExpiryTimer, queryClient]);
 
   const disableDemo = useCallback(() => {
+    console.log('[DemoContext] Disabling demo mode (switching to live)');
     localStorage.removeItem(DEMO_STORAGE_KEY);
     localStorage.removeItem(DEMO_START_TIME_KEY);
     localStorage.removeItem(DEMO_FIRST_VISIT_KEY);
@@ -181,8 +183,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       window.history.replaceState({}, '', url.toString());
     }
     
-    // Clear all cached queries and refetch
-    queryClient.resetQueries();
+    // Clear cache completely and let queries refetch with new tenant
+    queryClient.clear();
   }, [queryClient]);
 
   const toggleDemo = useCallback(async () => {
