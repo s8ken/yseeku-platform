@@ -2,6 +2,7 @@
 
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { useDemo } from './use-demo';
+import { fetchAPI } from '@/lib/api/client';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -26,22 +27,16 @@ async function fetchData<T>(
   tenantId: string,
   transform?: (data: any) => T
 ): Promise<T> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  // Use fetchAPI which handles authentication (including auto guest login)
+  // and sets proper headers including X-Tenant-ID
+  const response = await fetchAPI<{ success: boolean; data?: any; error?: string }>(endpoint, {
     headers: {
-      'Content-Type': 'application/json',
       'X-Tenant-ID': tenantId,
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
-
-  if (!res.ok) {
-    throw new Error(`API error: ${res.status}`);
-  }
-
-  const json = await res.json();
-  const data = json.data || json;
+  
+  // Extract data from response
+  const data = (response as any).data || response;
   
   return transform ? transform(data) : data;
 }
