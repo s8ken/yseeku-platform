@@ -20,11 +20,16 @@ export function useDashboardInvalidation() {
    * Call this after a successful chat interaction that generates a trust receipt
    */
   const invalidateDashboard = useCallback(() => {
+    console.log('[useDashboardInvalidation] Starting query invalidation...');
+    
     // Invalidate all dashboard KPI queries
     queryClient.invalidateQueries({ queryKey: ['dashboard-kpis'] });
+    console.log('[useDashboardInvalidation] Invalidated: dashboard-kpis');
     
     // Invalidate trust-related queries
     queryClient.invalidateQueries({ queryKey: ['trust-analytics'] });
+    console.log('[useDashboardInvalidation] Invalidated: trust-analytics');
+    
     queryClient.invalidateQueries({ queryKey: ['trust-receipts'] });
     queryClient.invalidateQueries({ queryKey: ['receipts'] });
     
@@ -43,7 +48,7 @@ export function useDashboardInvalidation() {
     // Invalidate interactions list
     queryClient.invalidateQueries({ queryKey: ['interactions'] });
     
-    console.log('[Dashboard] Invalidated queries after new interaction');
+    console.log('[useDashboardInvalidation] All queries invalidated - dashboard should refetch');
   }, [queryClient]);
 
   /**

@@ -661,6 +661,15 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
 
           // Persist receipt in TrustReceipt collection (upsert)
           try {
+            const tenantId = req.userTenant || 'default';
+            logger.info('[TRUST RECEIPT] Creating trust receipt', {
+              conversationId: conversation._id.toString(),
+              tenantId,
+              receiptHash: aiTrustEval.receiptHash,
+              trustScore: aiTrustEval.trustScore.overall,
+              status: aiTrustEval.status,
+            });
+            
             await TrustReceiptModel.updateOne(
               { self_hash: aiTrustEval.receiptHash },
               {
@@ -673,7 +682,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
                   ciq_metrics: aiTrustEval.receipt.ciq_metrics || { clarity: 0, integrity: 0, quality: 0 },
                   previous_hash: (aiTrustEval.receipt as any).previous_hash,
                   signature: aiTrustEval.signature,
-                  tenant_id: req.userTenant || 'default',
+                  tenant_id: tenantId,
                   issuer: aiTrustEval.issuer,
                   subject: aiTrustEval.subject,
                   agent_id: aiMessage.agentId,
@@ -682,8 +691,18 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
               },
               { upsert: true }
             );
+            
+            logger.info('[TRUST RECEIPT] Trust receipt persisted successfully', {
+              conversationId: conversation._id.toString(),
+              tenantId,
+              receiptHash: aiTrustEval.receiptHash,
+            });
           } catch (persistErr: any) {
-            logger.warn('Failed to persist AI trust receipt', { error: persistErr?.message || persistErr });
+            logger.error('[TRUST RECEIPT] Failed to persist AI trust receipt', { 
+              error: persistErr?.message || persistErr,
+              conversationId: conversation._id.toString(),
+              tenantId: req.userTenant || 'default',
+            });
           }
 
           // Update message trust score (convert 0-10 to 0-5 scale)

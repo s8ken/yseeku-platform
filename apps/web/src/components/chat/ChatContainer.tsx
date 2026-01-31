@@ -220,6 +220,7 @@ export const ChatContainer: React.FC = () => {
           });
           
           // Invalidate dashboard queries for consent withdrawal interactions too
+          console.log('[ChatContainer] Invalidating dashboard after consent withdrawal');
           invalidateDashboard();
           return;
         }
@@ -255,6 +256,11 @@ export const ChatContainer: React.FC = () => {
           
           // Invalidate dashboard queries so new interaction data appears
           // This ensures KPIs, trust scores, and interaction counts update
+          console.log('[ChatContainer] Invalidating dashboard after AI response', {
+            conversationId: convRes.data.conversationId,
+            trustScore: trustEval?.trustScore?.overall,
+            status: trustEval?.status,
+          });
           invalidateDashboard();
         } else if (msg.sender === 'user') {
           // This is just a user message - no trust evaluation for user input

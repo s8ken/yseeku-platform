@@ -46,9 +46,20 @@ export function useDemoData<T>(config: DemoDataConfig<T>) {
   
   const endpoint = isDemo ? config.demoEndpoint : config.liveEndpoint;
   
-  return useQuery<T, Error>({
+  console.log('[useDemoData] Query config:', {
     queryKey: [...config.queryKey, isDemo ? 'demo' : 'live'],
-    queryFn: () => fetchData<T>(endpoint, currentTenantId, config.transform),
+    endpoint,
+    currentTenantId,
+    isDemo,
+    isLoaded,
+  });
+  
+  return useQuery<T, Error>({
+    queryKey: [...config.queryKey, isDemo ? 'demo' : 'live', currentTenantId],
+    queryFn: () => {
+      console.log('[useDemoData] Fetching data:', { endpoint, currentTenantId });
+      return fetchData<T>(endpoint, currentTenantId, config.transform);
+    },
     enabled: isLoaded, // Don't fetch until we know if we're in demo mode
     staleTime: 30000,
     ...config.options,
@@ -212,13 +223,17 @@ export interface TrustAnalytics {
 export function useTrustAnalytics() {
   const { isDemo, isLoaded, currentTenantId } = useDemo();
   
+  console.log('[useTrustAnalytics] Hook called:', { isDemo, isLoaded, currentTenantId });
+  
   return useQuery<TrustAnalytics, Error>({
     // Include tenantId in query key to ensure data refreshes when tenant changes
     queryKey: ['trust-analytics', isDemo ? 'demo' : 'live', currentTenantId],
     queryFn: async () => {
+      console.log('[useTrustAnalytics] Query function executing:', { isDemo, currentTenantId });
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       
       if (isDemo) {
+        console.log('[useTrustAnalytics] Fetching DEMO data from /api/demo/kpis');
         // For demo mode, derive analytics from the KPIs endpoint
         const res = await fetch(`${API_BASE}/api/demo/kpis`, {
           headers: { 'Content-Type': 'application/json' },
@@ -227,6 +242,8 @@ export function useTrustAnalytics() {
         if (!res.ok) throw new Error(`API error: ${res.status}`);
         const json = await res.json();
         const kpis = json.data;
+        
+        console.log('[useTrustAnalytics] DEMO data received:', { totalInteractions: kpis.totalInteractions });
         
         // Convert KPI data to analytics format
         return {
@@ -241,6 +258,7 @@ export function useTrustAnalytics() {
         };
       }
       
+      console.log('[useTrustAnalytics] Fetching LIVE data from /api/dashboard/kpis with tenant:', currentTenantId);
       // Live mode - fetch real analytics from trust receipts endpoint
       // This will show actual data from live interactions
       const res = await fetch(`${API_BASE}/api/dashboard/kpis`, {
@@ -253,6 +271,8 @@ export function useTrustAnalytics() {
       if (!res.ok) throw new Error(`API error: ${res.status}`);
       const json = await res.json();
       const kpis = json.data || json;
+      
+      console.log('[useTrustAnalytics] LIVE data received:', { totalInteractions: kpis.totalInteractions });
       
       // Convert live KPI data to analytics format
       const totalInteractions = kpis.totalInteractions || 0;

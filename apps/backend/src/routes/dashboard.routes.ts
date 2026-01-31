@@ -39,6 +39,8 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
     // For live-tenant, query REAL data from Trust Receipts (populated by chat interactions)
     // This makes live mode a production-ready experience that updates as users interact
     if (tenantId === 'live-tenant') {
+      logger.info('[LIVE MODE] Fetching trust receipts for live-tenant', { userId, tenantId });
+      
       // Fetch trust receipts for this tenant (timestamp is Unix ms)
       const [recentReceipts, previousReceipts, allReceipts] = await Promise.all([
         TrustReceiptModel.find({
@@ -51,6 +53,12 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
         }).lean(),
         TrustReceiptModel.find({ tenant_id: 'live-tenant' }).lean(),
       ]);
+      
+      logger.info('[LIVE MODE] Trust receipts fetched', { 
+        recentCount: recentReceipts.length,
+        previousCount: previousReceipts.length,
+        totalCount: allReceipts.length,
+      });
 
       // Fetch related metrics
       const [activeAgentsCount, alertsCount, experimentsCount] = await Promise.all([

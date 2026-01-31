@@ -152,21 +152,29 @@ export function DemoProvider({ children }: { children: ReactNode }) {
 
   const enableDemo = useCallback(async () => {
     console.log('[DemoContext] Enabling demo mode');
+    console.log('[DemoContext] Current tenant before switch:', isDemo ? DEMO_TENANT_ID : LIVE_TENANT_ID);
+    
     localStorage.setItem(DEMO_STORAGE_KEY, 'true');
     localStorage.removeItem(DEMO_START_TIME_KEY);
     localStorage.removeItem(DEMO_FIRST_VISIT_KEY);
     
     // Clear all cached query data first
+    console.log('[DemoContext] Clearing React Query cache...');
     queryClient.clear();
     
+    console.log('[DemoContext] Setting isDemo to true...');
     setIsDemo(true);
     setIsFirstVisit(true);
+    
+    console.log('[DemoContext] New tenant after switch:', DEMO_TENANT_ID);
     await initializeDemo();
     startExpiryTimer();
-  }, [initializeDemo, startExpiryTimer, queryClient]);
+  }, [initializeDemo, startExpiryTimer, queryClient, isDemo]);
 
   const disableDemo = useCallback(async () => {
     console.log('[DemoContext] Disabling demo mode (switching to live)');
+    console.log('[DemoContext] Current tenant before switch:', isDemo ? DEMO_TENANT_ID : LIVE_TENANT_ID);
+    
     localStorage.removeItem(DEMO_STORAGE_KEY);
     localStorage.removeItem(DEMO_START_TIME_KEY);
     localStorage.removeItem(DEMO_FIRST_VISIT_KEY);
@@ -184,13 +192,17 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     
     // Clear all cached query data first, then set state
     // This ensures fresh data is fetched when state updates
+    console.log('[DemoContext] Clearing React Query cache...');
     queryClient.clear();
     
+    console.log('[DemoContext] Setting isDemo to false...');
     setIsDemo(false);
     setIsFirstVisit(false);
     setTimeRemaining(null);
     setShowExpiryWarning(false);
-  }, [queryClient]);
+    
+    console.log('[DemoContext] New tenant after switch:', LIVE_TENANT_ID);
+  }, [queryClient, isDemo]);
 
   const toggleDemo = useCallback(async () => {
     console.log('[DemoContext] Toggling demo mode. Current:', isDemo, '-> New:', !isDemo);
