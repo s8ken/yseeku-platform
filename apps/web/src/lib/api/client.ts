@@ -93,17 +93,21 @@ export async function fetchAPI<T>(
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options?.headers as Record<string, string>),
   };
   
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
   
-  // Add tenant header for multi-tenant support
+  // Add tenant header for multi-tenant support (can be overridden by options)
   const tenant = getCurrentTenant();
   if (tenant) {
     headers['X-Tenant-ID'] = tenant;
+  }
+  
+  // Apply any custom headers from options (these take precedence)
+  if (options?.headers) {
+    Object.assign(headers, options.headers as Record<string, string>);
   }
 
   const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
