@@ -30,6 +30,7 @@ import { OverseerWidget } from '@/components/overseer-widget';
 import { WithDemoWatermark } from '@/components/demo-watermark';
 import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
 import { HumanReadableSummary } from '@/components/HumanReadableSummary';
+import { SemanticCoprocessorStatus } from '@/components/SemanticCoprocessorStatus';
 import { useDashboardKPIs, useAlertsData } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
 import { api } from '@/lib/api';
