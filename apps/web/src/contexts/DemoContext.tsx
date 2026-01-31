@@ -155,24 +155,22 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(DEMO_STORAGE_KEY, 'true');
     localStorage.removeItem(DEMO_START_TIME_KEY);
     localStorage.removeItem(DEMO_FIRST_VISIT_KEY);
+    
+    // Clear all cached query data first
+    queryClient.clear();
+    
     setIsDemo(true);
     setIsFirstVisit(true);
     await initializeDemo();
     startExpiryTimer();
-    // Invalidate all queries to refetch with new tenant
-    await queryClient.invalidateQueries();
   }, [initializeDemo, startExpiryTimer, queryClient]);
 
-  const disableDemo = useCallback(() => {
+  const disableDemo = useCallback(async () => {
     console.log('[DemoContext] Disabling demo mode (switching to live)');
     localStorage.removeItem(DEMO_STORAGE_KEY);
     localStorage.removeItem(DEMO_START_TIME_KEY);
     localStorage.removeItem(DEMO_FIRST_VISIT_KEY);
     sessionStorage.removeItem(DEMO_INITIALIZED_KEY);
-    setIsDemo(false);
-    setIsFirstVisit(false);
-    setTimeRemaining(null);
-    setShowExpiryWarning(false);
     
     if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
     if (countdownRef.current) clearInterval(countdownRef.current);
@@ -184,14 +182,20 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       window.history.replaceState({}, '', url.toString());
     }
     
-    // Invalidate all queries to refetch with new tenant
-    queryClient.invalidateQueries();
+    // Clear all cached query data first, then set state
+    // This ensures fresh data is fetched when state updates
+    queryClient.clear();
+    
+    setIsDemo(false);
+    setIsFirstVisit(false);
+    setTimeRemaining(null);
+    setShowExpiryWarning(false);
   }, [queryClient]);
 
   const toggleDemo = useCallback(async () => {
     console.log('[DemoContext] Toggling demo mode. Current:', isDemo, '-> New:', !isDemo);
     if (isDemo) {
-      disableDemo();
+      await disableDemo();
     } else {
       await enableDemo();
     }

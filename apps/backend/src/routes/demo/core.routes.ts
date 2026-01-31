@@ -3,7 +3,20 @@
  * Initialization, status, and KPI endpoints for demo dashboard
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Re      totalInteractions: demoInteractions,
+      activeAgents: 5,
+      complianceRate: 88.0,
+      riskScore: 2,
+      alertsCount: alertSummary.active || 3,
+      experimentsRunning: 2,
+      orchestratorsActive: 3,
+      sonateDimensions: {
+        realityIndex: 8.4,
+        trustProtocol: 'PASS',
+        ethicalAlignment: 8.6,
+        resonanceQuality: 'ADVANCED',
+        canvasParity: 88,
+      },'express';
 import { alertsService } from '../../services/alerts.service';
 import { demoSeederService } from '../../services/demo-seeder.service';
 import { Agent } from '../../models/agent.model';
@@ -102,19 +115,24 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
     // Calculate overall trust score (0-10 scale)
     const trustScore = ((avgClarity + avgIntegrity + avgQuality) / 3) * 2;
 
+    // Use deterministic demo values for consistent display
+    // Demo data should be stable across refreshes
+    const demoTrustScore = 8.8;
+    const demoInteractions = 1503;
+
     const kpiData = {
       tenant: DEMO_TENANT_ID,
       timestamp: new Date().toISOString(),
-      trustScore: Math.round(trustScore * 10) / 10,
+      trustScore: demoTrustScore,
       principleScores: {
-        consent: Math.round(avgIntegrity * 20),
-        inspection: Math.round(avgClarity * 19),
-        validation: Math.round(avgQuality * 18),
-        override: Math.round(avgIntegrity * 19),
+        consent: 92,
+        inspection: 88,
+        validation: 85,
+        override: 90,
         disconnect: 88,
-        moral: Math.round((avgIntegrity + avgQuality) * 9),
+        moral: 87,
       },
-      totalInteractions: receipts.length * 50 + Math.floor(Math.random() * 100),
+      totalInteractions: demoInteractions,
       activeAgents: agents,
       complianceRate: Math.round((trustScore / 10) * 100 * 10) / 10,
       riskScore: Math.max(0, Math.round((10 - trustScore) * 2)),

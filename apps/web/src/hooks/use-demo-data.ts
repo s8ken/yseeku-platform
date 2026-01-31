@@ -254,17 +254,20 @@ export function useTrustAnalytics() {
   });
 }
 
-// Generate realistic-looking trend data for demo mode
+// Generate stable trend data for demo mode (no randomness)
 function generateDemoTrends(currentScore: number): Array<{ date: string; avgTrustScore: number; passRate: number }> {
   const trends = [];
   const now = new Date();
+  
+  // Fixed variations for each day - deterministic pattern
+  const variations = [0.3, -0.2, 0.1, -0.1, 0.2, -0.15, 0];
   
   for (let i = 6; i >= 0; i--) {
     const date = new Date(now);
     date.setDate(date.getDate() - i);
     
-    // Generate slightly varying scores around the current score
-    const variation = (Math.random() - 0.5) * 0.8;
+    // Use fixed variation instead of random
+    const variation = variations[6 - i] || 0;
     const score = Math.min(10, Math.max(0, currentScore + variation));
     
     trends.push({
