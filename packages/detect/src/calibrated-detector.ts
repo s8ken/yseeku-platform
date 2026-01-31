@@ -1,11 +1,21 @@
-import { EnhancedSonateFrameworkDetector } from './detector-enhanced';
-import { computeTextMetrics } from './metrics';
-import { AssessmentInput, AssessmentResult, SonateFrameworkAssessment } from './sonate-types';
-
 /**
  * CalibratedSonateDetector
  * Applies data-driven calibration factors derived from text metrics
+ * 
+ * v2.0.1 CHANGES:
+ * - Removed RealityIndex and CanvasParity from scoring (calculators removed)
+ * - Updated recalculateOverall to use only 3 validated dimensions
  */
+
+import { EnhancedSonateFrameworkDetector } from './detector-enhanced';
+import { computeTextMetrics } from './metrics';
+import { 
+  AssessmentInput, 
+  AssessmentResult, 
+  SonateFrameworkAssessment,
+  createDeprecatedRealityIndex,
+} from './sonate-types';
+
 export class CalibratedSonateDetector {
   private base: EnhancedSonateFrameworkDetector;
 
@@ -32,11 +42,15 @@ export class CalibratedSonateDetector {
     const vocabFactor = m.uniqueTokenRatio > 0.6 ? 1.03 : m.uniqueTokenRatio < 0.35 ? 0.97 : 1.0;
     const numericFactor = m.numericDensity > 0.02 ? 1.02 : 1.0;
 
-    // Calibrate reality & ethics gently; keep trust protocol categorical
-    const realityIndex = {
-      ...a.realityIndex,
-      score: parseFloat(Math.min(10, a.realityIndex.score * tokenFactor * vocabFactor).toFixed(1)),
-    };
+    // v2.0.1: RealityIndex is deprecated, use default if not present
+    const realityIndex = a.realityIndex 
+      ? {
+          ...a.realityIndex,
+          score: parseFloat(Math.min(10, a.realityIndex.score * tokenFactor * vocabFactor).toFixed(1)),
+        }
+      : createDeprecatedRealityIndex();
+
+    // Calibrate ethics gently; keep trust protocol categorical
     const ethicalAlignment = {
       ...a.ethicalAlignment,
       score: parseFloat(
@@ -50,34 +64,44 @@ export class CalibratedSonateDetector {
       resonanceQuality.level = 'ADVANCED';
     }
 
-    const overall = this.recalculateOverall(a, realityIndex, ethicalAlignment, resonanceQuality);
+    // v2.0.1: Use only validated dimensions for overall score
+    const overall = this.recalculateOverall(a, ethicalAlignment, resonanceQuality);
 
-    return { ...a, realityIndex, ethicalAlignment, resonanceQuality, overallScore: overall };
+    return { 
+      ...a, 
+      realityIndex, 
+      ethicalAlignment, 
+      resonanceQuality, 
+      overallScore: overall 
+    };
   }
 
+  /**
+   * v2.0.1: Updated to use only 3 validated dimensions
+   * - Trust Protocol: 40% weight
+   * - Ethical Alignment: 35% weight
+   * - Resonance Quality: 25% weight
+   */
   private recalculateOverall(
     a: SonateFrameworkAssessment,
-    realityIndex: typeof a.realityIndex,
     ethicalAlignment: typeof a.ethicalAlignment,
     resonanceQuality: typeof a.resonanceQuality
   ): number {
-    const realityScore = realityIndex.score * 10;
     const trustScore =
       a.trustProtocol.status === 'PASS' ? 100 : a.trustProtocol.status === 'PARTIAL' ? 50 : 0;
-    const ethicalScore = (ethicalAlignment.score - 1) * 25;
+    const ethicalScore = (ethicalAlignment.score - 1) * 25; // 1-5 -> 0-100
     const resonanceScore =
       resonanceQuality.level === 'BREAKTHROUGH'
         ? 100
         : resonanceQuality.level === 'ADVANCED'
         ? 80
         : 60;
-    const canvasScore = a.canvasParity.score;
+    
+    // v2.0.1: New weights for 3 validated dimensions
     return Math.round(
-      realityScore * 0.25 +
-        trustScore * 0.2 +
-        ethicalScore * 0.2 +
-        resonanceScore * 0.15 +
-        canvasScore * 0.2
+      trustScore * 0.40 +
+      ethicalScore * 0.35 +
+      resonanceScore * 0.25
     );
   }
 }

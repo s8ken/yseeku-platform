@@ -2,7 +2,16 @@
  * SONATE Framework Detector
  *
  * This module implements the core detection and validation algorithms for the SONATE framework.
- * It analyzes content to determine scores across the 5 dimensions of the framework.
+ * 
+ * v2.0.1 CHANGES:
+ * - RealityIndex and CanvasParity calculators removed (trivially gamed)
+ * - These methods are kept for backward compatibility but return default values
+ * - Overall score now calculated from 3 validated dimensions only
+ * 
+ * The SONATE framework now consists of 3 validated dimensions:
+ * 1. Trust Protocol - Security and verification integrity (PASS/PARTIAL/FAIL)
+ * 2. Ethical Alignment - Ethical reasoning and responsibility (1.0-5.0)
+ * 3. Resonance Quality - Interaction quality and emergence (STRONG/ADVANCED/BREAKTHROUGH)
  */
 
 import { v4 as uuidv4 } from 'uuid';
@@ -18,6 +27,8 @@ import {
   ResonanceQuality,
   ResonanceLevel,
   CanvasParity,
+  createDeprecatedRealityIndex,
+  createDeprecatedCanvasParity,
 } from './sonate-types';
 
 /**
@@ -32,20 +43,20 @@ export class EnhancedSonateFrameworkDetector {
     const assessmentId = uuidv4();
     const timestamp = new Date().toISOString();
 
-    // Analyze each dimension of the SONATE framework
-    const realityIndex = this.detectRealityIndex(input);
+    // v2.0.1: Deprecated dimensions return defaults
+    const realityIndex = createDeprecatedRealityIndex();
+    const canvasParity = createDeprecatedCanvasParity();
+    
+    // Analyze validated dimensions of the SONATE framework
     const trustProtocol = this.detectTrustProtocol(input);
     const ethicalAlignment = this.detectEthicalAlignment(input);
     const resonanceQuality = this.detectResonanceQuality(input);
-    const canvasParity = this.detectCanvasParity(input);
 
-    // Calculate overall score (weighted average of all dimensions)
+    // Calculate overall score (weighted average of validated dimensions only)
     const overallScore = this.calculateOverallScore({
-      realityIndex,
       trustProtocol,
       ethicalAlignment,
       resonanceQuality,
-      canvasParity,
     });
 
     // Create the complete assessment
@@ -53,11 +64,11 @@ export class EnhancedSonateFrameworkDetector {
       id: assessmentId,
       timestamp,
       contentId: input.metadata?.source || 'unknown',
-      realityIndex,
+      realityIndex, // v2.0.1: Deprecated, returns default
       trustProtocol,
       ethicalAlignment,
       resonanceQuality,
-      canvasParity,
+      canvasParity, // v2.0.1: Deprecated, returns default
       overallScore,
       validationStatus: 'PENDING',
     };
@@ -77,191 +88,17 @@ export class EnhancedSonateFrameworkDetector {
   }
 
   /**
-   * Detect Reality Index (0.0-10.0)
+   * @deprecated v2.0.1 - RealityIndex calculator was removed (trivially gamed)
+   * This method is kept for backward compatibility but returns default values
    */
-  private detectRealityIndex(input: AssessmentInput): RealityIndex {
-    // Implementation of Reality Index detection algorithm
-    // This would analyze the content for mission alignment, contextual coherence, etc.
-
-    // For demonstration, using placeholder logic
-    const content = input.content.toLowerCase();
-
-    // Analyze mission alignment (check for goal-oriented language)
-    const missionAlignmentScore = this.calculateMissionAlignment(content);
-
-    // Analyze contextual coherence (check for consistent context)
-    const contextualCoherenceScore = this.calculateContextualCoherence(content);
-
-    // Analyze technical accuracy (check for technical terms and accuracy)
-    const technicalAccuracyScore = this.calculateTechnicalAccuracy(content);
-
-    // Analyze authenticity (check for genuine, non-generic content)
-    const authenticityScore = this.calculateAuthenticity(content);
-
-    // Calculate overall Reality Index score (average of components)
-    const overallScore =
-      (missionAlignmentScore +
-        contextualCoherenceScore +
-        technicalAccuracyScore +
-        authenticityScore) /
-      4;
-
-    return {
-      score: parseFloat(overallScore.toFixed(1)),
-      missionAlignment: missionAlignmentScore,
-      contextualCoherence: contextualCoherenceScore,
-      technicalAccuracy: technicalAccuracyScore,
-      authenticity: authenticityScore,
-    };
-  }
-
-  /**
-   * Calculate Mission Alignment score
-   */
-  private calculateMissionAlignment(content: string): number {
-    // Check for goal-oriented language and mission-related terms
-    const goalTerms = ['goal', 'mission', 'purpose', 'objective', 'aim', 'target'];
-    const alignmentTerms = ['align', 'consistent', 'coherent', 'harmony', 'synergy'];
-
-    let score = 5.0; // Base score
-
-    // Increase score for goal-oriented language
-    goalTerms.forEach((term) => {
-      if (content.includes(term)) {score += 0.5;}
-    });
-
-    // Increase score for alignment language
-    alignmentTerms.forEach((term) => {
-      if (content.includes(term)) {score += 0.5;}
-    });
-
-    // Cap score at 10.0
-    return Math.min(10.0, score);
-  }
-
-  /**
-   * Calculate Contextual Coherence score
-   */
-  private calculateContextualCoherence(content: string): number {
-    // Check for contextual consistency and coherence
-    // This would be more sophisticated in a real implementation
-
-    // Simple implementation for demonstration
-    const sentences = content.split(/[.!?]+/).filter((s) => s.trim().length > 0);
-
-    if (sentences.length < 3) {return 5.0;} // Not enough content to analyze
-
-    // Check for coherence between sentences
-    let coherenceScore = 5.0;
-
-    // Analyze sentence transitions and contextual flow
-    // This is a simplified placeholder - real implementation would be more sophisticated
-    for (let i = 1; i < sentences.length; i++) {
-      const prevSentence = sentences[i - 1].toLowerCase();
-      const currentSentence = sentences[i].toLowerCase();
-
-      // Check for common words between sentences (simple coherence check)
-      const prevWords = new Set(prevSentence.split(/\s+/).filter((w) => w.length > 3));
-      const currentWords = currentSentence.split(/\s+/).filter((w) => w.length > 3);
-
-      let commonWords = 0;
-      currentWords.forEach((word) => {
-        if (prevWords.has(word)) {commonWords++;}
-      });
-
-      // Adjust score based on common words
-      if (commonWords > 0) {coherenceScore += 0.2;}
-    }
-
-    return Math.min(10.0, coherenceScore);
-  }
-
-  /**
-   * Calculate Technical Accuracy score
-   */
-  private calculateTechnicalAccuracy(content: string): number {
-    // Check for technical terms and accuracy
-    // This would be more sophisticated in a real implementation
-
-    // Technical terms that might indicate accuracy
-    const technicalTerms = [
-      'algorithm',
-      'framework',
-      'system',
-      'process',
-      'method',
-      'analysis',
-      'data',
-      'research',
-      'implementation',
-      'development',
-    ];
-
-    let score = 5.0; // Base score
-
-    // Increase score for technical language
-    technicalTerms.forEach((term) => {
-      if (content.includes(term)) {score += 0.3;}
-    });
-
-    // Check for numerical data (often indicates technical precision)
-    const hasNumbers = /\d+(\.\d+)?%?/.test(content);
-    if (hasNumbers) {score += 1.0;}
-
-    // Check for citations or references
-    const hasCitations = /\[\d+\]|\(\d{4}\)/.test(content);
-    if (hasCitations) {score += 1.5;}
-
-    return Math.min(10.0, score);
-  }
-
-  /**
-   * Calculate Authenticity score
-   */
-  private calculateAuthenticity(content: string): number {
-    // Check for authentic, non-generic content
-    // This would be more sophisticated in a real implementation
-
-    // Generic phrases that might indicate lack of authenticity
-    const genericPhrases = [
-      'at the end of the day',
-      'think outside the box',
-      'best practices',
-      'going forward',
-      'touch base',
-      'circle back',
-      'low hanging fruit',
-      'move the needle',
-      'paradigm shift',
-    ];
-
-    let score = 7.0; // Start with a higher base score
-
-    // Decrease score for generic language
-    genericPhrases.forEach((phrase) => {
-      if (content.includes(phrase)) {score -= 0.5;}
-    });
-
-    // Check for specific details (often indicates authenticity)
-    const hasSpecificDetails = /\d{4}|\d{1,2}\/\d{1,2}\/\d{2,4}|[A-Z][a-z]+ \d{1,2}, \d{4}/.test(
-      content
-    );
-    if (hasSpecificDetails) {score += 1.0;}
-
-    // Check for first-person perspective (often more authentic)
-    const hasFirstPerson = /\b(I|we|our|my)\b/i.test(content);
-    if (hasFirstPerson) {score += 0.5;}
-
-    return Math.min(10.0, Math.max(0.0, score));
+  private detectRealityIndex(_input: AssessmentInput): RealityIndex {
+    return createDeprecatedRealityIndex();
   }
 
   /**
    * Detect Trust Protocol (PASS/PARTIAL/FAIL)
    */
   private detectTrustProtocol(input: AssessmentInput): TrustProtocol {
-    // Implementation of Trust Protocol detection algorithm
-
-    // For demonstration, using placeholder logic
     const content = input.content.toLowerCase();
 
     // Check for verification methods
@@ -341,9 +178,6 @@ export class EnhancedSonateFrameworkDetector {
    * Detect Ethical Alignment (1.0-5.0)
    */
   private detectEthicalAlignment(input: AssessmentInput): EthicalAlignment {
-    // Implementation of Ethical Alignment detection algorithm
-
-    // For demonstration, using placeholder logic
     const content = input.content.toLowerCase();
 
     // Check for limitations acknowledgment
@@ -414,9 +248,6 @@ export class EnhancedSonateFrameworkDetector {
    * Detect Resonance Quality (STRONG/ADVANCED/BREAKTHROUGH)
    */
   private detectResonanceQuality(input: AssessmentInput): ResonanceQuality {
-    // Implementation of Resonance Quality detection algorithm
-
-    // For demonstration, using placeholder logic
     const content = input.content.toLowerCase();
 
     // Calculate creativity score
@@ -450,7 +281,6 @@ export class EnhancedSonateFrameworkDetector {
    * Calculate Creativity Score
    */
   private calculateCreativityScore(content: string): number {
-    // Check for creative language and expressions
     const creativeTerms = [
       'creative',
       'novel',
@@ -489,7 +319,6 @@ export class EnhancedSonateFrameworkDetector {
    * Calculate Synthesis Score
    */
   private calculateSynthesisScore(content: string): number {
-    // Check for synthesis of ideas and concepts
     const synthesisTerms = [
       'combine',
       'integrate',
@@ -528,7 +357,6 @@ export class EnhancedSonateFrameworkDetector {
    * Calculate Innovation Score
    */
   private calculateInnovationScore(content: string): number {
-    // Check for innovative concepts and approaches
     const innovationTerms = [
       'new',
       'breakthrough',
@@ -563,208 +391,26 @@ export class EnhancedSonateFrameworkDetector {
   }
 
   /**
-   * Detect Canvas Parity (0-100)
+   * @deprecated v2.0.1 - CanvasParity calculator was removed (trivially gamed)
+   * This method is kept for backward compatibility but returns default values
    */
-  private detectCanvasParity(input: AssessmentInput): CanvasParity {
-    // Implementation of Canvas Parity detection algorithm
-
-    // For demonstration, using placeholder logic
-    const content = input.content.toLowerCase();
-
-    // Calculate human agency score
-    const humanAgencyScore = this.calculateHumanAgencyScore(content);
-
-    // Calculate AI contribution score
-    const aiContributionScore = this.calculateAIContributionScore(content);
-
-    // Calculate transparency score
-    const transparencyScore = this.calculateTransparencyScore(content);
-
-    // Calculate collaboration quality score
-    const collaborationScore = this.calculateCollaborationScore(content);
-
-    // Calculate overall score (average of components)
-    const overallScore = Math.round(
-      (humanAgencyScore + aiContributionScore + transparencyScore + collaborationScore) / 4
-    );
-
-    return {
-      score: overallScore,
-      humanAgency: humanAgencyScore,
-      aiContribution: aiContributionScore,
-      transparency: transparencyScore,
-      collaborationQuality: collaborationScore,
-    };
+  private detectCanvasParity(_input: AssessmentInput): CanvasParity {
+    return createDeprecatedCanvasParity();
   }
 
   /**
-   * Calculate Human Agency Score
-   */
-  private calculateHumanAgencyScore(content: string): number {
-    // Check for indicators of human agency and control
-    const humanAgencyTerms = [
-      'control',
-      'decide',
-      'choice',
-      'option',
-      'select',
-      'preference',
-      'customize',
-      'personalize',
-      'human',
-      'user',
-    ];
-
-    let score = 50; // Base score
-
-    // Increase score for human agency language
-    humanAgencyTerms.forEach((term) => {
-      if (content.includes(term)) {score += 3;}
-    });
-
-    // Check for first-person language (indicates human agency)
-    const hasFirstPerson = /\b(I|we|our|my)\b/i.test(content);
-    if (hasFirstPerson) {score += 10;}
-
-    // Check for decision-making language
-    const hasDecisionMaking = /decide|decision|chose|choose|selected|determined|opted/.test(
-      content
-    );
-    if (hasDecisionMaking) {score += 10;}
-
-    return Math.min(100, score);
-  }
-
-  /**
-   * Calculate AI Contribution Score
-   */
-  private calculateAIContributionScore(content: string): number {
-    // Check for indicators of AI contribution
-    const aiTerms = [
-      'ai',
-      'artificial intelligence',
-      'model',
-      'algorithm',
-      'automated',
-      'generated',
-      'machine learning',
-      'neural',
-      'prediction',
-      'recommendation',
-    ];
-
-    let score = 50; // Base score
-
-    // Increase score for AI-related language
-    aiTerms.forEach((term) => {
-      if (content.includes(term)) {score += 3;}
-    });
-
-    // Check for automation language
-    const hasAutomation =
-      /automate|automatic|automatically|generate|generated|processed|analyzed/.test(content);
-    if (hasAutomation) {score += 10;}
-
-    // Check for technical AI terminology
-    const hasTechnicalTerms =
-      /neural network|deep learning|transformer|large language model|llm|gpt|bert/.test(content);
-    if (hasTechnicalTerms) {score += 15;}
-
-    return Math.min(100, score);
-  }
-
-  /**
-   * Calculate Transparency Score
-   */
-  private calculateTransparencyScore(content: string): number {
-    // Check for indicators of transparency
-    const transparencyTerms = [
-      'transparent',
-      'clarity',
-      'explain',
-      'disclose',
-      'reveal',
-      'open',
-      'honest',
-      'clear',
-      'visible',
-      'evident',
-    ];
-
-    let score = 50; // Base score
-
-    // Increase score for transparency language
-    transparencyTerms.forEach((term) => {
-      if (content.includes(term)) {score += 3;}
-    });
-
-    // Check for explanatory language
-    const hasExplanations = /because|therefore|thus|hence|due to|as a result|explains|reason/.test(
-      content
-    );
-    if (hasExplanations) {score += 10;}
-
-    // Check for disclosure language
-    const hasDisclosure = /disclose|inform|notify|advise|tell|share|communicate|report/.test(
-      content
-    );
-    if (hasDisclosure) {score += 10;}
-
-    return Math.min(100, score);
-  }
-
-  /**
-   * Calculate Collaboration Score
-   */
-  private calculateCollaborationScore(content: string): number {
-    // Check for indicators of collaboration quality
-    const collaborationTerms = [
-      'collaborate',
-      'together',
-      'partnership',
-      'joint',
-      'team',
-      'cooperate',
-      'collective',
-      'shared',
-      'mutual',
-      'alliance',
-    ];
-
-    let score = 50; // Base score
-
-    // Increase score for collaboration language
-    collaborationTerms.forEach((term) => {
-      if (content.includes(term)) {score += 3;}
-    });
-
-    // Check for inclusive language
-    const hasInclusiveLanguage = /\b(we|our|us|together)\b/i.test(content);
-    if (hasInclusiveLanguage) {score += 10;}
-
-    // Check for interactive language
-    const hasInteraction =
-      /interact|exchange|dialogue|conversation|discussion|feedback|response/.test(content);
-    if (hasInteraction) {score += 10;}
-
-    return Math.min(100, score);
-  }
-
-  /**
-   * Calculate overall score based on all dimensions
+   * Calculate overall score based on validated dimensions only
+   * 
+   * v2.0.1: Updated to use only 3 validated dimensions
+   * - Trust Protocol: 40% weight
+   * - Ethical Alignment: 35% weight
+   * - Resonance Quality: 25% weight
    */
   private calculateOverallScore(assessment: {
-    realityIndex: RealityIndex;
     trustProtocol: TrustProtocol;
     ethicalAlignment: EthicalAlignment;
     resonanceQuality: ResonanceQuality;
-    canvasParity: CanvasParity;
   }): number {
-    // Convert all scores to a 0-100 scale for consistent weighting
-
-    // Reality Index (0-10) → (0-100)
-    const realityScore = assessment.realityIndex.score * 10;
-
     // Trust Protocol (PASS/PARTIAL/FAIL) → (0-100)
     let trustScore = 0;
     if (assessment.trustProtocol.status === 'PASS') {trustScore = 100;}
@@ -779,16 +425,11 @@ export class EnhancedSonateFrameworkDetector {
     else if (assessment.resonanceQuality.level === 'ADVANCED') {resonanceScore = 80;}
     else if (assessment.resonanceQuality.level === 'BREAKTHROUGH') {resonanceScore = 100;}
 
-    // Canvas Parity is already 0-100
-    const canvasScore = assessment.canvasParity.score;
-
-    // Calculate weighted average (weights can be adjusted based on importance)
+    // v2.0.1: New weights for 3 validated dimensions
     const weightedScore =
-      realityScore * 0.25 +
-      trustScore * 0.2 +
-      ethicalScore * 0.2 +
-      resonanceScore * 0.15 +
-      canvasScore * 0.2;
+      trustScore * 0.40 +
+      ethicalScore * 0.35 +
+      resonanceScore * 0.25;
 
     // Return rounded score
     return Math.round(weightedScore);
@@ -796,6 +437,7 @@ export class EnhancedSonateFrameworkDetector {
 
   /**
    * Generate insights based on assessment results
+   * v2.0.1: Updated to focus on validated dimensions
    */
   private generateInsights(assessment: SonateFrameworkAssessment): {
     strengths: string[];
@@ -806,18 +448,6 @@ export class EnhancedSonateFrameworkDetector {
     const weaknesses: string[] = [];
     const recommendations: string[] = [];
 
-    // Analyze Reality Index
-    if (assessment.realityIndex.score >= 8.0) {
-      strengths.push('Strong reality grounding with excellent contextual coherence.');
-    } else if (assessment.realityIndex.score <= 5.0) {
-      weaknesses.push(
-        'Low reality index indicates potential disconnection from real-world context.'
-      );
-      recommendations.push(
-        'Improve contextual coherence by providing more specific, real-world examples.'
-      );
-    }
-
     // Analyze Trust Protocol
     if (assessment.trustProtocol.status === 'PASS') {
       strengths.push('Excellent trust protocol implementation with strong verification methods.');
@@ -827,6 +457,10 @@ export class EnhancedSonateFrameworkDetector {
       );
       recommendations.push(
         'Enhance trust by implementing clear verification methods and maintaining proper boundaries.'
+      );
+    } else {
+      recommendations.push(
+        'Improve trust protocol by strengthening verification methods and security awareness.'
       );
     }
 
@@ -846,16 +480,6 @@ export class EnhancedSonateFrameworkDetector {
     } else if (assessment.resonanceQuality.level === 'STRONG') {
       recommendations.push(
         'Enhance resonance quality by incorporating more innovative approaches and creative synthesis.'
-      );
-    }
-
-    // Analyze Canvas Parity
-    if (assessment.canvasParity.score >= 80) {
-      strengths.push('Excellent canvas parity with balanced human agency and AI contribution.');
-    } else if (assessment.canvasParity.score <= 50) {
-      weaknesses.push('Low canvas parity indicates imbalance between human and AI contributions.');
-      recommendations.push(
-        'Improve collaboration quality by ensuring balanced human agency and AI contribution.'
       );
     }
 

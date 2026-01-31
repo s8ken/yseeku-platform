@@ -1,8 +1,13 @@
 /**
  * Optimized Framework Detector - Sub-50ms Performance Target
  *
- * High-performance implementation of the 5-dimension SONATE Framework detection
+ * High-performance implementation of the SONATE Framework detection
  * Optimized for production use with <50ms latency requirement
+ * 
+ * v2.0.1 CHANGES:
+ * - Removed reality_index and canvas_parity from scoring (calculators removed)
+ * - Updated to use only 3 validated dimensions
+ * - Deprecated methods return default values for backward compatibility
  */
 
 import { TrustReceipt, CIQMetrics } from '@sonate/core';
@@ -11,11 +16,9 @@ import { AIInteraction, DetectionResult } from './index';
 
 // Optimized scoring functions - inline for performance
 interface DimensionScores {
-  reality_index: number;
   trust_protocol: 'PASS' | 'PARTIAL' | 'FAIL';
   ethical_alignment: number;
   resonance_quality: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
-  canvas_parity: number;
 }
 
 interface CachedResult {
@@ -31,6 +34,7 @@ export class OptimizedFrameworkDetector {
 
   /**
    * Optimized detection with sub-50ms target
+   * v2.0.1: Returns only 3 validated dimensions
    */
   async detect(interaction: AIInteraction): Promise<DetectionResult> {
     const startTime = performance.now();
@@ -63,57 +67,22 @@ export class OptimizedFrameworkDetector {
 
   /**
    * Optimized dimension calculation with performance shortcuts
+   * v2.0.1: Only calculates 3 validated dimensions
    */
   private async calculateDimensionsOptimized(interaction: AIInteraction): Promise<DimensionScores> {
     // Fast path: use Promise.all with optimized implementations
-    const [reality_index, trust_protocol, ethical_alignment, resonance_quality, canvas_parity] =
+    const [trust_protocol, ethical_alignment, resonance_quality] =
       await Promise.all([
-        this.calculateRealityIndexFast(interaction),
         this.calculateTrustProtocolFast(interaction),
         this.calculateEthicalAlignmentFast(interaction),
         this.calculateResonanceQualityFast(interaction),
-        this.calculateCanvasParityFast(interaction),
       ]);
 
     return {
-      reality_index,
       trust_protocol,
       ethical_alignment,
       resonance_quality,
-      canvas_parity,
     };
-  }
-
-  /**
-   * Fast reality index calculation (inline, no external calls)
-   */
-  private async calculateRealityIndexFast(interaction: AIInteraction): Promise<number> {
-    const content = interaction.content.toLowerCase();
-    const context = interaction.context.toLowerCase();
-
-    // Quick heuristics for reality scoring
-    let score = 5.0; // Base score
-
-    // Mission alignment (metadata check)
-    if (interaction.metadata.purpose) {score += 1.5;}
-
-    // Contextual coherence (simple keyword matching)
-    const contextWords = context.split(/\s+/);
-    const contentWords = content.split(/\s+/);
-    const overlap = contextWords.filter(
-      (word) => word.length > 3 && contentWords.includes(word)
-    ).length;
-    score += Math.min(overlap * 0.5, 2.0);
-
-    // Technical accuracy (avoidance of uncertainty markers)
-    const uncertaintyMarkers = ['maybe', 'perhaps', 'possibly', 'might', 'could'];
-    const hasUncertainty = uncertaintyMarkers.some((marker) => content.includes(marker));
-    if (!hasUncertainty) {score += 1.0;}
-
-    // Authenticity (AI disclosure)
-    if (interaction.metadata.ai_disclosure) {score += 0.5;}
-
-    return Math.min(Math.max(score, 0), 10);
   }
 
   /**
@@ -258,64 +227,24 @@ export class OptimizedFrameworkDetector {
   }
 
   /**
-   * Fast canvas parity calculation
-   */
-  private async calculateCanvasParityFast(interaction: AIInteraction): Promise<number> {
-    const content = interaction.content;
-    let score = 50; // Base score
-
-    // Collaboration indicators
-    const collaborationWords = [
-      'together',
-      'build',
-      'collaborate',
-      'partner',
-      'team',
-      'combine',
-      'merge',
-      'integrate',
-      'join',
-      'unite',
-    ];
-
-    const collaborationCount = collaborationWords.reduce(
-      (count, word) => count + (content.toLowerCase().split(word).length - 1),
-      0
-    );
-
-    score += collaborationCount * 5;
-
-    // Question indicators (engagement)
-    const questionCount = (content.match(/\?/g) || []).length;
-    score += questionCount * 3;
-
-    // Reference to previous context
-    if (
-      interaction.context &&
-      content.toLowerCase().includes(interaction.context.toLowerCase().substring(0, 20))
-    ) {
-      score += 10;
-    }
-
-    return Math.min(Math.max(score, 0), 100);
-  }
-
-  /**
    * Build final result with optimized receipt generation
+   * v2.0.1: Only includes 3 validated dimensions
    */
   private buildResult(scores: DimensionScores, timestamp: number): DetectionResult {
     // Optimized CIQ calculation
     const ciq: CIQMetrics = {
       clarity: this.calculateClarityFast(scores),
       integrity: scores.trust_protocol === 'PASS' ? 0.9 : 0.5,
-      quality: scores.reality_index / 10,
+      quality: scores.trust_protocol === 'PASS' ? 0.8 : 0.5,
     };
 
     // Fast receipt hash generation
     const receiptHash = this.generateFastHash(scores, timestamp);
 
     return {
-      ...scores,
+      trust_protocol: scores.trust_protocol,
+      ethical_alignment: scores.ethical_alignment,
+      resonance_quality: scores.resonance_quality,
       timestamp,
       receipt_hash: receiptHash,
     };
@@ -323,14 +252,15 @@ export class OptimizedFrameworkDetector {
 
   /**
    * Fast clarity calculation
+   * v2.0.1: Updated to use only validated dimensions
    */
   private calculateClarityFast(scores: DimensionScores): number {
     // Use scores to estimate clarity
-    const realityScore = scores.reality_index / 10;
     const trustScore =
       scores.trust_protocol === 'PASS' ? 1 : scores.trust_protocol === 'PARTIAL' ? 0.5 : 0;
+    const ethicalScore = (scores.ethical_alignment - 1) / 4; // Normalize 1-5 to 0-1
 
-    return (realityScore + trustScore) / 2;
+    return (trustScore + ethicalScore) / 2;
   }
 
   /**
