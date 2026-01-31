@@ -37,19 +37,19 @@ const glossary: Record<string, string> = {
   "Moral Recognition": "AI must recognize and respect human moral agency. Acknowledges humans hold ultimate moral authority (Weight: 10%).",
   
   // LAYER 2: The 5 Derived Monitoring Dimensions (@sonate/detect)
-  "Reality Index": "Mission alignment and factual accuracy score (0-10). Derived from principles to measure grounding in user's reality, factual coherence, and context continuity. Used for real-time production monitoring.",
-  "Trust Protocol": "Verification and security status (PASS/PARTIAL/FAIL). Derived from principles to validate AI behavior meets established protocols. Returns PASS (≥8.0, no violations), PARTIAL (≥5.0), or FAIL (<5.0).",
-  "Ethical Alignment": "Ethical compliance and bias awareness score (1-5). Derived dimension assessing alignment with ethical guidelines, limitations acknowledgment, stakeholder consideration, and transparency.",
-  "Resonance Quality": "Creativity and innovation quality (STRONG/ADVANCED/BREAKTHROUGH). Derived metric detecting synchronized patterns, creative synthesis, innovation, and adaptive learning in AI responses.",
-  "Canvas Parity": "Human agency preservation score (0-100%). Derived dimension measuring how much of user's linguistic structure, agency, contribution transparency, collaboration, and fairness is maintained.",
+  "Reality Index": "Grounding Score. How well the AI sticks to facts and your specific mission context. (Technically: Mission alignment and factual accuracy score 0-10).",
+  "Trust Protocol": "Security Status. Validates that the AI is following all safety protocols. (Technically: Verification and security status PASS/PARTIAL/FAIL).",
+  "Ethical Alignment": "Safety Score. Measures compliance with ethical guidelines and bias prevention. (Technically: Ethical compliance and bias awareness score 1-5).",
+  "Resonance Quality": "Alignment Score. How well the AI 'gets' the user's intent and context. (Technically: Creativity and innovation quality).",
+  "Canvas Parity": "Human Override Check. Confirms humans can intervene when needed. (Technically: Human agency preservation score 0-100%).",
   
   // Original terms
-  "Semantic": "Measures how consistently the AI understands and interprets meaning in context.",
-  "Yield": "Measures the efficiency and quality of AI outputs relative to inputs.",
-  "Moral": "Assesses alignment with ethical guidelines and human values.",
+  "Semantic": "Meaning Score. Measures if the AI truly understands what is being said.",
+  "Yield": "Efficiency Score. Measures the quality of output relative to effort.",
+  "Moral": "Values Alignment. Assesses if the AI respects human values.",
   "Behavioral": "Tracks predictability and consistency in AI responses over time.",
   "Integrity": "Verifies truthfulness and resistance to manipulation or hallucination.",
-  "Bedau Index": "A composite metric (0-1) measuring emergent behavior in AI systems, based on Mark Bedau's complexity theory.",
+  "Bedau Index": "Creativity Score. Measures if the AI is generating new ideas or just repeating patterns. (Technically: A composite metric measuring emergent behavior)."
   "Emergence": "Unexpected collective behaviors arising from multi-agent interactions that cannot be predicted from individual agents alone.",
   "Novelty": "Component of emergence measuring new, previously unobserved patterns in agent behavior.",
   "Unpredictability": "Component of emergence measuring deviation from expected behavioral models.",

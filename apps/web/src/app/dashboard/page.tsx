@@ -29,6 +29,7 @@ import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { OverseerWidget } from '@/components/overseer-widget';
 import { WithDemoWatermark } from '@/components/demo-watermark';
 import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
+import { HumanReadableSummary } from '@/components/HumanReadableSummary';
 import { useDashboardKPIs, useAlertsData } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
 import { api } from '@/lib/api';
@@ -234,7 +235,7 @@ export default function DashboardPage() {
   const alerts = alertData;
   const experiments = (experimentData as any)?.data || experimentData;
 
-  const displayKpis = kpis || {
+  const displayKpis = (kpis || {
     complianceRate: 0,
     alertsCount: (alerts as any)?.summary?.total ?? 0,
     sonateDimensions: {
@@ -244,7 +245,7 @@ export default function DashboardPage() {
       canvasParity: 0,
       resonanceQuality: 'UNKNOWN',
     },
-  } as Partial<KPIData> as KPIData;
+  }) as unknown as KPIData;
 
   if (kpiLoading) {
     return <DashboardPageSkeleton />;
@@ -267,6 +268,17 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {kpis && (
+        <HumanReadableSummary 
+          trustScore={kpis.trustScore}
+          bedauIndex={displayKpis.bedau?.index ?? 0}
+          activeAgents={kpis.activeAgents}
+          interactionsCount={kpis.totalInteractions}
+          alertsCount={alerts?.summary?.total ?? 0}
+          policyStatus={policyStatus?.overallPass ?? true}
+        />
+      )}
 
       <OverseerWidget />
 
