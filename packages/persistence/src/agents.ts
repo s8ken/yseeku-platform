@@ -7,10 +7,12 @@ export interface Agent {
   status: 'active' | 'inactive' | 'suspended';
   trust_score: number;
   sonate_dimensions: {
+    /** @deprecated v2.0.1 - RealityIndex calculator was removed (always 0) */
     reality_index: number;
     trust_protocol: string;
     ethical_alignment: number;
     resonance_quality: string;
+    /** @deprecated v2.0.1 - CanvasParity calculator was removed (always 0) */
     canvas_parity: number;
   };
   last_interaction: Date;
@@ -29,12 +31,13 @@ function generateId(): string {
   return `agent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
+// v2.0.1: reality_index and canvas_parity are deprecated (always 0)
 const defaultSonateDimensions = {
-  reality_index: 8.0,
+  reality_index: 0, // Deprecated in v2.0.1
   trust_protocol: 'PASS',
   ethical_alignment: 4.0,
   resonance_quality: 'STRONG',
-  canvas_parity: 85,
+  canvas_parity: 0, // Deprecated in v2.0.1
 };
 
 export async function createAgent(input: CreateAgentInput): Promise<Agent | null> {

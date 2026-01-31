@@ -209,13 +209,16 @@ export const resonanceReceiptsTotal = getOrCreateMetric(
     })
 );
 
-// Reality index gauge
+/**
+ * @deprecated v2.0.1 - RealityIndex calculator was removed (trivially gamed)
+ * This metric is kept for backward compatibility but will always be 0
+ */
 export const realityIndexGauge = getOrCreateMetric(
   'sonate_reality_index',
   () =>
     new Gauge({
       name: 'sonate_reality_index',
-      help: 'Current reality index value',
+      help: 'DEPRECATED: Reality index value (always 0 in v2.0.1+)',
       labelNames: ['session_id'],
       registers: [register],
     })

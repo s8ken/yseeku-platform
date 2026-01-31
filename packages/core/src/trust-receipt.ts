@@ -44,7 +44,8 @@ export interface SonateTrustReceipt {
   telemetry: {
     resonance_score: number; // e.g. 0.994
     resonance_quality: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
-    reality_index: number; // e.g. 9.9
+    /** @deprecated v2.0.1 - RealityIndex calculator was removed (always 0) */
+    reality_index: number; // e.g. 9.9 (DEPRECATED: always 0 in v2.0.1+)
     bedau_index?: number; // e.g. 0.73 (weak emergence: 0-1)
     emergence_type?: 'LINEAR' | 'WEAK_EMERGENCE'; // Classification
     kolmogorov_complexity?: number; // Approximation of irreducibility
