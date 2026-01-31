@@ -1,10 +1,15 @@
-export const VERSION = '1.4.0';
+export const VERSION = '2.0.1';
 
 /**
  * @sonate/detect - Real-time AI Detection & Scoring
  *
  * SONATE Detect provides real-time monitoring and scoring of AI interactions
- * using the 5-dimension SONATE Framework.
+ * using the validated 3-dimension SONATE Framework.
+ *
+ * v2.0.1 CHANGES:
+ * - Removed RealityIndexCalculator (was just metadata flags, trivially gamed)
+ * - Removed CanvasParityCalculator (was trivially gamed, no semantic grounding)
+ * - Focused on 3 validated dimensions: Trust, Ethics, Resonance
  *
  * HARD BOUNDARY: Production use only. For experiments, use @sonate/lab.
  */
@@ -21,21 +26,22 @@ export { BalancedSonateDetector } from './balanced-detector';
 export { CalibratedSonateDetector } from './calibrated-detector';
 export { DriftDetector } from './drift-detection';
 
-// 5 Dimension scorers
-export { RealityIndexCalculator } from './reality-index';
+// 3 Validated Dimension scorers (v2.0.1)
 export { TrustProtocolValidator } from './trust-protocol-validator';
 export { EthicalAlignmentScorer } from './ethical-alignment';
 export { ResonanceQualityMeasurer } from './resonance-quality';
-export { CanvasParityCalculator } from './canvas-parity';
+
+// DEPRECATED in v2.0.1 - removed:
+// - RealityIndexCalculator (trivially gamed metadata flags)
+// - CanvasParityCalculator (trivially gamed, no semantic grounding)
 
 // Types
 export * from './sonate-types';
 export interface DetectionResult {
-  reality_index: number; // 0-10
+  // v2.0.1: Removed reality_index and canvas_parity
   trust_protocol: 'PASS' | 'PARTIAL' | 'FAIL';
   ethical_alignment: number; // 1-5
   resonance_quality: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
-  canvas_parity: number; // 0-100
   timestamp: number;
   receipt_hash: string;
 }

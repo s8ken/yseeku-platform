@@ -1,6 +1,10 @@
 /**
  * Demo Core Routes
  * Initialization, status, and KPI endpoints for demo dashboard
+ * 
+ * v2.0.1 CHANGES:
+ * - Removed realityIndex and canvasParity from sonateDimensions (calculators cut)
+ * - Focused on 3 validated dimensions: trustProtocol, ethicalAlignment, resonanceQuality
  */
 
 import { Router, Request, Response } from 'express';
@@ -70,6 +74,8 @@ router.get('/status', async (req: Request, res: Response): Promise<void> => {
  * @route   GET /api/demo/kpis
  * @desc    Get showcase KPI data for demo dashboard - queries REAL demo data
  * @access  Public (for demo purposes)
+ * 
+ * v2.0.1: Updated sonateDimensions to only include validated calculators
  */
 router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
   try {
@@ -126,12 +132,11 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
       alertsCount: alertSummary.active,
       experimentsRunning: experiments,
       orchestratorsActive: 3,
+      // v2.0.1: Only 3 validated dimensions (removed realityIndex and canvasParity)
       sonateDimensions: {
-        realityIndex: Math.round(avgQuality * 2 * 10) / 10,
         trustProtocol: trustScore >= 7 ? 'PASS' : trustScore >= 5 ? 'PARTIAL' : 'FAIL',
         ethicalAlignment: Math.round(avgIntegrity * 10) / 10,
         resonanceQuality: trustScore >= 8.5 ? 'BREAKTHROUGH' : trustScore >= 7 ? 'ADVANCED' : 'STRONG',
-        canvasParity: Math.round(trustScore * 10),
       },
       trends: {
         trustScore: { change: 3.2, direction: 'up' },

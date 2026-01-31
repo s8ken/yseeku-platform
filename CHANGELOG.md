@@ -5,6 +5,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-01-20
+
+### 🔧 Calculator Cleanup & Terminology Fixes
+
+This release removes liability calculators and fixes misleading terminology based on strategic partner feedback.
+
+### Removed
+
+#### Calculator Cuts (Breaking)
+- **REMOVED** `RealityIndexCalculator` from `@sonate/detect`
+  - Reason: Was just metadata flags, trivially gamed
+  - File deleted: `packages/detect/src/reality-index.ts`
+  
+- **REMOVED** `CanvasParityCalculator` from `@sonate/detect`
+  - Reason: Was trivially gamed, no semantic grounding
+  - File deleted: `packages/detect/src/canvas-parity.ts`
+
+### Changed
+
+#### Terminology Corrections (v2.ts)
+- Renamed `createEmbedding` → `createStructuralProjection`
+- Renamed `embed` → `projectStructure`  
+- Renamed `cosineSimilarity` → `projectionDistance`
+- Added clear documentation: these are hash-based projections, NOT semantic embeddings
+
+#### API Changes
+- `DetectionResult` interface no longer includes `reality_index` or `canvas_parity`
+- `SonateFrameworkDetector.detect()` returns 3 dimensions instead of 5
+- Demo KPIs endpoint `/api/demo/kpis` updated to remove deprecated dimensions
+
+### Added
+
+#### Documentation
+- `docs/SEMANTIC_COPROCESSOR.md` - Architecture for future Python ML integration
+  - Documents intent to use Python SentenceTransformer as semantic coprocessor
+  - Defines clear interface boundary between TypeScript and Python
+  - Outlines migration path: Document → Stub → Integrate → Optimize
+
+### Migration Guide
+
+```typescript
+// Before (v2.0.0)
+import { RealityIndexCalculator, CanvasParityCalculator } from '@sonate/detect';
+
+// After (v2.0.1)
+// These imports will fail - calculators have been removed
+// Use the 3 validated calculators instead:
+import { 
+  TrustProtocolValidator,
+  EthicalAlignmentScorer,
+  ResonanceQualityMeasurer 
+} from '@sonate/detect';
+```
+
+### Known Issues
+- Some files still reference removed calculators (cleanup in progress):
+  - `packages/core/src/trust-protocol-enhanced.ts`
+  - `packages/detect/src/balanced-detector.ts`
+  - `packages/detect/src/sonate-types.ts`
+
+---
+
 ## [2.0.0] - 2026-01-19
 
 ### 🚀 Major Release: "The Trust Layer for AI"

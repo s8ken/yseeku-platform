@@ -6,7 +6,8 @@ import { EnhancedSonateFrameworkDetector } from '../detector-enhanced';
 import { DriftDetector } from '../drift-detection';
 import { detectEmergence } from '../emergence-detection';
 import { EthicalAlignmentScorer } from '../ethical-alignment';
-import { RealityIndexCalculator } from '../reality-index';
+
+// v2.0.1: Removed RealityIndexCalculator import (calculator was cut)
 
 function assert(condition: boolean, message: string) {
   if (!condition) {throw new Error(message);}
@@ -17,7 +18,8 @@ async function testEnhancedDetector() {
   const res = await det.analyzeContent({
     content: 'Our mission is clear. We verify and validate with secure boundaries and privacy.',
   });
-  assert(res.assessment.realityIndex.score >= 5, 'Reality index too low');
+  // v2.0.1: Updated assertion - check overallScore instead of removed realityIndex
+  assert(res.assessment.overallScore >= 40, 'Overall score too low');
 }
 
 async function testBalancedDetector() {
@@ -55,15 +57,7 @@ async function testEmergenceDetection() {
   assert(['none', 'weak', 'moderate', 'strong'].includes(signal.level), 'Emergence level invalid');
 }
 
-async function testRealityIndexCalculator() {
-  const calc = new RealityIndexCalculator();
-  const score = await calc.calculate({
-    content: 'mission',
-    context: 'use-case',
-    metadata: { purpose: 'support', ai_disclosure: true },
-  } as any);
-  assert(score >= 6 && score <= 10, 'Reality index out of expected range');
-}
+// v2.0.1: Removed testRealityIndexCalculator (calculator was cut as liability)
 
 async function testEthicalAlignmentScorer() {
   const scorer = new EthicalAlignmentScorer();
@@ -97,7 +91,7 @@ async function main() {
     ['Calibrated Detector metrics', testCalibratedDetector],
     ['Drift Detector sequence', async () => testDriftDetector()],
     ['Emergence Detection signal', testEmergenceDetection],
-    ['Reality Index Calculator', testRealityIndexCalculator],
+    // v2.0.1: Removed Reality Index Calculator test
     ['Ethical Alignment Scorer', testEthicalAlignmentScorer],
     ['Detection latency <100ms', testDetectionLatencyUnder100ms],
     ['Emergence non-strong branch', testEmergenceNoneBranch],
