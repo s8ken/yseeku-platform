@@ -202,10 +202,11 @@ export interface TrustAnalytics {
     avgTrustScore: number;
     passRate: number;
   }>;
+  principleScores?: Record<string, number>;
 }
 
 export function useTrustAnalytics() {
-  const { isDemo, isLoaded } = useDemo();
+  const { isDemo, isLoaded, currentTenantId } = useDemo();
   
   return useQuery<TrustAnalytics, Error>({
     queryKey: ['trust-analytics', isDemo ? 'demo' : 'live'],
@@ -231,20 +232,13 @@ export function useTrustAnalytics() {
           failRate: kpis.riskScore || 0,
           commonViolations: [],
           recentTrends: generateDemoTrends(kpis.trustScore),
+          principleScores: kpis.principleScores || {},
         };
       }
       
-      // Live mode - use real analytics endpoint
-      const res = await fetch(`${API_BASE}/api/trust/analytics`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-      
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
-      const json = await res.json();
-      return json.data?.analytics || {
+      // Live mode - return blank slate data (no interactions yet)
+      // The real analytics will come from trust receipts generated during chat
+      return {
         averageTrustScore: 0,
         totalInteractions: 0,
         passRate: 0,
@@ -252,6 +246,7 @@ export function useTrustAnalytics() {
         failRate: 0,
         commonViolations: [],
         recentTrends: [],
+        principleScores: {},
       };
     },
     enabled: isLoaded,

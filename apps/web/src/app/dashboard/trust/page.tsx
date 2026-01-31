@@ -57,6 +57,7 @@ interface Analytics {
     avgTrustScore: number;
     passRate: number;
   }>;
+  principleScores?: Record<string, number>;
 }
 
 export default function TrustAnalyticsPage() {
@@ -74,6 +75,7 @@ export default function TrustAnalyticsPage() {
     failRate: analyticsData.failRate || 0,
     commonViolations: analyticsData.commonViolations || [],
     recentTrends: analyticsData.recentTrends || [],
+    principleScores: analyticsData.principleScores || {},
   } : null;
 
   const loadAnalytics = async () => {
@@ -288,39 +290,54 @@ function StatusDistributionChart({ analytics }: { analytics: Analytics }) {
     { name: 'PARTIAL', value: analytics.partialRate, color: '#f59e0b', count: Math.round(analytics.totalInteractions * analytics.partialRate / 100) },
     { name: 'FAIL', value: analytics.failRate, color: '#ef4444', count: Math.round(analytics.totalInteractions * analytics.failRate / 100) },
   ];
+  
+  // Check if we have any data
+  const hasData = analytics.totalInteractions > 0;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Trust Status Distribution</CardTitle>
-        <CardDescription>Breakdown of trust evaluation results</CardDescription>
+        <CardDescription>
+          {hasData ? 'Breakdown of trust evaluation results' : 'No interactions yet'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={((props: { name?: string; percent?: number }) => `${props.name} ${((props.percent ?? 0) * 100).toFixed(1)}%`) as import('recharts').PieLabel}
-              outerRadius={100}
-              fill="#8884d8"
-              dataKey="value"
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip
-              formatter={((value: number, name: string, props: { payload?: { count?: number } }) => [
-                `${value.toFixed(1)}% (${props.payload?.count ?? 0} messages)`,
-                name
-              ]) as never}
-            />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+        {hasData ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={((props: { name?: string; percent?: number }) => `${props.name} ${((props.percent ?? 0) * 100).toFixed(1)}%`) as import('recharts').PieLabel}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={((value: number, name: string, props: { payload?: { count?: number } }) => [
+                  `${value.toFixed(1)}% (${props.payload?.count ?? 0} messages)`,
+                  name
+                ]) as never}
+              />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+            <div className="text-center">
+              <CheckCircle className="h-12 w-12 mx-auto mb-2 opacity-30" />
+              <p>No status distribution data</p>
+              <p className="text-xs">Data will appear after chat interactions</p>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -330,110 +347,142 @@ function TrustTrendChart({ analytics }: { analytics: Analytics }) {
   const chartData = analytics.recentTrends.map(trend => ({
     date: new Date(trend.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     score: parseFloat(trend.avgTrustScore.toFixed(2)),
-    passRate: parseFloat(trend.passRate.toFixed(1)),
   }));
+  
+  // Check if we have any data
+  const hasData = chartData.length > 0;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Trust Score Trend</CardTitle>
-        <CardDescription>Average trust score over the last 7 days</CardDescription>
+        <CardDescription>
+          {hasData ? 'Average trust score over the last 7 days (0-10 scale)' : 'No trend data yet'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis
-              dataKey="date"
-              className="text-xs"
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis
-              domain={[0, 10]}
-              className="text-xs"
-              tick={{ fontSize: 12 }}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px'
-              }}
-            />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="score"
-              stroke="#8b5cf6"
-              strokeWidth={3}
-              name="Trust Score"
-              dot={{ fill: '#8b5cf6', r: 4 }}
-              activeDot={{ r: 6 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="passRate"
-              stroke="#10b981"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              name="Pass Rate %"
-              dot={{ fill: '#10b981', r: 3 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {hasData ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis
+                dataKey="date"
+                className="text-xs"
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis
+                domain={[0, 10]}
+                className="text-xs"
+                tick={{ fontSize: 12 }}
+                label={{ value: 'Trust Score', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--background))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px'
+                }}
+                formatter={(value: number) => [`${value.toFixed(1)}/10`, 'Trust Score']}
+              />
+              <Line
+                type="monotone"
+                dataKey="score"
+                stroke="#8b5cf6"
+                strokeWidth={3}
+                name="Trust Score"
+                dot={{ fill: '#8b5cf6', r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+            <div className="text-center">
+              <Activity className="h-12 w-12 mx-auto mb-2 opacity-30" />
+              <p>No trend data available</p>
+              <p className="text-xs">Data will appear after chat interactions</p>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
 
 function PrinciplesRadarChart({ analytics }: { analytics: Analytics }) {
-  // Mock principle averages (in production, this would come from backend)
-  const principleData = [
-    { principle: 'Consent', score: 8.8, fullMark: 10 },
-    { principle: 'Inspection', score: 8.5, fullMark: 10 },
-    { principle: 'Validation', score: 8.2, fullMark: 10 },
-    { principle: 'Ethics', score: 8.6, fullMark: 10 },
-    { principle: 'Disconnect', score: 8.4, fullMark: 10 },
-    { principle: 'Moral', score: 8.7, fullMark: 10 },
-  ];
+  // Get principle scores from analytics, or use zeros for blank slate
+  const scores = analytics.principleScores || {};
+  
+  // Map principle names to display names
+  const principleMapping: Record<string, string> = {
+    consent: 'Consent',
+    inspection: 'Inspection',
+    validation: 'Validation',
+    override: 'Override',
+    disconnect: 'Disconnect',
+    moral: 'Moral',
+  };
+  
+  // Build principle data from actual scores
+  const principleData = Object.entries(principleMapping).map(([key, displayName]) => ({
+    principle: displayName,
+    score: scores[key] ? scores[key] / 10 : 0, // Convert from 0-100 to 0-10 scale
+    fullMark: 10,
+  }));
+  
+  // Check if we have any data
+  const hasData = principleData.some(p => p.score > 0);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Constitutional Principles</CardTitle>
-        <CardDescription>Average scores across 6 core principles</CardDescription>
+        <CardDescription>
+          {hasData ? 'Average scores across 6 core principles' : 'No data yet - start chatting to generate trust scores'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={320}>
-          <RadarChart data={principleData}>
-            <PolarGrid stroke="hsl(var(--border))" />
-            <PolarAngleAxis
-              dataKey="principle"
-              tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
-            />
-            <PolarRadiusAxis
-              angle={90}
-              domain={[0, 10]}
-              tick={{ fontSize: 10 }}
-            />
-            <Radar
-              name="Score"
-              dataKey="score"
-              stroke="#8b5cf6"
-              fill="#8b5cf6"
-              fillOpacity={0.5}
-              strokeWidth={2}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px'
-              }}
-            />
-            <Legend />
-          </RadarChart>
-        </ResponsiveContainer>
+        {hasData ? (
+          <ResponsiveContainer width="100%" height={320}>
+            <RadarChart data={principleData}>
+              <PolarGrid stroke="hsl(var(--border))" />
+              <PolarAngleAxis
+                dataKey="principle"
+                tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
+              />
+              <PolarRadiusAxis
+                angle={90}
+                domain={[0, 10]}
+                tick={{ fontSize: 10 }}
+              />
+              <Radar
+                name="Score"
+                dataKey="score"
+                stroke="#8b5cf6"
+                fill="#8b5cf6"
+                fillOpacity={0.5}
+                strokeWidth={2}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--background))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px'
+                }}
+                formatter={(value: number) => [`${value.toFixed(1)}/10`, 'Score']}
+              />
+              <Legend />
+            </RadarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[320px] flex items-center justify-center text-muted-foreground">
+            <div className="text-center">
+              <Shield className="h-12 w-12 mx-auto mb-2 opacity-30" />
+              <p>No principle scores available</p>
+              <p className="text-xs">Data will appear after chat interactions</p>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
