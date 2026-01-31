@@ -30,21 +30,24 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
     const userId = req.userId;
     const tenantId = req.userTenant || 'default';
     const now = new Date();
+    const nowTimestamp = now.getTime();
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const oneDayAgoTimestamp = oneDayAgo.getTime();
     const twoDaysAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    const twoDaysAgoTimestamp = twoDaysAgo.getTime();
 
     // For live-tenant, query REAL data from Trust Receipts (populated by chat interactions)
     // This makes live mode a production-ready experience that updates as users interact
     if (tenantId === 'live-tenant') {
-      // Fetch trust receipts for this tenant
+      // Fetch trust receipts for this tenant (timestamp is Unix ms)
       const [recentReceipts, previousReceipts, allReceipts] = await Promise.all([
         TrustReceiptModel.find({
           tenant_id: 'live-tenant',
-          timestamp: { $gte: oneDayAgo },
+          timestamp: { $gte: oneDayAgoTimestamp },
         }).lean(),
         TrustReceiptModel.find({
           tenant_id: 'live-tenant',
-          timestamp: { $gte: twoDaysAgo, $lt: oneDayAgo },
+          timestamp: { $gte: twoDaysAgoTimestamp, $lt: oneDayAgoTimestamp },
         }).lean(),
         TrustReceiptModel.find({ tenant_id: 'live-tenant' }).lean(),
       ]);
