@@ -1,22 +1,18 @@
-export declare const VERSION = "1.4.0";
+export declare const VERSION = "2.0.1";
 export { SonateFrameworkDetector } from './framework-detector';
 export { OptimizedFrameworkDetector } from './optimized-framework-detector';
 export { EnhancedSonateFrameworkDetector as EnhancedDetector } from './detector-enhanced';
 export { BalancedSonateDetector } from './balanced-detector';
 export { CalibratedSonateDetector } from './calibrated-detector';
 export { DriftDetector } from './drift-detection';
-export { RealityIndexCalculator } from './reality-index';
 export { TrustProtocolValidator } from './trust-protocol-validator';
 export { EthicalAlignmentScorer } from './ethical-alignment';
 export { ResonanceQualityMeasurer } from './resonance-quality';
-export { CanvasParityCalculator } from './canvas-parity';
 export * from './sonate-types';
 export interface DetectionResult {
-    reality_index: number;
     trust_protocol: 'PASS' | 'PARTIAL' | 'FAIL';
     ethical_alignment: number;
     resonance_quality: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
-    canvas_parity: number;
     timestamp: number;
     receipt_hash: string;
 }

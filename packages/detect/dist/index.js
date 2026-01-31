@@ -14,14 +14,19 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PerformanceProfiler = exports.runQuickPerformanceBenchmark = exports.createPerformanceBenchmarkingEngine = exports.PerformanceBenchmarkingEngine = exports.getWithdrawalResponse = exports.detectConsentWithdrawal = exports.validateCrossModalityCoherence = exports.analyzeCrossModalityCoherence = exports.createCrossModalityCoherenceValidator = exports.CrossModalityCoherenceValidator = exports.createEmergenceFingerprint = exports.createEmergenceFingerprintingEngine = exports.EmergenceFingerprintingEngine = exports.createTemporalBedauTracker = exports.TemporalBedauTracker = exports.detectEmergence = exports.calculateBedauIndex = exports.createBedauIndexCalculator = exports.ResonanceClient = exports.DYNAMIC_THRESHOLDS_V2 = exports.CANONICAL_WEIGHTS_V2 = exports.robustSonateResonanceV2 = exports.explainableSonateResonanceV2 = exports.CalculatorV2 = exports.normalizeEmbedding = exports.normalizeScore = exports.classifyStakes = exports.adversarialCheck = exports.resonanceWithStickiness = exports.explainableSonateResonance = exports.CanvasParityCalculator = exports.ResonanceQualityMeasurer = exports.EthicalAlignmentScorer = exports.TrustProtocolValidator = exports.RealityIndexCalculator = exports.DriftDetector = exports.CalibratedSonateDetector = exports.BalancedSonateDetector = exports.EnhancedDetector = exports.OptimizedFrameworkDetector = exports.SonateFrameworkDetector = exports.VERSION = void 0;
+exports.PerformanceProfiler = exports.runQuickPerformanceBenchmark = exports.createPerformanceBenchmarkingEngine = exports.PerformanceBenchmarkingEngine = exports.getWithdrawalResponse = exports.detectConsentWithdrawal = exports.validateCrossModalityCoherence = exports.analyzeCrossModalityCoherence = exports.createCrossModalityCoherenceValidator = exports.CrossModalityCoherenceValidator = exports.createEmergenceFingerprint = exports.createEmergenceFingerprintingEngine = exports.EmergenceFingerprintingEngine = exports.createTemporalBedauTracker = exports.TemporalBedauTracker = exports.detectEmergence = exports.calculateBedauIndex = exports.createBedauIndexCalculator = exports.ResonanceClient = exports.DYNAMIC_THRESHOLDS_V2 = exports.CANONICAL_WEIGHTS_V2 = exports.robustSonateResonanceV2 = exports.explainableSonateResonanceV2 = exports.CalculatorV2 = exports.normalizeEmbedding = exports.normalizeScore = exports.classifyStakes = exports.adversarialCheck = exports.resonanceWithStickiness = exports.explainableSonateResonance = exports.ResonanceQualityMeasurer = exports.EthicalAlignmentScorer = exports.TrustProtocolValidator = exports.DriftDetector = exports.CalibratedSonateDetector = exports.BalancedSonateDetector = exports.EnhancedDetector = exports.OptimizedFrameworkDetector = exports.SonateFrameworkDetector = exports.VERSION = void 0;
 exports.detect = detect;
-exports.VERSION = '1.4.0';
+exports.VERSION = '2.0.1';
 /**
  * @sonate/detect - Real-time AI Detection & Scoring
  *
  * SONATE Detect provides real-time monitoring and scoring of AI interactions
- * using the 5-dimension SONATE Framework.
+ * using the validated 3-dimension SONATE Framework.
+ *
+ * v2.0.1 CHANGES:
+ * - Removed RealityIndexCalculator (was just metadata flags, trivially gamed)
+ * - Removed CanvasParityCalculator (was trivially gamed, no semantic grounding)
+ * - Focused on 3 validated dimensions: Trust, Ethics, Resonance
  *
  * HARD BOUNDARY: Production use only. For experiments, use @sonate/lab.
  */
@@ -40,17 +45,16 @@ var calibrated_detector_1 = require("./calibrated-detector");
 Object.defineProperty(exports, "CalibratedSonateDetector", { enumerable: true, get: function () { return calibrated_detector_1.CalibratedSonateDetector; } });
 var drift_detection_1 = require("./drift-detection");
 Object.defineProperty(exports, "DriftDetector", { enumerable: true, get: function () { return drift_detection_1.DriftDetector; } });
-// 5 Dimension scorers
-var reality_index_1 = require("./reality-index");
-Object.defineProperty(exports, "RealityIndexCalculator", { enumerable: true, get: function () { return reality_index_1.RealityIndexCalculator; } });
+// 3 Validated Dimension scorers (v2.0.1)
 var trust_protocol_validator_1 = require("./trust-protocol-validator");
 Object.defineProperty(exports, "TrustProtocolValidator", { enumerable: true, get: function () { return trust_protocol_validator_1.TrustProtocolValidator; } });
 var ethical_alignment_1 = require("./ethical-alignment");
 Object.defineProperty(exports, "EthicalAlignmentScorer", { enumerable: true, get: function () { return ethical_alignment_1.EthicalAlignmentScorer; } });
 var resonance_quality_1 = require("./resonance-quality");
 Object.defineProperty(exports, "ResonanceQualityMeasurer", { enumerable: true, get: function () { return resonance_quality_1.ResonanceQualityMeasurer; } });
-var canvas_parity_1 = require("./canvas-parity");
-Object.defineProperty(exports, "CanvasParityCalculator", { enumerable: true, get: function () { return canvas_parity_1.CanvasParityCalculator; } });
+// DEPRECATED in v2.0.1 - removed:
+// - RealityIndexCalculator (trivially gamed metadata flags)
+// - CanvasParityCalculator (trivially gamed, no semantic grounding)
 // Types
 __exportStar(require("./sonate-types"), exports);
 // New V2.1 Exports

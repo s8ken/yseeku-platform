@@ -1,4 +1,16 @@
 "use strict";
+/**
+ * SONATE Calculator V2 - Structural Projection Based Resonance
+ *
+ * IMPORTANT TERMINOLOGY (v2.0.1):
+ * - "structuralProjection" NOT "embedding" - these are hash-based projections, NOT ML embeddings
+ * - "projectionDistance" NOT "semanticSimilarity" - measures structural overlap, NOT semantic meaning
+ *
+ * This calculator uses deterministic hash-based projections for fast, reproducible scoring.
+ * For true semantic analysis, see docs/SEMANTIC_COPROCESSOR.md for Python ML integration plans.
+ *
+ * The projections capture lexical/structural patterns but do NOT understand meaning.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CalculatorV2 = exports.DYNAMIC_THRESHOLDS = exports.CANONICAL_WEIGHTS = void 0;
 exports.explainableSonateResonance = explainableSonateResonance;
@@ -61,7 +73,19 @@ function chunkText(text) {
         return { text: s.trim(), start, end };
     });
 }
-function createEmbedding(text, dims = 384) {
+/**
+ * Creates a structural projection vector from text.
+ *
+ * IMPORTANT: This is NOT a semantic embedding. It's a deterministic hash-based
+ * projection that captures lexical/structural patterns but does NOT understand meaning.
+ *
+ * For true semantic understanding, use the Python ML coprocessor (see docs/SEMANTIC_COPROCESSOR.md).
+ *
+ * @param text - Input text to project
+ * @param dims - Dimensionality of projection vector (default: 384)
+ * @returns Normalized projection vector
+ */
+function createStructuralProjection(text, dims = 384) {
     const vector = new Array(dims).fill(0);
     let seed = 2166136261;
     for (let i = 0; i < text.length; i++) {
@@ -81,10 +105,24 @@ function createEmbedding(text, dims = 384) {
     const norm = Math.sqrt(vector.reduce((sum, v) => sum + v * v, 0)) || 1;
     return vector.map((v) => v / norm);
 }
-async function embed(text) {
-    return createEmbedding(text);
+/**
+ * Async wrapper for structural projection creation.
+ * Kept async for API compatibility with future ML coprocessor integration.
+ */
+async function projectStructure(text) {
+    return createStructuralProjection(text);
 }
-function cosineSimilarity(a, b) {
+/**
+ * Calculates projection distance between two structural projection vectors.
+ *
+ * IMPORTANT: This measures structural/lexical overlap, NOT semantic similarity.
+ * Two texts can have high projection distance but completely different meanings.
+ *
+ * @param a - First projection vector
+ * @param b - Second projection vector
+ * @returns Distance score (0-1, higher = more similar structure)
+ */
+function projectionDistance(a, b) {
     const len = Math.min(a.length, b.length);
     let dot = 0;
     let an = 0;
@@ -99,14 +137,14 @@ function cosineSimilarity(a, b) {
 }
 async function alignmentEvidence(transcript) {
     const chunks = chunkText(transcript.text);
-    const chunkEmbeds = await Promise.all(chunks.map(async (c) => ({ ...c, embedding: await embed(c.text) })));
-    const similarities = chunkEmbeds.map((c) => ({
+    const chunkProjections = await Promise.all(chunks.map(async (c) => ({ ...c, projection: await projectStructure(c.text) })));
+    const distances = chunkProjections.map((c) => ({
         ...c,
-        similarity: cosineSimilarity(c.embedding, constants_1.CANONICAL_SCAFFOLD_VECTOR),
+        distance: projectionDistance(c.projection, constants_1.CANONICAL_SCAFFOLD_VECTOR),
     }));
-    const top_chunks = similarities.sort((a, b) => b.similarity - a.similarity).slice(0, 3);
+    const top_chunks = distances.sort((a, b) => b.distance - a.distance).slice(0, 3);
     const score = top_chunks.length > 0
-        ? top_chunks.reduce((sum, c) => sum + c.similarity, 0) / top_chunks.length
+        ? top_chunks.reduce((sum, c) => sum + c.distance, 0) / top_chunks.length
         : 0;
     const finalScore = transcript.text.includes('sovereign') || transcript.text.includes('resonance')
         ? Math.max(0.5, score)
@@ -117,7 +155,7 @@ async function alignmentEvidence(transcript) {
         chunks: top_chunks.map((c) => ({
             type: 'alignment',
             text: c.text,
-            score_contrib: c.similarity,
+            score_contrib: c.distance,
             position: { start: c.start, end: c.end },
         })),
     };
@@ -168,10 +206,10 @@ async function continuityEvidence(transcript) {
     }
     let continuityScore = 0;
     for (let i = 1; i < sentences.length; i++) {
-        const prevEmbed = await embed(sentences[i - 1].trim());
-        const currEmbed = await embed(sentences[i].trim());
-        const similarity = cosineSimilarity(prevEmbed, currEmbed);
-        continuityScore += similarity;
+        const prevProjection = await projectStructure(sentences[i - 1].trim());
+        const currProjection = await projectStructure(sentences[i].trim());
+        const distance = projectionDistance(prevProjection, currProjection);
+        continuityScore += distance;
     }
     const finalScore = continuityScore / (sentences.length - 1);
     const clampedScore = Math.max(0, Math.min(1, finalScore));
@@ -180,7 +218,7 @@ async function continuityEvidence(transcript) {
         chunks: [
             {
                 type: 'continuity',
-                text: 'Overall text continuity',
+                text: 'Overall text continuity (structural)',
                 score_contrib: clampedScore,
                 position: { start: 0, end: transcript.text.length },
             },

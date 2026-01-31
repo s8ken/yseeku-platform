@@ -22,6 +22,12 @@ export interface LLMTrustEvaluation {
   trustScore: TrustScore;
   status: 'PASS' | 'PARTIAL' | 'FAIL';
   detection: DetectionResult;
+  // v2.0.1: Added ciq_metrics for LLM-evaluated scores (replaces reality_index/canvas_parity)
+  ciq_metrics?: {
+    clarity: number;
+    integrity: number;
+    quality: number;
+  };
   reasoning: string;
   receipt: TrustReceipt;
   receiptHash: string;
@@ -194,13 +200,19 @@ export class LLMTrustEvaluator {
         trustScore,
         status,
         detection: {
-          reality_index: evaluation.detection.reality_index,
+          // v2.0.1: reality_index and canvas_parity removed from DetectionResult type
+          // The LLM still evaluates these but they're stored in ciq_metrics instead
           trust_protocol: evaluation.detection.trust_protocol,
           ethical_alignment: evaluation.detection.ethical_alignment,
           resonance_quality: evaluation.detection.resonance_quality,
-          canvas_parity: evaluation.detection.canvas_parity,
           timestamp: Date.now(),
           receipt_hash: receipt.self_hash,
+        },
+        // Store LLM-evaluated scores in ciq_metrics for backward compatibility
+        ciq_metrics: {
+          clarity: evaluation.detection.reality_index / 10,
+          integrity: evaluation.detection.ethical_alignment / 5,
+          quality: evaluation.detection.canvas_parity / 100,
         },
         reasoning: evaluation.reasoning,
         receipt,
@@ -427,13 +439,17 @@ export class LLMTrustEvaluator {
       trustScore,
       status,
       detection: {
-        reality_index: 7,
+        // v2.0.1: reality_index and canvas_parity removed from DetectionResult type
         trust_protocol: status,
         ethical_alignment: 4,
         resonance_quality: 'STRONG',
-        canvas_parity: 80,
         timestamp: Date.now(),
         receipt_hash: receipt.self_hash,
+      },
+      ciq_metrics: {
+        clarity: 0.7,
+        integrity: 0.8,
+        quality: 0.8,
       },
       reasoning: 'Heuristic fallback evaluation - LLM evaluation unavailable',
       receipt,

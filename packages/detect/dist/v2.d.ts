@@ -1,3 +1,15 @@
+/**
+ * SONATE Calculator V2 - Structural Projection Based Resonance
+ *
+ * IMPORTANT TERMINOLOGY (v2.0.1):
+ * - "structuralProjection" NOT "embedding" - these are hash-based projections, NOT ML embeddings
+ * - "projectionDistance" NOT "semanticSimilarity" - measures structural overlap, NOT semantic meaning
+ *
+ * This calculator uses deterministic hash-based projections for fast, reproducible scoring.
+ * For true semantic analysis, see docs/SEMANTIC_COPROCESSOR.md for Python ML integration plans.
+ *
+ * The projections capture lexical/structural patterns but do NOT understand meaning.
+ */
 import { AdversarialEvidence } from './adversarial';
 import { StakesEvidence } from './stakes';
 export type StakesLevel = StakesEvidence['level'];

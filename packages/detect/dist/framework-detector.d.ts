@@ -1,21 +1,26 @@
 /**
- * SonateFrameworkDetector - Core 5-dimension detection engine
+ * SonateFrameworkDetector - Core 3-dimension detection engine
  *
  * This is the production-grade detector that scores AI interactions
- * in real-time across all 5 SONATE Framework dimensions.
+ * in real-time across the 3 validated SONATE Framework dimensions:
+ * - Trust Protocol (cryptographic validation)
+ * - Ethical Alignment (LLM-powered constitutional checking)
+ * - Resonance Quality (semantic coherence measurement)
+ *
+ * REMOVED (v2.0.1):
+ * - Reality Index: Was just metadata flags, trivially gamed
+ * - Canvas Parity: Was trivially gamed, no semantic grounding
  *
  * Use case: Live production monitoring (< 100ms latency requirement)
  */
 import { AIInteraction, DetectionResult } from './index';
 export declare class SonateFrameworkDetector {
-    private realityCalc;
     private trustValidator;
     private ethicalScorer;
     private resonanceMeasurer;
-    private canvasCalc;
     constructor();
     /**
-     * Detect and score an AI interaction across all 5 dimensions
+     * Detect and score an AI interaction across 3 validated dimensions
      *
      * This is the main entry point for SONATE Detect module.
      * Call this for every AI interaction in production.

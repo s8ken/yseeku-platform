@@ -1,55 +1,54 @@
 "use strict";
 /**
- * SonateFrameworkDetector - Core 5-dimension detection engine
+ * SonateFrameworkDetector - Core 3-dimension detection engine
  *
  * This is the production-grade detector that scores AI interactions
- * in real-time across all 5 SONATE Framework dimensions.
+ * in real-time across the 3 validated SONATE Framework dimensions:
+ * - Trust Protocol (cryptographic validation)
+ * - Ethical Alignment (LLM-powered constitutional checking)
+ * - Resonance Quality (semantic coherence measurement)
+ *
+ * REMOVED (v2.0.1):
+ * - Reality Index: Was just metadata flags, trivially gamed
+ * - Canvas Parity: Was trivially gamed, no semantic grounding
  *
  * Use case: Live production monitoring (< 100ms latency requirement)
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SonateFrameworkDetector = void 0;
 const core_1 = require("@sonate/core");
-const canvas_parity_1 = require("./canvas-parity");
 const ethical_alignment_1 = require("./ethical-alignment");
-const reality_index_1 = require("./reality-index");
 const resonance_quality_1 = require("./resonance-quality");
 const trust_protocol_validator_1 = require("./trust-protocol-validator");
 class SonateFrameworkDetector {
     constructor() {
-        this.realityCalc = new reality_index_1.RealityIndexCalculator();
         this.trustValidator = new trust_protocol_validator_1.TrustProtocolValidator();
         this.ethicalScorer = new ethical_alignment_1.EthicalAlignmentScorer();
         this.resonanceMeasurer = new resonance_quality_1.ResonanceQualityMeasurer();
-        this.canvasCalc = new canvas_parity_1.CanvasParityCalculator();
     }
     /**
-     * Detect and score an AI interaction across all 5 dimensions
+     * Detect and score an AI interaction across 3 validated dimensions
      *
      * This is the main entry point for SONATE Detect module.
      * Call this for every AI interaction in production.
      */
     async detect(interaction) {
-        // Run all 5 dimensions in parallel for speed
-        const [reality_index, trust_protocol, ethical_alignment, resonance_quality, canvas_parity] = await Promise.all([
-            this.realityCalc.calculate(interaction),
+        // Run all 3 dimensions in parallel for speed
+        const [trust_protocol, ethical_alignment, resonance_quality] = await Promise.all([
             this.trustValidator.validate(interaction),
             this.ethicalScorer.score(interaction),
             this.resonanceMeasurer.measure(interaction),
-            this.canvasCalc.calculate(interaction),
         ]);
         // Generate Trust Receipt
         const receipt = this.generateReceipt(interaction, {
             clarity: this.calculateClarity(interaction),
             integrity: trust_protocol === 'PASS' ? 0.9 : 0.5,
-            quality: reality_index / 10,
+            quality: resonance_quality === 'BREAKTHROUGH' ? 0.9 : resonance_quality === 'ADVANCED' ? 0.7 : 0.5,
         });
         return {
-            reality_index,
             trust_protocol,
             ethical_alignment,
             resonance_quality,
-            canvas_parity,
             timestamp: Date.now(),
             receipt_hash: receipt.self_hash,
         };

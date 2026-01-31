@@ -20,13 +20,13 @@ import {
   SonateFrameworkDetector,
   AIInteraction,
   DetectionResult,
-  RealityIndexCalculator,
   TrustProtocolValidator,
   EthicalAlignmentScorer,
   ResonanceQualityMeasurer,
-  CanvasParityCalculator,
   DriftDetector,
 } from '@sonate/detect';
+// v2.0.1: Removed RealityIndexCalculator and CanvasParityCalculator imports
+// These calculators were cut as liabilities (trivially gamed metadata flags)
 import {
   ConversationalMetrics,
   PhaseShiftMetrics,
@@ -113,11 +113,10 @@ export interface TrustAnalytics {
 export class TrustService {
   private trustProtocol: TrustProtocol;
   private detector: SonateFrameworkDetector;
-  private realityCalc: RealityIndexCalculator;
+  // v2.0.1: Removed realityCalc and canvasCalc (calculators cut as liabilities)
   private trustValidator: TrustProtocolValidator;
   private ethicalScorer: EthicalAlignmentScorer;
   private resonanceMeasurer: ResonanceQualityMeasurer;
-  private canvasCalc: CanvasParityCalculator;
   
   // Statistical drift detectors per conversation (tracks text property changes)
   private driftDetectors: Map<string, DriftDetector> = new Map();
@@ -139,11 +138,10 @@ export class TrustService {
   constructor() {
     this.trustProtocol = new TrustProtocol();
     this.detector = new SonateFrameworkDetector();
-    this.realityCalc = new RealityIndexCalculator();
+    // v2.0.1: Removed realityCalc and canvasCalc instantiation
     this.trustValidator = new TrustProtocolValidator();
     this.ethicalScorer = new EthicalAlignmentScorer();
     this.resonanceMeasurer = new ResonanceQualityMeasurer();
-    this.canvasCalc = new CanvasParityCalculator();
   }
 
   /**
@@ -232,7 +230,8 @@ export class TrustService {
       ciq_metrics: {
         clarity: this.calculateClarity(message.content),
         integrity: status === 'PASS' ? 0.9 : status === 'PARTIAL' ? 0.6 : 0.3,
-        quality: detection.reality_index / 10,
+        // v2.0.1: Use ethical_alignment for quality instead of removed reality_index
+        quality: detection.ethical_alignment / 5,
       },
     });
 
@@ -341,9 +340,11 @@ export class TrustService {
     return {
       CONSENT_ARCHITECTURE: trustProtocolScore,
       INSPECTION_MANDATE: trustProtocolScore,
-      CONTINUOUS_VALIDATION: detection.reality_index,
+      // v2.0.1: reality_index and canvas_parity removed from DetectionResult
+      // Using resonanceScore and ethical_alignment as alternatives
+      CONTINUOUS_VALIDATION: resonanceScore,
       ETHICAL_OVERRIDE: detection.ethical_alignment * 2,
-      RIGHT_TO_DISCONNECT: detection.canvas_parity / 10,
+      RIGHT_TO_DISCONNECT: detection.ethical_alignment * 2,
       MORAL_RECOGNITION: detection.ethical_alignment * 2,
     };
   }
@@ -604,7 +605,8 @@ export class TrustService {
       timestamp: message.timestamp?.getTime() || Date.now(),
       speaker: 'ai',
       resonance: resonanceScore,  // Converted to 0-10
-      canvas: detection.canvas_parity,          // 0-10
+      // v2.0.1: canvas_parity removed from DetectionResult, use ethical_alignment scaled to 0-10
+      canvas: detection.ethical_alignment * 2,
       identityVector,
       content: message.content.substring(0, 200), // Truncate for audit
     };
