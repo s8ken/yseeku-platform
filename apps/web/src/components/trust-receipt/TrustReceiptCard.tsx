@@ -1,8 +1,16 @@
 import React, { useState } from 'react'; 
-import { Shield, Activity, Fingerprint, Share2, CheckCircle, ChevronDown, ChevronUp, AlertTriangle, UserCheck, Eye, Power, Heart } from 'lucide-react'; 
+import { Shield, Activity, Fingerprint, Share2, CheckCircle, ChevronDown, ChevronUp, AlertTriangle, UserCheck, Eye, Power, Heart, Cpu, Sparkles, Calculator, Zap } from 'lucide-react'; 
 import { Progress } from '@/components/ui/progress';
 
 // --- Types --- 
+export interface AnalysisMethod {
+  llmAvailable: boolean;
+  resonanceMethod: 'resonance-engine' | 'llm' | 'heuristic';
+  ethicsMethod: 'llm' | 'heuristic';
+  trustMethod: 'content-analysis' | 'metadata-only';
+  confidence: number;
+}
+
 export interface TrustEvaluation {
   trustScore: {
     overall: number;
@@ -23,6 +31,7 @@ export interface TrustEvaluation {
   timestamp: number;
   messageId?: string;
   conversationId?: string;
+  analysisMethod?: AnalysisMethod;
 }
 
 export interface TrustReceiptProps { 
@@ -83,7 +92,7 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
   evaluation
 }) => { 
   const [showLegacyMetrics, setShowLegacyMetrics] = useState(false);
-  const { trustScore, status, detection, receiptHash, timestamp } = evaluation;
+  const { trustScore, status, detection, receiptHash, timestamp, analysisMethod } = evaluation;
   const statusStyle = getStatusColor(status); 
   const hasPrinciples = Object.keys(trustScore.principles || {}).length > 0;
 
@@ -100,6 +109,11 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
           {status} 
         </div> 
       </div> 
+
+      {/* --- Analysis Method Indicator --- */}
+      {analysisMethod && (
+        <AnalysisMethodBadge analysisMethod={analysisMethod} />
+      )}
 
       <div className="p-6 space-y-6"> 
         
@@ -302,4 +316,64 @@ const PrincipleRadar = ({ principles }: { principles: Record<string, number> }) 
       ))}
     </svg> 
   ); 
+};
+
+// --- Analysis Method Badge ---
+const AnalysisMethodBadge: React.FC<{ analysisMethod: AnalysisMethod }> = ({ analysisMethod }) => {
+  const { llmAvailable, resonanceMethod, ethicsMethod, trustMethod, confidence } = analysisMethod;
+  
+  // Determine the primary method used
+  const getPrimaryMethod = () => {
+    if (resonanceMethod === 'resonance-engine') return { name: 'ML Engine', icon: <Cpu size={12} />, color: 'text-purple-400 bg-purple-500/20 border-purple-500/50' };
+    if (llmAvailable && ethicsMethod === 'llm') return { name: 'LLM Analysis', icon: <Sparkles size={12} />, color: 'text-cyan-400 bg-cyan-500/20 border-cyan-500/50' };
+    return { name: 'Heuristic', icon: <Calculator size={12} />, color: 'text-amber-400 bg-amber-500/20 border-amber-500/50' };
+  };
+  
+  const primary = getPrimaryMethod();
+  const confidencePercent = Math.round(confidence * 100);
+  
+  return (
+    <div className="px-4 py-2 bg-slate-800/30 border-b border-slate-700/30">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full border text-[10px] font-medium ${primary.color}`}>
+            {primary.icon}
+            <span>{primary.name}</span>
+            <Zap size={10} className="animate-pulse" />
+          </div>
+          <span className="text-[9px] text-slate-500 uppercase tracking-wider">Live Analysis</span>
+        </div>
+        
+        <div className="flex items-center gap-2 text-[10px]">
+          <div className="flex items-center gap-1">
+            <div 
+              className={`w-1.5 h-1.5 rounded-full ${
+                confidence >= 0.8 ? 'bg-emerald-400' : 
+                confidence >= 0.6 ? 'bg-amber-400' : 
+                'bg-slate-500'
+              }`}
+            />
+            <span className="text-slate-400">{confidencePercent}% conf</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Detailed breakdown (expandable via hover) */}
+      <div className="mt-1.5 flex flex-wrap gap-1.5 text-[9px] text-slate-500">
+        <span className={`px-1.5 py-0.5 rounded ${trustMethod === 'content-analysis' ? 'bg-emerald-900/30 text-emerald-300' : 'bg-slate-800 text-slate-400'}`}>
+          Trust: {trustMethod === 'content-analysis' ? '✓ Content' : '○ Metadata'}
+        </span>
+        <span className={`px-1.5 py-0.5 rounded ${ethicsMethod === 'llm' ? 'bg-cyan-900/30 text-cyan-300' : 'bg-slate-800 text-slate-400'}`}>
+          Ethics: {ethicsMethod === 'llm' ? '✓ LLM' : '○ Heuristic'}
+        </span>
+        <span className={`px-1.5 py-0.5 rounded ${
+          resonanceMethod === 'resonance-engine' ? 'bg-purple-900/30 text-purple-300' : 
+          resonanceMethod === 'llm' ? 'bg-cyan-900/30 text-cyan-300' : 
+          'bg-slate-800 text-slate-400'
+        }`}>
+          Resonance: {resonanceMethod === 'resonance-engine' ? '✓ ML' : resonanceMethod === 'llm' ? '✓ LLM' : '○ Heuristic'}
+        </span>
+      </div>
+    </div>
+  );
 };

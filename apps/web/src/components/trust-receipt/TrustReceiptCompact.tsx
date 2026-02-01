@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from 'react';
-import { Shield, Activity, UserCheck, Eye, AlertTriangle, Power, Heart, ChevronDown, ChevronUp } from 'lucide-react';
+import { Shield, Activity, UserCheck, Eye, AlertTriangle, Power, Heart, ChevronDown, ChevronUp, Sparkles, Cpu, Calculator, Zap } from 'lucide-react';
 import { TrustReceiptCard } from './TrustReceiptCard';
-import type { TrustEvaluation } from './TrustReceiptCard';
+import type { TrustEvaluation, AnalysisMethod } from './TrustReceiptCard';
 
 function statusClasses(status: string) {
   if (status === 'PASS') return 'text-emerald-400';
@@ -61,9 +61,24 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = ({ evalua
   // Get principle scores from trustScore.principles (the real SYMBI evaluation)
   const principles = evaluation.trustScore?.principles || {};
   const hasPrincipleScores = Object.keys(principles).length > 0;
+  const analysisMethod = evaluation.analysisMethod;
 
   // Show the 3 most important principles in compact view
   const criticalPrinciples = ['CONSENT_ARCHITECTURE', 'ETHICAL_OVERRIDE', 'RIGHT_TO_DISCONNECT'];
+  
+  // Get analysis method indicator
+  const getMethodIndicator = () => {
+    if (!analysisMethod) return null;
+    if (analysisMethod.resonanceMethod === 'resonance-engine') {
+      return { icon: <Cpu size={10} />, label: 'ML', color: 'text-purple-400' };
+    }
+    if (analysisMethod.llmAvailable && analysisMethod.ethicsMethod === 'llm') {
+      return { icon: <Sparkles size={10} />, label: 'LLM', color: 'text-cyan-400' };
+    }
+    return { icon: <Calculator size={10} />, label: 'Heuristic', color: 'text-amber-400' };
+  };
+  
+  const methodIndicator = getMethodIndicator();
 
   return (
     <div className="w-full rounded-lg border border-slate-700 bg-slate-900 text-slate-200">
@@ -81,6 +96,19 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = ({ evalua
           <span className={`text-[10px] font-bold ${statusClass}`}>
             {evaluation.status}
           </span>
+          
+          {/* Analysis Method Indicator */}
+          {methodIndicator && (
+            <>
+              <div className="h-4 w-px bg-slate-700" />
+              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] ${methodIndicator.color} bg-slate-800/50`}>
+                {methodIndicator.icon}
+                <span>{methodIndicator.label}</span>
+                <Zap size={8} className="animate-pulse opacity-60" />
+              </div>
+            </>
+          )}
+          
           <div className="h-4 w-px bg-slate-700" />
           
           {/* Show SYMBI principle scores instead of NLP metrics */}
