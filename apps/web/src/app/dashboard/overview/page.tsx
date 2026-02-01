@@ -24,11 +24,10 @@ interface AgentTrustData {
   model: string;
   trustScore: number;
   sonateDimensions: {
-    realityIndex: number;
     trustProtocol: string;
     ethicalAlignment: number;
     resonanceQuality: string;
-    canvasParity: number;
+    // Deprecated in v2.0.1 - removed Reality Index and Canvas Parity
   };
   lastInteraction: string;
   interactions24h: number;
@@ -145,11 +144,9 @@ export default function TrustScoresPage() {
           model: agent.model || agent.type || 'unknown',
           trustScore,
           sonateDimensions: {
-            realityIndex: Number(agent.sonateDimensions?.realityIndex) || kpisData?.sonateDimensions?.realityIndex || avgScore * 0.8,
             trustProtocol: trustScore >= 85 ? 'PASS' : trustScore >= 70 ? 'PARTIAL' : 'FAIL',
             ethicalAlignment: Number(agent.sonateDimensions?.ethicalAlignment) || kpisData?.sonateDimensions?.ethicalAlignment || avgScore * 0.5,
             resonanceQuality: kpisData?.sonateDimensions?.resonanceQuality || (trustScore >= 85 ? 'ADVANCED' : 'STRONG'),
-            canvasParity: Number(agent.sonateDimensions?.canvasParity) || kpisData?.sonateDimensions?.canvasParity || trustScore,
           },
           lastInteraction: agent.lastInteraction || agent.updatedAt || new Date().toISOString(),
           interactions24h: kpisData?.totalInteractions || agent.interactionCount || 0,
@@ -321,31 +318,25 @@ export default function TrustScoresPage() {
                 </div>
               </div>
               
-              {/* Detection Metrics (Secondary) */}
+              {/* Detection Metrics (Secondary) - v2.0.1 Validated Dimensions Only */}
               <details className="group">
                 <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground flex items-center gap-1">
                   <span className="group-open:rotate-90 transition-transform">▶</span>
                   Detection Metrics
                 </summary>
-                <div className="grid grid-cols-2 gap-4 mt-2 pt-2 border-t border-dashed">
-                  <div className="space-y-1">
-                    <DimensionBadge label="Reality Index" value={agent.sonateDimensions.realityIndex} type="score" tooltipTerm="Reality Index" />
-                    <DimensionBadge label="Trust Protocol" value={agent.sonateDimensions.trustProtocol} type="status" tooltipTerm="Trust Protocol" />
-                    <DimensionBadge label="Ethical Alignment" value={agent.sonateDimensions.ethicalAlignment} type="score" tooltipTerm="Ethical Alignment" />
-                  </div>
-                  <div className="space-y-1">
-                    <DimensionBadge label="Canvas Parity" value={agent.sonateDimensions.canvasParity} type="percent" tooltipTerm="Canvas Parity" />
-                    <div className="flex items-center justify-between py-1.5 border-b border-dashed">
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        Resonance
-                        <InfoTooltip term="Resonance Quality" />
-                      </span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        agent.sonateDimensions.resonanceQuality === 'BREAKTHROUGH' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                        agent.sonateDimensions.resonanceQuality === 'ADVANCED' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                        'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                      }`}>{agent.sonateDimensions.resonanceQuality}</span>
-                    </div>
+                <div className="space-y-1 mt-2 pt-2 border-t border-dashed">
+                  <DimensionBadge label="Trust Protocol" value={agent.sonateDimensions.trustProtocol} type="status" tooltipTerm="Trust Protocol" />
+                  <DimensionBadge label="Ethical Alignment" value={agent.sonateDimensions.ethicalAlignment} type="score" tooltipTerm="Ethical Alignment" />
+                  <div className="flex items-center justify-between py-1.5 border-b border-dashed last:border-0">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      Resonance
+                      <InfoTooltip term="Resonance Quality" />
+                    </span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                      agent.sonateDimensions.resonanceQuality === 'BREAKTHROUGH' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                      agent.sonateDimensions.resonanceQuality === 'ADVANCED' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                      'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                    }`}>{agent.sonateDimensions.resonanceQuality}</span>
                   </div>
                 </div>
               </details>

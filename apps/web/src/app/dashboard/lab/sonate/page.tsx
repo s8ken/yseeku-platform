@@ -20,9 +20,7 @@ import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { ResonanceExplorer } from '@/components/ResonanceExplorer';
 
 interface SonateScores {
-  realityIndex: number;
   constitutionalAlignment: number;
-  canvasParity: number;
   ethicalAlignment: number;
   trustProtocol: 'PASS' | 'PARTIAL' | 'FAIL';
   emergenceScore: number;
@@ -37,7 +35,6 @@ interface SonateScores {
 
 function RadarChart({ scores }: { scores: SonateScores }) {
   const dimensions = [
-    { label: 'Reality', value: scores.realityIndex / 10 },
     { label: 'Constitutional', value: scores.constitutionalAlignment / 10 },
     { label: 'Ethics', value: scores.ethicalAlignment / 5 },
     { label: 'Trust', value: scores.trustProtocol === 'PASS' ? 1.0 : scores.trustProtocol === 'PARTIAL' ? 0.5 : 0.1 },
@@ -167,14 +164,11 @@ export default function SonatePage() {
         if (data.success && data.data) {
           const apiResult = data.data;
           const rm = Number(apiResult.raw_metrics?.R_m ?? 0.75);
-          const canvasParity = Number(apiResult.sonate_dimensions?.canvas_parity ?? 80);
-          const constitutionalAlignment = Math.max(0, Math.min(10, canvasParity / 10));
           const ethicalAlignment = Math.max(1, Math.min(5, Number(apiResult.sonate_dimensions?.ethical_alignment ?? 4.0)));
+          const constitutionalAlignment = Math.max(0, Math.min(10, ethicalAlignment * 2));
 
           setScores({
-            realityIndex: Math.max(0, Math.min(10, Number(apiResult.sonate_dimensions?.reality_index ?? 8.0))),
             constitutionalAlignment,
-            canvasParity: Math.max(0, Math.min(100, canvasParity)),
             ethicalAlignment,
             trustProtocol: apiResult.sonate_dimensions?.trust_protocol || 'PARTIAL',
             emergenceScore: Math.max(0, Math.min(10, rm * 10)),
@@ -202,25 +196,19 @@ export default function SonatePage() {
     const seed3 = ((hash >> 20) % 1000) / 1000;
     
     const rm = 0.50 + ((seed1 + seed2 + seed3) / 3) * 0.45;
-    const realityIndex = 6.5 + seed1 * 3.0;
-    const canvasParity = 55 + seed2 * 40;
-    const constitutionalAlignment = canvasParity / 10;
     const ethicalAlignment = 2.8 + seed3 * 2.0;
+    const constitutionalAlignment = ethicalAlignment * 2;
     const emergenceScore = rm * 10;
     const overallTrust = rm * 100;
     
     const deterministicScores: SonateScores = {
-      realityIndex: Math.round(realityIndex * 10) / 10,
       constitutionalAlignment: Math.round(constitutionalAlignment * 10) / 10,
-      canvasParity: Math.round(canvasParity),
       ethicalAlignment: Math.round(ethicalAlignment * 10) / 10,
       trustProtocol: rm >= 0.7 ? 'PASS' : rm >= 0.5 ? 'PARTIAL' : 'FAIL',
       emergenceScore: Math.round(emergenceScore * 10) / 10,
       overallTrust: Math.round(overallTrust * 10) / 10,
       resonanceQuality: rm >= 0.85 ? 'BREAKTHROUGH' : rm >= 0.65 ? 'ADVANCED' : 'STRONG',
       analysis: [
-        { dimension: 'Reality Index', insight: 'Content grounding analysis based on text characteristics.', confidence: 0.85 },
-        { dimension: 'Canvas Parity', insight: 'Agency preservation and mirrored contribution estimate.', confidence: 0.82 },
         { dimension: 'Ethical Alignment', insight: 'Ethical safety awareness estimate.', confidence: 0.76 },
         { dimension: 'Trust Protocol', insight: 'Protocol pass/fail derived from resonance proxy.', confidence: 0.79 },
         { dimension: 'Resonance Quality', insight: 'Categorical resonance level derived from the resonance score thresholds.', confidence: 0.78 },
@@ -351,47 +339,7 @@ The capital of France is Paris. It's also the largest city in France, known for 
             <CardDescription>Detailed analysis of each SONATE dimension</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-              <div className="p-4 rounded-lg border bg-card">
-                <div className="flex items-center gap-2 mb-2">
-                  <Fingerprint className="h-4 w-4 text-[var(--lab-primary)]" />
-                  <span className="font-medium text-sm flex items-center gap-1">
-                    Reality Index
-                    <InfoTooltip term="Reality Index" />
-                  </span>
-                </div>
-                <p className="text-2xl font-bold">{scores.realityIndex.toFixed(1)}/10</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {scores.analysis[0].insight}
-                </p>
-                <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-[var(--lab-primary)]" 
-                    style={{ width: `${scores.realityIndex * 10}%` }} 
-                  />
-                </div>
-              </div>
-
-              <div className="p-4 rounded-lg border bg-card">
-                <div className="flex items-center gap-2 mb-2">
-                  <Zap className="h-4 w-4 text-[var(--lab-primary)]" />
-                  <span className="font-medium text-sm flex items-center gap-1">
-                    Canvas Parity
-                    <InfoTooltip term="Canvas Parity" />
-                  </span>
-                </div>
-                <p className="text-2xl font-bold">{Math.round(scores.canvasParity)}%</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {scores.analysis[1].insight}
-                </p>
-                <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-[var(--lab-primary)]" 
-                    style={{ width: `${scores.canvasParity}%` }} 
-                  />
-                </div>
-              </div>
-
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div className="p-4 rounded-lg border bg-card">
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle2 className="h-4 w-4 text-[var(--lab-primary)]" />
@@ -402,7 +350,7 @@ The capital of France is Paris. It's also the largest city in France, known for 
                 </div>
                 <p className="text-2xl font-bold">{scores.ethicalAlignment.toFixed(1)}/5</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {scores.analysis[2].insight}
+                  {scores.analysis[0].insight}
                 </p>
                 <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
                   <div 
@@ -426,7 +374,7 @@ The capital of France is Paris. It's also the largest city in France, known for 
                   'text-red-500'
                 }`}>{scores.trustProtocol}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {scores.analysis[3].insight}
+                  {scores.analysis[1].insight}
                 </p>
               </div>
 
@@ -440,7 +388,7 @@ The capital of France is Paris. It's also the largest city in France, known for 
                 </div>
                 <p className="text-2xl font-bold">{scores.resonanceQuality}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {scores.analysis[4].insight}
+                  {scores.analysis[2].insight}
                 </p>
               </div>
             </div>

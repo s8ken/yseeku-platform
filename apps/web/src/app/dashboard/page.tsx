@@ -485,27 +485,6 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <DetectionMetricCard 
-                    title="Reality Index" 
-                    value={displayKpis.sonateDimensions?.realityIndex ?? 0} 
-                    type="score"
-                    icon={Fingerprint}
-                    tooltipTerm="Reality Index"
-                  />
-                  <DetectionMetricCard 
-                    title="Bedau Index" 
-                    value={displayKpis.bedau?.index ?? 0} 
-                    type="score"
-                    icon={Sparkles}
-                    tooltipTerm="Bedau Index"
-                  />
-                  <DetectionMetricCard 
-                    title="Confidence" 
-                    value={displayKpis.bedau ? `±${((displayKpis.bedau.confidenceInterval[1] - displayKpis.bedau.confidenceInterval[0])/2).toFixed(2)}` : 'N/A'} 
-                    type="status"
-                    icon={Scale}
-                    tooltipTerm="Confidence Interval"
-                  />
-                  <DetectionMetricCard 
                     title="Trust Protocol" 
                     value={displayKpis.sonateDimensions?.trustProtocol ?? 'UNKNOWN'} 
                     type="status"
@@ -520,11 +499,25 @@ export default function DashboardPage() {
                     tooltipTerm="Ethical Alignment"
                   />
                   <DetectionMetricCard 
-                    title="Canvas Parity" 
-                    value={displayKpis.sonateDimensions?.canvasParity ?? 0} 
-                    type="percent"
-                    icon={BarChart3}
-                    tooltipTerm="Canvas Parity"
+                    title="Resonance Quality" 
+                    value={displayKpis.sonateDimensions?.resonanceQuality ?? 'UNKNOWN'} 
+                    type="status"
+                    icon={Sparkles}
+                    tooltipTerm="Resonance Quality"
+                  />
+                  <DetectionMetricCard 
+                    title="Bedau Index" 
+                    value={displayKpis.bedau?.index ?? 0} 
+                    type="score"
+                    icon={Fingerprint}
+                    tooltipTerm="Bedau Index"
+                  />
+                  <DetectionMetricCard 
+                    title="Confidence" 
+                    value={displayKpis.bedau ? `±${((displayKpis.bedau.confidenceInterval[1] - displayKpis.bedau.confidenceInterval[0])/2).toFixed(2)}` : 'N/A'} 
+                    type="status"
+                    icon={Scale}
+                    tooltipTerm="Confidence Interval"
                   />
                 </div>
                 <div className="mt-4 p-3 rounded-lg bg-muted/50 flex items-center justify-between">

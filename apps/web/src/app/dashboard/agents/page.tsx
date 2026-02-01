@@ -653,22 +653,22 @@ export default function AgentsPage() {
                     </div>
                   </div>
 
-                  {/* SONATE Dimensions (if available) */}
+                  {/* SONATE Dimensions (if available) - v2.0.1 Validated Only */}
                   {agent.sonateDimensions && (
                     <div className="pt-2 border-t">
                       <div className="text-xs text-muted-foreground mb-2">SONATE Dimensions</div>
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div>
-                          <div className="text-muted-foreground">Reality</div>
-                          <div className="font-medium">{agent.sonateDimensions.realityIndex?.toFixed(1) || 'N/A'}</div>
+                          <div className="text-muted-foreground">Trust</div>
+                          <div className="font-medium">{agent.sonateDimensions.trustProtocol || 'N/A'}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Ethics</div>
                           <div className="font-medium">{agent.sonateDimensions.ethicalAlignment?.toFixed(1) || 'N/A'}</div>
                         </div>
                         <div>
-                          <div className="text-muted-foreground">Parity</div>
-                          <div className="font-medium">{agent.sonateDimensions.canvasParity?.toFixed(0) || 'N/A'}%</div>
+                          <div className="text-muted-foreground">Resonance</div>
+                          <div className="font-medium">{agent.sonateDimensions.resonanceQuality || 'N/A'}</div>
                         </div>
                       </div>
                     </div>

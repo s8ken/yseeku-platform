@@ -137,10 +137,8 @@ const sampleReceipt = {
   },
   trustScore: 0.94,
   dimensions: {
-    realityIndex: 0.96,
     trustProtocol: 0.92,
     ethicalAlignment: 0.95,
-    canvasParity: 0.91,
     resonance: 0.93
   },
   principles: {
@@ -341,10 +339,8 @@ function ReceiptExplorer() {
             <div className="space-y-4">
               {Object.entries(sampleReceipt.dimensions).map(([key, value]) => {
                 const labels: Record<string, { name: string; description: string }> = {
-                  realityIndex: { name: 'Reality Index', description: 'Factual accuracy and grounding' },
                   trustProtocol: { name: 'Trust Protocol', description: 'Adherence to trust standards' },
                   ethicalAlignment: { name: 'Ethical Alignment', description: 'Ethical behavior compliance' },
-                  canvasParity: { name: 'Canvas Parity', description: 'Cross-platform consistency' },
                   resonance: { name: 'Resonance', description: 'Appropriate contextual response' }
                 };
                 const label = labels[key];

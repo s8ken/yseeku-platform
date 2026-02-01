@@ -17,11 +17,9 @@ import {
 } from 'lucide-react';
 
 interface SonateScores {
-  realityIndex: number;
   trustProtocol: 'PASS' | 'PARTIAL' | 'FAIL';
   ethicalAlignment: number;
   resonanceQuality: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
-  canvasParity: number;
   overallTrust: number;
   analysis: {
     dimension: string;
@@ -32,11 +30,9 @@ interface SonateScores {
 
 function RadarChart({ scores }: { scores: SonateScores }) {
   const dimensions = [
-    { label: 'Reality', value: scores.realityIndex / 10 },
     { label: 'Trust', value: scores.trustProtocol === 'PASS' ? 1 : scores.trustProtocol === 'PARTIAL' ? 0.6 : 0.2 },
     { label: 'Ethics', value: scores.ethicalAlignment / 5 },
     { label: 'Resonance', value: scores.resonanceQuality === 'BREAKTHROUGH' ? 1 : scores.resonanceQuality === 'ADVANCED' ? 0.7 : 0.4 },
-    { label: 'Canvas', value: scores.canvasParity / 100 },
   ];
   
   const points = dimensions.map((d, i) => {
@@ -123,18 +119,14 @@ export default function SonatePage() {
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     const mockScores: SonateScores = {
-      realityIndex: 7.5 + Math.random() * 2,
       trustProtocol: Math.random() > 0.3 ? 'PASS' : 'PARTIAL',
       ethicalAlignment: 3.5 + Math.random() * 1.5,
       resonanceQuality: Math.random() > 0.7 ? 'BREAKTHROUGH' : Math.random() > 0.4 ? 'ADVANCED' : 'STRONG',
-      canvasParity: 75 + Math.random() * 20,
       overallTrust: 70 + Math.random() * 25,
       analysis: [
-        { dimension: 'Reality Index', insight: 'Strong grounding in factual information', confidence: 0.87 },
         { dimension: 'Trust Protocol', insight: 'All validation checks passed', confidence: 0.92 },
         { dimension: 'Ethical Alignment', insight: 'Neutral stance with consideration for multiple perspectives', confidence: 0.78 },
         { dimension: 'Resonance Quality', insight: 'Good engagement patterns detected', confidence: 0.84 },
-        { dimension: 'Canvas Parity', insight: 'Cross-modal coherence within acceptable range', confidence: 0.81 },
       ]
     };
     
@@ -248,24 +240,7 @@ AI: The capital of France is Paris. Paris is not only the capital but also the l
             <CardDescription>Detailed analysis of each SONATE dimension</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-              <div className="p-4 rounded-lg border bg-card">
-                <div className="flex items-center gap-2 mb-2">
-                  <Fingerprint className="h-4 w-4 text-[var(--lab-primary)]" />
-                  <span className="font-medium text-sm">Reality Index</span>
-                </div>
-                <p className="text-2xl font-bold">{scores.realityIndex.toFixed(1)}/10</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {scores.analysis[0].insight}
-                </p>
-                <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-[var(--lab-primary)]" 
-                    style={{ width: `${scores.realityIndex * 10}%` }} 
-                  />
-                </div>
-              </div>
-
+            <div className="grid gap-4 md:grid-cols-3">
               <div className="p-4 rounded-lg border bg-card">
                 <div className="flex items-center gap-2 mb-2">
                   <Shield className="h-4 w-4 text-[var(--lab-primary)]" />
@@ -310,23 +285,7 @@ AI: The capital of France is Paris. Paris is not only the capital but also the l
                 </p>
               </div>
 
-              <div className="p-4 rounded-lg border bg-card">
-                <div className="flex items-center gap-2 mb-2">
-                  <BarChart3 className="h-4 w-4 text-[var(--lab-primary)]" />
-                  <span className="font-medium text-sm">Canvas Parity</span>
-                </div>
-                <p className="text-2xl font-bold">{scores.canvasParity.toFixed(0)}%</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {scores.analysis[4].insight}
-                </p>
-                <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-[var(--lab-primary)]" 
-                    style={{ width: `${scores.canvasParity}%` }} 
-                  />
-                </div>
               </div>
-            </div>
           </CardContent>
         </Card>
       )}
