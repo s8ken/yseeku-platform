@@ -51,6 +51,7 @@ import proofRoutes from './routes/proof.routes';
 import safeguardsRoutes from './routes/safeguards.routes';
 import interactionsRoutes from './routes/interactions.routes';
 import semanticCoprocessorRoutes from './routes/semantic-coprocessor.routes';
+import phaseShiftRoutes from './routes/phase-shift.routes';
 import { initializeSocket } from './socket';
 import { liveMetricsService } from './services/live-metrics.service';
 import { User } from './models/user.model';
@@ -178,6 +179,7 @@ app.use('/api/proof', proofRoutes); // Public /proof demo widget (no auth requir
 app.use('/api/safeguards', safeguardsRoutes); // Relational safeguards and transmission log
 app.use('/api/interactions', interactionsRoutes); // Interactions derived from conversations
 app.use('/api/semantic-coprocessor', semanticCoprocessorRoutes); // Semantic coprocessor status and stats
+app.use('/api/phase-shift', phaseShiftRoutes); // Phase-shift velocity metrics
 app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
 app.use('/api/secrets', secretsRoutes);
 const enableDemo = process.env.DEMO_ROUTES_ENABLED === 'true' || (process.env.NODE_ENV !== 'production');
