@@ -249,6 +249,7 @@ export function initializeSocket(io: SocketIOServer): void {
                 status: aiTrustEval.status,
                 detection: aiTrustEval.detection,
                 receiptHash: aiTrustEval.receiptHash,
+                analysisMethod: aiTrustEval.analysisMethod,
               };
               aiMessage.trustScore = Math.round((aiTrustEval.trustScore.overall / 10) * 5 * 10) / 10;
 

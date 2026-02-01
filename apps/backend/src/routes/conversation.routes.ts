@@ -657,6 +657,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             receipt: aiTrustEval.receipt,
             receiptHash: aiTrustEval.receiptHash,
             evaluatedBy: USE_LLM_TRUST_EVALUATION ? 'llm' : 'heuristic',
+            analysisMethod: aiTrustEval.analysisMethod,
           };
 
           // Persist receipt in TrustReceipt collection (upsert)

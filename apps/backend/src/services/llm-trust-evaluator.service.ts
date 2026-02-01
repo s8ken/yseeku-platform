@@ -39,6 +39,14 @@ export interface LLMTrustEvaluation {
   conversationId?: string;
   agentId?: string;
   evaluatedBy: 'llm' | 'heuristic' | 'hybrid';
+  // v2.1: Analysis method transparency
+  analysisMethod?: {
+    llmAvailable: boolean;
+    resonanceMethod: 'resonance-engine' | 'llm' | 'heuristic';
+    ethicsMethod: 'llm' | 'heuristic';
+    trustMethod: 'content-analysis' | 'metadata-only';
+    confidence: number;
+  };
 }
 
 interface LLMEvaluationContext {
@@ -225,6 +233,13 @@ export class LLMTrustEvaluator {
         conversationId: context.conversationId,
         agentId: context.agentId,
         evaluatedBy: 'llm',
+        analysisMethod: {
+          llmAvailable: true,
+          resonanceMethod: 'llm',
+          ethicsMethod: 'llm',
+          trustMethod: 'content-analysis',
+          confidence: 0.9,
+        },
       };
     } catch (error) {
       logger.error('LLM Trust Evaluation failed, falling back to heuristic', { 
@@ -459,6 +474,13 @@ export class LLMTrustEvaluator {
       conversationId: context.conversationId,
       agentId: context.agentId,
       evaluatedBy: 'heuristic',
+      analysisMethod: {
+        llmAvailable: false,
+        resonanceMethod: 'heuristic',
+        ethicsMethod: 'heuristic',
+        trustMethod: 'content-analysis',
+        confidence: 0.6,
+      },
     };
   }
 }
