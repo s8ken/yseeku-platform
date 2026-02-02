@@ -21,7 +21,8 @@ import {
   Power,
   Heart,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  Lightbulb
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { OverseerWidget } from '@/components/overseer-widget';
@@ -33,6 +34,7 @@ import { PhaseShiftVelocityWidget } from '@/components/PhaseShiftVelocityWidget'
 import { LinguisticEmergenceWidget } from '@/components/LinguisticEmergenceWidget';
 import { DriftDetectionWidget } from '@/components/DriftDetectionWidget';
 import { ModeIndicator } from '@/components/ModeIndicator';
+import { InsightsPanel } from '@/components/InsightsPanel';
 import { useDashboardKPIs, useAlertsData } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
 import { api } from '@/lib/api';
@@ -270,6 +272,16 @@ export default function DashboardPageV2() {
                 <DriftDetectionWidget compact={true} />
               </div>
             </div>
+          </section>
+
+          {/* PANEL 2.5: Actionable Insights */}
+          <section>
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Lightbulb className="h-5 w-5 text-[var(--detect-primary)]" />
+              Actionable Insights
+              <InfoTooltip term="Actionable Insights" />
+            </h2>
+            <InsightsPanel compact={true} limit={3} />
           </section>
 
           {/* PANEL 3: Trust Analysis */}

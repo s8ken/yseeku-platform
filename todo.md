@@ -25,11 +25,11 @@ Transform the dashboard from a data display center into an actionable insights h
 - [ ] Update navigation and breadcrumbs
 
 ### 2.4 Create Actionable Insights Panel
-- [ ] Design insights data structure (priority, severity, actionable recommendation)
-- [ ] Implement insights generation logic (backend)
-- [ ] Create InsightsPanel component
-- [ ] Add AI-generated recommendations
-- [ ] Implement quick actions (approve, override, investigate)
+- [x] Design insights data structure (priority, severity, actionable recommendation)
+- [x] Implement insights generation logic (backend)
+- [x] Create InsightsPanel component
+- [x] Add AI-generated recommendations
+- [x] Implement quick actions (approve, override, investigate)
 
 ### 2.5 UX Enhancements
 - [ ] Create tooltip system for technical terms
@@ -79,5 +79,5 @@ Transform the dashboard from a data display center into an actionable insights h
 - ✅ Build verification successful
 
 ### In Progress
-- 🔄 Reducing Trust Score redundancy (Overview page cleanup)
-- 🔄 Creating Actionable Insights Panel
+- 🔄 Creating UX Enhancements (tooltips, glossary)
+- 🔄 Dashboard performance optimization
