@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from 'react';
-import { Shield, Activity, UserCheck, Eye, AlertTriangle, Power, Heart, ChevronDown, ChevronUp } from 'lucide-react';
+import { Shield, Activity, UserCheck, Eye, AlertTriangle, Power, Heart, ChevronDown, ChevronUp, Sparkles, Cpu, Calculator, Zap } from 'lucide-react';
 import { TrustReceiptCard } from './TrustReceiptCard';
-import type { TrustEvaluation } from './TrustReceiptCard';
+import type { TrustEvaluation, AnalysisMethod } from './TrustReceiptCard';
 
 function statusClasses(status: string) {
   if (status === 'PASS') return 'text-emerald-400';
@@ -81,6 +81,29 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = ({ evalua
           <span className={`text-[10px] font-bold ${statusClass}`}>
             {evaluation.status}
           </span>
+          
+          {/* Analysis Method Indicator */}
+          {evaluation.analysisMethod && (
+            <span 
+              className={`text-[9px] font-medium px-1.5 py-0.5 rounded flex items-center gap-1 ${
+                evaluation.analysisMethod.resonanceMethod === 'resonance-engine' 
+                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                  : evaluation.analysisMethod.ethicsMethod === 'llm'
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+              }`}
+              title={`Analysis: ${evaluation.analysisMethod.resonanceMethod} resonance, ${evaluation.analysisMethod.ethicsMethod} ethics (${Math.round(evaluation.analysisMethod.confidence * 100)}% confidence)`}
+            >
+              {evaluation.analysisMethod.resonanceMethod === 'resonance-engine' ? (
+                <><Sparkles size={10} /> ML</>
+              ) : evaluation.analysisMethod.ethicsMethod === 'llm' ? (
+                <><Cpu size={10} /> LLM</>
+              ) : (
+                <><Calculator size={10} /> Heur</>
+              )}
+            </span>
+          )}
+          
           <div className="h-4 w-px bg-slate-700" />
           
           {/* Show SYMBI principle scores instead of NLP metrics */}

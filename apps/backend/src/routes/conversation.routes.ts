@@ -783,6 +783,13 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             },
             receipt: null,
             receiptHash: `fallback-${Date.now()}`,
+            analysisMethod: {
+              llmAvailable: false,
+              resonanceMethod: 'heuristic',
+              ethicsMethod: 'heuristic',
+              trustMethod: 'fallback',
+              confidence: 0.3,
+            },
           };
           aiMessage.trustScore = 3.5; // Conservative middle value (0-5 scale)
         }

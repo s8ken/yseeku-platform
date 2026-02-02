@@ -156,6 +156,7 @@ export function initializeSocket(io: SocketIOServer): void {
             status: userTrustEval.status,
             detection: userTrustEval.detection,
             receiptHash: userTrustEval.receiptHash,
+            analysisMethod: userTrustEval.analysisMethod,
           };
           userMessage.trustScore = Math.round((userTrustEval.trustScore.overall / 10) * 5 * 10) / 10;
         } catch (trustError: unknown) {
@@ -249,6 +250,7 @@ export function initializeSocket(io: SocketIOServer): void {
                 status: aiTrustEval.status,
                 detection: aiTrustEval.detection,
                 receiptHash: aiTrustEval.receiptHash,
+                analysisMethod: aiTrustEval.analysisMethod,
               };
               aiMessage.trustScore = Math.round((aiTrustEval.trustScore.overall / 10) * 5 * 10) / 10;
 

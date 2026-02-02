@@ -4,7 +4,7 @@ import React from 'react';
 import { TrustEvaluation } from '@/lib/api';
 import { TrustReceiptCompact } from '../trust-receipt/TrustReceiptCompact';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Shield, User, Bot, AlertCircle, Phone, UserCheck, Database, LogOut } from 'lucide-react';
+import { Shield, User, Bot, AlertCircle, Phone, UserCheck, Database, LogOut, Sparkles, Cpu, Calculator } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 
@@ -58,6 +58,28 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             )}>
               <Shield size={10} />
               Trust Score: {evaluation.trustScore.overall.toFixed(1)}
+            </div>
+          )}
+          {/* Analysis Method Indicator */}
+          {isAssistant && evaluation?.analysisMethod && (
+            <div 
+              className={cn(
+                "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium",
+                evaluation.analysisMethod.resonanceMethod === 'resonance-engine' 
+                  ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                  : evaluation.analysisMethod.ethicsMethod === 'llm'
+                    ? "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300"
+                    : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+              )}
+              title={`${evaluation.analysisMethod.resonanceMethod} resonance, ${evaluation.analysisMethod.ethicsMethod} ethics`}
+            >
+              {evaluation.analysisMethod.resonanceMethod === 'resonance-engine' ? (
+                <><Sparkles size={10} /> ML Engine</>
+              ) : evaluation.analysisMethod.ethicsMethod === 'llm' ? (
+                <><Cpu size={10} /> LLM</>
+              ) : (
+                <><Calculator size={10} /> Heuristic</>
+              )}
             </div>
           )}
         </div>
