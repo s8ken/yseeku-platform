@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,12 +33,11 @@ import { WithDemoWatermark } from '@/components/demo-watermark';
 import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
 import { HumanReadableSummary } from '@/components/HumanReadableSummary';
 import { SemanticCoprocessorStatus } from '@/components/SemanticCoprocessorStatus';
-import { PhaseShiftVelocityWidget } from '@/components/PhaseShiftVelocityWidget';
-import { LinguisticEmergenceWidget } from '@/components/LinguisticEmergenceWidget';
-import { DriftDetectionWidget } from '@/components/DriftDetectionWidget';
 import { ModeIndicator } from '@/components/ModeIndicator';
-import { InsightsPanel } from '@/components/InsightsPanel';
 import { useDashboardKPIs, useAlertsData } from '@/hooks/use-demo-data';
+
+// Lazy load InsightsPanel for better initial load performance
+const InsightsPanel = lazy(() => import('@/components/InsightsPanel').then(m => ({ default: m.InsightsPanel })));
 import { useDemo } from '@/hooks/use-demo';
 import { api } from '@/lib/api';
 import {
@@ -55,6 +54,11 @@ import {
   InsightsPanelSkeleton,
   AlertsFeedSkeleton
 } from '@/components/ui/loading-skeleton';
+
+// Lazy load heavy widgets for better initial load performance
+const PhaseShiftVelocityWidget = lazy(() => import('@/components/PhaseShiftVelocityWidget'));
+const LinguisticEmergenceWidget = lazy(() => import('@/components/LinguisticEmergenceWidget'));
+const DriftDetectionWidget = lazy(() => import('@/components/DriftDetectionWidget'));
 
 interface KPIData {
   tenant: string;
@@ -315,25 +319,21 @@ export default function DashboardPage() {
               <InfoTooltip term="Hidden Gems" />
             </h2>
             <div className="grid gap-4 lg:grid-cols-3">
-              {kpiLoading ? (
-                <>
-                  <PhaseShiftWidgetSkeleton />
-                  <EmergenceWidgetSkeleton />
-                  <DriftWidgetSkeleton />
-                </>
-              ) : (
-                <>
-                  <div className="lg:col-span-1">
-                    <PhaseShiftVelocityWidget compact={true} />
-                  </div>
-                  <div className="lg:col-span-1">
-                    <LinguisticEmergenceWidget compact={true} />
-                  </div>
-                  <div className="lg:col-span-1">
-                    <DriftDetectionWidget compact={true} />
-                  </div>
-                </>
-              )}
+              <Suspense fallback={<PhaseShiftWidgetSkeleton />}>
+                <div className="lg:col-span-1">
+                  <PhaseShiftVelocityWidget compact={true} />
+                </div>
+              </Suspense>
+              <Suspense fallback={<EmergenceWidgetSkeleton />}>
+                <div className="lg:col-span-1">
+                  <LinguisticEmergenceWidget compact={true} />
+                </div>
+              </Suspense>
+              <Suspense fallback={<DriftWidgetSkeleton />}>
+                <div className="lg:col-span-1">
+                  <DriftDetectionWidget compact={true} />
+                </div>
+              </Suspense>
             </div>
           </section>
 
@@ -346,10 +346,10 @@ export default function DashboardPage() {
             </h2>
             {hasNoData ? (
               <EmptyInsights onViewDocumentation={handleViewDocumentation} />
-            ) : kpiLoading ? (
-              <InsightsPanelSkeleton />
             ) : (
-              <InsightsPanel compact={true} limit={3} />
+              <Suspense fallback={<InsightsPanelSkeleton />}>
+                <InsightsPanel compact={true} limit={3} />
+              </Suspense>
             )}
           </section>
 
