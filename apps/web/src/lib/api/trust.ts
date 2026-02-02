@@ -16,14 +16,6 @@ export interface Receipt {
   created_at: string;
 }
 
-export interface AnalysisMethod {
-  llmAvailable: boolean;
-  resonanceMethod: 'resonance-engine' | 'llm' | 'heuristic';
-  ethicsMethod: 'llm' | 'heuristic';
-  trustMethod: 'content-analysis' | 'metadata-only';
-  confidence: number;
-}
-
 export interface TrustEvaluation {
   trustScore: {
     overall: number;
@@ -44,7 +36,6 @@ export interface TrustEvaluation {
   timestamp: number;
   messageId?: string;
   conversationId?: string;
-  analysisMethod?: AnalysisMethod;
 }
 
 export interface TrustAnalyticsResponse {

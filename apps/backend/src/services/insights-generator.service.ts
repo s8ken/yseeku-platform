@@ -1,5 +1,5 @@
 import { Insight, InsightPriority, InsightCategory, InsightAction, InsightsConfig, InsightsSummary } from '../types/insights.types';
-import { TrustReceiptModel } from '@sonate/persistence';
+import { TrustReceiptModel } from '../models/trust-receipt.model';
 
 /**
  * Insights Generator Service

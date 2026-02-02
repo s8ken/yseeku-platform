@@ -60,7 +60,7 @@ router.get('/summary', async (req: Request, res: Response) => {
  */
 router.patch('/:id/status', async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { status, action } = req.body;
     
     const insight = await insightsGeneratorService.updateInsightStatus(

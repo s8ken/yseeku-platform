@@ -84,7 +84,7 @@ export default function TenantManagementPage() {
   });
 
   const queryClient = useQueryClient();
-  const { isDemo, isLoaded, isSwitching } = useDemo();
+  const { isDemo, isLoaded } = useDemo();
 
   // Fetch real tenants from API
   const { data, isLoading: isLoadingReal } = useQuery({
@@ -94,7 +94,7 @@ export default function TenantManagementPage() {
       if (!response.ok) throw new Error('Failed to fetch tenants');
       return response.json() as Promise<TenantResponse>;
     },
-    enabled: !isDemo && isLoaded && !isSwitching,
+    enabled: !isDemo && isLoaded,
   });
 
   // Fetch demo tenants when in demo mode
@@ -102,7 +102,7 @@ export default function TenantManagementPage() {
     queryKey: ['demo-tenants'],
     queryFn: () => api.getDemoTenants(),
     staleTime: 60000,
-    enabled: isDemo && isLoaded && !isSwitching,
+    enabled: isDemo && isLoaded,
   });
 
   const isLoading = !isLoaded || (isDemo ? isLoadingDemo : isLoadingReal);

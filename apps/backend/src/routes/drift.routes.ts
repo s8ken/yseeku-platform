@@ -10,8 +10,8 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { ConversationModel } from '../models/conversation.model';
-import { authenticateToken } from '../middleware/auth.middleware';
+import { Conversation, IMessage, IConversation } from '../models/conversation.model';
+import { protect } from '../middleware/auth.middleware';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 
@@ -54,13 +54,13 @@ interface DriftHistory {
  * GET /api/drift/conversation/:conversationId
  * Get current drift metrics for a conversation
  */
-router.get('/conversation/:conversationId', authenticateToken, async (req: Request, res: Response) => {
+router.get('/conversation/:conversationId', protect, async (req: Request, res: Response) => {
   try {
-    const { conversationId } = req.params;
+    const conversationId = req.params.conversationId as string;
     const userId = req.userId;
 
     // Fetch conversation
-    const conversation = await ConversationModel.findOne({
+    const conversation = await Conversation.findOne({
       _id: conversationId,
       user: userId,
     });
@@ -73,7 +73,7 @@ router.get('/conversation/:conversationId', authenticateToken, async (req: Reque
     }
 
     // Extract drift data from the last AI message
-    const aiMessages = conversation.messages.filter(m => m.sender === 'ai');
+    const aiMessages = conversation.messages.filter((m: IMessage) => m.sender === 'ai');
     
     if (aiMessages.length === 0) {
       return res.json({
@@ -84,7 +84,7 @@ router.get('/conversation/:conversationId', authenticateToken, async (req: Reque
     }
 
     const lastAiMessage = aiMessages[aiMessages.length - 1];
-    const driftData = lastAiMessage.driftData;
+    const driftData = lastAiMessage.metadata?.trustEvaluation?.drift || lastAiMessage.metadata?.drift;
 
     if (!driftData) {
       return res.json({
@@ -110,7 +110,7 @@ router.get('/conversation/:conversationId', authenticateToken, async (req: Reque
       vocabDelta: driftData.vocabDelta || 0,
       numericDelta: driftData.numericDelta || 0,
       alertLevel,
-      timestamp: lastAiMessage.timestamp || Date.now(),
+      timestamp: lastAiMessage.timestamp?.getTime() || Date.now() || Date.now(),
       turnNumber: aiMessages.length,
     };
 
@@ -139,13 +139,13 @@ router.get('/conversation/:conversationId', authenticateToken, async (req: Reque
  * GET /api/drift/conversation/:conversationId/history
  * Get drift history for a conversation
  */
-router.get('/conversation/:conversationId/history', authenticateToken, async (req: Request, res: Response) => {
+router.get('/conversation/:conversationId/history', protect, async (req: Request, res: Response) => {
   try {
-    const { conversationId } = req.params;
+    const conversationId = req.params.conversationId as string;
     const userId = req.userId;
 
     // Fetch conversation
-    const conversation = await ConversationModel.findOne({
+    const conversation = await Conversation.findOne({
       _id: conversationId,
       user: userId,
     });
@@ -158,7 +158,10 @@ router.get('/conversation/:conversationId/history', authenticateToken, async (re
     }
 
     // Extract drift data from all AI messages
-    const aiMessages = conversation.messages.filter(m => m.sender === 'ai' && m.driftData);
+    const aiMessages = conversation.messages.filter((m: IMessage) => {
+      const drift = m.metadata?.trustEvaluation?.drift || m.metadata?.drift;
+      return m.sender === 'ai' && drift;
+    });
     
     if (aiMessages.length === 0) {
       return res.json({
@@ -178,8 +181,9 @@ router.get('/conversation/:conversationId/history', authenticateToken, async (re
     }
 
     // Build history
-    const history = aiMessages.map((msg, idx) => {
-      const driftScore = msg.driftData?.driftScore || 0;
+    const history = aiMessages.map((msg: IMessage, idx: number) => {
+      const driftData = msg.metadata?.trustEvaluation?.drift || msg.metadata?.drift;
+      const driftScore = driftData?.driftScore || 0;
       let alertLevel: 'none' | 'yellow' | 'red' = 'none';
       if (driftScore > 60) {
         alertLevel = 'red';
@@ -189,11 +193,11 @@ router.get('/conversation/:conversationId/history', authenticateToken, async (re
 
       return {
         turnNumber: idx + 1,
-        timestamp: msg.timestamp || Date.now(),
+        timestamp: msg.timestamp?.getTime() || Date.now(),
         driftScore,
-        tokenDelta: msg.driftData?.tokenDelta || 0,
-        vocabDelta: msg.driftData?.vocabDelta || 0,
-        numericDelta: msg.driftData?.numericDelta || 0,
+        tokenDelta: driftData?.tokenDelta || 0,
+        vocabDelta: driftData?.vocabDelta || 0,
+        numericDelta: driftData?.numericDelta || 0,
         alertLevel,
       };
     });
@@ -243,13 +247,13 @@ router.get('/conversation/:conversationId/history', authenticateToken, async (re
  * GET /api/drift/tenant/summary
  * Get drift summary for tenant
  */
-router.get('/tenant/summary', authenticateToken, async (req: Request, res: Response) => {
+router.get('/tenant/summary', protect, async (req: Request, res: Response) => {
   try {
     const userId = req.userId;
     const tenantId = req.headers['x-tenant-id'] as string;
 
     // Fetch all conversations for the user/tenant
-    const conversations = await ConversationModel.find({
+    const conversations = await Conversation.find({
       user: userId,
     });
 
@@ -276,10 +280,14 @@ router.get('/tenant/summary', authenticateToken, async (req: Request, res: Respo
     let highDriftCount = 0;
     const alertDistribution = { none: 0, yellow: 0, red: 0 };
 
-    conversations.forEach(conv => {
-      const aiMessages = conv.messages.filter(m => m.sender === 'ai' && m.driftData);
-      aiMessages.forEach(msg => {
-        const driftScore = msg.driftData?.driftScore || 0;
+    conversations.forEach((conv: IConversation) => {
+      const aiMessages = conv.messages.filter((m: IMessage) => {
+        const drift = m.metadata?.trustEvaluation?.drift || m.metadata?.drift;
+        return m.sender === 'ai' && drift;
+      });
+      aiMessages.forEach((msg: IMessage) => {
+        const driftData = msg.metadata?.trustEvaluation?.drift || msg.metadata?.drift;
+        const driftScore = driftData?.driftScore || 0;
         totalDriftScore += driftScore;
         totalMessages++;
 
