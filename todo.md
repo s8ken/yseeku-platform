@@ -1,94 +1,99 @@
-# Phase 2: Dashboard Reimagination & UX Enhancement
+# Phase 3: Dashboard Performance Optimization & Empty States
 
 ## Overview
-Transform the dashboard from a data display center into an actionable insights hub by integrating the newly exposed "hidden gems" (Phase-Shift Velocity, Linguistic Emergence, Drift Detection), reducing redundancy, and improving user experience.
+Focus on optimizing dashboard performance, implementing proper empty states for new tenants, and enhancing loading states for better user experience.
 
-## Task List
+---
 
-### 2.1 Dashboard Layout Reorganization
-- [x] Design new 4-panel dashboard layout (Hero KPIs, Hidden Gems, Trust Analysis, Recent Activity)
-- [x] Create DashboardLayout component with grid system
-- [x] Implement responsive breakpoints (mobile, tablet, desktop)
-- [ ] Add widget drag-and-drop or slot-based positioning
+## Task Categories
 
-### 2.2 Integrate Hidden Gems into Dashboard
-- [x] Add Phase-Shift Velocity widget to main dashboard
-- [x] Add Linguistic Emergence widget to main dashboard
-- [x] Add Drift Detection widget to main dashboard
-- [x] Create "Safety Overview" composite widget combining all three
-- [x] Add demo mode support for all widgets
+### Task 3.1: Performance Audit & Optimization
+- [ ] Audit current dashboard load times and bundle sizes
+- [ ] Identify performance bottlenecks (React Query, data fetching, re-renders)
+- [ ] Optimize widget lazy loading (Phase 1 widgets, Insights Panel)
+- [ ] Implement code splitting for heavy components
+- [ ] Add memoization for expensive calculations
+- [ ] Optimize image and asset loading
 
-### 2.3 Reduce Trust Score Redundancy
-- [ ] Remove Trust Score from Overview page (keep only on Main Dashboard)
-- [ ] Consolidate Constitutional Principles display
-- [ ] Create dedicated Trust Score detail page
-- [ ] Update navigation and breadcrumbs
+### Task 3.2: Empty States Implementation ✅ IN PROGRESS
+- [x] Design empty state components for:
+  - [x] Blank slate live tenant (first visit)
+  - [x] No trust receipts
+  - [x] No alerts
+  - [x] No insights
+  - [x] No interactions
+- [x] Create EmptyState component library
+- [x] Add contextual guidance and CTAs for empty states
+- [x] Implement progressive disclosure based on data availability
+- [ ] Test empty states in both demo and live modes
 
-### 2.4 Create Actionable Insights Panel
-- [x] Design insights data structure (priority, severity, actionable recommendation)
-- [x] Implement insights generation logic (backend)
-- [x] Create InsightsPanel component
-- [x] Add AI-generated recommendations
-- [x] Implement quick actions (approve, override, investigate)
+### Task 3.3: Loading States Enhancement ✅ IN PROGRESS
+- [x] Audit existing loading states across dashboard
+- [x] Create consistent loading skeleton components
+- [x] Add loading states for:
+  - [x] Hidden Gems widgets
+  - [x] Insights Panel
+  - [x] Trust Score KPIs
+  - [x] Alerts feed
+- [ ] Implement optimistic UI updates where appropriate
+- [ ] Add progressive loading for historical data
 
-### 2.5 UX Enhancements
-- [x] Create tooltip system for technical terms
-- [x] Build glossary component with plain English explanations
-- [ ] Add contextual help buttons
-- [ ] Implement loading states and skeletons
-- [ ] Add empty states for new tenants
+### Task 3.4: Dashboard Responsiveness Optimization
+- [ ] Optimize mobile layout for dashboard
+- [ ] Test responsive breakpoints (640px, 768px, 1024px, 1280px)
+- [ ] Fix any layout issues on different screen sizes
+- [ ] Optimize touch interactions for mobile
 
-### 2.6 Dashboard Performance Optimization
-- [ ] Implement widget-level caching with React Query
-- [ ] Add lazy loading for below-fold widgets
-- [ ] Optimize API calls (batch where possible)
-- [ ] Add performance monitoring
+### Task 3.5: Data Fetching Optimization
+- [ ] Review React Query configuration (staleTime, cacheTime, refetchOnWindowFocus)
+- [ ] Implement query deduplication
+- [ ] Add proper error boundaries for data fetching
+- [ ] Optimize concurrent query execution
+- [ ] Add request cancellation for rapid mode switches
 
-### 2.7 Testing & Validation
-- [ ] Test dashboard with demo tenant data
-- [ ] Test dashboard with live tenant (blank slate)
-- [ ] Verify widget responsive behavior
-- [ ] Check performance metrics
-- [ ] Validate data accuracy
+### Task 3.6: Testing & Validation
+- [ ] Performance testing (Lighthouse scores, bundle analysis)
+- [ ] Empty states testing (live mode first visit)
+- [ ] Loading states testing (slow network simulation)
+- [ ] Responsiveness testing across devices
+- [ ] End-to-end testing with real data
 
-### 2.8 Documentation
-- [ ] Update dashboard documentation
-- [ ] Create user guide for new dashboard
-- [ ] Document widget configuration
-- [ ] Update CHANGELOG.md
+### Task 3.7: Documentation
+- [ ] Document performance optimization strategies
+- [ ] Create empty states design guidelines
+- [ ] Update CHANGELOG.md with Phase 3 changes
+- [ ] Create Phase 3 implementation documentation
+
+---
 
 ## Success Criteria
-- Main dashboard displays all 3 hidden gems prominently
-- Trust score displayed only once (no redundancy)
-- Actionable insights panel provides clear next steps
-- All technical terms have tooltips
-- Dashboard loads under 3 seconds
-- All widgets work in both demo and live modes
 
-## Progress
+1. Dashboard load time < 2 seconds (currently ~3 seconds)
+2. Empty states display helpful guidance for new tenants
+3. Loading states are consistent across all components
+4. Mobile layout fully functional
+5. Lighthouse Performance score > 90
+6. All changes committed and pushed to main branch
 
-### Completed
-- ✅ Created todo.md with Phase 2 task breakdown
-- ✅ Analyzed current dashboard layout (673 lines)
-- ✅ Verified Phase 1 widgets exist and ready for integration
+---
 
-### Completed
-- ✅ Redesigned main dashboard with 4-panel layout
-- ✅ Integrated all 3 Hidden Gems widgets (Phase-Shift, Emergence, Drift)
-- ✅ Added ModeIndicator component to header
-- ✅ Build verification successful
+## Priority
 
-### Completed
-- ✅ Dashboard redesign with 4-panel layout
-- ✅ Integrated all 3 Hidden Gems widgets
-- ✅ Created Actionable Insights Panel with backend service
-- ✅ Added 11 new glossary entries
-- ✅ Added 11 new tooltip definitions
-- ✅ Build verification successful
-- ✅ Documentation complete (PHASE2_IMPLEMENTATION.md)
+1. **High Priority**: Empty States, Loading States Enhancement
+2. **Medium Priority**: Performance Audit & Optimization, Data Fetching Optimization
+3. **Low Priority**: Dashboard Responsiveness Optimization, Testing & Validation
 
-### Deferred (Future Work)
-- ⏸️ Learn module pages (build configuration issue to investigate)
-- ⏸️ Dashboard performance optimization (acceptable performance)
-- ⏸️ Empty states for new tenants
-- ⏸️ Additional loading states
+---
+
+## Recent Progress
+
+### Completed Files Created
+- ✅ `apps/web/src/components/ui/empty-state.tsx` - Empty state component library
+- ✅ `apps/web/src/components/ui/loading-skeleton.tsx` - Loading skeleton components
+- ✅ `apps/web/src/app/dashboard/page.tsx` - Updated with empty states and loading skeletons
+
+### Next Steps
+1. Verify build completes successfully
+2. Test empty states in live mode
+3. Optimize React Query configuration
+4. Add lazy loading for heavy components

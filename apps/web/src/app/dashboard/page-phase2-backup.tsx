@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Shield, 
@@ -23,9 +22,7 @@ import {
   Heart,
   Sparkles,
   RefreshCw,
-  Lightbulb,
-  MessageSquare,
-  ArrowRight
+  Lightbulb
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { OverseerWidget } from '@/components/overseer-widget';
@@ -41,20 +38,6 @@ import { InsightsPanel } from '@/components/InsightsPanel';
 import { useDashboardKPIs, useAlertsData } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
 import { api } from '@/lib/api';
-import {
-  EmptyTrustReceipts,
-  EmptyAlerts,
-  EmptyInsights,
-  EmptyDashboardBlankSlate
-} from '@/components/ui/empty-state';
-import {
-  KPICardSkeleton,
-  PhaseShiftWidgetSkeleton,
-  EmergenceWidgetSkeleton,
-  DriftWidgetSkeleton,
-  InsightsPanelSkeleton,
-  AlertsFeedSkeleton
-} from '@/components/ui/loading-skeleton';
 
 interface KPIData {
   tenant: string;
@@ -120,39 +103,38 @@ function KPICard({
   status?: 'success' | 'warning' | 'error' | 'neutral';
 }) {
   const statusColors = {
-    success: 'bg-emerald-500',
-    warning: 'bg-amber-500',
-    error: 'bg-red-500',
-    neutral: 'bg-slate-500'
+    success: 'border-l-emerald-500',
+    warning: 'border-l-amber-500',
+    error: 'border-l-red-500',
+    neutral: 'border-l-[var(--detect-primary)]'
   };
-
+  
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="flex items-center gap-2">
-          <Icon className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">{title}</span>
+    <Card className={`border-l-4 ${statusColors[status || 'neutral']}`}>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium flex items-center gap-1">
+          {title}
           {tooltipTerm && <InfoTooltip term={tooltipTerm} />}
-        </div>
-        {status && (
-          <div className={`h-2 w-2 rounded-full ${statusColors[status]}`} />
-        )}
+        </CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold">{typeof value === 'number' ? value.toLocaleString() : value}</span>
-          {unit && <span className="text-sm text-muted-foreground">{unit}</span>}
+          <span className="text-3xl font-bold">{value}</span>
+          {unit && <span className="text-muted-foreground">{unit}</span>}
         </div>
-        {trend && <TrendIndicator change={trend.change} direction={trend.direction} />}
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-xs text-muted-foreground">Overall platform</p>
+          {trend && <TrendIndicator {...trend} />}
+        </div>
       </CardContent>
     </Card>
   );
 }
 
-export default function DashboardPage() {
-  const router = useRouter();
-  const { isDemo, isLoaded, currentTenantId } = useDemo();
-  
+export default function DashboardPageV2() {
+  const { isDemo } = useDemo();
+
   const { data: kpis, isLoading: kpiLoading } = useDashboardKPIs();
   const { data: alertData, isLoading: alertLoading } = useAlertsData();
 
@@ -160,7 +142,7 @@ export default function DashboardPage() {
     queryKey: ['policy-status'],
     queryFn: async () => {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const headers: Record<string, string> = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
       
       const response = await fetch(`/api/dashboard/policy-status`, { headers });
@@ -180,30 +162,12 @@ export default function DashboardPage() {
     },
   }) as unknown as KPIData;
 
-  // Show loading skeleton while initial data loads
   if (kpiLoading) {
     return <DashboardPageSkeleton />;
   }
 
-  // Check if we have zero interactions (blank slate)
-  const hasNoData = !kpis || kpis.totalInteractions === 0;
-  const hasNoAlerts = !alerts || alerts.alerts.length === 0;
-
   const trustScoreStatus = kpis?.trustScore ?? 0 >= 80 ? 'success' : kpis?.trustScore ?? 0 >= 60 ? 'warning' : 'error';
   const alertsStatus = (alerts?.summary?.total ?? 0) > 5 ? 'warning' : (alerts?.summary?.total ?? 0) > 0 ? 'neutral' : 'success';
-
-  const handleStartChat = () => {
-    router.push('/dashboard/chat');
-  };
-
-  const handleViewDemo = () => {
-    // Switch to demo mode
-    router.push('/dashboard?mode=demo');
-  };
-
-  const handleViewDocumentation = () => {
-    router.push('/dashboard/learn');
-  };
 
   return (
     <div className="space-y-6">
@@ -228,16 +192,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Show blank slate state for new tenants */}
-      {hasNoData && !isDemo && (
-        <EmptyDashboardBlankSlate 
-          onStartChat={handleStartChat}
-          onViewDemo={handleViewDemo}
-        />
-      )}
-
-      {/* Human-Readable Summary - only show if we have data */}
-      {kpis && !hasNoData && (
+      {/* Human-Readable Summary */}
+      {kpis && (
         <HumanReadableSummary 
           trustScore={kpis.trustScore}
           bedauIndex={displayKpis.bedau?.index ?? 0}
@@ -262,49 +218,40 @@ export default function DashboardPage() {
               <Activity className="h-5 w-5 text-[var(--detect-primary)]" />
               Key Performance Indicators
             </h2>
-            {kpiLoading ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <KPICardSkeleton />
-                <KPICardSkeleton />
-                <KPICardSkeleton />
-                <KPICardSkeleton />
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <KPICard
-                  title="Trust Score"
-                  value={kpis.trustScore}
-                  unit="/100"
-                  icon={Shield}
-                  trend={kpis.trends?.trustScore}
-                  tooltipTerm="Trust Score"
-                  status={trustScoreStatus}
-                />
-                <KPICard
-                  title="Compliance"
-                  value={displayKpis.complianceRate}
-                  unit="%"
-                  icon={CheckCircle2}
-                  trend={kpis.trends?.compliance}
-                  status={policyStatus?.overallPass ? 'success' : 'warning'}
-                />
-                <KPICard
-                  title="Risk Level"
-                  value={kpis.riskScore}
-                  unit="/10"
-                  icon={AlertTriangle}
-                  trend={kpis.trends?.risk}
-                  status={kpis.riskScore > 5 ? 'error' : kpis.riskScore > 3 ? 'warning' : 'success'}
-                />
-                <KPICard
-                  title="Active Alerts"
-                  value={alerts?.summary?.total ?? displayKpis.alertsCount}
-                  unit=""
-                  icon={AlertTriangle}
-                  status={alertsStatus}
-                />
-              </div>
-            )}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <KPICard
+                title="Trust Score"
+                value={kpis.trustScore}
+                unit="/100"
+                icon={Shield}
+                trend={kpis.trends?.trustScore}
+                tooltipTerm="Trust Score"
+                status={trustScoreStatus}
+              />
+              <KPICard
+                title="Compliance"
+                value={displayKpis.complianceRate}
+                unit="%"
+                icon={CheckCircle2}
+                trend={kpis.trends?.compliance}
+                status={policyStatus?.overallPass ? 'success' : 'warning'}
+              />
+              <KPICard
+                title="Risk Level"
+                value={kpis.riskScore}
+                unit="/10"
+                icon={AlertTriangle}
+                trend={kpis.trends?.risk}
+                status={kpis.riskScore > 5 ? 'error' : kpis.riskScore > 3 ? 'warning' : 'success'}
+              />
+              <KPICard
+                title="Active Alerts"
+                value={alerts?.summary?.total ?? displayKpis.alertsCount}
+                unit=""
+                icon={AlertTriangle}
+                status={alertsStatus}
+              />
+            </div>
           </section>
 
           {/* PANEL 2: Hidden Gems - NEW! */}
@@ -315,25 +262,15 @@ export default function DashboardPage() {
               <InfoTooltip term="Hidden Gems" />
             </h2>
             <div className="grid gap-4 lg:grid-cols-3">
-              {kpiLoading ? (
-                <>
-                  <PhaseShiftWidgetSkeleton />
-                  <EmergenceWidgetSkeleton />
-                  <DriftWidgetSkeleton />
-                </>
-              ) : (
-                <>
-                  <div className="lg:col-span-1">
-                    <PhaseShiftVelocityWidget compact={true} />
-                  </div>
-                  <div className="lg:col-span-1">
-                    <LinguisticEmergenceWidget compact={true} />
-                  </div>
-                  <div className="lg:col-span-1">
-                    <DriftDetectionWidget compact={true} />
-                  </div>
-                </>
-              )}
+              <div className="lg:col-span-1">
+                <PhaseShiftVelocityWidget compact={true} />
+              </div>
+              <div className="lg:col-span-1">
+                <LinguisticEmergenceWidget compact={true} />
+              </div>
+              <div className="lg:col-span-1">
+                <DriftDetectionWidget compact={true} />
+              </div>
             </div>
           </section>
 
@@ -344,13 +281,7 @@ export default function DashboardPage() {
               Actionable Insights
               <InfoTooltip term="Actionable Insights" />
             </h2>
-            {hasNoData ? (
-              <EmptyInsights onViewDocumentation={handleViewDocumentation} />
-            ) : kpiLoading ? (
-              <InsightsPanelSkeleton />
-            ) : (
-              <InsightsPanel compact={true} limit={3} />
-            )}
+            <InsightsPanel compact={true} limit={3} />
           </section>
 
           {/* PANEL 3: Trust Analysis */}
@@ -518,11 +449,7 @@ export default function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {alertLoading ? (
-                  <AlertsFeedSkeleton />
-                ) : hasNoAlerts ? (
-                  <EmptyAlerts />
-                ) : alerts ? (
+                {alerts ? (
                   <div className="space-y-3">
                     {alerts.alerts.slice(0, 5).map((alert: { id: string; title: string; severity: string; type?: string; createdAt?: string; timestamp?: string; description?: string }) => (
                       <div 

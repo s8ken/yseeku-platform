@@ -66,8 +66,14 @@ export function useDemoData<T>(config: DemoDataConfig<T>) {
     },
     // CRITICAL: Don't fetch while switching modes - prevents race condition!
     enabled: isLoaded && !isSwitching,
-    staleTime: 30000,
-    ...config.options,
+    staleTime: 60000, // Default: Cache for 1 minute (was 30s)
+    gcTime: 300000, // Default: Keep in cache for 5 minutes
+    refetchOnWindowFocus: false, // Default: Don't refetch on focus
+    refetchOnMount: false, // Default: Don't refetch on mount if cached
+    refetchOnReconnect: true, // Default: Refetch on reconnect
+    retry: 1, // Default: Retry failed requests once
+    retryDelay: 1000, // Default: Wait 1 second before retry
+    ...config.options, // Allow override of defaults
   });
 }
 
@@ -109,6 +115,13 @@ export function useDashboardKPIs() {
     queryKey: ['dashboard-kpis'],
     liveEndpoint: '/api/dashboard/kpis',
     demoEndpoint: '/api/demo/kpis',
+    options: {
+      staleTime: 60000, // Cache for 1 minute (was 30s)
+      gcTime: 300000, // Keep in cache for 5 minutes (was default)
+      refetchOnWindowFocus: false, // Don't refetch on focus to reduce API calls
+      refetchOnMount: false, // Don't refetch on mount if we have cached data
+      refetchOnReconnect: true, // Refetch on reconnect
+    },
   });
 }
 
@@ -140,7 +153,12 @@ export function useLiveMetrics() {
     liveEndpoint: '/api/dashboard/live',
     demoEndpoint: '/api/demo/live-metrics',
     options: {
-      refetchInterval: 5000, // Poll every 5 seconds
+      refetchInterval: 10000, // Poll every 10 seconds (was 5s) - reduces server load
+      staleTime: 5000, // Consider data stale after 5 seconds
+      gcTime: 300000,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
     },
   });
 }
@@ -174,6 +192,13 @@ export function useAlertsData() {
       alerts: data.alerts || [],
       summary: data.summary || { critical: 0, warning: 0, total: 0 },
     }),
+    options: {
+      staleTime: 60000, // Cache for 1 minute
+      gcTime: 300000, // Keep in cache for 5 minutes
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: true,
+    },
   });
 }
 
@@ -301,7 +326,11 @@ export function useTrustAnalytics() {
     },
     // CRITICAL: Don't fetch while switching modes - prevents race condition!
     enabled: isLoaded && !isSwitching,
-    staleTime: 30000,
+    staleTime: 60000, // Cache for 1 minute (was 30s)
+    gcTime: 300000, // Keep in cache for 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: true,
   });
 }
 
