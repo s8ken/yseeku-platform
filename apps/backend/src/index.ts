@@ -40,6 +40,7 @@ import overseerRoutes from './routes/overseer.routes';
 import secretsRoutes from './routes/secrets.routes';
 import overrideRoutes from './routes/override.routes';
 import demoRoutes from './routes/demo.routes';
+import evaluationMethodRoutes from './routes/evaluation-method.routes';
 import didRoutes from './routes/did.routes';
 import webhookRoutes from './routes/webhook.routes';
 import liveRoutes from './routes/live.routes';
@@ -189,6 +190,7 @@ app.use('/api/secrets', secretsRoutes);
 const enableDemo = process.env.DEMO_ROUTES_ENABLED === 'true' || (process.env.NODE_ENV !== 'production');
 if (enableDemo) {
   app.use('/api/demo', demoRoutes);
+app.use('/api/evaluation-method', evaluationMethodRoutes);
 }
 app.use('/.well-known', didRoutes); // DID resolution at standard .well-known path (no auth required)
 app.use('/api/did', didRoutes); // DID API endpoints
