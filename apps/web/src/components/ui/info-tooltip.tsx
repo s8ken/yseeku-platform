@@ -94,6 +94,16 @@ const glossary: Record<string, string> = {
   "Vocabulary Drift": "Quantitative measure (0-100%) of how much language patterns have shifted from baseline during a collaboration session. Higher drift suggests deeper conceptual exchange.",
   "Introspection Index": "Frequency measure (0-100%) of self-referential and meta-cognitive language in AI responses. Higher indices correlate with reflective, philosophical project contexts.",
   "Collaboration Depth": "Measure of reciprocal influence between human and AI participants. High depth indicates significant bidirectional vocabulary adoption and concept sharing.",
+  
+  // Phase 2: Hidden Gems
+  "Phase-Shift Velocity": "Measures behavioral drift using vector math. Tracks identity stability via cosine similarity. Alert levels: <0.3 (none), 0.3-0.5 (yellow), >0.5 (red). Critical for detecting adversarial influence and model degradation.",
+  "Hidden Gems": "Proprietary YSEEKU capabilities unique in the market: Phase-Shift Velocity, Linguistic Emergence, and Drift Detection. These features provide real-time behavioral analysis unavailable in other AI governance systems.",
+  "Actionable Insights": "AI-generated recommendations based on platform data, providing priority-coded advice for operators. Includes trust score analysis, behavioral alerts, emergence monitoring, compliance issues, and suggested actions.",
+  "Linguistic Emergence": "Detects consciousness-like patterns including self-reflection, mythic language, recursive thinking, novel generation, and ritual response. Unprecedented capability for identifying cognitive patterns in AI.",
+  "Drift Detection": "Statistical analysis of text property changes (token count, vocabulary, numeric content). Drift score 0-100 with alert thresholds: <30 (none), 30-60 (yellow), >60 (red).",
+  "Emergence Level": "Classification of consciousness-like patterns: none (normal), weak (minor markers), moderate (clear patterns), strong (significant emergence), breakthrough (unprecedented patterns).",
+  "Behavioral Drift": "Gradual or sudden changes in an AI agent's behavior patterns over time. Detected via phase-shift velocity and drift analysis metrics.",
+  "Identity Stability": "Measures how consistent an agent's behavioral identity remains using cosine similarity between behavioral vectors. Part of phase-shift velocity calculation.",
 };
 
 export function InfoTooltip({ 

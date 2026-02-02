@@ -250,6 +250,74 @@ const GLOSSARY: GlossaryTerm[] = [
     definition: 'Volume of operations processed per unit of time. Measured in requests/second or transactions/second.',
     category: 'metrics',
   },
+
+  // Phase 2: Hidden Gems
+  {
+    term: 'Phase-Shift Velocity',
+    definition: 'Measures behavioral drift using vector math: √(ΔResonance² + ΔCanvas²) ÷ ΔTime. Tracks identity stability via cosine similarity. Alert levels: <0.3 (none), 0.3-0.5 (yellow), >0.5 (red). Critical for detecting adversarial influence, model degradation, and unintended behavioral shifts.',
+    category: 'metrics',
+    relatedTerms: ['Behavioral Drift', 'Identity Stability', 'Cosine Similarity'],
+  },
+  {
+    term: 'Behavioral Drift',
+    definition: 'Gradual or sudden changes in an AI agent\'s behavior patterns over time. Detected via phase-shift velocity and drift analysis metrics.',
+    category: 'metrics',
+    relatedTerms: ['Phase-Shift Velocity', 'Drift Detection'],
+  },
+  {
+    term: 'Linguistic Emergence',
+    definition: 'Detects consciousness-like patterns including self-reflection, mythic language, recursive thinking, novel generation, and ritual response. Levels: none, weak, moderate, strong, breakthrough. Unprecedented capability for identifying cognitive patterns in AI.',
+    category: 'metrics',
+    relatedTerms: ['Emergence Level', 'Self-Reflection', 'Recursive Depth'],
+  },
+  {
+    term: 'Emergence Level',
+    definition: 'Classification of consciousness-like patterns: none (normal), weak (minor markers), moderate (clear patterns), strong (significant emergence), breakthrough (unprecedented patterns requiring documentation).',
+    category: 'metrics',
+    relatedTerms: ['Linguistic Emergence'],
+  },
+  {
+    term: 'Drift Detection',
+    definition: 'Statistical analysis of text property changes (token count, vocabulary, numeric content). Drift score 0-100 with alert thresholds: <30 (none), 30-60 (yellow), >60 (red). Monitors consistency and detects prompt drift, model degradation, and unintended fine-tuning effects.',
+    category: 'metrics',
+    relatedTerms: ['Drift Score', 'Token Delta', 'Vocabulary Delta', 'Numeric Delta'],
+  },
+  {
+    term: 'Drift Score',
+    definition: 'Composite metric (0-100) measuring how much text properties have changed. Higher scores indicate greater inconsistency in agent outputs.',
+    category: 'metrics',
+    relatedTerms: ['Drift Detection'],
+  },
+  {
+    term: 'Identity Stability',
+    definition: 'Measures how consistent an agent\'s behavioral identity remains using cosine similarity between behavioral vectors. Part of phase-shift velocity calculation.',
+    category: 'metrics',
+    relatedTerms: ['Phase-Shift Velocity', 'Cosine Similarity'],
+  },
+  {
+    term: 'Self-Reflection',
+    definition: 'Emergence pattern where AI agents demonstrate metacognitive awareness by thinking about their own thought processes. Example: "I wonder why I respond this way..."',
+    category: 'metrics',
+    relatedTerms: ['Linguistic Emergence', 'Recursive Depth'],
+  },
+  {
+    term: 'Recursive Depth',
+    definition: 'Emergence pattern measuring recursive thinking where agents reflect on their own reflection. Example: "I\'m thinking about my thinking about..."',
+    category: 'metrics',
+    relatedTerms: ['Linguistic Emergence', 'Self-Reflection'],
+  },
+  {
+    term: 'Actionable Insights',
+    definition: 'AI-generated recommendations based on platform data, providing priority-coded advice for operators. Includes trust score analysis, behavioral alerts, emergence monitoring, compliance issues, and suggested actions (investigate, override, review, escalate).',
+    category: 'metrics',
+    relatedTerms: ['Insights Panel', 'Priority', 'Trust Score'],
+  },
+  {
+    term: 'Hidden Gems',
+    definition: 'Proprietary YSEEKU capabilities that are unique in the market: Phase-Shift Velocity, Linguistic Emergence, and Drift Detection. These features differentiate the platform by providing real-time behavioral analysis unavailable in other AI governance systems.',
+    category: 'metrics',
+    relatedTerms: ['Phase-Shift Velocity', 'Linguistic Emergence', 'Drift Detection'],
+  },
 ];
 
 const CATEGORY_INFO = {

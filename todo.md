@@ -32,8 +32,8 @@ Transform the dashboard from a data display center into an actionable insights h
 - [x] Implement quick actions (approve, override, investigate)
 
 ### 2.5 UX Enhancements
-- [ ] Create tooltip system for technical terms
-- [ ] Build glossary component with plain English explanations
+- [x] Create tooltip system for technical terms
+- [x] Build glossary component with plain English explanations
 - [ ] Add contextual help buttons
 - [ ] Implement loading states and skeletons
 - [ ] Add empty states for new tenants
@@ -79,5 +79,7 @@ Transform the dashboard from a data display center into an actionable insights h
 - ✅ Build verification successful
 
 ### In Progress
-- 🔄 Creating UX Enhancements (tooltips, glossary)
+- 🔄 Creating UX Enhancements (tooltips, glossary, loading states)
 - 🔄 Dashboard performance optimization
+- 🔄 Testing and validation
+- 🔄 Documentation updates (glossary, learn modules)
