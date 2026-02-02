@@ -214,15 +214,15 @@ export default function DashboardPage() {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold tracking-tight">Platform Overview</h1>
+          <div className="flex items-center gap-3 mb-1 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Platform Overview</h1>
             <ModeIndicator />
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm sm:text-base">
             Real-time AI trust monitoring with behavioral analysis
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="text-sm text-muted-foreground">
             <span className="font-semibold text-foreground">{kpis?.activeAgents ?? 0}</span> active agents
           </div>
@@ -274,7 +274,7 @@ export default function DashboardPage() {
                 <KPICardSkeleton />
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <KPICard
                   title="Trust Score"
                   value={kpis.trustScore}
@@ -318,7 +318,7 @@ export default function DashboardPage() {
               Behavioral Analysis & Safety Monitoring
               <InfoTooltip term="Hidden Gems" />
             </h2>
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <Suspense fallback={<PhaseShiftWidgetSkeleton />}>
                 <div className="lg:col-span-1">
                   <PhaseShiftVelocityWidget compact={true} />
@@ -330,7 +330,7 @@ export default function DashboardPage() {
                 </div>
               </Suspense>
               <Suspense fallback={<DriftWidgetSkeleton />}>
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-1 md:col-span-2">
                   <DriftDetectionWidget compact={true} />
                 </div>
               </Suspense>
