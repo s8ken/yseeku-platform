@@ -299,7 +299,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <div className="flex items-center gap-3 px-2 pt-2">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/avatar.jpg" alt={currentUser.name} />
+            <AvatarImage 
+              src={currentUser.name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0D8ABC&color=fff` : undefined} 
+              alt={currentUser.name} 
+            />
             <AvatarFallback className="bg-primary/10 text-primary text-xs">
               {currentUser.name.split(' ').map(n => n[0]).join('')}
             </AvatarFallback>
@@ -452,7 +455,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/avatar.jpg" alt={currentUser.name} />
+                    <AvatarImage 
+                      src={currentUser.name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0D8ABC&color=fff` : undefined} 
+                      alt={currentUser.name} 
+                    />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
                       {currentUser.name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>

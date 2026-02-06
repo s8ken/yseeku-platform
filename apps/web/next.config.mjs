@@ -108,6 +108,14 @@ const nextConfig = {
           source: '/api/conversations/:path*',
           destination: `${backendUrl}/api/conversations/:path*`,
         },
+        {
+          source: '/api/semantic-coprocessor/:path*',
+          destination: `${backendUrl}/api/semantic-coprocessor/:path*`,
+        },
+        {
+          source: '/api/actions/:path*',
+          destination: `${backendUrl}/api/actions/:path*`,
+        },
       ];
   },
   transpilePackages: [
