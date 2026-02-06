@@ -186,6 +186,7 @@ app.use('/api/semantic-coprocessor', semanticCoprocessorRoutes); // Semantic cop
 app.use('/api/phase-shift', phaseShiftRoutes); // Phase-shift velocity metrics
 app.use('/api/drift', driftRoutes); // Statistical drift detection metrics
 app.use('/api/insights', insightsRoutes); // Actionable insights and recommendations
+app.use('/api/actions', actionsRoutes); // Action effectiveness and recommendations
 app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
 app.use('/api/secrets', secretsRoutes);
 const enableDemo = process.env.DEMO_ROUTES_ENABLED === 'true' || (process.env.NODE_ENV !== 'production');
