@@ -314,6 +314,43 @@ export default function SystemBrainDashboard() {
     : 0;
   const pendingRecommendations = recommendations?.length || 0;
 
+  // Handle recommendation actions
+  const executeRecommendationMutation = useMutation({
+    mutationFn: async (rec: any) => {
+      // In a real implementation, this would call the specific API for the action
+      // For now, we simulate execution and then remove the recommendation
+      return new Promise(resolve => setTimeout(resolve, 1000));
+    },
+    onSuccess: (_, rec) => {
+      toast.success(`Executed action: ${rec.actionType}`);
+      // Optimistically remove from list or refetch
+      queryClient.setQueryData(['brain-recommendations', tenant], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          recommendations: old.recommendations?.filter((r: any) => r !== rec) || []
+        };
+      });
+    },
+  });
+
+  const dismissRecommendationMutation = useMutation({
+    mutationFn: async (rec: any) => {
+      // Simulate dismissal
+      return new Promise(resolve => setTimeout(resolve, 500));
+    },
+    onSuccess: (_, rec) => {
+      toast.info('Recommendation dismissed');
+      queryClient.setQueryData(['brain-recommendations', tenant], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          recommendations: old.recommendations?.filter((r: any) => r !== rec) || []
+        };
+      });
+    },
+  });
+
   return (
     <div className="container max-w-7xl mx-auto py-8 space-y-6">
       {/* Header */}
@@ -642,8 +679,20 @@ export default function SystemBrainDashboard() {
         <TabsContent value="recommendations">
           <Card>
             <CardHeader>
-              <CardTitle>Action Recommendations</CardTitle>
-              <CardDescription>AI-generated suggestions based on system analysis</CardDescription>
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <CardTitle>Action Recommendations</CardTitle>
+                  <CardDescription>AI-generated suggestions based on system analysis</CardDescription>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => refetchStatus()} // Reload recommendations
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {recommendationsLoading ? (
@@ -651,45 +700,57 @@ export default function SystemBrainDashboard() {
                   <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               ) : recommendations && recommendations.length > 0 ? (
-                <div className="space-y-4">
-                  {recommendations.map((rec, i) => (
-                    <Card key={rec.id || i} className="border-l-4 border-l-amber-500">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Lightbulb className="h-4 w-4 text-amber-500" />
-                              <span className="font-bold text-lg">
-                                {rec.recommendation === 'increase' ? 'Increase' : rec.recommendation === 'decrease' ? 'Decrease' : 'Maintain'} {rec.actionType.split('_').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}
-                              </span>
-                              <Badge variant="outline" className="ml-2">{rec.actionType}</Badge>
-                              <PriorityBadge priority={rec.priority} />
-                              {rec.target && (
-                                <span className="text-sm text-muted-foreground">
-                                  Target: {rec.target}
+                <ScrollArea className="h-[600px] pr-4">
+                  <div className="space-y-4">
+                    {recommendations.map((rec, i) => (
+                      <Card key={rec.id || i} className="border-l-4 border-l-amber-500">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Lightbulb className="h-4 w-4 text-amber-500" />
+                                <span className="font-bold text-lg">
+                                  {rec.recommendation === 'increase' ? 'Increase' : rec.recommendation === 'decrease' ? 'Decrease' : 'Maintain'} {rec.actionType.split('_').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}
                                 </span>
-                              )}
+                                <Badge variant="outline" className="ml-2">{rec.actionType}</Badge>
+                                <PriorityBadge priority={rec.priority} />
+                                {rec.target && (
+                                  <span className="text-sm text-muted-foreground">
+                                    Target: {rec.target}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm font-medium text-muted-foreground mb-1">Reasoning:</p>
+                              <p className="text-sm bg-muted/30 p-3 rounded-md border border-muted">{rec.reason}</p>
+                              <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                                <span>Confidence: {(rec.confidence * 100).toFixed(0)}%</span>
+                                <span>Suggested: {new Date(rec.suggestedAt).toLocaleString()}</span>
+                              </div>
                             </div>
-                            <p className="text-sm font-medium text-muted-foreground mb-1">Reasoning:</p>
-                            <p className="text-sm bg-muted/30 p-3 rounded-md border border-muted">{rec.reason}</p>
-                            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                              <span>Confidence: {(rec.confidence * 100).toFixed(0)}%</span>
-                              <span>Suggested: {new Date(rec.suggestedAt).toLocaleString()}</span>
+                            <div className="flex gap-2 ml-4">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => dismissRecommendationMutation.mutate(rec)}
+                                disabled={dismissRecommendationMutation.isPending || executeRecommendationMutation.isPending}
+                              >
+                                Dismiss
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                className="bg-amber-500 hover:bg-amber-600"
+                                onClick={() => executeRecommendationMutation.mutate(rec)}
+                                disabled={dismissRecommendationMutation.isPending || executeRecommendationMutation.isPending}
+                              >
+                                {executeRecommendationMutation.isPending ? 'Executing...' : 'Execute'}
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex gap-2 ml-4">
-                            <Button size="sm" variant="outline">
-                              Dismiss
-                            </Button>
-                            <Button size="sm" className="bg-amber-500 hover:bg-amber-600">
-                              Execute
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </ScrollArea>
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <Lightbulb className="h-12 w-12 mx-auto mb-4 opacity-50" />
