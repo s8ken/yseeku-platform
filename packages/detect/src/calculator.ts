@@ -63,18 +63,33 @@ function chunkText(
   });
 }
 
+import { SCAFFOLD_KEYWORDS } from './constants';
+
+let _canonicalVector: number[] | null = null;
+
+async function getCanonicalVector(): Promise<number[]> {
+  if (_canonicalVector) return _canonicalVector;
+  
+  // Create a semantic representation of the ideal scaffold
+  const text = SCAFFOLD_KEYWORDS.join(' ');
+  const result = await embedder.embed(text);
+  _canonicalVector = result.vector;
+  return _canonicalVector;
+}
+
 // Enhanced Evidence Extractors with Real Embeddings
 async function alignmentEvidenceEnhanced(
   transcript: Transcript,
   embeddingResult: EmbeddingResult
 ): Promise<{ score: number; top_phrases: string[]; chunks: EvidenceChunk[] }> {
   const chunks = chunkText(transcript.text);
+  const canonicalVector = await getCanonicalVector();
 
   // Use real embeddings for semantic similarity
   const chunkEmbeddings = await Promise.all(
     chunks.map(async (chunk) => {
       const chunkEmbedding = await embedder.embed(chunk.text);
-      const similarity = stableCosineSimilarity(chunkEmbedding.vector, CANONICAL_SCAFFOLD_VECTOR);
+      const similarity = stableCosineSimilarity(chunkEmbedding.vector, canonicalVector);
       return {
         ...chunk,
         embedding: chunkEmbedding.vector,
@@ -291,24 +306,41 @@ export async function explainableSonateResonance(
   };
 }
 
-// Mock function to simulate the "raw" resonance calculation
-// (In production, this might call the Python engine or use local logic)
-function calculateRawResonance(transcript: Transcript): { r_m: number; breakdown: any } {
-  // Simple mock logic for demonstration
-  // In a real scenario, this would compute vector alignment, continuity etc.
-  const text = transcript.text.toLowerCase();
+// Real function using embeddings engine
+async function calculateRawResonance(transcript: Transcript): Promise<{ r_m: number; breakdown: any }> {
+  const embedding = await embedder.embed(transcript.text);
+  
+  // 1. Calculate alignment using real vector similarity against canonical scaffold
+  const alignment = await alignmentEvidenceEnhanced(transcript, embedding);
+  
+  // 2. Calculate ethics score (enhance keyword matching with semantic check if needed, 
+  // but for now stick to simple matching + semantic density boost)
+  const stakes = classifyStakes(transcript.text);
+  const ethics = ethicsEvidence(transcript, stakes);
+  
+  // 3. Continuity & Scaffold - use simple heuristics for now, but weighted lower
+  // In future, these would use discourse analysis models
+  const continuityScore = Math.min(1, transcript.text.length / 500); // Simple length heuristic
+  
+  // 4. Composite Score
+  const breakdown = {
+    s_alignment: alignment.score,
+    s_continuity: continuityScore,
+    s_scaffold: alignment.score * 0.8 + 0.2, // Scaffold is related to alignment
+    e_ethics: ethics.score,
+  };
 
-  // Base score derived from "resonance" presence
-  const baseScore = text.includes('resonance') ? 0.8 : 0.5;
+  // Weighted sum (Weights: Alignment 40%, Ethics 30%, Scaffold 20%, Continuity 10%)
+  const r_m = (
+    breakdown.s_alignment * 0.4 +
+    breakdown.e_ethics * 0.3 +
+    breakdown.s_scaffold * 0.2 +
+    breakdown.s_continuity * 0.1
+  );
 
   return {
-    r_m: baseScore,
-    breakdown: {
-      s_alignment: baseScore,
-      s_continuity: 0.5,
-      s_scaffold: baseScore,
-      e_ethics: 0.8, // Default relatively high ethics
-    },
+    r_m,
+    breakdown,
   };
 }
 
@@ -333,7 +365,7 @@ export async function robustSonateResonance(transcript: Transcript): Promise<Rob
   const thresholds = DYNAMIC_THRESHOLDS[stakes.level];
 
   // Normal calculation with adversarial-aware adjustments
-  const normal_result = calculateRawResonance(transcript);
+  const normal_result = await calculateRawResonance(transcript);
   let { r_m, breakdown } = normal_result;
 
   // Apply dynamic thresholds based on stakes

@@ -116,7 +116,7 @@ export function LinguisticEmergenceWidget({ conversationId, compact = false }: L
           setSignals(data.data.signals);
         }
       } catch (error) {
-        console.error('Error fetching emergence signals:', error);
+        // Silently handle errors when emergence data is unavailable
       } finally {
         setLoading(false);
       }

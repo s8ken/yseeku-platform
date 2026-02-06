@@ -125,7 +125,7 @@ export function PhaseShiftVelocityWidget({
           }
         }
       } catch (error) {
-        console.error('Error fetching phase-shift data:', error);
+        // Silently handle errors in demo mode or when data is unavailable
       } finally {
         setLoading(false);
       }

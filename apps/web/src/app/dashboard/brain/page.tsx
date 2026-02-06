@@ -325,7 +325,7 @@ export default function SystemBrainDashboard() {
             <InfoTooltip term="System Brain" />
           </h1>
           <p className="text-muted-foreground">
-            Monitor AI oversight, memory, and action effectiveness
+            The autonomous decision-making system that learns from AI interactions, tracks action outcomes, and generates recommendations for operators.
           </p>
         </div>
         <div className="flex items-center gap-2">

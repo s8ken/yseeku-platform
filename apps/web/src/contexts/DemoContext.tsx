@@ -1,7 +1,6 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
-import { flushSync } from 'react-dom';
 import { useQueryClient } from '@tanstack/react-query';
 
 const DEMO_TENANT_ID = 'demo-tenant';
@@ -17,7 +16,6 @@ interface DemoContextType {
   isDemo: boolean;
   isLoaded: boolean;
   isInitializing: boolean;
-  isSwitching: boolean;  // True during mode switch to prevent stale queries
   isFirstVisit: boolean;
   timeRemaining: number | null;
   showExpiryWarning: boolean;
@@ -37,7 +35,6 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [isDemo, setIsDemo] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
-  const [isSwitching, setIsSwitching] = useState(false);  // Prevents stale queries during switch
   const [isFirstVisit, setIsFirstVisit] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [showExpiryWarning, setShowExpiryWarning] = useState(false);
@@ -66,10 +63,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       
       if (res.ok) {
         sessionStorage.setItem(DEMO_INITIALIZED_KEY, 'true');
-        console.log('Demo mode initialized');
       }
     } catch (error) {
-      console.warn('Failed to initialize demo mode:', error);
+      // Demo initialization failed - continue without demo data
     } finally {
       setIsInitializing(false);
     }
@@ -154,50 +150,21 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   }, [initializeDemo, startExpiryTimer]);
 
   const enableDemo = useCallback(async () => {
-    console.log('[DemoContext] Enabling demo mode');
-    console.log('[DemoContext] Current tenant before switch:', isDemo ? DEMO_TENANT_ID : LIVE_TENANT_ID);
-    
-    // CRITICAL: Set switching flag FIRST to prevent queries from running with stale data
-    console.log('[DemoContext] Setting isSwitching to true to block queries...');
-    setIsSwitching(true);
-    
     localStorage.setItem(DEMO_STORAGE_KEY, 'true');
     localStorage.removeItem(DEMO_START_TIME_KEY);
     localStorage.removeItem(DEMO_FIRST_VISIT_KEY);
     
-    // Use flushSync to ensure state is updated SYNCHRONOUSLY before clearing cache
-    console.log('[DemoContext] Using flushSync to update state synchronously...');
-    flushSync(() => {
-      setIsDemo(true);
-      setIsFirstVisit(true);
-    });
-    
-    console.log('[DemoContext] State updated. New tenant:', DEMO_TENANT_ID);
-    
-    // NOW clear the cache - queries will refetch with correct tenant ID
-    console.log('[DemoContext] Clearing React Query cache...');
+    // Clear all cached query data first
     queryClient.clear();
     
-    // Small delay to ensure React has propagated the new state to all hooks
-    await new Promise(resolve => setTimeout(resolve, 50));
+    setIsDemo(true);
+    setIsFirstVisit(true);
     
-    // Re-enable queries
-    console.log('[DemoContext] Setting isSwitching to false, queries can now run...');
-    setIsSwitching(false);
-    
-    console.log('[DemoContext] Switch complete. Current tenant:', DEMO_TENANT_ID);
     await initializeDemo();
     startExpiryTimer();
-  }, [initializeDemo, startExpiryTimer, queryClient, isDemo]);
+  }, [initializeDemo, startExpiryTimer, queryClient]);
 
   const disableDemo = useCallback(async () => {
-    console.log('[DemoContext] Disabling demo mode (switching to live)');
-    console.log('[DemoContext] Current tenant before switch:', isDemo ? DEMO_TENANT_ID : LIVE_TENANT_ID);
-    
-    // CRITICAL: Set switching flag FIRST to prevent queries from running with stale data
-    console.log('[DemoContext] Setting isSwitching to true to block queries...');
-    setIsSwitching(true);
-    
     localStorage.removeItem(DEMO_STORAGE_KEY);
     localStorage.removeItem(DEMO_START_TIME_KEY);
     localStorage.removeItem(DEMO_FIRST_VISIT_KEY);
@@ -213,34 +180,17 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       window.history.replaceState({}, '', url.toString());
     }
     
-    // Use flushSync to ensure state is updated SYNCHRONOUSLY before clearing cache
-    // This prevents React Query from re-running queries with stale context values
-    console.log('[DemoContext] Using flushSync to update state synchronously...');
-    flushSync(() => {
-      setIsDemo(false);
-      setIsFirstVisit(false);
-      setTimeRemaining(null);
-      setShowExpiryWarning(false);
-    });
-    
-    console.log('[DemoContext] State updated. New tenant:', LIVE_TENANT_ID);
-    
-    // NOW clear the cache - queries will refetch with correct tenant ID
-    console.log('[DemoContext] Clearing React Query cache...');
+    // Clear all cached query data first, then set state
+    // This ensures fresh data is fetched when state updates
     queryClient.clear();
     
-    // Small delay to ensure React has propagated the new state to all hooks
-    await new Promise(resolve => setTimeout(resolve, 50));
-    
-    // Re-enable queries
-    console.log('[DemoContext] Setting isSwitching to false, queries can now run...');
-    setIsSwitching(false);
-    
-    console.log('[DemoContext] Switch complete. Current tenant:', LIVE_TENANT_ID);
-  }, [queryClient, isDemo]);
+    setIsDemo(false);
+    setIsFirstVisit(false);
+    setTimeRemaining(null);
+    setShowExpiryWarning(false);
+  }, [queryClient]);
 
   const toggleDemo = useCallback(async () => {
-    console.log('[DemoContext] Toggling demo mode. Current:', isDemo, '-> New:', !isDemo);
     if (isDemo) {
       await disableDemo();
     } else {
@@ -262,7 +212,6 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     isDemo,
     isLoaded,
     isInitializing,
-    isSwitching,
     isFirstVisit,
     timeRemaining,
     showExpiryWarning,

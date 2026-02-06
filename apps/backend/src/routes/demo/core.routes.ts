@@ -108,22 +108,22 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
     // Calculate overall trust score (0-10 scale)
     const trustScore = ((avgClarity + avgIntegrity + avgQuality) / 3) * 2;
 
-    // Use deterministic demo values for consistent display
-    // Demo data should be stable across refreshes
-    const demoTrustScore = 8.8;
-    const demoInteractions = 1503;
+    // Demo values with slight randomization for dynamic feel
+    // Base values are stable, variation is minimal (±0.3 for score, ±20 for interactions)
+    const demoTrustScore = Math.round((8.6 + Math.random() * 0.4) * 10) / 10; // 8.6-9.0
+    const demoInteractions = 1490 + Math.floor(Math.random() * 30); // 1490-1520
 
     const kpiData = {
       tenant: DEMO_TENANT_ID,
       timestamp: new Date().toISOString(),
       trustScore: demoTrustScore,
       principleScores: {
-        consent: 92,
-        inspection: 88,
-        validation: 85,
-        override: 90,
-        disconnect: 88,
-        moral: 87,
+        consent: 90 + Math.floor(Math.random() * 5), // 90-94
+        inspection: 86 + Math.floor(Math.random() * 5), // 86-90
+        validation: 83 + Math.floor(Math.random() * 5), // 83-87
+        override: 88 + Math.floor(Math.random() * 5), // 88-92
+        disconnect: 86 + Math.floor(Math.random() * 5), // 86-90
+        moral: 85 + Math.floor(Math.random() * 5), // 85-89
       },
       totalInteractions: demoInteractions,
       activeAgents: agents,

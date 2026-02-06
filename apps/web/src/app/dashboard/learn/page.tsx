@@ -364,51 +364,100 @@ function DifficultyBadge({ difficulty }: { difficulty: 'beginner' | 'intermediat
   );
 }
 
-function ModuleCard({ module, isLocked = false }: { module: LearningModule; isLocked?: boolean }) {
+function ModuleCard({ 
+  module, 
+  isLocked = false,
+  isCompleted = false,
+  onToggle
+}: { 
+  module: LearningModule; 
+  isLocked?: boolean;
+  isCompleted?: boolean;
+  onToggle?: () => void;
+}) {
   return (
-    <Link href={isLocked ? '#' : module.href}>
-      <Card className={cn(
-        'h-full transition-all duration-200 hover:shadow-lg border-2',
-        isLocked ? 'opacity-60 cursor-not-allowed border-muted' : 'hover:border-primary/50 cursor-pointer'
-      )}>
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between gap-3">
+    <div 
+      className={cn(
+        'h-full transition-all duration-200 border-2 rounded-lg bg-card',
+        isLocked ? 'opacity-60 cursor-not-allowed border-muted' : 'hover:border-primary/50',
+        isCompleted ? 'border-green-500/30 bg-green-50/10' : ''
+      )}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <Link href={isLocked ? '#' : module.href} className={cn("flex-1", isLocked && "pointer-events-none")}>
             <div className="flex items-center gap-3">
               <div className={cn(
                 'p-2 rounded-lg',
-                isLocked ? 'bg-muted' : 'bg-primary/10'
+                isLocked ? 'bg-muted' : isCompleted ? 'bg-green-100 text-green-600 dark:bg-green-900/30' : 'bg-primary/10'
               )}>
-                {isLocked ? <Lock className="h-5 w-5 text-muted-foreground" /> : module.icon}
+                {isLocked ? <Lock className="h-5 w-5 text-muted-foreground" /> : isCompleted ? <CheckCircle2 className="h-5 w-5" /> : module.icon}
               </div>
               <div>
                 <h4 className="font-semibold text-sm">{module.title}</h4>
                 <p className="text-xs text-muted-foreground mt-0.5">{module.description}</p>
               </div>
             </div>
-            {!isLocked && <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
-          </div>
+          </Link>
           
-          <div className="flex items-center gap-2 mt-3">
-            <DifficultyBadge difficulty={module.difficulty} />
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {module.duration}
-            </span>
-            {module.isInteractive && (
-              <Badge variant="secondary" className="text-xs">
-                <Play className="h-3 w-3 mr-1" />
-                Interactive
-              </Badge>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
+          {!isLocked && (
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={cn("h-8 w-8 p-0", isCompleted && "text-green-600")}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onToggle?.();
+                }}
+              >
+                {isCompleted ? <CheckCircle2 className="h-5 w-5 fill-current" /> : <div className="h-5 w-5 rounded-full border-2" />}
+              </Button>
+              <Link href={module.href}>
+                <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              </Link>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-2 mt-3 pl-12">
+          <DifficultyBadge difficulty={module.difficulty} />
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {module.duration}
+          </span>
+          {module.isInteractive && (
+            <Badge variant="secondary" className="text-xs">
+              <Play className="h-3 w-3 mr-1" />
+              Interactive
+            </Badge>
+          )}
+        </div>
+      </CardContent>
+    </div>
   );
 }
 
-function LearningPathCard({ path, progress = 0 }: { path: LearningPath; progress?: number }) {
-  const completedModules = Math.floor((progress / 100) * path.modules.length);
+function LearningPathCard({ 
+  path, 
+  progress = 0,
+  completedModules,
+  onToggleModule,
+  isModuleLocked
+}: { 
+  path: LearningPath; 
+  progress?: number;
+  completedModules?: Set<string>;
+  onToggleModule?: (moduleId: string) => void;
+  isModuleLocked?: (module: LearningModule) => boolean;
+}) {
+  const completedCount = completedModules 
+    ? path.modules.filter(m => completedModules.has(m.id)).length 
+    : Math.floor((progress / 100) * path.modules.length);
+  
+  const displayProgress = completedModules && path.modules.length > 0
+    ? Math.round((completedCount / path.modules.length) * 100)
+    : progress;
   
   return (
     <Card className="overflow-hidden">
@@ -434,25 +483,32 @@ function LearningPathCard({ path, progress = 0 }: { path: LearningPath; progress
             {path.modules.length} modules
           </Badge>
         </div>
-        {progress > 0 && (
+        {displayProgress > 0 && (
           <div className="mt-3">
             <div className="flex items-center justify-between text-xs mb-1">
               <span className="text-muted-foreground">Progress</span>
-              <span className="font-medium">{completedModules}/{path.modules.length} completed</span>
+              <span className="font-medium">{completedCount}/{path.modules.length} completed</span>
             </div>
-            <Progress value={progress} className="h-2" />
+            <Progress value={displayProgress} className="h-2" />
           </div>
         )}
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-2">
-          {path.modules.map((module, index) => (
-            <ModuleCard 
-              key={module.id} 
-              module={module} 
-              isLocked={module.prerequisites?.some(prereq => true)} // TODO: Check actual completion
-            />
-          ))}
+          {path.modules.map((module, index) => {
+            const isCompleted = completedModules?.has(module.id);
+            const locked = isModuleLocked ? isModuleLocked(module) : false;
+            
+            return (
+              <ModuleCard 
+                key={module.id} 
+                module={module} 
+                isLocked={locked}
+                isCompleted={isCompleted}
+                onToggle={() => onToggleModule?.(module.id)}
+              />
+            );
+          })}
         </div>
       </CardContent>
     </Card>
@@ -461,6 +517,30 @@ function LearningPathCard({ path, progress = 0 }: { path: LearningPath; progress
 
 export default function LearnPage() {
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [completedModules, setCompletedModules] = useState<Set<string>>(new Set());
+
+  const toggleModuleCompletion = (moduleId: string) => {
+    setCompletedModules(prev => {
+      const next = new Set(prev);
+      if (next.has(moduleId)) {
+        next.delete(moduleId);
+      } else {
+        next.add(moduleId);
+      }
+      return next;
+    });
+  };
+
+  const isModuleLocked = (module: LearningModule) => {
+    if (!module.prerequisites || module.prerequisites.length === 0) return false;
+    return !module.prerequisites.every(prereq => completedModules.has(prereq));
+  };
+
+  const getPathProgress = (path: LearningPath) => {
+    if (path.modules.length === 0) return 0;
+    const completedCount = path.modules.filter(m => completedModules.has(m.id)).length;
+    return Math.round((completedCount / path.modules.length) * 100);
+  };
   
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -530,7 +610,14 @@ export default function LearnPage() {
       {/* Learning Paths Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {learningPaths.map((path) => (
-          <LearningPathCard key={path.id} path={path} />
+          <LearningPathCard 
+            key={path.id} 
+            path={path} 
+            progress={getPathProgress(path)}
+            completedModules={completedModules}
+            onToggleModule={toggleModuleCompletion}
+            isModuleLocked={isModuleLocked}
+          />
         ))}
       </div>
 

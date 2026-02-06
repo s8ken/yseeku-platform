@@ -461,13 +461,74 @@ export class LLMService {
     maxTokens: number,
     apiKey?: string
   ): Promise<LLMResponse> {
-    if (!apiKey && !process.env.COHERE_API_KEY) {
+    const key = apiKey || process.env.COHERE_API_KEY;
+    if (!key) {
       throw new Error('Cohere API key not configured. Please add your API key in settings.');
     }
 
-    // Cohere uses a different API format
-    // For now, return a placeholder - full implementation would use Cohere SDK
-    throw new Error('Cohere provider is not yet fully implemented. Use OpenAI or Anthropic instead.');
+    // Cohere API mapping
+    // Extract the last user message as the "message" parameter
+    // The rest form the "chat_history"
+    const historyMessages = [...messages];
+    let lastMessage = historyMessages.pop();
+
+    if (lastMessage && lastMessage.role !== 'user') {
+      // If the last message isn't from the user, push it back to history
+      // and use a generic continuation prompt
+      historyMessages.push(lastMessage);
+      lastMessage = { role: 'user', content: 'Please continue.' };
+    } else if (!lastMessage) {
+      // Handle empty conversation
+      lastMessage = { role: 'user', content: 'Hello' };
+    }
+
+    const currentMessage = lastMessage.content;
+
+    const chatHistory = historyMessages.map(msg => ({
+      role: msg.role === 'user' ? 'USER' : (msg.role === 'assistant' ? 'CHATBOT' : 'SYSTEM'),
+      message: msg.content
+    }));
+
+    try {
+      return await this.withRetry(async () => {
+        const response = await fetch('https://api.cohere.ai/v1/chat', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${key}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            model,
+            message: currentMessage,
+            chat_history: chatHistory,
+            temperature,
+            max_tokens: maxTokens,
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(`Cohere API error: ${response.status} - ${JSON.stringify(errorData)}`);
+        }
+
+        const data = await response.json() as any;
+
+        return {
+          content: data.text || '',
+          usage: {
+            promptTokens: data.meta?.billed_units?.input_tokens,
+            completionTokens: data.meta?.billed_units?.output_tokens,
+            totalTokens: (data.meta?.billed_units?.input_tokens || 0) + (data.meta?.billed_units?.output_tokens || 0),
+          },
+          model,
+          provider: 'cohere',
+        };
+      }, `cohere:${model}`);
+    } catch (error: unknown) {
+      logger.error('Cohere API Error', { error: getErrorMessage(error) });
+      throw new Error(`Cohere API Error: ${getErrorMessage(error)}`);
+    }
   }
 
   /**

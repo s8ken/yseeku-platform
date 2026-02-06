@@ -129,6 +129,20 @@ const moduleSections: ModuleSection[] = [
   }
 ];
 
+// Essential navigation items for simplified view (8 core items)
+const ESSENTIAL_ITEMS = new Set([
+  '/dashboard',           // Main dashboard
+  '/dashboard/chat',      // Trust Session
+  '/dashboard/agents',    // Agents
+  '/dashboard/receipts',  // Trust Receipts
+  '/dashboard/alerts',    // Alerts
+  '/dashboard/lab/experiments', // One lab item
+  '/dashboard/learn',     // Learn
+  '/dashboard/settings',  // Settings
+]);
+
+const NAV_MODE_KEY = 'yseeku-nav-mode';
+
 // Demo user for showcase mode
 const demoUser = {
   id: 'demo-user',

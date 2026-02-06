@@ -1,6 +1,5 @@
-import { KMSClient, EncryptCommand, DecryptCommand } from '@aws-sdk/client-kms';
-
-// import { Vault } from 'hashi-vault-js'; // TODO: Fix Vault API integration
+import { KMSClient, EncryptCommand, DecryptCommand, DescribeKeyCommand } from '@aws-sdk/client-kms';
+import Vault from 'hashi-vault-js';
 import { getLogger } from '../observability/logger';
 
 const logger = getLogger('SecretsManager');
@@ -9,6 +8,19 @@ export interface SecretsManager {
   encrypt(data: string, keyId?: string): Promise<string>;
   decrypt(encryptedData: string): Promise<string>;
   healthCheck(): Promise<boolean>;
+}
+
+interface VaultReadResponse {
+  data: {
+    value: string;
+    [key: string]: any;
+  };
+}
+
+interface VaultHealthResponse {
+  initialized: boolean;
+  sealed: boolean;
+  [key: string]: any;
 }
 
 export class AWSKMSSecretsManager implements SecretsManager {
@@ -27,7 +39,7 @@ export class AWSKMSSecretsManager implements SecretsManager {
         Plaintext: Buffer.from(data, 'utf-8'),
       });
 
-      const response = await (this.kmsClient as any).send(command);
+      const response = await this.kmsClient.send(command);
       return Buffer.from(response.CiphertextBlob || new Uint8Array()).toString('base64');
     } catch (error) {
       logger.error('KMS encryption failed', { error: (error as Error).message });
@@ -41,7 +53,7 @@ export class AWSKMSSecretsManager implements SecretsManager {
         CiphertextBlob: Buffer.from(encryptedData, 'base64'),
       });
 
-      const response = await (this.kmsClient as any).send(command);
+      const response = await this.kmsClient.send(command);
       return Buffer.from(response.Plaintext || new Uint8Array()).toString('utf-8');
     } catch (error) {
       logger.error('KMS decryption failed', { error: (error as Error).message });
@@ -52,13 +64,9 @@ export class AWSKMSSecretsManager implements SecretsManager {
   async healthCheck(): Promise<boolean> {
     try {
       // Try to describe the key
-      await (this.kmsClient as any).send(
-        new (
-          await import('@aws-sdk/client-kms')
-        ).DescribeKeyCommand({
-          KeyId: this.keyId,
-        })
-      );
+      await this.kmsClient.send(new DescribeKeyCommand({
+        KeyId: this.keyId,
+      }));
       return true;
     } catch (error) {
       logger.error('KMS health check failed', { error: (error as Error).message });
@@ -68,24 +76,60 @@ export class AWSKMSSecretsManager implements SecretsManager {
 }
 
 export class HashiCorpVaultSecretsManager implements SecretsManager {
-  // TODO: Implement Vault integration with correct API
-  // The hashi-vault-js library API needs to be verified
+  private vaultClient: Vault;
+  private mountPath: string;
+  private token: string;
+
   constructor(endpoint: string, token: string, mountPath: string = 'secret') {
-    throw new Error(
-      'HashiCorpVaultSecretsManager not yet implemented - use AWS KMS or Local provider'
-    );
+    this.mountPath = mountPath;
+    this.token = token;
+    this.vaultClient = new Vault({
+      baseUrl: endpoint,
+      rootPath: 'v1',
+      https: endpoint.startsWith('https'),
+    });
   }
 
   async encrypt(data: string, keyId?: string): Promise<string> {
-    throw new Error('Not implemented');
+    try {
+      const path = keyId || 'data/encryption-key';
+      await this.vaultClient.createKVSecret(
+        this.token,
+        path,
+        { value: data },
+        this.mountPath
+      );
+      return path; // Return the path as encrypted data reference
+    } catch (error) {
+      logger.error('Vault encryption failed', { error: (error as Error).message });
+      throw error;
+    }
   }
 
   async decrypt(encryptedData: string): Promise<string> {
-    throw new Error('Not implemented');
+    try {
+      const result = await this.vaultClient.readKVSecret(
+        this.token,
+        encryptedData,
+        undefined, // version (undefined for latest)
+        this.mountPath
+      ) as unknown as VaultReadResponse;
+      return result.data.value;
+    } catch (error) {
+      logger.error('Vault decryption failed', { error: (error as Error).message });
+      throw error;
+    }
   }
 
   async healthCheck(): Promise<boolean> {
-    return false;
+    try {
+      const health = await this.vaultClient.healthCheck() as unknown as VaultHealthResponse;
+      // The healthCheck method returns an object with initialized and sealed properties
+      return health.initialized && !health.sealed;
+    } catch (error) {
+      logger.error('Vault health check failed', { error: (error as Error).message });
+      return false;
+    }
   }
 }
 
@@ -147,16 +191,13 @@ export function createSecretsManager(): SecretsManager {
       const vaultToken = process.env.VAULT_TOKEN;
       const vaultMountPath = process.env.VAULT_MOUNT_PATH || 'secret';
       if (!vaultEndpoint || !vaultToken) {
-        throw new Error(
-          'VAULT_ENDPOINT and VAULT_TOKEN environment variables are required for Vault provider'
-        );
+        throw new Error('VAULT_ENDPOINT and VAULT_TOKEN environment variables are required for Vault provider');
       }
       return new HashiCorpVaultSecretsManager(vaultEndpoint, vaultToken, vaultMountPath);
 
     case 'local':
     default:
-      const localKey =
-        process.env.SECRETS_ENCRYPTION_KEY || 'default-local-key-change-in-production';
+      const localKey = process.env.SECRETS_ENCRYPTION_KEY || 'default-local-key-change-in-production';
       return new LocalSecretsManager(localKey);
   }
 }

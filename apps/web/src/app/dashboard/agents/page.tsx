@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { AgentCreateModal } from '@/components/agents/AgentCreateModal';
 import { AgentEditModal } from '@/components/agents/AgentEditModal';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 
 // DID display component
 function DIDDisplay({ did, didDocument }: { did?: string; didDocument?: string }) {
@@ -66,6 +67,7 @@ function DIDDisplay({ did, didDocument }: { did?: string; didDocument?: string }
       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
         <Fingerprint className="h-3 w-3" />
         <span>Decentralized ID (DID)</span>
+        <InfoTooltip term="DID" />
       </div>
       <div className="flex items-center gap-1">
         <code className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded font-mono truncate flex-1" title={did}>

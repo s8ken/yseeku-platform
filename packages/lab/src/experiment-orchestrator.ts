@@ -7,6 +7,9 @@
  * HARD ISOLATION: Experiments run in isolated sandbox with synthetic data only.
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
+
 import { DoubleBlindProtocol } from './double-blind-protocol';
 import { MultiAgentSystem } from './multi-agent-system';
 import { StatisticalEngine } from './statistical-engine';
@@ -17,11 +20,22 @@ export class ExperimentOrchestrator {
   private doubleBlind: DoubleBlindProtocol;
   private statsEngine: StatisticalEngine;
   private agentSystem: MultiAgentSystem;
+  private storageDir: string;
 
-  constructor() {
+  constructor(storageDir?: string) {
     this.doubleBlind = new DoubleBlindProtocol();
     this.statsEngine = new StatisticalEngine();
     this.agentSystem = new MultiAgentSystem();
+    
+    // Default to a local .sonate-lab directory if not specified
+    this.storageDir = storageDir || path.join(process.cwd(), '.sonate-lab', 'results');
+    this.ensureStorageDir();
+  }
+
+  private ensureStorageDir() {
+    if (!fs.existsSync(this.storageDir)) {
+      fs.mkdirSync(this.storageDir, { recursive: true });
+    }
   }
 
   /**
@@ -34,7 +48,7 @@ export class ExperimentOrchestrator {
    */
   async createExperiment(config: ExperimentConfig): Promise<string> {
     // Generate unique experiment ID
-    const experiment_id = `exp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const experiment_id = `exp_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 
     // Initialize double-blind protocol
     await this.doubleBlind.initialize(experiment_id, config);
@@ -71,12 +85,26 @@ export class ExperimentOrchestrator {
     // Unblind experiment
     await this.doubleBlind.unblind(experiment_id);
 
-    return {
+    const result: ExperimentResult = {
       experiment_id,
       variant_results: variantResults,
       statistical_analysis,
       timestamp: Date.now(),
     };
+
+    // Persist results
+    await this.saveResults(result);
+
+    return result;
+  }
+
+  /**
+   * Save experiment results to storage
+   */
+  private async saveResults(result: ExperimentResult): Promise<void> {
+    const filePath = path.join(this.storageDir, `${result.experiment_id}.json`);
+    await fs.promises.writeFile(filePath, JSON.stringify(result, null, 2), 'utf-8');
+    console.log(`[Experiment ${result.experiment_id}] Results saved to ${filePath}`);
   }
 
   /**
@@ -98,8 +126,21 @@ export class ExperimentOrchestrator {
   }
 
   private async getResults(experiment_id: string): Promise<ExperimentResult> {
-    // Retrieve from storage (implement based on your storage solution)
-    throw new Error('Not implemented: Storage integration needed');
+    const filePath = path.join(this.storageDir, `${experiment_id}.json`);
+    
+    try {
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`Results for experiment ${experiment_id} not found`);
+      }
+      
+      const data = await fs.promises.readFile(filePath, 'utf-8');
+      return JSON.parse(data) as ExperimentResult;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        throw new Error(`Results for experiment ${experiment_id} not found`);
+      }
+      throw error;
+    }
   }
 
   private toCSV(results: ExperimentResult): string {
