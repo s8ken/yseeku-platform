@@ -70,7 +70,7 @@ interface InsightsSummary {
   highCount: number;
 }
 
-const priorityConfig = {
+const INSIGHT_PRIORITY_MAP = {
   [InsightPriority.CRITICAL]: {
     color: 'text-red-500',
     bg: 'bg-red-50 dark:bg-red-900/20',
@@ -103,7 +103,7 @@ const priorityConfig = {
   },
 };
 
-const categoryConfig = {
+const INSIGHT_CATEGORY_MAP = {
   [InsightCategory.TRUST]: { icon: Shield, label: 'Trust' },
   [InsightCategory.BEHAVIORAL]: { icon: Activity, label: 'Behavioral' },
   [InsightCategory.EMERGENCE]: { icon: Brain, label: 'Emergence' },
@@ -203,24 +203,24 @@ export function InsightsPanel({ compact = false, limit = 5 }: { compact?: boolea
     : summary;
 
   const PriorityIcon = (priority: InsightPriority) => {
-    const config = priorityConfig[priority];
+    const config = INSIGHT_PRIORITY_MAP[priority];
     const Icon = config.icon;
     return <Icon className={`h-4 w-4 ${config.color}`} />;
   };
 
   const CategoryIcon = (category: InsightCategory) => {
-    const config = categoryConfig[category];
+    const config = INSIGHT_CATEGORY_MAP[category];
     const Icon = config.icon;
     return <Icon className="h-4 w-4 text-muted-foreground" />;
   };
 
   const getPriorityColor = (priority: InsightPriority) => {
-    const config = priorityConfig[priority];
+    const config = INSIGHT_PRIORITY_MAP[priority];
     return config.color;
   };
 
   const getPriorityBg = (priority: InsightPriority) => {
-    const config = priorityConfig[priority];
+    const config = INSIGHT_PRIORITY_MAP[priority];
     return config.bg;
   };
 
@@ -281,26 +281,26 @@ export function InsightsPanel({ compact = false, limit = 5 }: { compact?: boolea
           <div className="space-y-3">
             {displayInsights.map((insight) => {
               const isExpanded = expandedInsight === insight.id;
-              const priorityConfig = priorityConfig[insight.priority];
-              const categoryConfig = categoryConfig[insight.category];
+              const currentPriorityConfig = INSIGHT_PRIORITY_MAP[insight.priority];
+              const currentCategoryConfig = INSIGHT_CATEGORY_MAP[insight.category];
               
               return (
                 <div
                   key={insight.id}
                   className={`rounded-lg border transition-all ${
-                    priorityConfig.bg
-                  } ${priorityConfig.border} ${
+                    currentPriorityConfig.bg
+                  } ${currentPriorityConfig.border} ${
                     isExpanded ? 'p-4' : 'p-3'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5">
-                      <PriorityIcon priority={insight.priority} />
+                      {PriorityIcon(insight.priority)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <div className="flex items-center gap-2">
-                          <CategoryIcon category={insight.category} />
+                          {CategoryIcon(insight.category)}
                           <span className="font-medium text-sm truncate">
                             {insight.title}
                           </span>

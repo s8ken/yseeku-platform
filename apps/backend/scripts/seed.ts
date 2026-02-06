@@ -40,6 +40,12 @@ const demoUsers = [
     role: 'admin' as const,
   },
   {
+    name: 'Demo AI User',
+    email: 'demo@yseeku.ai',
+    password: 'DemoPass123!',
+    role: 'admin' as const,
+  },
+  {
     name: 'Demo User',
     email: 'user@yseeku.com',
     password: DEMO_PASSWORD,

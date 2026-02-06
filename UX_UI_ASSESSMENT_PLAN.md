@@ -30,20 +30,20 @@ This document outlines the strategy, test cases, and success criteria for the fi
 
 | ID | Scenario | Steps | Expected Outcome | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **DL-01** | **Switch to Demo** | 1. Log in.<br>2. Click "Demo Mode" toggle in header. | Page refreshes. KPI cards populate with high-fidelity mock data (Trust Score ~8.6). Amber banner appears. | |
-| **DL-02** | **Switch to Live** | 1. Ensure in Demo Mode.<br>2. Click "Live Mode" toggle. | Page refreshes. Data reverts to real tenant data (or 0/Empty if new). Banner disappears. | |
-| **DL-03** | **Data Isolation** | 1. Enter Demo Mode.<br>2. Generate a "Trust Receipt" (or view one).<br>3. Switch to Live Mode.<br>4. Check Receipt logs. | The demo receipt MUST NOT appear in the Live transaction log. | |
-| **DL-04** | **Session Persistence** | 1. Enter Demo Mode.<br>2. Refresh the browser page (F5/Cmd+R). | The application should *stay* in Demo Mode. | |
-| **DL-05** | **Deep Linking** | 1. Navigate to `/dashboard?demo=true`. | Application loads directly into Demo Mode with data seeded. | |
+| **DL-01** | **Switch to Demo** | 1. Log in.<br>2. Click "Demo Mode" toggle in header. | Page refreshes. KPI cards populate with high-fidelity mock data (Trust Score ~8.6). Amber banner appears. | **Ready for Manual Test** |
+| **DL-02** | **Switch to Live** | 1. Ensure in Demo Mode.<br>2. Click "Live Mode" toggle. | Page refreshes. Data reverts to real tenant data (or 0/Empty if new). Banner disappears. | **Ready for Manual Test** |
+| **DL-03** | **Data Isolation** | 1. Enter Demo Mode.<br>2. Generate a "Trust Receipt" (or view one).<br>3. Switch to Live Mode.<br>4. Check Receipt logs. | The demo receipt MUST NOT appear in the Live transaction log. | **VERIFIED (via API)** |
+| **DL-04** | **Session Persistence** | 1. Enter Demo Mode.<br>2. Refresh the browser page (F5/Cmd+R). | The application should *stay* in Demo Mode. | **Ready for Manual Test** |
+| **DL-05** | **Deep Linking** | 1. Navigate to `/dashboard?demo=true`. | Application loads directly into Demo Mode with data seeded. | **Ready for Manual Test** |
 
 ### 3.2 Frontend/Backend Alignment
 
 | ID | Scenario | Steps | Expected Outcome | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **FE-01** | **Blank Slate (Live)** | 1. Log in to a new Live tenant (or clear DB).<br>2. View Dashboard. | Dashboard shows "Welcome/Setup" empty state, not broken charts or `NaN` values. | |
-| **FE-02** | **Data Latency** | 1. In Live Mode, trigger a chat interaction.<br>2. Check Dashboard. | The "Interactions" count increments immediately (or within 5s polling). | |
-| **FE-03** | **Role Access** | 1. Login as `viewer` role.<br>2. Check Sidebar. | "Settings", "API Keys", and Admin-only routes are hidden. | |
-| **FE-04** | **Error Handling** | 1. Disconnect network or stop backend.<br>2. Navigate UI. | UI shows "Connection Lost" or toast error, not crash/white screen. | |
+| **FE-01** | **Blank Slate (Live)** | 1. Log in to a new Live tenant (or clear DB).<br>2. View Dashboard. | Dashboard shows "Welcome/Setup" empty state, not broken charts or `NaN` values. | **VERIFIED (Code Review)** |
+| **FE-02** | **Data Latency** | 1. In Live Mode, trigger a chat interaction.<br>2. Check Dashboard. | The "Interactions" count increments immediately (or within 5s polling). | **Ready for Manual Test** |
+| **FE-03** | **Role Access** | 1. Login as `viewer` role.<br>2. Check Sidebar. | "Settings", "API Keys", and Admin-only routes are hidden. | **Ready for Manual Test** |
+| **FE-04** | **Error Handling** | 1. Disconnect network or stop backend.<br>2. Navigate UI. | UI shows "Connection Lost" or toast error, not crash/white screen. | **Ready for Manual Test** |
 
 ## 4. Technical Recommendations (Pre-Assessment)
 
