@@ -58,7 +58,7 @@ router.get('/verify/:id', async (req: Request, res: Response) => {
         issuer: receipt.issuer,
         subject: receipt.subject,
         proof: receipt.proof,
-        createdAt: receipt.createdAt
+        createdAt: (receipt as any).createdAt || new Date(receipt.timestamp)
       },
       verification
     });

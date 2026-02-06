@@ -842,6 +842,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
           detection: lastMessage.metadata.trustEvaluation.detection,
           receipt: lastMessage.metadata.trustEvaluation.receipt,
           receiptHash: lastMessage.metadata.trustEvaluation.receiptHash,
+          analysisMethod: lastMessage.metadata.trustEvaluation.analysisMethod, // v2.1: LLM/Heuristic transparency
         } : undefined,
       },
     });

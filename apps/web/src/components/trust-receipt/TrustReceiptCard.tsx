@@ -20,11 +20,11 @@ export interface TrustEvaluation {
   };
   status: 'PASS' | 'PARTIAL' | 'FAIL';
   detection: {
-    reality_index: number;
+    reality_index?: number; // Optional - deprecated in v2.0.1
     trust_protocol: string;
     ethical_alignment: number;
     resonance_quality: string;
-    canvas_parity: number;
+    canvas_parity?: number; // Optional - deprecated in v2.0.1
   };
   receipt?: any;
   receiptHash?: string;
@@ -214,8 +214,12 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
           
           {showLegacyMetrics && (
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs pt-3 border-t border-slate-700/30">
-              <MetricBox label="Reality Index" value={detection.reality_index.toFixed(1)} icon={<Activity size={14} />} /> 
-              <MetricBox label="Canvas Parity" value={detection.canvas_parity.toFixed(1) + '%'} icon={<CheckCircle size={14} />} /> 
+              {detection.reality_index !== undefined && (
+                <MetricBox label="Reality Index" value={detection.reality_index.toFixed(1)} icon={<Activity size={14} />} />
+              )}
+              {detection.canvas_parity !== undefined && (
+                <MetricBox label="Canvas Parity" value={detection.canvas_parity.toFixed(1) + '%'} icon={<CheckCircle size={14} />} />
+              )}
               <MetricBox label="Ethical Score" value={detection.ethical_alignment.toFixed(1)} icon={<CheckCircle size={14} />} /> 
               <div className="p-2 rounded bg-slate-800/50 border border-slate-700/50 flex flex-col justify-between"> 
                 <span className="text-slate-500 text-[10px]">Resonance</span> 
