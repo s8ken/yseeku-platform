@@ -659,7 +659,10 @@ export default function SystemBrainDashboard() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <Lightbulb className="h-4 w-4 text-amber-500" />
-                              <Badge variant="outline">{rec.actionType}</Badge>
+                              <span className="font-bold text-lg">
+                                {rec.recommendation === 'increase' ? 'Increase' : rec.recommendation === 'decrease' ? 'Decrease' : 'Maintain'} {rec.actionType.split('_').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}
+                              </span>
+                              <Badge variant="outline" className="ml-2">{rec.actionType}</Badge>
                               <PriorityBadge priority={rec.priority} />
                               {rec.target && (
                                 <span className="text-sm text-muted-foreground">
@@ -667,7 +670,8 @@ export default function SystemBrainDashboard() {
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm">{rec.reason}</p>
+                            <p className="text-sm font-medium text-muted-foreground mb-1">Reasoning:</p>
+                            <p className="text-sm bg-muted/30 p-3 rounded-md border border-muted">{rec.reason}</p>
                             <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                               <span>Confidence: {(rec.confidence * 100).toFixed(0)}%</span>
                               <span>Suggested: {new Date(rec.suggestedAt).toLocaleString()}</span>

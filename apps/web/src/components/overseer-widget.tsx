@@ -44,6 +44,13 @@ interface OverseerStatus {
   mode?: 'advisory' | 'enforced';
 }
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
 export function OverseerWidget() {
   const [tenant, setTenant] = useState('default');
 
@@ -243,13 +250,41 @@ export function OverseerWidget() {
               />
 
               {/* Recommendations */}
-              <MetricCard
-                icon={<Lightbulb size={14} />}
-                label="Recommendations"
-                value={recommendationsData?.length ?? 0}
-                highlight={highPriorityRecommendations > 0}
-                subtitle={highPriorityRecommendations > 0 ? `${highPriorityRecommendations} high priority` : undefined}
-              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="cursor-help">
+                      <MetricCard
+                        icon={<Lightbulb size={14} />}
+                        label="Recommendations"
+                        value={recommendationsData?.length ?? 0}
+                        highlight={highPriorityRecommendations > 0}
+                        subtitle={highPriorityRecommendations > 0 ? `${highPriorityRecommendations} high priority` : undefined}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="bg-slate-900 border-slate-800 text-white p-3 max-w-[300px]">
+                    <div className="space-y-2">
+                      <p className="font-semibold text-xs border-b border-white/10 pb-1 mb-1">Top Recommendations</p>
+                      {recommendationsData && recommendationsData.length > 0 ? (
+                        recommendationsData.slice(0, 3).map((rec: any, i: number) => (
+                          <div key={i} className="text-xs">
+                            <span className={rec.recommendation === 'increase' ? 'text-green-400' : rec.recommendation === 'decrease' ? 'text-red-400' : 'text-blue-400'}>
+                              {rec.recommendation === 'increase' ? '↑' : rec.recommendation === 'decrease' ? '↓' : '•'} {rec.recommendation.toUpperCase()}
+                            </span>{' '}
+                            <span className="text-slate-300">{rec.actionType.replace('_', ' ')}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-xs text-slate-400">No active recommendations</p>
+                      )}
+                      {recommendationsData && recommendationsData.length > 3 && (
+                        <p className="text-[10px] text-slate-500 mt-1">+{recommendationsData.length - 3} more</p>
+                      )}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
               {/* Actions Executed */}
               <MetricCard
