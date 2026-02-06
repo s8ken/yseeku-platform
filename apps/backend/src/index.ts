@@ -55,6 +55,7 @@ import semanticCoprocessorRoutes from './routes/semantic-coprocessor.routes';
 import phaseShiftRoutes from './routes/phase-shift.routes';
 import driftRoutes from './routes/drift.routes';
 import insightsRoutes from './routes/insights.routes';
+import actionsRoutes from './routes/actions.routes';
 import { initializeSocket } from './socket';
 import { liveMetricsService } from './services/live-metrics.service';
 import { User } from './models/user.model';

@@ -10,7 +10,7 @@ const DEMO_INITIALIZED_KEY = 'yseeku-demo-initialized';
 const DEMO_START_TIME_KEY = 'yseeku-demo-start-time';
 const DEMO_FIRST_VISIT_KEY = 'yseeku-demo-first-visit';
 const DEMO_DURATION_MS = 30 * 60 * 1000; // 30 minutes
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface DemoContextType {
   isDemo: boolean;
