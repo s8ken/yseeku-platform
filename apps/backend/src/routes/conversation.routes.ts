@@ -650,13 +650,14 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
           }
 
           // Store trust evaluation in message metadata
+          const evaluatedBy = USE_LLM_TRUST_EVALUATION ? 'llm' : 'heuristic';
           aiMessage.metadata.trustEvaluation = {
             trustScore: aiTrustEval.trustScore,
             status: aiTrustEval.status,
             detection: aiTrustEval.detection,
             receipt: aiTrustEval.receipt,
             receiptHash: aiTrustEval.receiptHash,
-            evaluatedBy: USE_LLM_TRUST_EVALUATION ? 'llm' : 'heuristic',
+            evaluatedBy,
             analysisMethod: aiTrustEval.analysisMethod,
           };
 
@@ -689,7 +690,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
                   agent_id: aiMessage.agentId,
                   proof: (aiTrustEval as any).proof,
                   // Analysis method transparency (v2.1)
-                  evaluated_by: aiTrustEval.evaluatedBy,
+                  evaluated_by: evaluatedBy,
                   analysis_method: aiTrustEval.analysisMethod,
                 },
               },
@@ -835,6 +836,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
           detection: lastMessage.metadata.trustEvaluation.detection,
           receipt: lastMessage.metadata.trustEvaluation.receipt,
           receiptHash: lastMessage.metadata.trustEvaluation.receiptHash,
+          analysisMethod: lastMessage.metadata.trustEvaluation.analysisMethod, // v2.1: LLM/Heuristic transparency
         } : undefined,
       },
     });
