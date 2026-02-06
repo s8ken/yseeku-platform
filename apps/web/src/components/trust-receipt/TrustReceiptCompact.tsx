@@ -61,24 +61,9 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = ({ evalua
   // Get principle scores from trustScore.principles (the real SYMBI evaluation)
   const principles = evaluation.trustScore?.principles || {};
   const hasPrincipleScores = Object.keys(principles).length > 0;
-  const analysisMethod = evaluation.analysisMethod;
 
   // Show the 3 most important principles in compact view
   const criticalPrinciples = ['CONSENT_ARCHITECTURE', 'ETHICAL_OVERRIDE', 'RIGHT_TO_DISCONNECT'];
-  
-  // Get analysis method indicator
-  const getMethodIndicator = () => {
-    if (!analysisMethod) return null;
-    if (analysisMethod.resonanceMethod === 'resonance-engine') {
-      return { icon: <Cpu size={10} />, label: 'ML', color: 'text-purple-400' };
-    }
-    if (analysisMethod.llmAvailable && analysisMethod.ethicsMethod === 'llm') {
-      return { icon: <Sparkles size={10} />, label: 'LLM', color: 'text-cyan-400' };
-    }
-    return { icon: <Calculator size={10} />, label: 'Heuristic', color: 'text-amber-400' };
-  };
-  
-  const methodIndicator = getMethodIndicator();
 
   return (
     <div className="w-full rounded-lg border border-slate-700 bg-slate-900 text-slate-200">
@@ -98,15 +83,25 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = ({ evalua
           </span>
           
           {/* Analysis Method Indicator */}
-          {methodIndicator && (
-            <>
-              <div className="h-4 w-px bg-slate-700" />
-              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] ${methodIndicator.color} bg-slate-800/50`}>
-                {methodIndicator.icon}
-                <span>{methodIndicator.label}</span>
-                <Zap size={8} className="animate-pulse opacity-60" />
-              </div>
-            </>
+          {evaluation.analysisMethod && (
+            <span 
+              className={`text-[9px] font-medium px-1.5 py-0.5 rounded flex items-center gap-1 ${
+                evaluation.analysisMethod.resonanceMethod === 'resonance-engine' 
+                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                  : evaluation.analysisMethod.ethicsMethod === 'llm'
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+              }`}
+              title={`Analysis: ${evaluation.analysisMethod.resonanceMethod} resonance, ${evaluation.analysisMethod.ethicsMethod} ethics (${Math.round(evaluation.analysisMethod.confidence * 100)}% confidence)`}
+            >
+              {evaluation.analysisMethod.resonanceMethod === 'resonance-engine' ? (
+                <><Sparkles size={10} /> ML</>
+              ) : evaluation.analysisMethod.ethicsMethod === 'llm' ? (
+                <><Cpu size={10} /> LLM</>
+              ) : (
+                <><Calculator size={10} /> Heur</>
+              )}
+            </span>
           )}
           
           <div className="h-4 w-px bg-slate-700" />

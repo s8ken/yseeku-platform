@@ -362,7 +362,7 @@ const AnalysisMethodBadge: React.FC<{ analysisMethod: AnalysisMethod }> = ({ ana
         </div>
       </div>
       
-      {/* Detailed breakdown (expandable via hover) */}
+      {/* Detailed breakdown */}
       <div className="mt-1.5 flex flex-wrap gap-1.5 text-[9px] text-slate-500">
         <span className={`px-1.5 py-0.5 rounded ${trustMethod === 'content-analysis' ? 'bg-emerald-900/30 text-emerald-300' : 'bg-slate-800 text-slate-400'}`}>
           Trust: {trustMethod === 'content-analysis' ? '✓ Content' : '○ Metadata'}

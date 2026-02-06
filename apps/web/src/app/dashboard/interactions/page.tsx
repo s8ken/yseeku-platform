@@ -490,7 +490,7 @@ function EmptyState() {
 }
 
 export default function InteractionsPage() {
-  const { isDemo, isLoaded, isSwitching } = useDemo();
+  const { isDemo, isLoaded } = useDemo();
   const [typeFilter, setTypeFilter] = useState<InteractionType>('ALL');
   const [statusFilter, setStatusFilter] = useState<TrustStatus>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -530,7 +530,7 @@ export default function InteractionsPage() {
       if (!res.ok) throw new Error('Failed to fetch interactions');
       return res.json();
     },
-    enabled: isLoaded && !isSwitching
+    enabled: isLoaded
   });
 
   const interactions = interactionsData?.interactions || [];

@@ -7,8 +7,8 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { ConversationModel } from '../models/conversation.model';
-import { authenticateToken } from '../middleware/auth.middleware';
+import { Conversation, IMessage, IConversation } from '../models/conversation.model';
+import { protect } from '../middleware/auth.middleware';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 
@@ -51,13 +51,13 @@ interface PhaseShiftHistory {
  * GET /api/phase-shift/conversation/:conversationId
  * Get current phase-shift metrics for a conversation
  */
-router.get('/conversation/:conversationId', authenticateToken, async (req: Request, res: Response) => {
+router.get('/conversation/:conversationId', protect, async (req: Request, res: Response) => {
   try {
-    const { conversationId } = req.params;
+    const conversationId = req.params.conversationId as string;
     const userId = req.userId;
 
     // Fetch conversation
-    const conversation = await ConversationModel.findOne({
+    const conversation = await Conversation.findOne({
       _id: conversationId,
       user: userId,
     });
@@ -70,7 +70,7 @@ router.get('/conversation/:conversationId', authenticateToken, async (req: Reque
     }
 
     // Extract phase-shift data from the last AI message
-    const aiMessages = conversation.messages.filter(m => m.sender === 'ai');
+    const aiMessages = conversation.messages.filter((m: IMessage) => m.sender === 'ai');
     
     if (aiMessages.length === 0) {
       return res.json({
@@ -120,13 +120,13 @@ router.get('/conversation/:conversationId', authenticateToken, async (req: Reque
  * GET /api/phase-shift/conversation/:conversationId/history
  * Get phase-shift velocity history for a conversation
  */
-router.get('/conversation/:conversationId/history', authenticateToken, async (req: Request, res: Response) => {
+router.get('/conversation/:conversationId/history', protect, async (req: Request, res: Response) => {
   try {
-    const { conversationId } = req.params;
+    const conversationId = req.params.conversationId as string;
     const userId = req.userId;
 
     // Fetch conversation
-    const conversation = await ConversationModel.findOne({
+    const conversation = await Conversation.findOne({
       _id: conversationId,
       user: userId,
     });
@@ -139,7 +139,7 @@ router.get('/conversation/:conversationId/history', authenticateToken, async (re
     }
 
     // Extract phase-shift data from all AI messages
-    const aiMessages = conversation.messages.filter(m => m.sender === 'ai');
+    const aiMessages = conversation.messages.filter((m: IMessage) => m.sender === 'ai');
     
     if (aiMessages.length === 0) {
       return res.json({
@@ -163,7 +163,7 @@ router.get('/conversation/:conversationId/history', authenticateToken, async (re
     let totalVelocity = 0;
     let maxVelocity = 0;
 
-    aiMessages.forEach((message, index) => {
+    aiMessages.forEach((message: IMessage, index: number) => {
       const phaseShiftData = message.metadata?.trustEvaluation?.phaseShift;
       
       if (phaseShiftData) {
@@ -218,13 +218,13 @@ router.get('/conversation/:conversationId/history', authenticateToken, async (re
  * GET /api/phase-shift/tenant/summary
  * Get phase-shift summary across all conversations for a tenant
  */
-router.get('/tenant/summary', authenticateToken, async (req: Request, res: Response) => {
+router.get('/tenant/summary', protect, async (req: Request, res: Response) => {
   try {
     const userId = req.userId;
     const tenantId = req.userTenant || 'default';
 
     // Fetch all conversations for user
-    const conversations = await ConversationModel.find({
+    const conversations = await Conversation.find({
       user: userId,
     }).select('_id messages');
 
@@ -234,11 +234,11 @@ router.get('/tenant/summary', authenticateToken, async (req: Request, res: Respo
     let highestVelocity = 0;
     let highestVelocityConversation: string | null = null;
 
-    conversations.forEach(conversation => {
-      const aiMessages = conversation.messages.filter(m => m.sender === 'ai');
+    conversations.forEach((conversation: IConversation) => {
+      const aiMessages = conversation.messages.filter((m: IMessage) => m.sender === 'ai');
       let hasAlerts = false;
 
-      aiMessages.forEach(message => {
+      aiMessages.forEach((message: IMessage) => {
         const phaseShiftData = message.metadata?.trustEvaluation?.phaseShift;
         
         if (phaseShiftData) {

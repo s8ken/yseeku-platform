@@ -1,10 +1,11 @@
-/**
- * Trust Receipt Model - MongoDB Schema
- * Stores cryptographic trust receipts for AI interactions
- */
-
 import mongoose, { Schema, Document } from 'mongoose';
 
+/**
+ * Trust Receipt Model with W3C DID Support
+ *
+ * Trust receipts are now signed by the platform DID and can reference
+ * agent DIDs as subjects, making them verifiable credentials.
+ */
 export interface ITrustReceipt extends Document {
   self_hash: string;
   session_id: string;
@@ -18,73 +19,125 @@ export interface ITrustReceipt extends Document {
   };
   previous_hash?: string;
   signature?: string;
-  tenant_id: string;
-  issuer?: string;
-  subject?: string;
-  agent_id?: string;
-  proof?: any;
-  // Analysis method transparency (v2.1)
+  session_nonce?: string;
+  tenant_id?: string;
+
+  // DID-related fields for W3C Verifiable Credentials
+  issuer?: string;        // Platform DID (did:web:yseeku.com)
+  subject?: string;       // Agent DID (did:web:yseeku.com:agents:{id})
+  agent_id?: string;      // Reference to the agent
+  proof?: {
+    type: string;         // 'Ed25519Signature2020'
+    created: string;      // ISO timestamp
+    verificationMethod: string;  // did:web:yseeku.com#key-1
+    proofPurpose: string; // 'assertionMethod'
+    proofValue: string;   // Base64 encoded signature
+  };
+
+  // v2.1: Analysis method transparency (LLM vs Heuristic detection)
   evaluated_by?: 'llm' | 'heuristic' | 'hybrid';
   analysis_method?: {
-    llm_available: boolean;
-    resonance_method: 'resonance-engine' | 'llm' | 'heuristic';
-    ethics_method: 'llm' | 'heuristic';
-    trust_method: 'content-analysis' | 'metadata-only';
+    llmAvailable: boolean;
+    resonanceMethod: 'resonance-engine' | 'llm' | 'heuristic';
+    ethicsMethod: 'llm' | 'heuristic';
+    trustMethod: 'content-analysis' | 'metadata-only';
     confidence: number;
   };
+
+  createdAt: Date;
 }
 
-const TrustReceiptSchema = new Schema<ITrustReceipt>(
-  {
-    self_hash: { type: String, required: true, unique: true, index: true },
-    session_id: { type: String, required: true, index: true },
-    version: { type: String, required: true, default: '1.0.0' },
-    timestamp: { type: Number, required: true, index: true },
-    mode: { type: String, required: true, default: 'constitutional' },
-    ciq_metrics: {
-      clarity: { type: Number, required: true, default: 0 },
-      integrity: { type: Number, required: true, default: 0 },
-      quality: { type: Number, required: true, default: 0 },
-    },
-    previous_hash: { type: String },
-    signature: { type: String },
-    tenant_id: { type: String, required: true, index: true },
-    issuer: { type: String },
-    subject: { type: String },
-    agent_id: { type: String, index: true },
-    proof: { type: Schema.Types.Mixed },
-    // Analysis method transparency (v2.1)
-    evaluated_by: { 
-      type: String, 
-      enum: ['llm', 'heuristic', 'hybrid'],
-      index: true 
-    },
-    analysis_method: {
-      llm_available: { type: Boolean },
-      resonance_method: { 
-        type: String, 
-        enum: ['resonance-engine', 'llm', 'heuristic'] 
-      },
-      ethics_method: { 
-        type: String, 
-        enum: ['llm', 'heuristic'] 
-      },
-      trust_method: { 
-        type: String, 
-        enum: ['content-analysis', 'metadata-only'] 
-      },
-      confidence: { type: Number, min: 0, max: 1 },
-    },
+const TrustReceiptSchema = new Schema<ITrustReceipt>({
+  self_hash: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
   },
-  {
-    timestamps: true,
-    collection: 'trust_receipts',
-  }
-);
+  session_id: {
+    type: String,
+    required: true,
+    index: true,
+  },
+  version: {
+    type: String,
+    default: '1.0.0',
+  },
+  timestamp: {
+    type: Number,
+    required: true,
+  },
+  mode: {
+    type: String,
+    default: 'constitutional',
+  },
+  ciq_metrics: {
+    clarity: Number,
+    integrity: Number,
+    quality: Number,
+  },
+  previous_hash: String,
+  signature: String,
+  session_nonce: String,
+  tenant_id: {
+    type: String,
+    index: true,
+  },
 
-// Compound indexes for efficient queries
-TrustReceiptSchema.index({ tenant_id: 1, timestamp: -1 });
-TrustReceiptSchema.index({ session_id: 1, timestamp: 1 });
-TrustReceiptSchema.index({ tenant_id: 1, evaluated_by: 1 });
+  // DID-related fields
+  issuer: {
+    type: String,
+    index: true,
+  },
+  subject: {
+    type: String,
+    index: true,
+  },
+  agent_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Agent',
+    index: true,
+  },
+  proof: {
+    type: {
+      type: String,
+    },
+    created: String,
+    verificationMethod: String,
+    proofPurpose: String,
+    proofValue: String,
+  },
+
+  // v2.1: Analysis method transparency
+  evaluated_by: {
+    type: String,
+    enum: ['llm', 'heuristic', 'hybrid'],
+    index: true,
+  },
+  analysis_method: {
+    llmAvailable: Boolean,
+    resonanceMethod: {
+      type: String,
+      enum: ['resonance-engine', 'llm', 'heuristic'],
+    },
+    ethicsMethod: {
+      type: String,
+      enum: ['llm', 'heuristic'],
+    },
+    trustMethod: {
+      type: String,
+      enum: ['content-analysis', 'metadata-only'],
+    },
+    confidence: Number,
+  },
+
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+// Index for DID-based queries
+TrustReceiptSchema.index({ issuer: 1, subject: 1 });
 
 export const TrustReceiptModel = mongoose.model<ITrustReceipt>('TrustReceipt', TrustReceiptSchema);

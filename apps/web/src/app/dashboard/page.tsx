@@ -56,9 +56,10 @@ import {
 } from '@/components/ui/loading-skeleton';
 
 // Lazy load heavy widgets for better initial load performance
-const PhaseShiftVelocityWidget = lazy(() => import('@/components/PhaseShiftVelocityWidget'));
-const LinguisticEmergenceWidget = lazy(() => import('@/components/LinguisticEmergenceWidget'));
-const DriftDetectionWidget = lazy(() => import('@/components/DriftDetectionWidget'));
+// These components use named exports, so we need to map them to default
+const PhaseShiftVelocityWidget = lazy(() => import('@/components/PhaseShiftVelocityWidget').then(m => ({ default: m.PhaseShiftVelocityWidget })));
+const LinguisticEmergenceWidget = lazy(() => import('@/components/LinguisticEmergenceWidget').then(m => ({ default: m.LinguisticEmergenceWidget })));
+const DriftDetectionWidget = lazy(() => import('@/components/DriftDetectionWidget').then(m => ({ default: m.DriftDetectionWidget })));
 
 interface KPIData {
   tenant: string;

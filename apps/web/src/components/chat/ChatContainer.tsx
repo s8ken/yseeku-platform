@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ChatMessage, ChatMessageProps } from './ChatMessage';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Send, Loader2, ShieldCheck, AlertTriangle, Download, FileJson, FileText, Filter, Share2, TrendingUp, TrendingDown, Minus, BarChart2, StopCircle, RotateCcw } from 'lucide-react';
+import { Send, Loader2, ShieldCheck, AlertTriangle, Download, FileJson, FileText, Filter, Share2, TrendingUp, TrendingDown, Minus, BarChart2, StopCircle } from 'lucide-react';
 import { api, TrustEvaluation } from '@/lib/api';
 import { socketService, TrustViolationData } from '@/lib/socket';
 import { cn } from '@/lib/utils';
@@ -41,14 +41,8 @@ Would you like me to explain how the 5 monitoring dimensions work?`,
       trustScore: { overall: 92, principles: { CONSENT_ARCHITECTURE: 0.96, INSPECTION_MANDATE: 0.92, CONTINUOUS_VALIDATION: 0.90, ETHICAL_OVERRIDE: 0.88, RIGHT_TO_DISCONNECT: 0.95, MORAL_RECOGNITION: 0.91 }, violations: [], timestamp: Date.now() - 120000 },
       status: 'PASS' as const,
       detection: { reality_index: 8.5, trust_protocol: 'PASS', ethical_alignment: 4.8, resonance_quality: 'STRONG', canvas_parity: 95 },
-      analysisMethod: {
-        llmAvailable: true,
-        resonanceMethod: 'resonance-engine',
-        ethicsMethod: 'llm',
-        trustMethod: 'content-analysis',
-        confidence: 0.85,
-      },
       timestamp: Date.now() - 120000,
+      analysisMethod: { llmAvailable: true, resonanceMethod: 'llm' as const, ethicsMethod: 'llm' as const, trustMethod: 'content-analysis' as const, confidence: 0.92 },
     },
   },
   {
@@ -85,104 +79,26 @@ Layer 1 principles are the foundation—they evaluate what the system *can do*. 
       trustScore: { overall: 95, principles: { CONSENT_ARCHITECTURE: 0.98, INSPECTION_MANDATE: 0.95, CONTINUOUS_VALIDATION: 0.93, ETHICAL_OVERRIDE: 0.92, RIGHT_TO_DISCONNECT: 0.96, MORAL_RECOGNITION: 0.94 }, violations: [], timestamp: Date.now() },
       status: 'PASS' as const,
       detection: { reality_index: 9.2, trust_protocol: 'PASS', ethical_alignment: 4.9, resonance_quality: 'ADVANCED', canvas_parity: 98 },
-      analysisMethod: {
-        llmAvailable: true,
-        resonanceMethod: 'resonance-engine',
-        ethicsMethod: 'llm',
-        trustMethod: 'content-analysis',
-        confidence: 0.88,
-      },
       timestamp: Date.now(),
+      analysisMethod: { llmAvailable: true, resonanceMethod: 'resonance-engine' as const, ethicsMethod: 'llm' as const, trustMethod: 'content-analysis' as const, confidence: 0.95 },
     },
   },
 ];
 
 export const ChatContainer: React.FC = () => {
-  const { isDemo, isFirstVisit, currentTenantId } = useDemo();
+  const { isDemo, isFirstVisit } = useDemo();
   const { invalidateDashboard } = useDashboardInvalidation();
   const [messages, setMessages] = useState<ChatMessageProps[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'PASS' | 'PARTIAL' | 'FAIL'>('all');
   const [showStats, setShowStats] = useState(false);
   const [sessionId] = useState<string>(() => `session-${Date.now()}`);
-  const [conversationId, setConversationId] = useState<string | null>(() => {
-    // Restore conversation ID from localStorage if available
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('yseeku-active-conversation') || null;
-    }
-    return null;
-  });
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [demoPreloaded, setDemoPreloaded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-
-  // Persist conversationId to localStorage when it changes
-  useEffect(() => {
-    if (conversationId && typeof window !== 'undefined') {
-      localStorage.setItem('yseeku-active-conversation', conversationId);
-      console.log('[ChatContainer] Saved conversation ID to localStorage:', conversationId);
-    }
-  }, [conversationId]);
-
-  // Clear conversation when switching between demo and live mode
-  useEffect(() => {
-    console.log('[ChatContainer] Tenant changed to:', currentTenantId);
-    // Clear the active conversation when mode changes
-    if (typeof window !== 'undefined') {
-      const savedConvId = localStorage.getItem('yseeku-active-conversation');
-      if (savedConvId) {
-        // Clear the saved conversation - it may belong to a different mode
-        localStorage.removeItem('yseeku-active-conversation');
-        setConversationId(null);
-        setMessages([]);
-        console.log('[ChatContainer] Cleared conversation due to mode switch');
-      }
-    }
-  }, [currentTenantId]);
-
-  // Load existing conversation messages on mount
-  useEffect(() => {
-    const loadConversation = async () => {
-      if (!conversationId || isDemo) return;
-      
-      setIsLoadingHistory(true);
-      try {
-        console.log('[ChatContainer] Loading conversation:', conversationId);
-        const conversation = await api.getConversation(conversationId);
-        
-        if (conversation && conversation.messages && conversation.messages.length > 0) {
-          const loadedMessages: ChatMessageProps[] = conversation.messages.map((msg: any) => ({
-            role: msg.sender === 'user' ? 'user' : 'assistant',
-            content: msg.content,
-            timestamp: new Date(msg.timestamp).getTime(),
-            evaluation: msg.metadata?.trustEvaluation ? {
-              trustScore: msg.metadata.trustEvaluation.trustScore,
-              status: msg.metadata.trustEvaluation.status,
-              detection: msg.metadata.trustEvaluation.detection,
-              receiptHash: msg.metadata.trustEvaluation.receiptHash,
-              analysisMethod: msg.metadata.trustEvaluation.analysisMethod,
-              timestamp: new Date(msg.timestamp).getTime(),
-            } : undefined,
-          }));
-          
-          setMessages(loadedMessages);
-          console.log('[ChatContainer] Loaded', loadedMessages.length, 'messages from conversation');
-        }
-      } catch (error) {
-        console.warn('[ChatContainer] Failed to load conversation, starting fresh:', error);
-        // Conversation may have been deleted or expired - clear the stored ID
-        localStorage.removeItem('yseeku-active-conversation');
-        setConversationId(null);
-      } finally {
-        setIsLoadingHistory(false);
-      }
-    };
-
-    loadConversation();
-  }, [conversationId, isDemo]);
 
   // Handle stopping the AI generation - ETHICAL_OVERRIDE implementation
   const handleStopGeneration = useCallback(() => {
@@ -335,6 +251,7 @@ export const ChatContainer: React.FC = () => {
               receipt: (trustEval as any).receipt,
               receiptHash: trustEval.receiptHash,
               timestamp: Date.now(),
+              analysisMethod: (trustEval as any).analysisMethod,
             } : undefined,
             timestamp: Date.now(),
           };
@@ -474,24 +391,6 @@ export const ChatContainer: React.FC = () => {
     });
   };
 
-  // Start a new conversation session
-  const handleNewSession = useCallback(() => {
-    // Clear localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('yseeku-active-conversation');
-    }
-    
-    // Reset state
-    setConversationId(null);
-    setMessages([]);
-    setDemoPreloaded(false);
-    
-    toast.info('New Session Started', {
-      description: 'Ready for a fresh trust-aware conversation.',
-      duration: 2000,
-    });
-  }, []);
-
   const filteredMessages = messages.filter(msg => {
     if (filterStatus === 'all') return true;
     return msg.evaluation?.status === filterStatus;
@@ -531,17 +430,6 @@ export const ChatContainer: React.FC = () => {
             <h2 className="font-semibold text-sm tracking-tight uppercase">SONATE Trust-Aware Session</h2>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNewSession}
-              disabled={isLoading}
-              className="h-7 text-xs gap-1"
-              title="Start a new conversation"
-            >
-              <RotateCcw className="h-3 w-3" />
-              New
-            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -731,15 +619,7 @@ export const ChatContainer: React.FC = () => {
         ref={scrollRef}
         className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800"
       >
-        {isLoadingHistory ? (
-          <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4 p-8 text-center">
-            <Loader2 className="h-8 w-8 animate-spin opacity-50" />
-            <div>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Loading conversation...</p>
-              <p className="text-xs max-w-[240px] mt-1">Retrieving your previous messages and trust evaluations.</p>
-            </div>
-          </div>
-        ) : messages.length === 0 ? (
+        {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4 p-8 text-center">
             <div className="p-4 rounded-full bg-slate-50 dark:bg-slate-900">
               <ShieldCheck size={40} className="opacity-20" />

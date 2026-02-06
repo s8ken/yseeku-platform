@@ -94,6 +94,7 @@ export interface TrustEvaluation {
   agentId?: string;
   
   // Analysis method transparency (v2.1)
+  evaluatedBy?: 'llm' | 'heuristic' | 'hybrid';
   analysisMethod?: {
     llmAvailable: boolean;
     resonanceMethod: 'resonance-engine' | 'llm' | 'heuristic';
