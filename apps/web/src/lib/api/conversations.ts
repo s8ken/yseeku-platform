@@ -38,6 +38,13 @@ export interface SendMessageResponse {
       trustScore: { overall: number };
       status: string;
       receiptHash?: string;
+      analysisMethod?: {
+        llmAvailable: boolean;
+        resonanceMethod: 'resonance-engine' | 'llm' | 'heuristic';
+        ethicsMethod: 'llm' | 'heuristic';
+        trustMethod: 'content-analysis' | 'metadata-only';
+        confidence: number;
+      };
     };
   };
 }
