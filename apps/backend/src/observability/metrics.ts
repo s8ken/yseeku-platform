@@ -1,8 +1,14 @@
 import { register, collectDefaultMetrics, Counter, Histogram, Gauge } from 'prom-client';
 collectDefaultMetrics();
 export const httpRequestsTotal = new Counter({ name: 'http_requests_total', help: 'Total HTTP requests', labelNames: ['method', 'route', 'status_code'] });
+export const sonateHttpRequestsTotal = new Counter({ name: 'sonate_http_requests_total', help: 'Total HTTP requests (SONATE alias)', labelNames: ['method', 'route', 'status_code'] });
 export const httpRequestDuration = new Histogram({ name: 'http_request_duration_seconds', help: 'HTTP request duration seconds', labelNames: ['method', 'route'], buckets: [0.05,0.1,0.25,0.5,1,2,5] });
-export function recordHttpRequest(method: string, route: string, statusCode: number, durationSeconds: number) { httpRequestsTotal.inc({ method, route, status_code: String(statusCode) }); httpRequestDuration.observe({ method, route }, durationSeconds); }
+export function recordHttpRequest(method: string, route: string, statusCode: number, durationSeconds: number) {
+  const labels = { method, route, status_code: String(statusCode) };
+  httpRequestsTotal.inc(labels);
+  sonateHttpRequestsTotal.inc(labels);
+  httpRequestDuration.observe({ method, route }, durationSeconds);
+}
 export async function getMetrics(): Promise<string> { return register.metrics(); }
 export const dbQueryDuration = new Histogram({ name: 'db_query_duration_seconds', help: 'MongoDB query duration seconds', labelNames: ['operation','collection'], buckets: [0.001,0.005,0.01,0.05,0.1,0.5,1,2] });
 export function recordDbQuery(operation: string, collection: string, durationSeconds: number) { dbQueryDuration.observe({ operation, collection }, durationSeconds); }
@@ -20,3 +26,10 @@ export const agentRestrictionsTotal = new Counter({ name: 'agent_restrictions_to
 export const sonateRefusalsTotal = new Counter({ name: 'sonate_refusals_total', help: 'Total kernel refusals', labelNames: ['reason', 'tenant_id'] });
 export const sonateOverridesTotal = new Counter({ name: 'sonate_overrides_total', help: 'Total human overrides', labelNames: ['status', 'tenant_id'] });
 export const sonateRefusalLatencySeconds = new Histogram({ name: 'sonate_refusal_latency_seconds', help: 'Kernel refusal latency seconds', labelNames: ['reason','tenant_id'], buckets: [0.001,0.005,0.01,0.05,0.1,0.5,1,2,5] });
+
+export const sonateTrustReceiptsTotal = new Counter({ name: 'sonate_trust_receipts_total', help: 'Total trust receipts generated' });
+export const sonateTrustVerificationsTotal = new Counter({ name: 'sonate_trust_verifications_total', help: 'Total trust receipt verifications performed' });
+export const sonateResonanceReceiptsTotal = new Counter({ name: 'sonate_resonance_receipts_total', help: 'Total resonance analyses recorded' });
+
+export const sonateActiveWorkflows = new Gauge({ name: 'sonate_active_workflows', help: 'Count of active running workflows' });
+export const sonateActiveAgents = new Gauge({ name: 'sonate_active_agents', help: 'Count of active agents' });

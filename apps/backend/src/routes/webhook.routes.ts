@@ -153,6 +153,50 @@ router.post(
   }
 );
 
+// ==================== Alert Event Types ====================
+
+/**
+ * GET /api/webhooks/meta/event-types
+ * Get available alert event types
+ */
+router.get('/meta/event-types', (_req: Request, res: Response) => {
+  res.json({
+    data: [
+      { id: 'trust_low', name: 'Trust Score Low', description: 'Trust score dropped below threshold' },
+      { id: 'trust_critical', name: 'Trust Critical', description: 'Trust score critically low' },
+      { id: 'drift_detected', name: 'Drift Detected', description: 'Behavioral drift detected' },
+      { id: 'drift_critical', name: 'Critical Drift', description: 'Critical drift threshold exceeded' },
+      { id: 'emergence_warning', name: 'Emergence Warning', description: 'Agent emergence detected' },
+      { id: 'consent_revoked', name: 'Consent Revoked', description: 'User revoked consent' },
+      { id: 'ethical_override', name: 'Ethical Override', description: 'Ethical override triggered' },
+      { id: 'principle_violation', name: 'Principle Violation', description: 'SONATE principle violated' },
+      { id: 'security_alert', name: 'Security Alert', description: 'Security issue detected' },
+      { id: 'system_health', name: 'System Health', description: 'System health issue' },
+      { id: 'anomaly_detected', name: 'Anomaly Detected', description: 'Statistical anomaly in metrics' },
+    ],
+  });
+});
+
+/**
+ * GET /api/webhooks/meta/metrics
+ * Get available metrics for rule conditions
+ */
+router.get('/meta/metrics', (_req: Request, res: Response) => {
+  res.json({
+    data: [
+      { id: 'trustScore', name: 'Trust Score', description: 'Overall trust score (0-1)', unit: 'score' },
+      { id: 'driftScore', name: 'Drift Score', description: 'Behavioral drift magnitude (0-1)', unit: 'score' },
+      { id: 'emergenceLevel', name: 'Emergence Level', description: 'Agent emergence metric (0-1)', unit: 'level' },
+      { id: 'bedauIndex', name: 'Bedau Index', description: 'Emergent behavior complexity (0-1)', unit: 'index' },
+      { id: 'principleScore', name: 'Principle Score', description: 'SONATE compliance score (0-1)', unit: 'score' },
+      { id: 'consentRate', name: 'Consent Rate', description: 'User consent percentage (0-100)', unit: 'percent' },
+      { id: 'alertCount', name: 'Alert Count', description: 'Number of active alerts', unit: 'count' },
+      { id: 'errorRate', name: 'Error Rate', description: 'API error rate (0-100)', unit: 'percent' },
+      { id: 'latencyP95', name: 'Latency P95', description: '95th percentile latency', unit: 'ms' },
+    ],
+  });
+});
+
 /**
  * GET /api/webhooks/:id
  * Get a specific webhook configuration
@@ -392,50 +436,6 @@ router.get('/:id/stats', async (req: Request, res: Response, next: NextFunction)
   } catch (error) {
     next(error);
   }
-});
-
-// ==================== Alert Event Types ====================
-
-/**
- * GET /api/webhooks/meta/event-types
- * Get available alert event types
- */
-router.get('/meta/event-types', (_req: Request, res: Response) => {
-  res.json({
-    data: [
-      { id: 'trust_low', name: 'Trust Score Low', description: 'Trust score dropped below threshold' },
-      { id: 'trust_critical', name: 'Trust Critical', description: 'Trust score critically low' },
-      { id: 'drift_detected', name: 'Drift Detected', description: 'Behavioral drift detected' },
-      { id: 'drift_critical', name: 'Critical Drift', description: 'Critical drift threshold exceeded' },
-      { id: 'emergence_warning', name: 'Emergence Warning', description: 'Agent emergence detected' },
-      { id: 'consent_revoked', name: 'Consent Revoked', description: 'User revoked consent' },
-      { id: 'ethical_override', name: 'Ethical Override', description: 'Ethical override triggered' },
-      { id: 'principle_violation', name: 'Principle Violation', description: 'SONATE principle violated' },
-      { id: 'security_alert', name: 'Security Alert', description: 'Security issue detected' },
-      { id: 'system_health', name: 'System Health', description: 'System health issue' },
-      { id: 'anomaly_detected', name: 'Anomaly Detected', description: 'Statistical anomaly in metrics' },
-    ],
-  });
-});
-
-/**
- * GET /api/webhooks/meta/metrics
- * Get available metrics for rule conditions
- */
-router.get('/meta/metrics', (_req: Request, res: Response) => {
-  res.json({
-    data: [
-      { id: 'trustScore', name: 'Trust Score', description: 'Overall trust score (0-1)', unit: 'score' },
-      { id: 'driftScore', name: 'Drift Score', description: 'Behavioral drift magnitude (0-1)', unit: 'score' },
-      { id: 'emergenceLevel', name: 'Emergence Level', description: 'Agent emergence metric (0-1)', unit: 'level' },
-      { id: 'bedauIndex', name: 'Bedau Index', description: 'Emergent behavior complexity (0-1)', unit: 'index' },
-      { id: 'principleScore', name: 'Principle Score', description: 'SONATE compliance score (0-1)', unit: 'score' },
-      { id: 'consentRate', name: 'Consent Rate', description: 'User consent percentage (0-100)', unit: 'percent' },
-      { id: 'alertCount', name: 'Alert Count', description: 'Number of active alerts', unit: 'count' },
-      { id: 'errorRate', name: 'Error Rate', description: 'API error rate (0-100)', unit: 'percent' },
-      { id: 'latencyP95', name: 'Latency P95', description: '95th percentile latency', unit: 'ms' },
-    ],
-  });
 });
 
 export default router;

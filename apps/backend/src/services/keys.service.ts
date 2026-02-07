@@ -17,8 +17,12 @@ let ed25519Promise: Promise<any> | null = null;
 async function loadEd25519(): Promise<any> {
   if (!ed25519Promise) {
     ed25519Promise = (new Function('return import("@noble/ed25519")')() as Promise<any>).then((ed25519) => {
-      (ed25519 as any).etc.sha512Sync = (...m: Uint8Array[]) =>
-        new Uint8Array(crypto.createHash('sha512').update(m[0]).digest());
+      const sha512 = (message: Uint8Array) => new Uint8Array(crypto.createHash('sha512').update(message).digest());
+      if ((ed25519 as any).hashes) {
+        (ed25519 as any).hashes.sha512 = sha512;
+      } else {
+        (ed25519 as any).etc.sha512Sync = (...m: Uint8Array[]) => sha512(m[0]);
+      }
       return ed25519;
     });
   }

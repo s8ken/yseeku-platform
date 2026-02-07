@@ -200,7 +200,7 @@ export default function DashboardPage() {
 
   const handleViewDemo = () => {
     // Switch to demo mode
-    router.push('/dashboard?mode=demo');
+    router.push('/dashboard?demo=true');
   };
 
   const handleViewDocumentation = () => {

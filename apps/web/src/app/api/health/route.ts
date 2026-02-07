@@ -9,8 +9,8 @@ interface HealthCheck {
   version: string;
   uptime: number;
   checks: {
-    backend: {
-      status: 'up' | 'down' | 'unknown';
+    database: {
+      status: 'up' | 'down';
       latency?: number;
       error?: string;
     };
@@ -24,61 +24,36 @@ interface HealthCheck {
 }
 
 const startTime = Date.now();
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 export async function GET(): Promise<NextResponse<HealthCheck>> {
   const timestamp = new Date().toISOString();
   const uptime = Math.floor((Date.now() - startTime) / 1000);
-  
-  let backendStatus: HealthCheck['checks']['backend'] = { status: 'unknown' };
-  
+
+  let backendHealth: HealthCheck | null = null;
+
   try {
-    const start = Date.now();
-    const res = await fetch(`${BACKEND_URL}/health`, { 
+    const res = await fetch(`${BACKEND_URL}/api/health`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       next: { revalidate: 0 }
     });
-    const latency = Date.now() - start;
-    
     if (res.ok) {
-      backendStatus = { status: 'up', latency };
-    } else {
-      backendStatus = { status: 'down', error: `Status ${res.status}` };
+      backendHealth = (await res.json()) as HealthCheck;
     }
   } catch (error) {
-    backendStatus = { 
-      status: 'down', 
-      error: error instanceof Error ? error.message : 'Connection failed' 
-    };
+    backendHealth = null;
   }
-  
-  const memUsage = process.memoryUsage();
-  const totalMem = memUsage.heapTotal;
-  const usedMem = memUsage.heapUsed;
-  const memPercentage = Math.round((usedMem / totalMem) * 100);
-  
-  const memStatus: HealthCheck['checks']['memory'] = {
-    status: memPercentage > 90 ? 'critical' : memPercentage > 75 ? 'warning' : 'ok',
-    used: Math.round(usedMem / 1024 / 1024),
-    total: Math.round(totalMem / 1024 / 1024),
-    percentage: memPercentage
-  };
-  
-  const overallStatus: HealthCheck['status'] = 
-    backendStatus.status === 'down' ? 'degraded' :
-    memStatus.status === 'critical' ? 'degraded' :
-    'healthy';
-  
-  const health: HealthCheck = {
-    status: overallStatus,
+
+  const health: HealthCheck = backendHealth ?? {
+    status: 'unhealthy',
     timestamp,
     version: process.env.npm_package_version || '1.0.0',
     uptime,
     checks: {
-      backend: backendStatus,
-      memory: memStatus
-    }
+      database: { status: 'down', error: 'Backend health unavailable' },
+      memory: { status: 'critical', used: 0, total: 0, percentage: 0 },
+    },
   };
   
   return NextResponse.json(health, { 

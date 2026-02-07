@@ -41,6 +41,19 @@ router.post('/', async (req, res) => {
 });
 
 /**
+ * GET /api/compare/providers
+ * Get available model providers
+ */
+router.get('/providers/list', (req, res) => {
+  const providers = multiModelComparisonService.getAvailableProviders();
+  
+  res.json({
+    success: true,
+    providers
+  });
+});
+
+/**
  * GET /api/compare/:id
  * Get a specific comparison result
  */
@@ -75,19 +88,6 @@ router.get('/', (req, res) => {
     success: true,
     comparisons,
     count: comparisons.length
-  });
-});
-
-/**
- * GET /api/compare/providers
- * Get available model providers
- */
-router.get('/providers/list', (req, res) => {
-  const providers = multiModelComparisonService.getAvailableProviders();
-  
-  res.json({
-    success: true,
-    providers
   });
 });
 

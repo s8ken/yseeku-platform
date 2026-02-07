@@ -13,6 +13,11 @@ import { didService } from '../services/did.service';
 import { llmLimiter, apiGatewayLimiter } from '../middleware/rate-limiters';
 import { getErrorMessage } from '../utils/error-utils';
 import logger from '../utils/logger';
+import {
+  sonateTrustReceiptsTotal,
+  sonateResonanceReceiptsTotal,
+  sonateTrustVerificationsTotal,
+} from '../observability/metrics';
 
 function validateReceiptPayload(data: any) {
   if (!data || typeof data !== 'object') return 'Payload must be an object';
@@ -85,6 +90,11 @@ router.post('/receipts', protect, llmLimiter, async (req: Request, res: Response
       issuer,
       subject,
     });
+
+    sonateTrustReceiptsTotal.inc();
+    if (receiptData?.analysis_method?.resonanceMethod) {
+      sonateResonanceReceiptsTotal.inc();
+    }
 
     res.status(201).json({
       success: true,
@@ -467,6 +477,8 @@ router.post('/receipts/:receiptHash/verify', protect, llmLimiter, async (req: Re
     } catch (e) {
       // Keys service not available
     }
+
+    sonateTrustVerificationsTotal.inc();
 
     res.json({
       success: true,
