@@ -41,12 +41,12 @@ export const dashboardTutorialSteps: TutorialStep[] = [
     path: '/dashboard/lab/experiments'
   },
   {
-    id: 'bedau-index',
-    title: 'Bedau Index (Emergence)',
-    content: 'The Bedau Index measures "Emergence"—when AI systems start showing behaviors they weren\'t specifically trained for. \n\n• LINEAR (<0.3): Predictable, explainable behavior \n• WEAK_EMERGENCE (0.3-0.7): New patterns from complex interactions \n• HIGH_WEAK_EMERGENCE (>0.7): Strong emergent phenomena with new system properties',
-    targetId: 'nav-bedau-index',
+    id: 'safety-scanner',
+    title: 'Safety Scanner',
+    content: 'The Safety Scanner helps you test AI prompts and responses for potential risks before deployment. It checks for harmful content, bias, and compliance issues.',
+    targetId: 'nav-safety-scanner',
     position: 'right',
-    path: '/dashboard/lab/bedau'
+    path: '/dashboard/safety'
   },
   {
     id: 'orchestrate-module',
