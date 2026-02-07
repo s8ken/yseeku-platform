@@ -189,10 +189,10 @@ app.use('/api/insights', insightsRoutes); // Actionable insights and recommendat
 app.use('/api/actions', actionsRoutes); // Action effectiveness and recommendations
 app.use('/api', monitoringRoutes); // Mount at /api for /api/metrics and /api/health
 app.use('/api/secrets', secretsRoutes);
-const enableDemo = process.env.DEMO_ROUTES_ENABLED === 'true' || (process.env.NODE_ENV !== 'production');
+app.use('/api/evaluation-method', evaluationMethodRoutes);
+const enableDemo = process.env.ENABLE_DEMO_MODE === 'true' || process.env.NODE_ENV !== 'production';
 if (enableDemo) {
   app.use('/api/demo', demoRoutes);
-app.use('/api/evaluation-method', evaluationMethodRoutes);
 }
 app.use('/.well-known', didRoutes); // DID resolution at standard .well-known path (no auth required)
 app.use('/api/did', didRoutes); // DID API endpoints

@@ -10,7 +10,6 @@ const DEMO_INITIALIZED_KEY = 'yseeku-demo-initialized';
 const DEMO_START_TIME_KEY = 'yseeku-demo-start-time';
 const DEMO_FIRST_VISIT_KEY = 'yseeku-demo-first-visit';
 const DEMO_DURATION_MS = 30 * 60 * 1000; // 30 minutes
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface DemoContextType {
   isDemo: boolean;
@@ -56,7 +55,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      const res = await fetch(`${API_BASE}/api/demo/init`, {
+      const res = await fetch('/api/demo/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -119,15 +118,16 @@ export function DemoProvider({ children }: { children: ReactNode }) {
 
     const urlParams = new URLSearchParams(window.location.search);
     const demoParam = urlParams.get('demo');
+    const modeParam = urlParams.get('mode');
     const storedDemo = localStorage.getItem(DEMO_STORAGE_KEY);
     const tenant = localStorage.getItem('tenant');
     const isDemoTenant = tenant === DEMO_TENANT_ID;
     const hasVisitedBefore = localStorage.getItem(DEMO_FIRST_VISIT_KEY);
     
-    const shouldBeDemo = demoParam === 'true' || storedDemo === 'true' || isDemoTenant;
+    const shouldBeDemo = demoParam === 'true' || modeParam === 'demo' || storedDemo === 'true' || isDemoTenant;
     setIsDemo(shouldBeDemo);
 
-    if (demoParam === 'true') {
+    if (demoParam === 'true' || modeParam === 'demo') {
       localStorage.setItem(DEMO_STORAGE_KEY, 'true');
     }
 

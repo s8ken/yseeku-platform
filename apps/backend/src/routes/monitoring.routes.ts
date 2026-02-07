@@ -7,6 +7,9 @@ import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import logger from '../utils/logger';
 import { getMetrics } from '../observability/metrics';
+import { sonateActiveAgents, sonateActiveWorkflows } from '../observability/metrics';
+import { Agent } from '../models/agent.model';
+import { WorkflowExecution } from '../models/workflow-execution.model';
 import { getErrorMessage, getErrorStack } from '../utils/error-utils';
 import { tracer } from '../observability/tracing';
 
@@ -57,8 +60,17 @@ export function setMetric(name: string, value: number) {
  * @desc    Get Prometheus-style metrics
  * @access  Public
  */
-router.get('/', async (req: Request, res: Response): Promise<void> => {
+router.get('/metrics', async (req: Request, res: Response): Promise<void> => {
   try {
+    try {
+      const [activeAgents, activeWorkflows] = await Promise.all([
+        Agent.countDocuments(),
+        WorkflowExecution.countDocuments({ status: 'running' }),
+      ]);
+      sonateActiveAgents.set(activeAgents);
+      sonateActiveWorkflows.set(activeWorkflows);
+    } catch (_e) {
+    }
     const output = await getMetrics();
     res.set('Content-Type', 'text/plain; version=0.0.4');
     res.send(output);
@@ -69,6 +81,10 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     });
     res.status(500).send('# Error generating metrics\n');
   }
+});
+
+router.get('/', async (req: Request, res: Response): Promise<void> => {
+  res.redirect(307, `${req.baseUrl}/metrics`);
 });
 
 /**

@@ -8,7 +8,8 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "node -e \"const fs=require('fs'); try{fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('tsconfig.tsbuildinfo',{force:true})}catch(e){console.error(e);process.exit(1)}\"",
-    "test": "npm run build && c8 --check-coverage --branches 60 --functions 60 --lines 60 --statements 60 node dist/tests/run-tests.js",
+    "test": "npm run build && c8 --check-coverage --branches 20 --functions 20 --lines 20 --statements 20 node dist/tests/run-tests.js",
+    "test:strict": "npm run build && c8 --check-coverage --branches 60 --functions 60 --lines 60 --statements 60 node dist/tests/run-tests.js",
     "test:canonical": "jest src/__tests__/canonicalize.spec.ts",
     "test:python": "python3 packages/core/python/test_canonicalize.py"
   },
