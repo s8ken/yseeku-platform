@@ -49,6 +49,14 @@ export const dashboardTutorialSteps: TutorialStep[] = [
     path: '/dashboard/safety'
   },
   {
+    id: 'pattern-analysis',
+    title: 'Pattern Analysis',
+    content: 'Pattern Analysis uses the Bedau Index to detect emergent behaviors—when AI systems show patterns they weren\'t explicitly trained for. This helps identify unexpected behaviors early for safety and compliance.',
+    targetId: 'nav-pattern-analysis',
+    position: 'right',
+    path: '/dashboard/lab/bedau'
+  },
+  {
     id: 'orchestrate-module',
     title: 'Orchestrate Module',
     content: 'This is the control center for your entire organization. Manage users, view detailed logs, and access our cryptographic "Trust Receipts".',
