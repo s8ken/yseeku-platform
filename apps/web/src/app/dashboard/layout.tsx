@@ -83,15 +83,11 @@ const moduleSections: ModuleSection[] = [
     badge: 'LIVE',
     items: [
       { title: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'user', 'viewer'], module: 'detect' },
-      { title: 'Live Monitor', href: '/dashboard/monitoring/live', icon: Activity, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Trust Session', href: '/dashboard/chat', icon: Sparkles, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Agents', href: '/dashboard/agents', icon: Bot, roles: ['admin', 'user'], module: 'detect' },
-      { title: 'Trust Analytics', href: '/dashboard/trust', icon: BarChart3, roles: ['admin', 'user', 'viewer'], module: 'detect' },
-      { title: 'Verify Receipts', href: '/dashboard/verify', icon: ShieldCheck, roles: ['admin', 'user', 'viewer'], module: 'detect' },
-      { title: 'Agent Trust', href: '/dashboard/overview', icon: Shield, roles: ['admin', 'user', 'viewer'], module: 'detect' },
-      { title: 'Risk Monitor', href: '/dashboard/risk', icon: Waves, roles: ['admin', 'user'], module: 'detect' },
+      { title: 'Trust Receipts', href: '/dashboard/receipts', icon: Fingerprint, roles: ['admin', 'user'], module: 'detect' },
+      { title: 'Risk & Compliance', href: '/dashboard/risk', icon: Waves, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Alerts', href: '/dashboard/alerts', icon: AlertTriangle, roles: ['admin', 'user'], module: 'detect' },
-      { title: 'Webhooks', href: '/dashboard/webhooks', icon: Webhook, roles: ['admin'], module: 'detect' },
     ]
   },
   {
@@ -102,10 +98,6 @@ const moduleSections: ModuleSection[] = [
     items: [
       { title: 'Experiments', href: '/dashboard/lab/experiments', icon: FlaskConical, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Model Compare', href: '/dashboard/compare', icon: Beaker, roles: ['admin', 'user'], module: 'lab' },
-      { title: 'SONATE Analysis', href: '/dashboard/lab/sonate', icon: Sparkles, roles: ['admin', 'user'], module: 'lab' },
-      { title: 'Emergence Testing', href: '/dashboard/lab/emergence', icon: TestTube2, roles: ['admin', 'user'], module: 'lab' },
-      { title: 'Bedau Index', href: '/dashboard/lab/bedau', icon: BarChart3, roles: ['admin', 'user'], module: 'lab' },
-      { title: 'Linguistic Vector', href: '/dashboard/lab/vls', icon: Compass, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Safety Scanner', href: '/dashboard/safety', icon: Shield, roles: ['admin', 'user'], module: 'lab' },
     ]
   },
@@ -116,14 +108,8 @@ const moduleSections: ModuleSection[] = [
     badge: 'ADMIN',
     items: [
       { title: 'System Brain', href: '/dashboard/brain', icon: Brain, roles: ['admin'], module: 'orchestrate' },
-      { title: 'Interactions', href: '/dashboard/interactions', icon: MessageSquare, roles: ['admin', 'user'], module: 'orchestrate' },
-      { title: 'Tenants', href: '/dashboard/tenants', icon: Building2, roles: ['admin'], module: 'orchestrate' },
-      { title: 'Audit Trails', href: '/dashboard/audit', icon: FileText, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'Compliance Reports', href: '/dashboard/reports', icon: ClipboardList, roles: ['admin'], module: 'orchestrate' },
-      { title: 'Trust Receipts', href: '/dashboard/receipts', icon: Fingerprint, roles: ['admin', 'user'], module: 'orchestrate' },
-      { title: 'API Gateway', href: '/dashboard/api', icon: Server, roles: ['admin'], module: 'orchestrate' },
-      { title: 'Learn', href: '/dashboard/learn', icon: GraduationCap, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
-      { title: 'Documentation', href: '/dashboard/docs', icon: Book, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
+      { title: 'Audit Trails', href: '/dashboard/audit', icon: FileText, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['admin'], module: 'orchestrate' },
     ]
   }
@@ -135,9 +121,10 @@ const ESSENTIAL_ITEMS = new Set([
   '/dashboard/chat',      // Trust Session
   '/dashboard/agents',    // Agents
   '/dashboard/receipts',  // Trust Receipts
+  '/dashboard/risk',      // Risk & Compliance
   '/dashboard/alerts',    // Alerts
-  '/dashboard/lab/experiments', // One lab item
-  '/dashboard/learn',     // Learn
+  '/dashboard/lab/experiments', // Experiments
+  '/dashboard/reports',   // Compliance Reports
   '/dashboard/settings',  // Settings
 ]);
 

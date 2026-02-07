@@ -228,13 +228,9 @@ const nextConfig = {
         {
           source: '/api/metrics',
           destination: `${backendUrl}/api/metrics`,
-        },
-        {
-          source: '/api/health',
-          destination: `${backendUrl}/api/health`,
-        },
-      ];
-  },
+          },
+        ];
+    },
   transpilePackages: [
     '@sonate/core',
     '@sonate/detect',

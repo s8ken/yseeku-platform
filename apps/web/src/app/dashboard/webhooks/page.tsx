@@ -38,8 +38,9 @@ import {
   Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { fetchAPI } from '@/lib/api/client';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
 
 // Types
 interface WebhookChannel {
@@ -119,21 +120,21 @@ interface Delivery {
 
 // API functions
 async function fetchWebhooks(): Promise<WebhookConfig[]> {
-  const res = await fetch(`${API_BASE}/webhooks`, { credentials: 'include' });
+  const res = await fetch('/api/webhooks', { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to fetch webhooks');
   const data = await res.json();
   return data.data;
 }
 
 async function fetchWebhook(id: string): Promise<WebhookConfigFull> {
-  const res = await fetch(`${API_BASE}/webhooks/${id}`, { credentials: 'include' });
+  const res = await fetch(`/api/webhooks/${id}`, { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to fetch webhook');
   const data = await res.json();
   return data.data;
 }
 
 async function createWebhook(config: Partial<WebhookConfigFull>): Promise<WebhookConfigFull> {
-  const res = await fetch(`${API_BASE}/webhooks`, {
+  const res = await fetch('/api/webhooks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -148,7 +149,7 @@ async function createWebhook(config: Partial<WebhookConfigFull>): Promise<Webhoo
 }
 
 async function updateWebhook(id: string, config: Partial<WebhookConfigFull>): Promise<WebhookConfigFull> {
-  const res = await fetch(`${API_BASE}/webhooks/${id}`, {
+  const res = await fetch(`/api/webhooks/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -160,7 +161,7 @@ async function updateWebhook(id: string, config: Partial<WebhookConfigFull>): Pr
 }
 
 async function deleteWebhook(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/webhooks/${id}`, {
+  const res = await fetch(`/api/webhooks/${id}`, {
     method: 'DELETE',
     credentials: 'include',
   });
@@ -168,7 +169,7 @@ async function deleteWebhook(id: string): Promise<void> {
 }
 
 async function testWebhook(id: string): Promise<{ success: boolean; responseTime: number; error?: string }> {
-  const res = await fetch(`${API_BASE}/webhooks/${id}/test`, {
+  const res = await fetch(`/api/webhooks/${id}/test`, {
     method: 'POST',
     credentials: 'include',
   });
@@ -177,7 +178,7 @@ async function testWebhook(id: string): Promise<{ success: boolean; responseTime
 }
 
 async function toggleWebhook(id: string): Promise<{ enabled: boolean }> {
-  const res = await fetch(`${API_BASE}/webhooks/${id}/toggle`, {
+  const res = await fetch(`/api/webhooks/${id}/toggle`, {
     method: 'POST',
     credentials: 'include',
   });
@@ -187,28 +188,28 @@ async function toggleWebhook(id: string): Promise<{ enabled: boolean }> {
 }
 
 async function fetchDeliveryStats(id: string): Promise<DeliveryStats> {
-  const res = await fetch(`${API_BASE}/webhooks/${id}/stats`, { credentials: 'include' });
+  const res = await fetch(`/api/webhooks/${id}/stats`, { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to fetch stats');
   const data = await res.json();
   return data.data;
 }
 
 async function fetchDeliveries(id: string): Promise<Delivery[]> {
-  const res = await fetch(`${API_BASE}/webhooks/${id}/deliveries?limit=20`, { credentials: 'include' });
+  const res = await fetch(`/api/webhooks/${id}/deliveries?limit=20`, { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to fetch deliveries');
   const data = await res.json();
   return data.data;
 }
 
 async function fetchEventTypes(): Promise<{ id: string; name: string; description: string }[]> {
-  const res = await fetch(`${API_BASE}/webhooks/meta/event-types`, { credentials: 'include' });
+  const res = await fetch('/api/webhooks/meta/event-types', { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to fetch event types');
   const data = await res.json();
   return data.data;
 }
 
 async function fetchMetrics(): Promise<{ id: string; name: string; description: string; unit: string }[]> {
-  const res = await fetch(`${API_BASE}/webhooks/meta/metrics`, { credentials: 'include' });
+  const res = await fetch('/api/webhooks/meta/metrics', { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to fetch metrics');
   const data = await res.json();
   return data.data;

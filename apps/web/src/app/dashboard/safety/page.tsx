@@ -26,8 +26,9 @@ import {
   FileWarning
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { fetchAPI } from '@/lib/api/client';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
 
 // Types
 interface ThreatMatch {
@@ -53,7 +54,7 @@ interface ScanResult {
 
 // API functions
 async function scanPrompt(text: string, sanitize = false): Promise<ScanResult> {
-  const res = await fetch(`${API_BASE}/safety/scan`, {
+  const res = await fetch('/api/safety/scan', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -65,14 +66,14 @@ async function scanPrompt(text: string, sanitize = false): Promise<ScanResult> {
 }
 
 async function fetchDemo(): Promise<Array<{ label: string; text: string; result: ScanResult }>> {
-  const res = await fetch(`${API_BASE}/safety/demo`, { credentials: 'include' });
+  const res = await fetch('/api/safety/demo', { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to fetch demo');
   const data = await res.json();
   return data.data;
 }
 
 async function fetchCategories(): Promise<Array<{ id: string; name: string; description: string }>> {
-  const res = await fetch(`${API_BASE}/safety/categories`, { credentials: 'include' });
+  const res = await fetch('/api/safety/categories', { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to fetch categories');
   const data = await res.json();
   return data.data;

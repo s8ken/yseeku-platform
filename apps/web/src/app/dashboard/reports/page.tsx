@@ -22,8 +22,9 @@ import {
   Eye
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { fetchAPI } from '@/lib/api/client';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 
 type ReportType = 'SONATE' | 'GDPR' | 'SOC2' | 'ISO27001' | 'CUSTOM';
 type ReportStatus = 'PENDING' | 'GENERATING' | 'COMPLETED' | 'FAILED';
@@ -70,7 +71,7 @@ export default function ReportsPage() {
   const { data: reports, isLoading } = useQuery<ComplianceReport[]>({
     queryKey: ['reports'],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/api/reports`);
+      const res = await fetch(`/api/reports`);
       if (!res.ok) throw new Error('Failed to fetch reports');
       const data = await res.json();
       return data.reports || [];
@@ -81,7 +82,7 @@ export default function ReportsPage() {
   // Generate report mutation
   const generateMutation = useMutation({
     mutationFn: async (params: { type: ReportType; criteria?: string }) => {
-      const res = await fetch(`${API_BASE}/api/reports/generate`, {
+      const res = await fetch(`/api/reports/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -103,7 +104,7 @@ export default function ReportsPage() {
   // Delete report mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${API_BASE}/api/reports/${id}`, {
+      const res = await fetch(`/api/reports/${id}`, {
         method: 'DELETE'
       });
       if (!res.ok) throw new Error('Failed to delete report');
@@ -116,7 +117,7 @@ export default function ReportsPage() {
 
   // Download report
   const downloadReport = async (id: string, format: 'json' | 'csv') => {
-    const res = await fetch(`${API_BASE}/api/reports/${id}/download?format=${format}`);
+    const res = await fetch(`/api/reports/${id}/download?format=${format}`);
     if (!res.ok) return;
     
     const blob = await res.blob();
@@ -130,7 +131,7 @@ export default function ReportsPage() {
 
   // View full report
   const viewReport = async (id: string) => {
-    const res = await fetch(`${API_BASE}/api/reports/${id}`);
+    const res = await fetch(`/api/reports/${id}`);
     if (!res.ok) return;
     const data = await res.json();
     setViewingReport(data.report);
@@ -417,7 +418,7 @@ export default function ReportsPage() {
                 <CardContent className="pt-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-2xl font-bold text-red-600">24</p>
+                      <p className="text-2xl font-bold text-red-600">—</p>
                       <p className="text-sm text-muted-foreground">Failed Interactions</p>
                     </div>
                     <AlertTriangle className="h-8 w-8 text-red-500/50" />
@@ -431,7 +432,7 @@ export default function ReportsPage() {
                 <CardContent className="pt-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-2xl font-bold text-amber-600">134</p>
+                      <p className="text-2xl font-bold text-amber-600">—</p>
                       <p className="text-sm text-muted-foreground">Partial Compliance</p>
                     </div>
                     <Clock className="h-8 w-8 text-amber-500/50" />
@@ -445,7 +446,7 @@ export default function ReportsPage() {
                 <CardContent className="pt-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-2xl font-bold text-emerald-600">1,089</p>
+                      <p className="text-2xl font-bold text-emerald-600">—</p>
                       <p className="text-sm text-muted-foreground">Fully Compliant</p>
                     </div>
                     <CheckCircle2 className="h-8 w-8 text-emerald-500/50" />

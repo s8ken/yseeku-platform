@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { 
+import { fetchAPI } from '@/lib/api/client';
   GitCompare, 
   Zap, 
   Shield, 
@@ -25,7 +26,7 @@ import {
   Eye
 } from 'lucide-react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 
 type ModelProvider = 'openai' | 'anthropic' | 'bedrock-claude' | 'bedrock-titan' | 'bedrock-llama' | 'mock';
 
@@ -100,7 +101,7 @@ export default function ComparePage() {
   const { data: providers } = useQuery<{ provider: ModelProvider; available: boolean; modelId: string }[]>({
     queryKey: ['providers'],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/api/compare/providers/list`);
+      const res = await fetch('/api/compare/providers/list');
       if (!res.ok) throw new Error('Failed to fetch providers');
       const data = await res.json();
       return data.providers || [];
@@ -111,7 +112,7 @@ export default function ComparePage() {
   const { data: recentComparisons } = useQuery<ComparisonResult[]>({
     queryKey: ['comparisons'],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/api/compare?limit=10`);
+      const res = await fetch('/api/compare?limit=10');
       if (!res.ok) throw new Error('Failed to fetch comparisons');
       const data = await res.json();
       return data.comparisons || [];
@@ -121,7 +122,7 @@ export default function ComparePage() {
   // Run comparison mutation
   const compareMutation = useMutation({
     mutationFn: async (params: { prompt: string; systemPrompt?: string; providers: ModelProvider[] }) => {
-      const res = await fetch(`${API_BASE}/api/compare`, {
+      const res = await fetch('/api/compare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

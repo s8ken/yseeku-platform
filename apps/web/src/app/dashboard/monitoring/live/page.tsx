@@ -28,8 +28,9 @@ import { io, Socket } from 'socket.io-client';
 import { agentsApi } from '@/lib/api';
 import { useDashboardKPIs, useLiveMetrics, useAlertsData, useTrustAnalytics } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
+import { fetchAPI } from '@/lib/api/client';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 
 // Types
 interface LiveMetrics {
@@ -193,7 +194,7 @@ export default function LiveDashboardPage() {
   const { data: conversationsData } = useQuery({
     queryKey: ['conversations-live'],
     queryFn: async () => {
-      const res = await fetch(`${API_BASE}/api/conversations?limit=10`, { 
+      const res = await fetch('/api/conversations?limit=10', { 
         credentials: 'include',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
@@ -209,7 +210,8 @@ export default function LiveDashboardPage() {
     const token = localStorage.getItem('token');
     if (!token) return;
     
-    const newSocket = io(API_BASE, {
+    const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+      const newSocket = io(socketUrl, {
       auth: { token },
       transports: ['websocket', 'polling'],
     });

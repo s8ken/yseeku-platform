@@ -23,21 +23,16 @@ import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { useDashboardKPIs, useTrustAnalytics, useAlertsData, useRiskData } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
 
-const defaultTrustPrinciples = [
-  { name: 'Consent Architecture', weight: 25, score: 85, critical: true },
-  { name: 'Inspection Mandate', weight: 20, score: 92, critical: false },
-  { name: 'Continuous Validation', weight: 20, score: 78, critical: false },
-  { name: 'Ethical Override', weight: 15, score: 88, critical: true },
-  { name: 'Right to Disconnect', weight: 10, score: 95, critical: false },
-  { name: 'Moral Recognition', weight: 10, score: 82, critical: false },
+const emptyTrustPrinciples: TrustPrinciple[] = [
+  { name: 'Consent Architecture', weight: 25, score: 0, critical: true },
+  { name: 'Inspection Mandate', weight: 20, score: 0, critical: false },
+  { name: 'Continuous Validation', weight: 20, score: 0, critical: false },
+  { name: 'Ethical Override', weight: 15, score: 0, critical: true },
+  { name: 'Right to Disconnect', weight: 10, score: 0, critical: false },
+  { name: 'Moral Recognition', weight: 10, score: 0, critical: false },
 ];
 
-const defaultComplianceReports = [
-  { id: '1', title: 'EU AI Act Compliance', status: 'compliant', lastChecked: new Date().toISOString(), score: 94 },
-  { id: '2', title: 'GDPR Data Protection', status: 'compliant', lastChecked: new Date().toISOString(), score: 96 },
-  { id: '3', title: 'ISO 27001 Security', status: 'warning', lastChecked: new Date().toISOString(), score: 87 },
-  { id: '4', title: 'Trust Protocol Validation', status: 'compliant', lastChecked: new Date().toISOString(), score: 91 },
-];
+// Compliance reports are derived from real data below
 
 interface RiskEvent {
   id: string;
@@ -232,7 +227,7 @@ export default function RiskManagementPage() {
   });
 
   // Build trust principles from demo-aware KPI data
-  const avgScore = kpisData?.trustScore ? kpisData.trustScore * 10 : 85;
+  const avgScore = kpisData?.trustScore ? kpisData.trustScore * 10 : 0;
   
   const trustPrinciples: TrustPrinciple[] = kpisData?.principleScores ? [
     { name: 'Consent Architecture', weight: 25, score: kpisData.principleScores.consent || Math.round(avgScore), critical: true },
@@ -241,14 +236,14 @@ export default function RiskManagementPage() {
     { name: 'Ethical Override', weight: 15, score: kpisData.principleScores.override || Math.round(avgScore * 1.03), critical: true },
     { name: 'Right to Disconnect', weight: 10, score: kpisData.principleScores.disconnect || Math.round(Math.min(avgScore * 1.12, 100)), critical: false },
     { name: 'Moral Recognition', weight: 10, score: kpisData.principleScores.moral || Math.round(avgScore * 0.96), critical: false },
-  ] : defaultTrustPrinciples;
+  ] : emptyTrustPrinciples;
 
-  const passRate = kpisData?.complianceRate || analyticsData?.passRate || 90;
-  const failRate = kpisData?.riskScore || analyticsData?.failRate || 5;
+  const passRate = kpisData?.complianceRate || analyticsData?.passRate || 0;
+  const failRate = kpisData?.riskScore || analyticsData?.failRate || 0;
 
   const complianceReports: ComplianceReport[] = [
     { id: '1', title: 'EU AI Act Compliance', status: passRate >= 90 ? 'compliant' : 'warning', lastChecked: new Date().toISOString(), score: Math.round(passRate) },
-    { id: '2', title: 'GDPR Data Protection', status: 'compliant', lastChecked: new Date().toISOString(), score: 96 },
+    { id: '2', title: 'GDPR Data Protection', status: passRate >= 90 ? 'compliant' : 'warning', lastChecked: new Date().toISOString(), score: Math.round(passRate * 1.02) },
     { id: '3', title: 'ISO 27001 Security', status: failRate > 5 ? 'warning' : 'compliant', lastChecked: new Date().toISOString(), score: Math.round(100 - failRate) },
     { id: '4', title: 'Trust Protocol Validation', status: passRate >= 85 ? 'compliant' : 'warning', lastChecked: new Date().toISOString(), score: Math.round(passRate) },
   ];
