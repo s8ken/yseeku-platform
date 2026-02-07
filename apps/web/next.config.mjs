@@ -11,9 +11,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // eslint: {
+  //   ignoreDuringBuilds: true,
+  // },
   async headers() {
     return [
       {
@@ -238,45 +238,45 @@ const nextConfig = {
     '@sonate/orchestrate',
     '@sonate/persistence'
   ],
+  serverExternalPackages: [
+    '@noble/hashes',
+    '@noble/ed25519',
+    '@noble/secp256k1',
+    'bcrypt',
+    'bcryptjs',
+    'jsonwebtoken',
+    'prom-client',
+    'winston'
+  ],
   experimental: {
-    serverComponentsExternalPackages: [
-      '@noble/hashes',
-      '@noble/ed25519',
-      '@noble/secp256k1',
-      'bcrypt',
-      'bcryptjs',
-      'jsonwebtoken',
-      'prom-client',
-      'winston'
-    ],
     optimizePackageImports: [
       'react',
       '@radix-ui/react-dropdown-menu',
       '@radix-ui/react-dialog'
     ]
   },
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        path: false,
-        crypto: false,
-        os: false,
-        net: false,
-        tls: false,
-        child_process: false,
-      };
-    }
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'node:crypto': 'crypto',
-      'node:fs': 'fs',
-      'node:path': 'path',
-      'node:perf_hooks': 'perf_hooks',
-    };
-    return config;
-  },
+  // webpack: (config, { isServer }) => {
+  //   if (!isServer) {
+  //     config.resolve.fallback = {
+  //       ...config.resolve.fallback,
+  //       fs: false,
+  //       path: false,
+  //       crypto: false,
+  //       os: false,
+  //       net: false,
+  //       tls: false,
+  //       child_process: false,
+  //     };
+  //   }
+  //   config.resolve.alias = {
+  //     ...config.resolve.alias,
+  //     'node:crypto': 'crypto',
+  //     'node:fs': 'fs',
+  //     'node:path': 'path',
+  //     'node:perf_hooks': 'perf_hooks',
+  //   };
+  //   return config;
+  // },
 };
 
 export default nextConfig;
