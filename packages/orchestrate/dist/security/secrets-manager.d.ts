@@ -12,6 +12,9 @@ export declare class AWSKMSSecretsManager implements SecretsManager {
     healthCheck(): Promise<boolean>;
 }
 export declare class HashiCorpVaultSecretsManager implements SecretsManager {
+    private vaultClient;
+    private mountPath;
+    private token;
     constructor(endpoint: string, token: string, mountPath?: string);
     encrypt(data: string, keyId?: string): Promise<string>;
     decrypt(encryptedData: string): Promise<string>;

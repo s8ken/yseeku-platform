@@ -7,16 +7,59 @@
  *
  * HARD ISOLATION: Experiments run in isolated sandbox with synthetic data only.
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ExperimentOrchestrator = void 0;
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
 const double_blind_protocol_1 = require("./double-blind-protocol");
 const multi_agent_system_1 = require("./multi-agent-system");
 const statistical_engine_1 = require("./statistical-engine");
 class ExperimentOrchestrator {
-    constructor() {
+    constructor(storageDir) {
         this.doubleBlind = new double_blind_protocol_1.DoubleBlindProtocol();
         this.statsEngine = new statistical_engine_1.StatisticalEngine();
         this.agentSystem = new multi_agent_system_1.MultiAgentSystem();
+        // Default to a local .sonate-lab directory if not specified
+        this.storageDir = storageDir || path.join(process.cwd(), '.sonate-lab', 'results');
+        this.ensureStorageDir();
+    }
+    ensureStorageDir() {
+        if (!fs.existsSync(this.storageDir)) {
+            fs.mkdirSync(this.storageDir, { recursive: true });
+        }
     }
     /**
      * Create and run a double-blind experiment
@@ -28,7 +71,7 @@ class ExperimentOrchestrator {
      */
     async createExperiment(config) {
         // Generate unique experiment ID
-        const experiment_id = `exp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const experiment_id = `exp_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
         // Initialize double-blind protocol
         await this.doubleBlind.initialize(experiment_id, config);
         console.log(`[Experiment ${experiment_id}] Initialized with ${config.variants.length} variants`);
@@ -53,12 +96,23 @@ class ExperimentOrchestrator {
         const statistical_analysis = await this.statsEngine.analyze(variantResults);
         // Unblind experiment
         await this.doubleBlind.unblind(experiment_id);
-        return {
+        const result = {
             experiment_id,
             variant_results: variantResults,
             statistical_analysis,
             timestamp: Date.now(),
         };
+        // Persist results
+        await this.saveResults(result);
+        return result;
+    }
+    /**
+     * Save experiment results to storage
+     */
+    async saveResults(result) {
+        const filePath = path.join(this.storageDir, `${result.experiment_id}.json`);
+        await fs.promises.writeFile(filePath, JSON.stringify(result, null, 2), 'utf-8');
+        console.log(`[Experiment ${result.experiment_id}] Results saved to ${filePath}`);
     }
     /**
      * Export experiment data for publication
@@ -77,8 +131,20 @@ class ExperimentOrchestrator {
         }
     }
     async getResults(experiment_id) {
-        // Retrieve from storage (implement based on your storage solution)
-        throw new Error('Not implemented: Storage integration needed');
+        const filePath = path.join(this.storageDir, `${experiment_id}.json`);
+        try {
+            if (!fs.existsSync(filePath)) {
+                throw new Error(`Results for experiment ${experiment_id} not found`);
+            }
+            const data = await fs.promises.readFile(filePath, 'utf-8');
+            return JSON.parse(data);
+        }
+        catch (error) {
+            if (error.code === 'ENOENT') {
+                throw new Error(`Results for experiment ${experiment_id} not found`);
+            }
+            throw error;
+        }
     }
     toCSV(results) {
         // Convert to CSV format for spreadsheet analysis

@@ -32,11 +32,14 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LocalSecretsManager = exports.HashiCorpVaultSecretsManager = exports.AWSKMSSecretsManager = void 0;
 exports.createSecretsManager = createSecretsManager;
 const client_kms_1 = require("@aws-sdk/client-kms");
-// import { Vault } from 'hashi-vault-js'; // TODO: Fix Vault API integration
+const hashi_vault_js_1 = __importDefault(require("hashi-vault-js"));
 const logger_1 = require("../observability/logger");
 const logger = (0, logger_1.getLogger)('SecretsManager');
 class AWSKMSSecretsManager {
@@ -74,7 +77,7 @@ class AWSKMSSecretsManager {
     async healthCheck() {
         try {
             // Try to describe the key
-            await this.kmsClient.send(new (await Promise.resolve().then(() => __importStar(require('@aws-sdk/client-kms')))).DescribeKeyCommand({
+            await this.kmsClient.send(new client_kms_1.DescribeKeyCommand({
                 KeyId: this.keyId,
             }));
             return true;
@@ -87,19 +90,47 @@ class AWSKMSSecretsManager {
 }
 exports.AWSKMSSecretsManager = AWSKMSSecretsManager;
 class HashiCorpVaultSecretsManager {
-    // TODO: Implement Vault integration with correct API
-    // The hashi-vault-js library API needs to be verified
     constructor(endpoint, token, mountPath = 'secret') {
-        throw new Error('HashiCorpVaultSecretsManager not yet implemented - use AWS KMS or Local provider');
+        this.mountPath = mountPath;
+        this.token = token;
+        this.vaultClient = new hashi_vault_js_1.default({
+            baseUrl: endpoint,
+            rootPath: 'v1',
+            https: endpoint.startsWith('https'),
+        });
     }
     async encrypt(data, keyId) {
-        throw new Error('Not implemented');
+        try {
+            const path = keyId || 'data/encryption-key';
+            await this.vaultClient.createKVSecret(this.token, path, { value: data }, this.mountPath);
+            return path; // Return the path as encrypted data reference
+        }
+        catch (error) {
+            logger.error('Vault encryption failed', { error: error.message });
+            throw error;
+        }
     }
     async decrypt(encryptedData) {
-        throw new Error('Not implemented');
+        try {
+            const result = await this.vaultClient.readKVSecret(this.token, encryptedData, undefined, // version (undefined for latest)
+            this.mountPath);
+            return result.data.value;
+        }
+        catch (error) {
+            logger.error('Vault decryption failed', { error: error.message });
+            throw error;
+        }
     }
     async healthCheck() {
-        return false;
+        try {
+            const health = await this.vaultClient.healthCheck();
+            // The healthCheck method returns an object with initialized and sealed properties
+            return health.initialized && !health.sealed;
+        }
+        catch (error) {
+            logger.error('Vault health check failed', { error: error.message });
+            return false;
+        }
     }
 }
 exports.HashiCorpVaultSecretsManager = HashiCorpVaultSecretsManager;

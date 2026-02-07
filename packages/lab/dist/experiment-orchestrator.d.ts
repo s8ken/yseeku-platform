@@ -11,7 +11,9 @@ export declare class ExperimentOrchestrator {
     private doubleBlind;
     private statsEngine;
     private agentSystem;
-    constructor();
+    private storageDir;
+    constructor(storageDir?: string);
+    private ensureStorageDir;
     /**
      * Create and run a double-blind experiment
      *
@@ -25,6 +27,10 @@ export declare class ExperimentOrchestrator {
      * Run experiment and collect results
      */
     runExperiment(experiment_id: string): Promise<ExperimentResult>;
+    /**
+     * Save experiment results to storage
+     */
+    private saveResults;
     /**
      * Export experiment data for publication
      */
