@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,62 @@ import {
 } from 'lucide-react';
 import { api, BrainMemory, ActionEffectiveness, BrainRecommendation, BrainCycle } from '@/lib/api';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
+
+type ActionRecommendation = {
+  id: string;
+  actionType: string;
+  recommendation: string;
+  reason: string;
+  confidence: number;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  suggestedAt: string;
+  target?: string;
+};
+
+const toTitleCase = (value: string) =>
+  value
+    .split(/[_\-\s]+/)
+    .filter(Boolean)
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(' ');
+
+const derivePriorityFromConfidence = (confidence: number): ActionRecommendation['priority'] => {
+  if (confidence >= 0.9) return 'critical';
+  if (confidence >= 0.75) return 'high';
+  if (confidence >= 0.55) return 'medium';
+  return 'low';
+};
+
+const ACTION_GUIDANCE: Record<
+  string,
+  { steps: string[]; href?: string; cta?: string }
+> = {
+  ban_agent: {
+    steps: ['Open the agent record', 'Confirm evidence via receipts and interactions', 'Ban only after review'],
+    href: '/dashboard/agents',
+    cta: 'Open Agents',
+  },
+  restrict_agent: {
+    steps: ['Apply least-privilege restrictions', 'Monitor trust score trend', 'Escalate if behavior persists'],
+    href: '/dashboard/agents',
+    cta: 'Open Agents',
+  },
+  quarantine_agent: {
+    steps: ['Quarantine to contain impact', 'Investigate root cause', 'Decide: restore, restrict, or ban'],
+    href: '/dashboard/agents',
+    cta: 'Open Agents',
+  },
+  unban_agent: {
+    steps: ['Confirm remediation complete', 'Unban with monitoring period', 'Rollback if trust degrades'],
+    href: '/dashboard/agents',
+    cta: 'Open Agents',
+  },
+  alert: {
+    steps: ['Review active alerts', 'Acknowledge or resolve critical items', 'Confirm alert routing'],
+    href: '/dashboard/alerts',
+    cta: 'Open Alerts',
+  },
+};
 
 // Memory kind options
 const MEMORY_KINDS = [
@@ -222,6 +279,22 @@ export default function SystemBrainDashboard() {
   const [selectedActionType, setSelectedActionType] = useState('all');
   const [memorySearch, setMemorySearch] = useState('');
   const queryClient = useQueryClient();
+  const isValidTab = (value: string | null): value is 'cycles' | 'memories' | 'effectiveness' | 'recommendations' =>
+    value === 'cycles' || value === 'memories' || value === 'effectiveness' || value === 'recommendations';
+  const [activeTab, setActiveTab] = useState<'cycles' | 'memories' | 'effectiveness' | 'recommendations'>('cycles');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const syncFromUrl = () => {
+      const tab = new URLSearchParams(window.location.search).get('tab');
+      if (isValidTab(tab)) setActiveTab(tab);
+    };
+
+    syncFromUrl();
+    window.addEventListener('popstate', syncFromUrl);
+    return () => window.removeEventListener('popstate', syncFromUrl);
+  }, []);
 
   useEffect(() => {
     try {
@@ -251,9 +324,24 @@ export default function SystemBrainDashboard() {
     enabled: !!tenant,
   });
 
-  const { data: recommendations, isLoading: recommendationsLoading } = useQuery({
+  const { data: recommendations, isLoading: recommendationsLoading, refetch: refetchRecommendations } = useQuery({
     queryKey: ['brain-recommendations', tenant],
-    queryFn: () => api.getActionRecommendations(tenant),
+    queryFn: async () => {
+      const raw = await api.getActionRecommendations(tenant);
+      return (raw || []).map((r: any, idx: number): ActionRecommendation => {
+        const confidence = typeof r?.confidence === 'number' ? r.confidence : 0.5;
+        return {
+          id: String(r?.id || `${r?.actionType || 'rec'}-${idx}`),
+          actionType: String(r?.actionType || 'unknown_action'),
+          recommendation: String(r?.recommendation || 'Review and take appropriate action'),
+          reason: String(r?.reason || 'No reason provided'),
+          confidence,
+          priority: (r?.priority as any) || derivePriorityFromConfidence(confidence),
+          suggestedAt: String(r?.suggestedAt || new Date().toISOString()),
+          target: r?.target ? String(r.target) : undefined,
+        };
+      });
+    },
     enabled: !!tenant,
   });
 
@@ -323,13 +411,10 @@ export default function SystemBrainDashboard() {
     },
     onSuccess: (_, rec) => {
       toast.success(`Executed action: ${rec.actionType}`);
-      // Optimistically remove from list or refetch
       queryClient.setQueryData(['brain-recommendations', tenant], (old: any) => {
         if (!old) return old;
-        return {
-          ...old,
-          recommendations: old.recommendations?.filter((r: any) => r !== rec) || []
-        };
+        if (Array.isArray(old)) return old.filter((r: any) => r?.id !== rec?.id);
+        return old;
       });
     },
   });
@@ -343,10 +428,8 @@ export default function SystemBrainDashboard() {
       toast.info('Recommendation dismissed');
       queryClient.setQueryData(['brain-recommendations', tenant], (old: any) => {
         if (!old) return old;
-        return {
-          ...old,
-          recommendations: old.recommendations?.filter((r: any) => r !== rec) || []
-        };
+        if (Array.isArray(old)) return old.filter((r: any) => r?.id !== rec?.id);
+        return old;
       });
     },
   });
@@ -466,13 +549,38 @@ export default function SystemBrainDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-amber-600">{pendingRecommendations}</div>
+            <div className="flex items-end justify-between gap-4">
+              <div className="text-3xl font-bold text-amber-600">{pendingRecommendations}</div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setActiveTab('recommendations');
+                  if (typeof window !== 'undefined') {
+                    window.history.replaceState({}, '', '/dashboard/brain?tab=recommendations');
+                  }
+                }}
+              >
+                View
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="cycles" className="space-y-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => {
+          if (isValidTab(v)) {
+            setActiveTab(v);
+            if (typeof window !== 'undefined') {
+              window.history.replaceState({}, '', `/dashboard/brain?tab=${v}`);
+            }
+          }
+        }}
+        className="space-y-4"
+      >
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="cycles" className="flex items-center gap-2">
             <History className="h-4 w-4" />
@@ -687,7 +795,7 @@ export default function SystemBrainDashboard() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => refetchStatus()} // Reload recommendations
+                  onClick={() => refetchRecommendations()} // Reload recommendations
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Refresh
@@ -709,11 +817,9 @@ export default function SystemBrainDashboard() {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
                                 <Lightbulb className="h-4 w-4 text-amber-500" />
-                                <span className="font-bold text-lg">
-                                  {rec.recommendation === 'increase' ? 'Increase' : rec.recommendation === 'decrease' ? 'Decrease' : 'Maintain'} {rec.actionType.split('_').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}
-                                </span>
-                                <Badge variant="outline" className="ml-2">{rec.actionType}</Badge>
-                                <PriorityBadge priority={rec.priority} />
+                                <span className="font-bold text-lg">{rec.recommendation}</span>
+                                <Badge variant="outline" className="ml-2">{toTitleCase(rec.actionType)}</Badge>
+                                {rec.priority && <PriorityBadge priority={rec.priority} />}
                                 {rec.target && (
                                   <span className="text-sm text-muted-foreground">
                                     Target: {rec.target}
@@ -724,8 +830,31 @@ export default function SystemBrainDashboard() {
                               <p className="text-sm bg-muted/30 p-3 rounded-md border border-muted">{rec.reason}</p>
                               <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                                 <span>Confidence: {(rec.confidence * 100).toFixed(0)}%</span>
-                                <span>Suggested: {new Date(rec.suggestedAt).toLocaleString()}</span>
+                                {rec.suggestedAt && <span>Suggested: {new Date(rec.suggestedAt).toLocaleString()}</span>}
                               </div>
+
+                              {ACTION_GUIDANCE[rec.actionType] && (
+                                <div className="mt-3">
+                                  <p className="text-sm font-medium text-muted-foreground mb-1">How to act:</p>
+                                  <div className="text-sm space-y-1">
+                                    {ACTION_GUIDANCE[rec.actionType].steps.map((step) => (
+                                      <div key={step} className="flex items-start gap-2">
+                                        <span className="text-muted-foreground">•</span>
+                                        <span>{step}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  {ACTION_GUIDANCE[rec.actionType].href && (
+                                    <div className="mt-2">
+                                      <Link href={ACTION_GUIDANCE[rec.actionType].href!}>
+                                        <Button size="sm" variant="outline">
+                                          {ACTION_GUIDANCE[rec.actionType].cta || 'Open'}
+                                        </Button>
+                                      </Link>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             <div className="flex gap-2 ml-4">
                               <Button 
