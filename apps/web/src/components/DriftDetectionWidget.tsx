@@ -45,6 +45,17 @@ interface DriftDetectionWidgetProps {
   compact?: boolean;
 }
 
+const formatSignedNumber = (value: number, maximumFractionDigits: number) => {
+  const formatted = new Intl.NumberFormat(undefined, {
+    maximumFractionDigits,
+    minimumFractionDigits: 0,
+  }).format(value);
+  return value > 0 ? `+${formatted}` : formatted;
+};
+
+const formatSignedInt = (value: number) => formatSignedNumber(Math.round(value), 0);
+const formatSignedDelta = (value: number) => formatSignedNumber(value, 2);
+
 export function DriftDetectionWidget({ 
   conversationId, 
   showHistory = false,
@@ -62,9 +73,9 @@ export function DriftDetectionWidget({
         conversationId: 'demo-conversation',
         currentDriftScore: 15 + Math.random() * 20,
         alertLevel: Math.random() > 0.8 ? 'yellow' : 'none',
-        tokenDelta: -5 + Math.random() * 10,
-        vocabDelta: -3 + Math.random() * 6,
-        numericDelta: -2 + Math.random() * 4,
+        tokenDelta: Math.round(-5 + Math.random() * 10),
+        vocabDelta: Number((-3 + Math.random() * 6).toFixed(2)),
+        numericDelta: Number((-2 + Math.random() * 4).toFixed(2)),
         timestamp: Date.now(),
         turnNumber: Math.floor(5 + Math.random() * 15),
       };
@@ -76,9 +87,9 @@ export function DriftDetectionWidget({
           timestamp: Date.now() - (10 - i) * 60000,
           driftScore: 10 + Math.random() * 30,
           alertLevel: (Math.random() > 0.85 ? 'yellow' : 'none') as 'none' | 'yellow' | 'red',
-          tokenDelta: -5 + Math.random() * 10,
-          vocabDelta: -3 + Math.random() * 6,
-          numericDelta: -2 + Math.random() * 4,
+          tokenDelta: Math.round(-5 + Math.random() * 10),
+          vocabDelta: Number((-3 + Math.random() * 6).toFixed(2)),
+          numericDelta: Number((-2 + Math.random() * 4).toFixed(2)),
         })),
         summary: {
           avgDriftScore: 18,
@@ -258,7 +269,7 @@ export function DriftDetectionWidget({
                 </span>
                 {getTrendIcon(metrics.tokenDelta)}
               </div>
-              <p className="text-lg font-semibold">{metrics.tokenDelta > 0 ? '+' : ''}{metrics.tokenDelta}</p>
+              <p className="text-lg font-semibold">{formatSignedInt(metrics.tokenDelta)}</p>
               <p className="text-xs text-muted-foreground">Δ length</p>
             </div>
             <div className="p-3 rounded-lg bg-muted/50">
@@ -269,7 +280,7 @@ export function DriftDetectionWidget({
                 </span>
                 {getTrendIcon(metrics.vocabDelta)}
               </div>
-              <p className="text-lg font-semibold">{metrics.vocabDelta > 0 ? '+' : ''}{metrics.vocabDelta}</p>
+              <p className="text-lg font-semibold">{formatSignedDelta(metrics.vocabDelta)}</p>
               <p className="text-xs text-muted-foreground">Δ diversity</p>
             </div>
             <div className="p-3 rounded-lg bg-muted/50">
@@ -277,7 +288,7 @@ export function DriftDetectionWidget({
                 <span className="text-xs text-muted-foreground">Numeric</span>
                 {getTrendIcon(metrics.numericDelta)}
               </div>
-              <p className="text-lg font-semibold">{metrics.numericDelta > 0 ? '+' : ''}{metrics.numericDelta}</p>
+              <p className="text-lg font-semibold">{formatSignedDelta(metrics.numericDelta)}</p>
               <p className="text-xs text-muted-foreground">Δ numbers</p>
             </div>
           </div>
