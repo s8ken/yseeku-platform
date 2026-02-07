@@ -17,10 +17,6 @@ import {
   Fingerprint,
   FlaskConical,
   Activity,
-  UserCheck,
-  Eye,
-  Power,
-  Heart,
   Sparkles,
   RefreshCw,
   Lightbulb,
@@ -34,6 +30,7 @@ import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
 import { HumanReadableSummary } from '@/components/HumanReadableSummary';
 import { SemanticCoprocessorStatus } from '@/components/SemanticCoprocessorStatus';
 import { ModeIndicator } from '@/components/ModeIndicator';
+import { ConstitutionalPrinciples } from '@/components/ConstitutionalPrinciples';
 import { useDashboardKPIs, useAlertsData } from '@/hooks/use-demo-data';
 
 // Lazy load InsightsPanel for better initial load performance
@@ -361,87 +358,18 @@ export default function DashboardPage() {
               Constitutional & Trust Analysis
             </h2>
             <div className="grid gap-4 lg:grid-cols-2">
-              {/* SONATE Principles */}
+              {/* SONATE Principles - Real data from KPIs */}
               <WithDemoWatermark position="top-right" size="sm" opacity={25}>
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <Shield className="h-5 w-5 text-purple-500" />
-                          SONATE Principles
-                          <InfoTooltip term="SONATE Framework" />
-                        </CardTitle>
-                        <CardDescription>6 Constitutional Principles (Layer 1)</CardDescription>
-                      </div>
-                      <span className="module-badge badge-detect">CORE</span>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--detect-bg)]">
-                          <UserCheck className="h-5 w-5 text-[var(--detect-primary)]" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs text-muted-foreground">Consent</p>
-                          <p className="font-semibold text-emerald-500">8.5/10</p>
-                        </div>
-                        <div className="text-xs text-muted-foreground">25%</div>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--detect-bg)]">
-                          <Eye className="h-5 w-5 text-[var(--detect-primary)]" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs text-muted-foreground">Inspection</p>
-                          <p className="font-semibold text-emerald-500">9.0/10</p>
-                        </div>
-                        <div className="text-xs text-muted-foreground">20%</div>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--detect-bg)]">
-                          <Activity className="h-5 w-5 text-[var(--detect-primary)]" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs text-muted-foreground">Validation</p>
-                          <p className="font-semibold text-emerald-500">8.0/10</p>
-                        </div>
-                        <div className="text-xs text-muted-foreground">20%</div>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--detect-bg)]">
-                          <AlertTriangle className="h-5 w-5 text-[var(--detect-primary)]" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs text-muted-foreground">Override</p>
-                          <p className="font-semibold text-emerald-500">9.5/10</p>
-                        </div>
-                        <div className="text-xs text-muted-foreground">15%</div>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--detect-bg)]">
-                          <Power className="h-5 w-5 text-[var(--detect-primary)]" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs text-muted-foreground">Disconnect</p>
-                          <p className="font-semibold text-emerald-500">10.0/10</p>
-                        </div>
-                        <div className="text-xs text-muted-foreground">10%</div>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--detect-bg)]">
-                          <Heart className="h-5 w-5 text-[var(--detect-primary)]" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs text-muted-foreground">Moral</p>
-                          <p className="font-semibold text-emerald-500">8.0/10</p>
-                        </div>
-                        <div className="text-xs text-muted-foreground">10%</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <ConstitutionalPrinciples 
+                  principleScores={kpis?.principleScores ? {
+                    CONSENT_ARCHITECTURE: (kpis.principleScores.transparency || 0) * 10,
+                    INSPECTION_MANDATE: (kpis.principleScores.fairness || 0) * 10,
+                    CONTINUOUS_VALIDATION: (kpis.principleScores.privacy || 0) * 10,
+                    ETHICAL_OVERRIDE: (kpis.principleScores.safety || 0) * 10,
+                    RIGHT_TO_DISCONNECT: (kpis.principleScores.accountability || 0) * 10,
+                    MORAL_RECOGNITION: (kpis.principleScores.accountability || 0) * 10,
+                  } : undefined}
+                />
               </WithDemoWatermark>
 
               {/* Detection Metrics */}

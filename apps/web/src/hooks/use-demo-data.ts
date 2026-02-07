@@ -121,7 +121,7 @@ export interface LiveMetrics {
 export function useLiveMetrics() {
   return useDemoData<LiveMetrics>({
     queryKey: ['live-metrics'],
-    liveEndpoint: '/api/dashboard/live',
+    liveEndpoint: '/api/live/metrics',
     demoEndpoint: '/api/demo/live-metrics',
     options: {
       refetchInterval: 5000, // Poll every 5 seconds
@@ -179,7 +179,7 @@ export interface RiskData {
 export function useRiskData() {
   return useDemoData<RiskData>({
     queryKey: ['risk'],
-    liveEndpoint: '/api/trust/risk',
+    liveEndpoint: '/api/dashboard/risk',
     demoEndpoint: '/api/demo/risk',
     transform: (data) => ({
       currentRisk: data.currentRisk || data.riskScore || 0,
@@ -332,11 +332,20 @@ export interface ReceiptsData {
 export function useReceiptsData(limit = 20) {
   return useDemoData<ReceiptsData>({
     queryKey: ['receipts', String(limit)],
-    liveEndpoint: `/api/trust/receipts?limit=${limit}`,
+    liveEndpoint: `/api/trust/receipts/list?limit=${limit}`,
     demoEndpoint: `/api/demo/receipts?limit=${limit}`,
     transform: (data) => ({
-      receipts: data.receipts || data || [],
-      total: data.total || data.receipts?.length || data?.length || 0,
+      receipts: (data.data || data.receipts || data || []).map((r: any) => ({
+        id: r._id || r.id || r.self_hash,
+        session_id: r.session_id || '',
+        agent_id: r.agent_id,
+        trust_score: r.ciq_metrics ? Math.round(((r.ciq_metrics.clarity + r.ciq_metrics.integrity + r.ciq_metrics.quality) / 3) * 100) : 0,
+        hash: r.self_hash || r.hash || '',
+        verified: !!r.signature,
+        created_at: r.createdAt || new Date(r.timestamp || Date.now()).toISOString(),
+        ciq_metrics: r.ciq_metrics,
+      })),
+      total: data.pagination?.total || data.total || data.receipts?.length || data?.length || 0,
     }),
   });
 }
@@ -373,7 +382,7 @@ export interface OverseerData {
 export function useOverseerData() {
   return useDemoData<OverseerData>({
     queryKey: ['overseer'],
-    liveEndpoint: '/api/orchestrator/overseer/status',
+    liveEndpoint: '/api/overseer/status',
     demoEndpoint: '/api/demo/overseer',
   });
 }
