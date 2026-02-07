@@ -11,7 +11,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { 
-import { fetchAPI } from '@/lib/api/client';
   GitCompare, 
   Zap, 
   Shield, 
@@ -25,6 +24,7 @@ import { fetchAPI } from '@/lib/api/client';
   Brain,
   Eye
 } from 'lucide-react';
+import { fetchAPI } from '@/lib/api/client';
 
 
 
