@@ -83,6 +83,7 @@ const moduleSections: ModuleSection[] = [
     badge: 'LIVE',
     items: [
       { title: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'user', 'viewer'], module: 'detect' },
+      { title: 'Live Monitor', href: '/dashboard/monitoring/live', icon: Activity, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Trust Session', href: '/dashboard/chat', icon: Sparkles, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Agents', href: '/dashboard/agents', icon: Bot, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Trust Receipts', href: '/dashboard/receipts', icon: Fingerprint, roles: ['admin', 'user'], module: 'detect' },
@@ -99,6 +100,7 @@ const moduleSections: ModuleSection[] = [
       { title: 'Experiments', href: '/dashboard/lab/experiments', icon: FlaskConical, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Model Compare', href: '/dashboard/compare', icon: Beaker, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Safety Scanner', href: '/dashboard/safety', icon: Shield, roles: ['admin', 'user'], module: 'lab' },
+      { title: 'Pattern Analysis', href: '/dashboard/lab/bedau', icon: Brain, roles: ['admin', 'user'], module: 'lab' },
     ]
   },
   {
@@ -110,6 +112,8 @@ const moduleSections: ModuleSection[] = [
       { title: 'System Brain', href: '/dashboard/brain', icon: Brain, roles: ['admin'], module: 'orchestrate' },
       { title: 'Compliance Reports', href: '/dashboard/reports', icon: ClipboardList, roles: ['admin'], module: 'orchestrate' },
       { title: 'Audit Trails', href: '/dashboard/audit', icon: FileText, roles: ['admin', 'user'], module: 'orchestrate' },
+      { title: 'Learn', href: '/dashboard/learn', icon: GraduationCap, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
+      { title: 'Docs', href: '/dashboard/docs', icon: Book, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
       { title: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['admin'], module: 'orchestrate' },
     ]
   }
@@ -118,12 +122,14 @@ const moduleSections: ModuleSection[] = [
 // Essential navigation items for simplified view (8 core items)
 const ESSENTIAL_ITEMS = new Set([
   '/dashboard',           // Main dashboard
+  '/dashboard/monitoring/live', // Live Monitor (Phase-Shift Velocity)
   '/dashboard/chat',      // Trust Session
   '/dashboard/agents',    // Agents
   '/dashboard/receipts',  // Trust Receipts
   '/dashboard/risk',      // Risk & Compliance
   '/dashboard/alerts',    // Alerts
   '/dashboard/lab/experiments', // Experiments
+  '/dashboard/lab/bedau', // Pattern Analysis (Bedau Index)
   '/dashboard/reports',   // Compliance Reports
   '/dashboard/settings',  // Settings
 ]);
