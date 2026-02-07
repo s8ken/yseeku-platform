@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -78,6 +79,38 @@ interface TrustEvent {
   agentName?: string;
   trustScore?: number;
 }
+
+type EmergenceSignal = {
+  tenantId?: string;
+  agentId?: string;
+  conversationId?: string;
+  level?: string;
+  type?: string;
+  confidence?: number;
+  timestamp?: string;
+  turnNumber?: number;
+  conversationDepth?: number;
+  metrics?: {
+    overallScore?: number;
+  };
+  evidence?: {
+    linguisticMarkers?: string[];
+    unexpectedPatterns?: string[];
+    behavioralShift?: boolean;
+  };
+};
+
+const titleCase = (value: string) => {
+  return value
+    .split(/[_\-\s]+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+};
+
+const formatEmergenceType = (value?: string) => (value ? titleCase(value) : 'Unknown');
+const formatEmergenceLevel = (value?: string) => (value ? titleCase(value) : 'Unknown');
+const formatConfidence = (value?: number) => (typeof value === 'number' ? `${Math.round(value * 100)}%` : '—');
 
 // Trend indicator component
 function TrendIndicator({ trend, delta }: { trend: 'up' | 'down' | 'stable'; delta: number }) {
@@ -182,6 +215,15 @@ export default function LiveDashboardPage() {
   const { data: liveMetricsData } = useLiveMetrics();
   const { data: alertsData } = useAlertsData();
   const { data: analyticsData, refetch: refetchAnalytics } = useTrustAnalytics();
+
+  const emergenceActive = !!kpisData && (100 - (kpisData.complianceRate || 0)) > 10;
+
+  const { data: emergenceRecentData } = useQuery({
+    queryKey: ['emergence-recent', emergenceActive],
+    queryFn: () => fetchAPI<{ success: boolean; data?: { signals: EmergenceSignal[] } }>('/api/emergence/recent?limit=3'),
+    staleTime: 15000,
+    enabled: !isDemo && isLoaded && emergenceActive,
+  });
 
   // Fetch real agents
   const { data: agentsData } = useQuery({
@@ -329,6 +371,28 @@ export default function LiveDashboardPage() {
   // Determine connection status display
   const connectionStatus = connected ? 'live' : (isDemo ? 'demo' : 'polling');
   const hasData = kpisData && kpisData.totalInteractions > 0;
+
+  const demoEmergenceSignals: EmergenceSignal[] = [
+    {
+      conversationId: 'demo-conversation',
+      agentId: 'demo-agent',
+      level: 'weak',
+      type: 'novel_generation',
+      confidence: Math.min(0.99, Math.max(0.3, (displayMetrics?.emergence.level ?? 0.13))),
+      timestamp: new Date().toISOString(),
+      turnNumber: 8,
+      conversationDepth: 16,
+      evidence: {
+        linguisticMarkers: ['unexpected framing', 'symbolic phrasing', 'meta-reference'],
+        unexpectedPatterns: ['style shift across turns'],
+        behavioralShift: true,
+      },
+    },
+  ];
+
+  const emergenceSignals: EmergenceSignal[] = isDemo
+    ? demoEmergenceSignals
+    : (emergenceRecentData?.success ? (emergenceRecentData.data?.signals ?? []) : []);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -531,6 +595,57 @@ export default function LiveDashboardPage() {
                   Emergent behavior patterns detected at level {(displayMetrics.emergence.level * 100).toFixed(0)}%
                 </CardDescription>
               </CardHeader>
+              <CardContent className="pt-0">
+                {emergenceSignals.length > 0 ? (
+                  <div className="space-y-3">
+                    {emergenceSignals.slice(0, 3).map((signal, idx) => {
+                      const markers = signal.evidence?.linguisticMarkers ?? [];
+                      const patterns = signal.evidence?.unexpectedPatterns ?? [];
+                      const detailParts = [
+                        markers.slice(0, 2).join(', '),
+                        patterns.slice(0, 1).join(', '),
+                        signal.evidence?.behavioralShift ? 'behavioral shift' : '',
+                      ].filter(Boolean);
+
+                      return (
+                        <div key={`${signal.conversationId || 'signal'}-${idx}`} className="rounded-md border border-yellow-200/60 dark:border-yellow-900/40 bg-white/60 dark:bg-black/10 p-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                              {formatEmergenceType(signal.type)} · {formatEmergenceLevel(signal.level)} · {formatConfidence(signal.confidence)} confidence
+                            </p>
+                            <Badge variant="outline" className="text-xs">
+                              {signal.metrics?.overallScore ? `${Math.round(signal.metrics.overallScore)} score` : 'signal'}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {signal.conversationId ? `Conversation ${signal.conversationId}` : 'Conversation unknown'}
+                            {typeof signal.turnNumber === 'number' ? ` · Turn ${signal.turnNumber}` : ''}
+                          </p>
+                          {detailParts.length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Evidence: {detailParts.join(' · ')}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                    <div>
+                      <Link href="/dashboard/monitoring/emergence" className="text-sm text-yellow-800 dark:text-yellow-300 underline underline-offset-4">
+                        View emergence analysis
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      No emergence signal details are available yet.
+                    </p>
+                    <Link href="/dashboard/monitoring/emergence" className="text-sm text-yellow-800 dark:text-yellow-300 underline underline-offset-4">
+                      Open emergence monitoring
+                    </Link>
+                  </div>
+                )}
+              </CardContent>
             </Card>
           )}
         </>
