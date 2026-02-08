@@ -69,6 +69,7 @@ Thumbs.db
 # Local development
 .roo/
 .trae/
+.omc/
 
 # Test files (if not needed in repo)
 archive_tester.py

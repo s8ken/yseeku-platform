@@ -349,6 +349,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </div>
 
+            <Link href="/tactical-command">
+              <Button variant="outline" size="sm" className="gap-2">
+                <Compass className="h-4 w-4" />
+                <span className="hidden sm:inline">Tactical Command</span>
+              </Button>
+            </Link>
+
             {/* Demo Mode Toggle */}
             <Button
               variant={isDemo ? "default" : "outline"}
