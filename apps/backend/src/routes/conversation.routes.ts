@@ -891,7 +891,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
         
         // For demo tenant, provide a helpful fallback response instead of failing
         const tenantId = req.userTenant || 'live-tenant';
-        if (tenantId === 'demo-tenant') {
+        if (tenantId === 'demo-tenant' || tenantId === 'demo') {
           const demoFallbackContent = `I'm currently running in demo mode without a configured LLM provider.
 
 To see real AI responses with trust evaluation:
