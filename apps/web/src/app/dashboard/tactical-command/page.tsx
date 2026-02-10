@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useDashboardKPIs } from '@/hooks/use-demo-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -43,10 +44,7 @@ export default function TacticalCommandPage() {
     isLoading: kpisLoading,
     refetch: refetchKpis,
     isFetching: kpisFetching,
-  } = useQuery({
-    queryKey: ['tactical-command', 'kpis'],
-    queryFn: () => api.getKPIs(),
-  });
+  } = useDashboardKPIs();
 
   const {
     data: alertsResp,
@@ -176,11 +174,11 @@ export default function TacticalCommandPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Trust Score</CardTitle>
+            <CardTitle className="text-sm font-medium">Trust Index</CardTitle>
             {trendIcon(kpis?.trends?.trustScore)}
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpisLoading ? '—' : (kpis?.trustScore ?? 0).toFixed(1)}</div>
+            <div className="text-2xl font-bold">{kpisLoading ? '—' : Math.round((kpis?.trustScore ?? 0) * 10)}</div>
             <p className="text-xs text-muted-foreground">
               {kpis?.sonateDimensions?.trustProtocol ? `Protocol: ${kpis.sonateDimensions.trustProtocol}` : 'Protocol: N/A'}
             </p>
