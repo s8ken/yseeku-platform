@@ -9,6 +9,11 @@ export type TacticalAlert = {
   details?: Record<string, unknown>;
 };
 
+export type TrendHistory = {
+  timestamp: string;
+  value: number;
+}[];
+
 export type TacticalAlerts = {
   alerts: TacticalAlert[];
   summary: {

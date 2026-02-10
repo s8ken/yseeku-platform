@@ -1,21 +1,48 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState, useCallback, useRef } from 'react';
 import { useDemoData, useDashboardKPIs } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
 import { Button } from '@/components/ui/button';
-import { Activity, ExternalLink } from 'lucide-react';
+import { Activity, ExternalLink, Keyboard } from 'lucide-react';
+import { toast } from 'sonner';
 import { TopBar } from '@/components/tactical-command-v2/TopBar';
 import { KpiStrip } from '@/components/tactical-command-v2/KpiStrip';
 import { AlertsPanel } from '@/components/tactical-command-v2/AlertsPanel';
 import { AgentsPanel } from '@/components/tactical-command-v2/AgentsPanel';
 import { WorkflowsPanel } from '@/components/tactical-command-v2/WorkflowsPanel';
 import { OperatorLoop } from '@/components/tactical-command-v2/OperatorLoop';
+import { QuickActionsPanel } from '@/components/tactical-command-v2/QuickActionsPanel';
+import { playAlertSound, showNotification } from '@/components/tactical-command-v2/utils';
 import type { AlertsManagementResponse, DemoAlertsResponse, DemoAgentsResponse, TacticalAgentsResponse, TacticalAlerts } from '@/components/tactical-command-v2/types';
+
+// Force dynamic rendering to avoid SSR issues with hooks
+export const dynamic_config = 'force-dynamic';
+
+// Auto-refresh intervals
+const LIVE_REFRESH_INTERVAL = 10000; // 10 seconds for live mode
+const DEMO_REFRESH_INTERVAL = 30000; // 30 seconds for demo mode
 
 export default function TacticalCommandV2StandalonePage() {
   const { isDemo, isLoaded, toggleDemo, currentTenantId, timeRemaining, showExpiryWarning } = useDemo();
+  const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const prevCriticalCount = useRef<number>(0);
+  
+  // Generate mock trend history for sparklines (in real app, this would come from API)
+  const [trendHistory, setTrendHistory] = useState<{
+    trustScore: number[];
+    compliance: number[];
+    risk: number[];
+    interactions: number[];
+  }>({
+    trustScore: [],
+    compliance: [],
+    risk: [],
+    interactions: [],
+  });
 
   const {
     data: kpis,
@@ -33,6 +60,9 @@ export default function TacticalCommandV2StandalonePage() {
     queryKey: ['tactical-command-v2', 'alerts'],
     liveEndpoint: '/api/dashboard/alerts/management?status=active&limit=50&offset=0',
     demoEndpoint: '/api/demo/alerts',
+    options: {
+      refetchInterval: isDemo ? DEMO_REFRESH_INTERVAL : LIVE_REFRESH_INTERVAL,
+    },
     transform: (raw) => {
       const maybeLive = raw as AlertsManagementResponse;
       if (maybeLive?.success && maybeLive?.data?.alerts) {
@@ -92,6 +122,9 @@ export default function TacticalCommandV2StandalonePage() {
     queryKey: ['tactical-command-v2', 'agents'],
     liveEndpoint: '/api/agents',
     demoEndpoint: '/api/demo/agents',
+    options: {
+      refetchInterval: isDemo ? DEMO_REFRESH_INTERVAL : LIVE_REFRESH_INTERVAL,
+    },
     transform: (raw) => {
       const maybeLive = raw as TacticalAgentsResponse;
       if (maybeLive?.success && maybeLive?.data?.agents) {
@@ -134,6 +167,9 @@ export default function TacticalCommandV2StandalonePage() {
     queryKey: ['tactical-command-v2', 'workflows'],
     liveEndpoint: '/api/orchestrate/workflows',
     demoEndpoint: '/api/orchestrate/workflows',
+    options: {
+      refetchInterval: isDemo ? DEMO_REFRESH_INTERVAL : LIVE_REFRESH_INTERVAL,
+    },
     transform: (raw) => {
       const r = raw as any;
       const list = Array.isArray(r?.data) ? r.data : Array.isArray(r) ? r : [];
@@ -141,6 +177,7 @@ export default function TacticalCommandV2StandalonePage() {
     },
   });
 
+  // Derived state (must be before effects that use them)
   const isRefreshing = kpisFetching || alertsFetching || agentsFetching || workflowsFetching;
   const lastUpdated = kpis?.timestamp ? new Date(kpis.timestamp).toLocaleString() : null;
 
@@ -177,6 +214,90 @@ export default function TacticalCommandV2StandalonePage() {
 
   const workflowsList = useMemo(() => (Array.isArray(workflows) ? workflows : []), [workflows]);
 
+  // Refresh all data
+  const handleRefreshAll = useCallback(() => {
+    refetchKpis();
+    refetchAlerts();
+    refetchAgents();
+    refetchWorkflows();
+  }, [refetchKpis, refetchAlerts, refetchAgents, refetchWorkflows]);
+
+  // Acknowledge selected alert
+  const handleAcknowledgeSelected = useCallback(async () => {
+    if (!selectedAlertId) {
+      toast.info('No alert selected', { description: 'Click on an alert to select it first' });
+      return;
+    }
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      await fetch(`/api/dashboard/alerts/${selectedAlertId}/acknowledge`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      toast.success('Alert acknowledged');
+      setSelectedAlertId(null);
+      refetchAlerts();
+    } catch {
+      toast.error('Failed to acknowledge alert');
+    }
+  }, [selectedAlertId, refetchAlerts]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      
+      switch (e.key.toLowerCase()) {
+        case 'r':
+          e.preventDefault();
+          handleRefreshAll();
+          toast.info('Refreshing data...');
+          break;
+        case 'a':
+          e.preventDefault();
+          handleAcknowledgeSelected();
+          break;
+        case '?':
+          e.preventDefault();
+          setShowShortcuts(prev => !prev);
+          break;
+        case 'escape':
+          setSelectedAlertId(null);
+          setShowShortcuts(false);
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleRefreshAll, handleAcknowledgeSelected]);
+
+  // Track trend history for sparklines
+  useEffect(() => {
+    if (kpis) {
+      setTrendHistory(prev => ({
+        trustScore: [...prev.trustScore.slice(-11), kpis.trustScore ?? 0],
+        compliance: [...prev.compliance.slice(-11), kpis.complianceRate ?? 0],
+        risk: [...prev.risk.slice(-11), kpis.riskScore ?? 0],
+        interactions: [...prev.interactions.slice(-11), kpis.totalInteractions ?? 0],
+      }));
+    }
+  }, [kpis?.timestamp]);
+
+  // Alert sound and notification for new critical alerts
+  useEffect(() => {
+    const currentCritical = alertsSummary?.critical ?? 0;
+    if (currentCritical > prevCriticalCount.current && prevCriticalCount.current > 0) {
+      playAlertSound();
+      showNotification('Critical Alert', `${currentCritical - prevCriticalCount.current} new critical alert(s)`);
+    }
+    prevCriticalCount.current = currentCritical;
+  }, [alertsSummary?.critical]);
+
   return (
     <div className="dark min-h-screen bg-gradient-to-b from-[#0B1020] via-[#070B18] to-[#050713] text-white">
       <TopBar
@@ -187,12 +308,7 @@ export default function TacticalCommandV2StandalonePage() {
         showExpiryWarning={showExpiryWarning}
         isRefreshing={isRefreshing}
         onToggleDemo={() => toggleDemo()}
-        onRefresh={() => {
-          refetchKpis();
-          refetchAlerts();
-          refetchAgents();
-          refetchWorkflows();
-        }}
+        onRefresh={handleRefreshAll}
       />
 
       <div className="mx-auto max-w-6xl px-4 py-8">
@@ -201,11 +317,22 @@ export default function TacticalCommandV2StandalonePage() {
             <h1 className="text-2xl font-semibold tracking-tight">Operational snapshot</h1>
             <div className="mt-1 text-sm text-white/60">
               KPIs, active alerts, agents, and workflows in one view.
+              <span className="ml-2 text-white/40">Auto-refreshes every {isDemo ? '30s' : '10s'}</span>
             </div>
             {lastUpdated && <div className="mt-2 text-xs text-white/50">Last updated: {lastUpdated}</div>}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 border-white/15 bg-white/5 text-white hover:bg-white/10"
+              onClick={() => setShowShortcuts(prev => !prev)}
+            >
+              <Keyboard className="h-4 w-4" />
+              <span className="hidden sm:inline">Shortcuts</span>
+              <kbd className="ml-1 hidden sm:inline-flex h-5 items-center rounded border border-white/20 bg-white/5 px-1.5 text-[10px]">?</kbd>
+            </Button>
             <Link href="/dashboard/tactical-command" target="_blank" rel="noreferrer">
               <Button variant="outline" size="sm" className="gap-2 border-white/15 bg-white/5 text-white hover:bg-white/10">
                 Open dashboard view
@@ -221,11 +348,49 @@ export default function TacticalCommandV2StandalonePage() {
           </div>
         </div>
 
-        <KpiStrip kpis={kpis} loading={kpisLoading} agentsLoading={agentsLoading} agentsSummary={agentsSummary} />
+        {/* Keyboard shortcuts help */}
+        {showShortcuts && (
+          <div className="mb-6 p-4 rounded-lg border border-white/10 bg-white/5">
+            <div className="text-sm font-medium mb-3">Keyboard Shortcuts</div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <kbd className="px-2 py-1 rounded border border-white/20 bg-white/5">R</kbd>
+                <span className="text-white/60">Refresh all</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <kbd className="px-2 py-1 rounded border border-white/20 bg-white/5">A</kbd>
+                <span className="text-white/60">Acknowledge alert</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <kbd className="px-2 py-1 rounded border border-white/20 bg-white/5">?</kbd>
+                <span className="text-white/60">Toggle shortcuts</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <kbd className="px-2 py-1 rounded border border-white/20 bg-white/5">Esc</kbd>
+                <span className="text-white/60">Clear selection</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <KpiStrip 
+          kpis={kpis} 
+          loading={kpisLoading} 
+          agentsLoading={agentsLoading} 
+          agentsSummary={agentsSummary}
+          trendHistory={trendHistory}
+        />
 
         <div className="mt-6 grid gap-6 lg:grid-cols-12">
-          <AlertsPanel loading={alertsLoading} alerts={alertsList} summary={alertsSummary} />
+          <AlertsPanel 
+            loading={alertsLoading} 
+            alerts={alertsList} 
+            summary={alertsSummary}
+            selectedAlertId={selectedAlertId}
+            onSelectAlert={setSelectedAlertId}
+          />
           <AgentsPanel loading={agentsLoading} agents={agents} />
+          <QuickActionsPanel selectedAgentId={null} />
           <WorkflowsPanel loading={workflowsLoading} workflows={workflowsList} />
           <OperatorLoop />
         </div>
