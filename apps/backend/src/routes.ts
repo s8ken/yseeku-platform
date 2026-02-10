@@ -10,6 +10,7 @@ import { createOverrideRoutes, initializeOverrideManager } from './routes/policy
 import { createAuditRoutes, initializeAuditLogger } from './routes/policy-audit-routes';
 import { createAuditLogger } from './routes/policy-audit-logger';
 import { createOverrideManager } from './routes/policy-override-manager';
+import { authMiddleware, optionalAuthMiddleware } from './middleware/auth';
 
 let router: Router;
 
@@ -19,11 +20,11 @@ let router: Router;
 export function initializeRoutes(httpServer?: HTTPServer): Router {
   router = Router();
 
-  // Phase 1: Receipts & DIDs
+  // Phase 1: Receipts & DIDs (no auth required)
   router.use('/receipts', receiptsRoutes);
   router.use('/dids', didResolverRoutes);
 
-  // Phase 2A: Policy Engine
+  // Phase 2A: Policy Engine (no auth required for policy reading)
   router.use('/policies', policiesRoutes);
 
   // Phase 2.7-2.10: Initialize Policy Services
@@ -33,8 +34,9 @@ export function initializeRoutes(httpServer?: HTTPServer): Router {
   initializeOverrideManager(overrideManager, auditLogger);
 
   // Phase 2C: Policy Decision API (SYMBI-based evaluation) with audit logging
+  // Apply optional auth - can be called without token but audit logs will note if authenticated
   const policyAPIService = createPolicyAPIService(auditLogger);
-  router.use('/api/v2/policy', policyAPIService.getRouter());
+  router.use('/api/v2/policy', optionalAuthMiddleware, policyAPIService.getRouter());
 
   // Phase 2.7: WebSocket Alerts (initialize if HTTP server provided)
   if (httpServer) {
@@ -46,19 +48,19 @@ export function initializeRoutes(httpServer?: HTTPServer): Router {
     );
     // Re-create API service with alert service
     const enhancedPolicyAPIService = createPolicyAPIService(auditLogger, alertService);
-    router.use('/api/v2/policy', enhancedPolicyAPIService.getRouter());
+    router.use('/api/v2/policy', optionalAuthMiddleware, enhancedPolicyAPIService.getRouter());
     
-    // Mount alert routes
+    // Mount alert routes (require auth for override operations)
     router.use('/api/v2/policy-alerts', createAlertRoutes());
   }
 
-  // Phase 2.8: Override Management
-  router.use('/api/v2/overrides', createOverrideRoutes());
+  // Phase 2.8: Override Management (require auth)
+  router.use('/api/v2/overrides', authMiddleware, createOverrideRoutes());
 
-  // Phase 2.10: Audit Logging
-  router.use('/api/v2/audit', createAuditRoutes());
+  // Phase 2.10: Audit Logging (require auth)
+  router.use('/api/v2/audit', authMiddleware, createAuditRoutes());
 
-  // The new "Third Mind" Endpoint
+  // The new "Third Mind" Endpoint (no auth required)
   router.post('/trust/analyze', analyzeInteraction);
 
   return router;
