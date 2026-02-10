@@ -85,7 +85,15 @@ Layer 1 principles are the foundation—they evaluate what the system *can do*. 
   },
 ];
 
-export const ChatContainer: React.FC = () => {
+interface ChatContainerProps {
+  initialConversationId?: string | null;
+  onConversationCreated?: (id: string) => void;
+}
+
+export const ChatContainer: React.FC<ChatContainerProps> = ({ 
+  initialConversationId = null,
+  onConversationCreated 
+}) => {
   const { isDemo, isFirstVisit } = useDemo();
   const { invalidateDashboard } = useDashboardInvalidation();
   const [messages, setMessages] = useState<ChatMessageProps[]>([]);
@@ -95,10 +103,43 @@ export const ChatContainer: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'PASS' | 'PARTIAL' | 'FAIL'>('all');
   const [showStats, setShowStats] = useState(false);
   const [sessionId] = useState<string>(() => `session-${Date.now()}`);
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(initialConversationId);
   const [demoPreloaded, setDemoPreloaded] = useState(false);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Load existing conversation if initialConversationId is provided
+  useEffect(() => {
+    if (initialConversationId) {
+      loadExistingConversation(initialConversationId);
+    } else {
+      setMessages([]);
+      setConversationId(null);
+    }
+  }, [initialConversationId]);
+
+  const loadExistingConversation = async (convId: string) => {
+    setIsLoadingConversation(true);
+    try {
+      const conversation = await api.getConversation(convId);
+      if (conversation && conversation.messages) {
+        const loadedMessages: ChatMessageProps[] = conversation.messages.map((msg: any) => ({
+          role: msg.sender === 'ai' ? 'assistant' : msg.sender,
+          content: msg.content,
+          timestamp: new Date(msg.timestamp).getTime(),
+          evaluation: msg.metadata?.trustEvaluation,
+        }));
+        setMessages(loadedMessages);
+        setConversationId(convId);
+      }
+    } catch (error) {
+      console.error('Failed to load conversation:', error);
+      toast.error('Failed to load conversation');
+    } finally {
+      setIsLoadingConversation(false);
+    }
+  };
 
   // Handle stopping the AI generation - ETHICAL_OVERRIDE implementation
   const handleStopGeneration = useCallback(() => {
@@ -185,15 +226,16 @@ export const ChatContainer: React.FC = () => {
 
     try {
       // Ensure there is a backend conversation
-      if (!conversationId) {
+      let convId = conversationId;
+      if (!convId) {
         const created = await api.createConversation('Trust-Aware Session');
-        setConversationId(created.id);
+        convId = created.id;
+        setConversationId(convId);
+        // Notify parent that a new conversation was created
+        if (onConversationCreated) {
+          onConversationCreated(convId);
+        }
       }
-      const convId = conversationId || (await (async () => {
-        const created = await api.createConversation('Trust-Aware Session');
-        setConversationId(created.id);
-        return created.id;
-      })());
 
       // Append user message and generate AI response with server-side trust evaluation
       // Note: AbortController signal would be passed to fetch in a full implementation
