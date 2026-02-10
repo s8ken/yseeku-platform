@@ -145,6 +145,56 @@ router.post('/logout', (_req: Request, res: Response): void => {
 });
 
 /**
+ * POST /api/v2/auth/guest
+ * Create a guest session for demo access
+ */
+router.post('/guest', (_req: Request, res: Response): void => {
+  try {
+    const guestId = `guest_${Math.random().toString(36).substring(2, 10)}`;
+    const jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
+    
+    const token = jwt.sign(
+      { 
+        username: 'Guest User',
+        id: guestId,
+        roles: ['guest'],
+        tenant: 'demo',
+      },
+      jwtSecret,
+      { expiresIn: '24h' }
+    );
+
+    const decodedToken = jwt.decode(token) as { exp?: number; iat?: number };
+    const expiresInSeconds = decodedToken.exp && decodedToken.iat 
+      ? (decodedToken.exp - decodedToken.iat) 
+      : 86400;
+
+    res.status(201).json({
+      success: true,
+      message: 'Guest access granted',
+      data: {
+        user: {
+          id: guestId,
+          name: 'Guest User',
+          email: `${guestId}@guest.yseeku.com`,
+        },
+        tokens: {
+          accessToken: token,
+          expiresIn: expiresInSeconds,
+        },
+      },
+      token, // For backwards compatibility
+    });
+  } catch (err) {
+    console.error('Guest login error:', err);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error during guest login' 
+    });
+  }
+});
+
+/**
  * GET /api/v2/auth/me
  * Get current user info from token
  */

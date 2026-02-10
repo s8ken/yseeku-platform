@@ -164,8 +164,9 @@ app.get('/health', (req, res) => {
 // Metrics (Prometheus) - Available at standard paths
 app.use('/metrics', metricsRoutes);
 
-// Authentication
+// Authentication (both v2 and legacy paths)
 app.use('/api/v2/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 
 // Phase 1-2 Routes (Policy Engine, WebSocket Alerts, Overrides, Audit)
 app.use('', initializeRoutes(server));
