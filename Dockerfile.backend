@@ -11,6 +11,9 @@ COPY packages/persistence/package*.json ./packages/persistence/
 COPY packages/detect/package*.json ./packages/detect/
 COPY packages/orchestrate/package*.json ./packages/orchestrate/
 COPY packages/lab/package*.json ./packages/lab/
+COPY packages/policy/package*.json ./packages/policy/
+COPY packages/policy-runtime/package*.json ./packages/policy-runtime/
+COPY packages/monitoring/package*.json ./packages/monitoring/
 
 # Install dependencies
 RUN npm install --legacy-peer-deps
@@ -26,6 +29,9 @@ RUN npm run build --workspace=@sonate/core
 RUN npm run build --workspace=@sonate/schemas
 RUN npm run build --workspace=@sonate/persistence
 RUN npm run build --workspace=@sonate/detect
+RUN npm run build --workspace=@sonate/policy
+RUN npm run build --workspace=@sonate/policy-runtime
+RUN npm run build --workspace=@sonate/monitoring
 RUN npm run build --workspace=@sonate/orchestrate
 RUN npm run build --workspace=@sonate/lab
 
