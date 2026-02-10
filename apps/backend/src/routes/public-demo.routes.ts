@@ -113,12 +113,13 @@ router.post('/generate', async (req: Request, res: Response) => {
       },
     };
 
-    // Compute receipt ID (SHA-256 of content)
+    // Compute receipt ID (SHA-256 of content without id)
     const contentForId = canonicalize(receiptContent);
     receiptContent.id = crypto.createHash('sha256').update(contentForId).digest('hex');
 
-    // Compute chain hash
-    const chainContent = contentForId + receiptContent.chain.previous_hash;
+    // Compute chain hash (from content WITH id, so verification can reproduce it)
+    const contentWithId = canonicalize(receiptContent);
+    const chainContent = contentWithId + receiptContent.chain.previous_hash;
     receiptContent.chain.chain_hash = crypto.createHash('sha256').update(chainContent).digest('hex');
 
     // Sign the receipt with Ed25519
