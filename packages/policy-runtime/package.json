@@ -2,13 +2,8 @@
   "name": "@sonate/policy-runtime",
   "version": "1.0.0",
   "description": "Policy engine for AI governance and compliance enforcement",
-  "type": "module",
   "main": "dist/index.js",
-  "exports": {
-    ".": "./dist/index.js",
-    "./policies": "./dist/policies/index.js",
-    "./evaluator": "./dist/evaluator.js"
-  },
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "vitest",
