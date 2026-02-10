@@ -8,8 +8,15 @@
 
 import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { SecureAuthService } from '@sonate/core';
 
 const router = Router();
+
+// Use the same auth service config as the middleware
+const authService = new SecureAuthService({
+  jwtSecret: process.env.JWT_SECRET,
+  refreshTokenSecret: process.env.JWT_REFRESH_SECRET,
+});
 
 interface LoginRequest extends Request {
   body: {
@@ -152,26 +159,15 @@ router.post('/guest', (_req: Request, res: Response): void => {
   try {
     const guestId = `guest_${Math.random().toString(36).substring(2, 10)}`;
     const guestEmail = `${guestId}@guest.yseeku.com`;
-    const jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
     
-    const token = jwt.sign(
-      { 
-        userId: guestId,
-        sub: guestId,
-        username: 'Guest User',
-        name: 'Guest User',
-        email: guestEmail,
-        roles: ['guest'],
-        tenant: 'demo',
-      },
-      jwtSecret,
-      { expiresIn: '24h' }
-    );
-
-    const decodedToken = jwt.decode(token) as { exp?: number; iat?: number };
-    const expiresInSeconds = decodedToken.exp && decodedToken.iat 
-      ? (decodedToken.exp - decodedToken.iat) 
-      : 86400;
+    // Use SecureAuthService to generate tokens (same as auth middleware uses to verify)
+    const tokens = authService.generateTokens({
+      id: guestId,
+      username: 'Guest User',
+      email: guestEmail,
+      roles: ['guest'],
+      tenant: 'demo',
+    });
 
     res.status(201).json({
       success: true,
@@ -180,14 +176,15 @@ router.post('/guest', (_req: Request, res: Response): void => {
         user: {
           id: guestId,
           name: 'Guest User',
-          email: `${guestId}@guest.yseeku.com`,
+          email: guestEmail,
         },
         tokens: {
-          accessToken: token,
-          expiresIn: expiresInSeconds,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          expiresIn: 86400,
         },
       },
-      token, // For backwards compatibility
+      token: tokens.accessToken, // For backwards compatibility
     });
   } catch (err) {
     console.error('Guest login error:', err);
