@@ -197,13 +197,15 @@ class KeysService {
 
   /**
    * Sign a message using Ed25519
+   * @param message - UTF-8 string or Buffer to sign
    */
   async sign(message: string | Buffer): Promise<string> {
     const ed25519 = await loadEd25519();
     const privateKey = await this.getPrivateKey();
 
+    // Convert string to UTF-8 bytes (not hex!)
     const messageBytes = typeof message === 'string'
-      ? Buffer.from(message, 'hex')
+      ? Buffer.from(message, 'utf-8')
       : message;
 
     const signature = await ed25519.sign(messageBytes, privateKey);
@@ -212,14 +214,18 @@ class KeysService {
 
   /**
    * Verify a signature using Ed25519
+   * @param message - UTF-8 string or Buffer that was signed
+   * @param signature - Hex-encoded signature
+   * @param publicKey - Optional public key (uses stored key if not provided)
    */
   async verify(message: string | Buffer, signature: string, publicKey?: Uint8Array): Promise<boolean> {
     try {
       const ed25519 = await loadEd25519();
       const pubKey = publicKey || await this.getPublicKey();
 
+      // Convert string to UTF-8 bytes (not hex!)
       const messageBytes = typeof message === 'string'
-        ? Buffer.from(message, 'hex')
+        ? Buffer.from(message, 'utf-8')
         : message;
       const signatureBytes = Buffer.from(signature, 'hex');
 
