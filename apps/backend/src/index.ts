@@ -44,6 +44,7 @@ import overrideRoutes from './routes/override.routes';
 import demoRoutes from './routes/demo.routes';
 import evaluationMethodRoutes from './routes/evaluation-method.routes';
 import didRoutes from './routes/did.routes';
+import pubkeyRoutes from './routes/pubkey.routes';
 import webhookRoutes from './routes/webhook.routes';
 import liveRoutes from './routes/live.routes';
 import safetyRoutes from './routes/safety.routes';
@@ -205,6 +206,7 @@ if (enableDemo) {
   app.use('/api/demo', demoRoutes);
 }
 app.use('/.well-known', didRoutes); // DID resolution at standard .well-known path (no auth required)
+app.use('/.well-known', pubkeyRoutes); // Public key for receipt verification (no auth required)
 app.use('/api/did', didRoutes); // DID API endpoints
 
 // 404 handler - catch unmatched routes
