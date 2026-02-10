@@ -94,6 +94,72 @@ export default function AuditTrailsPage() {
     setCurrentPage(1);
   };
 
+  /**
+   * Export audit logs as CSV
+   */
+  const exportAsCSV = async () => {
+    try {
+      const params = new URLSearchParams();
+      
+      // Add date filters if provided
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
+      
+      // Get CSV from policy audit endpoint
+      const response = await fetch(`/api/v2/audit/export/csv?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error('Failed to export CSV');
+      }
+      
+      // Create blob and trigger download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `audit-logs-${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export audit logs as CSV');
+    }
+  };
+
+  /**
+   * Export audit logs as JSON
+   */
+  const exportAsJSON = async () => {
+    try {
+      const params = new URLSearchParams();
+      
+      // Add date filters if provided
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
+      
+      // Get JSON from policy audit endpoint
+      const response = await fetch(`/api/v2/audit/export/json?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error('Failed to export JSON');
+      }
+      
+      // Create blob and trigger download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `audit-logs-${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export audit logs as JSON');
+    }
+  };
+
   const getSeverityBadgeVariant = (severity: string) => {
     switch (severity) {
       case 'critical': return 'destructive';
@@ -110,10 +176,20 @@ export default function AuditTrailsPage() {
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Audit Trails</h2>
-        <Button onClick={() => refetch()}>
-          <FileText className="mr-2 h-4 w-4" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportAsJSON}>
+            <FileText className="mr-2 h-4 w-4" />
+            Export JSON
+          </Button>
+          <Button variant="outline" onClick={exportAsCSV}>
+            <FileText className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
+          <Button onClick={() => refetch()}>
+            <FileText className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
