@@ -14,6 +14,8 @@ import { createHash, randomBytes } from 'crypto';
 import type { DID } from '@sonate/schemas';
 import { Logger } from '../observability/logger';
 
+type DIDPublicKey = DID['document']['public_keys'][number];
+
 const logger = new Logger('DIDResolver');
 
 /**
@@ -102,7 +104,7 @@ export class DIDResolverService {
 
     // Find current key version
     const currentKeyId = didObj.current_key_version;
-    const currentKey = didObj.document.public_keys.find(k => k.id.endsWith(currentKeyId));
+    const currentKey = didObj.document.public_keys.find((k: DIDPublicKey) => k.id.endsWith(currentKeyId));
 
     if (!currentKey) {
       logger.error('Current key not found for DID', { did, keyVersion: currentKeyId });
@@ -137,7 +139,7 @@ export class DIDResolverService {
 
     // Mark current key as rotated
     const currentKeyIndex = didObj.document.public_keys.findIndex(
-      k => k.id.endsWith(didObj.current_key_version)
+      (k: DIDPublicKey) => k.id.endsWith(didObj.current_key_version)
     );
 
     if (currentKeyIndex >= 0) {
@@ -215,7 +217,7 @@ export class DIDResolverService {
       return false;
     }
 
-    return didObj.document.public_keys.some(k => k.value === publicKey);
+    return didObj.document.public_keys.some((k: DIDPublicKey) => k.value === publicKey);
   }
 
   /**
@@ -238,7 +240,7 @@ export class DIDResolverService {
       return null;
     }
 
-    return didObj.document.public_keys.map(key => ({
+    return didObj.document.public_keys.map((key: DIDPublicKey) => ({
       keyId: key.id,
       createdAt: key.created_at,
       rotatedAt: key.rotated_at,

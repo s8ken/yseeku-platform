@@ -1,5 +1,5 @@
 {
-  "installCommand": "npm install --legacy-peer-deps",
+  "installCommand": "npx -p npm@10.9.3 npm install --legacy-peer-deps",
   "framework": "nextjs",
   "outputDirectory": "apps/web/.next",
   "buildCommand": "npm run build:vercel",

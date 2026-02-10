@@ -27,6 +27,7 @@
     "@google-cloud/kms": "^5.2.1",
     "@sonate/core": "*",
     "@sonate/persistence": "*",
+    "@sonate/schemas": "*",
     "@types/winston": "^2.4.4",
     "bcryptjs": "^3.0.3",
     "express": "^4.21.0",

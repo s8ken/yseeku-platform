@@ -11,8 +11,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@sonate/core": "workspace:*",
-    "@sonate/schemas": "workspace:*",
+    "@sonate/core": "*",
+    "@sonate/schemas": "*",
     "zod": "^3.22.4"
   },
   "devDependencies": {

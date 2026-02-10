@@ -9,8 +9,8 @@
   ],
   "scripts": {
     "build": "turbo run build --filter=web",
-    "build:packages": "npm run build --workspace=@sonate/core && npm run build --workspace=@sonate/detect && npm run build --workspace=@sonate/orchestrate && npm run build --workspace=@sonate/lab && npm run build --workspace=@sonate/persistence && npm run build --workspace=@sonate/policy && npm run build --workspace=@sonate/monitoring",
-    "build:vercel": "rm -rf packages/*/dist && npm run build --workspace=@sonate/core && ls packages/core/dist/*.d.ts && npm run build --workspace=@sonate/detect && npm run build --workspace=@sonate/persistence && ls packages/persistence/dist/*.d.ts && npm run build --workspace=@sonate/orchestrate && npm run build --workspace=@sonate/lab && npm run build --workspace=web",
+    "build:packages": "npm run build --workspace=@sonate/schemas && npm run build --workspace=@sonate/core && npm run build --workspace=@sonate/detect && npm run build --workspace=@sonate/orchestrate && npm run build --workspace=@sonate/lab && npm run build --workspace=@sonate/persistence && npm run build --workspace=@sonate/policy && npm run build --workspace=@sonate/monitoring",
+    "build:vercel": "rm -rf packages/*/dist && npm run build --workspace=@sonate/schemas && npm run build --workspace=@sonate/core && ls packages/core/dist/*.d.ts && npm run build --workspace=@sonate/detect && npm run build --workspace=@sonate/persistence && ls packages/persistence/dist/*.d.ts && npm run build --workspace=@sonate/orchestrate && npm run build --workspace=@sonate/lab && npm run build --workspace=web",
     "start": "npm start --workspace=web",
     "build:backend": "turbo run build --filter=backend",
     "dev": "turbo run dev --parallel",
@@ -67,8 +67,9 @@
     "@noble/hashes": "2.0.1"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": "20.x"
   },
+  "packageManager": "npm@10.9.3",
   "dependencies": {
     "@noble/ed25519": "^3.0.0",
     "@noble/hashes": "2.0.1",
