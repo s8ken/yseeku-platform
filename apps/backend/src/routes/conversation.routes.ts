@@ -966,6 +966,40 @@ The SONATE Trust Protocol evaluates every AI response against 6 constitutional p
             },
           };
 
+          // Persist the receipt to TrustReceiptModel for dashboard visibility
+          try {
+            await TrustReceiptModel.updateOne(
+              { self_hash: receiptHash },
+              {
+                $set: {
+                  self_hash: receiptHash,
+                  session_id: conversation._id.toString(),
+                  version: signedReceipt.version,
+                  timestamp: new Date(signedReceipt.timestamp),
+                  mode: signedReceipt.mode,
+                  ciq_metrics: { clarity: 8, integrity: 9, quality: 8 },
+                  sonateDimensions: {
+                    resonance: signedReceipt.telemetry?.resonance_score || 0.85,
+                    coherence: 0.9,
+                    truthDebt: 0.05,
+                    ethicalAlignment: 0.9,
+                    trustProtocol: 'PASS',
+                  },
+                  interaction: signedReceipt.interaction,
+                  trustScore: 85,
+                  signature: signedReceipt.signature?.value,
+                  verified: true,
+                  agentId: agent._id?.toString(),
+                  tenantId: tenantId,
+                },
+              },
+              { upsert: true }
+            );
+            logger.info('[DEMO FALLBACK] Trust receipt persisted', { receiptHash, conversationId: conversation._id.toString() });
+          } catch (receiptError) {
+            logger.error('[DEMO FALLBACK] Failed to persist trust receipt', { error: getErrorMessage(receiptError) });
+          }
+
           conversation.messages.push(fallbackMessage);
           conversation.lastActivity = new Date();
           await conversation.save();
