@@ -10,5 +10,6 @@ export { AlertFeed } from './AlertFeed';
 export { AgentPerformanceCards } from './AgentPerformanceCards';
 export { ViolationTimeline } from './ViolationTimeline';
 export { OperatorIncidentManager } from './OperatorIncidentManager';
+export { AlertSettings } from './AlertSettings';
 export { useWebSocketAlerts } from './hooks/useWebSocketAlerts';
 export { useMetricsData } from './hooks/useMetricsData';
