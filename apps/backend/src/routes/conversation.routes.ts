@@ -798,9 +798,97 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
         }
       } catch (llmError: unknown) {
         logger.error('LLM generation error:', llmError);
-        // Save user message even if AI response fails
-        await conversation.save();
+        
+        // For demo tenant, provide a helpful fallback response instead of failing
+        const tenantId = req.userTenant || 'live-tenant';
+        if (tenantId === 'demo-tenant') {
+          const demoFallbackContent = `I'm currently running in demo mode without a configured LLM provider.
 
+To see real AI responses with trust evaluation:
+1. **Add your API key** in Settings → API Keys (supports Anthropic/OpenAI)
+2. Or contact your administrator to configure platform-level keys
+
+In the meantime, you can explore:
+- **Trust Receipts** - See cryptographic proofs of AI interactions
+- **Alerts** - View policy violation examples
+- **Risk & Compliance** - Check compliance scores
+- **Audit Trails** - Export audit logs
+
+The SONATE Trust Protocol evaluates every AI response against 6 constitutional principles, generating verifiable receipts for enterprise compliance.`;
+
+          const fallbackMessage: IMessage = {
+            sender: 'ai',
+            content: demoFallbackContent,
+            agentId: agent._id,
+            metadata: {
+              messageId: `msg-${Date.now()}-demo-fallback`,
+              model: 'demo-fallback',
+              provider: 'demo',
+              isDemoFallback: true,
+            },
+            ciModel: agent.ciModel,
+            trustScore: 4,
+            timestamp: new Date(),
+          };
+
+          // Add fallback trust evaluation
+          fallbackMessage.metadata.trustEvaluation = {
+            trustScore: {
+              overall: 85,
+              principles: {
+                CONSENT_ARCHITECTURE: 9,
+                INSPECTION_MANDATE: 8,
+                CONTINUOUS_VALIDATION: 8,
+                ETHICAL_OVERRIDE: 9,
+                RIGHT_TO_DISCONNECT: 9,
+                MORAL_RECOGNITION: 8,
+              },
+              violations: [],
+            },
+            status: 'PASS' as 'PASS' | 'PARTIAL' | 'FAIL',
+            detection: {
+              isAI: true,
+              confidence: 1.0,
+              indicators: ['demo_fallback'],
+              bedauIndex: null,
+            },
+            receipt: null,
+            receiptHash: `demo-fallback-${Date.now()}`,
+            analysisMethod: {
+              llmAvailable: false,
+              resonanceMethod: 'demo',
+              ethicsMethod: 'demo',
+              trustMethod: 'demo',
+              confidence: 1.0,
+            },
+          };
+
+          conversation.messages.push(fallbackMessage);
+          conversation.lastActivity = new Date();
+          await conversation.save();
+
+          const lastMessage = conversation.messages[conversation.messages.length - 1];
+          res.json({
+            success: true,
+            message: 'Demo fallback response generated',
+            data: {
+              conversation,
+              lastMessage,
+              message: {
+                _id: fallbackMessage.metadata?.messageId,
+                content: fallbackMessage.content,
+                sender: 'assistant',
+                timestamp: fallbackMessage.timestamp.toISOString(),
+              },
+              trustEvaluation: fallbackMessage.metadata.trustEvaluation,
+              isDemoFallback: true,
+            },
+          });
+          return;
+        }
+
+        // For non-demo tenants, return error as before
+        await conversation.save();
         res.status(500).json({
           success: false,
           message: 'Failed to generate AI response',
