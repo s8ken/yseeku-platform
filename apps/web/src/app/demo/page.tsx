@@ -15,8 +15,16 @@ export default function DemoHome() {
     setMounted(true);
   }, []);
 
-  const handleEnterDemo = () => {
+  const handleEnterDemo = async () => {
     setIsRedirecting(true);
+    
+    // Get guest session with cookie before redirecting
+    try {
+      await fetch('/api/auth/guest', { method: 'POST' });
+    } catch {
+      // Continue anyway - middleware will handle redirect if needed
+    }
+    
     // Enable demo mode and redirect
     if (typeof window !== 'undefined') {
       localStorage.setItem('yseeku-demo-mode', 'true');

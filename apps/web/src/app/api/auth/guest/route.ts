@@ -15,7 +15,21 @@ export async function POST(_request: NextRequest): Promise<NextResponse> {
     );
 
     const data = await backendResponse.json();
-    return NextResponse.json(data, { status: backendResponse.status });
+    const response = NextResponse.json(data, { status: backendResponse.status });
+
+    // Set session_token cookie so middleware can authenticate the request
+    const token = data.data?.tokens?.accessToken || data.token;
+    if (token) {
+      response.cookies.set('session_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24, // 24 hours
+      });
+    }
+
+    return response;
   } catch (error: any) {
     console.error('Guest auth error:', error);
     return NextResponse.json(
