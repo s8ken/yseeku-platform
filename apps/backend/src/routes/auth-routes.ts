@@ -151,12 +151,16 @@ router.post('/logout', (_req: Request, res: Response): void => {
 router.post('/guest', (_req: Request, res: Response): void => {
   try {
     const guestId = `guest_${Math.random().toString(36).substring(2, 10)}`;
+    const guestEmail = `${guestId}@guest.yseeku.com`;
     const jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
     
     const token = jwt.sign(
       { 
+        userId: guestId,
+        sub: guestId,
         username: 'Guest User',
-        id: guestId,
+        name: 'Guest User',
+        email: guestEmail,
         roles: ['guest'],
         tenant: 'demo',
       },
