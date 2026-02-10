@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY apps/backend/package*.json ./apps/backend/
 COPY packages/core/package*.json ./packages/core/
+COPY packages/schemas/package*.json ./packages/schemas/
 COPY packages/persistence/package*.json ./packages/persistence/
 COPY packages/detect/package*.json ./packages/detect/
 COPY packages/orchestrate/package*.json ./packages/orchestrate/
@@ -20,8 +21,9 @@ RUN cd apps/backend && npm install router ip-address --legacy-peer-deps
 # Copy source code
 COPY . .
 
-# Build packages
+# Build packages (order matters for dependencies)
 RUN npm run build --workspace=@sonate/core
+RUN npm run build --workspace=@sonate/schemas
 RUN npm run build --workspace=@sonate/persistence
 RUN npm run build --workspace=@sonate/detect
 RUN npm run build --workspace=@sonate/orchestrate
