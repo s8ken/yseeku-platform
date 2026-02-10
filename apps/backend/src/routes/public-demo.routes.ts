@@ -113,13 +113,16 @@ router.post('/generate', async (req: Request, res: Response) => {
       },
     };
 
-    // Compute receipt ID (SHA-256 of content without id)
+    // Compute receipt ID (SHA-256 of content without id, with empty chain_hash)
     const contentForId = canonicalize(receiptContent);
     receiptContent.id = crypto.createHash('sha256').update(contentForId).digest('hex');
 
-    // Compute chain hash (from content WITH id, so verification can reproduce it)
-    const contentWithId = canonicalize(receiptContent);
-    const chainContent = contentWithId + receiptContent.chain.previous_hash;
+    // Compute chain hash: hash of (content with id but WITHOUT chain_hash) + previous_hash
+    // This allows verification to reproduce by removing chain_hash before hashing
+    const receiptForChain = { ...receiptContent };
+    receiptForChain.chain = { ...receiptContent.chain, chain_hash: '' };
+    const contentForChain = canonicalize(receiptForChain);
+    const chainContent = contentForChain + receiptContent.chain.previous_hash;
     receiptContent.chain.chain_hash = crypto.createHash('sha256').update(chainContent).digest('hex');
 
     // Sign the receipt with Ed25519
@@ -227,9 +230,11 @@ router.post('/verify', async (req: Request, res: Response) => {
 
     // 3. Check chain hash
     if (receipt.chain?.chain_hash && receipt.chain?.previous_hash) {
-      const receiptWithoutSig = { ...receipt };
-      delete receiptWithoutSig.signature;
-      const contentForChain = canonicalize(receiptWithoutSig);
+      // Reconstruct the content used for chain hash: without signature, with empty chain_hash
+      const receiptForChain = { ...receipt };
+      delete receiptForChain.signature;
+      receiptForChain.chain = { ...receipt.chain, chain_hash: '' };
+      const contentForChain = canonicalize(receiptForChain);
       const chainContent = contentForChain + receipt.chain.previous_hash;
       const expectedChainHash = crypto.createHash('sha256').update(chainContent).digest('hex');
       
