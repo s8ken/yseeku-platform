@@ -22,6 +22,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { connectDatabase } from './config/database';
 import { initializeRoutes } from './routes';
 import authRoutes from './routes/auth-routes';
+import metricsRoutes from './routes/metrics-routes';
 import agentRoutes from './routes/agent.routes';
 import llmRoutes from './routes/llm.routes';
 import conversationRoutes from './routes/conversation.routes';
@@ -158,10 +159,14 @@ app.get('/health', (req, res) => {
 
 // API Routes
 
+// Metrics (Prometheus) - Available at standard paths
+app.use('/metrics', metricsRoutes);
+
+// Authentication
+app.use('/api/v2/auth', authRoutes);
+
 // Phase 1-2 Routes (Policy Engine, WebSocket Alerts, Overrides, Audit)
 app.use('', initializeRoutes(server));
-
-app.use('/api/auth', authRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/llm', llmRoutes);
 app.use('/api/conversations', conversationRoutes);
