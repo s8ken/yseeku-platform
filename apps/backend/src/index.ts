@@ -20,7 +20,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { Server as SocketIOServer } from 'socket.io';
 import { connectDatabase } from './config/database';
-import authRoutes from './routes/auth.routes';
+import { initializeRoutes } from './routes';
 import agentRoutes from './routes/agent.routes';
 import llmRoutes from './routes/llm.routes';
 import conversationRoutes from './routes/conversation.routes';
@@ -156,6 +156,10 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
+
+// Phase 1-2 Routes (Policy Engine, WebSocket Alerts, Overrides, Audit)
+app.use('', initializeRoutes(server));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/llm', llmRoutes);

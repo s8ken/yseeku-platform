@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InvalidWeightsError = exports.CalculationError = exports.MathValidationError = void 0;
-const errors_1 = require("../errors");
+const errors_1 = require("../utils/errors");
 class MathValidationError extends errors_1.PlatformError {
     constructor(message, details, context = { timestamp: Date.now() }) {
         super(message, 'MATH_VAL_001', errors_1.ErrorCategory.VALIDATION, errors_1.ErrorSeverity.LOW, { ...context, metadata: { ...(context.metadata || {}), details } }, false, 'Invalid mathematical input');

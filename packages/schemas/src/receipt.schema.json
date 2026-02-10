@@ -1,0 +1,407 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SONATE Trust Receipt Schema",
+  "description": "Cryptographically signed, immutable record of an AI interaction with full audit trail",
+  "version": "2.0.0",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "timestamp",
+    "session_id",
+    "agent_did",
+    "human_did",
+    "policy_version",
+    "mode",
+    "interaction",
+    "signature",
+    "chain"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique receipt identifier (SHA-256 hash of canonical content)",
+      "pattern": "^[a-f0-9]{64}$",
+      "example": "abcd1234...ef5678"
+    },
+    "version": {
+      "type": "string",
+      "description": "Receipt schema version",
+      "enum": ["2.0.0"],
+      "example": "2.0.0"
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO 8601 timestamp of interaction",
+      "format": "date-time",
+      "example": "2026-02-09T18:30:45.123Z"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Conversation/session identifier for grouping related interactions",
+      "example": "session_abc123"
+    },
+    "agent_did": {
+      "type": "string",
+      "description": "Decentralized Identifier of the AI agent",
+      "pattern": "^did:sonate:[a-zA-Z0-9]{40}$",
+      "example": "did:sonate:a1b2c3d4e5f6..."
+    },
+    "human_did": {
+      "type": "string",
+      "description": "Decentralized Identifier of the human user",
+      "pattern": "^did:sonate:[a-zA-Z0-9]{40}$",
+      "example": "did:sonate:x9y8z7w6v5u4..."
+    },
+    "policy_version": {
+      "type": "string",
+      "description": "Version of policy that governed this interaction",
+      "example": "policy_v1.2.0"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["constitutional", "directive"],
+      "description": "Governance mode: constitutional (principle-based) or directive (instruction-based)"
+    },
+    "interaction": {
+      "type": "object",
+      "description": "The actual AI interaction data",
+      "required": ["prompt", "response", "model"],
+      "properties": {
+        "prompt": {
+          "type": "string",
+          "description": "User's input/question to the AI",
+          "example": "What is the capital of France?"
+        },
+        "response": {
+          "type": "string",
+          "description": "AI's response",
+          "example": "Paris is the capital of France."
+        },
+        "model": {
+          "type": "string",
+          "description": "Model identifier used",
+          "example": "gpt-4-turbo"
+        },
+        "provider": {
+          "type": "string",
+          "description": "AI provider",
+          "enum": ["openai", "anthropic", "aws-bedrock", "local"],
+          "example": "openai"
+        },
+        "temperature": {
+          "type": "number",
+          "description": "Model temperature setting",
+          "minimum": 0,
+          "maximum": 2,
+          "example": 0.7
+        },
+        "max_tokens": {
+          "type": "integer",
+          "description": "Maximum tokens allowed",
+          "example": 2000
+        },
+        "reasoning": {
+          "type": "object",
+          "description": "Optional: Captured reasoning signals (where available from model)",
+          "properties": {
+            "thought_process": {
+              "type": "string",
+              "description": "Internal reasoning if exposed by model"
+            },
+            "confidence": {
+              "type": "number",
+              "description": "Model's confidence score (0-1)",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "retrieved_context": {
+              "type": "array",
+              "description": "External context retrieved for this interaction",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "description": "Trust and coherence metrics captured at interaction time",
+      "properties": {
+        "resonance_score": {
+          "type": "number",
+          "description": "Overall trust/resonance score (0-1)",
+          "minimum": 0,
+          "maximum": 1,
+          "example": 0.94
+        },
+        "resonance_quality": {
+          "type": "string",
+          "enum": ["STRONG", "ADVANCED", "BREAKTHROUGH"],
+          "description": "Qualitative rating of resonance"
+        },
+        "bedau_index": {
+          "type": "number",
+          "description": "Weak emergence detection (0-1)",
+          "minimum": 0,
+          "maximum": 1,
+          "example": 0.73
+        },
+        "coherence_score": {
+          "type": "number",
+          "description": "LBC (Longitudinal Behavioral Coherence) score",
+          "minimum": 0,
+          "maximum": 1,
+          "example": 0.82
+        },
+        "truth_debt": {
+          "type": "number",
+          "description": "Measure of unverifiable claims (0-1, where 1 = high unverifiability)",
+          "minimum": 0,
+          "maximum": 1,
+          "example": 0.15
+        },
+        "volatility": {
+          "type": "number",
+          "description": "Behavioral volatility score (0-1)",
+          "minimum": 0,
+          "maximum": 1,
+          "example": 0.22
+        },
+        "ciq_metrics": {
+          "type": "object",
+          "description": "Clarity, Integrity, Quality scores",
+          "properties": {
+            "clarity": {
+              "type": "number",
+              "description": "Communication clarity (0-1)",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "integrity": {
+              "type": "number",
+              "description": "Reasoning transparency (0-1)",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "quality": {
+              "type": "number",
+              "description": "Overall value (0-1)",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        }
+      }
+    },
+    "policy_state": {
+      "type": "object",
+      "description": "State of policy constraints at time of interaction",
+      "properties": {
+        "constraints_applied": {
+          "type": "array",
+          "description": "Which policy constraints were active",
+          "items": {
+            "type": "string",
+            "example": ["consent_verified", "truth_debt_check", "safety_filter"]
+          }
+        },
+        "violations": {
+          "type": "array",
+          "description": "Any policy violations detected",
+          "items": {
+            "type": "object",
+            "properties": {
+              "rule": {
+                "type": "string",
+                "description": "Policy rule that was violated"
+              },
+              "severity": {
+                "type": "string",
+                "enum": ["warning", "violation", "critical"],
+                "description": "Severity level"
+              },
+              "action": {
+                "type": "string",
+                "enum": ["warn", "slow", "halt", "escalate"],
+                "description": "Action taken in response"
+              }
+            }
+          }
+        },
+        "consent_verified": {
+          "type": "boolean",
+          "description": "Was explicit user consent verified?"
+        },
+        "override_available": {
+          "type": "boolean",
+          "description": "Did user have option to override?"
+        }
+      }
+    },
+    "chain": {
+      "type": "object",
+      "description": "Hash chain for immutability",
+      "required": ["previous_hash", "chain_hash"],
+      "properties": {
+        "previous_hash": {
+          "type": "string",
+          "description": "Hash of previous receipt (genesis_hash for first)",
+          "pattern": "^[a-f0-9]{64}$|^GENESIS$"
+        },
+        "chain_hash": {
+          "type": "string",
+          "description": "SHA-256(canonical_json + previous_hash)",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "chain_length": {
+          "type": "integer",
+          "description": "Number of receipts in this chain",
+          "minimum": 1,
+          "example": 42
+        }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "description": "Cryptographic signature",
+      "required": ["algorithm", "value", "key_version"],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "enum": ["Ed25519"],
+          "description": "Signature algorithm used"
+        },
+        "value": {
+          "type": "string",
+          "description": "Base64-encoded signature of canonical receipt",
+          "example": "MEQCIDGrvmTEr7c00rpf5Z+O50Ad5Z8Xxfqfjf9Z8O50Ad5=="
+        },
+        "key_version": {
+          "type": "string",
+          "description": "Which version of agent's key was used",
+          "example": "key_v1"
+        },
+        "timestamp_signed": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When receipt was signed"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional metadata",
+      "properties": {
+        "tags": {
+          "type": "array",
+          "description": "Custom tags for categorization",
+          "items": {
+            "type": "string"
+          }
+        },
+        "context": {
+          "type": "object",
+          "description": "Application-specific context",
+          "additionalProperties": true
+        },
+        "user_agent": {
+          "type": "string",
+          "description": "Client that generated this receipt"
+        }
+      }
+    },
+    "policy_enforcement": {
+      "type": "object",
+      "description": "Policy enforcement results (Phase 2)",
+      "properties": {
+        "policies_evaluated": {
+          "type": "array",
+          "description": "List of policy IDs evaluated",
+          "items": {
+            "type": "string"
+          }
+        },
+        "violations": {
+          "type": "array",
+          "description": "Constraint violations detected",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Violation ID"
+              },
+              "constraint_id": {
+                "type": "string",
+                "description": "ID of constraint that triggered this violation"
+              },
+              "constraint_name": {
+                "type": "string",
+                "description": "Name of constraint"
+              },
+              "violation_type": {
+                "type": "string",
+                "enum": ["PII_DETECTED", "TRUTH_DEBT_EXCEEDED", "COMPLIANCE_BOUNDARY_VIOLATED", "POLICY_CONSTRAINT_FAILED", "CUSTOM_VIOLATION"],
+                "description": "Type of violation"
+              },
+              "severity": {
+                "type": "string",
+                "enum": ["warn", "block", "escalate"],
+                "description": "Severity level"
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable violation message"
+              },
+              "evidence": {
+                "type": "object",
+                "description": "Supporting evidence for violation",
+                "additionalProperties": true
+              },
+              "receipt_annotation": {
+                "type": "string",
+                "description": "Annotation to add to receipt"
+              },
+              "detected_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When violation was detected"
+              },
+              "remediation_suggested": {
+                "type": "string",
+                "description": "Suggested remediation action"
+              }
+            },
+            "required": ["id", "constraint_id", "constraint_name", "violation_type", "severity", "message", "evidence", "receipt_annotation", "detected_at"]
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": ["CLEAR", "FLAGGED", "BLOCKED"],
+          "description": "Overall policy compliance status"
+        },
+        "human_review_required": {
+          "type": "boolean",
+          "description": "Whether human review is required"
+        },
+        "enforcement_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When policy enforcement was performed"
+        },
+        "actions_taken": {
+          "type": "array",
+          "description": "Actions taken as result of policy enforcement",
+          "items": {
+            "type": "string",
+            "enum": ["ALERT", "ANNOTATE", "BLOCK", "ESCALATE", "REQUIRE_HUMAN_REVIEW"]
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

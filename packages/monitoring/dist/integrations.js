@@ -284,3 +284,4 @@ exports.integrationTemplates = {
         },
     },
 };
+//# sourceMappingURL=integrations.js.map

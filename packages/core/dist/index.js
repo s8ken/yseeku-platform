@@ -24,18 +24,19 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SecureAuthService = exports.runSecurityAudit = exports.SecurityAuditor = exports.TRUST_PRINCIPLES = exports.LogLevel = exports.apiLogger = exports.performanceLogger = exports.securityLogger = exports.createLogger = exports.log = exports.logger = exports.generateKeyPair = exports.verifySignature = exports.signPayload = exports.genesisHash = exports.hashChain = exports.mergeWithDefaults = exports.validateConsentConfig = exports.getConsentConfig = exports.US_CONFIG = exports.STRICT_CONFIG = exports.STREAMLINED_CONFIG = exports.DEFAULT_EU_CONFIG = exports.createDefaultContext = exports.PrincipleEvaluator = exports.SonateScorer = exports.TrustReceipt = exports.TrustProtocol = void 0;
-// Core exports
-var trust_protocol_1 = require("./trust-protocol");
+// === TRUST LAYER ===
+var trust_protocol_1 = require("./trust/trust-protocol");
 Object.defineProperty(exports, "TrustProtocol", { enumerable: true, get: function () { return trust_protocol_1.TrustProtocol; } });
-var trust_receipt_1 = require("./trust-receipt");
+var trust_receipt_1 = require("./receipts/trust-receipt");
 Object.defineProperty(exports, "TrustReceipt", { enumerable: true, get: function () { return trust_receipt_1.TrustReceipt; } });
-var sonate_scorer_1 = require("./sonate-scorer");
+// === PRINCIPLES LAYER ===
+var sonate_scorer_1 = require("./principles/sonate-scorer");
 Object.defineProperty(exports, "SonateScorer", { enumerable: true, get: function () { return sonate_scorer_1.SonateScorer; } });
-var principle_evaluator_1 = require("./principle-evaluator");
+var principle_evaluator_1 = require("./principles/principle-evaluator");
 Object.defineProperty(exports, "PrincipleEvaluator", { enumerable: true, get: function () { return principle_evaluator_1.PrincipleEvaluator; } });
 Object.defineProperty(exports, "createDefaultContext", { enumerable: true, get: function () { return principle_evaluator_1.createDefaultContext; } });
-// Consent Configuration (EU-compliant by default)
-var consent_config_1 = require("./consent-config");
+// === CONFIGURATION LAYER ===
+var consent_config_1 = require("./config/consent-config");
 Object.defineProperty(exports, "DEFAULT_EU_CONFIG", { enumerable: true, get: function () { return consent_config_1.DEFAULT_EU_CONFIG; } });
 Object.defineProperty(exports, "STREAMLINED_CONFIG", { enumerable: true, get: function () { return consent_config_1.STREAMLINED_CONFIG; } });
 Object.defineProperty(exports, "STRICT_CONFIG", { enumerable: true, get: function () { return consent_config_1.STRICT_CONFIG; } });
@@ -43,9 +44,9 @@ Object.defineProperty(exports, "US_CONFIG", { enumerable: true, get: function ()
 Object.defineProperty(exports, "getConsentConfig", { enumerable: true, get: function () { return consent_config_1.getConsentConfig; } });
 Object.defineProperty(exports, "validateConsentConfig", { enumerable: true, get: function () { return consent_config_1.validateConsentConfig; } });
 Object.defineProperty(exports, "mergeWithDefaults", { enumerable: true, get: function () { return consent_config_1.mergeWithDefaults; } });
-// Error exports
-__exportStar(require("./errors"), exports);
-// Utility exports
+// === ERROR LAYER ===
+__exportStar(require("./utils/errors"), exports);
+// === UTILITIES LAYER ===
 var hash_chain_1 = require("./utils/hash-chain");
 Object.defineProperty(exports, "hashChain", { enumerable: true, get: function () { return hash_chain_1.hashChain; } });
 Object.defineProperty(exports, "genesisHash", { enumerable: true, get: function () { return hash_chain_1.genesisHash; } });
@@ -55,9 +56,9 @@ Object.defineProperty(exports, "verifySignature", { enumerable: true, get: funct
 Object.defineProperty(exports, "generateKeyPair", { enumerable: true, get: function () { return signatures_1.generateKeyPair; } });
 __exportStar(require("./utils/crypto-advanced"), exports);
 __exportStar(require("./utils/robust-fetch"), exports);
-__exportStar(require("./canonicalize"), exports);
-// Logging infrastructure (Phase 2)
-var logger_1 = require("./logger");
+__exportStar(require("./utils/canonicalize"), exports);
+// === LOGGING INFRASTRUCTURE ===
+var logger_1 = require("./utils/logger");
 Object.defineProperty(exports, "logger", { enumerable: true, get: function () { return logger_1.logger; } });
 Object.defineProperty(exports, "log", { enumerable: true, get: function () { return logger_1.log; } });
 Object.defineProperty(exports, "createLogger", { enumerable: true, get: function () { return logger_1.createLogger; } });
@@ -102,10 +103,10 @@ exports.TRUST_PRINCIPLES = {
         description: 'AI must recognize and respect human moral agency',
     },
 };
-// Linguistic Vector Steering (LVS) and Resonance Metric (R_m)
-__exportStar(require("./resonance-metric"), exports);
-__exportStar(require("./linguistic-vector-steering"), exports);
-__exportStar(require("./tenant-context"), exports);
+// === COHERENCE LAYER (RESONANCE) ===
+__exportStar(require("./coherence/resonance-metric"), exports);
+__exportStar(require("./utils/linguistic-vector-steering"), exports);
+__exportStar(require("./utils/tenant-context"), exports);
 __exportStar(require("./validation/schemas"), exports);
 __exportStar(require("./errors/math-errors"), exports);
 // Calculator V2 is in @sonate/detect (has detect dependencies)

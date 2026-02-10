@@ -49,11 +49,14 @@ async function loadEd25519() {
     if (!ed25519Promise) {
         ed25519Promise = Promise.all([
             new Function('return import("@noble/ed25519")')(),
-            new Function('return import("@noble/hashes/sha512")')(),
+            new Function('return import("@noble/hashes/sha2.js")')(),
         ]).then(([ed25519Mod, hashMod]) => {
             const ed25519 = ed25519Mod.default || ed25519Mod;
             const { sha512 } = hashMod;
-            if (ed25519.etc) {
+            if (ed25519.hashes) {
+                ed25519.hashes.sha512 = sha512;
+            }
+            else if (ed25519.etc) {
                 ed25519.etc.sha512Sync = (...m) => sha512(m[0]);
             }
             return ed25519;

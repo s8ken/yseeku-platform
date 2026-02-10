@@ -6,7 +6,7 @@ exports.getEnvConfig = getEnvConfig;
  * Environment Variable Validation
  * Fails fast if required configuration is missing
  */
-const logger_1 = require("../logger");
+const logger_1 = require("../utils/logger");
 /**
  * Required environment variables for the application to run
  */

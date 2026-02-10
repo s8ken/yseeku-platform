@@ -2,7 +2,7 @@
  * Environment Variable Validation
  * Fails fast if required configuration is missing
  */
-import { logger } from '../logger';
+import { logger } from '../utils/logger';
 
 interface EnvConfig {
   NODE_ENV: 'development' | 'staging' | 'production';

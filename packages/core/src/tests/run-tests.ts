@@ -4,7 +4,7 @@ import {
   AuthenticationError,
   ValidationError,
   ErrorSeverity,
-} from '../errors';
+} from '../utils/errors';
 import {
   TrustProtocol,
   TRUST_PRINCIPLES,
@@ -24,7 +24,7 @@ import {
   calculateResonanceMetrics,
   log,
 } from '../index';
-import { validator, validateInput, InputValidator, Schemas } from '../input-validator';
+import { validator, validateInput, InputValidator, Schemas } from '../utils/input-validator';
 import {
   DEFAULT_LVS_SCAFFOLDING,
   generateLVSPrompt,
@@ -32,7 +32,7 @@ import {
   evaluateLVSEffectiveness,
   createCustomScaffolding,
   getLVSTemplate,
-} from '../linguistic-vector-steering';
+} from '../utils/linguistic-vector-steering';
 import {
   PerformanceTimer,
   timeAsync,
@@ -42,9 +42,9 @@ import {
   timeDbQuery,
   timeExternalApi,
 } from '../monitoring/performance';
-import { createProbabilisticTrustProtocol } from '../probabilistic-trust-protocol';
-import { tenantContext } from '../tenant-context';
-import { EnhancedTrustProtocol } from '../trust-protocol-enhanced';
+import { createProbabilisticTrustProtocol } from '../trust/probabilistic-trust-protocol';
+import { tenantContext } from '../utils/tenant-context';
+import { EnhancedTrustProtocol } from '../trust/trust-protocol-enhanced';
 
 function assert(condition: boolean, message: string) {
   if (!condition) {

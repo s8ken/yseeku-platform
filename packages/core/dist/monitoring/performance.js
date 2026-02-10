@@ -14,7 +14,7 @@ exports.timeExternalApi = timeExternalApi;
 exports.getMemoryUsage = getMemoryUsage;
 exports.logMemoryUsage = logMemoryUsage;
 exports.getCPUUsage = getCPUUsage;
-const logger_1 = require("../logger");
+const logger_1 = require("../utils/logger");
 const metrics_1 = require("./metrics");
 /**
  * Performance timer for tracking operation duration

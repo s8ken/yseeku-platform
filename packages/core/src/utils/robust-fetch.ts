@@ -1,5 +1,5 @@
 
-import { logger } from '../logger';
+import { logger } from './logger';
 
 export interface RobustFetchOptions extends RequestInit {
   timeout?: number;

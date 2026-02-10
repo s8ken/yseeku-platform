@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.robustFetch = robustFetch;
-const logger_1 = require("../logger");
+const logger_1 = require("./logger");
 const DEFAULT_TIMEOUT = 10000; // 10s
 const DEFAULT_RETRIES = 3;
 const DEFAULT_BACKOFF = 1.5;

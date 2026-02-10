@@ -1,10 +1,8 @@
 /**
- * @sonate/policy-engine - Policy Composition Engine
- *
- * Industry-specific trust policy composition and evaluation
+ * @sonate/policy-engine
+ * SONATE Phase 2 - Policy Engine with SYMBI principles
  */
-export { PolicyEngine } from './policy-engine';
+export { PolicyEvaluatorService } from './services/policy-evaluator';
+export { SymbiEvaluator } from './evaluators/symbi-evaluator';
 export * from './types';
-export { PolicyValidator } from './validation/policy-validator';
-export { ComplianceEngine } from './compliance/compliance-engine';
-export { IndustryPolicies } from './policies/industry-policies';
+//# sourceMappingURL=index.d.ts.map

@@ -86,3 +86,4 @@ export declare class IndustryPolicies {
     private createTransportationPolicy;
     private createLegalPolicy;
 }
+//# sourceMappingURL=industry-policies.d.ts.map

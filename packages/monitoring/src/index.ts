@@ -5,6 +5,11 @@
 
 import { register, collectDefaultMetrics, Gauge, Counter, Histogram, Summary } from 'prom-client';
 
+// Phase 2 Monitoring Exports
+export { TruthDebtCalculator, type TruthDebtAnalysis, type Claim, type ClaimType } from './metrics/truth-debt-calculator';
+export { CoherenceTracker, type CoherenceAnalysis, type BehaviorSnapshot, type Anomaly } from './metrics/coherence-tracker';
+export { ResonanceMonitor, type ResonanceMeasure, type AggregatedResonance } from './metrics/resonance-monitor';
+
 // Core metrics collectors
 export const metrics = {
   // AI Detection Metrics

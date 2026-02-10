@@ -8,12 +8,12 @@
  * - Trust scoring now focuses on 3 validated dimensions
  */
 
-import { LVSConfig, applyLVS } from './linguistic-vector-steering';
+import { LVSConfig, applyLVS } from '../utils/linguistic-vector-steering';
 import {
   calculateResonanceMetrics,
   ResonanceMetrics,
   InteractionContext,
-} from './resonance-metric';
+} from '../coherence/resonance-metric';
 import { TrustProtocol } from './trust-protocol';
 
 export interface EnhancedTrustScore {

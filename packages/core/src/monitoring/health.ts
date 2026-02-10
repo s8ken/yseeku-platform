@@ -4,7 +4,7 @@
  * Provides health check endpoints and system status monitoring.
  */
 
-import { log } from '../logger';
+import { log } from '../utils/logger';
 
 /**
  * Health check status

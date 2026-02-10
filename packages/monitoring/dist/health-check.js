@@ -693,3 +693,4 @@ function createHealthCheckSystem() {
  * Global instance
  */
 exports.healthCheckSystem = createHealthCheckSystem();
+//# sourceMappingURL=health-check.js.map

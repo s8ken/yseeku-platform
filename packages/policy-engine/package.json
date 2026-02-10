@@ -1,31 +1,30 @@
 {
   "name": "@sonate/policy-engine",
-  "version": "1.4.0",
-  "description": "Policy Composition Engine for SONATE platform - industry-specific trust configurations",
+  "version": "2.0.0",
+  "description": "SONATE Phase 2 - Policy Engine with SYMBI principles and real-time governance",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "npm run clean && tsc",
-    "dev": "tsc --watch",
-    "clean": "node -e \"const fs=require('fs'); try{fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('tsconfig.tsbuildinfo',{force:true})}catch(e){console.error(e);process.exit(1)}\"",
-    "test": "npm run build && node dist/tests/run-tests.js"
+    "build": "tsc",
+    "test": "vitest",
+    "lint": "eslint src",
+    "clean": "rm -rf dist"
   },
-  "keywords": [
-    "sonate",
-    "policy",
-    "trust",
-    "composition",
-    "compliance",
-    "industry"
-  ],
-  "author": "YSEEKU",
-  "license": "MIT",
   "dependencies": {
-    "@sonate/core": "*",
-    "zod": "^4.3.6"
+    "@sonate/schemas": "file:../schemas",
+    "@sonate/core": "file:../core",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

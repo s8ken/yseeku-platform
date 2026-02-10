@@ -1,4 +1,4 @@
-import { PlatformError, ErrorContext } from '../errors';
+import { PlatformError, ErrorContext } from '../utils/errors';
 export declare class MathValidationError extends PlatformError {
     constructor(message: string, details?: any, context?: ErrorContext);
 }

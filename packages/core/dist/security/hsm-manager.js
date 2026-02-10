@@ -43,7 +43,7 @@ exports.HSMManager = void 0;
 exports.createHSMManager = createHSMManager;
 exports.createHSMManagerFromEnv = createHSMManagerFromEnv;
 const crypto = __importStar(require("crypto"));
-const logger_1 = require("../logger");
+const logger_1 = require("../utils/logger");
 /**
  * HSM Manager for enterprise key management
  */

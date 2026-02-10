@@ -5,9 +5,9 @@
  * confidence intervals, and uncertainty quantification for enterprise-grade trust evaluation
  */
 
-import { BusinessLogicError, TrustScoreCalculationError } from './errors';
+import { BusinessLogicError, TrustScoreCalculationError } from '../utils/errors';
 
-import { TrustScore, PrincipleScores, TrustPrincipleKey } from './index';
+import { TrustScore, PrincipleScores, TrustPrincipleKey } from '../index';
 
 export interface ProbabilisticTrustScore extends TrustScore {
   confidence: {

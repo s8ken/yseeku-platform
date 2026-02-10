@@ -6,7 +6,7 @@
  */
 
 import * as crypto from 'crypto';
-import { logger } from '../logger';
+import { logger } from '../utils/logger';
 
 export interface HSMConfig {
   enabled: boolean;

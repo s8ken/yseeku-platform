@@ -10,10 +10,10 @@
  * Critical Rule: If ANY critical principle scores 0, overall trust = 0
  */
 
-import { CalculationError, MathValidationError } from './errors/math-errors';
-import { PrincipleScoresSchema } from './validation/schemas';
+import { CalculationError, MathValidationError } from '../errors/math-errors';
+import { PrincipleScoresSchema } from '../validation/schemas';
 
-import { TRUST_PRINCIPLES, TrustScore, TrustPrincipleKey, PrincipleScores } from './index';
+import { TRUST_PRINCIPLES, TrustScore, TrustPrincipleKey, PrincipleScores } from '../index';
 
 export class TrustProtocol {
   /**

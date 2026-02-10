@@ -508,10 +508,8 @@ class TemporalBedauTracker {
         if (n < 2) {
             return 0;
         }
-        const variance = values.reduce((sum, v) => {
-            const mean = values.reduce((s, val) => s + val, 0) / n;
-            return sum + Math.pow(v - mean, 2);
-        }, 0) / n;
+        const mean = values.reduce((s, v) => s + v, 0) / n;
+        const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / n;
         const stability = 1 - Math.min(variance * 10, 1);
         return stability;
     }

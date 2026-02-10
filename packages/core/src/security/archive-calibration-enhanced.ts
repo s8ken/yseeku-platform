@@ -6,7 +6,7 @@
  */
 
 import { EnhancedArchiveAnalyzer, FlaggedConversation } from '@sonate/lab';
-import { logger } from '../logger';
+import { logger } from '../utils/logger';
 
 import { EnhancedAuditSystem } from './audit-enhanced';
 import { SecurityError } from './errors';

@@ -246,3 +246,4 @@ exports.AlertManager = AlertManager;
  * Global alert manager instance
  */
 exports.alertManager = new AlertManager();
+//# sourceMappingURL=alerts.js.map

@@ -8,18 +8,20 @@
  * for all SONATE platform modules.
  */
 
-// Core exports
-export { TrustProtocol } from './trust-protocol';
-export { TrustReceipt } from './trust-receipt';
-export { SonateScorer } from './sonate-scorer';
+// === TRUST LAYER ===
+export { TrustProtocol } from './trust/trust-protocol';
+export { TrustReceipt } from './receipts/trust-receipt';
+
+// === PRINCIPLES LAYER ===
+export { SonateScorer } from './principles/sonate-scorer';
 export { 
   PrincipleEvaluator, 
   createDefaultContext,
   type EvaluationContext,
   type PrincipleEvaluationResult 
-} from './principle-evaluator';
+} from './principles/principle-evaluator';
 
-// Consent Configuration (EU-compliant by default)
+// === CONFIGURATION LAYER ===
 export {
   DEFAULT_EU_CONFIG,
   STREAMLINED_CONFIG,
@@ -36,20 +38,19 @@ export {
   type DataRequestConfig,
   type DataRequestMode,
   type WithdrawalBehavior,
-} from './consent-config';
+} from './config/consent-config';
 
-// Error exports
-export * from './errors';
+// === ERROR LAYER ===
+export * from './utils/errors';
 
-// Utility exports
+// === UTILITIES LAYER ===
 export { hashChain, genesisHash } from './utils/hash-chain';
 export { signPayload, verifySignature, generateKeyPair } from './utils/signatures';
 export * from './utils/crypto-advanced';
 export * from './utils/robust-fetch';
+export * from './utils/canonicalize';
 
-export * from './canonicalize';
-
-// Logging infrastructure (Phase 2)
+// === LOGGING INFRASTRUCTURE ===
 export {
   logger,
   log,
@@ -58,7 +59,7 @@ export {
   performanceLogger,
   apiLogger,
   LogLevel,
-} from './logger';
+} from './utils/logger';
 
 // Monitoring infrastructure (Phase 4)
 export * from './monitoring/metrics';
@@ -117,10 +118,10 @@ export interface CIQMetrics {
   quality: number; // 0-1: Overall value
 }
 
-// Linguistic Vector Steering (LVS) and Resonance Metric (R_m)
-export * from './resonance-metric';
-export * from './linguistic-vector-steering';
-export * from './tenant-context';
+// === COHERENCE LAYER (RESONANCE) ===
+export * from './coherence/resonance-metric';
+export * from './utils/linguistic-vector-steering';
+export * from './utils/tenant-context';
 export * from './validation/schemas';
 export * from './errors/math-errors';
 

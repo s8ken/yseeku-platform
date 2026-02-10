@@ -6,7 +6,7 @@
 // import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import * as crypto from 'crypto';
 
-import { tenantContext } from '../tenant-context';
+import { tenantContext } from '../utils/tenant-context';
 
 import { AuthenticationError } from './error-taxonomy';
 

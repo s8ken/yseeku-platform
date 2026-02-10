@@ -1,0 +1,43 @@
+{
+  "name": "@sonate/cli",
+  "version": "1.0.0",
+  "description": "SONATE CLI tools for receipt verification and export",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "sonate": "dist/index.js",
+    "sonate-verify": "dist/commands/verify-receipt.js",
+    "sonate-export": "dist/commands/export-receipts.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "lint": "eslint src",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@sonate/schemas": "file:../../../packages/schemas",
+    "@sonate/core": "file:../../../packages/core",
+    "chalk": "^5.3.0",
+    "commander": "^11.1.0",
+    "fs-extra": "^11.2.0",
+    "ora": "^8.0.1"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

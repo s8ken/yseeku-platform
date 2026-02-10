@@ -18,12 +18,19 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.metrics = void 0;
+exports.metrics = exports.ResonanceMonitor = exports.CoherenceTracker = exports.TruthDebtCalculator = void 0;
 exports.initializeMonitoring = initializeMonitoring;
 exports.getMetrics = getMetrics;
 exports.resetMetrics = resetMetrics;
 exports.getHealthStatus = getHealthStatus;
 const prom_client_1 = require("prom-client");
+// Phase 2 Monitoring Exports
+var truth_debt_calculator_1 = require("./metrics/truth-debt-calculator");
+Object.defineProperty(exports, "TruthDebtCalculator", { enumerable: true, get: function () { return truth_debt_calculator_1.TruthDebtCalculator; } });
+var coherence_tracker_1 = require("./metrics/coherence-tracker");
+Object.defineProperty(exports, "CoherenceTracker", { enumerable: true, get: function () { return coherence_tracker_1.CoherenceTracker; } });
+var resonance_monitor_1 = require("./metrics/resonance-monitor");
+Object.defineProperty(exports, "ResonanceMonitor", { enumerable: true, get: function () { return resonance_monitor_1.ResonanceMonitor; } });
 // Core metrics collectors
 exports.metrics = {
     // AI Detection Metrics
@@ -184,3 +191,4 @@ async function getHealthStatus() {
 __exportStar(require("./alerts"), exports);
 __exportStar(require("./dashboards"), exports);
 __exportStar(require("./integrations"), exports);
+//# sourceMappingURL=index.js.map

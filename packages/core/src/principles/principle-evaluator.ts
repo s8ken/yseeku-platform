@@ -14,7 +14,7 @@
  * 6. MORAL_RECOGNITION (10%) - AI respects user agency
  */
 
-import { PrincipleScores, TrustPrincipleKey } from './index';
+import { PrincipleScores, TrustPrincipleKey } from '../index';
 
 /**
  * Context needed to evaluate principles for a given interaction

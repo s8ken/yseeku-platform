@@ -349,3 +349,4 @@ export type EvidenceType = 'log' | 'report' | 'screenshot' | 'recording' | 'docu
  * Retention periods
  */
 export type RetentionPeriod = '30_days' | '90_days' | '1_year' | '3_years' | '7_years' | 'permanent';
+//# sourceMappingURL=types.d.ts.map

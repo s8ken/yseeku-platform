@@ -1,4 +1,4 @@
-import { PlatformError, ErrorCategory, ErrorSeverity, ErrorContext } from '../errors';
+import { PlatformError, ErrorCategory, ErrorSeverity, ErrorContext } from '../utils/errors';
 
 export class MathValidationError extends PlatformError {
   constructor(message: string, details?: any, context: ErrorContext = { timestamp: Date.now() }) {

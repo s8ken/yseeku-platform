@@ -4,7 +4,7 @@
  * Provides utilities for tracking performance metrics and timing operations.
  */
 
-import { performanceLogger } from '../logger';
+import { performanceLogger } from '../utils/logger';
 
 import {
   workflowDurationHistogram,

@@ -7,18 +7,18 @@
  * This package provides the foundational trust infrastructure
  * for all SONATE platform modules.
  */
-export { TrustProtocol } from './trust-protocol';
-export { TrustReceipt } from './trust-receipt';
-export { SonateScorer } from './sonate-scorer';
-export { PrincipleEvaluator, createDefaultContext, type EvaluationContext, type PrincipleEvaluationResult } from './principle-evaluator';
-export { DEFAULT_EU_CONFIG, STREAMLINED_CONFIG, STRICT_CONFIG, US_CONFIG, getConsentConfig, validateConsentConfig, mergeWithDefaults, type ConsentConfiguration, type ConsentModel, type ConsentScopes, type EscalationChannel, type EscalationChannelConfig, type DataRequestConfig, type DataRequestMode, type WithdrawalBehavior, } from './consent-config';
-export * from './errors';
+export { TrustProtocol } from './trust/trust-protocol';
+export { TrustReceipt } from './receipts/trust-receipt';
+export { SonateScorer } from './principles/sonate-scorer';
+export { PrincipleEvaluator, createDefaultContext, type EvaluationContext, type PrincipleEvaluationResult } from './principles/principle-evaluator';
+export { DEFAULT_EU_CONFIG, STREAMLINED_CONFIG, STRICT_CONFIG, US_CONFIG, getConsentConfig, validateConsentConfig, mergeWithDefaults, type ConsentConfiguration, type ConsentModel, type ConsentScopes, type EscalationChannel, type EscalationChannelConfig, type DataRequestConfig, type DataRequestMode, type WithdrawalBehavior, } from './config/consent-config';
+export * from './utils/errors';
 export { hashChain, genesisHash } from './utils/hash-chain';
 export { signPayload, verifySignature, generateKeyPair } from './utils/signatures';
 export * from './utils/crypto-advanced';
 export * from './utils/robust-fetch';
-export * from './canonicalize';
-export { logger, log, createLogger, securityLogger, performanceLogger, apiLogger, LogLevel, } from './logger';
+export * from './utils/canonicalize';
+export { logger, log, createLogger, securityLogger, performanceLogger, apiLogger, LogLevel, } from './utils/logger';
 export * from './monitoring/metrics';
 export * from './monitoring/performance';
 export * from './monitoring/health';
@@ -67,9 +67,9 @@ export interface CIQMetrics {
     integrity: number;
     quality: number;
 }
-export * from './resonance-metric';
-export * from './linguistic-vector-steering';
-export * from './tenant-context';
+export * from './coherence/resonance-metric';
+export * from './utils/linguistic-vector-steering';
+export * from './utils/tenant-context';
 export * from './validation/schemas';
 export * from './errors/math-errors';
 export { SecurityAuditor, runSecurityAudit } from './security/security-audit';

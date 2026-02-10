@@ -9,7 +9,7 @@
 import { createHash } from 'crypto';
 
 import { ArchiveBenchmarkSuite , ConversationalMetrics, ConversationTurn , ArchiveAnalyzer , ExperimentOrchestrator , StatisticalEngine , EnhancedArchiveAnalyzer, FlaggedConversation , ArchiveCalibrationTool } from '@sonate/lab';
-import { logger } from '../logger';
+import { logger } from '../utils/logger';
 
 import { EnhancedAuditSystem } from './audit-enhanced';
 import { SecurityError } from './errors';

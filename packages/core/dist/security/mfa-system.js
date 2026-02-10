@@ -40,7 +40,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.mfaService = exports.MFAService = void 0;
 // import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const crypto = __importStar(require("crypto"));
-const tenant_context_1 = require("../tenant-context");
+const tenant_context_1 = require("../utils/tenant-context");
 const error_taxonomy_1 = require("./error-taxonomy");
 class MFAService {
     constructor() {

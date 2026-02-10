@@ -33,14 +33,14 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-const errors_1 = require("../errors");
+const errors_1 = require("../utils/errors");
 const index_1 = require("../index");
-const input_validator_1 = require("../input-validator");
-const linguistic_vector_steering_1 = require("../linguistic-vector-steering");
+const input_validator_1 = require("../utils/input-validator");
+const linguistic_vector_steering_1 = require("../utils/linguistic-vector-steering");
 const performance_1 = require("../monitoring/performance");
-const probabilistic_trust_protocol_1 = require("../probabilistic-trust-protocol");
-const tenant_context_1 = require("../tenant-context");
-const trust_protocol_enhanced_1 = require("../trust-protocol-enhanced");
+const probabilistic_trust_protocol_1 = require("../trust/probabilistic-trust-protocol");
+const tenant_context_1 = require("../utils/tenant-context");
+const trust_protocol_enhanced_1 = require("../trust/trust-protocol-enhanced");
 function assert(condition, message) {
     if (!condition) {
         throw new Error(message);

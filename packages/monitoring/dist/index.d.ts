@@ -3,6 +3,9 @@
  * Enterprise-grade monitoring system for AI governance
  */
 import { Gauge, Counter, Histogram, Summary } from 'prom-client';
+export { TruthDebtCalculator, type TruthDebtAnalysis, type Claim, type ClaimType } from './metrics/truth-debt-calculator';
+export { CoherenceTracker, type CoherenceAnalysis, type BehaviorSnapshot, type Anomaly } from './metrics/coherence-tracker';
+export { ResonanceMonitor, type ResonanceMeasure, type AggregatedResonance } from './metrics/resonance-monitor';
 export declare const metrics: {
     detectionRequests: Counter<"status" | "model">;
     detectionLatency: Histogram<"model">;

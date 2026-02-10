@@ -1,8 +1,7 @@
 "use strict";
 /**
- * @sonate/policy-engine - Policy Composition Engine
- *
- * Industry-specific trust policy composition and evaluation
+ * @sonate/policy-engine
+ * SONATE Phase 2 - Policy Engine with SYMBI principles
  */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -19,18 +18,11 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.IndustryPolicies = exports.ComplianceEngine = exports.PolicyValidator = exports.PolicyEngine = void 0;
-// Core policy engine
-var policy_engine_1 = require("./policy-engine");
-Object.defineProperty(exports, "PolicyEngine", { enumerable: true, get: function () { return policy_engine_1.PolicyEngine; } });
+exports.SymbiEvaluator = exports.PolicyEvaluatorService = void 0;
+// Core services
+var policy_evaluator_1 = require("./services/policy-evaluator");
+Object.defineProperty(exports, "PolicyEvaluatorService", { enumerable: true, get: function () { return policy_evaluator_1.PolicyEvaluatorService; } });
+var symbi_evaluator_1 = require("./evaluators/symbi-evaluator");
+Object.defineProperty(exports, "SymbiEvaluator", { enumerable: true, get: function () { return symbi_evaluator_1.SymbiEvaluator; } });
 // Types and interfaces
 __exportStar(require("./types"), exports);
-// Validation
-var policy_validator_1 = require("./validation/policy-validator");
-Object.defineProperty(exports, "PolicyValidator", { enumerable: true, get: function () { return policy_validator_1.PolicyValidator; } });
-// Compliance
-var compliance_engine_1 = require("./compliance/compliance-engine");
-Object.defineProperty(exports, "ComplianceEngine", { enumerable: true, get: function () { return compliance_engine_1.ComplianceEngine; } });
-// Industry policies
-var industry_policies_1 = require("./policies/industry-policies");
-Object.defineProperty(exports, "IndustryPolicies", { enumerable: true, get: function () { return industry_policies_1.IndustryPolicies; } });

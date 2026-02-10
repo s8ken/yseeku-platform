@@ -9,7 +9,7 @@ exports.healthCheckManager = exports.HealthCheckManager = void 0;
 exports.readinessCheck = readinessCheck;
 exports.livenessCheck = livenessCheck;
 exports.startupCheck = startupCheck;
-const logger_1 = require("../logger");
+const logger_1 = require("../utils/logger");
 /**
  * Health check manager
  */

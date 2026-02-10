@@ -12,9 +12,9 @@
 
 import { createHash } from 'crypto';
 
-import { canonicalizeJSON } from './utils/crypto-advanced';
+import { canonicalizeJSON } from '../utils/crypto-advanced';
 
-import { CIQMetrics } from './index';
+import type { CIQMetrics } from '../index';
 
 let ed25519Promise: Promise<any> | null = null;
 

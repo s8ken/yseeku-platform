@@ -7,9 +7,9 @@
  * Used by all modules (Detect, Lab, Orchestrate) for consistent scoring.
  */
 
-import { TrustProtocol } from './trust-protocol';
+import { TrustProtocol } from '../trust/trust-protocol';
 
-import { TrustPrincipleKey, TrustScore } from './index';
+import { TrustPrincipleKey, TrustScore } from '../index';
 
 export interface InteractionContext {
   user_consent: boolean;
