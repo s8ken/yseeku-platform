@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml"><img src="https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml"><img src="https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
-  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT">
+  <img src="https://img.shields.io/badge/License-Proprietary-red.svg" alt="License: Proprietary">
   <img src="https://img.shields.io/badge/version-2.0.0-brightgreen.svg" alt="Version: 2.0.0">
   <img src="https://img.shields.io/badge/AI%20Trust-SONATE-blueviolet.svg" alt="AI Trust">
   <img src="https://img.shields.io/badge/Enterprise-Ready-green.svg" alt="Enterprise Ready">
@@ -367,7 +367,13 @@ npm test
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE)
+**Proprietary - Source Available**
+
+This software is proprietary to Yseeku Pty Ltd. The source code is made available for viewing and reference purposes only. See [LICENSE](LICENSE) for full terms.
+
+For MIT-licensed verification SDKs, see: [sonate-verify-sdk](https://github.com/s8ken/sonate-verify-sdk)
+
+For commercial licensing inquiries: licensing@yseeku.com
 
 ---
 
