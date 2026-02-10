@@ -138,9 +138,12 @@ export default function VerifyPage() {
       return;
     }
 
-    if (!receipt.self_hash && !receipt.receiptHash && !receipt.hash) {
+    // Support multiple hash field names: id (new format), self_hash, receiptHash, hash
+    const hashToVerify = receipt.id || receipt.self_hash || receipt.receiptHash || receipt.hash;
+    
+    if (!hashToVerify && !receipt.signature) {
       toast.error('Invalid Receipt', {
-        description: 'Receipt must contain a hash field (self_hash, receiptHash, or hash) for verification.',
+        description: 'Receipt must contain an id/hash field or signature for verification.',
       });
       return;
     }
@@ -149,36 +152,47 @@ export default function VerifyPage() {
     setVerificationResult(null);
 
     try {
-      const hashToVerify = receipt.self_hash || receipt.receiptHash || receipt.hash;
-
-      // Use real backend verification endpoint
-      const response = await api.verifyTrustReceipt(hashToVerify);
+      // Use the public-demo verify endpoint for cryptographic verification
+      const BACKEND_API = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://yseeku-backend.fly.dev';
+      const response = await fetch(`${BACKEND_API}/api/public-demo/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receipt }),
+      });
+      
+      const data = await response.json();
 
       const result: VerificationResult = {
-        verified: response.valid || false,
-        receipt: response.receipt || receipt,
-        receiptHash: hashToVerify,
-        trustScore: receipt.ciq_metrics?.overall_trust_score || receipt.trustScore?.overall || receipt.trustScore || 0,
-        status: receipt.ciq_metrics?.status || receipt.status || 'UNKNOWN',
+        verified: data.valid || false,
+        receipt: receipt,
+        receiptHash: hashToVerify || data.receiptId,
+        trustScore: receipt.telemetry?.resonance_score 
+          ? receipt.telemetry.resonance_score * 100 
+          : (receipt.ciq_metrics?.overall_trust_score || receipt.trustScore?.overall || receipt.trustScore || 0),
+        status: data.valid ? 'PASS' : 'FAIL',
         timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
         violations: receipt.ciq_metrics?.violations || receipt.trustScore?.violations || [],
-        signatureValid: (response as any).verification?.signatureValid,
-        hashValid: (response as any).verification?.hashValid,
-        foundInDatabase: (response as any).foundInDatabase,
-        publicKey: (response as any).verification?.publicKey,
+        signatureValid: data.checks?.signature === 'PASS',
+        hashValid: data.checks?.chain === 'PASS',
+        foundInDatabase: false, // Public demo doesn't check database
+        publicKey: data.publicKey,
       };
 
       setVerificationResult(result);
 
       if (result.verified) {
         toast.success('Receipt Verified', {
-          description: (response as any).foundInDatabase
-            ? 'JSON receipt is valid, cryptographically signed, and found in database.'
-            : 'JSON receipt is valid and cryptographically signed.',
+          description: 'Cryptographic signature is valid. Receipt has not been tampered with.',
         });
       } else {
+        const failedChecks = Object.entries(data.checks || {})
+          .filter(([_, v]) => v === 'FAIL')
+          .map(([k]) => k)
+          .join(', ');
         toast.error('Verification Failed', {
-          description: 'Receipt verification failed. Signature may be invalid or tampered.',
+          description: failedChecks 
+            ? `Failed checks: ${failedChecks}` 
+            : (data.error || 'Receipt verification failed.'),
         });
       }
     } catch (error: any) {
