@@ -160,20 +160,22 @@ export default function VerifyPage() {
         body: JSON.stringify({ receipt }),
       });
       
-      const data = await response.json();
+      const json = await response.json();
+      // Response is { success: true, data: { valid: true, checks: {...}, ... } }
+      const data = json.data || json;
 
       const result: VerificationResult = {
         verified: data.valid || false,
         receipt: receipt,
-        receiptHash: hashToVerify || data.receiptId,
+        receiptHash: hashToVerify || data.receipt?.id,
         trustScore: receipt.telemetry?.resonance_score 
           ? receipt.telemetry.resonance_score * 100 
           : (receipt.ciq_metrics?.overall_trust_score || receipt.trustScore?.overall || receipt.trustScore || 0),
         status: data.valid ? 'PASS' : 'FAIL',
         timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
         violations: receipt.ciq_metrics?.violations || receipt.trustScore?.violations || [],
-        signatureValid: data.checks?.signature === 'PASS',
-        hashValid: data.checks?.chain === 'PASS',
+        signatureValid: data.checks?.signature?.status === 'PASS',
+        hashValid: data.checks?.chain?.status === 'PASS',
         foundInDatabase: false, // Public demo doesn't check database
         publicKey: data.publicKey,
       };
@@ -186,7 +188,7 @@ export default function VerifyPage() {
         });
       } else {
         const failedChecks = Object.entries(data.checks || {})
-          .filter(([_, v]) => v === 'FAIL')
+          .filter(([_, v]: [string, any]) => v?.status === 'FAIL')
           .map(([k]) => k)
           .join(', ');
         toast.error('Verification Failed', {
