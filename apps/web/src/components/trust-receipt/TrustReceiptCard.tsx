@@ -1,5 +1,5 @@
 import React, { useState } from 'react'; 
-import { Shield, Activity, Fingerprint, Share2, CheckCircle, ChevronDown, ChevronUp, AlertTriangle, UserCheck, Eye, Power, Heart, Cpu, Sparkles, Calculator, Zap } from 'lucide-react'; 
+import { Shield, Activity, Fingerprint, Share2, CheckCircle, ChevronDown, ChevronUp, AlertTriangle, UserCheck, Eye, Power, Heart, Cpu, Sparkles, Calculator, Zap, Copy, Check, ExternalLink } from 'lucide-react'; 
 import { Progress } from '@/components/ui/progress';
 
 // --- Types --- 
@@ -92,7 +92,16 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
   evaluation
 }) => { 
   const [showLegacyMetrics, setShowLegacyMetrics] = useState(false);
-  const { trustScore, status, detection, receiptHash, timestamp, analysisMethod } = evaluation;
+  const [copied, setCopied] = useState(false);
+  const { trustScore, status, detection, receipt, receiptHash, timestamp, analysisMethod } = evaluation;
+  
+  const handleCopyReceipt = async () => {
+    if (receipt) {
+      await navigator.clipboard.writeText(JSON.stringify(receipt, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
   const statusStyle = getStatusColor(status); 
   const hasPrinciples = Object.keys(trustScore.principles || {}).length > 0;
 
@@ -242,10 +251,26 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
           </div> 
           <div className="flex justify-between items-center mt-3 text-[10px] text-slate-600"> 
              <span>{new Date(timestamp).toUTCString()}</span> 
-             <div className="flex items-center gap-1 text-purple-400/80"> 
-               <Share2 size={10} /> 
-               <span>VERIFIED</span> 
-             </div> 
+             <div className="flex items-center gap-2">
+               {receipt && (
+                 <button
+                   onClick={handleCopyReceipt}
+                   className="flex items-center gap-1 text-cyan-400/80 hover:text-cyan-300 transition-colors"
+                   title="Copy receipt JSON for verification"
+                 >
+                   {copied ? <Check size={10} /> : <Copy size={10} />}
+                   <span>{copied ? 'Copied!' : 'Copy'}</span>
+                 </button>
+               )}
+               <a 
+                 href="/dashboard/verify" 
+                 className="flex items-center gap-1 text-purple-400/80 hover:text-purple-300 transition-colors"
+                 title="Verify this receipt"
+               >
+                 <ExternalLink size={10} />
+                 <span>Verify</span>
+               </a>
+             </div>
           </div> 
         </div> 
 
