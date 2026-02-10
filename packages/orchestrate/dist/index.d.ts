@@ -8,6 +8,7 @@ export * from './api-gateway';
 export * from './multi-tenant-isolation';
 export * from './compliance-reporting';
 export * from './audit-trails';
+export * from './did/did-resolver';
 export * from './lvs-agent-orchestrator';
 export * from './observability/metrics';
 export { createSecretsManager, type SecretsManager, AWSKMSSecretsManager, HashiCorpVaultSecretsManager, LocalSecretsManager, } from './security/secrets-manager';

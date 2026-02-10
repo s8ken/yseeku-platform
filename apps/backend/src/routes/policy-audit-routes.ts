@@ -89,7 +89,7 @@ export function createAuditRoutes(): Router {
       parseInt(req.query.limit as string) || 100,
       1000
     );
-    const logs = auditLogger.getAgentLogs(req.params.agentDid, limit);
+    const logs = auditLogger.getAgentLogs(req.params.agentDid as string, limit);
 
     res.json({
       agentDid: req.params.agentDid,

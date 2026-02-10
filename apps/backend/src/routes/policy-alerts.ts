@@ -196,10 +196,10 @@ export class PolicyAlertService {
         severity: violation.severity === 'critical' ? 'critical' : 'warning',
         agentDid: receipt.agent_did,
         receiptId: receipt.id,
-        message: `Policy violation: ${violation.description}`,
+        message: `Policy violation: ${violation.message}`,
         data: {
           violations: evaluation.violations,
-          principle: evaluation.principle_results,
+          principles: evaluation.metadata.principlesApplied,
         },
         timestamp: new Date().toISOString(),
       };

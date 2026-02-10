@@ -24,6 +24,8 @@ __exportStar(require("./api-gateway"), exports);
 __exportStar(require("./multi-tenant-isolation"), exports);
 __exportStar(require("./compliance-reporting"), exports);
 __exportStar(require("./audit-trails"), exports);
+// DID Management
+__exportStar(require("./did/did-resolver"), exports);
 // LVS Agent Orchestration
 __exportStar(require("./lvs-agent-orchestrator"), exports);
 __exportStar(require("./observability/metrics"), exports);

@@ -27,7 +27,7 @@ const reviewQueue: any[] = [];
 const CreatePolicySchema = z.object({
   template: z.enum(['pii-protection', 'truth-debt', 'compliance-boundary', 'coherence-consistency']),
   name: z.string().optional(),
-  customConfig: z.record(z.any()).optional(),
+  customConfig: z.record(z.string(), z.any()).optional(),
 });
 
 const EvaluatePolicySchema = z.object({
@@ -131,7 +131,8 @@ router.get('/predefined', (_req: Request, res: Response) => {
  * Get policy by ID
  */
 router.get('/:policy_id', (req: Request, res: Response) => {
-  const policy = policyStorage.get(req.params.policy_id);
+  const policyId = req.params.policy_id as string;
+  const policy = policyStorage.get(policyId);
 
   if (!policy) {
     return res.status(404).json({
@@ -165,14 +166,15 @@ router.get('/', (_req: Request, res: Response) => {
  * Delete a policy
  */
 router.delete('/:policy_id', (req: Request, res: Response) => {
-  if (!policyStorage.has(req.params.policy_id)) {
+  const policyId = req.params.policy_id as string;
+  if (!policyStorage.has(policyId)) {
     return res.status(404).json({
       success: false,
       error: 'Policy not found',
     });
   }
 
-  policyStorage.delete(req.params.policy_id);
+  policyStorage.delete(policyId);
 
   res.json({
     success: true,

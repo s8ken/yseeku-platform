@@ -127,7 +127,7 @@ export function createAlertRoutes(): Router {
     }
 
     const { agentDid } = req.params;
-    const snapshot = alertService.getMetricsSnapshot(agentDid);
+    const snapshot = alertService.getMetricsSnapshot(agentDid as string);
 
     res.json(snapshot);
   });

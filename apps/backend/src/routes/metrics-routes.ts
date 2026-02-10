@@ -13,10 +13,10 @@ const router = Router();
  * GET /metrics
  * Returns Prometheus-formatted metrics
  */
-router.get('/', (_req: Request, res: Response): void => {
+router.get('/', async (_req: Request, res: Response): Promise<void> => {
   try {
     res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
-    res.send(getMetrics());
+    res.send(await getMetrics());
   } catch (err) {
     console.error('Error generating metrics:', err);
     res.status(500).json({ error: 'Failed to generate metrics' });

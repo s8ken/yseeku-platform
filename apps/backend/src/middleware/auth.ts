@@ -8,7 +8,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-export interface AuthRequest extends Request {
+export interface AuthRequest extends Omit<Request, 'user'> {
   user?: {
     username: string;
     iat?: number;
@@ -16,7 +16,7 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
+export const authMiddleware: any = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const authHeader = req.headers.authorization;
     
@@ -36,7 +36,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
 
     try {
       const decoded = jwt.verify(token, jwtSecret) as { username: string; iat?: number; exp?: number };
-      req.user = decoded;
+      (req as any).user = decoded;
       next();
     } catch (err) {
       if (err instanceof jwt.TokenExpiredError) {
@@ -52,7 +52,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
   }
 };
 
-export const optionalAuthMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
+export const optionalAuthMiddleware: any = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const authHeader = req.headers.authorization;
     
@@ -72,7 +72,7 @@ export const optionalAuthMiddleware = (req: AuthRequest, res: Response, next: Ne
 
     try {
       const decoded = jwt.verify(token, jwtSecret) as { username: string; iat?: number; exp?: number };
-      req.user = decoded;
+      (req as any).user = decoded;
     } catch (err) {
       // Skip auth if token is invalid, don't block request
       console.log('Optional auth: Invalid token, continuing without auth');

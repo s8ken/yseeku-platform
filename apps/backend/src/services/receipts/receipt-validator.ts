@@ -10,7 +10,7 @@
  * - Cryptographic hash validation
  */
 
-import { createHash, publicKeyObject } from 'crypto';
+import { createHash } from 'crypto';
 import { TrustReceipt, receiptValidator, VerificationResult } from '@sonate/schemas';
 import { verifySignature } from '@sonate/core';
 import logger from '../../utils/logger';
@@ -69,7 +69,7 @@ export class ReceiptValidatorService {
       const canonical = JSON.stringify(receiptWithoutSignature, Object.keys(receiptWithoutSignature).sort());
 
       // Verify the signature
-      const isValid = await verifySignature(canonical, sig.value, publicKey);
+      const isValid = await verifySignature(canonical, sig.value, publicKey as Uint8Array);
 
       if (!isValid) {
         logger.warn('Signature verification failed', { receipt_id: receipt.id });
@@ -196,7 +196,8 @@ export class ReceiptValidatorService {
       // Step 3: Verify signature (if public key provided)
       if (publicKey) {
         result.publicKey = typeof publicKey === 'string' ? publicKey : publicKey.toString();
-        const signatureValid = await this.verifySignature(typedReceipt, publicKey);
+        const keyBuffer = typeof publicKey === 'string' ? Buffer.from(publicKey) : publicKey;
+        const signatureValid = await this.verifySignature(typedReceipt, keyBuffer);
         result.checks.signature_valid = signatureValid;
         if (!signatureValid) {
           result.errors.push('Signature verification failed');

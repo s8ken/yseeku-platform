@@ -32,6 +32,9 @@ export * from './multi-tenant-isolation';
 export * from './compliance-reporting';
 export * from './audit-trails';
 
+// DID Management
+export * from './did/did-resolver';
+
 // LVS Agent Orchestration
 export * from './lvs-agent-orchestrator';
 export * from './observability/metrics';

@@ -120,7 +120,7 @@ export function createOverrideRoutes(): Router {
       });
     }
 
-    const override = overrideManager.getOverride(req.params.overrideId);
+    const override = overrideManager.getOverride(req.params.overrideId as string);
 
     if (!override) {
       return res.status(404).json({
@@ -147,7 +147,7 @@ export function createOverrideRoutes(): Router {
     }
 
     const overrides = overrideManager.getActiveOverridesForReceipt(
-      req.params.receiptId
+      req.params.receiptId as string
     );
 
     res.json({
@@ -169,7 +169,7 @@ export function createOverrideRoutes(): Router {
     }
 
     const overrides = overrideManager.getActiveOverridesForAgent(
-      req.params.agentDid
+      req.params.agentDid as string
     );
 
     res.json({
@@ -191,7 +191,7 @@ export function createOverrideRoutes(): Router {
       });
     }
 
-    const success = overrideManager.revokeOverride(req.params.overrideId);
+    const success = overrideManager.revokeOverride(req.params.overrideId as string);
 
     if (!success) {
       return res.status(404).json({

@@ -13,17 +13,17 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { protect } from '../../middleware/auth.middleware';
-import { validateBody } from '../../middleware/validation.middleware';
+import { protect } from '../middleware/auth.middleware';
+import { validateBody } from '../middleware/validation.middleware';
 import {
   ReceiptGeneratorService,
   ReceiptValidatorService,
   ReceiptExporterService,
   type ExportFormat,
   type ExportFilter,
-} from '../../services/receipts';
+} from '../services/receipts';
 import { TrustReceipt, CreateReceiptInput } from '@sonate/schemas';
-import logger from '../../utils/logger';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -64,12 +64,12 @@ const CreateReceiptSchema = z.object({
   }).optional(),
   metadata: z.object({
     tags: z.array(z.string()).optional(),
-    context: z.record(z.any()).optional(),
+    context: z.record(z.string(), z.any()).optional(),
   }).optional(),
 });
 
 const VerifyReceiptSchema = z.object({
-  receipt: z.unknown().required(),
+  receipt: z.unknown(),
   publicKey: z.string().optional(),
   previousChainHash: z.string().optional(),
 });
@@ -150,7 +150,7 @@ router.get(
       const { id } = req.params;
 
       // Validate receipt ID format (SHA-256)
-      if (!/^[a-f0-9]{64}$/.test(id)) {
+      if (!/^[a-f0-9]{64}$/.test(id as string)) {
         res.status(400).json({
           success: false,
           error: 'Invalid receipt ID format',

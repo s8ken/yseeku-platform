@@ -10,8 +10,21 @@
  * - SIEM formats (Splunk, Datadog, Elastic)
  */
 
-import { TrustReceipt, ReceiptExportBatch, SCHEMA_VERSION } from '@sonate/schemas';
+import { TrustReceipt, SCHEMA_VERSION } from '@sonate/schemas';
 import logger from '../../utils/logger';
+
+interface ReceiptExportBatch {
+  metadata: {
+    exported_at: string;
+    count: number;
+    time_range?: {
+      start: string;
+      end: string;
+    };
+    format_version: string;
+  };
+  receipts: TrustReceipt[];
+}
 
 /**
  * Export format options
@@ -281,11 +294,12 @@ export class ReceiptExporterService {
       ]);
 
       // Escape CSV values
-      const escapeCsvValue = (value: string): string => {
-        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-          return `"${value.replace(/"/g, '""')}"`;
+      const escapeCsvValue = (value: string | number): string => {
+        const stringValue = String(value);
+        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
         }
-        return value;
+        return stringValue;
       };
 
       const csvLines = [

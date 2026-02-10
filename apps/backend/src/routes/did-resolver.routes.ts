@@ -13,10 +13,10 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { protect } from '../../middleware/auth.middleware';
-import { validateBody } from '../../middleware/validation.middleware';
+import { protect } from '../middleware/auth.middleware';
+import { validateBody } from '../middleware/validation.middleware';
 import { DIDResolverService } from '@sonate/orchestrate';
-import logger from '../../utils/logger';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -92,7 +92,7 @@ router.get(
       const { did } = req.params;
 
       // Validate DID format
-      if (!isValidDID(did)) {
+      if (!isValidDID(did as string)) {
         res.status(400).json({
           success: false,
           error: 'Invalid DID format',
@@ -101,7 +101,7 @@ router.get(
       }
 
       // Resolve DID
-      const resolved = didResolver.resolveDID(did);
+      const resolved = didResolver.resolveDID(did as string);
 
       if (!resolved) {
         res.status(404).json({
@@ -138,7 +138,7 @@ router.post(
       const { newPublicKey } = req.body;
 
       // Validate DID format
-      if (!isValidDID(did)) {
+      if (!isValidDID(did as string)) {
         res.status(400).json({
           success: false,
           error: 'Invalid DID format',
@@ -147,7 +147,7 @@ router.post(
       }
 
       // Rotate key
-      const updated = didResolver.rotateKey(did, newPublicKey);
+      const updated = didResolver.rotateKey(did as string, newPublicKey);
 
       if (!updated) {
         res.status(404).json({
@@ -187,7 +187,7 @@ router.delete(
       const { did } = req.params;
 
       // Validate DID format
-      if (!isValidDID(did)) {
+      if (!isValidDID(did as string)) {
         res.status(400).json({
           success: false,
           error: 'Invalid DID format',
@@ -196,7 +196,7 @@ router.delete(
       }
 
       // Revoke DID
-      const revoked = didResolver.revokeDID(did);
+      const revoked = didResolver.revokeDID(did as string);
 
       if (!revoked) {
         res.status(404).json({
@@ -234,7 +234,7 @@ router.get(
       const { did } = req.params;
 
       // Validate DID format
-      if (!isValidDID(did)) {
+      if (!isValidDID(did as string)) {
         res.status(400).json({
           success: false,
           error: 'Invalid DID format',
@@ -243,7 +243,7 @@ router.get(
       }
 
       // Get key history
-      const history = didResolver.getKeyHistory(did);
+      const history = didResolver.getKeyHistory(did as string);
 
       if (!history) {
         res.status(404).json({
@@ -280,7 +280,7 @@ router.get(
       const { did } = req.params;
 
       // Validate DID format
-      if (!isValidDID(did)) {
+      if (!isValidDID(did as string)) {
         res.status(400).json({
           success: false,
           error: 'Invalid DID format',
@@ -289,7 +289,7 @@ router.get(
       }
 
       // Get DID document
-      const doc = didResolver.getDIDDocument(did);
+      const doc = didResolver.getDIDDocument(did as string);
 
       if (!doc) {
         res.status(404).json({

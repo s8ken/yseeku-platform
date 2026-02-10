@@ -85,8 +85,8 @@ export function recordViolation(
 /**
  * Get Prometheus-formatted metrics
  */
-export function getMetrics(): string {
-  return register.metrics();
+export async function getMetrics(): Promise<string> {
+  return await register.metrics();
 }
 
 /**

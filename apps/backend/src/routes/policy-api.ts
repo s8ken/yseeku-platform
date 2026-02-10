@@ -250,8 +250,8 @@ export class PolicyAPIService {
             medium: report.mediumCount,
             low: report.lowCount,
           },
-          summary: report.violations.size > 0 
-            ? Array.from(report.violations.values())[0]?.ruleId
+          summary: (report as any).violations?.size > 0 
+            ? (Array.from((report as any).violations.values())[0] as any)?.ruleId
             : undefined,
         },
         timestamp: new Date().toISOString(),
@@ -316,10 +316,10 @@ export class PolicyAPIService {
     try {
       const { agentDid } = req.params;
 
-      const coherence = this.coherenceTracker.calculateLBC(agentDid, 50);
-      const aggregated = this.resonanceMonitor.getAggregatedMetrics(agentDid);
+    const coherence = this.coherenceTracker.calculateLBC(agentDid as string, 50);
+    const aggregated = this.resonanceMonitor.getAggregatedMetrics(agentDid as string);
 
-      res.json({
+    res.json({
         success: true,
         data: {
           agentDid,
@@ -345,10 +345,10 @@ export class PolicyAPIService {
   ): Promise<void> {
     try {
       const { agentDid } = req.params;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
 
-      const history = this.coherenceTracker.getHistory(agentDid);
-      const recent = history.slice(Math.max(0, history.length - limit));
+    const history = this.coherenceTracker.getHistory(agentDid as string);
+    const recent = history.slice(Math.max(0, history.length - limit));
 
       res.json({
         success: true,
@@ -437,7 +437,7 @@ export class PolicyAPIService {
   ): Promise<void> {
     try {
       const { ruleId } = req.params;
-      const rule = this.registry.getRule(ruleId);
+      const rule = this.registry.getRule(ruleId as string);
 
       if (!rule) {
         res.status(404).json({

@@ -93,7 +93,7 @@ export class ReceiptGeneratorService {
       const timestamp = new Date().toISOString();
       
       // Sign the canonical content
-      const signature = await signPayload(content, agentPrivateKey);
+      const signature = await signPayload(content, Buffer.from(agentPrivateKey));
       
       return {
         signature,
