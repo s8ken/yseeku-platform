@@ -83,6 +83,7 @@ const moduleSections: ModuleSection[] = [
     badge: 'LIVE',
     items: [
       { title: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'user', 'viewer'], module: 'detect' },
+      { title: 'Tactical Command', href: '/dashboard/tactical-command', icon: Compass, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Live Monitor', href: '/dashboard/monitoring/live', icon: Activity, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Trust Session', href: '/dashboard/chat', icon: Sparkles, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Agents', href: '/dashboard/agents', icon: Bot, roles: ['admin', 'user'], module: 'detect' },
@@ -122,6 +123,7 @@ const moduleSections: ModuleSection[] = [
 // Essential navigation items for simplified view (8 core items)
 const ESSENTIAL_ITEMS = new Set([
   '/dashboard',           // Main dashboard
+  '/dashboard/tactical-command',
   '/dashboard/monitoring/live', // Live Monitor (Phase-Shift Velocity)
   '/dashboard/chat',      // Trust Session
   '/dashboard/agents',    // Agents

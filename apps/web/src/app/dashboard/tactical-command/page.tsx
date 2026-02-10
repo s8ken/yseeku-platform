@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   Bot,
   CheckCircle2,
+  ExternalLink,
   GitBranch,
   RefreshCw,
   TrendingDown,
@@ -146,6 +147,12 @@ export default function TacticalCommandPage() {
             <Button variant="outline" size="sm" className="gap-2">
               <Activity className="h-4 w-4" />
               Monitoring
+            </Button>
+          </Link>
+          <Link href="/tactical-command/v2" target="_blank" rel="noreferrer">
+            <Button variant="outline" size="sm" className="gap-2">
+              <ExternalLink className="h-4 w-4" />
+              Open v2
             </Button>
           </Link>
           <Button
