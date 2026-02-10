@@ -990,7 +990,7 @@ The SONATE Trust Protocol evaluates every AI response against 6 constitutional p
                   signature: signedReceipt.signature?.value,
                   verified: true,
                   agentId: agent._id?.toString(),
-                  tenantId: tenantId,
+                  tenant_id: tenantId,
                 },
               },
               { upsert: true }
