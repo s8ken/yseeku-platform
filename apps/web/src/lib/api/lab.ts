@@ -14,14 +14,26 @@ export interface ExperimentVariant {
 export interface Experiment {
   id: string;
   name: string;
-  description: string;
-  status: 'draft' | 'running' | 'paused' | 'completed';
-  variants: ExperimentVariant[];
+  description?: string;
+  hypothesis: string;
+  type: 'ab_test' | 'multivariate' | 'sequential' | 'bayesian';
+  status: 'draft' | 'running' | 'paused' | 'completed' | 'archived';
+  variants: Array<{
+    name: string;
+    description?: string;
+    sampleSize: number;
+    avgScore: number;
+    successCount: number;
+    failureCount: number;
+  }>;
+  targetSampleSize: number;
+  currentSampleSize: number;
+  progress: number;
   metrics: {
-    totalSamples: number;
     significant: boolean;
     pValue?: number;
     effectSize?: number;
+    confidenceInterval?: [number, number];
   };
   startedAt?: string;
   completedAt?: string;
@@ -78,8 +90,10 @@ export const labApi = {
 
   async createExperiment(data: {
     name: string;
+    hypothesis: string;
     description?: string;
-    variants: Array<{ name: string; config: Record<string, unknown> }>;
+    targetSampleSize?: number;
+    variants: Array<{ name: string; description?: string; config?: Record<string, unknown> }>;
   }): Promise<{ success: boolean; data: Experiment }> {
     return fetchAPI('/api/lab/experiments', {
       method: 'POST',
