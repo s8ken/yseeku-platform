@@ -87,6 +87,7 @@ const moduleSections: ModuleSection[] = [
       { title: 'Live Monitor', href: '/dashboard/monitoring/live', icon: Activity, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Trust Session', href: '/dashboard/chat', icon: Sparkles, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Agents', href: '/dashboard/agents', icon: Bot, roles: ['admin', 'user'], module: 'detect' },
+      { title: 'Interactions', href: '/dashboard/interactions', icon: MessageSquare, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Trust Receipts', href: '/dashboard/receipts', icon: Fingerprint, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Verify Receipt', href: '/dashboard/verify', icon: ShieldCheck, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Risk & Compliance', href: '/dashboard/risk', icon: Waves, roles: ['admin', 'user'], module: 'detect' },
@@ -100,6 +101,7 @@ const moduleSections: ModuleSection[] = [
     badge: 'SANDBOX',
     items: [
       { title: 'Resonance Lab', href: '/dashboard/lab/resonance', icon: Waves, roles: ['admin', 'user'], module: 'lab' },
+      { title: 'Emergence Lab', href: '/dashboard/lab/emergence', icon: Sparkles, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Experiments', href: '/dashboard/lab/experiments', icon: FlaskConical, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Model Compare', href: '/dashboard/compare', icon: Beaker, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Safety Scanner', href: '/dashboard/safety', icon: Shield, roles: ['admin', 'user'], module: 'lab' },
@@ -117,6 +119,7 @@ const moduleSections: ModuleSection[] = [
       { title: 'Audit Trails', href: '/dashboard/audit', icon: FileText, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'Learn', href: '/dashboard/learn', icon: GraduationCap, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
       { title: 'Docs', href: '/dashboard/docs', icon: Book, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
+      { title: 'Dev Tools', href: '/dashboard/tools', icon: Settings, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['admin'], module: 'orchestrate' },
     ]
   }
@@ -129,10 +132,12 @@ const ESSENTIAL_ITEMS = new Set([
   '/dashboard/monitoring/live', // Live Monitor (Phase-Shift Velocity)
   '/dashboard/chat',      // Trust Session
   '/dashboard/agents',    // Agents
+  '/dashboard/interactions', // Interactions (enterprise tracking)
   '/dashboard/receipts',  // Trust Receipts
   '/dashboard/risk',      // Risk & Compliance
   '/dashboard/alerts',    // Alerts
   '/dashboard/lab/resonance', // Resonance Lab (Third Mind)
+  '/dashboard/lab/emergence', // Emergence Lab (Bedau detection)
   '/dashboard/lab/experiments', // Experiments
   '/dashboard/lab/bedau', // Pattern Analysis (Bedau Index)
   '/dashboard/reports',   // Compliance Reports
