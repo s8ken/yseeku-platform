@@ -63,6 +63,8 @@ import actionsRoutes from './routes/actions.routes';
 import keyRotationRoutes from './routes/key-rotation.routes';
 import customPolicyRoutes from './routes/custom-policy.routes';
 import ssoRoutes from './routes/sso.routes';
+import verifiableCredentialsRoutes from './routes/verifiable-credentials.routes';
+import trustPortabilityRoutes from './routes/trust-portability.routes';
 import { initializeSocket } from './socket';
 import { liveMetricsService } from './services/live-metrics.service';
 import { User } from './models/user.model';
@@ -219,6 +221,8 @@ app.use('/api/did', didRoutes); // DID API endpoints
 app.use('/api/keys', keyRotationRoutes); // Key rotation management
 app.use('/api/policy-rules', customPolicyRoutes); // Custom policy rules
 app.use('/api/sso', ssoRoutes); // SSO/OIDC authentication
+app.use('/api/credentials', verifiableCredentialsRoutes); // W3C Verifiable Credentials
+app.use('/api/trust-export', trustPortabilityRoutes); // Cross-platform trust portability
 
 // 404 handler - catch unmatched routes
 app.use(notFoundHandler);
