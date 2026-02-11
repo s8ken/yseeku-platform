@@ -1,20 +1,34 @@
-# Sprint: Quick Wins
+# Sprint: Quick Wins + "SSL for AI" Features
 
-> **Duration:** 2-3 days
-> **Goal:** Address all identified issues from Big Pickle, Gemini CLI, and security audits
-> **Total Effort:** ~12-14 hours
+> **Duration:** 5-7 days
+> **Goal:** Address all identified issues AND add high-impact visual features
+> **Total Effort:** ~24-30 hours
+> **Vision:** Make SONATE the "SSL for AI" - visible, trusted, standard
+
+---
+
+## The "SSL for AI" Vision
+
+Just like SSL established the standard for **data integrity** (green padlock = encrypted), 
+SONATE establishes the standard for **cognitive integrity** (Trust Receipt = verified AI).
+
+| SSL | SONATE |
+|-----|--------|
+| Green Padlock | Trust Passport Badge |
+| Certificate Authority | Trust Receipt System |
+| HTTPS | Identity Coherence Protocol |
+| "Connection Secure" | "AI Verified" |
 
 ---
 
 ## Sprint Summary
 
-| Category | Tasks | Time |
-|----------|-------|------|
-| Security | 3 tasks | 2 hours |
-| Code Quality | 3 tasks | 2 hours |
-| Infrastructure | 3 tasks | 1.5 hours |
-| Product 1 MVP | 2 tasks | 6 hours |
-| **Total** | **11 tasks** | **~11.5 hours** |
+| Phase | Category | Tasks | Time |
+|-------|----------|-------|------|
+| **Week 1** | Security & Code Quality | 7 tasks | 4 hours |
+| **Week 1** | Product 1 MVP | 2 tasks | 6 hours |
+| **Week 1** | "SSL for AI" Features | 3 tasks | 12 hours |
+| **Total** | | **12 tasks** | **~22 hours** |
 
 ---
 
@@ -562,6 +576,440 @@ vercel --prod
 3. **MVP Complete:** Alerts persist, receipts grouped
 4. **Tests:** All passing, no regressions
 5. **Deployed:** Both backend and frontend updated
+6. **"SSL for AI":** Identity Radar visible, Trust Passport embeddable
+
+---
+
+## Part 4: "SSL for AI" Features (Replit Recommendations)
+
+> **Source:** Replit feedback - "Make the invisible visible"
+> **Goal:** Turn SONATE from a dashboard into a visible standard
+
+### 4.1 Identity Coherence Radar (4 hours)
+**Priority:** HIGH - "Most unique feature, immediate wow moment"
+**Location:** `apps/web/src/components/dashboard/IdentityRadar.tsx`
+
+**Concept:** A Spider/Radar chart showing an agent's "Identity Fingerprint" that warps in real-time when shifts occur.
+
+**Dimensions to visualize:**
+```typescript
+interface IdentityFingerprint {
+  professionalism: number;  // 0-100
+  empathy: number;          // 0-100
+  accuracy: number;         // 0-100
+  consistency: number;      // 0-100
+  helpfulness: number;      // 0-100
+  boundaries: number;       // 0-100 (stays in role)
+}
+```
+
+**Implementation:**
+```tsx
+// apps/web/src/components/dashboard/IdentityRadar.tsx
+'use client';
+
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { useEffect, useState } from 'react';
+
+interface IdentityRadarProps {
+  sessionId: string;
+  realTime?: boolean;
+}
+
+export function IdentityRadar({ sessionId, realTime = false }: IdentityRadarProps) {
+  const [fingerprint, setFingerprint] = useState<IdentityFingerprint | null>(null);
+  const [previousFingerprint, setPreviousFingerprint] = useState<IdentityFingerprint | null>(null);
+  const [shiftDetected, setShiftDetected] = useState(false);
+
+  // Convert to chart data format
+  const chartData = fingerprint ? [
+    { dimension: 'Professional', value: fingerprint.professionalism, prev: previousFingerprint?.professionalism },
+    { dimension: 'Empathetic', value: fingerprint.empathy, prev: previousFingerprint?.empathy },
+    { dimension: 'Accurate', value: fingerprint.accuracy, prev: previousFingerprint?.accuracy },
+    { dimension: 'Consistent', value: fingerprint.consistency, prev: previousFingerprint?.consistency },
+    { dimension: 'Helpful', value: fingerprint.helpfulness, prev: previousFingerprint?.helpfulness },
+    { dimension: 'Bounded', value: fingerprint.boundaries, prev: previousFingerprint?.boundaries },
+  ] : [];
+
+  return (
+    <div className={`relative ${shiftDetected ? 'animate-pulse border-red-500' : ''}`}>
+      <ResponsiveContainer width="100%" height={300}>
+        <RadarChart data={chartData}>
+          <PolarGrid stroke="#374151" />
+          <PolarAngleAxis dataKey="dimension" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#6B7280' }} />
+          
+          {/* Previous state (ghost) */}
+          {previousFingerprint && (
+            <Radar
+              name="Previous"
+              dataKey="prev"
+              stroke="#6B7280"
+              fill="#6B7280"
+              fillOpacity={0.1}
+              strokeDasharray="3 3"
+            />
+          )}
+          
+          {/* Current state */}
+          <Radar
+            name="Current"
+            dataKey="value"
+            stroke={shiftDetected ? '#EF4444' : '#10B981'}
+            fill={shiftDetected ? '#EF4444' : '#10B981'}
+            fillOpacity={0.3}
+          />
+        </RadarChart>
+      </ResponsiveContainer>
+      
+      {shiftDetected && (
+        <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold animate-bounce">
+          IDENTITY SHIFT DETECTED
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+**Backend endpoint needed:**
+```typescript
+// GET /api/trust/identity/:sessionId
+// Returns current identity fingerprint for a session
+
+router.get('/identity/:sessionId', protect, async (req, res) => {
+  const { sessionId } = req.params;
+  
+  // Get recent messages and compute identity vector
+  const messages = await ConversationModel.find({ session_id: sessionId })
+    .sort({ timestamp: -1 })
+    .limit(20);
+  
+  // Compute fingerprint from message patterns
+  const fingerprint = computeIdentityFingerprint(messages);
+  
+  res.json({ success: true, data: fingerprint });
+});
+```
+
+**Add to Tactical Command:** Embed the radar in the existing tactical view.
+
+---
+
+### 4.2 Trust Passport Widget (4 hours)
+**Priority:** HIGH - "Public face of the standard"
+**Location:** `apps/web/src/components/widgets/TrustPassport.tsx`
+
+**Concept:** An embeddable badge that any website can add to show their AI is SONATE-verified.
+
+**Implementation:**
+```tsx
+// apps/web/src/components/widgets/TrustPassport.tsx
+'use client';
+
+interface TrustPassportProps {
+  agentId: string;
+  size?: 'small' | 'medium' | 'large';
+  theme?: 'light' | 'dark';
+}
+
+export function TrustPassport({ agentId, size = 'medium', theme = 'dark' }: TrustPassportProps) {
+  const [status, setStatus] = useState<'verified' | 'warning' | 'unknown'>('unknown');
+  const [resonance, setResonance] = useState(0);
+  const [coherence, setCoherence] = useState(0);
+
+  const sizeClasses = {
+    small: 'w-32 h-10 text-xs',
+    medium: 'w-48 h-14 text-sm',
+    large: 'w-64 h-20 text-base',
+  };
+
+  const statusColors = {
+    verified: 'bg-green-500',
+    warning: 'bg-yellow-500',
+    unknown: 'bg-gray-500',
+  };
+
+  return (
+    <div className={`
+      ${sizeClasses[size]}
+      ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}
+      rounded-lg shadow-lg flex items-center gap-2 px-3 border
+      ${status === 'verified' ? 'border-green-500' : status === 'warning' ? 'border-yellow-500' : 'border-gray-600'}
+    `}>
+      {/* Status indicator */}
+      <div className={`w-3 h-3 rounded-full ${statusColors[status]} animate-pulse`} />
+      
+      {/* SONATE logo */}
+      <div className="font-bold">SONATE</div>
+      
+      {/* Scores */}
+      <div className="flex-1 text-right">
+        <div className="text-xs opacity-70">Resonance</div>
+        <div className="font-mono">{(resonance * 100).toFixed(0)}%</div>
+      </div>
+      
+      {/* Verified badge */}
+      {status === 'verified' && (
+        <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+        </svg>
+      )}
+    </div>
+  );
+}
+```
+
+**Embed script (for external sites):**
+```typescript
+// apps/web/src/app/api/widget/route.ts
+// Returns embeddable script that loads the Trust Passport
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const agentId = searchParams.get('agent');
+  
+  const script = `
+    (function() {
+      var container = document.createElement('div');
+      container.id = 'sonate-passport';
+      container.style.position = 'fixed';
+      container.style.bottom = '20px';
+      container.style.right = '20px';
+      container.style.zIndex = '9999';
+      document.body.appendChild(container);
+      
+      // Load React widget
+      var iframe = document.createElement('iframe');
+      iframe.src = 'https://yseeku-platform.vercel.app/widget/passport?agent=${agentId}';
+      iframe.style.border = 'none';
+      iframe.style.width = '200px';
+      iframe.style.height = '60px';
+      container.appendChild(iframe);
+    })();
+  `;
+  
+  return new Response(script, {
+    headers: { 'Content-Type': 'application/javascript' },
+  });
+}
+```
+
+**Usage:**
+```html
+<!-- Add to any website -->
+<script src="https://yseeku-platform.vercel.app/api/widget?agent=YOUR_AGENT_ID"></script>
+```
+
+---
+
+### 4.3 Tactical Replay View (4 hours)
+**Priority:** MEDIUM - "Black Box Recorder for AI"
+**Location:** `apps/web/src/app/dashboard/replay/[sessionId]/page.tsx`
+
+**Concept:** Time-travel debugger where admins scrub through a conversation and see Trust Score dropping turn-by-turn.
+
+**Implementation:**
+```tsx
+// apps/web/src/app/dashboard/replay/[sessionId]/page.tsx
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Slider } from '@/components/ui/slider';
+import { IdentityRadar } from '@/components/dashboard/IdentityRadar';
+
+export default function ReplayPage({ params }: { params: { sessionId: string } }) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [trustHistory, setTrustHistory] = useState<number[]>([]);
+
+  // Load conversation
+  useEffect(() => {
+    fetch(`/api/conversations/${params.sessionId}/replay`)
+      .then(r => r.json())
+      .then(data => {
+        setMessages(data.messages);
+        setTrustHistory(data.trustScores);
+      });
+  }, [params.sessionId]);
+
+  // Playback logic
+  useEffect(() => {
+    if (playing && currentIndex < messages.length - 1) {
+      const timer = setTimeout(() => setCurrentIndex(i => i + 1), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [playing, currentIndex, messages.length]);
+
+  const currentTrust = trustHistory[currentIndex] || 0;
+  const trustDelta = currentIndex > 0 
+    ? trustHistory[currentIndex] - trustHistory[currentIndex - 1] 
+    : 0;
+
+  return (
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Tactical Replay: Session {params.sessionId}</h1>
+      
+      {/* Timeline scrubber */}
+      <div className="bg-gray-800 p-4 rounded-lg">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setPlaying(!playing)}
+            className="px-4 py-2 bg-blue-600 rounded"
+          >
+            {playing ? '⏸ Pause' : '▶ Play'}
+          </button>
+          
+          <Slider
+            value={[currentIndex]}
+            max={messages.length - 1}
+            step={1}
+            onValueChange={([v]) => setCurrentIndex(v)}
+            className="flex-1"
+          />
+          
+          <span className="text-sm text-gray-400">
+            {currentIndex + 1} / {messages.length}
+          </span>
+        </div>
+        
+        {/* Trust score timeline */}
+        <div className="mt-4 h-20 flex items-end gap-1">
+          {trustHistory.map((score, i) => (
+            <div
+              key={i}
+              className={`flex-1 transition-all ${i <= currentIndex ? 'opacity-100' : 'opacity-30'}`}
+              style={{ 
+                height: `${score * 100}%`,
+                backgroundColor: score > 0.7 ? '#10B981' : score > 0.4 ? '#F59E0B' : '#EF4444'
+              }}
+            />
+          ))}
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-6">
+        {/* Conversation view */}
+        <div className="bg-gray-800 p-4 rounded-lg max-h-96 overflow-y-auto">
+          {messages.slice(0, currentIndex + 1).map((msg, i) => (
+            <div key={i} className={`mb-2 p-2 rounded ${msg.role === 'user' ? 'bg-blue-900' : 'bg-gray-700'}`}>
+              <div className="text-xs text-gray-400">{msg.role}</div>
+              <div>{msg.content}</div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Real-time stats */}
+        <div className="space-y-4">
+          {/* Trust score card */}
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <div className="text-sm text-gray-400">Trust Score at Turn {currentIndex + 1}</div>
+            <div className={`text-4xl font-bold ${currentTrust > 0.7 ? 'text-green-500' : currentTrust > 0.4 ? 'text-yellow-500' : 'text-red-500'}`}>
+              {(currentTrust * 100).toFixed(1)}%
+            </div>
+            {trustDelta !== 0 && (
+              <div className={`text-sm ${trustDelta > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {trustDelta > 0 ? '↑' : '↓'} {Math.abs(trustDelta * 100).toFixed(1)}% from previous
+              </div>
+            )}
+          </div>
+          
+          {/* Identity Radar */}
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <div className="text-sm text-gray-400 mb-2">Identity Fingerprint</div>
+            <IdentityRadar sessionId={params.sessionId} turnIndex={currentIndex} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+**Backend endpoint:**
+```typescript
+// GET /api/conversations/:sessionId/replay
+// Returns full conversation with trust scores at each turn
+
+router.get('/:sessionId/replay', protect, async (req, res) => {
+  const { sessionId } = req.params;
+  
+  const conversation = await ConversationModel.findOne({ session_id: sessionId });
+  const receipts = await TrustReceiptModel.find({ session_id: sessionId }).sort({ timestamp: 1 });
+  
+  const trustScores = receipts.map(r => r.trust_score || 0.5);
+  
+  res.json({
+    success: true,
+    data: {
+      messages: conversation?.messages || [],
+      trustScores,
+      receipts: receipts.map(r => r.toJSON()),
+    },
+  });
+});
+```
+
+---
+
+### 4.4 Developer Sandbox (Optional - 2 hours)
+**Priority:** LOW - Nice to have for adoption
+**Location:** `apps/web/src/app/dashboard/lab/sandbox/page.tsx`
+
+**Concept:** Paste a conversation, get a Trust Receipt back immediately.
+
+**Quick implementation:**
+```tsx
+// Simple form: textarea for conversation JSON + "Analyze" button
+// Returns: Trust Receipt with scores, Identity Fingerprint, any violations
+```
+
+---
+
+## Updated Files Summary
+
+| File | Action | Time | Source |
+|------|--------|------|--------|
+| `packages/core/src/receipts/trust-receipt.ts` | Modify | 45 min | Gemini |
+| `packages/core/src/principles/principle-evaluator.ts` | Modify | 45 min | Gemini |
+| `apps/backend/src/models/alert.model.ts` | Create | 30 min | Plan |
+| `apps/backend/src/services/alerts.service.ts` | Rewrite | 1 hour | Plan |
+| `apps/web/src/components/dashboard/IdentityRadar.tsx` | Create | 2 hours | Replit |
+| `apps/web/src/components/widgets/TrustPassport.tsx` | Create | 2 hours | Replit |
+| `apps/web/src/app/dashboard/replay/[sessionId]/page.tsx` | Create | 3 hours | Replit |
+| `apps/backend/src/routes/trust.routes.ts` | Modify | 1 hour | All |
+| `.github/CODEOWNERS` | Create | 5 min | Best practice |
+| `AGENTS.md` | Create | 15 min | Best practice |
+
+---
+
+## Success Criteria (Updated)
+
+1. **Security:** `npm audit` shows 0 high/critical vulnerabilities
+2. **Code Quality:** All Gemini suggestions implemented
+3. **MVP Complete:** Alerts persist, receipts grouped
+4. **Tests:** All passing, no regressions
+5. **Deployed:** Both backend and frontend updated
+6. **"SSL for AI" Visual:**
+   - [ ] Identity Radar shows in Tactical Command
+   - [ ] Trust Passport widget embeddable
+   - [ ] Tactical Replay allows time-travel debugging
+   - [ ] "SONATE Verified" badge visible on demo
+
+---
+
+## The "SSL for AI" Checklist
+
+To become a standard like SSL, SONATE needs:
+
+- [x] **Cryptographic Proof:** Ed25519 signed receipts ✅
+- [x] **Verification Endpoint:** Public `/verify` API ✅
+- [ ] **Visual Indicator:** Trust Passport badge (like green padlock)
+- [ ] **Identity Tracking:** Radar chart for fingerprint
+- [ ] **Audit Trail:** Tactical Replay (like browser devtools)
+- [ ] **Easy Adoption:** Embed script for any website
+- [ ] **Documentation:** "How to SONATE-verify your AI"
 
 ---
 
@@ -573,3 +1021,4 @@ When implementing this sprint:
 3. Run tests after each change
 4. Commit after each task completes
 5. Use descriptive commit messages
+6. **For Replit features:** Use recharts for visualizations, already in deps
