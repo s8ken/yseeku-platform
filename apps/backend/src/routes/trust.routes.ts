@@ -748,7 +748,16 @@ router.get('/did-info', async (req: Request, res: Response): Promise<void> => {
 router.get('/receipts/list', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { limit = 50, offset = 0 } = req.query;
-    const tenantId = req.userTenant || req.tenant || 'default';
+    const headerTenant = req.headers['x-tenant-id'] as string | undefined;
+    const tenantId = headerTenant || req.userTenant || req.tenant || 'default';
+    
+    logger.info('Receipts list query', { 
+      headerTenant, 
+      reqTenant: req.tenant, 
+      userTenant: req.userTenant, 
+      resolvedTenant: tenantId,
+      userId: req.userId
+    });
 
     const [receipts, total, verified] = await Promise.all([
       TrustReceiptModel.find({ tenant_id: tenantId })

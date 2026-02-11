@@ -336,10 +336,12 @@ export interface ReceiptsData {
 }
 
 export function useReceiptsData(limit = 20) {
+  // Always fetch from live endpoint - receipts are real even in demo mode
+  // Demo mode creates real receipts under demo-tenant, which we want to show
   return useDemoData<ReceiptsData>({
     queryKey: ['receipts', String(limit)],
     liveEndpoint: `/api/trust/receipts/list?limit=${limit}`,
-    demoEndpoint: `/api/demo/receipts?limit=${limit}`,
+    demoEndpoint: `/api/trust/receipts/list?limit=${limit}`, // Use real endpoint in demo too
     transform: (data) => {
       const receipts = (data.data || data.receipts || data || []).map((r: any) => ({
         id: r._id || r.id || r.self_hash,
