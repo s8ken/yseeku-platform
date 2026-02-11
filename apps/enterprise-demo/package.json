@@ -4,7 +4,7 @@
   "description": "Enterprise-grade SONATE platform demo with React + Tailwind + TypeScript",
   "private": true,
   "scripts": {
-    "dev": "vite",
+    "dev": "echo \"Enterprise Demo skipped\"",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives"

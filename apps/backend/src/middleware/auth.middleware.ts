@@ -233,6 +233,41 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
 }
 
 /**
+ * Role-based access control middleware
+ * @param allowedRoles - Array of roles that can access the route
+ */
+export function requireRole(allowedRoles: string[]) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+      return;
+    }
+
+    const userRole = req.user.role || 'viewer';
+    const isYseekuAdmin = req.user.email?.endsWith('@yseeku.com');
+    
+    // yseeku.com emails always have access
+    if (isYseekuAdmin) {
+      next();
+      return;
+    }
+
+    if (!allowedRoles.includes(userRole)) {
+      res.status(403).json({
+        success: false,
+        message: `Role '${userRole}' not authorized. Required: ${allowedRoles.join(' or ')}`
+      });
+      return;
+    }
+
+    next();
+  };
+}
+
+/**
  * Optional auth - doesn't fail if no token
  */
 export async function optionalAuth(req: Request, res: Response, next: NextFunction): Promise<void> {

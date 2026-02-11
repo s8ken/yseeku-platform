@@ -8,7 +8,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { alertsService } from '../../services/alerts.service';
+import { AlertsService } from '../../services/alerts.service';
 import { demoSeederService } from '../../services/demo-seeder.service';
 import { Agent } from '../../models/agent.model';
 import { Experiment } from '../../models/experiment.model';
@@ -32,8 +32,7 @@ router.post('/init', async (req: Request, res: Response): Promise<void> => {
     // Seed complete demo tenant with real data
     const seedResult = await demoSeederService.seed(force);
 
-    // Also seed alerts via the existing service
-    await alertsService.seedDemoAlerts(DEMO_TENANT_ID);
+
 
     logger.info('Demo mode initialized', seedResult);
 
@@ -83,16 +82,20 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
     await demoSeederService.seed();
 
     // Query real data from demo tenant
-    const [agents, receipts, alertSummary, experiments, conversations] = await Promise.all([
+    const [agents, receipts, alertSummaryRaw, experiments, conversations] = await Promise.all([
       Agent.countDocuments({}),
       TrustReceiptModel.find({ tenant_id: DEMO_TENANT_ID })
         .sort({ timestamp: -1 })
         .limit(100)
         .lean(),
-      alertsService.getSummary(DEMO_TENANT_ID),
+      AlertsService.getAlertStats(DEMO_TENANT_ID),
       Experiment.countDocuments({ status: 'running' }),
       Conversation.countDocuments({}),
     ]);
+    const alertSummary = {
+      active: alertSummaryRaw.active,
+      critical: alertSummaryRaw.critical,
+    };
 
     // Calculate real metrics from trust receipts
     const avgClarity = receipts.length > 0

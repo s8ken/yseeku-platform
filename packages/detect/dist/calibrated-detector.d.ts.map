@@ -1,1 +1,0 @@
-{"version":3,"file":"calibrated-detector.d.ts","sourceRoot":"","sources":["../src/calibrated-detector.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,eAAe,EAAE,gBAAgB,EAA6B,MAAM,gBAAgB,CAAC;AAE9F;;;GAGG;AACH,qBAAa,wBAAwB;IACnC,OAAO,CAAC,IAAI,CAAkC;;IAMxC,cAAc,CAAC,KAAK,EAAE,eAAe,GAAG,OAAO,CAAC,gBAAgB,CAAC;IAWvE,OAAO,CAAC,gBAAgB;IA+BxB,OAAO,CAAC,kBAAkB;CAyB3B"}

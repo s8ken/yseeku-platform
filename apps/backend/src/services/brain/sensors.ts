@@ -2,7 +2,7 @@ import { bedauService } from '../bedau.service';
 import { TrustReceiptModel } from '../../models/trust-receipt.model';
 import { Agent } from '../../models/agent.model';
 import { Conversation } from '../../models/conversation.model';
-import { alertsService } from '../alerts.service';
+import { AlertsService } from '../alerts.service';
 import { recallMany } from './memory';
 import logger from '../../utils/logger';
 
@@ -196,7 +196,7 @@ async function gatherAgentHealth(tenantId: string): Promise<AgentHealthSummary> 
  */
 async function gatherAlertSummary(tenantId: string): Promise<AlertSummary> {
   try {
-    const alerts = await alertsService.list(tenantId, {
+    const { alerts } = await AlertsService.getAlerts(tenantId, {
       status: 'active',
       limit: 100,
     });

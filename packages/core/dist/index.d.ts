@@ -8,7 +8,7 @@
  * for all SONATE platform modules.
  */
 export { TrustProtocol } from './trust/trust-protocol';
-export { TrustReceipt } from './receipts/trust-receipt';
+export { TrustReceipt, initCrypto, isCryptoReady } from './receipts/trust-receipt';
 export { SonateScorer } from './principles/sonate-scorer';
 export { PrincipleEvaluator, createDefaultContext, type EvaluationContext, type PrincipleEvaluationResult } from './principles/principle-evaluator';
 export { DEFAULT_EU_CONFIG, STREAMLINED_CONFIG, STRICT_CONFIG, US_CONFIG, getConsentConfig, validateConsentConfig, mergeWithDefaults, type ConsentConfiguration, type ConsentModel, type ConsentScopes, type EscalationChannel, type EscalationChannelConfig, type DataRequestConfig, type DataRequestMode, type WithdrawalBehavior, } from './config/consent-config';

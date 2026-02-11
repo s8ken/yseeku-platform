@@ -20,6 +20,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: 'admin' | 'editor' | 'viewer';
+  tenant_id?: string;
   apiKeys: IApiKey[];
   preferences: {
     defaultModel: string;
@@ -33,6 +34,12 @@ export interface IUser extends Document {
     consentScope: string[];  // e.g., ['chat', 'analysis', 'recommendations']
     canWithdrawAnytime: boolean;
   };
+  // SSO fields
+  ssoId?: string;
+  ssoProvider?: string;
+  ssoRefreshToken?: string;
+  emailVerified?: boolean;
+  picture?: string;
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
   createdAt: Date;
@@ -125,6 +132,28 @@ const UserSchema = new Schema<IUser>({
       default: true,
     },
   },
+  // SSO fields
+  ssoId: {
+    type: String,
+    sparse: true,
+  },
+  ssoProvider: {
+    type: String,
+    enum: ['google', 'microsoft', 'okta', 'oidc', null],
+  },
+  ssoRefreshToken: {
+    type: String,
+    select: false,
+  },
+  emailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  picture: String,
+  tenant_id: {
+    type: String,
+    default: 'default',
+  },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
   createdAt: {
@@ -132,6 +161,9 @@ const UserSchema = new Schema<IUser>({
     default: Date.now,
   },
 });
+
+// Index for SSO lookup
+UserSchema.index({ ssoId: 1, ssoProvider: 1 }, { sparse: true });
 
 // Encrypt password before saving
 UserSchema.pre('save', async function () {
@@ -166,3 +198,4 @@ UserSchema.methods.getResetPasswordToken = function (): string {
 };
 
 export const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+export const UserModel = User;

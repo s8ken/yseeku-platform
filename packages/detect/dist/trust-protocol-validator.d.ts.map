@@ -1,1 +1,0 @@
-{"version":3,"file":"trust-protocol-validator.d.ts","sourceRoot":"","sources":["../src/trust-protocol-validator.ts"],"names":[],"mappings":"AAAA;;;;;GAKG;AAEH,OAAO,EAAE,aAAa,EAAE,MAAM,SAAS,CAAC;AAExC,qBAAa,sBAAsB;IAC3B,QAAQ,CAAC,WAAW,EAAE,aAAa,GAAG,OAAO,CAAC,MAAM,GAAG,SAAS,GAAG,MAAM,CAAC;YAclE,iBAAiB;YAKjB,eAAe;YAKf,aAAa;CAI5B"}

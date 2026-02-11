@@ -38,6 +38,31 @@ async function loadEd25519(): Promise<any> {
   return ed25519Promise;
 }
 
+let isInitialized = false;
+
+/**
+ * Pre-load the Ed25519 crypto library for better performance.
+ * Call this during application startup to avoid cold-start delays.
+ * 
+ * @example
+ * import { initCrypto } from '@sonate/core';
+ * await initCrypto(); // Call once at app startup
+ */
+export async function initCrypto(): Promise<void> {
+  if (isInitialized) return;
+  await loadEd25519();
+  isInitialized = true;
+  console.log('[TrustReceipt] Crypto library pre-loaded');
+}
+
+/**
+ * Check if crypto is initialized
+ */
+export function isCryptoReady(): boolean {
+  return isInitialized;
+}
+
+
 export interface SonateTrustReceipt {
   id: string; // SHA-256 Hash of the interaction
   timestamp: string; // ISO Date
@@ -142,6 +167,7 @@ export class TrustReceipt {
    */
   async verify(publicKey: Uint8Array): Promise<boolean> {
     if (!this.signature) {
+      console.warn('[TrustReceipt] Verification failed: No signature present');
       return false;
     }
 
@@ -151,6 +177,7 @@ export class TrustReceipt {
       const ed25519 = await loadEd25519();
       return await ed25519.verify(signature, messageHash, publicKey);
     } catch (error) {
+      console.error('[TrustReceipt] Signature verification failed:', error);
       return false;
     }
   }
@@ -174,7 +201,10 @@ export class TrustReceipt {
    * Verify signature with session binding
    */
   async verifyBound(publicKey: Uint8Array): Promise<boolean> {
-    if (!this.signature) {return false;}
+    if (!this.signature) {
+      console.warn('[TrustReceipt] Bound verification failed: No signature present');
+      return false;
+    }
     const payload = JSON.stringify({
       self_hash: this.self_hash,
       session_id: this.session_id,
@@ -185,7 +215,8 @@ export class TrustReceipt {
     try {
       const ed25519 = await loadEd25519();
       return await ed25519.verify(signature, msg, publicKey);
-    } catch {
+    } catch (error) {
+      console.error('[TrustReceipt] Bound signature verification failed:', error);
       return false;
     }
   }

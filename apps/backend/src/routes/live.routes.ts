@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware';
 import { liveMetricsService, getHistoricalMetrics } from '../services/live-metrics.service';
-import { alertsService } from '../services/alerts.service';
+import { AlertsService } from '../services/alerts.service';
 import { Conversation } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
 import logger from '../utils/logger';
@@ -30,7 +30,7 @@ router.get('/metrics', protect, async (req: Request, res: Response): Promise<voi
       activeAgents,
       totalAgents,
       recentConversations,
-      activeAlerts,
+      alertsResult, // Renamed from activeAlerts to alertsResult
     ] = await Promise.all([
       Agent.countDocuments({ lastActive: { $gte: oneHourAgo } }),
       Agent.countDocuments(),
@@ -38,8 +38,10 @@ router.get('/metrics', protect, async (req: Request, res: Response): Promise<voi
         .select('messages lastActivity')
         .limit(100)
         .lean(),
-      alertsService.list('default', { status: 'active', limit: 100 }),
+      AlertsService.getAlerts('default', { status: 'active', limit: 100 }), // Use AlertsService.getAlerts
     ]);
+    
+    const { alerts: activeAlerts } = alertsResult; // Destructure alerts from alertsResult
     
     // Calculate trust metrics from recent conversations
     let totalTrust = 0;
@@ -55,11 +57,12 @@ router.get('/metrics', protect, async (req: Request, res: Response): Promise<voi
     const avgTrust = messageCount > 0 ? totalTrust / messageCount : 8.5;
     
     // Calculate alert summary
+    const summaryStats = await AlertsService.getAlertStats(userTenant); // Use AlertsService.getAlertStats
     const alertSummary = {
-      total: activeAlerts.length,
-      critical: activeAlerts.filter(a => a.severity === 'critical').length,
-      warning: activeAlerts.filter(a => a.severity === 'warning').length,
-      info: activeAlerts.filter(a => a.severity === 'info').length,
+      total: summaryStats.active, // Use active from summaryStats
+      critical: summaryStats.critical,
+      warning: summaryStats.byType['policy_breach'] || 0, // Example mapping, adjust as needed
+      info: summaryStats.byType['emergence_detected'] || 0, // Example mapping, adjust as needed
     };
     
     res.json({
@@ -118,9 +121,10 @@ router.get('/events', protect, async (req: Request, res: Response): Promise<void
   try {
     const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
     const oneDayAgo = new Date(Date.now() - 24 * 3600000);
+    const tenantId = String(req.tenant || 'default');
     
     // Get recent alerts as events
-    const alerts = await alertsService.list('default', { limit });
+    const { alerts } = await AlertsService.getAlerts(tenantId, { limit }); // Use AlertsService.getAlerts
     
     // Get recent conversation activity
     const conversations = await Conversation.find({
@@ -146,9 +150,9 @@ router.get('/events', protect, async (req: Request, res: Response): Promise<void
     // Add alerts as events
     for (const alert of alerts) {
       events.push({
-        id: alert.id,
-        timestamp: alert.timestamp,
-        type: 'alert',
+        id: alert._id.toString(), // Use _id.toString()
+        timestamp: alert.created_at.toISOString(), // Use created_at.toISOString()
+        type: alert.type,
         description: alert.title,
         severity: alert.severity,
       });

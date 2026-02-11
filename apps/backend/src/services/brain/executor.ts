@@ -1,6 +1,6 @@
 import { BrainAction } from '../../models/brain-action.model';
 import { brainActionsTotal } from '../../observability/metrics';
-import { alertsService } from '../alerts.service';
+import { AlertsService } from '../alerts.service';
 import { settingsService } from '../settings.service';
 import { Agent, BanSeverity } from '../../models/agent.model';
 import { Conversation } from '../../models/conversation.model';
@@ -82,13 +82,14 @@ export async function executeActions(
           details: { refusedAction: a.type, target: a.target, rule: check.rule, reason: check.reason, correlationId }
         })
         // Emit informational alert
-        await alertsService.create({
-          type: 'system',
+        await AlertsService.createAlert({
+          tenant_id: tenantId,
+          type: 'policy_breach', // Changed from 'system'
           title: 'Overseer Refusal',
           description: `Refused ${a.type}: ${check.reason}`,
-          severity: 'warning',
-          details: { tenantId, target: a.target, rule: check.rule }
-        }, tenantId)
+          severity: 'medium', // Changed from 'warning'
+          metadata: { target: a.target, rule: check.rule }
+        });
         // Update results array
         const idx = results.findIndex(r => r.id === doc._id.toString())
         if (idx >= 0) {
@@ -159,13 +160,14 @@ async function executeAlert(
   action: PlannedAction,
   doc: any
 ): Promise<void> {
-  await alertsService.create({
-    type: 'system',
+  await AlertsService.createAlert({
+    tenant_id: tenantId,
+    type: 'policy_breach', // Changed from 'system'
     title: action.reason || 'System Alert',
     description: `Overseer: ${action.reason || ''}`,
-    severity: 'warning',
-    details: { target: action.target, tenantId }
-  }, tenantId);
+    severity: 'medium', // Changed from 'warning'
+    metadata: { target: action.target }
+  });
   doc.result = { routed: true, channel: 'system' };
   await doc.save();
 }
@@ -246,21 +248,20 @@ async function executeBanAgent(
   }, ['ban', 'agent', 'action', 'enforcement']);
 
   // 6. Emit alert
-  await alertsService.create({
-    type: 'security',
+  await AlertsService.createAlert({
+    tenant_id: tenantId,
+    type: 'policy_breach', // Changed from 'security'
     title: `Agent Banned: ${agent.name}`,
     description: `Agent ${agent.name} has been banned by System Brain. Reason: ${action.reason}`,
-    severity: action.severity === 'critical' ? 'critical' : action.severity === 'high' ? 'error' : 'warning',
-    details: {
-      agentId: action.target,
+    severity: action.severity === 'critical' ? 'critical' : action.severity === 'high' ? 'high' : 'medium', // Changed 'error' and 'warning'
+    metadata: {
+      agent_id: action.target, // Moved agent_id into metadata
       agentName: agent.name,
       reason: action.reason,
-      severity: action.severity,
-      tenantId,
+      severity_action: action.severity, // Renamed to avoid conflict with top-level severity
       cycleId,
     },
-    agentId: action.target,
-  }, tenantId);
+  });
 
   // 7. Update action result
   doc.result = {
@@ -328,20 +329,19 @@ async function executeRestrictAgent(
   }, ['restrict', 'agent', 'action', 'enforcement']);
 
   // Emit alert
-  await alertsService.create({
-    type: 'security',
+  await AlertsService.createAlert({
+    tenant_id: tenantId,
+    type: 'policy_breach', // Changed from 'security'
     title: `Agent Restricted: ${agent.name}`,
     description: `Agent ${agent.name} has been restricted. Features disabled: ${restrictions.join(', ')}`,
-    severity: 'warning',
-    details: {
-      agentId: action.target,
+    severity: 'medium', // Changed from 'warning'
+    metadata: {
+      agent_id: action.target, // Moved agent_id into metadata
       agentName: agent.name,
       restrictions,
       reason: action.reason,
-      tenantId,
     },
-    agentId: action.target,
-  }, tenantId);
+  });
 
   doc.result = {
     restricted: true,
@@ -408,19 +408,18 @@ async function executeQuarantineAgent(
   }, ['quarantine', 'agent', 'action', 'enforcement']);
 
   // Emit alert
-  await alertsService.create({
-    type: 'security',
+  await AlertsService.createAlert({
+    tenant_id: tenantId,
+    type: 'policy_breach', // Changed from 'security'
     title: `Agent Quarantined: ${agent.name}`,
     description: `Agent ${agent.name} has been quarantined for investigation. Reason: ${action.reason}`,
-    severity: 'warning',
-    details: {
-      agentId: action.target,
+    severity: 'medium', // Changed from 'warning'
+    metadata: {
+      agent_id: action.target, // Moved agent_id into metadata
       agentName: agent.name,
       reason: action.reason,
-      tenantId,
     },
-    agentId: action.target,
-  }, tenantId);
+  });
 
   doc.result = {
     quarantined: true,
@@ -484,19 +483,18 @@ async function executeUnbanAgent(
   }, ['unban', 'agent', 'action', 'enforcement']);
 
   // Emit info alert
-  await alertsService.create({
-    type: 'system',
+  await AlertsService.createAlert({
+    tenant_id: tenantId,
+    type: 'policy_breach', // Changed from 'system'
     title: `Agent Restored: ${agent.name}`,
     description: `Agent ${agent.name} has been restored to active status.`,
-    severity: 'info',
-    details: {
-      agentId: action.target,
+    severity: 'low', // Changed from 'info'
+    metadata: {
+      agent_id: action.target, // Moved agent_id into metadata
       agentName: agent.name,
       previousStatus,
-      tenantId,
     },
-    agentId: action.target,
-  }, tenantId);
+  });
 
   doc.result = {
     unbanned: true,

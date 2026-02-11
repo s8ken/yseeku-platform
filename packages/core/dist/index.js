@@ -23,12 +23,14 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SecureAuthService = exports.runSecurityAudit = exports.SecurityAuditor = exports.TRUST_PRINCIPLES = exports.LogLevel = exports.apiLogger = exports.performanceLogger = exports.securityLogger = exports.createLogger = exports.log = exports.logger = exports.generateKeyPair = exports.verifySignature = exports.signPayload = exports.genesisHash = exports.hashChain = exports.mergeWithDefaults = exports.validateConsentConfig = exports.getConsentConfig = exports.US_CONFIG = exports.STRICT_CONFIG = exports.STREAMLINED_CONFIG = exports.DEFAULT_EU_CONFIG = exports.createDefaultContext = exports.PrincipleEvaluator = exports.SonateScorer = exports.TrustReceipt = exports.TrustProtocol = void 0;
+exports.SecureAuthService = exports.runSecurityAudit = exports.SecurityAuditor = exports.TRUST_PRINCIPLES = exports.LogLevel = exports.apiLogger = exports.performanceLogger = exports.securityLogger = exports.createLogger = exports.log = exports.logger = exports.generateKeyPair = exports.verifySignature = exports.signPayload = exports.genesisHash = exports.hashChain = exports.mergeWithDefaults = exports.validateConsentConfig = exports.getConsentConfig = exports.US_CONFIG = exports.STRICT_CONFIG = exports.STREAMLINED_CONFIG = exports.DEFAULT_EU_CONFIG = exports.createDefaultContext = exports.PrincipleEvaluator = exports.SonateScorer = exports.isCryptoReady = exports.initCrypto = exports.TrustReceipt = exports.TrustProtocol = void 0;
 // === TRUST LAYER ===
 var trust_protocol_1 = require("./trust/trust-protocol");
 Object.defineProperty(exports, "TrustProtocol", { enumerable: true, get: function () { return trust_protocol_1.TrustProtocol; } });
 var trust_receipt_1 = require("./receipts/trust-receipt");
 Object.defineProperty(exports, "TrustReceipt", { enumerable: true, get: function () { return trust_receipt_1.TrustReceipt; } });
+Object.defineProperty(exports, "initCrypto", { enumerable: true, get: function () { return trust_receipt_1.initCrypto; } });
+Object.defineProperty(exports, "isCryptoReady", { enumerable: true, get: function () { return trust_receipt_1.isCryptoReady; } });
 // === PRINCIPLES LAYER ===
 var sonate_scorer_1 = require("./principles/sonate-scorer");
 Object.defineProperty(exports, "SonateScorer", { enumerable: true, get: function () { return sonate_scorer_1.SonateScorer; } });

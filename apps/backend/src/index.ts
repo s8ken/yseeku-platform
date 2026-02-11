@@ -60,6 +60,9 @@ import phaseShiftRoutes from './routes/phase-shift.routes';
 import driftRoutes from './routes/drift.routes';
 import insightsRoutes from './routes/insights.routes';
 import actionsRoutes from './routes/actions.routes';
+import keyRotationRoutes from './routes/key-rotation.routes';
+import customPolicyRoutes from './routes/custom-policy.routes';
+import ssoRoutes from './routes/sso.routes';
 import { initializeSocket } from './socket';
 import { liveMetricsService } from './services/live-metrics.service';
 import { User } from './models/user.model';
@@ -75,6 +78,8 @@ import { annotateActiveSpan } from './observability/tracing';
 import { globalErrorHandler, notFoundHandler } from './middleware/error-handler';
 import { securityHeaders } from './middleware/security-headers';
 import { createTenantRateLimiter } from './middleware/tenant-rate-limit';
+import { initCrypto } from '@sonate/core';
+import { setIoInstance } from './utils/socket'; // Import setIoInstance
 // Note: input-validation.ts provides additional sanitization and security features
 // Available for use on sensitive routes requiring extra validation
 // import { sanitizeInput } from './middleware/input-validation';
@@ -211,6 +216,9 @@ app.use('/.well-known', didRoutes); // DID resolution at standard .well-known pa
 app.use('/.well-known', pubkeyRoutes); // Public key for receipt verification (no auth required)
 app.use('/api/public-demo', publicDemoRoutes); // Public demo endpoints (no auth required)
 app.use('/api/did', didRoutes); // DID API endpoints
+app.use('/api/keys', keyRotationRoutes); // Key rotation management
+app.use('/api/policy-rules', customPolicyRoutes); // Custom policy rules
+app.use('/api/sso', ssoRoutes); // SSO/OIDC authentication
 
 // 404 handler - catch unmatched routes
 app.use(notFoundHandler);
@@ -233,6 +241,7 @@ async function startServer() {
   });
 
   try {
+    await initCrypto(); // Pre-load crypto
     // Connect to database (non-blocking for health checks)
     await connectDatabase();
     logger.info('Database connected successfully', {
@@ -325,6 +334,7 @@ async function startServer() {
         credentials: true,
       },
     });
+    setIoInstance(io); // Set the io instance
     initializeSocket(io);
     liveMetricsService.initialize(io); // Initialize live metrics broadcasting
     logger.info('Socket.IO server initialized', {

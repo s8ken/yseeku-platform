@@ -47,13 +47,13 @@ interface WebhookPayload {
     description: string;
     severity: string;
     status: string;
-    details?: Record<string, unknown>;
-    createdAt: string;
+    metadata?: Record<string, unknown>; // details changed to metadata
+    created_at: string; // createdAt changed to created_at
   };
   context: {
-    tenantId: string;
-    agentId?: string;
-    conversationId?: string;
+    tenant_id: string; // tenantId changed to tenant_id
+    agent_id?: string; // agentId changed to agent_id
+    session_id?: string; // conversationId changed to session_id
     metrics?: MetricSnapshot;
   };
   rule?: {
@@ -86,7 +86,7 @@ class WebhookService {
    */
   async processAlert(alert: IAlert, metrics?: MetricSnapshot): Promise<void> {
     try {
-      const configs = await this.getActiveConfigs(alert.tenantId || 'default');
+      const configs = await this.getActiveConfigs(alert.tenant_id || 'default');
       
       for (const config of configs) {
         await this.evaluateAndDeliver(config, alert, metrics);
@@ -291,13 +291,13 @@ class WebhookService {
         description: alert.description,
         severity: alert.severity,
         status: alert.status,
-        details: alert.details as Record<string, unknown>,
-        createdAt: alert.timestamp.toISOString(),
+        metadata: alert.metadata as Record<string, unknown>, // details changed to metadata
+        created_at: alert.created_at.toISOString(), // createdAt changed to created_at
       },
       context: {
-        tenantId,
-        agentId: alert.agentId,
-        conversationId: alert.conversationId,
+        tenant_id: tenantId,
+        agent_id: alert.metadata?.agent_id as string | undefined, // Access agent_id from metadata
+        session_id: alert.session_id, // session_id is a top-level property
         metrics,
       },
       ...(rule && {
@@ -682,10 +682,10 @@ class WebhookService {
         description: 'This is a test webhook from Yseeku Platform',
         severity: 'info',
         status: 'active',
-        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(), // Changed from createdAt
       },
       context: {
-        tenantId: config.tenantId,
+        tenant_id: config.tenantId, // Changed from tenantId
       },
     };
     

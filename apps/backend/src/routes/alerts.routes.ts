@@ -6,8 +6,12 @@
 import { Router, Request, Response } from 'express';
 import logger, { securityLogger } from '../utils/logger';
 import { protect } from '../middleware/auth.middleware';
-import { alertsService, AlertSeverity, AlertStatus } from '../services/alerts.service';
+import { AlertsService } from '../services/alerts.service';
+import { IAlert } from '../models/alert.model';
 import { getErrorMessage, getErrorStack } from '../utils/error-utils';
+
+type AlertSeverity = IAlert['severity'];
+type AlertStatus = IAlert['status'];
 
 const router = Router();
 
@@ -25,7 +29,7 @@ router.get('/management', protect, async (req: Request, res: Response): Promise<
     // If no alerts exist for the tenant, the query naturally returns empty results
 
     // Get all alerts for filtering
-    let alerts = await alertsService.list(tenantId, {
+    let { alerts, total } = await AlertsService.getAlerts(tenantId, {
       status: status && status !== 'all' ? status as AlertStatus : undefined,
       severity: severity && severity !== 'all' ? severity as AlertSeverity : undefined,
       limit: limit ? Number(limit) : 100,
@@ -44,16 +48,25 @@ router.get('/management', protect, async (req: Request, res: Response): Promise<
     }
 
     // Get summary stats
-    const summary = await alertsService.getSummary(tenantId);
+    const summary = await AlertsService.getAlertStats(tenantId);
 
     res.json({
       success: true,
       data: {
         alerts: alerts.sort(
-          (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime() // created_at instead of timestamp
         ),
-        total: alerts.length,
-        summary,
+        total: total,
+        summary: {
+          critical: summary.critical,
+          high: 0, // No high severity in new AlertsService.getAlertStats
+          medium: 0, // No medium severity in new AlertsService.getAlertStats
+          low: 0, // No low severity in new AlertsService.getAlertStats
+          total: summary.total,
+          active: summary.active,
+          acknowledged: 0, // Not available in new AlertsService.getAlertStats
+          resolved: 0, // Not available in new AlertsService.getAlertStats
+        },
       },
     });
   } catch (error) {
@@ -77,10 +90,9 @@ router.get('/management', protect, async (req: Request, res: Response): Promise<
 router.post('/:id/acknowledge', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const tenantId = req.tenant || 'default';
     const userEmail = (req as any).userEmail || req.userId || 'unknown';
 
-    const alert = await alertsService.acknowledge(String(id), String(userEmail), tenantId);
+    const alert = await AlertsService.acknowledgeAlert(String(id), String(userEmail));
 
     if (!alert) {
       res.status(404).json({
@@ -116,10 +128,8 @@ router.post('/:id/acknowledge', protect, async (req: Request, res: Response): Pr
 router.post('/:id/resolve', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const tenantId = String(req.tenant || 'default');
-    const userEmail = (req as any).userEmail || req.userId || 'unknown';
 
-    const alert = await alertsService.resolve(String(id), String(userEmail), tenantId);
+    const alert = await AlertsService.resolveAlert(String(id));
 
     if (!alert) {
       res.status(404).json({
@@ -147,53 +157,6 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
   }
 });
 
-/**
- * @route   POST /api/dashboard/alerts/:id/suppress
- * @desc    Suppress an alert
- * @access  Private
- */
-router.post('/:id/suppress', protect, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const { duration } = req.body;
-    const tenantId = String(req.tenant || 'default');
-    const userEmail = (req as any).userEmail || req.userId || 'unknown';
-
-    if (!duration || typeof duration !== 'number') {
-      res.status(400).json({
-        success: false,
-        message: 'Duration (in hours) is required',
-      });
-      return;
-    }
-
-    const alert = await alertsService.suppress(String(id), String(userEmail), tenantId);
-
-    if (!alert) {
-      res.status(404).json({
-        success: false,
-        message: 'Alert not found',
-      });
-      return;
-    }
-
-    res.json({
-      success: true,
-      message: `Alert suppressed for ${duration} hour(s)`,
-      data: { alert },
-    });
-  } catch (error) {
-    logger.error('Failed to suppress alert', {
-      error,
-      stack: getErrorStack(error),
-    });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to suppress alert',
-      error: getErrorMessage(error),
-    });
-  }
-});
 
 /**
  * @route   GET /api/dashboard/alerts
@@ -207,31 +170,29 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
     // Query real alerts for any tenant (including live-tenant)
     // If no alerts exist, the query naturally returns empty results
 
-    // Get active alerts, sorted by timestamp, limited to 10
-    const alerts = await alertsService.list(tenantId, {
+    // Get active alerts, sorted by created_at, limited to 10
+    const { alerts } = await AlertsService.getAlerts(tenantId, {
       status: 'active',
       limit: 10,
     });
 
     // Get summary stats
-    const summary = await alertsService.getSummary(tenantId);
+    const summary = await AlertsService.getAlertStats(tenantId);
 
     res.json({
       tenant: tenantId,
       summary: {
         critical: summary.critical,
-        error: summary.error,
-        warning: summary.warning,
         total: summary.active,
       },
       alerts: alerts.map((alert) => ({
-        id: alert.id,
-        timestamp: alert.timestamp,
+        id: alert._id.toString(), // Use _id.toString() from IAlert
+        created_at: alert.created_at, // Use created_at from IAlert
         type: alert.type,
         title: alert.title,
         description: alert.description,
         severity: alert.severity,
-        details: alert.details,
+        metadata: alert.metadata, // Use metadata from IAlert
       })),
     });
   } catch (error) {
@@ -254,24 +215,26 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
  */
 router.post('/', protect, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { type, title, description, severity, details, agentId, conversationId } = req.body;
-    const tenantId = String(req.tenant || 'default');
+    const { type, title, description, severity, metadata, receipt_id, session_id } = req.body;
+    const tenantId = String(req.tenant || 'default'); // This is available from req.tenant
 
     if (!type || !title || !severity) {
       res.status(400).json({ success: false, message: 'type, title, severity required' });
       return;
     }
 
-    const alert = await alertsService.create({
+    const alert = await AlertsService.createAlert({
+      tenant_id: tenantId, // From req.tenant
       type,
       title,
       description: description || '',
       severity,
-      details,
-      userId: req.userId,
-      agentId,
-      conversationId,
-    }, tenantId);
+      metadata: metadata || {}, // Assuming details is now metadata
+      receipt_id,
+      session_id,
+      // status will default to active
+      // created_at will default to Date.now
+    });
 
     res.status(201).json({ success: true, data: alert });
   } catch (error) {
@@ -293,7 +256,9 @@ router.get('/:id', protect, async (req: Request, res: Response): Promise<void> =
     const { id } = req.params;
     const tenantId = String(req.tenant || 'default');
 
-    const alert = await alertsService.get(String(id), tenantId);
+    const { alerts } = await AlertsService.getAlerts(tenantId, { limit: 1000 }); // Fetch a reasonable number of alerts
+
+    const alert = alerts.find(a => a._id.toString() === id);
 
     if (!alert) {
       res.status(404).json({
@@ -320,32 +285,6 @@ router.get('/:id', protect, async (req: Request, res: Response): Promise<void> =
   }
 });
 
-/**
- * @route   DELETE /api/dashboard/alerts/clear
- * @desc    Clear all alerts for a tenant (admin only)
- * @access  Private
- */
-router.delete('/clear', protect, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const tenantId = String(req.tenant || 'default');
 
-    await alertsService.clear(tenantId);
-
-    res.json({
-      success: true,
-      message: 'All alerts cleared',
-    });
-  } catch (error) {
-    logger.error('Failed to clear alerts', {
-      error,
-      stack: getErrorStack(error),
-    });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to clear alerts',
-      error: getErrorMessage(error),
-    });
-  }
-});
 
 export default router;

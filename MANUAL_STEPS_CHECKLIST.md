@@ -75,7 +75,7 @@ Before you begin, make sure you have:
 
 **Example:**
 ```
-mongodb+srv://yseeku-admin:YOUR_PASSWORD_HERE@cluster0.xxxxx.mongodb.net/yseeku-platform?retryWrites=true&w=majority
+- **MongoDB**: `mongodb+srv://<user>:<password>@<cluster-uri>/<database>?retryWrites=true&w=majority`
 ```
 
 **Verification:** Connection string is saved and password is replaced

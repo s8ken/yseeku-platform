@@ -4,7 +4,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { alertsService } from '../../services/alerts.service';
+import { AlertsService } from '../../services/alerts.service';
 import { demoSeederService } from '../../services/demo-seeder.service';
 import { Agent } from '../../models/agent.model';
 import { Conversation } from '../../models/conversation.model';
@@ -23,21 +23,28 @@ const router = Router();
  */
 router.get('/alerts', async (req: Request, res: Response): Promise<void> => {
   try {
-    const alerts = await alertsService.list(DEMO_TENANT_ID, { limit: 10 });
-    const summary = await alertsService.getSummary(DEMO_TENANT_ID);
+    const { alerts } = await AlertsService.getAlerts(DEMO_TENANT_ID, { limit: 10 });
+    const summaryRaw = await AlertsService.getAlertStats(DEMO_TENANT_ID);
+
+    const summary = {
+      total: summaryRaw.total,
+      critical: summaryRaw.critical,
+      active: summaryRaw.active,
+      // The old summary had error, warning, info - new one does not expose these directly in getAlertStats
+    };
 
     res.json({
       tenant: DEMO_TENANT_ID,
       summary,
       alerts: alerts.map(alert => ({
-        id: alert.id,
-        timestamp: alert.timestamp,
+        id: alert._id.toString(),
+        timestamp: alert.created_at, // Use created_at
         type: alert.type,
         title: alert.title,
         description: alert.description,
         severity: alert.severity,
         status: alert.status,
-        details: alert.details,
+        details: alert.metadata, // Use metadata instead of details
       })),
     });
   } catch (error: unknown) {
@@ -86,7 +93,7 @@ router.get('/live-metrics', async (req: Request, res: Response): Promise<void> =
 
     // Calculate alert summary
     const alertCritical = alerts.filter(a => a.severity === 'critical').length;
-    const alertWarning = alerts.filter(a => a.severity === 'warning').length;
+    const alertWarning = alerts.filter(a => a.severity === 'medium').length; // Changed 'warning' to 'medium'
 
     // Calculate principle scores (0-10 scale) based on CIQ metrics
     const principleScores: Record<string, number> = {
@@ -160,7 +167,7 @@ router.get('/live-events', async (req: Request, res: Response): Promise<void> =>
 
     // Get alerts as events
     const alerts = await AlertModel.find({ tenantId: DEMO_TENANT_ID })
-      .sort({ timestamp: -1 })
+      .sort({ created_at: -1 }) // Use created_at
       .limit(limit)
       .lean();
 
@@ -186,7 +193,7 @@ router.get('/live-events', async (req: Request, res: Response): Promise<void> =>
     for (const alert of alerts) {
       events.push({
         id: alert._id.toString(),
-        timestamp: alert.timestamp?.toISOString() || new Date().toISOString(),
+        timestamp: alert.created_at?.toISOString() || new Date().toISOString(), // Use created_at
         type: 'alert',
         description: alert.title || 'System Alert',
         severity: alert.severity || 'info',

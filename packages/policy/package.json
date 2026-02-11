@@ -6,14 +6,15 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "vitest",
+    "test": "vitest run",
     "lint": "eslint src",
     "clean": "rm -rf dist"
   },
   "dependencies": {
     "@sonate/core": "*",
     "@sonate/schemas": "*",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

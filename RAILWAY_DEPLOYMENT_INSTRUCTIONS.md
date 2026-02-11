@@ -68,7 +68,7 @@ openssl rand -hex 64
 5. Add the following environment variables:
 
 ```bash
-MONGODB_URI=mongodb+srv://yseeku-admin:YOUR_PASSWORD@cluster0.xxxxx.mongodb.net/yseeku-platform?retryWrites=true&w=majority
+MONGO_URL=mongodb+srv://<user>:<password>@<cluster-uri>/<database>?retryWrites=true&w=majority
 JWT_SECRET=<paste-first-generated-secret-from-step-2>
 JWT_REFRESH_SECRET=<paste-second-generated-secret-from-step-2>
 CORS_ORIGIN=https://yseeku-web-production.up.railway.app
@@ -268,7 +268,7 @@ Now that you have your frontend URL:
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `MONGODB_URI` | MongoDB connection string | `mongodb+srv://user:pass@cluster.mongodb.net/db` |
+| `MONGODB_URI` | MongoDB connection string | `fly secrets set MONGO_URI="mongodb+srv://<user>:<password>@<cluster-uri>/<database>?retryWrites=true&w=majority"` |
 | `JWT_SECRET` | JWT signing secret (64+ chars) | `<64-char-hex-string>` |
 | `JWT_REFRESH_SECRET` | Refresh token secret (64+ chars) | `<64-char-hex-string>` |
 | `CORS_ORIGIN` | Allowed CORS origins | `https://frontend.railway.app` |

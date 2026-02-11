@@ -5,7 +5,8 @@
 
 import { Conversation } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
-import { AlertModel } from '../models/alert.model';
+import { AlertsService } from './alerts.service'; // Import new AlertsService
+import { IAlert } from '../models/alert.model'; // Import IAlert type
 import { AuditLog } from '../models/audit.model';
 import { logger } from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
@@ -118,8 +119,9 @@ interface ComplianceGap {
 interface AlertSummary {
   total: number;
   critical: number;
-  warning: number;
-  resolved: number;
+  active: number;
+  // Warning, error, info are not directly available in new AlertsService.getAlertStats
+  resolved: number; // Still calculate resolved from query results
   avgResponseTime: number;
 }
 
@@ -129,10 +131,10 @@ interface Incident {
   type: string;
   severity: string;
   description: string;
-  agentId?: string;
+  agent_id?: string; // Changed from agentId
   agentName?: string;
   resolution?: string;
-  resolvedAt?: string;
+  resolved_at?: string; // Changed from resolvedAt
 }
 
 class ComplianceReportService {
@@ -206,10 +208,11 @@ class ComplianceReportService {
     }).lean();
     
     // Fetch alerts
-    const alerts = await AlertModel.find({
-      tenantId,
-      timestamp: { $gte: startDate, $lte: endDate },
-    }).lean();
+    const { alerts } = await AlertsService.getAlerts(tenantId, { limit: 1000 }); // Fetch a reasonable number of alerts
+    const alertsInDateRange = alerts.filter(a => 
+      new Date(a.created_at) >= startDate && new Date(a.created_at) <= endDate
+    );
+    const alertStats = await AlertsService.getAlertStats(tenantId);
     
     // Calculate metrics
     let totalMessages = 0;
@@ -237,7 +240,7 @@ class ComplianceReportService {
         c.agents.some((a: any) => a._id?.toString() === agent._id?.toString())
       );
       const agentMsgs = agentConvs.flatMap(c => c.messages);
-      const agentAlerts = alerts.filter(a => a.agentId === agent._id?.toString());
+      const agentAlerts = alertsInDateRange.filter(a => a.metadata?.agent_id === agent._id?.toString()); // Use metadata?.agent_id
       const agentAvgTrust = agentMsgs.length > 0
         ? agentMsgs.reduce((sum, m) => sum + (m.trustScore || 5) * 2, 0) / agentMsgs.length
         : 0;
@@ -280,13 +283,13 @@ class ComplianceReportService {
         moral: 8.6,
       },
       alerts: {
-        total: alerts.length,
-        critical: alerts.filter(a => a.severity === 'critical').length,
-        warning: alerts.filter(a => a.severity === 'warning').length,
-        resolved: alerts.filter(a => a.status === 'resolved').length,
-        avgResponseTime: 0, // Would calculate from resolvedAt - timestamp
+        total: alertsInDateRange.length,
+        critical: alertStats.critical,
+        active: alertStats.active, // Added active property
+        resolved: alertsInDateRange.filter(a => a.status === 'resolved').length,
+        avgResponseTime: 0, // Would calculate from resolved_at - created_at
       },
-      recommendations: this.generateRecommendations(avgTrustScore, complianceRate, alerts.length),
+      recommendations: this.generateRecommendations(avgTrustScore, complianceRate, alertsInDateRange.length),
     };
   }
 
@@ -355,26 +358,27 @@ class ComplianceReportService {
   private async generateIncidentReport(config: ReportConfig): Promise<IncidentReport> {
     const { tenantId, startDate, endDate } = config;
     
-    const alerts = await AlertModel.find({
-      tenantId,
-      timestamp: { $gte: startDate, $lte: endDate },
-      severity: { $in: ['critical', 'error', 'warning'] },
-    }).populate('agentId', 'name').sort({ timestamp: -1 }).lean();
-    
-    const incidents: Incident[] = alerts.map(a => ({
+    const { alerts } = await AlertsService.getAlerts(tenantId, { limit: 1000 }); // Fetch all alerts, then filter
+    const alertsInDateRange = alerts.filter(a => 
+      new Date(a.created_at) >= startDate && 
+      new Date(a.created_at) <= endDate &&
+      ['critical', 'high', 'medium', 'low'].includes(a.severity) // Filter by severity matching IAlert definition
+    );
+
+    const incidents: Incident[] = alertsInDateRange.map(a => ({
       id: a._id!.toString(),
-      timestamp: a.timestamp.toISOString(),
+      timestamp: a.created_at.toISOString(),
       type: a.type,
       severity: a.severity,
       description: a.description,
-      agentId: a.agentId,
-      agentName: (a.agentId as any)?.name,
+      agent_id: a.metadata?.agent_id as string | undefined, // Access agent_id from metadata
+      // agentName: (a.agent_id as any)?.name, // This needs to be fetched if needed
       resolution: a.status === 'resolved' ? 'Resolved by system' : undefined,
-      resolvedAt: a.resolvedAt?.toISOString(),
+      resolved_at: a.resolved_at?.toISOString(),
     }));
     
     // Group by severity
-    const bySeverity = ['critical', 'error', 'warning'].map(severity => ({
+    const bySeverity = ['critical', 'high', 'medium', 'low'].map(severity => ({ // Changed severities
       severity,
       count: incidents.filter(i => i.severity === severity).length,
     }));
@@ -396,8 +400,8 @@ class ComplianceReportService {
         total: incidents.length,
         bySeverity,
         byCategory,
-        resolved: incidents.filter(i => i.resolvedAt).length,
-        pending: incidents.filter(i => !i.resolvedAt).length,
+        resolved: incidents.filter(i => i.resolved_at).length, // Changed resolvedAt to resolved_at
+        pending: incidents.filter(i => !i.resolved_at).length, // Changed resolvedAt to resolved_at
         avgResolutionTime: 0, // Would calculate from data
       },
       timeline,
@@ -593,7 +597,7 @@ class ComplianceReportService {
     } else if (type === 'incident_report' && report.incidents) {
       rows.push(['ID', 'Timestamp', 'Type', 'Severity', 'Description', 'Agent', 'Resolved']);
       report.incidents.forEach((i: Incident) => {
-        rows.push([i.id, i.timestamp, i.type, i.severity, i.description, i.agentName || '', i.resolvedAt || '']);
+        rows.push([i.id, i.timestamp, i.type, i.severity, i.description, i.agentName || '', i.resolved_at || '']); // Use resolved_at
       });
     }
     

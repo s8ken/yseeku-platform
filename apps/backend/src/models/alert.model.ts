@@ -1,88 +1,40 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
-
-export type AlertSeverity = 'critical' | 'error' | 'warning' | 'info';
-export type AlertStatus = 'active' | 'acknowledged' | 'resolved' | 'suppressed';
+// apps/backend/src/models/alert.model.ts
+import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IAlert extends Document {
-  timestamp: Date;
-  type: string;
+  tenant_id: string;
+  type: 'trust_violation' | 'policy_breach' | 'emergence_detected' | 'consent_withdrawal';
+  severity: 'low' | 'medium' | 'high' | 'critical';
   title: string;
   description: string;
-  severity: AlertSeverity;
-  status: AlertStatus;
-  details?: Record<string, any>;
-  acknowledgedBy?: string;
-  acknowledgedAt?: Date;
-  resolvedBy?: string;
-  resolvedAt?: Date;
-  userId?: string;
-  agentId?: string;
-  conversationId?: string;
-  tenantId: string;
+  metadata: Record<string, any>;
+  receipt_id?: string;
+  session_id?: string;
+  status: 'active' | 'acknowledged' | 'resolved';
+  acknowledged_by?: string;
+  acknowledged_at?: Date;
+  resolved_at?: Date;
+  created_at: Date;
 }
 
 const AlertSchema = new Schema<IAlert>({
-  timestamp: {
-    type: Date,
-    default: Date.now,
-    index: true,
-  },
-  type: {
-    type: String,
-    required: true,
-    index: true,
-  },
-  title: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  severity: {
-    type: String,
-    enum: ['critical', 'error', 'warning', 'info'],
-    required: true,
-    index: true,
-  },
-  status: {
-    type: String,
-    enum: ['active', 'acknowledged', 'resolved', 'suppressed'],
-    default: 'active',
-    index: true,
-  },
-  details: {
-    type: Schema.Types.Mixed,
-    default: {},
-  },
-  acknowledgedBy: String,
-  acknowledgedAt: Date,
-  resolvedBy: String,
-  resolvedAt: Date,
-  userId: {
-    type: String,
-    index: true,
-  },
-  agentId: {
-    type: String,
-    index: true,
-  },
-  conversationId: {
-    type: String,
-    index: true,
-  },
-  tenantId: {
-    type: String,
-    required: true,
-    index: true,
-    default: 'default',
-  },
+  tenant_id: { type: String, required: true, index: true },
+  type: { type: String, required: true, enum: ['trust_violation', 'policy_breach', 'emergence_detected', 'consent_withdrawal'] },
+  severity: { type: String, required: true, enum: ['low', 'medium', 'high', 'critical'] },
+  title: { type: String, required: true },
+  description: { type: String },
+  metadata: { type: Schema.Types.Mixed, default: {} },
+  receipt_id: { type: String, index: true },
+  session_id: { type: String, index: true },
+  status: { type: String, default: 'active', enum: ['active', 'acknowledged', 'resolved'], index: true },
+  acknowledged_by: { type: String },
+  acknowledged_at: { type: Date },
+  resolved_at: { type: Date },
+  created_at: { type: Date, default: Date.now, index: true },
 });
 
 // Compound indexes for common queries
-AlertSchema.index({ tenantId: 1, status: 1, timestamp: -1 });
-AlertSchema.index({ tenantId: 1, severity: 1, status: 1 });
-AlertSchema.index({ tenantId: 1, type: 1, timestamp: -1 });
+AlertSchema.index({ tenant_id: 1, status: 1, created_at: -1 });
+AlertSchema.index({ tenant_id: 1, severity: 1 });
 
-export const AlertModel: Model<IAlert> = mongoose.models.Alert || mongoose.model<IAlert>('Alert', AlertSchema);
+export const AlertModel = mongoose.model<IAlert>('Alert', AlertSchema);

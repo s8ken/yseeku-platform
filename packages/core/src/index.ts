@@ -10,7 +10,7 @@
 
 // === TRUST LAYER ===
 export { TrustProtocol } from './trust/trust-protocol';
-export { TrustReceipt } from './receipts/trust-receipt';
+export { TrustReceipt, initCrypto, isCryptoReady } from './receipts/trust-receipt';
 
 // === PRINCIPLES LAYER ===
 export { SonateScorer } from './principles/sonate-scorer';

@@ -6,6 +6,11 @@ exports.getMetrics = getMetrics;
 const prom_client_1 = require("prom-client");
 function initDefaultMetrics() {
     try {
+        // Check if default metrics are already registered to prevent build errors
+        const defaultCpuMetric = prom_client_1.register.getSingleMetric('process_cpu_user_seconds_total');
+        if (defaultCpuMetric) {
+            return; // Already initialized
+        }
         // Lazy import to avoid duplicate registrations across packages
         // The caller should ensure this is called only once per process
         // eslint-disable-next-line @typescript-eslint/no-var-requires

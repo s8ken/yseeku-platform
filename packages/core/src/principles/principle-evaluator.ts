@@ -14,6 +14,42 @@
  * 6. MORAL_RECOGNITION (10%) - AI respects user agency
  */
 
+export interface PrincipleWeightConfig {
+  CONSENT_ARCHITECTURE: number;
+  INSPECTION_MANDATE: number;
+  CONTINUOUS_VALIDATION: number;
+  ETHICAL_OVERRIDE: number;
+  RIGHT_TO_DISCONNECT: number;
+  MORAL_RECOGNITION: number;
+}
+
+// Default weights (current hardcoded values)
+export const DEFAULT_PRINCIPLE_WEIGHTS: PrincipleWeightConfig = {
+  CONSENT_ARCHITECTURE: 0.25,
+  INSPECTION_MANDATE: 0.20,
+  CONTINUOUS_VALIDATION: 0.20,
+  ETHICAL_OVERRIDE: 0.15,
+  RIGHT_TO_DISCONNECT: 0.10,
+  MORAL_RECOGNITION: 0.10,
+};
+
+// Load from environment or use defaults
+function loadWeights(): PrincipleWeightConfig {
+  const envWeights = process.env.SONATE_PRINCIPLE_WEIGHTS;
+  if (envWeights) {
+    try {
+      const parsed = JSON.parse(envWeights);
+      console.log('[PrincipleEvaluator] Using custom weights from environment');
+      return { ...DEFAULT_PRINCIPLE_WEIGHTS, ...parsed };
+    } catch (e) {
+      console.warn('[PrincipleEvaluator] Failed to parse SONATE_PRINCIPLE_WEIGHTS, using defaults');
+    }
+  }
+  return DEFAULT_PRINCIPLE_WEIGHTS;
+}
+
+export const PRINCIPLE_WEIGHTS = loadWeights();
+
 import { PrincipleScores, TrustPrincipleKey } from '../index';
 
 /**
@@ -95,17 +131,8 @@ export class PrincipleEvaluator {
     const criticalViolation = scores.CONSENT_ARCHITECTURE === 0 || scores.ETHICAL_OVERRIDE === 0;
 
     // Calculate weighted overall score
-    const weights = {
-      CONSENT_ARCHITECTURE: 0.25,
-      INSPECTION_MANDATE: 0.20,
-      CONTINUOUS_VALIDATION: 0.20,
-      ETHICAL_OVERRIDE: 0.15,
-      RIGHT_TO_DISCONNECT: 0.10,
-      MORAL_RECOGNITION: 0.10,
-    };
-
     let overallScore = 0;
-    for (const [key, weight] of Object.entries(weights)) {
+    for (const [key, weight] of Object.entries(PRINCIPLE_WEIGHTS)) {
       overallScore += scores[key as TrustPrincipleKey] * weight;
     }
 
