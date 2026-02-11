@@ -89,9 +89,9 @@ export default function DemoHome() {
               </>
             )}
           </Button>
-          <Link href="https://docs.yseeku.com" target="_blank">
+          <Link href="https://yseeku.com/how-it-works" target="_blank">
             <Button size="lg" variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-800 px-8 py-6 text-lg">
-              Read Documentation
+              How It Works
             </Button>
           </Link>
         </div>
