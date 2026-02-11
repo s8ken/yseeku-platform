@@ -1,0 +1,11 @@
+# Default owner for everything
+* @s8ken
+
+# Core trust protocol - requires careful review
+/packages/core/ @s8ken
+/packages/trust-protocol/ @s8ken
+
+# Security-sensitive files
+/apps/backend/src/services/auth/ @s8ken
+/apps/backend/src/middleware/auth* @s8ken
+/.github/workflows/ @s8ken

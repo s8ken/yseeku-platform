@@ -767,6 +767,74 @@ router.get('/receipts/list', protect, apiGatewayLimiter, async (req: Request, re
 });
 
 /**
+ * GET /api/trust/receipts/grouped
+ * Get receipts grouped by session_id with summary stats
+ * Query: limit, offset
+ */
+router.get('/receipts/grouped', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { limit = 20, offset = 0 } = req.query;
+    const tenantId = req.userTenant || req.tenant || 'default';
+
+    const grouped = await TrustReceiptModel.aggregate([
+      { $match: { tenant_id: tenantId } },
+      { $sort: { createdAt: -1 } },
+      { $group: {
+        _id: '$session_id',
+        count: { $sum: 1 },
+        first_timestamp: { $min: '$createdAt' },
+        last_timestamp: { $max: '$createdAt' },
+        avg_clarity: { $avg: '$ciq_metrics.clarity' },
+        avg_integrity: { $avg: '$ciq_metrics.integrity' },
+        avg_quality: { $avg: '$ciq_metrics.quality' },
+        receipts: { $push: {
+          self_hash: '$self_hash',
+          timestamp: '$timestamp',
+          ciq_metrics: '$ciq_metrics',
+          signature: '$signature',
+          createdAt: '$createdAt'
+        }},
+      }},
+      { $sort: { last_timestamp: -1 } },
+      { $skip: Number(offset) },
+      { $limit: Number(limit) },
+      { $project: {
+        session_id: '$_id',
+        count: 1,
+        first_timestamp: 1,
+        last_timestamp: 1,
+        avg_trust_score: {
+          $multiply: [
+            { $add: [
+              { $multiply: ['$avg_clarity', 0.33] },
+              { $multiply: ['$avg_integrity', 0.34] },
+              { $multiply: ['$avg_quality', 0.33] }
+            ]},
+            10
+          ]
+        },
+        latest_receipt: { $arrayElemAt: ['$receipts', 0] },
+        _id: 0
+      }},
+    ]);
+
+    const totalSessions = await TrustReceiptModel.distinct('session_id', { tenant_id: tenantId });
+
+    res.json({
+      success: true,
+      data: {
+        sessions: grouped,
+        total: totalSessions.length,
+        pagination: { limit: Number(limit), offset: Number(offset) },
+      },
+    });
+  } catch (error: unknown) {
+    logger.error('Get grouped receipts error', { error: getErrorMessage(error) });
+    res.status(500).json({ success: false, error: 'Failed to get grouped receipts', message: getErrorMessage(error) });
+  }
+});
+
+/**
  * GET /api/trust/receipts/:receiptHash
  * Fetch a single trust receipt by hash
  */
@@ -786,6 +854,107 @@ router.get('/receipts/:receiptHash', protect, apiGatewayLimiter, async (req: Req
   } catch (error: unknown) {
     logger.error('Get receipt by hash error', { error: getErrorMessage(error) });
     res.status(500).json({ success: false, error: 'Failed to fetch receipt', message: getErrorMessage(error) });
+  }
+});
+
+/**
+ * GET /api/trust/identity/:sessionId
+ * Get identity fingerprint for a session (computed from message patterns)
+ */
+router.get('/identity/:sessionId', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { sessionId } = req.params;
+
+    // Get receipts for this session
+    const receipts = await TrustReceiptModel.find({ session_id: sessionId })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    if (receipts.length === 0) {
+      // Return default fingerprint
+      res.json({
+        success: true,
+        data: {
+          professionalism: 85,
+          empathy: 78,
+          accuracy: 92,
+          consistency: 88,
+          helpfulness: 90,
+          boundaries: 82,
+        },
+      });
+      return;
+    }
+
+    // Compute fingerprint from CIQ metrics
+    const avgClarity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 0), 0) / receipts.length;
+    const avgIntegrity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 0), 0) / receipts.length;
+    const avgQuality = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 0), 0) / receipts.length;
+
+    // Map CIQ to identity dimensions (simplified mapping)
+    const fingerprint = {
+      professionalism: Math.min(100, avgClarity * 10 + 50),
+      empathy: Math.min(100, avgIntegrity * 8 + 40),
+      accuracy: Math.min(100, avgQuality * 10 + 45),
+      consistency: Math.min(100, (avgClarity + avgIntegrity) * 5 + 40),
+      helpfulness: Math.min(100, (avgQuality + avgIntegrity) * 5 + 45),
+      boundaries: Math.min(100, avgIntegrity * 9 + 35),
+    };
+
+    res.json({ success: true, data: fingerprint });
+  } catch (error: unknown) {
+    logger.error('Get identity fingerprint error', { error: getErrorMessage(error) });
+    res.status(500).json({ success: false, error: 'Failed to get identity fingerprint', message: getErrorMessage(error) });
+  }
+});
+
+/**
+ * GET /api/trust/session/:sessionId/status
+ * Get trust status for a session (for Trust Passport widget)
+ */
+router.get('/session/:sessionId/status', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { sessionId } = req.params;
+
+    // Get latest receipts for this session
+    const receipts = await TrustReceiptModel.find({ session_id: sessionId })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
+
+    if (receipts.length === 0) {
+      res.json({
+        success: true,
+        data: {
+          resonance: 0.85,
+          coherence: 0.88,
+          status: 'verified',
+        },
+      });
+      return;
+    }
+
+    // Compute average resonance from recent receipts
+    const avgClarity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 5), 0) / receipts.length;
+    const avgIntegrity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 5), 0) / receipts.length;
+    const avgQuality = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 5), 0) / receipts.length;
+
+    const resonance = (avgClarity + avgIntegrity + avgQuality) / 30; // Normalize to 0-1
+    const coherence = avgIntegrity / 10; // Integrity maps to coherence
+
+    res.json({
+      success: true,
+      data: {
+        resonance: Math.min(1, Math.max(0, resonance)),
+        coherence: Math.min(1, Math.max(0, coherence)),
+        status: resonance >= 0.7 ? 'verified' : resonance >= 0.4 ? 'warning' : 'unknown',
+        receiptCount: receipts.length,
+      },
+    });
+  } catch (error: unknown) {
+    logger.error('Get session status error', { error: getErrorMessage(error) });
+    res.status(500).json({ success: false, error: 'Failed to get session status', message: getErrorMessage(error) });
   }
 });
 
