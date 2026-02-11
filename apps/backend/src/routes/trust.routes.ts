@@ -749,16 +749,27 @@ router.get('/receipts/list', protect, apiGatewayLimiter, async (req: Request, re
   try {
     const { limit = 50, offset = 0 } = req.query;
     const tenantId = req.userTenant || req.tenant || 'default';
-    const receipts = await TrustReceiptModel.find({ tenant_id: tenantId })
-      .sort({ createdAt: -1 })
-      .skip(Number(offset))
-      .limit(Number(limit))
-      .lean();
-    const total = await TrustReceiptModel.countDocuments({ tenant_id: tenantId });
+
+    const [receipts, total, verified] = await Promise.all([
+      TrustReceiptModel.find({ tenant_id: tenantId })
+        .sort({ createdAt: -1 })
+        .skip(Number(offset))
+        .limit(Number(limit))
+        .lean(),
+      TrustReceiptModel.countDocuments({ tenant_id: tenantId }),
+      TrustReceiptModel.countDocuments({ tenant_id: tenantId, signature: { $exists: true, $ne: '' } }),
+    ]);
+
     res.json({
       success: true,
       data: receipts,
       pagination: { total, limit: Number(limit), offset: Number(offset) },
+      stats: {
+        total,
+        verified,
+        invalid: total - verified,
+        chainLength: total,
+      },
     });
   } catch (error: unknown) {
     logger.error('List receipts error', { error: getErrorMessage(error) });

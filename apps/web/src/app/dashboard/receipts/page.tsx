@@ -347,7 +347,8 @@ export default function TrustReceiptsPage() {
     proof: r.proof,
   }));
 
-  const stats = {
+  // Use stats from API response for accurate totals
+  const stats = receiptsData?.stats || {
     total: receipts.length,
     verified: receipts.filter(r => r.verified).length,
     invalid: receipts.filter(r => !r.verified).length,

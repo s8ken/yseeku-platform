@@ -327,6 +327,12 @@ export interface ReceiptsData {
     };
   }>;
   total: number;
+  stats?: {
+    total: number;
+    verified: number;
+    invalid: number;
+    chainLength: number;
+  };
 }
 
 export function useReceiptsData(limit = 20) {
@@ -334,8 +340,8 @@ export function useReceiptsData(limit = 20) {
     queryKey: ['receipts', String(limit)],
     liveEndpoint: `/api/trust/receipts/list?limit=${limit}`,
     demoEndpoint: `/api/demo/receipts?limit=${limit}`,
-    transform: (data) => ({
-      receipts: (data.data || data.receipts || data || []).map((r: any) => ({
+    transform: (data) => {
+      const receipts = (data.data || data.receipts || data || []).map((r: any) => ({
         id: r._id || r.id || r.self_hash,
         session_id: r.session_id || '',
         agent_id: r.agent_id,
@@ -344,9 +350,22 @@ export function useReceiptsData(limit = 20) {
         verified: !!r.signature,
         created_at: r.createdAt || new Date(r.timestamp || Date.now()).toISOString(),
         ciq_metrics: r.ciq_metrics,
-      })),
-      total: data.pagination?.total || data.total || data.receipts?.length || data?.length || 0,
-    }),
+      }));
+      
+      // Use stats from API if available, otherwise calculate from receipts
+      const stats = data.stats || {
+        total: data.pagination?.total || receipts.length,
+        verified: receipts.filter((r: any) => r.verified).length,
+        invalid: receipts.filter((r: any) => !r.verified).length,
+        chainLength: data.pagination?.total || receipts.length,
+      };
+      
+      return {
+        receipts,
+        total: stats.total,
+        stats,
+      };
+    },
   });
 }
 
