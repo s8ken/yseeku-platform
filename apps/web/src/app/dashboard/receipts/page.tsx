@@ -23,8 +23,10 @@ import {
   ShieldAlert,
   FileX,
   RefreshCw,
-  Activity
+  Activity,
+  PlayCircle
 } from 'lucide-react';
+import Link from 'next/link';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { useReceiptsData } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
@@ -288,6 +290,14 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
             Resonance: <strong>{receipt.sonateDimensions?.resonanceQuality ?? 'N/A'}</strong>
           </span>
           <div className="flex gap-2">
+            {(receipt.receiptData?.session_id || receipt.id) && (
+              <Link href={`/dashboard/replay/${receipt.receiptData?.session_id || receipt.id}`}>
+                <Button variant="outline" size="sm" className="text-cyan-600 border-cyan-600/30 hover:bg-cyan-600/10">
+                  <PlayCircle className="h-3 w-3 mr-1" />
+                  Replay
+                </Button>
+              </Link>
+            )}
             <Button variant="outline" size="sm">
               <ExternalLink className="h-3 w-3 mr-1" />
               View Chain

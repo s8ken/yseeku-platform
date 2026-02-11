@@ -19,8 +19,10 @@ import {
   Trash2,
   Eye,
   EyeOff,
-  RefreshCw
+  RefreshCw,
+  PlayCircle
 } from 'lucide-react';
+import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
@@ -44,6 +46,7 @@ interface Alert {
   acknowledgedAt?: string;
   resolvedBy?: string;
   resolvedAt?: string;
+  session_id?: string;
 }
 
 interface AlertResponse {
@@ -295,6 +298,18 @@ export default function AlertsManagementPage() {
                       <div className="flex items-center gap-2">
                         {getStatusBadge(alert.status)}
                         <div className="flex gap-1">
+                          {alert.session_id && (
+                            <Link href={`/dashboard/replay/${alert.session_id}`}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-cyan-600 border-cyan-600/30 hover:bg-cyan-600/10"
+                                title="Replay conversation"
+                              >
+                                <PlayCircle className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                          )}
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button

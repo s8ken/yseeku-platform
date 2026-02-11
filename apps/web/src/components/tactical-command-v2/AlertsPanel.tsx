@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, CheckCircle2, Check, Loader2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Check, Loader2, PlayCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import type { TacticalAlert, TacticalAlerts } from './types';
 import { severityBadgeClass } from './utils';
@@ -122,6 +122,23 @@ export function AlertsPanel(props: {
                           'Ack'
                         )}
                       </Button>
+                    )}
+                    {(a as any).session_id && (
+                      <Link 
+                        href={`/dashboard/replay/${(a as any).session_id}`} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="border-cyan-500/30 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20"
+                          title="Replay conversation"
+                        >
+                          <PlayCircle className="h-3 w-3" />
+                        </Button>
+                      </Link>
                     )}
                     <Link href="/dashboard/alerts" target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
                       <Button variant="outline" size="sm" className="border-white/15 bg-white/5 text-white hover:bg-white/10">

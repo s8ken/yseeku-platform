@@ -15,6 +15,7 @@ import { AgentsPanel } from '@/components/tactical-command-v2/AgentsPanel';
 import { WorkflowsPanel } from '@/components/tactical-command-v2/WorkflowsPanel';
 import { OperatorLoop } from '@/components/tactical-command-v2/OperatorLoop';
 import { QuickActionsPanel } from '@/components/tactical-command-v2/QuickActionsPanel';
+import { IdentityPanel } from '@/components/tactical-command-v2/IdentityPanel';
 import { playAlertSound, showNotification } from '@/components/tactical-command-v2/utils';
 import type { AlertsManagementResponse, DemoAlertsResponse, DemoAgentsResponse, TacticalAgentsResponse, TacticalAlerts } from '@/components/tactical-command-v2/types';
 
@@ -390,6 +391,7 @@ export default function TacticalCommandV2StandalonePage() {
             onSelectAlert={setSelectedAlertId}
           />
           <AgentsPanel loading={agentsLoading} agents={agents} />
+          <IdentityPanel />
           <QuickActionsPanel selectedAgentId={null} />
           <WorkflowsPanel loading={workflowsLoading} workflows={workflowsList} />
           <OperatorLoop />
