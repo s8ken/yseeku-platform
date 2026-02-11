@@ -99,6 +99,7 @@ const moduleSections: ModuleSection[] = [
     subtitle: 'Research Sandbox',
     badge: 'SANDBOX',
     items: [
+      { title: 'Resonance Lab', href: '/dashboard/lab/resonance', icon: Waves, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Experiments', href: '/dashboard/lab/experiments', icon: FlaskConical, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Model Compare', href: '/dashboard/compare', icon: Beaker, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Safety Scanner', href: '/dashboard/safety', icon: Shield, roles: ['admin', 'user'], module: 'lab' },
@@ -131,6 +132,7 @@ const ESSENTIAL_ITEMS = new Set([
   '/dashboard/receipts',  // Trust Receipts
   '/dashboard/risk',      // Risk & Compliance
   '/dashboard/alerts',    // Alerts
+  '/dashboard/lab/resonance', // Resonance Lab (Third Mind)
   '/dashboard/lab/experiments', // Experiments
   '/dashboard/lab/bedau', // Pattern Analysis (Bedau Index)
   '/dashboard/reports',   // Compliance Reports

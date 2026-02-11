@@ -68,20 +68,49 @@ router.get('/versions', protect, requireRole(['admin', 'operator']), async (req:
 });
 
 /**
- * GET /api/keys/public/:version?
- * Get public key for specific version or current
+ * GET /api/keys/public
+ * Get current public key
  * Public endpoint - no auth required
  */
-router.get('/public/:version?', async (req: Request, res: Response) => {
+router.get('/public', async (req: Request, res: Response) => {
   try {
-    const version = req.params.version as string | undefined;
-    const publicKey = await keyRotationService.getPublicKey(version);
+    const publicKey = await keyRotationService.getPublicKey();
     const currentVersion = keyRotationService.getCurrentVersion();
     
     res.json({
       success: true,
       data: {
-        version: version || currentVersion,
+        version: currentVersion,
+        publicKey,
+        algorithm: 'Ed25519',
+        format: 'hex',
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    logger.error('Failed to get public key', { error: getErrorMessage(error) });
+    res.status(404).json({
+      success: false,
+      error: 'Key not found',
+      message: getErrorMessage(error),
+    });
+  }
+});
+
+/**
+ * GET /api/keys/public/:version
+ * Get public key for specific version
+ * Public endpoint - no auth required
+ */
+router.get('/public/:version', async (req: Request, res: Response) => {
+  try {
+    const version = String(req.params.version);
+    const publicKey = await keyRotationService.getPublicKey(version);
+    
+    res.json({
+      success: true,
+      data: {
+        version,
         publicKey,
         algorithm: 'Ed25519',
         format: 'hex',

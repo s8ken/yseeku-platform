@@ -4,7 +4,7 @@
   "description": "Interactive SONATE Platform Demo with Advanced Features",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "echo \"new-demo skipped (use npm run demo:interactive to run standalone)\"",
     "build": "vite build",
     "preview": "vite preview",
     "serve": "vite preview --port 3000"
