@@ -1,4 +1,4 @@
-import { KPICardSkeleton, DriftWidgetSkeleton, EmergenceWidgetSkeleton, PhaseShiftWidgetSkeleton } from '@/components/dashboard-skeletons';
+import { KPICardSkeleton, DriftWidgetSkeleton, EmergenceWidgetSkeleton, PhaseShiftWidgetSkeleton } from '@/components/ui/loading-skeleton';
 
 export default function DashboardLoading() {
     return (
