@@ -1,7 +1,6 @@
-// apps/web/src/app/api/detect/resonance/explain/route.ts
 import { NextResponse } from 'next/server';
 
-import { resonanceWithStickiness, SessionState, Transcript } from '@sonate/detect';
+import { resonanceWithStickiness, SessionState, Transcript } from '@/lib/detect-local';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:3001';
 
@@ -65,12 +64,10 @@ export async function POST(req: Request): Promise<NextResponse> {
         };
 
         if (Array.isArray(history)) {
-            // @ts-expect-error - turns property exists at runtime
             transcript.turns = history.map((h: any) => ({
                 role: h.role,
                 content: h.content
             }));
-            // @ts-expect-error - turns property exists at runtime
             transcript.turns.push({ role: 'assistant', content: aiResponse });
         }
 
