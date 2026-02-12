@@ -60,7 +60,10 @@ router.post('/login', (req: LoginRequest, res: Response): void => {
       return;
     }
 
-    const jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET is not set');
+    }
     const expiresIn = '24h';
 
     const token = jwt.sign(
@@ -107,7 +110,10 @@ router.post('/refresh', (req: Request, res: Response): void => {
     }
 
     const token = parts[1];
-    const jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET is not set');
+    }
 
     try {
       // Use ignoreExpiration to allow refreshing expired tokens
@@ -215,7 +221,10 @@ router.get('/me', (req: Request, res: Response): void => {
     }
 
     const token = parts[1];
-    const jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET is not set');
+    }
 
     try {
       const decoded = jwt.verify(token, jwtSecret) as { username: string; iat?: number; exp?: number };

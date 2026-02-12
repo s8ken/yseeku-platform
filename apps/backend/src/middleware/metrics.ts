@@ -7,14 +7,25 @@
 
 import { Counter, Histogram, register } from 'prom-client';
 
+/**
+ * Helper to safely create or retrieve a metric from the registry
+ */
+function getOrCreate<T>(MetricClass: new (config: any) => T, config: { name: string;[key: string]: any }): T {
+  try {
+    return new MetricClass(config);
+  } catch {
+    return register.getSingleMetric(config.name) as unknown as T;
+  }
+}
+
 // Policy evaluation metrics
-export const policyEvaluationsTotal = new Counter({
+export const policyEvaluationsTotal = getOrCreate(Counter, {
   name: 'policy_evaluations_total',
   help: 'Total number of policy evaluations',
   labelNames: ['rule', 'status'],
 });
 
-export const evaluationDurationMs = new Histogram({
+export const evaluationDurationMs = getOrCreate(Histogram, {
   name: 'policy_evaluation_duration_ms',
   help: 'Policy evaluation duration in milliseconds',
   labelNames: ['rule'],
@@ -22,14 +33,14 @@ export const evaluationDurationMs = new Histogram({
 });
 
 // Alert metrics
-export const alertsRaisedTotal = new Counter({
+export const alertsRaisedTotal = getOrCreate(Counter, {
   name: 'alerts_raised_total',
   help: 'Total number of alerts raised',
   labelNames: ['type', 'severity'],
 });
 
 // Violation metrics
-export const violationsSeverity = new Histogram({
+export const violationsSeverity = getOrCreate(Histogram, {
   name: 'violations_severity_score',
   help: 'Severity score distribution of violations',
   labelNames: ['type'],

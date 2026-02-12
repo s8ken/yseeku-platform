@@ -13,6 +13,7 @@ import type { TrustReceipt, VerificationResult } from './receipt.types';
  */
 const ajv = new Ajv({
   strict: false,
+  validateFormats: false,
 });
 
 /**

@@ -4,19 +4,32 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { 
-  validateBody, 
-  validateQuery, 
+import {
+  validateBody,
+  validateQuery,
   validateParams,
   validateRequest,
-  ValidationError 
+  ValidationError
 } from '../../middleware/validation.middleware';
+
+// Mock logger
+jest.mock('../../utils/logger', () => ({
+  __esModule: true,
+  default: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
 
 // Mock Request, Response, and NextFunction
 const mockRequest = (data: { body?: unknown; query?: unknown; params?: unknown } = {}) => ({
   body: data.body || {},
   query: data.query || {},
   params: data.params || {},
+  path: '/test',
+  method: 'POST',
 }) as Request;
 
 const mockResponse = () => {
@@ -26,8 +39,6 @@ const mockResponse = () => {
   };
   return res as Response;
 };
-
-const mockNext = jest.fn() as NextFunction;
 
 // Test schemas
 const TestBodySchema = z.object({
@@ -50,42 +61,56 @@ describe('validateBody', () => {
     jest.clearAllMocks();
   });
 
-  it('should pass validation with valid body', async () => {
+  it('should pass validation with valid body', () => {
     const req = mockRequest({ body: { name: 'John', email: 'john@example.com' } });
     const res = mockResponse();
+    const next = jest.fn();
     const middleware = validateBody(TestBodySchema);
 
-    await middleware(req, res, mockNext);
+    middleware(req, res, next);
 
-    expect(mockNext).toHaveBeenCalled();
+    expect(next).toHaveBeenCalled();
     expect(res.status).not.toHaveBeenCalled();
   });
 
-  it('should fail validation with invalid body', async () => {
+  it('should fail validation with invalid body and send 400 response', () => {
     const req = mockRequest({ body: { name: '', email: 'invalid' } });
     const res = mockResponse();
+    const next = jest.fn();
     const middleware = validateBody(TestBodySchema);
 
-    await middleware(req, res, mockNext);
+    middleware(req, res, next);
 
-    expect(mockNext).toHaveBeenCalledWith(expect.any(ValidationError));
+    // Middleware sends res.status(400).json() directly, does NOT call next
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: expect.objectContaining({
+          code: 'VALIDATION_ERROR',
+          details: expect.any(Array),
+        }),
+      })
+    );
   });
 
-  it('should transform and coerce values', async () => {
+  it('should transform and coerce values', () => {
     const req = mockRequest({ body: { name: 'John', email: 'john@example.com', age: '25' } });
     const res = mockResponse();
-    
+    const next = jest.fn();
+
     const SchemaWithCoerce = z.object({
       name: z.string(),
       email: z.string().email(),
       age: z.coerce.number().optional(),
     });
-    
+
     const middleware = validateBody(SchemaWithCoerce);
 
-    await middleware(req, res, mockNext);
+    middleware(req, res, next);
 
-    expect(mockNext).toHaveBeenCalled();
+    expect(next).toHaveBeenCalled();
     expect(req.body.age).toBe(25);
   });
 });
@@ -95,38 +120,50 @@ describe('validateQuery', () => {
     jest.clearAllMocks();
   });
 
-  it('should pass validation with valid query', async () => {
+  it('should pass validation with valid query', () => {
     const req = mockRequest({ query: { page: '1', limit: '10' } });
     const res = mockResponse();
+    const next = jest.fn();
     const middleware = validateQuery(TestQuerySchema);
 
-    await middleware(req, res, mockNext);
+    middleware(req, res, next);
 
-    expect(mockNext).toHaveBeenCalled();
+    expect(next).toHaveBeenCalled();
     expect(req.query.page).toBe(1);
     expect(req.query.limit).toBe(10);
   });
 
-  it('should apply default values', async () => {
+  it('should apply default values', () => {
     const req = mockRequest({ query: {} });
     const res = mockResponse();
+    const next = jest.fn();
     const middleware = validateQuery(TestQuerySchema);
 
-    await middleware(req, res, mockNext);
+    middleware(req, res, next);
 
-    expect(mockNext).toHaveBeenCalled();
+    expect(next).toHaveBeenCalled();
     expect(req.query.page).toBe(1);
     expect(req.query.limit).toBe(10);
   });
 
-  it('should fail validation with invalid query', async () => {
+  it('should fail validation with invalid query and send 400 response', () => {
     const req = mockRequest({ query: { page: '0', limit: '200' } });
     const res = mockResponse();
+    const next = jest.fn();
     const middleware = validateQuery(TestQuerySchema);
 
-    await middleware(req, res, mockNext);
+    middleware(req, res, next);
 
-    expect(mockNext).toHaveBeenCalledWith(expect.any(ValidationError));
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: expect.objectContaining({
+          code: 'VALIDATION_ERROR',
+        }),
+      })
+    );
   });
 });
 
@@ -135,24 +172,27 @@ describe('validateParams', () => {
     jest.clearAllMocks();
   });
 
-  it('should pass validation with valid params', async () => {
+  it('should pass validation with valid params', () => {
     const req = mockRequest({ params: { id: '507f1f77bcf86cd799439011' } });
     const res = mockResponse();
+    const next = jest.fn();
     const middleware = validateParams(TestParamsSchema);
 
-    await middleware(req, res, mockNext);
+    middleware(req, res, next);
 
-    expect(mockNext).toHaveBeenCalled();
+    expect(next).toHaveBeenCalled();
   });
 
-  it('should fail validation with invalid params', async () => {
+  it('should fail validation with invalid params and send 400 response', () => {
     const req = mockRequest({ params: { id: 'invalid-id' } });
     const res = mockResponse();
+    const next = jest.fn();
     const middleware = validateParams(TestParamsSchema);
 
-    await middleware(req, res, mockNext);
+    middleware(req, res, next);
 
-    expect(mockNext).toHaveBeenCalledWith(expect.any(ValidationError));
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
   });
 });
 
@@ -161,41 +201,53 @@ describe('validateRequest', () => {
     jest.clearAllMocks();
   });
 
-  it('should validate body, query, and params together', async () => {
+  it('should validate body, query, and params together', () => {
     const req = mockRequest({
       body: { name: 'John', email: 'john@example.com' },
       query: { page: '2' },
       params: { id: '507f1f77bcf86cd799439011' },
     });
     const res = mockResponse();
+    const next = jest.fn();
     const middleware = validateRequest({
       body: TestBodySchema,
       query: TestQuerySchema,
       params: TestParamsSchema,
     });
 
-    await middleware(req, res, mockNext);
+    middleware(req, res, next);
 
-    expect(mockNext).toHaveBeenCalled();
+    expect(next).toHaveBeenCalled();
     expect(res.status).not.toHaveBeenCalled();
   });
 
-  it('should fail if any validation fails', async () => {
+  it('should fail if any validation fails and send 400 response', () => {
     const req = mockRequest({
       body: { name: 'John', email: 'john@example.com' },
       query: { page: '0' }, // Invalid
       params: { id: '507f1f77bcf86cd799439011' },
     });
     const res = mockResponse();
+    const next = jest.fn();
     const middleware = validateRequest({
       body: TestBodySchema,
       query: TestQuerySchema,
       params: TestParamsSchema,
     });
 
-    await middleware(req, res, mockNext);
+    middleware(req, res, next);
 
-    expect(mockNext).toHaveBeenCalledWith(expect.any(ValidationError));
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        error: expect.objectContaining({
+          code: 'VALIDATION_ERROR',
+          details: expect.any(Array),
+        }),
+      })
+    );
   });
 });
 
@@ -208,5 +260,11 @@ describe('ValidationError', () => {
     expect(error.details).toEqual(details);
     expect(error.statusCode).toBe(400);
     expect(error.name).toBe('ValidationError');
+  });
+
+  it('should have default message', () => {
+    const error = new ValidationError();
+    expect(error.message).toBe('Request validation failed');
+    expect(error.details).toBeUndefined();
   });
 });

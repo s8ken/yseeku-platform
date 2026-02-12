@@ -1,87 +1,118 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+jest.mock('mongoose', () => {
+  const actual = jest.requireActual('mongoose');
+  const ObjectId = class ObjectId {
+    id: string;
+    constructor(id?: string) {
+      this.id = id || 'mock-id-' + Math.random().toString(36).substring(2, 11);
+    }
+    toString() {
+      return this.id;
+    }
+  };
 
-// Mock mongoose before importing the service
-vi.mock('mongoose', async () => {
-  const actual = await vi.importActual('mongoose');
   return {
     ...actual,
+    Types: { ...actual.Types, ObjectId },
     default: {
       ...actual,
-      Types: {
-        ObjectId: class ObjectId {
-          private id: string;
-          constructor(id?: string) {
-            this.id = id || 'mock-id-' + Math.random().toString(36).substr(2, 9);
-          }
-          toString() {
-            return this.id;
-          }
-        },
-      },
+      Types: { ...actual.Types, ObjectId },
       models: {},
-      model: vi.fn(),
+      model: jest.fn(),
     },
   };
 });
 
 // Mock models
-vi.mock('../../models/webhook-config.model', () => ({
+jest.mock('../../models/webhook-config.model', () => ({
   WebhookConfigModel: {
-    find: vi.fn(),
-    findById: vi.fn(),
-    findByIdAndUpdate: vi.fn(),
-    findByIdAndDelete: vi.fn(),
-    create: vi.fn(),
+    find: jest.fn(),
+    findById: jest.fn(),
+    findByIdAndUpdate: jest.fn(),
+    findByIdAndDelete: jest.fn(),
+    create: jest.fn(),
   },
   AlertSeverity: {},
 }));
 
-vi.mock('../../models/webhook-delivery.model', () => ({
+jest.mock('../../models/webhook-delivery.model', () => ({
   WebhookDeliveryModel: {
-    find: vi.fn(),
-    findById: vi.fn(),
-    findByIdAndUpdate: vi.fn(),
-    create: vi.fn(),
-    countDocuments: vi.fn(),
-    aggregate: vi.fn(),
+    find: jest.fn(),
+    findById: jest.fn(),
+    findByIdAndUpdate: jest.fn(),
+    create: jest.fn(),
+    countDocuments: jest.fn(),
+    aggregate: jest.fn(),
   },
 }));
 
-vi.mock('../../models/alert.model', () => ({
+jest.mock('../../models/alert.model', () => ({
   AlertModel: {},
 }));
 
-vi.mock('../../utils/logger', () => ({
+jest.mock('../../utils/logger', () => ({
+  __esModule: true,
+  default: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
   logger: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
   },
 }));
 
-// Import after mocks
-import { webhookService } from '../webhook.service';
+import { webhookService } from '../../services/webhook.service';
 import { WebhookConfigModel } from '../../models/webhook-config.model';
 import { WebhookDeliveryModel } from '../../models/webhook-delivery.model';
+import type { AlertRule, AlertCondition } from '../../models/webhook-config.model';
+
+type Operator = AlertCondition['operator'];
+
+// Helper to build a valid AlertRule for tests
+function buildRule(overrides: {
+  id: string;
+  name: string;
+  enabled?: boolean;
+  severity?: 'info' | 'warning' | 'error' | 'critical';
+  cooldownMinutes?: number;
+  conditions?: Array<{ metric: string; operator: Operator; threshold: number }>;
+}): AlertRule {
+  const conditions: AlertCondition[] = (overrides.conditions || []).map(c => ({
+    field: c.metric,
+    operator: c.operator,
+    value: c.threshold,
+  }));
+  return {
+    id: overrides.id,
+    name: overrides.name,
+    enabled: overrides.enabled ?? true,
+    severity: overrides.severity,
+    condition: conditions[0] || { field: '', operator: 'eq' as Operator, value: 0 },
+    conditions,
+    cooldownMinutes: overrides.cooldownMinutes ?? 5,
+  };
+}
 
 describe('WebhookService', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('evaluateRules', () => {
     it('should return matching rule when conditions are met', () => {
-      const rules = [
-        {
+      const rules: AlertRule[] = [
+        buildRule({
           id: 'rule-1',
           name: 'High Trust Alert',
           conditions: [
-            { metric: 'trustScore', operator: 'lt' as const, threshold: 0.5 },
+            { metric: 'trustScore', operator: 'lt', threshold: 0.5 },
           ],
-          severity: 'critical' as const,
-          enabled: true,
-        },
+          severity: 'critical',
+        }),
       ];
 
       const metrics = { trustScore: 0.3 };
@@ -93,16 +124,15 @@ describe('WebhookService', () => {
     });
 
     it('should return undefined when no rules match', () => {
-      const rules = [
-        {
+      const rules: AlertRule[] = [
+        buildRule({
           id: 'rule-1',
           name: 'High Trust Alert',
           conditions: [
-            { metric: 'trustScore', operator: 'lt' as const, threshold: 0.5 },
+            { metric: 'trustScore', operator: 'lt', threshold: 0.5 },
           ],
-          severity: 'critical' as const,
-          enabled: true,
-        },
+          severity: 'critical',
+        }),
       ];
 
       const metrics = { trustScore: 0.8 }; // Above threshold
@@ -113,15 +143,15 @@ describe('WebhookService', () => {
     });
 
     it('should skip disabled rules', () => {
-      const rules = [
-        {
+      const rules: AlertRule[] = [
+        buildRule({
           id: 'rule-1',
           name: 'Disabled Rule',
           conditions: [
-            { metric: 'trustScore', operator: 'lt' as const, threshold: 0.5 },
+            { metric: 'trustScore', operator: 'lt', threshold: 0.5 },
           ],
-          enabled: false, // Disabled
-        },
+          enabled: false,
+        }),
       ];
 
       const metrics = { trustScore: 0.3 };
@@ -132,16 +162,15 @@ describe('WebhookService', () => {
     });
 
     it('should require all conditions to match', () => {
-      const rules = [
-        {
+      const rules: AlertRule[] = [
+        buildRule({
           id: 'rule-1',
           name: 'Multi-condition Rule',
           conditions: [
-            { metric: 'trustScore', operator: 'lt' as const, threshold: 0.5 },
-            { metric: 'driftScore', operator: 'gt' as const, threshold: 0.7 },
+            { metric: 'trustScore', operator: 'lt', threshold: 0.5 },
+            { metric: 'driftScore', operator: 'gt', threshold: 0.7 },
           ],
-          enabled: true,
-        },
+        }),
       ];
 
       // Only one condition met
@@ -159,29 +188,28 @@ describe('WebhookService', () => {
     });
 
     it('should support all operators', () => {
-      const testCases = [
-        { operator: 'gt' as const, threshold: 0.5, value: 0.6, expected: true },
-        { operator: 'gt' as const, threshold: 0.5, value: 0.5, expected: false },
-        { operator: 'gte' as const, threshold: 0.5, value: 0.5, expected: true },
-        { operator: 'lt' as const, threshold: 0.5, value: 0.4, expected: true },
-        { operator: 'lt' as const, threshold: 0.5, value: 0.5, expected: false },
-        { operator: 'lte' as const, threshold: 0.5, value: 0.5, expected: true },
-        { operator: 'eq' as const, threshold: 0.5, value: 0.5, expected: true },
-        { operator: 'eq' as const, threshold: 0.5, value: 0.6, expected: false },
-        { operator: 'neq' as const, threshold: 0.5, value: 0.6, expected: true },
-        { operator: 'neq' as const, threshold: 0.5, value: 0.5, expected: false },
+      const testCases: Array<{ operator: Operator; threshold: number; value: number; expected: boolean }> = [
+        { operator: 'gt', threshold: 0.5, value: 0.6, expected: true },
+        { operator: 'gt', threshold: 0.5, value: 0.5, expected: false },
+        { operator: 'gte', threshold: 0.5, value: 0.5, expected: true },
+        { operator: 'lt', threshold: 0.5, value: 0.4, expected: true },
+        { operator: 'lt', threshold: 0.5, value: 0.5, expected: false },
+        { operator: 'lte', threshold: 0.5, value: 0.5, expected: true },
+        { operator: 'eq', threshold: 0.5, value: 0.5, expected: true },
+        { operator: 'eq', threshold: 0.5, value: 0.6, expected: false },
+        { operator: 'ne', threshold: 0.5, value: 0.6, expected: true },
+        { operator: 'ne', threshold: 0.5, value: 0.5, expected: false },
       ];
 
       for (const tc of testCases) {
-        const rules = [
-          {
+        const rules: AlertRule[] = [
+          buildRule({
             id: 'rule-test',
             name: 'Test Rule',
             conditions: [
               { metric: 'score', operator: tc.operator, threshold: tc.threshold },
             ],
-            enabled: true,
-          },
+          }),
         ];
 
         const metrics = { score: tc.value };
@@ -205,11 +233,11 @@ describe('WebhookService', () => {
       ];
 
       (WebhookConfigModel.find as any).mockReturnValue({
-        sort: vi.fn().mockResolvedValue(mockConfigs),
+        sort: jest.fn().mockResolvedValue(mockConfigs),
       });
 
       const result = await webhookService.listConfigs('tenant-1');
-      
+
       expect(WebhookConfigModel.find).toHaveBeenCalledWith({ tenantId: 'tenant-1' });
       expect(result).toHaveLength(2);
     });
@@ -219,7 +247,7 @@ describe('WebhookService', () => {
         _id: 'new-config',
         name: 'New Webhook',
         tenantId: 'tenant-1',
-        channels: [{ type: 'webhook', name: 'Test', url: 'https://example.com' }],
+        channels: [{ type: 'webhook', url: 'https://example.com' }],
       };
 
       (WebhookConfigModel.create as any).mockResolvedValue(mockConfig);
@@ -227,7 +255,7 @@ describe('WebhookService', () => {
       const result = await webhookService.createConfig({
         name: 'New Webhook',
         tenantId: 'tenant-1',
-        channels: [{ type: 'webhook', name: 'Test', url: 'https://example.com', enabled: true }],
+        channels: [{ type: 'webhook', url: 'https://example.com' } as any],
       });
 
       expect(WebhookConfigModel.create).toHaveBeenCalled();
@@ -285,7 +313,8 @@ describe('WebhookService', () => {
       expect(WebhookDeliveryModel.aggregate).toHaveBeenCalled();
       expect(result.total).toBe(100);
       expect(result.success).toBe(95);
-      expect(result.successRate).toBeUndefined(); // Only calculated in route
+      // successRate is calculated at the route layer, not in the service
+      expect((result as any).successRate).toBeUndefined();
     });
 
     it('should return zeros when no deliveries exist', async () => {

@@ -35,7 +35,7 @@ export interface AuthConfig {
 }
 
 const DEFAULT_CONFIG: AuthConfig = {
-  secret: process.env.JWT_SECRET || '',
+  secret: process.env.JWT_SECRET ?? '',
   algorithms: ['HS256'],
   issuer: 'yseeku-platform',
   audience: 'yseeku-api',
@@ -49,6 +49,9 @@ export class AuthMiddleware {
 
   constructor(config: Partial<AuthConfig> = {}, auditLogger?: (event: any) => Promise<void>) {
     this.config = { ...DEFAULT_CONFIG, ...config };
+    if (!this.config.secret) {
+      throw new Error('JWT_SECRET is not set');
+    }
     this.auditLogger = auditLogger;
   }
 

@@ -93,3 +93,5 @@ export class AlertsService {
     };
   }
 }
+
+export const alertsService = AlertsService;

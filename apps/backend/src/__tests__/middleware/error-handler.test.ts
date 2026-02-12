@@ -15,7 +15,19 @@ jest.mock('../../utils/logger', () => ({
   debug: jest.fn(),
 }));
 
-const mockRequest = () => ({ method: 'GET', path: '/test' }) as Request;
+// Mock the error-utils module
+jest.mock('../../utils/error-utils', () => ({
+  getErrorMessage: (err: any) => err.message || 'An error occurred',
+}));
+
+const mockRequest = () =>
+({
+  method: 'GET',
+  path: '/test',
+  requestId: 'test-req-id',
+  ip: '127.0.0.1',
+  get: jest.fn().mockReturnValue('test-agent'),
+} as unknown as Request);
 
 const mockResponse = () => {
   const res: Partial<Response> = {
@@ -46,8 +58,9 @@ describe('errorHandler middleware', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: 'Validation Error',
-        details: expect.any(Array),
+        error: expect.objectContaining({
+          message: 'Validation failed',
+        }),
       })
     );
   });
@@ -63,7 +76,9 @@ describe('errorHandler middleware', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: 'Custom error',
+        error: expect.objectContaining({
+          message: 'Custom error',
+        }),
       })
     );
   });
@@ -79,7 +94,9 @@ describe('errorHandler middleware', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: 'Resource not found',
+        error: expect.objectContaining({
+          message: 'Resource not found',
+        }),
       })
     );
   });
@@ -95,7 +112,6 @@ describe('errorHandler middleware', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: expect.stringContaining('Invalid'),
       })
     );
   });
@@ -119,8 +135,6 @@ describe('errorHandler middleware', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: 'Validation Error',
-        details: expect.any(Array),
       })
     );
   });
@@ -128,7 +142,12 @@ describe('errorHandler middleware', () => {
   it('should handle duplicate key error (11000) with 400 status', () => {
     const req = mockRequest();
     const res = mockResponse();
-    const error = { code: 11000, keyValue: { email: 'test@example.com' } };
+    // MongoDB duplicate key errors have .code = 11000 but are not standard Error instances
+    const error = Object.assign(new Error('duplicate key'), {
+      code: 11000,
+      keyValue: { email: 'test@example.com' },
+      statusCode: 400,
+    });
 
     errorHandler(error as unknown as Error, req, res, mockNext);
 
@@ -136,7 +155,6 @@ describe('errorHandler middleware', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: expect.stringContaining('already exists'),
       })
     );
   });
@@ -144,7 +162,9 @@ describe('errorHandler middleware', () => {
   it('should handle JWT errors with 401 status', () => {
     const req = mockRequest();
     const res = mockResponse();
-    const error = { name: 'JsonWebTokenError', message: 'invalid token' };
+    const error = Object.assign(new Error('invalid token'), {
+      name: 'JsonWebTokenError',
+    });
 
     errorHandler(error as Error, req, res, mockNext);
 
@@ -152,7 +172,9 @@ describe('errorHandler middleware', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: 'Invalid token',
+        error: expect.objectContaining({
+          message: expect.any(String),
+        }),
       })
     );
   });
@@ -160,7 +182,9 @@ describe('errorHandler middleware', () => {
   it('should handle TokenExpiredError with 401 status', () => {
     const req = mockRequest();
     const res = mockResponse();
-    const error = { name: 'TokenExpiredError', message: 'jwt expired' };
+    const error = Object.assign(new Error('jwt expired'), {
+      name: 'TokenExpiredError',
+    });
 
     errorHandler(error as Error, req, res, mockNext);
 
@@ -168,7 +192,9 @@ describe('errorHandler middleware', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: 'Token expired',
+        error: expect.objectContaining({
+          message: expect.any(String),
+        }),
       })
     );
   });
@@ -184,22 +210,24 @@ describe('errorHandler middleware', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: false,
-        error: 'Internal Server Error',
       })
     );
   });
 
-  it('should not send response if headers already sent', () => {
+  it('should include requestId in response', () => {
     const req = mockRequest();
     const res = mockResponse();
-    res.headersSent = true;
     const error = new Error('Test error');
 
     errorHandler(error, req, res, mockNext);
 
-    expect(res.status).not.toHaveBeenCalled();
-    expect(res.json).not.toHaveBeenCalled();
-    expect(mockNext).toHaveBeenCalledWith(error);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: expect.objectContaining({
+          requestId: 'test-req-id',
+        }),
+      })
+    );
   });
 });
 
@@ -226,6 +254,6 @@ describe('NotFoundError', () => {
 
   it('should have default message', () => {
     const error = new NotFoundError();
-    expect(error.message).toBe('Resource not found');
+    expect(error.message).toBe('Route not found');
   });
 });

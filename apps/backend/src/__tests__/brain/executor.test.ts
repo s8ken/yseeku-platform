@@ -33,8 +33,8 @@ jest.mock('../../models/conversation.model', () => ({
 }));
 
 jest.mock('../../services/alerts.service', () => ({
-  alertsService: {
-    create: jest.fn(),
+  AlertsService: {
+    createAlert: jest.fn(),
   },
 }));
 
@@ -57,7 +57,7 @@ import { executeActions, PlannedAction } from '../../services/brain/executor';
 import { BrainAction } from '../../models/brain-action.model';
 import { Agent } from '../../models/agent.model';
 import { Conversation } from '../../models/conversation.model';
-import { alertsService } from '../../services/alerts.service';
+import { AlertsService } from '../../services/alerts.service';
 import { settingsService } from '../../services/settings.service';
 import * as auditLogger from '../../utils/audit-logger';
 import * as memory from '../../services/brain/memory';
@@ -109,13 +109,11 @@ describe('Brain Executor Service', () => {
 
       expect(results).toHaveLength(1);
       expect(results[0].status).toBe('executed');
-      expect(alertsService.create).toHaveBeenCalledWith(
+      expect(AlertsService.createAlert).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'system',
+          tenant_id: mockTenantId,
           title: 'High emergence detected',
-          severity: 'warning',
-        }),
-        mockTenantId
+        })
       );
     });
   });
@@ -148,7 +146,7 @@ describe('Brain Executor Service', () => {
 
       (Agent.findById as jest.Mock).mockResolvedValue(mockAgent);
       (Conversation.updateMany as jest.Mock).mockResolvedValue({ modifiedCount: 2 });
-      (alertsService.create as jest.Mock).mockReturnValue({ id: 'alert-1' });
+      (AlertsService.createAlert as jest.Mock).mockResolvedValue({ id: 'alert-1' });
       (memory.remember as jest.Mock).mockResolvedValue({});
 
       const actions: PlannedAction[] = [{
@@ -192,13 +190,11 @@ describe('Brain Executor Service', () => {
       );
 
       // Verify alert was created
-      expect(alertsService.create).toHaveBeenCalledWith(
+      expect(AlertsService.createAlert).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'security',
+          tenant_id: mockTenantId,
           title: expect.stringContaining('Agent Banned'),
-          severity: 'error', // high severity maps to error
-        }),
-        mockTenantId
+        })
       );
 
       // Verify memory was stored
@@ -283,12 +279,11 @@ describe('Brain Executor Service', () => {
         'Rate limit exceeded'
       );
 
-      expect(alertsService.create).toHaveBeenCalledWith(
+      expect(AlertsService.createAlert).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'security',
           title: expect.stringContaining('Agent Restricted'),
+          tenant_id: mockTenantId,
         }),
-        mockTenantId
       );
     });
   });
@@ -342,13 +337,11 @@ describe('Brain Executor Service', () => {
       expect(results[0].status).toBe('executed');
       expect(mockAgent.unban).toHaveBeenCalled();
 
-      expect(alertsService.create).toHaveBeenCalledWith(
+      expect(AlertsService.createAlert).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'system',
           title: expect.stringContaining('Agent Restored'),
-          severity: 'info',
+          tenant_id: mockTenantId,
         }),
-        mockTenantId
       );
     });
   });

@@ -50,18 +50,18 @@ export function validateBody<T extends ZodSchema>(schema: T) {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       const result = schema.safeParse(req.body);
-      
+
       if (!result.success) {
         logger.warn('Request body validation failed', {
           path: req.path,
           method: req.method,
           errors: result.error.issues,
         });
-        
+
         res.status(400).json(formatZodError(result.error));
         return;
       }
-      
+
       // Replace body with parsed/transformed data
       req.body = result.data;
       next();
@@ -82,18 +82,18 @@ export function validateQuery<T extends ZodSchema>(schema: T) {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       const result = schema.safeParse(req.query);
-      
+
       if (!result.success) {
         logger.warn('Query params validation failed', {
           path: req.path,
           method: req.method,
           errors: result.error.issues,
         });
-        
+
         res.status(400).json(formatZodError(result.error));
         return;
       }
-      
+
       // Replace query with parsed/transformed data
       req.query = result.data as typeof req.query;
       next();
@@ -114,18 +114,18 @@ export function validateParams<T extends ZodSchema>(schema: T) {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       const result = schema.safeParse(req.params);
-      
+
       if (!result.success) {
         logger.warn('Route params validation failed', {
           path: req.path,
           method: req.method,
           errors: result.error.issues,
         });
-        
+
         res.status(400).json(formatZodError(result.error));
         return;
       }
-      
+
       req.params = result.data as typeof req.params;
       next();
     } catch (error) {
@@ -208,5 +208,19 @@ export function validate<
     next();
   };
 }
+
+export class ValidationError extends Error {
+  statusCode = 400;
+  code = 'VALIDATION_ERROR';
+  details?: Array<{ path: string; message: string }>;
+
+  constructor(message = 'Request validation failed', details?: Array<{ path: string; message: string }>) {
+    super(message);
+    this.name = 'ValidationError';
+    this.details = details;
+  }
+}
+
+export const validateRequest = validate;
 
 export default { validateBody, validateQuery, validateParams, validate };

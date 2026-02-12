@@ -223,7 +223,7 @@ async function gatherAlertSummary(tenantId: string): Promise<AlertSummary> {
 /**
  * Analyze trend in trust scores
  */
-function analyzeTrend(scores: number[]): TrendData {
+export function analyzeTrend(scores: number[]): TrendData {
   if (scores.length < 3) {
     return { direction: 'stable', slope: 0, volatility: 0, recentChange: 0 };
   }
@@ -261,9 +261,9 @@ function analyzeTrend(scores: number[]): TrendData {
   // Determine direction
   let direction: 'improving' | 'declining' | 'stable';
   if (slope > 0.5) {
-    direction = 'improving';
-  } else if (slope < -0.5) {
     direction = 'declining';
+  } else if (slope < -0.5) {
+    direction = 'improving';
   } else {
     direction = 'stable';
   }

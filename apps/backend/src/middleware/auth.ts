@@ -1,8 +1,12 @@
 /**
- * JWT Authentication Middleware
+ * Lightweight JWT Authentication Middleware
  * 
- * Verifies JWT tokens from Authorization header
- * Attaches decoded user to req.user for downstream routes
+ * Verifies JWT tokens from Authorization header and attaches decoded user
+ * to req.user for downstream routes. This is the LIGHTWEIGHT variant that
+ * performs JWT-only verification without database lookups or RBAC.
+ *
+ * For full auth with DB-backed user resolution, tenant isolation, and
+ * role-based access control, use `auth.middleware.ts` (SecureAuthService).
  */
 
 import type { Request, Response, NextFunction } from 'express';
@@ -19,7 +23,7 @@ export interface AuthRequest extends Omit<Request, 'user'> {
 export const authMiddleware: any = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader) {
       res.status(401).json({ error: 'Authorization header missing' });
       return;
@@ -32,7 +36,10 @@ export const authMiddleware: any = (req: Request, res: Response, next: NextFunct
     }
 
     const token = parts[1];
-    const jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET is not set');
+    }
 
     try {
       const decoded = jwt.verify(token, jwtSecret) as { username: string; iat?: number; exp?: number };
@@ -55,7 +62,7 @@ export const authMiddleware: any = (req: Request, res: Response, next: NextFunct
 export const optionalAuthMiddleware: any = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader) {
       next();
       return;
@@ -68,16 +75,16 @@ export const optionalAuthMiddleware: any = (req: Request, res: Response, next: N
     }
 
     const token = parts[1];
-    const jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      throw new Error('JWT_SECRET is not set');
+    }
 
     try {
       const decoded = jwt.verify(token, jwtSecret) as { username: string; iat?: number; exp?: number };
       (req as any).user = decoded;
-    } catch (err) {
-      // Skip auth if token is invalid, don't block request
-      console.log('Optional auth: Invalid token, continuing without auth');
-    }
-    
+    } catch (err) { }
+
     next();
   } catch (err) {
     next();

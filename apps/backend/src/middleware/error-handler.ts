@@ -40,7 +40,7 @@ function getStatusCode(error: HttpError): number {
   // Explicit status
   if (error.status) return error.status;
   if (error.statusCode) return error.statusCode;
-  
+
   // PlatformError severity mapping
   if (error instanceof PlatformError) {
     switch (error.category) {
@@ -58,7 +58,7 @@ function getStatusCode(error: HttpError): number {
         return 500;
     }
   }
-  
+
   // Error name mapping
   switch (error.name) {
     case 'ValidationError':
@@ -88,11 +88,11 @@ function getErrorCode(error: HttpError): string {
   if (error instanceof PlatformError) {
     return error.code;
   }
-  
+
   if (error.code) {
     return error.code;
   }
-  
+
   // Convert error name to code format
   return error.name
     .replace(/([a-z])([A-Z])/g, '$1_$2')
@@ -108,11 +108,11 @@ function getUserMessage(error: HttpError, statusCode: number): string {
   if (process.env.NODE_ENV === 'production' && statusCode >= 500) {
     return 'An internal error occurred. Please try again later.';
   }
-  
+
   if (error instanceof PlatformError) {
     return error.userMessage;
   }
-  
+
   return getErrorMessage(error) || 'An error occurred';
 }
 
@@ -154,7 +154,7 @@ export function globalErrorHandler(
   const statusCode = getStatusCode(error);
   const errorCode = getErrorCode(error);
   const userMessage = getUserMessage(error, statusCode);
-  
+
   // Log the error with full context
   const logContext = {
     requestId: req.requestId,
@@ -169,13 +169,13 @@ export function globalErrorHandler(
     userAgent: req.get('user-agent'),
     stack: error.stack,
   };
-  
+
   if (statusCode >= 500) {
     logger.error('Server error', { ...logContext, message: getErrorMessage(error) });
   } else if (statusCode >= 400) {
     logger.warn('Client error', { ...logContext, message: getErrorMessage(error) });
   }
-  
+
   // Build response
   const response: ErrorResponse = {
     success: false,
@@ -185,14 +185,39 @@ export function globalErrorHandler(
       requestId: req.requestId,
     },
   };
-  
+
   // Include details in non-production for debugging
   if (process.env.NODE_ENV !== 'production' && error.details) {
     response.error.details = error.details;
   }
-  
+
   // Send response
   res.status(statusCode).json(response);
 }
+
+export class AppError extends Error {
+  statusCode: number;
+  code: string;
+  details?: unknown;
+  isOperational: boolean;
+
+  constructor(message: string, statusCode = 500, code = 'INTERNAL_ERROR', details?: unknown, isOperational = true) {
+    super(message);
+    this.name = 'AppError';
+    this.statusCode = statusCode;
+    this.code = code;
+    this.details = details;
+    this.isOperational = isOperational;
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(message = 'Route not found', details?: unknown) {
+    super(message, 404, 'NOT_FOUND', details);
+    this.name = 'NotFoundError';
+  }
+}
+
+export const errorHandler = globalErrorHandler;
 
 export default globalErrorHandler;

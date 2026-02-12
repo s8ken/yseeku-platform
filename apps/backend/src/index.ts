@@ -14,6 +14,8 @@ validateEnvironmentOrExit();
 // Initialize telemetry before other imports when enabled
 import './observability/telemetry';
 
+import backendPackage from '../package.json';
+
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
@@ -89,6 +91,7 @@ import { setIoInstance } from './utils/socket'; // Import setIoInstance
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3001;
+const APP_VERSION = backendPackage.version;
 
 // Security middleware
 app.use(helmet());
@@ -139,7 +142,7 @@ app.get('/', (req, res) => {
   res.json({
     success: true,
     message: 'YSEEKU Platform Backend API is running',
-    version: '1.11.1',
+    version: APP_VERSION,
     documentation: '/api/docs',
     health: '/api/health',
     metrics: '/api/metrics'
@@ -240,7 +243,7 @@ async function startServer() {
     logger.info('YSEEKU Platform Backend Server started', {
       port: PORT,
       environment: process.env.NODE_ENV || 'development',
-      version: '1.12.0',
+      version: APP_VERSION,
     });
   });
 

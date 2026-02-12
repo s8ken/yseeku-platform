@@ -3,6 +3,7 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/?(*.)+(spec|test).ts'],
+  testPathIgnorePatterns: ['<rootDir>/src/__tests__/integration/'],
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
@@ -13,7 +14,9 @@ module.exports = {
     '^@sonate/detect$': '<rootDir>/src/__tests__/mocks/sonate-detect.mock.js',
     '^@noble/ed25519$': '<rootDir>/src/__tests__/mocks/noble-ed25519.mock.js',
     '^@noble/secp256k1$': '<rootDir>/src/__tests__/mocks/noble-secp256k1.mock.js',
-    '^uuid$': '<rootDir>/src/__tests__/mocks/uuid.mock.js'
+    '^uuid$': '<rootDir>/src/__tests__/mocks/uuid.mock.js',
+    '^hashi-vault-js$': '<rootDir>/src/__tests__/mocks/hashi-vault-js.mock.js',
+    '^@noble/hashes/sha3$': '<rootDir>/src/__tests__/mocks/noble-hashes-sha3.mock.js'
   },
   collectCoverageFrom: [
     'src/**/*.ts',

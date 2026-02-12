@@ -41,7 +41,7 @@ declare global {
 
 // Initialize SecureAuthService
 if (!process.env.JWT_SECRET) {
-  securityLogger.warn('JWT_SECRET is not set. A random secret will be generated, which may cause session invalidation on restart.');
+  throw new Error('JWT_SECRET is not set');
 }
 
 const authService = new SecureAuthService({

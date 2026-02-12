@@ -92,7 +92,7 @@ export interface TrustEvaluation {
   messageId?: string;
   conversationId?: string;
   agentId?: string;
-  
+
   // Analysis method transparency (v2.1)
   evaluatedBy?: 'llm' | 'heuristic' | 'hybrid';
   analysisMethod?: {
@@ -129,20 +129,25 @@ export class TrustService {
   private trustValidator: TrustProtocolValidator;
   private ethicalScorer: EthicalAlignmentScorer;
   private resonanceMeasurer: ResonanceQualityMeasurer;
-  
+
   // Statistical drift detectors per conversation (tracks text property changes)
   private driftDetectors: Map<string, DriftDetector> = new Map();
-  
+
   // Phase-shift velocity trackers per conversation (tracks semantic changes)
   private phaseShiftTrackers: Map<string, ConversationalMetrics> = new Map();
-  
+
   // Turn counters per conversation (for phase-shift tracking)
   private turnCounters: Map<string, number> = new Map();
-  
+
+  // TTL tracking for auto-cleanup of stale conversation state
+  private conversationLastAccessed: Map<string, number> = new Map();
+  private static readonly MAX_CONVERSATION_AGE_MS = 30 * 60 * 1000; // 30 minutes
+  private sweepInterval: ReturnType<typeof setInterval> | null = null;
+
   // Drift thresholds (statistical)
   private static readonly DRIFT_YELLOW_THRESHOLD = 30;  // 0-100 scale
   private static readonly DRIFT_RED_THRESHOLD = 60;
-  
+
   // Phase-shift velocity thresholds (semantic)
   private static readonly PHASE_SHIFT_YELLOW_THRESHOLD = 2.0;
   private static readonly PHASE_SHIFT_RED_THRESHOLD = 3.5;
@@ -154,6 +159,35 @@ export class TrustService {
     this.trustValidator = new TrustProtocolValidator();
     this.ethicalScorer = new EthicalAlignmentScorer();
     this.resonanceMeasurer = new ResonanceQualityMeasurer();
+
+    // Sweep stale conversation trackers every 60 seconds
+    this.sweepInterval = setInterval(() => this.sweepStaleConversations(), 60_000);
+    // Allow the process to exit even if the interval is running
+    if (this.sweepInterval.unref) {
+      this.sweepInterval.unref();
+    }
+  }
+
+  /**
+   * Record a conversation as recently accessed (for TTL tracking)
+   */
+  private touchConversation(conversationId: string): void {
+    this.conversationLastAccessed.set(conversationId, Date.now());
+  }
+
+  /**
+   * Remove conversation trackers that have been idle longer than MAX_CONVERSATION_AGE_MS
+   */
+  private sweepStaleConversations(): void {
+    const now = Date.now();
+    for (const [id, lastAccessed] of this.conversationLastAccessed) {
+      if (now - lastAccessed > TrustService.MAX_CONVERSATION_AGE_MS) {
+        this.driftDetectors.delete(id);
+        this.phaseShiftTrackers.delete(id);
+        this.turnCounters.delete(id);
+        this.conversationLastAccessed.delete(id);
+      }
+    }
   }
 
   /**
@@ -177,6 +211,9 @@ export class TrustService {
       humanInLoop?: boolean;
     }
   ): Promise<TrustEvaluation> {
+    // Track conversation activity for TTL-based cleanup
+    this.touchConversation(context.conversationId);
+
     // Build AIInteraction object for @sonate/detect
     const interaction: AIInteraction = {
       content: message.content,
@@ -196,7 +233,7 @@ export class TrustService {
 
     // Run statistical drift detection to track text property changes
     const driftResult = this.analyzeDrift(context.conversationId, message);
-    
+
     // Run phase-shift velocity analysis to track semantic/alignment changes
     const phaseShiftResult = this.analyzePhaseShift(
       context.conversationId,
@@ -224,7 +261,7 @@ export class TrustService {
       exitRequiresConfirmation: context.exitRequiresConfirmation,
       humanInLoop: context.humanInLoop,
     } : undefined;
-    
+
     const principleScores = this.mapDetectionToPrinciples(detection, evaluationContext);
 
     // Calculate trust score using TrustProtocol
@@ -276,7 +313,7 @@ export class TrustService {
 
     // Check LLM availability for analysis method transparency
     const llmStatus = getLLMStatus();
-    
+
     // Log analysis method for transparency
     logger.info('Trust evaluation complete', {
       conversationId: context.conversationId,
@@ -329,7 +366,7 @@ export class TrustService {
    * but prefers the proper evaluation context when provided.
    */
   private mapDetectionToPrinciples(
-    detection: DetectionResult, 
+    detection: DetectionResult,
     evaluationContext?: Partial<EvaluationContext>
   ): PrincipleScores {
     // If we have proper evaluation context, use the real evaluator
@@ -361,7 +398,7 @@ export class TrustService {
           providesAlternatives: detection.resonance_quality !== 'STRONG',
         }
       );
-      
+
       const result = principleEvaluator.evaluate(fullContext);
       return result.scores;
     }
@@ -369,7 +406,7 @@ export class TrustService {
     // LEGACY FALLBACK: Use detection-based scoring when no context available
     // This preserves backward compatibility but is less accurate
     logger.warn('Using legacy detection-based principle scoring. Provide EvaluationContext for accurate scores.');
-    
+
     const trustProtocolScore = detection.trust_protocol === 'PASS' ? 10 : detection.trust_protocol === 'PARTIAL' ? 6 : 2;
     const resonanceScore =
       detection.resonance_quality === 'BREAKTHROUGH' ? 10 : detection.resonance_quality === 'ADVANCED' ? 8 : 6;
@@ -636,7 +673,7 @@ export class TrustService {
     // Convert resonance_quality string to numeric value (0-10)
     const resonanceScore = detection.resonance_quality === 'BREAKTHROUGH' ? 10 :
       detection.resonance_quality === 'ADVANCED' ? 7 : 5;
-    
+
     const turn: ConversationTurn = {
       turnNumber,
       timestamp: message.timestamp?.getTime() || Date.now(),
@@ -764,7 +801,7 @@ export class TrustService {
       // Store significant emergence signals in memory
       if (signal) {
         await emergenceDetector.storeSignal(signal);
-        
+
         // Log breakthrough events
         if (signal.level === 'breakthrough') {
           logger.warn('BREAKTHROUGH emergence detected', {

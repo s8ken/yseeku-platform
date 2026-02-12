@@ -157,17 +157,9 @@ export function validateEnvironmentOrExit(): void {
     console.error('\n❌ Environment validation failed:');
     result.errors.forEach(err => console.error(`   - ${err}`));
     console.error('\nPlease set the required environment variables.\n');
-    
-    // In cloud environments (Fly.io, Railway), don't exit - let health check show the error
-    // This allows debugging via logs and prevents silent timeouts
-    const isCloud = process.env.FLY_APP_NAME || process.env.RAILWAY_ENVIRONMENT || process.env.RENDER;
-    if (isCloud) {
-      console.error('⚠️  Running in cloud environment - continuing despite errors for debugging');
-      logger.warn('Environment validation failed but continuing in cloud mode', { errors: result.errors });
-    } else {
-      logger.error('Exiting due to environment validation errors');
-      process.exit(1);
-    }
+
+    logger.error('Exiting due to environment validation errors');
+    process.exit(1);
   }
 }
 

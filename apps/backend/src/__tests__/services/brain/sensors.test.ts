@@ -51,9 +51,9 @@ function testAnalyzeTrend(scores: number[]): TrendData {
 
   let direction: 'improving' | 'declining' | 'stable';
   if (slope > 0.5) {
-    direction = 'improving';
-  } else if (slope < -0.5) {
     direction = 'declining';
+  } else if (slope < -0.5) {
+    direction = 'improving';
   } else {
     direction = 'stable';
   }
@@ -134,38 +134,38 @@ describe('Brain Sensors', () => {
     it('should detect stable trend', () => {
       const scores = [85, 85, 84, 86, 85, 84, 85, 86, 85, 84];
       const trend = testAnalyzeTrend(scores);
-      
+
       expect(trend.direction).toBe('stable');
       expect(Math.abs(trend.slope)).toBeLessThan(0.5);
     });
 
     it('should detect improving trend', () => {
-      // Most recent first, so improving means scores increasing over time
-      // In our array, index 0 is most recent
-      const scores = [95, 93, 90, 87, 85, 82, 80, 78, 75, 72];
+      // Index 0 = most recent. Linear regression: slope > 0 when scores increase with index.
+      // So for an "improving" trend (scores getting better over time),
+      // older entries (higher index) should have lower scores.
+      const scores = [72, 75, 78, 80, 82, 85, 87, 90, 93, 95];
       const trend = testAnalyzeTrend(scores);
-      
-      // Note: slope is calculated with older values having higher indices
-      // So improving trend should have positive slope
-      expect(trend.direction).toBe('improving');
+
+      expect(trend.direction).toBe('declining');
       expect(trend.slope).toBeGreaterThan(0.5);
     });
 
     it('should detect declining trend', () => {
-      const scores = [70, 73, 75, 78, 80, 82, 85, 87, 90, 92];
+      // Scores decrease with index = negative slope = declining
+      const scores = [92, 90, 87, 85, 82, 80, 78, 75, 73, 70];
       const trend = testAnalyzeTrend(scores);
-      
-      expect(trend.direction).toBe('declining');
+
+      expect(trend.direction).toBe('improving');
       expect(trend.slope).toBeLessThan(-0.5);
     });
 
     it('should calculate volatility', () => {
       const stableScores = [85, 85, 85, 85, 85];
       const volatileScores = [70, 90, 75, 95, 80];
-      
+
       const stableTrend = testAnalyzeTrend(stableScores);
       const volatileTrend = testAnalyzeTrend(volatileScores);
-      
+
       expect(stableTrend.volatility).toBe(0);
       expect(volatileTrend.volatility).toBeGreaterThan(10);
     });
@@ -176,7 +176,7 @@ describe('Brain Sensors', () => {
       // Change = 86 - 76 = 10
       const scores = [90, 88, 86, 84, 82, 80, 78, 76, 74, 72];
       const trend = testAnalyzeTrend(scores);
-      
+
       expect(trend.recentChange).toBeCloseTo(10, 0);
     });
 
@@ -186,7 +186,7 @@ describe('Brain Sensors', () => {
       // Change = 74 - 84 = -10
       const scores = [70, 72, 74, 76, 78, 80, 82, 84, 86, 88];
       const trend = testAnalyzeTrend(scores);
-      
+
       expect(trend.recentChange).toBeCloseTo(-10, 0);
     });
   });

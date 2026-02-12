@@ -12,10 +12,10 @@ jobs:
       TURBO_TELEMETRY_DISABLED: '1'
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
@@ -34,7 +34,6 @@ jobs:
 
       - name: Backend unit tests
         run: npm run test --workspace=backend
-        continue-on-error: true
 
       - name: Build backend
         run: npm run build:backend

@@ -18,7 +18,10 @@ import { getErrorMessage } from '../utils/error-utils';
 
 const router = Router();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET is not set');
+}
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 const JWT_EXPIRES_SECONDS = 7 * 24 * 60 * 60; // 7 days in seconds

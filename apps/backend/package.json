@@ -8,6 +8,7 @@
     "start": "node dist/index.js",
     "dev": "ts-node-dev src/index.ts",
     "test": "jest",
+    "test:integration": "jest --testPathPattern=src/__tests__/integration",
     "migrate": "ts-node scripts/migrate.ts",
     "seed": "ts-node scripts/seed.ts",
     "seed:fresh": "ts-node scripts/seed.ts --fresh"
