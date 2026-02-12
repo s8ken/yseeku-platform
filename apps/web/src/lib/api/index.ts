@@ -357,6 +357,7 @@ export const api = {
     // If receipt provided, send to backend for cryptographic verification
     // Otherwise, just check if it exists and has a signature
     if (receipt) {
+      console.log('[API] verifyTrustReceipt called with hash:', hash, 'receipt:', receipt);
       const res = await fetchAPI<{ success: boolean; data: { valid: boolean; receipt?: any; verification?: any } }>(
         `/api/trust/receipts/${hash}/verify`,
         {
@@ -364,9 +365,11 @@ export const api = {
           body: JSON.stringify({ receipt }),
         }
       );
+      console.log('[API] verifyTrustReceipt response:', res);
       return res.data || { valid: false };
     }
     // Fallback: fetch the receipt and check for signature
+    console.log('[API] verifyTrustReceipt fallback - fetching receipt by hash');
     const receiptRes = await fetchAPI<{ success: boolean; data: any }>(`/api/trust/receipts/by-hash/${hash}`);
     const fetchedReceipt = receiptRes.data;
     if (fetchedReceipt && fetchedReceipt.signature) {
