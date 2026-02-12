@@ -350,11 +350,17 @@ export function useReceiptsData(limit = 20) {
         const hasSignature = !!r.signature;
         const demoVerified = r.ciq_metrics ? r.ciq_metrics.quality >= 0.5 : true;
 
+        // CIQ metrics are stored as 0-10 values, average them for trust score
+        // Display as X.X/10 format
+        const avgCiq = r.ciq_metrics 
+          ? (r.ciq_metrics.clarity + r.ciq_metrics.integrity + r.ciq_metrics.quality) / 3 
+          : 0;
+        
         return {
           id: r._id || r.id || r.self_hash,
           session_id: r.session_id || '',
           agent_id: r.agent_id,
-          trust_score: r.ciq_metrics ? Math.round(((r.ciq_metrics.clarity + r.ciq_metrics.integrity + r.ciq_metrics.quality) / 3) * 100) : 0,
+          trust_score: Math.round(avgCiq * 10) / 10, // Keep as 0-10 scale with 1 decimal
           hash: r.self_hash || r.hash || '',
           verified: isDemo ? demoVerified : hasSignature,
           created_at: r.createdAt || new Date(r.timestamp || Date.now()).toISOString(),

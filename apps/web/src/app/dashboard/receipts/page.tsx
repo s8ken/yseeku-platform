@@ -104,8 +104,8 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
     setIsVerifying(true);
     setVerificationResult(null);
     try {
-      // Use the real API to verify the receipt
-      const result = await api.verifyTrustReceipt(receipt.hash);
+      // Pass the full receipt data for cryptographic verification
+      const result = await api.verifyTrustReceipt(receipt.hash, receipt.receiptData);
       setVerificationResult(result.valid ? 'success' : 'fail');
     } catch (err) {
       console.error('Verification failed', err);
@@ -188,12 +188,12 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
         <div className="grid grid-cols-4 gap-3 mb-3">
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Trust Score</p>
-            <p className="font-bold text-lg">{receipt.trustScore}</p>
+            <p className="font-bold text-lg">{receipt.trustScore}<span className="text-sm font-normal text-muted-foreground">/10</span></p>
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Consent</p>
-            <p className={`font-semibold ${receipt.trustScore >= 85 ? 'text-emerald-600' : receipt.trustScore >= 70 ? 'text-amber-600' : 'text-red-600'}`}>
-              {receipt.trustScore >= 85 ? '✓' : receipt.trustScore >= 70 ? '⚠' : '✗'}
+            <p className={`font-semibold ${receipt.trustScore >= 8.5 ? 'text-emerald-600' : receipt.trustScore >= 7 ? 'text-amber-600' : 'text-red-600'}`}>
+              {receipt.trustScore >= 8.5 ? '✓' : receipt.trustScore >= 7 ? '⚠' : '✗'}
             </p>
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
@@ -323,28 +323,36 @@ export default function TrustReceiptsPage() {
   const { data: receiptsData, isLoading, refetch } = useReceiptsData(50);
 
   // Transform the receipts data to match our interface
-  const receipts: TrustReceipt[] = (receiptsData?.receipts || []).map((r: any) => ({
-    id: r._id || r.id || r.self_hash,
-    hash: r.hash || r.self_hash || `hash-${r.id}`,
-    agentId: r.agent_id || '',
-    agentName: r.agent_id ? `Agent ${String(r.agent_id).slice(-4)}` : 'Unknown Agent',
-    timestamp: r.created_at || r.timestamp || r.createdAt || new Date().toISOString(),
-    trustScore: r.trust_score || (r.ciq_metrics?.quality ? Math.round(r.ciq_metrics.quality * 100) / 10 : 0),
-    sonateDimensions: {
-      realityIndex: r.ciq_metrics?.quality ? r.ciq_metrics.quality * 10 : 8.5,
-      trustProtocol: 'PASS',
-      ethicalAlignment: r.ciq_metrics?.integrity ? r.ciq_metrics.integrity * 5 : 4.2,
-      resonanceQuality: 'STRONG',
-      canvasParity: r.ciq_metrics?.clarity ? Math.round(r.ciq_metrics.clarity * 100) : 87,
-    },
-    verified: r.verified ?? !!r.signature,
-    chainPosition: 1,
-    previousHash: r.previous_hash || '',
-    receiptData: r,
-    issuer: r.issuer,
-    subject: r.subject,
-    proof: r.proof,
-  }));
+  const receipts: TrustReceipt[] = (receiptsData?.receipts || []).map((r: any) => {
+    // CIQ metrics are 0-10 scale, trust_score should be the average
+    const ciq = r.ciq_metrics;
+    const avgScore = ciq 
+      ? Math.round(((ciq.clarity + ciq.integrity + ciq.quality) / 3) * 10) / 10
+      : r.trust_score || 0;
+    
+    return {
+      id: r._id || r.id || r.self_hash,
+      hash: r.hash || r.self_hash || `hash-${r.id}`,
+      agentId: r.agent_id || '',
+      agentName: r.agent_id ? `Agent ${String(r.agent_id).slice(-4)}` : 'Unknown Agent',
+      timestamp: r.created_at || r.timestamp || r.createdAt || new Date().toISOString(),
+      trustScore: avgScore, // 0-10 scale
+      sonateDimensions: {
+        realityIndex: ciq?.quality || 8.5,
+        trustProtocol: avgScore >= 7 ? 'PASS' : avgScore >= 5 ? 'PARTIAL' : 'FAIL',
+        ethicalAlignment: ciq?.integrity ? Math.round(ciq.integrity / 2 * 10) / 10 : 4.2, // Convert 0-10 to 0-5
+        resonanceQuality: avgScore >= 8 ? 'STRONG' : avgScore >= 6 ? 'MODERATE' : 'WEAK',
+        canvasParity: ciq?.clarity ? Math.round(ciq.clarity * 10) : 87, // Convert 0-10 to percentage
+      },
+      verified: r.verified ?? !!r.signature,
+      chainPosition: 1,
+      previousHash: r.previous_hash || '',
+      receiptData: r,
+      issuer: r.issuer,
+      subject: r.subject,
+      proof: r.proof,
+    };
+  });
 
   // Use stats from API response for accurate totals
   const stats = receiptsData?.stats || {

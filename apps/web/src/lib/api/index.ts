@@ -352,10 +352,27 @@ export const api = {
     return res.data?.receipt;
   },
 
-  async verifyTrustReceipt(hash: string): Promise<{ valid: boolean; receipt?: any }> {
+  async verifyTrustReceipt(hash: string, receipt?: any): Promise<{ valid: boolean; receipt?: any; verification?: any }> {
     const { fetchAPI } = await import('./client');
-    const res = await fetchAPI<{ success: boolean; data: { valid: boolean; receipt?: any } }>(`/api/trust/receipts/${hash}/verify`);
-    return res.data || { valid: false };
+    // If receipt provided, send to backend for cryptographic verification
+    // Otherwise, just check if it exists and has a signature
+    if (receipt) {
+      const res = await fetchAPI<{ success: boolean; data: { valid: boolean; receipt?: any; verification?: any } }>(
+        `/api/trust/receipts/${hash}/verify`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ receipt }),
+        }
+      );
+      return res.data || { valid: false };
+    }
+    // Fallback: fetch the receipt and check for signature
+    const receiptRes = await fetchAPI<{ success: boolean; data: any }>(`/api/trust/receipts/by-hash/${hash}`);
+    const fetchedReceipt = receiptRes.data;
+    if (fetchedReceipt && fetchedReceipt.signature) {
+      return { valid: true, receipt: fetchedReceipt };
+    }
+    return { valid: false };
   },
 
   // Debug
