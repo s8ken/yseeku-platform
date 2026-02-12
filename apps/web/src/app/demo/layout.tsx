@@ -93,7 +93,7 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
             </SheetTrigger>
-            // @ts-ignore
+            {/* @ts-ignore */}
             <SheetContent side="left" className="flex flex-col">
               <SidebarContent />
             </SheetContent>

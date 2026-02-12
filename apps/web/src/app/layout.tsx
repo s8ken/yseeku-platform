@@ -1,21 +1,19 @@
 import type { Metadata } from "next";
-// import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Providers } from "./providers";
 import "./globals.css";
 
-/*
-const geistSans = Inter({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
-const geistMono = JetBrains_Mono({
-  variable: "--font-geist-mono",
+const jetBrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
 });
-*/
 
 export const metadata: Metadata = {
   title: "SONATE Platform",
@@ -30,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className="antialiased"
+        className={`${inter.variable} ${jetBrainsMono.variable} antialiased font-sans`}
       >
         <Providers>
           <ThemeProvider

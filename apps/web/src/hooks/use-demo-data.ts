@@ -34,18 +34,18 @@ async function fetchData<T>(
       'X-Tenant-ID': tenantId,
     },
   });
-  
+
   // Extract data from response
   const data = (response as any).data || response;
-  
+
   return transform ? transform(data) : data;
 }
 
 export function useDemoData<T>(config: DemoDataConfig<T>) {
   const { isDemo, isLoaded, currentTenantId } = useDemo();
-  
+
   const endpoint = isDemo ? config.demoEndpoint : config.liveEndpoint;
-  
+
   return useQuery<T, Error>({
     queryKey: [...config.queryKey, isDemo ? 'demo' : 'live', currentTenantId],
     queryFn: () => fetchData<T>(endpoint, currentTenantId, config.transform),
@@ -211,29 +211,29 @@ export interface TrustAnalytics {
 
 export function useTrustAnalytics() {
   const { isDemo, isLoaded, currentTenantId } = useDemo();
-  
+
   console.log('[useTrustAnalytics] Hook called:', { isDemo, isLoaded, currentTenantId });
-  
+
   return useQuery<TrustAnalytics, Error>({
     // Include tenantId in query key to ensure data refreshes when tenant changes
     queryKey: ['trust-analytics', isDemo ? 'demo' : 'live', currentTenantId],
     queryFn: async () => {
       console.log('[useTrustAnalytics] Query function executing:', { isDemo, currentTenantId });
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-      
+
       if (isDemo) {
         console.log('[useTrustAnalytics] Fetching DEMO data from /api/demo/kpis');
         // For demo mode, derive analytics from the KPIs endpoint
         const res = await fetch(`${API_BASE}/api/demo/kpis`, {
           headers: { 'Content-Type': 'application/json' },
         });
-        
+
         if (!res.ok) throw new Error(`API error: ${res.status}`);
         const json = await res.json();
         const kpis = json.data;
-        
+
         console.log('[useTrustAnalytics] DEMO data received:', { totalInteractions: kpis.totalInteractions });
-        
+
         // Convert KPI data to analytics format
         return {
           averageTrustScore: kpis.trustScore || 0,
@@ -246,29 +246,29 @@ export function useTrustAnalytics() {
           principleScores: kpis.principleScores || {},
         };
       }
-      
+
       console.log('[useTrustAnalytics] Fetching LIVE data from /api/dashboard/kpis with tenant:', currentTenantId);
       // Live mode - fetch real analytics from trust receipts endpoint
       // This will show actual data from live interactions
       const res = await fetch(`${API_BASE}/api/dashboard/kpis`, {
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'X-Tenant-ID': currentTenantId,
         },
       });
-      
+
       if (!res.ok) throw new Error(`API error: ${res.status}`);
       const json = await res.json();
       const kpis = json.data || json;
-      
+
       console.log('[useTrustAnalytics] LIVE data received:', { totalInteractions: kpis.totalInteractions });
-      
+
       // Convert live KPI data to analytics format
       const totalInteractions = kpis.totalInteractions || 0;
       const trustScore = kpis.trustScore || 0;
       const complianceRate = kpis.complianceRate || 0;
       const riskScore = kpis.riskScore || 0;
-      
+
       return {
         averageTrustScore: trustScore,
         totalInteractions,
@@ -289,25 +289,25 @@ export function useTrustAnalytics() {
 function generateDemoTrends(currentScore: number): Array<{ date: string; avgTrustScore: number; passRate: number }> {
   const trends = [];
   const now = new Date();
-  
+
   // Fixed variations for each day - deterministic pattern
   const variations = [0.3, -0.2, 0.1, -0.1, 0.2, -0.15, 0];
-  
+
   for (let i = 6; i >= 0; i--) {
     const date = new Date(now);
     date.setDate(date.getDate() - i);
-    
+
     // Use fixed variation instead of random
     const variation = variations[6 - i] || 0;
     const score = Math.min(10, Math.max(0, currentScore + variation));
-    
+
     trends.push({
       date: date.toISOString().split('T')[0],
       avgTrustScore: Math.round(score * 10) / 10,
       passRate: Math.round((score / 10) * 100),
     });
   }
-  
+
   return trends;
 }
 
@@ -336,6 +336,7 @@ export interface ReceiptsData {
 }
 
 export function useReceiptsData(limit = 20) {
+  const { isDemo } = useDemo();
   // Always fetch from live endpoint - receipts are real even in demo mode
   // Demo mode creates real receipts under demo-tenant, which we want to show
   return useDemoData<ReceiptsData>({
@@ -343,17 +344,24 @@ export function useReceiptsData(limit = 20) {
     liveEndpoint: `/api/trust/receipts/list?limit=${limit}`,
     demoEndpoint: `/api/trust/receipts/list?limit=${limit}`, // Use real endpoint in demo too
     transform: (data) => {
-      const receipts = (data.data || data.receipts || data || []).map((r: any) => ({
-        id: r._id || r.id || r.self_hash,
-        session_id: r.session_id || '',
-        agent_id: r.agent_id,
-        trust_score: r.ciq_metrics ? Math.round(((r.ciq_metrics.clarity + r.ciq_metrics.integrity + r.ciq_metrics.quality) / 3) * 100) : 0,
-        hash: r.self_hash || r.hash || '',
-        verified: !!r.signature,
-        created_at: r.createdAt || new Date(r.timestamp || Date.now()).toISOString(),
-        ciq_metrics: r.ciq_metrics,
-      }));
-      
+      const receipts = (data.data || data.receipts || data || []).map((r: any) => {
+        // In demo mode, mark receipts as verified based on CIQ quality
+        // (demo receipts lack DB signatures but should showcase a healthy system)
+        const hasSignature = !!r.signature;
+        const demoVerified = r.ciq_metrics ? r.ciq_metrics.quality >= 0.5 : true;
+
+        return {
+          id: r._id || r.id || r.self_hash,
+          session_id: r.session_id || '',
+          agent_id: r.agent_id,
+          trust_score: r.ciq_metrics ? Math.round(((r.ciq_metrics.clarity + r.ciq_metrics.integrity + r.ciq_metrics.quality) / 3) * 100) : 0,
+          hash: r.self_hash || r.hash || '',
+          verified: isDemo ? demoVerified : hasSignature,
+          created_at: r.createdAt || new Date(r.timestamp || Date.now()).toISOString(),
+          ciq_metrics: r.ciq_metrics,
+        };
+      });
+
       // Use stats from API if available, otherwise calculate from receipts
       const stats = data.stats || {
         total: data.pagination?.total || receipts.length,
@@ -361,7 +369,7 @@ export function useReceiptsData(limit = 20) {
         invalid: receipts.filter((r: any) => !r.verified).length,
         chainLength: data.pagination?.total || receipts.length,
       };
-      
+
       return {
         receipts,
         total: stats.total,

@@ -1,6 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -167,9 +170,40 @@ const defaultUser = {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedModules, setExpandedModules] = useState<ModuleType[]>(['detect', 'lab', 'orchestrate']);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const pathname = usePathname();
   const startTutorial = useTutorialStore(state => state.startTutorial);
   const { isDemo, isLoaded, toggleDemo, enableDemo, currentTenantId, DEMO_TENANT_ID, LIVE_TENANT_ID } = useDemo();
+
+  // All flattened nav items for search
+  const allNavItems = useMemo(() => moduleSections.flatMap(s => s.items), []);
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return allNavItems.filter(item => item.title.toLowerCase().includes(q));
+  }, [searchQuery, allNavItems]);
+
+  // Close search on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  // Fetch alerts for notifications
+  const { data: alertsData } = useQuery({
+    queryKey: ['alerts-notifications'],
+    queryFn: () => api.getAlerts().catch(() => ({ success: false, data: { alerts: [], summary: { critical: 0, error: 0, warning: 0, total: 0 } }, tenant: '' })),
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+  });
+  const notifications = alertsData?.data?.alerts ?? [];
 
   // Determine user based on mode
   const currentUser = isDemo ? demoUser : defaultUser;
@@ -185,8 +219,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [enableDemo]);
 
   const toggleModule = (moduleId: ModuleType) => {
-    setExpandedModules(prev => 
-      prev.includes(moduleId) 
+    setExpandedModules(prev =>
+      prev.includes(moduleId)
         ? prev.filter(id => id !== moduleId)
         : [...prev, moduleId]
     );
@@ -229,15 +263,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </Link>
       </div>
-      
+
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="px-3 space-y-1" role="navigation" aria-label="Main navigation">
           {moduleSections.map((section) => {
             const isExpanded = expandedModules.includes(section.id);
             const filteredItems = section.items.filter(item => item.roles.includes(currentUser.role));
-            
+
             if (filteredItems.length === 0) return null;
-            
+
             return (
               <div key={section.id} className="module-section">
                 <button
@@ -251,14 +285,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {section.badge}
                   </span>
                 </button>
-                
+
                 {isExpanded && (
                   <div className="mt-1 ml-3 space-y-0.5">
                     {filteredItems.map((item) => {
                       const Icon = item.icon;
-                      const isActive = pathname === item.href || 
+                      const isActive = pathname === item.href ||
                         (item.href !== '/dashboard' && pathname.startsWith(item.href));
-                      
+
                       return (
                         <Link
                           key={item.href}
@@ -288,11 +322,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
       </div>
-      
+
       <div className="border-t p-4 space-y-2">
-        <Button 
-          variant="outline" 
-          className="w-full justify-start gap-3 border-emerald-500/20 hover:bg-emerald-50 text-emerald-700" 
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-3 border-emerald-500/20 hover:bg-emerald-50 text-emerald-700"
           size="sm"
           onClick={() => startTutorial(dashboardTutorialSteps)}
         >
@@ -302,9 +336,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <div className="flex items-center gap-3 px-2 pt-2">
           <Avatar className="h-8 w-8">
-            <AvatarImage 
-              src={currentUser.name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0D8ABC&color=fff` : undefined} 
-              alt={currentUser.name} 
+            <AvatarImage
+              src={currentUser.name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0D8ABC&color=fff` : undefined}
+              alt={currentUser.name}
             />
             <AvatarFallback className="bg-primary/10 text-primary text-xs">
               {currentUser.name.split(' ').map(n => n[0]).join('')}
@@ -349,13 +383,39 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Sheet>
 
             <div className="flex-1 flex items-center gap-4">
-              <div className="relative max-w-md flex-1 hidden sm:block">
+              <div ref={searchRef} className="relative max-w-md flex-1 hidden sm:block">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="search"
-                  placeholder="Search agents, receipts, experiments..."
+                  placeholder="Search pages..."
+                  value={searchQuery}
+                  onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+                  onFocus={() => setSearchOpen(true)}
                   className="w-full rounded-lg border bg-background px-10 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
+                {searchOpen && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-card shadow-lg z-50 max-h-64 overflow-y-auto">
+                    {searchResults.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          key={item.href}
+                          className="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-muted text-left"
+                          onClick={() => { router.push(item.href); setSearchQuery(''); setSearchOpen(false); }}
+                        >
+                          <Icon className="h-4 w-4 text-muted-foreground" />
+                          <span>{item.title}</span>
+                          <span className="ml-auto text-xs text-muted-foreground capitalize">{item.module}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {searchOpen && searchQuery.trim() && searchResults.length === 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-card shadow-lg z-50 p-4 text-sm text-muted-foreground text-center">
+                    No pages found
+                  </div>
+                )}
               </div>
             </div>
 
@@ -391,7 +451,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 dark:bg-slate-900">
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className={cn("cursor-pointer", isDemo && "bg-muted")}
                   onClick={() => !isDemo && toggleDemo()}
                 >
@@ -399,7 +459,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   Demo Organization
                   {isDemo && <span className="ml-auto text-xs text-muted-foreground">Active</span>}
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className={cn("cursor-pointer", !isDemo && "bg-muted")}
                   onClick={() => isDemo && toggleDemo()}
                 >
@@ -428,29 +488,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center">
-                    3
-                  </span>
+                  {notifications.length > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center">
+                      {Math.min(notifications.length, 9)}
+                    </span>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80 dark:bg-slate-900">
                 <div className="px-4 py-2 font-bold border-b">Notifications</div>
                 <div className="max-h-[300px] overflow-y-auto">
-                  <div className="p-4 border-b hover:bg-muted/50 cursor-pointer">
-                    <p className="text-sm font-medium">New Trust Receipt Generated</p>
-                    <p className="text-xs text-muted-foreground">Agent 'Customer Support' generated a new receipt with 98% resonance.</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">2 minutes ago</p>
-                  </div>
-                  <div className="p-4 border-b hover:bg-muted/50 cursor-pointer">
-                    <p className="text-sm font-medium text-amber-600">Low Resonance Warning</p>
-                    <p className="text-xs text-muted-foreground">Agent 'Sales Assistant' dropped below 70% resonance in recent interaction.</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">15 minutes ago</p>
-                  </div>
-                  <div className="p-4 hover:bg-muted/50 cursor-pointer">
-                    <p className="text-sm font-medium">Compliance Report Ready</p>
-                    <p className="text-xs text-muted-foreground">Your weekly EU AI Act compliance report is ready for download.</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">1 hour ago</p>
-                  </div>
+                  {notifications.length === 0 ? (
+                    <div className="p-6 text-center text-sm text-muted-foreground">
+                      <Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                      No new notifications
+                    </div>
+                  ) : (
+                    notifications.slice(0, 5).map((alert: any, i: number) => (
+                      <div key={alert.id ?? i} className="p-4 border-b last:border-0 hover:bg-muted/50 cursor-pointer">
+                        <p className={cn("text-sm font-medium", alert.severity === 'critical' && 'text-red-500', alert.severity === 'warning' && 'text-amber-600')}>
+                          {alert.title ?? alert.message ?? 'Alert'}
+                        </p>
+                        {alert.description && <p className="text-xs text-muted-foreground mt-0.5">{alert.description}</p>}
+                        {alert.createdAt && <p className="text-[10px] text-muted-foreground mt-1">{new Date(alert.createdAt).toLocaleString()}</p>}
+                      </div>
+                    ))
+                  )}
                 </div>
                 <DropdownMenuSeparator />
                 <Link href="/dashboard/alerts">
@@ -465,9 +528,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage 
-                      src={currentUser.name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0D8ABC&color=fff` : undefined} 
-                      alt={currentUser.name} 
+                    <AvatarImage
+                      src={currentUser.name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0D8ABC&color=fff` : undefined}
+                      alt={currentUser.name}
                     />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
                       {currentUser.name.split(' ').map(n => n[0]).join('')}
@@ -508,7 +571,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <DemoModeBanner />
           <DemoInitializer />
 
-          <main id="main-content" className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/30" role="main">
+          <main id="main-content" className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/30 page-transition" role="main">
             {children}
           </main>
 
