@@ -19,11 +19,11 @@ import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { fetchAPI } from '@/lib/api/client';
-import { 
-  FlaskConical, 
-  Beaker, 
-  Play, 
-  Pause, 
+import {
+  FlaskConical,
+  Beaker,
+  Play,
+  Pause,
   AlertTriangle,
   CheckCircle2,
   Clock,
@@ -91,16 +91,16 @@ const EXPERIMENT_EXAMPLES = [
   }
 ];
 
-function ExperimentCard({ 
-  experiment, 
-  onStart, 
-  onPause, 
+function ExperimentCard({
+  experiment,
+  onStart,
+  onPause,
   onComplete,
   onDelete,
   onRecordData,
   expanded,
   onToggleExpand
-}: { 
+}: {
   experiment: Experiment;
   onStart: () => void;
   onPause: () => void;
@@ -149,20 +149,20 @@ function ExperimentCard({
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* Progress bar */}
         <div>
           <div className="flex items-center justify-between mb-1 text-sm">
             <span className="text-muted-foreground">
-              {experiment.currentSampleSize.toLocaleString()} / {experiment.targetSampleSize.toLocaleString()} samples
+              {(experiment.currentSampleSize ?? 0).toLocaleString()} / {(experiment.targetSampleSize ?? 0).toLocaleString()} samples
             </span>
-            <span className="font-medium">{experiment.progress}%</span>
+            <span className="font-medium">{experiment.progress ?? 0}%</span>
           </div>
           <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-[var(--lab-primary)] transition-all" 
-              style={{ width: `${experiment.progress}%` }} 
+            <div
+              className="h-full bg-[var(--lab-primary)] transition-all"
+              style={{ width: `${experiment.progress}%` }}
             />
           </div>
         </div>
@@ -179,7 +179,7 @@ function ExperimentCard({
                 <span className="text-lg font-bold">{(variant.avgScore * 100).toFixed(1)}%</span>
               </div>
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>n = {variant.sampleSize.toLocaleString()}</span>
+                <span>n = {(variant.sampleSize ?? 0).toLocaleString()}</span>
                 <span className="text-emerald-600">{variant.successCount} success</span>
                 <span className="text-red-600">{variant.failureCount} fail</span>
               </div>
@@ -303,16 +303,16 @@ function ExperimentCard({
                 Record data programmatically from your application:
               </p>
               <pre className="text-xs bg-muted p-3 rounded overflow-x-auto">
-{`POST /api/lab/experiments/${experiment.id}/record
+                {`POST /api/lab/experiments/${experiment.id}/record
 {
   "variantIndex": 0,  // 0 = Control, 1 = Treatment
   "score": 0.85,      // 0-1 score value
   "success": true     // outcome boolean
 }`}
               </pre>
-              <Button 
-                size="sm" 
-                variant="ghost" 
+              <Button
+                size="sm"
+                variant="ghost"
                 className="mt-2"
                 onClick={() => {
                   navigator.clipboard.writeText(`curl -X POST ${window.location.origin}/api/lab/experiments/${experiment.id}/record -H "Content-Type: application/json" -d '{"variantIndex": 0, "score": 0.85, "success": true}'`);
@@ -435,7 +435,7 @@ export default function ExperimentsPage() {
             Run statistically validated experiments on trust configurations
           </p>
         </div>
-        <Button 
+        <Button
           onClick={() => setShowNewExperiment(true)}
           className="bg-[var(--lab-primary)] hover:bg-[var(--lab-secondary)]"
         >
@@ -454,8 +454,8 @@ export default function ExperimentsPage() {
                 What are A/B Experiments?
               </p>
               <p className="text-blue-800 dark:text-blue-200">
-                Test different trust protocol configurations (thresholds, weights, policies) against each other. 
-                Record outcomes from real or simulated interactions, and the system automatically calculates 
+                Test different trust protocol configurations (thresholds, weights, policies) against each other.
+                Record outcomes from real or simulated interactions, and the system automatically calculates
                 statistical significance using two-sample t-tests.
               </p>
               <div className="flex gap-4 pt-1 text-xs text-blue-700 dark:text-blue-300">
@@ -542,8 +542,8 @@ export default function ExperimentsPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label className="text-sm font-medium">Experiment Name *</label>
-                <Input 
-                  placeholder="e.g., Trust Threshold Study" 
+                <Input
+                  placeholder="e.g., Trust Threshold Study"
                   className="mt-1"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
@@ -551,9 +551,9 @@ export default function ExperimentsPage() {
               </div>
               <div>
                 <label className="text-sm font-medium">Target Sample Size</label>
-                <Input 
+                <Input
                   type="number"
-                  placeholder="1000" 
+                  placeholder="1000"
                   className="mt-1"
                   value={targetSampleSize}
                   onChange={(e) => setTargetSampleSize(Number(e.target.value))}
@@ -564,7 +564,7 @@ export default function ExperimentsPage() {
 
             <div>
               <label className="text-sm font-medium">Hypothesis *</label>
-              <Textarea 
+              <Textarea
                 placeholder="State your hypothesis: what change are you testing and what outcome do you expect?"
                 value={newHypothesis}
                 onChange={(e) => setNewHypothesis(e.target.value)}
@@ -575,7 +575,7 @@ export default function ExperimentsPage() {
 
             <div>
               <label className="text-sm font-medium">Description (optional)</label>
-              <Textarea 
+              <Textarea
                 placeholder="Additional context about what you're testing..."
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
@@ -616,7 +616,7 @@ export default function ExperimentsPage() {
               <FlaskConical className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No experiments yet</h3>
               <p className="text-muted-foreground mb-4 max-w-md mx-auto">
-                Create an experiment to start comparing trust configurations. 
+                Create an experiment to start comparing trust configurations.
                 You can record data manually or integrate via API.
               </p>
               <Button
@@ -630,7 +630,7 @@ export default function ExperimentsPage() {
           </Card>
         ) : (
           experiments.map((exp) => (
-            <ExperimentCard 
+            <ExperimentCard
               key={exp.id}
               experiment={exp}
               expanded={expandedId === exp.id}
@@ -639,7 +639,7 @@ export default function ExperimentsPage() {
               onPause={() => updateMutation.mutate({ id: exp.id, action: 'pause' })}
               onComplete={() => updateMutation.mutate({ id: exp.id, action: 'complete' })}
               onDelete={() => deleteMutation.mutate(exp.id)}
-              onRecordData={(variantIndex, score, success) => 
+              onRecordData={(variantIndex, score, success) =>
                 recordMutation.mutate({ id: exp.id, variantIndex, score, success })
               }
             />

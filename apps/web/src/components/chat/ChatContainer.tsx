@@ -90,9 +90,9 @@ interface ChatContainerProps {
   onConversationCreated?: (id: string) => void;
 }
 
-export const ChatContainer: React.FC<ChatContainerProps> = ({ 
+export const ChatContainer: React.FC<ChatContainerProps> = ({
   initialConversationId = null,
-  onConversationCreated 
+  onConversationCreated
 }) => {
   const { isDemo, isFirstVisit } = useDemo();
   const { invalidateDashboard } = useDashboardInvalidation();
@@ -174,17 +174,17 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     // Listen for trust violations
     const unsubscribeViolation = socketService.onTrustViolation((data: TrustViolationData) => {
       console.warn('⚠️ Trust Violation Detected:', data);
-      
+
       // Update the message in the UI if it exists
       setMessages(prev => prev.map(msg => {
         if (msg.role === 'assistant' && msg.evaluation?.trustScore.overall === data.trustScore) {
-           return {
-             ...msg,
-             evaluation: {
-               ...msg.evaluation!,
-               status: data.status,
-             }
-           };
+          return {
+            ...msg,
+            evaluation: {
+              ...msg.evaluation!,
+              status: data.status,
+            }
+          };
         }
         return msg;
       }));
@@ -239,7 +239,19 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 
       // Append user message and generate AI response with server-side trust evaluation
       // Note: AbortController signal would be passed to fetch in a full implementation
-      const convRes = await api.sendMessage(convId, input, undefined);
+      let convRes;
+      try {
+        convRes = await api.sendMessage(convId, input, undefined);
+      } catch (err: any) {
+        // Retry once if this was a new conversation and we got a 502/500 (backend cold start or race condition)
+        if (!conversationId && (err.status === 502 || err.message?.includes('502') || err.status === 500)) {
+          console.log('[ChatContainer] Retrying message send for new conversation...');
+          await new Promise(r => setTimeout(r, 1500));
+          convRes = await api.sendMessage(convId, input, undefined);
+        } else {
+          throw err;
+        }
+      }
 
       // Check if response is successful
       if (convRes.success && convRes.data) {
@@ -256,13 +268,13 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
             consentWithdrawalType: consentWithdrawal.type,
           };
           setMessages(prev => [...prev, systemMessage]);
-          
+
           // Show toast notification
           toast.info('Consent Action Detected', {
             description: `We noticed you may want to ${consentWithdrawal.type === 'HUMAN_ESCALATION' ? 'speak with a human' : 'modify your consent'}. Options are shown in the chat.`,
             duration: 6000,
           });
-          
+
           // Invalidate dashboard queries for consent withdrawal interactions too
           console.log('[ChatContainer] Invalidating dashboard after consent withdrawal');
           invalidateDashboard();
@@ -298,15 +310,22 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
             timestamp: Date.now(),
           };
           setMessages(prev => [...prev, assistantMessage]);
-          
+
           // Invalidate dashboard queries so new interaction data appears
           // This ensures KPIs, trust scores, and interaction counts update
           console.log('[ChatContainer] Invalidating dashboard after AI response', {
-            conversationId: convRes.data.conversationId,
+            conversationId: convId,
             trustScore: trustEval?.trustScore?.overall,
             status: trustEval?.status,
           });
           invalidateDashboard();
+
+          // Double-invalidate after a delay to ensure backend indexing/receipt creation is complete
+          // (Fixes issue where receipts don't appear immediately after chat)
+          setTimeout(() => {
+            console.log('[ChatContainer] Delayed invalidation for receipts consistency');
+            invalidateDashboard();
+          }, 2000);
         } else if (msg.sender === 'user') {
           // This is just a user message - no trust evaluation for user input
           toast.info('Message Sent', {
@@ -657,7 +676,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       </div>
 
       {/* Messages */}
-      <div 
+      <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800"
       >
@@ -714,19 +733,19 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 
       {/* Input */}
       <div className="p-4 border-t bg-slate-50 dark:bg-slate-900">
-        <form 
+        <form
           onSubmit={(e) => { e.preventDefault(); handleSend(); }}
           className="flex gap-2"
         >
-          <Input 
+          <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Test constitutional alignment... (e.g., 'Analyze the impact of AI on privacy')"
             className="flex-1 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus-visible:ring-purple-500"
             disabled={isLoading}
           />
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={isLoading || !input.trim()}
             className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/20"
           >

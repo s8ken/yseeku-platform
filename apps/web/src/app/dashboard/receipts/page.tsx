@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { api } from '@/lib/api';
 import {
   Fingerprint,
   CheckCircle2,
@@ -129,17 +130,16 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
   return (
     <Card className={cn(
       "transition-all duration-300",
-      !receipt.verified || verificationResult === 'fail' ? 'border-l-4 border-l-red-500' : 
-      verificationResult === 'success' ? 'border-l-4 border-l-emerald-500' : ''
+      !receipt.verified || verificationResult === 'fail' ? 'border-l-4 border-l-red-500' :
+        verificationResult === 'success' ? 'border-l-4 border-l-emerald-500' : ''
     )}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-              receipt.verified && verificationResult !== 'fail'
-                ? 'bg-emerald-100 dark:bg-emerald-900/30' 
+            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${receipt.verified && verificationResult !== 'fail'
+                ? 'bg-emerald-100 dark:bg-emerald-900/30'
                 : 'bg-red-100 dark:bg-red-900/30'
-            }`}>
+              }`}>
               {receipt.verified && verificationResult !== 'fail'
                 ? <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 : <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -159,9 +159,9 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
               Block #{receipt.chainPosition}
             </div>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="h-7 text-[10px] uppercase font-bold tracking-wider"
                 onClick={verifyReceipt}
                 disabled={isVerifying}
@@ -221,9 +221,8 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
             </div>
             <div className="text-center p-2 rounded bg-muted/30">
               <p className="text-xs text-muted-foreground">Protocol</p>
-              <p className={`font-semibold text-xs ${
-                receipt.sonateDimensions?.trustProtocol === 'PASS' ? 'text-emerald-600' : 'text-amber-600'
-              }`}>{receipt.sonateDimensions?.trustProtocol ?? 'N/A'}</p>
+              <p className={`font-semibold text-xs ${receipt.sonateDimensions?.trustProtocol === 'PASS' ? 'text-emerald-600' : 'text-amber-600'
+                }`}>{receipt.sonateDimensions?.trustProtocol ?? 'N/A'}</p>
             </div>
             <div className="text-center p-2 rounded bg-muted/30">
               <p className="text-xs text-muted-foreground">Ethics</p>
@@ -316,7 +315,7 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
 export default function TrustReceiptsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const { isDemo } = useDemo();
-  
+
   // Determine data source for display
   const dataSource = isDemo ? 'demo' : 'live';
 
@@ -356,7 +355,7 @@ export default function TrustReceiptsPage() {
   };
   const hasData = receipts.length > 0;
 
-  const filteredReceipts = receipts.filter(r => 
+  const filteredReceipts = receipts.filter(r =>
     r.agentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     r.hash.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -385,11 +384,10 @@ export default function TrustReceiptsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`data-source-badge px-2 py-1 text-xs rounded-full ${
-            dataSource === 'live' 
+          <span className={`data-source-badge px-2 py-1 text-xs rounded-full ${dataSource === 'live'
               ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
               : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-          }`}>
+            }`}>
             {dataSource === 'live' ? 'Live Data' : 'Demo Data'}
           </span>
           <span className="module-badge badge-orchestrate">ORCHESTRATE</span>
@@ -409,7 +407,7 @@ export default function TrustReceiptsPage() {
             <p className="text-xs text-muted-foreground mt-1">All time</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Verified</CardTitle>
@@ -419,7 +417,7 @@ export default function TrustReceiptsPage() {
             <p className="text-xs text-muted-foreground mt-1">{stats.total > 0 ? ((stats.verified / stats.total) * 100).toFixed(2) : 0}% valid</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Invalid</CardTitle>
@@ -429,7 +427,7 @@ export default function TrustReceiptsPage() {
             <p className="text-xs text-muted-foreground mt-1">Signature failures</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Chain Length</CardTitle>
@@ -444,7 +442,7 @@ export default function TrustReceiptsPage() {
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input 
+          <Input
             placeholder="Search by agent name or hash..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
