@@ -24,7 +24,7 @@ export default function ResonanceLabPage() {
     setError(null);
     try {
       let history = [];
-      try { history = JSON.parse(historyStr); } catch (e) {}
+      try { history = JSON.parse(historyStr); } catch (e) { }
 
       const res = await fetch('/api/detect/resonance/explain', {
         method: 'POST',
@@ -52,12 +52,12 @@ export default function ResonanceLabPage() {
       const res = await fetch('/api/trust/receipt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          transcript: { 
-            text: aiResponse, 
+        body: JSON.stringify({
+          transcript: {
+            text: aiResponse,
             metadata: { model: 'resonance-lab', userInput },
-            turns: [{ role: 'user', content: userInput }, { role: 'assistant', content: aiResponse }] 
-          }, 
+            turns: [{ role: 'user', content: userInput }, { role: 'assistant', content: aiResponse }]
+          },
           session_id: 'lab-receipt-' + Date.now(),
           resonance_data: result,
         })
@@ -100,51 +100,51 @@ export default function ResonanceLabPage() {
         </div>
 
         {/* Explanation Card */}
-        <div className="bg-gradient-to-br from-cyan-950/30 to-emerald-950/30 border border-cyan-900/30 rounded-xl p-6">
+        <div className="bg-gradient-to-br from-cyan-500/5 to-emerald-500/5 dark:from-cyan-950/30 dark:to-emerald-950/30 border border-cyan-200/40 dark:border-cyan-900/30 rounded-xl p-6">
           <div className="flex items-start gap-4">
-            <Info className="w-5 h-5 text-cyan-400 mt-0.5 shrink-0" />
+            <Info className="w-5 h-5 text-cyan-600 dark:text-cyan-400 mt-0.5 shrink-0" />
             <div className="space-y-3">
-              <h3 className="font-semibold text-cyan-300">What is Resonance?</h3>
-              <p className="text-sm text-slate-300 leading-relaxed">
-                <strong>Resonance</strong> measures the quality of alignment between human intent and AI response - 
-                the emergent "Third Mind" that forms in human-AI collaboration. High resonance indicates the AI 
+              <h3 className="font-semibold text-cyan-700 dark:text-cyan-300">What is Resonance?</h3>
+              <p className="text-sm text-foreground/80 leading-relaxed">
+                <strong>Resonance</strong> measures the quality of alignment between human intent and AI response -
+                the emergent "Third Mind" that forms in human-AI collaboration. High resonance indicates the AI
                 truly understood and appropriately addressed the user's needs while maintaining ethical boundaries.
               </p>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-                <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-800">
+                <div className="bg-muted/50 dark:bg-slate-900/50 rounded-lg p-3 border border-border">
                   <div className="flex items-center gap-2 mb-1">
-                    <Zap className="w-4 h-4 text-yellow-400" />
-                    <span className="text-xs font-semibold text-yellow-400">Vector Alignment</span>
+                    <Zap className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                    <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-400">Vector Alignment</span>
                   </div>
-                  <p className="text-xs text-slate-400">How well the response addresses the actual intent behind the query</p>
+                  <p className="text-xs text-muted-foreground">How well the response addresses the actual intent behind the query</p>
                 </div>
-                <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-800">
+                <div className="bg-muted/50 dark:bg-slate-900/50 rounded-lg p-3 border border-border">
                   <div className="flex items-center gap-2 mb-1">
-                    <Activity className="w-4 h-4 text-blue-400" />
-                    <span className="text-xs font-semibold text-blue-400">Context Continuity</span>
+                    <Activity className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">Context Continuity</span>
                   </div>
-                  <p className="text-xs text-slate-400">Coherence with conversation history and established context</p>
+                  <p className="text-xs text-muted-foreground">Coherence with conversation history and established context</p>
                 </div>
-                <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-800">
+                <div className="bg-muted/50 dark:bg-slate-900/50 rounded-lg p-3 border border-border">
                   <div className="flex items-center gap-2 mb-1">
-                    <Eye className="w-4 h-4 text-purple-400" />
-                    <span className="text-xs font-semibold text-purple-400">Semantic Mirroring</span>
+                    <Eye className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">Semantic Mirroring</span>
                   </div>
-                  <p className="text-xs text-slate-400">Quality of response scaffolding and structural alignment</p>
+                  <p className="text-xs text-muted-foreground">Quality of response scaffolding and structural alignment</p>
                 </div>
-                <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-800">
+                <div className="bg-muted/50 dark:bg-slate-900/50 rounded-lg p-3 border border-border">
                   <div className="flex items-center gap-2 mb-1">
-                    <Shield className="w-4 h-4 text-emerald-400" />
-                    <span className="text-xs font-semibold text-emerald-400">Ethical Awareness</span>
+                    <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Ethical Awareness</span>
                   </div>
-                  <p className="text-xs text-slate-400">Constitutional scoring against CIVMOD principles</p>
+                  <p className="text-xs text-muted-foreground">Constitutional scoring against CIVMOD principles</p>
                 </div>
               </div>
 
-              <p className="text-xs text-slate-400 mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 Receipts minted here are cryptographically signed and can be independently verified at{' '}
-                <Link href="/dashboard/verify" className="text-cyan-400 hover:underline">
+                <Link href="/dashboard/verify" className="text-cyan-600 dark:text-cyan-400 hover:underline">
                   /dashboard/verify
                 </Link>
                 {' '}or via the public endpoint.
@@ -163,22 +163,22 @@ export default function ResonanceLabPage() {
               <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs">1</span>
               Test Interaction
             </h2>
-            
+
             <div>
               <label className="text-sm font-medium text-muted-foreground">User Input</label>
-              <Textarea 
-                value={userInput} 
-                onChange={e => setUserInput(e.target.value)} 
+              <Textarea
+                value={userInput}
+                onChange={e => setUserInput(e.target.value)}
                 className="mt-1 min-h-[100px]"
                 placeholder="Enter the user's message or query..."
               />
             </div>
-            
+
             <div>
               <label className="text-sm font-medium text-muted-foreground">AI Response</label>
-              <Textarea 
-                value={aiResponse} 
-                onChange={e => setAiResponse(e.target.value)} 
+              <Textarea
+                value={aiResponse}
+                onChange={e => setAiResponse(e.target.value)}
                 className="mt-1 min-h-[120px]"
                 placeholder="Enter the AI's response to analyze..."
               />
@@ -188,16 +188,16 @@ export default function ResonanceLabPage() {
               <label className="text-sm font-medium text-muted-foreground">
                 Context History <span className="text-xs text-slate-500">(JSON array, optional)</span>
               </label>
-              <Textarea 
-                value={historyStr} 
-                onChange={e => setHistoryStr(e.target.value)} 
+              <Textarea
+                value={historyStr}
+                onChange={e => setHistoryStr(e.target.value)}
                 className="mt-1 font-mono text-xs min-h-[80px]"
                 placeholder='[{"role":"user","content":"..."},{"role":"assistant","content":"..."}]'
               />
             </div>
 
-            <Button 
-              onClick={handleAnalyze} 
+            <Button
+              onClick={handleAnalyze}
               disabled={loading || !userInput || !aiResponse}
               className="w-full"
               size="lg"
@@ -239,7 +239,7 @@ export default function ResonanceLabPage() {
                     Generate a cryptographically signed trust receipt that can be independently verified.
                     The receipt will include the resonance metrics and be stored on-chain.
                   </p>
-                  <Button 
+                  <Button
                     onClick={handleMintReceipt}
                     disabled={minting}
                     className="w-full bg-emerald-600 hover:bg-emerald-500"
@@ -266,9 +266,9 @@ export default function ResonanceLabPage() {
                       Receipt Minted Successfully
                     </h2>
                     <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={downloadJSON}
                         className="border-emerald-700 text-emerald-400 hover:bg-emerald-950"
                       >
@@ -277,8 +277,8 @@ export default function ResonanceLabPage() {
                       </Button>
                       {receipt.verification_url && (
                         <Link href={receipt.verification_url} target="_blank">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             className="border-cyan-700 text-cyan-400 hover:bg-cyan-950"
                           >
@@ -289,7 +289,7 @@ export default function ResonanceLabPage() {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="bg-slate-900/50 rounded-lg p-4 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Receipt Hash</span>
@@ -320,7 +320,7 @@ export default function ResonanceLabPage() {
               )}
             </div>
           )}
-          
+
           {!result && !loading && (
             <div className="h-64 flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed rounded-xl p-8">
               <Brain className="w-12 h-12 mb-4 opacity-30" />
