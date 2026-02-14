@@ -623,8 +623,8 @@ export async function robustSonateResonance(transcript: Transcript): Promise<Rob
       }
     }
 
-    // FIX: Changed from penalty * 0.3 to penalty * 0.5 to match calculator_old.ts
-    const finalRm = adjustedRm * (1 - penalty * 0.5);
+    // Apply full adversarial penalty (consistent with explainableSonateResonance)
+    const finalRm = adjustedRm * (1 - penalty);
 
     // FIX: Clamp final score to ensure 0-1 range
     const clampedFinalRm = Math.max(0, Math.min(1, finalRm));

@@ -52,7 +52,11 @@ export async function initCrypto(): Promise<void> {
   if (isInitialized) return;
   await loadEd25519();
   isInitialized = true;
-  console.log('[TrustReceipt] Crypto library pre-loaded');
+  // Note: Using minimal logging here to avoid circular dependency on logger
+  if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console
+    console.debug('[TrustReceipt] Crypto library pre-loaded');
+  }
 }
 
 /**
@@ -249,6 +253,10 @@ export class TrustReceipt {
 
   /**
    * Create from JSON
+   * 
+   * Preserves the original self_hash from the serialized data to maintain
+   * chain integrity. If the original hash is not present, it will be
+   * recalculated from the data.
    */
   static fromJSON(data: any): TrustReceipt {
     const receipt = new TrustReceipt({
@@ -261,6 +269,11 @@ export class TrustReceipt {
       previous_hash: data.previous_hash,
       session_nonce: data.session_nonce,
     });
+
+    // Preserve the original hash if present to maintain chain integrity
+    if (data.self_hash) {
+      receipt.self_hash = data.self_hash;
+    }
 
     receipt.signature = data.signature || '';
     return receipt;

@@ -23,6 +23,7 @@ import {
   type ExportFilter,
 } from '../services/receipts';
 import { TrustReceipt, CreateReceiptInput } from '@sonate/schemas';
+import { TrustReceiptModel } from '../models/trust-receipt.model';
 import logger from '../utils/logger';
 
 const router = Router();
@@ -106,8 +107,8 @@ router.post(
     try {
       const input: CreateReceiptInput = req.body;
 
-      // TODO: In production, retrieve agent's private key from secure store
-      // For now, use placeholder
+      // In production, retrieve agent's private key from secure store (HSM, KMS)
+      // For demo/dev, use environment variable
       const agentPrivateKey = process.env.AGENT_PRIVATE_KEY || '';
 
       if (!agentPrivateKey) {
@@ -121,8 +122,35 @@ router.post(
       // Generate receipt
       const receipt = await generator.createReceipt(input, agentPrivateKey);
 
-      // TODO: Store receipt in database
-      // await Receipt.create(receipt);
+      // Persist receipt to database
+      try {
+        await TrustReceiptModel.create({
+          self_hash: receipt.id,
+          session_id: receipt.session_id,
+          version: receipt.version,
+          timestamp: new Date(receipt.timestamp).getTime(),
+          mode: receipt.mode,
+          ciq_metrics: receipt.telemetry?.ciq_metrics || {
+            clarity: 0,
+            integrity: 0,
+            quality: 0,
+          },
+          previous_hash: receipt.chain?.previous_hash,
+          signature: receipt.signature?.value,
+          tenant_id: (req as any).tenant || 'default',
+          issuer: receipt.agent_did,
+          subject: receipt.human_did,
+          // Store the full receipt as a nested document for retrieval
+          _receipt_data: receipt,
+        });
+        logger.info('Receipt persisted to database', { id: receipt.id });
+      } catch (dbErr: unknown) {
+        // Log but don't fail the request — the receipt was generated successfully
+        logger.warn('Failed to persist receipt to database', {
+          error: dbErr instanceof Error ? dbErr.message : String(dbErr),
+          receipt_id: receipt.id,
+        });
+      }
 
       res.status(201).json({
         success: true,
@@ -140,7 +168,7 @@ router.post(
 
 /**
  * GET /api/v1/receipts/:id
- * Fetch receipt by ID
+ * Fetch receipt by ID (SHA-256 hash)
  */
 router.get(
   '/:id',
@@ -158,13 +186,20 @@ router.get(
         return;
       }
 
-      // TODO: Fetch from database
-      // const receipt = await Receipt.findById(id);
+      // Fetch from database by self_hash (which maps to the receipt id)
+      const receipt = await TrustReceiptModel.findOne({ self_hash: id });
 
-      // For now, return placeholder
-      res.status(404).json({
-        success: false,
-        error: 'Receipt not found',
+      if (!receipt) {
+        res.status(404).json({
+          success: false,
+          error: 'Receipt not found',
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: (receipt as any)._receipt_data || receipt.toJSON(),
       });
     } catch (err) {
       logger.error('Receipt fetch failed', {
@@ -223,11 +258,33 @@ router.post(
     try {
       const { format, filter, pagination } = req.body;
 
-      // TODO: Fetch receipts from database with filters
-      // const receipts = await Receipt.find({ ...filter });
+      // Build MongoDB query from filters
+      const query: Record<string, any> = {};
+      if (filter) {
+        if (filter.sessionId) query.session_id = filter.sessionId;
+        if (filter.agentDid) query.issuer = filter.agentDid;
+        if (filter.humanDid) query.subject = filter.humanDid;
+        if (filter.startTime || filter.endTime) {
+          query.timestamp = {};
+          if (filter.startTime) query.timestamp.$gte = new Date(filter.startTime).getTime();
+          if (filter.endTime) query.timestamp.$lte = new Date(filter.endTime).getTime();
+        }
+      }
 
-      // For now, use empty list
-      const receipts: TrustReceipt[] = [];
+      const limit = pagination?.limit || 100;
+      const offset = pagination?.offset || 0;
+
+      // Fetch receipts from database
+      const dbReceipts = await TrustReceiptModel.find(query)
+        .limit(limit)
+        .skip(offset)
+        .sort({ timestamp: -1 })
+        .lean();
+
+      // Map DB documents to TrustReceipt format for export
+      const receipts: TrustReceipt[] = dbReceipts.map((doc: any) =>
+        doc._receipt_data || doc
+      );
 
       // Export in requested format
       const exported = exporter.export(
@@ -273,32 +330,32 @@ router.get(
         offset = 0,
       } = req.query;
 
-      // TODO: Build MongoDB query with filters
-      // const query: Record<string, any> = {};
-      // if (sessionId) query.session_id = sessionId;
-      // if (agentDid) query.agent_did = agentDid;
-      // if (startTime || endTime) {
-      //   query.timestamp = {};
-      //   if (startTime) query.timestamp.$gte = startTime;
-      //   if (endTime) query.timestamp.$lte = endTime;
-      // }
+      // Build MongoDB query with filters
+      const query: Record<string, any> = {};
+      if (sessionId) query.session_id = sessionId;
+      if (agentDid) query.issuer = agentDid;
+      if (startTime || endTime) {
+        query.timestamp = {};
+        if (startTime) query.timestamp.$gte = new Date(startTime as string).getTime();
+        if (endTime) query.timestamp.$lte = new Date(endTime as string).getTime();
+      }
 
-      // const receipts = await Receipt.find(query)
-      //   .limit(Number(limit))
-      //   .skip(Number(offset))
-      //   .sort({ timestamp: -1 });
+      const receipts = await TrustReceiptModel.find(query)
+        .limit(Number(limit))
+        .skip(Number(offset))
+        .sort({ timestamp: -1 })
+        .lean();
 
-      // const total = await Receipt.countDocuments(query);
+      const total = await TrustReceiptModel.countDocuments(query);
 
-      // For now, return empty list
       res.json({
         success: true,
         data: {
-          receipts: [],
+          receipts: receipts.map((doc: any) => doc._receipt_data || doc),
           pagination: {
             limit: Number(limit),
             offset: Number(offset),
-            total: 0,
+            total,
           },
         },
       });

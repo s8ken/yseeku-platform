@@ -92,8 +92,23 @@ export class ReceiptGeneratorService {
     try {
       const timestamp = new Date().toISOString();
       
+      // Convert key to proper format — if string, assume hex-encoded
+      let keyBuffer: Buffer;
+      if (typeof agentPrivateKey === 'string') {
+        // Try hex first, fall back to base64, then UTF-8
+        if (/^[a-f0-9]{64}$/i.test(agentPrivateKey)) {
+          keyBuffer = Buffer.from(agentPrivateKey, 'hex');
+        } else if (/^[A-Za-z0-9+/=]+$/.test(agentPrivateKey) && agentPrivateKey.length >= 40) {
+          keyBuffer = Buffer.from(agentPrivateKey, 'base64');
+        } else {
+          keyBuffer = Buffer.from(agentPrivateKey, 'utf-8');
+        }
+      } else {
+        keyBuffer = agentPrivateKey;
+      }
+
       // Sign the canonical content
-      const signature = await signPayload(content, Buffer.from(agentPrivateKey));
+      const signature = await signPayload(content, keyBuffer);
       
       return {
         signature,

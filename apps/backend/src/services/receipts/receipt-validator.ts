@@ -89,6 +89,12 @@ export class ReceiptValidatorService {
 
   /**
    * Verify chain integrity (hash chain validation)
+   * 
+   * Reconstructs the canonical content the same way the generator does:
+   * 1. Remove `signature` from the receipt (generator signs before adding signature)
+   * 2. Keep `id` in the receipt (generator includes id before signing)
+   * 3. Canonicalize with sorted keys
+   * 4. Compute chain_hash = SHA-256(canonical + previous_hash)
    */
   verifyChainIntegrity(receipt: TrustReceipt, previousChainHash?: string): boolean {
     try {
@@ -98,15 +104,24 @@ export class ReceiptValidatorService {
         return false;
       }
 
-      // Verify chain hash was computed correctly
-      const { signature: sig, id, ...receiptWithoutSignature } = receipt;
+      // Reconstruct the canonical content matching the generator's approach:
+      // The generator canonicalizes the receipt WITHOUT signature but WITH id
+      const { signature: _sig, ...receiptWithoutSignature } = receipt;
       const canonical = JSON.stringify(receiptWithoutSignature, Object.keys(receiptWithoutSignature).sort());
       const chainContent = canonical + receipt.chain.previous_hash;
       const expectedChainHash = createHash('sha256').update(chainContent).digest('hex');
 
       if (receipt.chain.chain_hash !== expectedChainHash) {
-        logger.warn('Chain hash mismatch', { receipt_id: receipt.id });
-        return false;
+        // Try alternative canonicalization (without id) for backward compatibility
+        const { signature: _sig2, id: _id, ...receiptWithoutIdOrSig } = receipt;
+        const altCanonical = JSON.stringify(receiptWithoutIdOrSig, Object.keys(receiptWithoutIdOrSig).sort());
+        const altChainContent = altCanonical + receipt.chain.previous_hash;
+        const altExpectedChainHash = createHash('sha256').update(altChainContent).digest('hex');
+
+        if (receipt.chain.chain_hash !== altExpectedChainHash) {
+          logger.warn('Chain hash mismatch', { receipt_id: receipt.id });
+          return false;
+        }
       }
 
       logger.debug('Chain integrity verified', { receipt_id: receipt.id });
