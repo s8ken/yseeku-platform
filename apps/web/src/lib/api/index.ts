@@ -240,8 +240,9 @@ export const api = {
   // LLM Keys Management
   async getLLMKeys(): Promise<Array<{ id: string; name: string; provider: string; createdAt: string }>> {
     const { fetchAPI } = await import('./client');
-    const res = await fetchAPI<{ success: boolean; data: { apiKeys: Array<any> } }>('/api/auth/me');
-    return (res.data?.apiKeys || []).map((k: any) => ({
+    const res = await fetchAPI<{ success: boolean; data: { user?: { apiKeys?: Array<any> }; apiKeys?: Array<any> } }>('/api/auth/me');
+    const apiKeys = res.data?.apiKeys || res.data?.user?.apiKeys || [];
+    return apiKeys.map((k: any) => ({
       id: k.provider,
       name: k.name,
       provider: k.provider,

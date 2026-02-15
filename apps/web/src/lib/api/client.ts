@@ -155,7 +155,19 @@ export async function fetchAPI<T>(
         errorBody = text;
         try {
           const error = JSON.parse(text);
-          errorMessage = error.message || error.error || errorMessage;
+          const parsedMessage = typeof error?.message === 'string'
+            ? error.message
+            : typeof error?.error === 'string'
+              ? error.error
+              : typeof error?.message !== 'undefined'
+                ? JSON.stringify(error.message)
+                : typeof error?.error !== 'undefined'
+                  ? JSON.stringify(error.error)
+                  : '';
+
+          if (parsedMessage) {
+            errorMessage = parsedMessage.length > 500 ? parsedMessage.slice(0, 500) : parsedMessage;
+          }
         } catch {
           if (text.length < 500) {
             errorMessage += ` - Response: ${text}`;

@@ -117,10 +117,31 @@ export default function TenantSettingsPage() {
       }
     } catch (error: any) {
       console.error('Failed to update key:', error);
-      // Handle different error formats
-      const errorMessage = typeof error === 'string' 
-        ? error 
-        : error?.message || error?.error || JSON.stringify(error);
+      let errorMessage = typeof error === 'string'
+        ? error
+        : error?.message || error?.error || '';
+
+      const body = typeof error?.body === 'string' ? error.body : '';
+      if (body) {
+        try {
+          const parsed = JSON.parse(body);
+          const msg = typeof parsed?.message === 'string'
+            ? parsed.message
+            : typeof parsed?.error === 'string'
+              ? parsed.error
+              : '';
+          if (msg) errorMessage = msg;
+        } catch {
+        }
+      }
+
+      if (!errorMessage) {
+        try {
+          errorMessage = JSON.stringify(error);
+        } catch {
+          errorMessage = 'An unexpected error occurred';
+        }
+      }
       toast.error('Failed to update key', {
         description: errorMessage,
       });
