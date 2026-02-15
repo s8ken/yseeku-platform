@@ -20,7 +20,7 @@ import {
   AdversarialEvidence,
   classifyStakes,
   StakesEvidence,
-} from '@sonate/core';
+} from '@sonate/core/detection';
 import Anthropic from '@anthropic-ai/sdk';
 
 type StakesLevel = StakesEvidence['level'];
