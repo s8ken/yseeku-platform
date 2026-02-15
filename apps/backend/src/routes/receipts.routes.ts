@@ -140,8 +140,6 @@ router.post(
           tenant_id: (req as any).tenant || 'default',
           issuer: receipt.agent_did,
           subject: receipt.human_did,
-          // Store the full receipt as a nested document for retrieval
-          _receipt_data: receipt,
         });
         logger.info('Receipt persisted to database', { id: receipt.id });
       } catch (dbErr: unknown) {

@@ -223,7 +223,7 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
         timestamp: now.toISOString(),
         trustScore: allMetrics.trustScore,
         principleScores: allMetrics.principleScores,
-        totalInteractions: allReceipts.length,
+        totalInteractions: allData.count,
         activeAgents: activeAgentsCount,
         complianceRate: allMetrics.complianceRate,
         riskScore: allMetrics.trustScore > 0 ? Math.round((100 - allMetrics.trustScore) / 10) : 0,
@@ -260,7 +260,7 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
       logger.info('Live tenant KPIs calculated from receipts', { 
         userId, 
         tenantId, 
-        receiptCount: allReceipts.length,
+        receiptCount: allData.count,
         trustScore: liveKPIs.trustScore,
       });
 
