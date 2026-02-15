@@ -69,6 +69,7 @@ export function OnboardingModal() {
 
   useEffect(() => {
     // Check if user has completed onboarding before
+    /*
     if (typeof window !== 'undefined') {
       const completed = localStorage.getItem(ONBOARDING_KEY);
       if (!completed) {
@@ -77,6 +78,7 @@ export function OnboardingModal() {
         return () => clearTimeout(timer);
       }
     }
+    */
   }, []);
 
   const handleComplete = (startDemo: boolean) => {
