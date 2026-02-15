@@ -4,6 +4,16 @@
   "description": "Core trust protocol implementation for SONATE platform",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./detection": {
+      "types": "./dist/detection/index.d.ts",
+      "default": "./dist/detection/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
