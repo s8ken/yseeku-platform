@@ -110,7 +110,7 @@ const AgentSchema = new Schema<IAgentDocument, mongoose.Model<IAgentDocument>>({
   provider: {
     type: String,
     required: [true, 'LLM provider is required'],
-    enum: ['openai', 'together', 'anthropic', 'cohere', 'custom', 'perplexity', 'v0'],
+    enum: ['openai', 'together', 'anthropic', 'gemini', 'cohere', 'custom', 'perplexity', 'v0'],
   },
   model: {
     type: String,

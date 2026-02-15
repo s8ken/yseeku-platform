@@ -15,23 +15,45 @@ export interface LLMAnalysisResult {
   confidence?: number;
 }
 
+function getPreferredLLMProvider(): 'anthropic' | 'gemini' {
+  const preferred = (process.env.SONATE_LLM_PROVIDER || '').toLowerCase();
+  if (preferred === 'gemini') return 'gemini';
+  if (preferred === 'anthropic') return 'anthropic';
+  if (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY) return 'gemini';
+  return 'anthropic';
+}
+
 /**
  * Check if LLM analysis is available (API key configured)
  */
 export function isLLMAvailable(): boolean {
-  return !!process.env.ANTHROPIC_API_KEY;
+  return !!(process.env.ANTHROPIC_API_KEY || process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY);
 }
 
 /**
  * Get the LLM API status for debugging/transparency
  */
 export function getLLMStatus(): { available: boolean; reason?: string } {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const provider = getPreferredLLMProvider();
+  const apiKey = provider === 'gemini'
+    ? (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY)
+    : process.env.ANTHROPIC_API_KEY;
+
   if (!apiKey) {
-    return { available: false, reason: 'ANTHROPIC_API_KEY not set in environment' };
+    return {
+      available: false,
+      reason: provider === 'gemini'
+        ? 'GOOGLE_GEMINI_API_KEY (or GEMINI_API_KEY) not set in environment'
+        : 'ANTHROPIC_API_KEY not set in environment'
+    };
   }
   if (apiKey.length < 20) {
-    return { available: false, reason: 'ANTHROPIC_API_KEY appears to be invalid (too short)' };
+    return {
+      available: false,
+      reason: provider === 'gemini'
+        ? 'GOOGLE_GEMINI_API_KEY appears to be invalid (too short)'
+        : 'ANTHROPIC_API_KEY appears to be invalid (too short)'
+    };
   }
   return { available: true };
 }
@@ -44,11 +66,14 @@ export async function analyzeWithLLM(
   interaction: AIInteraction,
   type: 'resonance' | 'ethics' | 'comprehensive'
 ): Promise<LLMAnalysisResult | null> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const provider = getPreferredLLMProvider();
+  const apiKey = provider === 'gemini'
+    ? (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY)
+    : process.env.ANTHROPIC_API_KEY;
   
   // If no API key, return null to signal fallback needed
   if (!apiKey) {
-    console.info('[LLM-Client] No ANTHROPIC_API_KEY configured - using heuristic fallback');
+    console.info('[LLM-Client] No LLM API key configured - using heuristic fallback');
     return null;
   }
 
@@ -118,21 +143,43 @@ Return ONLY a valid JSON object with all fields listed above plus "reasoning": "
   };
 
   try {
-    console.info(`[LLM-Client] Analyzing content with Claude for ${type} evaluation`);
-    
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-3-haiku-20240307',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompts[type] }],
-      }),
-    });
+    console.info(`[LLM-Client] Analyzing content with ${provider} for ${type} evaluation`);
+
+    const response = provider === 'gemini'
+      ? await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(process.env.SONATE_GEMINI_MODEL || 'gemini-3-pro-preview')}:generateContent?key=${encodeURIComponent(apiKey)}`,
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: prompts[type] }],
+              }
+            ],
+            generationConfig: {
+              temperature: 0,
+              maxOutputTokens: 1000,
+            },
+          }),
+        }
+      )
+      : await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: process.env.SONATE_ANTHROPIC_MODEL || 'claude-3-haiku-20240307',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompts[type] }],
+        }),
+      });
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error');
@@ -140,8 +187,10 @@ Return ONLY a valid JSON object with all fields listed above plus "reasoning": "
       return null;
     }
 
-    const data = await response.json() as { content?: Array<{ text?: string }> };
-    const text = data.content?.[0]?.text || '';
+    const data = await response.json() as any;
+    const text = provider === 'gemini'
+      ? (data.candidates?.[0]?.content?.parts || []).map((p: any) => p?.text).filter(Boolean).join('')
+      : (data.content?.[0]?.text || '');
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     
     if (jsonMatch) {

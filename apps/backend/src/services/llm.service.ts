@@ -119,6 +119,40 @@ export const LLM_PROVIDERS: Record<string, LLMProvider> = {
     ],
     endpoint: 'https://api.anthropic.com/v1/messages'
   },
+  gemini: {
+    id: 'gemini',
+    name: 'Google Gemini',
+    requiresApiKey: true,
+    models: [
+      {
+        id: 'gemini-3-pro-preview',
+        name: 'Gemini-3-Pro-Preview',
+        maxTokens: 8192,
+        contextWindow: 2000000,
+      },
+      {
+        id: 'gemini-1.5-flash',
+        name: 'Gemini 1.5 Flash',
+        maxTokens: 8192,
+        contextWindow: 1000000,
+        pricing: { input: 0.00035, output: 0.00105 }
+      },
+      {
+        id: 'gemini-1.5-pro',
+        name: 'Gemini 1.5 Pro',
+        maxTokens: 8192,
+        contextWindow: 2000000,
+        pricing: { input: 0.00125, output: 0.005 }
+      },
+      {
+        id: 'gemini-2.0-flash',
+        name: 'Gemini 2.0 Flash',
+        maxTokens: 8192,
+        contextWindow: 1000000,
+      },
+    ],
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models'
+  },
   together: {
     id: 'together',
     name: 'Together AI',
@@ -248,6 +282,8 @@ export class LLMService {
         return await this.generateOpenAI(model, messages, temperature, maxTokens, resolvedApiKey);
       case 'anthropic':
         return await this.generateAnthropic(model, messages, temperature, maxTokens, resolvedApiKey);
+      case 'gemini':
+        return await this.generateGemini(model, messages, temperature, maxTokens, resolvedApiKey);
       case 'together':
         return await this.generateTogether(model, messages, temperature, maxTokens, resolvedApiKey);
       case 'cohere':
@@ -404,6 +440,76 @@ export class LLMService {
     } catch (error: unknown) {
       logger.error('Anthropic API Error', { error: getErrorMessage(error) });
       throw new Error(`Anthropic API Error: ${getErrorMessage(error)}`);
+    }
+  }
+
+  private async generateGemini(
+    model: string,
+    messages: ChatMessage[],
+    temperature: number,
+    maxTokens: number,
+    apiKey?: string
+  ): Promise<LLMResponse> {
+    const key = apiKey || process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    if (!key) {
+      throw new Error('Gemini API key not configured. Please add your API key in settings.');
+    }
+
+    const systemText = messages
+      .filter(msg => msg.role === 'system')
+      .map(msg => msg.content)
+      .join('\n\n');
+
+    const contents = messages
+      .filter(msg => msg.role !== 'system')
+      .map(msg => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }],
+      }));
+
+    try {
+      return await this.withRetry(async () => {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
+        const resp = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...(systemText ? { systemInstruction: { parts: [{ text: systemText }] } } : {}),
+            contents,
+            generationConfig: {
+              temperature,
+              maxOutputTokens: maxTokens,
+            },
+          })
+        });
+
+        if (!resp.ok) {
+          const errorText = await resp.text().catch(() => 'Unknown error');
+          throw new Error(`Gemini API error: ${resp.status} - ${errorText}`);
+        }
+
+        const data = await resp.json() as any;
+        const text = (data.candidates?.[0]?.content?.parts || [])
+          .map((p: any) => p?.text)
+          .filter(Boolean)
+          .join('') || '';
+
+        return {
+          content: text,
+          usage: {
+            promptTokens: data.usageMetadata?.promptTokenCount,
+            completionTokens: data.usageMetadata?.candidatesTokenCount,
+            totalTokens: data.usageMetadata?.totalTokenCount,
+          },
+          model,
+          provider: 'gemini',
+        };
+      }, `gemini:${model}`);
+    } catch (error: unknown) {
+      logger.error('Gemini API Error', { error: getErrorMessage(error) });
+      throw new Error(`Gemini API Error: ${getErrorMessage(error)}`);
     }
   }
 

@@ -568,6 +568,7 @@ export default function TenantSettingsPage() {
             <div className="space-y-6">
               {[
                 { id: 'anthropic', name: 'Anthropic (Claude)', icon: Sparkles },
+                { id: 'gemini', name: 'Google Gemini', icon: Sparkles },
                 { id: 'together', name: 'Together AI', icon: Zap },
                 { id: 'openai', name: 'OpenAI', icon: Bot },
                 { id: 'cohere', name: 'Cohere', icon: RefreshCw },

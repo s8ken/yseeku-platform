@@ -68,6 +68,7 @@ export function AgentCreateModal({ open, onClose, onCreate }: AgentCreateModalPr
   const modelsByProvider: Record<string, string[]> = {
     openai: ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo'],
     anthropic: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku'],
+    gemini: ['gemini-3-pro-preview', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'],
     together: ['mixtral-8x7b', 'llama-2-70b', 'codellama-34b'],
     cohere: ['command', 'command-light'],
   };
@@ -132,6 +133,7 @@ export function AgentCreateModal({ open, onClose, onCreate }: AgentCreateModalPr
                   <SelectContent>
                     <SelectItem value="openai">OpenAI</SelectItem>
                     <SelectItem value="anthropic">Anthropic</SelectItem>
+                    <SelectItem value="gemini">Google Gemini</SelectItem>
                     <SelectItem value="together">Together AI</SelectItem>
                     <SelectItem value="cohere">Cohere</SelectItem>
                   </SelectContent>

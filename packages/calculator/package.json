@@ -2,16 +2,18 @@
   "name": "@sonate/calculator",
   "version": "1.4.0",
   "description": "Canonical Calculator V2 - Single source of truth for resonance calculations",
-  "main": "src/v2.ts",
-  "types": "src/v2.ts",
+  "main": "dist/v2.js",
+  "types": "dist/v2.d.ts",
   "exports": {
     ".": {
-      "types": "./src/v2.ts",
-      "default": "./src/v2.ts"
+      "types": "./dist/v2.d.ts",
+      "require": "./dist/v2.js",
+      "default": "./dist/v2.js"
     },
     "./v2": {
-      "types": "./src/v2.ts",
-      "default": "./src/v2.ts"
+      "types": "./dist/v2.d.ts",
+      "require": "./dist/v2.js",
+      "default": "./dist/v2.js"
     }
   },
   "scripts": {

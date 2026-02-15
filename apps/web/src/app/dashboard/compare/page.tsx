@@ -28,7 +28,7 @@ import { fetchAPI } from '@/lib/api/client';
 
 
 
-type ModelProvider = 'openai' | 'anthropic' | 'bedrock-claude' | 'bedrock-titan' | 'bedrock-llama' | 'mock';
+type ModelProvider = 'openai' | 'anthropic' | 'gemini' | 'bedrock-claude' | 'bedrock-titan' | 'bedrock-llama' | 'mock';
 
 interface ModelResponse {
   provider: ModelProvider;
@@ -74,6 +74,7 @@ interface ComparisonResult {
 const providerLabels: Record<ModelProvider, string> = {
   'openai': 'OpenAI GPT-4o-mini',
   'anthropic': 'Anthropic Claude',
+  'gemini': 'Google Gemini',
   'bedrock-claude': 'AWS Bedrock Claude',
   'bedrock-titan': 'AWS Bedrock Titan',
   'bedrock-llama': 'AWS Bedrock Llama',
@@ -83,6 +84,7 @@ const providerLabels: Record<ModelProvider, string> = {
 const providerColors: Record<ModelProvider, string> = {
   'openai': 'bg-green-500',
   'anthropic': 'bg-orange-500',
+  'gemini': 'bg-blue-600',
   'bedrock-claude': 'bg-purple-500',
   'bedrock-titan': 'bg-blue-500',
   'bedrock-llama': 'bg-yellow-500',

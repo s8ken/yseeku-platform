@@ -121,7 +121,7 @@ const AgentSchema = new Schema<IAgent>({
   provider: {
     type: String,
     required: [true, 'LLM provider is required'],
-    enum: ['openai', 'together', 'anthropic', 'cohere', 'custom'],
+    enum: ['openai', 'together', 'anthropic', 'gemini', 'cohere', 'custom'],
   },
   model: {
     type: String,

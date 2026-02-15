@@ -14,6 +14,7 @@ RUN npm install --legacy-peer-deps
 RUN npm run build --workspace=@sonate/core
 RUN npm run build --workspace=@sonate/schemas
 RUN npm run build --workspace=@sonate/persistence
+RUN npm run build --workspace=@sonate/calculator
 RUN npm run build --workspace=@sonate/detect
 RUN npm run build --workspace=@sonate/policy
 RUN npm run build --workspace=@sonate/policy-runtime
