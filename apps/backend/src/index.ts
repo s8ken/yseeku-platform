@@ -84,6 +84,7 @@ import { securityHeaders } from './middleware/security-headers';
 import { createTenantRateLimiter } from './middleware/tenant-rate-limit';
 import { initCrypto } from '@sonate/core';
 import { setIoInstance } from './utils/socket'; // Import setIoInstance
+import { keysService } from './services/keys.service'; // Import for eager initialization
 // Note: input-validation.ts provides additional sanitization and security features
 // Available for use on sensitive routes requiring extra validation
 // import { sanitizeInput } from './middleware/input-validation';
@@ -249,6 +250,24 @@ async function startServer() {
 
   try {
     await initCrypto(); // Pre-load crypto
+    
+    // Initialize trust signing keys early to avoid timeout on first message
+    // This ensures Ed25519 key loading and generation happens at startup
+    try {
+      await keysService.initialize();
+      logger.info('Trust signing keys initialized at startup', {
+        service: 'keysService',
+        status: 'ready',
+      });
+    } catch (keyErr: unknown) {
+      const msg = keyErr instanceof Error ? keyErr.message : String(keyErr);
+      logger.error('Failed to initialize trust signing keys at startup', {
+        error: msg,
+        status: 'CRITICAL - Trust receipts will be unavailable',
+      });
+      // Continue anyway - messages can still be sent, just without trust receipts
+    }
+    
     // Connect to database (non-blocking for health checks)
     await connectDatabase();
     logger.info('Database connected successfully', {

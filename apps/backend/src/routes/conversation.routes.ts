@@ -43,7 +43,15 @@ async function generateSignedReceipt(params: {
   principles: Record<string, number>;
 }): Promise<{ receipt: any; receiptHash: string }> {
   try {
-    await keysService.initialize();
+    // Initialize keys with timeout safeguard (should already be initialized at startup)
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Keys initialization timeout after 5 seconds')), 5000)
+    );
+    await Promise.race([keysService.initialize(), timeoutPromise]).catch(err => {
+      // If initialization fails or times out, log but continue - messages still work
+      logger.warn('Keys service initialization issue in generateSignedReceipt', { error: err?.message });
+    });
+    
     const publicKeyHex = await keysService.getPublicKeyHex();
     const timestamp = new Date().toISOString();
     
