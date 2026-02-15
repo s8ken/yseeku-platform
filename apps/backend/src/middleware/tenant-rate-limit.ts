@@ -9,7 +9,7 @@
  * Also implements endpoint-specific rate limits for sensitive operations.
  */
 
-import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
+import rateLimit, { RateLimitRequestHandler, ipKeyGenerator } from 'express-rate-limit';
 import { Request, Response, NextFunction } from 'express';
 import logger from '../utils/logger';
 
@@ -85,7 +85,7 @@ function getTenantConfig(tenantId: string): { windowMs: number; max: number } {
 function tenantKeyGenerator(req: Request): string {
   const tenantId = getTenantId(req);
   const userId = (req as any).userId || 'anonymous';
-  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const ip = ipKeyGenerator(req.ip || '');
   
   // Combine tenant, user, and IP for unique rate limiting
   return `${tenantId}:${userId}:${ip}`;
