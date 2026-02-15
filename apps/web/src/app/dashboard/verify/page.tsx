@@ -169,7 +169,7 @@ export default function VerifyPage() {
         receipt: receipt,
         receiptHash: hashToVerify || data.receipt?.id,
         trustScore: receipt.telemetry?.resonance_score 
-          ? receipt.telemetry.resonance_score * 100 
+          ? receipt.telemetry.resonance_score * 10 
           : (receipt.ciq_metrics?.overall_trust_score || receipt.trustScore?.overall || receipt.trustScore || 0),
         status: data.valid ? 'PASS' : 'FAIL',
         timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
