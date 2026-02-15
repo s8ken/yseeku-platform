@@ -63,13 +63,12 @@ const platformFeatures: OnboardingStep[] = [
 
 export function OnboardingModal() {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const { enableDemo, isDemo } = useDemo();
   const startTutorial = useTutorialStore(state => state.startTutorial);
 
   useEffect(() => {
     // Check if user has completed onboarding before
-    /*
     if (typeof window !== 'undefined') {
       const completed = localStorage.getItem(ONBOARDING_KEY);
       if (!completed) {
@@ -78,7 +77,6 @@ export function OnboardingModal() {
         return () => clearTimeout(timer);
       }
     }
-    */
   }, []);
 
   const handleComplete = (startDemo: boolean) => {

@@ -101,7 +101,7 @@ Formula: R_m = ((V_align × 0.5) + (C_hist × 0.3) + (S_mirror × 0.2)) / (1 + e
 • STRONG (<0.70): Acceptable alignment
 
 Try the interactive demo to see it in action!`,
-    path: '/demo/resonance',
+    path: '/dashboard/overview',
   },
   {
     id: 'trust-receipts',
