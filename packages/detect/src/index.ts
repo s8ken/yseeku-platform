@@ -14,7 +14,7 @@ export const VERSION = '2.0.1';
  * HARD BOUNDARY: Production use only. For experiments, use @sonate/lab.
  */
 
-import { TrustProtocol , CalculationError } from '@sonate/core';
+import { TrustProtocol, CalculationError } from '@sonate/core';
 
 import { calculateResonanceMetrics } from './resonance-metrics';
 
@@ -56,18 +56,25 @@ export interface AIInteraction {
 }
 
 // New V2.1 Exports
-export { explainableSonateResonance, RobustResonanceResult, Transcript } from './calculator';
+export { RobustResonanceResult, Transcript } from './calculator';
 export { resonanceWithStickiness, StickyResonance, SessionState } from './stickiness';
-export { adversarialCheck, AdversarialEvidence } from './adversarial';
-export { classifyStakes, StakesEvidence } from './stakes';
-export { normalizeScore, normalizeEmbedding } from './model-normalize';
+export { adversarialCheck, AdversarialEvidence } from '@sonate/core';
+export { classifyStakes, StakesEvidence } from '@sonate/core';
+export { normalizeScore, normalizeEmbedding } from '@sonate/core';
 export {
   CalculatorV2,
-  explainableSonateResonance as explainableSonateResonanceV2,
-  robustSonateResonance as robustSonateResonanceV2,
   CANONICAL_WEIGHTS as CANONICAL_WEIGHTS_V2,
   DYNAMIC_THRESHOLDS as DYNAMIC_THRESHOLDS_V2,
-} from './v2';
+} from '@sonate/calculator';
+
+// Re-export specific methods for backward compatibility if needed, 
+// strictly delegating to CalculatorV2
+export {
+  robustSonateResonance,
+  robustSonateResonance as robustSonateResonanceV2,
+  explainableSonateResonance,
+  explainableSonateResonance as explainableSonateResonanceV2
+} from './calculator';
 
 // Resonance Engine Client
 export {

@@ -1,5 +1,4 @@
-import { AdversarialEvidence } from './adversarial';
-import { StakesEvidence } from './stakes';
+import { AdversarialEvidence, StakesEvidence } from '@sonate/core';
 export interface EvidenceChunk {
     type: 'alignment' | 'scaffold' | 'ethics' | 'continuity' | 'adversarial';
     text: string;

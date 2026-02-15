@@ -14,7 +14,7 @@
  * - Explicit threshold penalties for all stakes levels
  * - Proper error handling and fallback logic
  */
-import { AdversarialEvidence, StakesEvidence } from '@sonate/detect';
+import { AdversarialEvidence, StakesEvidence } from '@sonate/core';
 type StakesLevel = StakesEvidence['level'];
 export interface EvidenceChunk {
     type: 'alignment' | 'scaffold' | 'ethics' | 'continuity' | 'adversarial';
@@ -121,7 +121,7 @@ export declare const CalculatorV2: {
         readonly scaffold: 0.2;
         readonly ethics: 0.2;
     };
-    DYNAMIC_THRESHOLDS: Record<import("@sonate/detect/dist/stakes").StakesLevel, {
+    DYNAMIC_THRESHOLDS: Record<"HIGH" | "MEDIUM" | "LOW", {
         ethics: number;
         alignment: number;
     }>;

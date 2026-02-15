@@ -1,6 +1,6 @@
 // @sonate/detect/stickiness.ts
 import { ExplainedResonance, explainableSonateResonance, Transcript } from './calculator';
-import { sha256 } from './crypto';
+import { sha256 } from '@sonate/core';
 
 // Server-side session state (Redis/Vercel KV)
 export interface SessionState {

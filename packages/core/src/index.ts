@@ -14,11 +14,11 @@ export { TrustReceipt, initCrypto, isCryptoReady } from './receipts/trust-receip
 
 // === PRINCIPLES LAYER ===
 export { SonateScorer } from './principles/sonate-scorer';
-export { 
-  PrincipleEvaluator, 
+export {
+  PrincipleEvaluator,
   createDefaultContext,
   type EvaluationContext,
-  type PrincipleEvaluationResult 
+  type PrincipleEvaluationResult
 } from './principles/principle-evaluator';
 
 // === CONFIGURATION LAYER ===
@@ -125,9 +125,6 @@ export * from './utils/tenant-context';
 export * from './validation/schemas';
 export * from './errors/math-errors';
 
-// Calculator V2 is in @sonate/detect (has detect dependencies)
-// Import from @sonate/detect instead: import { explainableSonateResonance } from '@sonate/detect';
-
 // Security infrastructure
 export { SecurityAuditor, runSecurityAudit } from './security/security-audit';
 export * from './security/mfa-system';
@@ -135,3 +132,7 @@ export { SecureAuthService } from './security/auth-service';
 
 // Algorithmic constants
 export * from './constants/algorithmic';
+
+// Detection Logic (Migrated from @sonate/detect to break circular deps)
+export * from './detection';
+

@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
-    "@sonate/detect": "^1.4.0"
+    "@sonate/core": "*"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",

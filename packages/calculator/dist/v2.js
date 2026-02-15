@@ -22,7 +22,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CalculatorV2 = exports.DYNAMIC_THRESHOLDS = exports.CANONICAL_WEIGHTS = void 0;
 exports.explainableSonateResonance = explainableSonateResonance;
 exports.robustSonateResonance = robustSonateResonance;
-const detect_1 = require("@sonate/detect");
+const core_1 = require("@sonate/core");
 const sdk_1 = __importDefault(require("@anthropic-ai/sdk"));
 /**
  * CANONICAL WEIGHTS - Single source of truth
@@ -302,7 +302,7 @@ async function calculateRawResonance(transcript) {
         breakdown.s_scaffold * weights.scaffold +
         breakdown.e_ethics * weights.ethics;
     return {
-        r_m: (0, detect_1.normalizeScore)(weightedScore, 'default'),
+        r_m: (0, core_1.normalizeScore)(weightedScore, 'default'),
         breakdown,
         dimensionData: {
             alignment: breakdown.s_alignment,
@@ -321,8 +321,8 @@ async function calculateRawResonance(transcript) {
  */
 async function explainableSonateResonance(transcript, options = {}) {
     // 1. CLASSIFIERS (already deployed)
-    const stakes = (0, detect_1.classifyStakes)(transcript.text);
-    const adversarial = await (0, detect_1.adversarialCheck)(transcript.text, CANONICAL_SCAFFOLD_VECTOR);
+    const stakes = (0, core_1.classifyStakes)(transcript.text);
+    const adversarial = await (0, core_1.adversarialCheck)(transcript.text, CANONICAL_SCAFFOLD_VECTOR);
     const audit_trail = [];
     audit_trail.push(`Stakes classified as ${stakes.level} (${(stakes.confidence * 100).toFixed(1)}%)`);
     audit_trail.push(`Adversarial check: ${adversarial.is_adversarial ? 'FAILED' : 'PASSED'} (Penalty: ${adversarial.penalty.toFixed(2)})`);
@@ -371,7 +371,7 @@ async function explainableSonateResonance(transcript, options = {}) {
     // 5. ADVERSARIAL PENALTY
     // FIX: Clamp score to 0-1 range to ensure validity
     const clampedScore = Math.max(0, Math.min(1, adjustedScore));
-    const finalScore = clampedScore * (1 - adversarial.penalty);
+    const finalScore = clampedScore * (1 - adversarial.penalty * 0.5); // Standardized to 0.5 multiplier
     // FIX: Clamp final score to ensure 0-1 range
     const finalClampedScore = Math.max(0, Math.min(1, finalScore));
     audit_trail.push(`Final adversarial penalty: ${(adversarial.penalty * 100).toFixed(1)}%`);
@@ -432,7 +432,7 @@ async function explainableSonateResonance(transcript, options = {}) {
 async function robustSonateResonance(transcript) {
     const text = transcript.text;
     // ADVERSARIAL CHECK (enhanced with real embeddings)
-    const { is_adversarial, penalty, evidence } = await (0, detect_1.adversarialCheck)(text, CANONICAL_SCAFFOLD_VECTOR);
+    const { is_adversarial, penalty, evidence } = await (0, core_1.adversarialCheck)(text, CANONICAL_SCAFFOLD_VECTOR);
     if (is_adversarial) {
         return {
             r_m: 0.1,
@@ -443,7 +443,7 @@ async function robustSonateResonance(transcript) {
         };
     }
     // STAKES CLASSIFICATION
-    const stakes = (0, detect_1.classifyStakes)(transcript.text);
+    const stakes = (0, core_1.classifyStakes)(transcript.text);
     // Calculate raw resonance with enhanced mathematical foundations
     const normal_result = await calculateRawResonance(transcript);
     const { r_m, breakdown, dimensionData, miAnalysis } = normal_result;
@@ -484,8 +484,8 @@ async function robustSonateResonance(transcript) {
                 adjustedRm *= 0.9;
             }
         }
-        // FIX: Changed from penalty * 0.3 to penalty * 0.5 to match calculator_old.ts
-        const finalRm = adjustedRm * (1 - penalty * 0.5);
+        // Apply full adversarial penalty (consistent with explainableSonateResonance)
+        const finalRm = adjustedRm * (1 - penalty);
         // FIX: Clamp final score to ensure 0-1 range
         const clampedFinalRm = Math.max(0, Math.min(1, finalRm));
         return {

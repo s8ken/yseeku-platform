@@ -111,8 +111,6 @@ __exportStar(require("./utils/linguistic-vector-steering"), exports);
 __exportStar(require("./utils/tenant-context"), exports);
 __exportStar(require("./validation/schemas"), exports);
 __exportStar(require("./errors/math-errors"), exports);
-// Calculator V2 is in @sonate/detect (has detect dependencies)
-// Import from @sonate/detect instead: import { explainableSonateResonance } from '@sonate/detect';
 // Security infrastructure
 var security_audit_1 = require("./security/security-audit");
 Object.defineProperty(exports, "SecurityAuditor", { enumerable: true, get: function () { return security_audit_1.SecurityAuditor; } });
@@ -122,3 +120,5 @@ var auth_service_1 = require("./security/auth-service");
 Object.defineProperty(exports, "SecureAuthService", { enumerable: true, get: function () { return auth_service_1.SecureAuthService; } });
 // Algorithmic constants
 __exportStar(require("./constants/algorithmic"), exports);
+// Detection Logic (Migrated from @sonate/detect to break circular deps)
+__exportStar(require("./detection"), exports);

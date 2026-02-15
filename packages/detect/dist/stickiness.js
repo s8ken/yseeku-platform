@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resonanceWithStickiness = resonanceWithStickiness;
 // @sonate/detect/stickiness.ts
 const calculator_1 = require("./calculator");
-const crypto_1 = require("./crypto");
+const core_1 = require("@sonate/core");
 async function resonanceWithStickiness(transcript, session_state) {
     // Calculate fresh R_m
     const fresh = await (0, calculator_1.explainableSonateResonance)(transcript);
@@ -13,7 +13,7 @@ async function resonanceWithStickiness(transcript, session_state) {
             stickiness_weight: 0,
             session_state: {
                 last_rm: fresh.r_m,
-                last_scaffold_hash: (0, crypto_1.sha256)(transcript.text),
+                last_scaffold_hash: (0, core_1.sha256)(transcript.text),
                 decay_turns: 1, // Start count
                 updated: Date.now(),
             },
@@ -38,7 +38,7 @@ async function resonanceWithStickiness(transcript, session_state) {
         // But RFC says "Decay previous resonance".
         // Let's store fresh to avoid compounding bias, or sticky for smoothness.
         // Storing fresh is safer to prevent drift loop.
-        last_scaffold_hash: (0, crypto_1.sha256)(transcript.text),
+        last_scaffold_hash: (0, core_1.sha256)(transcript.text),
         decay_turns: current_turns,
         updated: Date.now(),
     };

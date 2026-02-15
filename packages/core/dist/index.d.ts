@@ -76,3 +76,4 @@ export { SecurityAuditor, runSecurityAudit } from './security/security-audit';
 export * from './security/mfa-system';
 export { SecureAuthService } from './security/auth-service';
 export * from './constants/algorithmic';
+export * from './detection';

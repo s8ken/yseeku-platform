@@ -50,8 +50,11 @@ class SecureAuthService {
     constructor(config = {}) {
         this.sessionStore = new Map();
         this.loginAttempts = new Map();
-        this.jwtSecret = config.jwtSecret || this.generateSecureSecret();
-        this.refreshTokenSecret = config.refreshTokenSecret || this.generateSecureSecret();
+        if (!config.jwtSecret) {
+            throw new Error('SecureAuthService requires jwtSecret');
+        }
+        this.jwtSecret = config.jwtSecret;
+        this.refreshTokenSecret = config.refreshTokenSecret ?? config.jwtSecret;
         this.saltRounds = config.saltRounds || 12;
         this.maxLoginAttempts = config.maxLoginAttempts || 5;
         this.lockoutDuration = config.lockoutDuration || 15 * 60 * 1000; // 15 minutes

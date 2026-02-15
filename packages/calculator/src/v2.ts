@@ -21,7 +21,7 @@ import {
   classifyStakes,
   StakesEvidence,
   normalizeScore,
-} from '@sonate/detect';
+} from '@sonate/core';
 import Anthropic from '@anthropic-ai/sdk';
 
 type StakesLevel = StakesEvidence['level'];
@@ -354,14 +354,14 @@ Return ONLY a JSON object with these keys:
       e_ethics: Math.max(0, Math.min(1, scores.e_ethics || 0)),
       // Map LLM adversarial detection to a special internal flag or penalty
       confidence_score: 0.95,
-      uncertainty_components: { 
+      uncertainty_components: {
         fallback_mode: false,
         // If LLM says it's adversarial, we note it here to be picked up by the main function
         error_reason: scores.is_adversarial ? `LLM_ADVERSARIAL: ${scores.adversarial_reason}` : undefined
       },
-      ethical_verification: { 
-        passed: !scores.is_adversarial, 
-        reason: scores.is_adversarial ? scores.adversarial_reason : 'llm_verified' 
+      ethical_verification: {
+        passed: !scores.is_adversarial,
+        reason: scores.is_adversarial ? scores.adversarial_reason : 'llm_verified'
       }
     };
   } catch (err) {
@@ -381,10 +381,10 @@ async function calculateRawResonance(transcript: Transcript): Promise<{
 }> {
   // Try LLM first
   const llmBreakdown = await analyzeWithLLM(transcript.text);
-  
+
   const weights = CANONICAL_WEIGHTS;
   let breakdown: RobustResonanceResult['breakdown'];
-  
+
   if (llmBreakdown) {
     breakdown = llmBreakdown;
   } else {
@@ -445,8 +445,7 @@ export async function explainableSonateResonance(
     `Stakes classified as ${stakes.level} (${(stakes.confidence * 100).toFixed(1)}%)`
   );
   audit_trail.push(
-    `Adversarial check: ${
-      adversarial.is_adversarial ? 'FAILED' : 'PASSED'
+    `Adversarial check: ${adversarial.is_adversarial ? 'FAILED' : 'PASSED'
     } (Penalty: ${adversarial.penalty.toFixed(2)})`
   );
 
@@ -479,10 +478,10 @@ export async function explainableSonateResonance(
 
   // 4. THRESHOLD ADJUSTMENT
   const thresholds = DYNAMIC_THRESHOLDS[stakes.level];
-  let adjustedScore = breakdown.s_alignment * weights.alignment + 
-                      breakdown.s_continuity * weights.continuity +
-                      breakdown.s_scaffold * weights.scaffold +
-                      breakdown.e_ethics * weights.ethics;
+  let adjustedScore = breakdown.s_alignment * weights.alignment +
+    breakdown.s_continuity * weights.continuity +
+    breakdown.s_scaffold * weights.scaffold +
+    breakdown.e_ethics * weights.ethics;
 
   // FIX: Add explicit LOW stakes penalty
   if (breakdown.e_ethics < thresholds.ethics) {
@@ -501,7 +500,7 @@ export async function explainableSonateResonance(
   // 5. ADVERSARIAL PENALTY
   // FIX: Clamp score to 0-1 range to ensure validity
   const clampedScore = Math.max(0, Math.min(1, adjustedScore));
-  const finalScore = clampedScore * (1 - adversarial.penalty);
+  const finalScore = clampedScore * (1 - adversarial.penalty * 0.5); // Standardized to 0.5 multiplier
   // FIX: Clamp final score to ensure 0-1 range
   const finalClampedScore = Math.max(0, Math.min(1, finalScore));
   audit_trail.push(`Final adversarial penalty: ${(adversarial.penalty * 100).toFixed(1)}%`);
