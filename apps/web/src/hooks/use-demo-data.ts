@@ -93,6 +93,14 @@ export function useDashboardKPIs() {
     queryKey: ['dashboard-kpis'],
     liveEndpoint: '/api/dashboard/kpis',
     demoEndpoint: '/api/demo/kpis',
+    options: {
+      // Keep cache for 2 minutes to avoid redundant API calls
+      staleTime: 120000,
+      // Refetch in background every 90 seconds to keep data fresh
+      refetchInterval: 90000,
+      // Only refetch if tab is focused (saves bandwidth on inactive tabs)
+      refetchIntervalInBackground: false,
+    },
   });
 }
 
