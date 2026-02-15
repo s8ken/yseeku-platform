@@ -156,9 +156,10 @@ export default function ChatPage() {
         {/* Chat Container - takes more space now */}
         <div className="lg:col-span-3">
           <ChatContainer 
-            key={selectedConversationId || 'new'} 
             initialConversationId={selectedConversationId}
             onConversationCreated={(id) => {
+              // We update the local state to reflect the new ID, 
+              // but we rely on ChatContainer to keep the message state
               setSelectedConversationId(id);
               loadConversations();
             }}

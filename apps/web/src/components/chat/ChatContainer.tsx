@@ -112,6 +112,11 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   // Load existing conversation if initialConversationId is provided
   useEffect(() => {
     if (initialConversationId) {
+      // Avoid reloading if we already have this conversation active and loaded
+      // This prevents wiping optimistic messages when the parent component updates the ID
+      if (initialConversationId === conversationId && messages.length > 0) {
+        return;
+      }
       loadExistingConversation(initialConversationId);
     } else {
       setMessages([]);
@@ -243,10 +248,10 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       try {
         convRes = await api.sendMessage(convId, input, undefined);
       } catch (err: any) {
-        // Retry once if this was a new conversation and we got a 502/500 (backend cold start or race condition)
-        if (!conversationId && (err.status === 502 || err.message?.includes('502') || err.status === 500)) {
-          console.log('[ChatContainer] Retrying message send for new conversation...');
-          await new Promise(r => setTimeout(r, 1500));
+        // Retry once if this was a new conversation and we got a 502/500/504 (backend cold start or race condition)
+        if (!conversationId && (err.status === 502 || err.message?.includes('502') || err.status === 500 || err.status === 504)) {
+          console.log('[ChatContainer] Retrying message send for new conversation (cold start detected)...');
+          await new Promise(r => setTimeout(r, 2000));
           convRes = await api.sendMessage(convId, input, undefined);
         } else {
           throw err;
