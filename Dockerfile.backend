@@ -9,14 +9,16 @@ COPY packages/core/package*.json ./packages/core/
 COPY packages/schemas/package*.json ./packages/schemas/
 COPY packages/persistence/package*.json ./packages/persistence/
 COPY packages/detect/package*.json ./packages/detect/
+COPY packages/calculator/package*.json ./packages/calculator/
 COPY packages/orchestrate/package*.json ./packages/orchestrate/
 COPY packages/lab/package*.json ./packages/lab/
 COPY packages/policy/package*.json ./packages/policy/
 COPY packages/policy-runtime/package*.json ./packages/policy-runtime/
 COPY packages/monitoring/package*.json ./packages/monitoring/
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Install dependencies with npm ci for reproducible builds
+# npm ci respects workspace dependencies in package-lock.json
+RUN npm ci --legacy-peer-deps
 
 # Fix transitive dependency issues for Express 5.x and express-rate-limit
 RUN cd apps/backend && npm install router ip-address --legacy-peer-deps
