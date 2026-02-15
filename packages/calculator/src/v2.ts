@@ -99,12 +99,24 @@ const CANONICAL_SCAFFOLD_VECTOR = new Array(384).fill(0).map((_, i) => (i % 2 ==
 
 // --- LEGACY / FALLBACK LOGIC ---
 
+/**
+ * Heuristic pseudo-embedding using FNV-1a hash
+ * 
+ * WARNING: This is a deterministic heuristic fallback with NO semantic understanding.
+ * "I love dogs" and "I adore canines" produce completely different embeddings.
+ * Use this only when actual semantic embeddings (OpenAI, local model) are unavailable.
+ * 
+ * For production, prefer semantic embedding models:
+ * - OpenAI: text-embedding-3-small / text-embedding-3-large
+ * - Local: BAAI/bge-small-en-v1.5 (via huggingface transformers)
+ * - HuggingFace: Sentence-Transformers
+ */
 function createEmbedding(text: string, dims = 384): number[] {
   const vector = new Array(dims).fill(0);
-  let seed = 2166136261;
+  let seed = 2166136261; // FNV offset basis
   for (let i = 0; i < text.length; i++) {
     seed ^= text.charCodeAt(i);
-    seed = Math.imul(seed, 16777619);
+    seed = Math.imul(seed, 16777619); // FNV prime
   }
 
   const tokens = text.toLowerCase().split(/\s+/).filter(Boolean);
@@ -207,14 +219,29 @@ async function alignmentEvidence(
   };
 }
 
+/**
+ * Extract ethics evidence from transcript
+ * 
+ * STRICT MODE: Defaults to 0 (conservative) if no ethics keywords detected.
+ * This avoids false positives where unethical content gets a default neutral score.
+ * 
+ * Keywords checked: ethics, safety, responsible, integrity, privacy, compliance,
+ * confidential, consent, transparency, accountability, fairness, bias, governance,
+ * risk, mitigation, oversight, audit, verification.
+ */
 function ethicsEvidence(
   transcript: Transcript,
   stakes: StakesEvidence
 ): { score: number; checked: string[]; chunks: EvidenceChunk[] } {
   const text = transcript.text.toLowerCase();
-  const ethicsKeywords = ['ethics', 'safety', 'responsible', 'integrity', 'privacy'];
+  const ethicsKeywords = [
+    'ethics', 'safety', 'responsible', 'integrity', 'privacy',
+    'compliance', 'confidential', 'consent', 'transparency', 'accountability',
+    'fairness', 'bias', 'governance', 'risk', 'mitigation', 'oversight', 'audit', 'verification'
+  ];
   const matched = ethicsKeywords.filter((kw) => text.includes(kw));
-  const score = matched.length > 0 ? Math.min(1, matched.length * 0.3) : 0.5;
+  // CHANGED: Default to 0 (strict) instead of 0.5 (neutral) when no keywords found
+  const score = matched.length > 0 ? Math.min(1, matched.length * 0.25) : 0;
 
   return {
     score,
@@ -222,7 +249,7 @@ function ethicsEvidence(
     chunks: matched.map((kw) => ({
       type: 'ethics',
       text: `Matched keyword: ${kw}`,
-      score_contrib: 0.3,
+      score_contrib: 0.25,
       position: { start: text.indexOf(kw), end: text.indexOf(kw) + kw.length },
     })),
   };

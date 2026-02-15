@@ -252,11 +252,21 @@ export class TrustReceipt {
   }
 
   /**
-   * Create from JSON
+   * Deserialize from JSON
    * 
-   * Preserves the original self_hash from the serialized data to maintain
-   * chain integrity. If the original hash is not present, it will be
-   * recalculated from the data.
+   * CRITICAL: Preserves the original self_hash from the serialized data to maintain
+   * hash-chain integrity. This allows receipts to be restored from storage/transmission
+   * without recalculation, which would break chain verification.
+   * 
+   * Behavior:
+   * - If data.self_hash is present: uses it (preserves chain)
+   * - If data.self_hash is missing: recalculates (fallback for new receipts)
+   * 
+   * Future: Optional skipHashCalculation flag can be added if constructor needs
+   * to support raw instantiation without auto-hash-calculation.
+   * 
+   * @param data Serialized receipt JSON
+   * @returns TrustReceipt instance with preserved or calculated self_hash
    */
   static fromJSON(data: any): TrustReceipt {
     const receipt = new TrustReceipt({
@@ -270,10 +280,11 @@ export class TrustReceipt {
       session_nonce: data.session_nonce,
     });
 
-    // Preserve the original hash if present to maintain chain integrity
+    // CRITICAL: Preserve the original hash if present to maintain chain integrity
     if (data.self_hash) {
       receipt.self_hash = data.self_hash;
     }
+    // Else: self_hash was already calculated by constructor
 
     receipt.signature = data.signature || '';
     return receipt;
