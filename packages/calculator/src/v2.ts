@@ -20,7 +20,6 @@ import {
   AdversarialEvidence,
   classifyStakes,
   StakesEvidence,
-  normalizeScore,
 } from '@sonate/core';
 import Anthropic from '@anthropic-ai/sdk';
 
