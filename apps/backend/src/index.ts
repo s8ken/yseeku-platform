@@ -23,7 +23,7 @@ import helmet from 'helmet';
 import { Server as SocketIOServer } from 'socket.io';
 import { connectDatabase } from './config/database';
 import { initializeRoutes } from './routes';
-import authRoutes from './routes/auth-routes';
+import authRoutes from './routes/auth.routes';
 import metricsRoutes from './routes/metrics-routes';
 import agentRoutes from './routes/agent.routes';
 import llmRoutes from './routes/llm.routes';
