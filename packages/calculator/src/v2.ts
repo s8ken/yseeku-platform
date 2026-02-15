@@ -440,8 +440,12 @@ async function calculateRawResonance(transcript: Transcript): Promise<{
     breakdown.s_scaffold * weights.scaffold +
     breakdown.e_ethics * weights.ethics;
 
+  // Clamp to [0, 1] range without model-specific bias correction
+  // (bias correction should only apply if a specific LLM model is known)
+  const finalScore = Math.max(0, Math.min(1, weightedScore));
+
   return {
-    r_m: normalizeScore(weightedScore, 'default'),
+    r_m: finalScore,
     breakdown,
     dimensionData: {
       alignment: breakdown.s_alignment,

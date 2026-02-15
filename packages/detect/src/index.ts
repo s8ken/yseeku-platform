@@ -60,7 +60,7 @@ export { RobustResonanceResult, Transcript } from './calculator';
 export { resonanceWithStickiness, StickyResonance, SessionState } from './stickiness';
 export { adversarialCheck, AdversarialEvidence } from '@sonate/core';
 export { classifyStakes, StakesEvidence } from '@sonate/core';
-export { normalizeScore, normalizeEmbedding } from '@sonate/core';
+export { applyModelBiasCorrection, normalizeScore, normalizeEmbedding } from '@sonate/core';
 export {
   CalculatorV2,
   CANONICAL_WEIGHTS as CANONICAL_WEIGHTS_V2,
