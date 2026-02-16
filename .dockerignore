@@ -1,8 +1,18 @@
-# flyctl launch added from .gitignore
-# Dependencies
+# ============================================================================
+# Backend Docker Build - exclude everything not needed for backend
+# ============================================================================
+
+# Version control
+.git
+.gitignore
+
+# Claude / AI tooling
+.claude
+
+# Dependencies (will be installed fresh in Docker)
 **/node_modules
 
-# Build outputs
+# Build outputs (will be built fresh in Docker)
 **/dist
 **/build
 **/.turbo
@@ -10,124 +20,87 @@
 **/out
 **/*.tsbuildinfo
 
-# Environment variables
+# ============================================================================
+# Apps not needed for backend build
+# ============================================================================
+apps/web
+apps/cli
+apps/resonate-dashboard
+apps/integration-tests
+
+# ============================================================================
+# Non-essential directories
+# ============================================================================
+docs
+scripts
+**/__tests__
+**/*.spec.ts
+**/*.test.ts
+**/*.spec.tsx
+**/*.test.tsx
+**/coverage
+**/.nyc_output
+**/*.lcov
+
+# ============================================================================
+# Environment & secrets
+# ============================================================================
 **/.env
 **/.env.local
 **/.env.*.local
 **/.env.production
 **/.env.development
+.env.example
 
+# ============================================================================
 # Logs
+# ============================================================================
 **/*.log
 **/npm-debug.log*
 **/yarn-debug.log*
 **/yarn-error.log*
-**/lerna-debug.log*
-**/.pnpm-debug.log*
 
-# Testing
-**/coverage
-**/.nyc_output
-**/*.lcov
-
-# IDEs and editors
+# ============================================================================
+# IDEs, editors, OS files
+# ============================================================================
 **/.vscode
 **/.idea
 **/*.swp
 **/*.swo
 **/*~
 **/.DS_Store
-
-# Python
-**/__pycache__
-**/*.py[cod]
-**/*$py.class
-**/*.so
-**/.Python
-**/env
-**/venv
-**/ENV
-**/.venv
-
-# Archives and temporary files
-**/Archives
-**/_archived
-**/*.tmp
-**/*.temp
-**/temp.js
-**/temp.py
-
-# OS files
-**/.DS_Store
 **/Thumbs.db
 
-# Vercel
+# ============================================================================
+# Python (resonance-engine)
+# ============================================================================
+packages/resonance-engine
+**/__pycache__
+**/*.py[cod]
+**/*.so
+**/venv
+**/.venv
+**/.pytest_cache
+
+# ============================================================================
+# Archives and temp files
+# ============================================================================
+**/Archives
+**/_archived
+**/_archive
+**/*.tmp
+**/*.temp
+
+# ============================================================================
+# Misc
+# ============================================================================
 **/.vercel
-
-# Turbo
-**/.turbo
-
-# Local development
 **/.roo
 **/.trae
-
-# Test files (if not needed in repo)
-**/archive_tester.py
-**/verify_fixes.py
-
-# Demo files (consider if these should be in examples/)
 **/demo.html
 **/comprehensive-demo.html
-
-# Duplicate Python files (if already in packages/)
-**/symbi_resonance_calculator.py
-
-# flyctl launch added from apps/web/.gitignore
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-apps/web/node_modules
-apps/web/.pnp
-apps/web/**/.pnp.*
-apps/web/**/.yarn/*
-!apps/web/**/.yarn/patches
-!apps/web/**/.yarn/plugins
-!apps/web/**/.yarn/releases
-!apps/web/**/.yarn/versions
-
-# testing
-apps/web/coverage
-
-# next.js
-apps/web/.next
-apps/web/out
-
-# production
-apps/web/build
-
-# misc
-apps/web/**/.DS_Store
-apps/web/**/*.pem
-
-# debug
-apps/web/**/npm-debug.log*
-apps/web/**/yarn-debug.log*
-apps/web/**/yarn-error.log*
-apps/web/**/.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-apps/web/**/.env*
-
-# vercel
-apps/web/**/.vercel
-
-# typescript
-apps/web/**/*.tsbuildinfo
-apps/web/**/next-env.d.ts
-
-# flyctl launch added from packages/resonance-engine/.gitignore
-packages/resonance-engine/**/__pycache__
-packages/resonance-engine/**/*.pyc
-packages/resonance-engine/**/venv
-packages/resonance-engine/**/.pytest_cache
 fly.toml
+Dockerfile.*
+README.md
+CLAUDE.md
+LICENSE
