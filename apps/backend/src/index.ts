@@ -170,6 +170,15 @@ app.get('/health', (req, res) => {
   res.status(200).json(health);
 });
 
+// Initialize Socket.IO BEFORE route mounting to avoid duplicate WebSocket handlers
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    credentials: true,
+  },
+});
+setIoInstance(io);
+
 // API Routes
 
 // Metrics (Prometheus) - Available at standard paths
@@ -180,7 +189,7 @@ app.use('/api/v2/auth', authRoutes);
 app.use('/api/auth', authRoutes);
 
 // Phase 1-2 Routes (Policy Engine, WebSocket Alerts, Overrides, Audit)
-app.use('', initializeRoutes(server));
+app.use('', initializeRoutes(server, io));
 app.use('/api/agents', agentRoutes);
 app.use('/api/llm', llmRoutes);
 app.use('/api/conversations', conversationRoutes);
@@ -353,16 +362,9 @@ async function startServer() {
       logger.warn('Demo agent provisioning failed', { error: msg });
     }
 
-    // Initialize Socket.IO
-    const io = new SocketIOServer(server, {
-      cors: {
-        origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-        credentials: true,
-      },
-    });
-    setIoInstance(io); // Set the io instance
+    // Initialize Socket.IO handlers (io instance already created above routes)
     initializeSocket(io);
-    liveMetricsService.initialize(io); // Initialize live metrics broadcasting
+    liveMetricsService.initialize(io);
     logger.info('Socket.IO server initialized', {
       realtime: 'enabled',
       liveMetrics: 'enabled',

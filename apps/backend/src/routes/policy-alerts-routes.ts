@@ -8,6 +8,7 @@
 import type { Request, Response } from 'express';
 import { Router } from 'express';
 import type { Server as HTTPServer } from 'http';
+import type { Server as SocketIOServer } from 'socket.io';
 import {
   PolicyAlertService,
   type AlertEvent,
@@ -56,13 +57,13 @@ function validateThresholds(thresholds: Partial<AlertThresholds>): string | null
  * Initialize alert service with HTTP server
  */
 export function initializeAlertService(
-  httpServer: HTTPServer,
+  ioOrServer: SocketIOServer | HTTPServer,
   engine: PolicyEngine,
   coherenceTracker: CoherenceTracker,
   resonanceMonitor: ResonanceMonitor
 ): PolicyAlertService {
   alertService = new PolicyAlertService(
-    httpServer,
+    ioOrServer,
     engine,
     coherenceTracker,
     resonanceMonitor

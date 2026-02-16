@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import type { Server as HTTPServer } from 'http';
+import type { Server as SocketIOServer } from 'socket.io';
 import { analyzeInteraction } from './controllers/resonanceController';
 import receiptsRoutes from './routes/receipts.routes';
 import didResolverRoutes from './routes/did-resolver.routes';
@@ -15,9 +16,9 @@ import { authMiddleware, optionalAuthMiddleware } from './middleware/auth';
 let router: Router;
 
 /**
- * Initialize routes with HTTP server (for WebSocket support)
+ * Initialize routes with HTTP server and optional Socket.IO instance
  */
-export function initializeRoutes(httpServer?: HTTPServer): Router {
+export function initializeRoutes(httpServer?: HTTPServer, ioInstance?: SocketIOServer): Router {
   router = Router();
 
   // Phase 1: Receipts & DIDs (no auth required)
@@ -41,7 +42,7 @@ export function initializeRoutes(httpServer?: HTTPServer): Router {
   // Phase 2.7: WebSocket Alerts (initialize if HTTP server provided)
   if (httpServer) {
     const alertService = initializeAlertService(
-      httpServer,
+      ioInstance || httpServer,
       policyAPIService.getEngine(),
       (policyAPIService as any).coherenceTracker,
       (policyAPIService as any).resonanceMonitor

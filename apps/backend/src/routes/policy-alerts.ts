@@ -59,17 +59,20 @@ export class PolicyAlertService {
   private readonly maxHistorySize = 1000;
 
   constructor(
-    httpServer: HTTPServer,
+    ioOrServer: SocketIOServer | HTTPServer,
     engine: PolicyEngine,
     coherenceTracker: CoherenceTracker,
     resonanceMonitor: ResonanceMonitor
   ) {
-    this.io = new SocketIOServer(httpServer, {
-      cors: {
-        origin: '*',
-        methods: ['GET', 'POST'],
-      },
-    });
+    // Accept an existing Socket.IO instance or create one from HTTP server
+    this.io = ioOrServer instanceof SocketIOServer
+      ? ioOrServer
+      : new SocketIOServer(ioOrServer, {
+          cors: {
+            origin: '*',
+            methods: ['GET', 'POST'],
+          },
+        });
 
     this.engine = engine;
     this.coherenceTracker = coherenceTracker;
