@@ -470,42 +470,52 @@ export class LLMService {
     try {
       return await this.withRetry(async () => {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
-        const resp = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...(systemText ? { systemInstruction: { parts: [{ text: systemText }] } } : {}),
-            contents,
-            generationConfig: {
-              temperature,
-              maxOutputTokens: maxTokens,
+        
+        // Use a longer timeout for Gemini (60s) to avoid 502s on long generations
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+        try {
+          const resp = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
             },
-          })
-        });
+            body: JSON.stringify({
+              ...(systemText ? { systemInstruction: { parts: [{ text: systemText }] } } : {}),
+              contents,
+              generationConfig: {
+                temperature,
+                maxOutputTokens: maxTokens,
+              },
+            }),
+            signal: controller.signal,
+          });
 
-        if (!resp.ok) {
-          const errorText = await resp.text().catch(() => 'Unknown error');
-          throw new Error(`Gemini API error: ${resp.status} - ${errorText}`);
+          if (!resp.ok) {
+            const errorText = await resp.text().catch(() => 'Unknown error');
+            throw new Error(`Gemini API error: ${resp.status} - ${errorText}`);
+          }
+
+          const data = await resp.json() as any;
+          const text = (data.candidates?.[0]?.content?.parts || [])
+            .map((p: any) => p?.text)
+            .filter(Boolean)
+            .join('') || '';
+
+          return {
+            content: text,
+            usage: {
+              promptTokens: data.usageMetadata?.promptTokenCount,
+              completionTokens: data.usageMetadata?.candidatesTokenCount,
+              totalTokens: data.usageMetadata?.totalTokenCount,
+            },
+            model,
+            provider: 'gemini',
+          };
+        } finally {
+          clearTimeout(timeoutId);
         }
-
-        const data = await resp.json() as any;
-        const text = (data.candidates?.[0]?.content?.parts || [])
-          .map((p: any) => p?.text)
-          .filter(Boolean)
-          .join('') || '';
-
-        return {
-          content: text,
-          usage: {
-            promptTokens: data.usageMetadata?.promptTokenCount,
-            completionTokens: data.usageMetadata?.candidatesTokenCount,
-            totalTokens: data.usageMetadata?.totalTokenCount,
-          },
-          model,
-          provider: 'gemini',
-        };
       }, `gemini:${model}`);
     } catch (error: unknown) {
       logger.error('Gemini API Error', { error: getErrorMessage(error) });
