@@ -540,33 +540,40 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
         const hasOpenAIKey = user?.apiKeys?.some(key => key.provider === 'openai' && key.isActive);
         
         if (hasAnthropicKey || hasOpenAIKey) {
-          // Create agent for user based on their available keys
-          const mongoose = require('mongoose');
-          const apiKeyId = new mongoose.Types.ObjectId();
           const provider = hasAnthropicKey ? 'anthropic' : 'openai';
           const model = hasAnthropicKey ? 'claude-sonnet-4-20250514' : 'gpt-4-turbo';
-          
-          agent = await Agent.create({
-            name: `${provider === 'anthropic' ? 'Claude' : 'GPT'} Assistant`,
-            description: `Personal ${provider} assistant`,
-            user: req.userId,
-            provider,
-            model,
-            apiKeyId,
-            systemPrompt: `You are a helpful ${provider} assistant. Be concise, accurate, and ethically aligned.`,
-            temperature: 0.7,
-            maxTokens: 2000,
-            isPublic: false,
-            traits: new Map([
-              ['ethical_alignment', 4.8],
-              ['creativity', 4.5],
-              ['precision', 4.6],
-              ['adaptability', 4.2]
-            ]),
-            ciModel: 'sonate-core',
-          });
+          const agentName = `${provider === 'anthropic' ? 'Claude' : 'GPT'} Assistant`;
+
+          // Find existing agent for this user+provider, or create one
+          agent = await Agent.findOne({ name: agentName, user: req.userId });
+
+          if (!agent) {
+            const mongoose = require('mongoose');
+            const apiKeyId = new mongoose.Types.ObjectId();
+            agent = await Agent.create({
+              name: agentName,
+              description: `Personal ${provider} assistant`,
+              user: req.userId,
+              provider,
+              model,
+              apiKeyId,
+              systemPrompt: `You are a helpful ${provider} assistant. Be concise, accurate, and ethically aligned.`,
+              temperature: 0.7,
+              maxTokens: 2000,
+              isPublic: false,
+              traits: new Map([
+                ['ethical_alignment', 4.8],
+                ['creativity', 4.5],
+                ['precision', 4.6],
+                ['adaptability', 4.2]
+              ]),
+              ciModel: 'sonate-core',
+            });
+          }
           targetAgentId = agent._id;
-          conversation.agents.push(agent._id);
+          if (!conversation.agents.includes(agent._id)) {
+            conversation.agents.push(agent._id);
+          }
         } else {
           // Only look for user agents if no API keys
           agent = await Agent.findOne({ user: req.userId });
