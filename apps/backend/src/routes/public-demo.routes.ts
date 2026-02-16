@@ -191,26 +191,38 @@ router.post('/verify', async (req: Request, res: Response) => {
 
     const checks: Record<string, { status: string; message: string }> = {};
 
-    // 1. Check required fields
-    const hasId = !!receipt.id;
+    // 1. Check required fields (support both v2 'id' and v1 'self_hash' formats)
+    const hasId = !!(receipt.id || receipt.self_hash || receipt.receiptHash);
     const hasTimestamp = !!receipt.timestamp;
-    const hasSignature = receipt.signature?.value;
+    const hasSignature = receipt.signature?.value || (typeof receipt.signature === 'string' && receipt.signature.length > 0);
 
     checks.structure = {
       status: hasId && hasTimestamp ? 'PASS' : 'FAIL',
-      message: hasId && hasTimestamp ? 'Required fields present' : 'Missing required fields'
+      message: hasId && hasTimestamp ? 'Required fields present' : `Missing required fields: ${!hasId ? 'id/self_hash' : ''} ${!hasTimestamp ? 'timestamp' : ''}`.trim()
     };
 
-    // 2. Verify signature
+    // 2. Verify signature (supports both v2 { value, algorithm } and v1 plain string formats)
     if (hasSignature) {
       try {
-        // Reconstruct the content that was signed (without signature)
-        const receiptWithoutSig = { ...receipt };
-        delete receiptWithoutSig.signature;
-        const canonicalContent = canonicalize(receiptWithoutSig);
-        
-        const isValid = await keysService.verify(canonicalContent, receipt.signature.value);
-        
+        const sigValue = typeof receipt.signature === 'string' ? receipt.signature : receipt.signature.value;
+        const receiptHash = receipt.id || receipt.self_hash;
+
+        let isValid = false;
+
+        if (receiptHash) {
+          // v1 format: signature is over the self_hash (SHA-256 of canonical payload)
+          const messageHash = Buffer.from(receiptHash, 'hex');
+          isValid = await keysService.verify(messageHash, sigValue);
+        }
+
+        if (!isValid) {
+          // v2 fallback: signature is over the canonical receipt content
+          const receiptWithoutSig = { ...receipt };
+          delete receiptWithoutSig.signature;
+          const canonicalContent = canonicalize(receiptWithoutSig);
+          isValid = await keysService.verify(canonicalContent, sigValue);
+        }
+
         checks.signature = {
           status: isValid ? 'PASS' : 'FAIL',
           message: isValid ? 'Ed25519 signature verified' : 'Signature verification failed'
