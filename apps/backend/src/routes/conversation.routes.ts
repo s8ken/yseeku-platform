@@ -895,11 +895,15 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
           aiMessage.trustScore = 3.5; // Conservative middle value (0-5 scale)
         }
       } catch (llmError: unknown) {
-        logger.error('LLM generation error:', llmError);
+        const errorMsg = getErrorMessage(llmError);
+        logger.error('LLM generation error:', { error: errorMsg, provider: agent.provider });
         
-        // For demo tenant, provide a helpful fallback response instead of failing
+        // For demo tenant, ONLY provide a fallback if it's a configuration error
+        // If it's a real API error (e.g. rate limit, content policy), show that instead
         const tenantId = req.userTenant || 'live-tenant';
-        if (tenantId === 'demo-tenant' || tenantId === 'demo') {
+        const isConfigError = errorMsg.includes('not configured') || errorMsg.includes('API key');
+        
+        if ((tenantId === 'demo-tenant' || tenantId === 'demo') && isConfigError) {
           const demoFallbackContent = `I'm currently running in demo mode without a configured LLM provider.
 
 To see real AI responses with trust evaluation:
@@ -1019,26 +1023,17 @@ The SONATE Trust Protocol evaluates every AI response against 6 constitutional p
             data: {
               conversation,
               lastMessage,
-              message: {
-                _id: fallbackMessage.metadata?.messageId,
-                content: fallbackMessage.content,
-                sender: 'assistant',
-                timestamp: fallbackMessage.timestamp.toISOString(),
-              },
               trustEvaluation: fallbackMessage.metadata.trustEvaluation,
-              isDemoFallback: true,
             },
           });
           return;
         }
 
-        // For non-demo tenants, return error as before
-        await conversation.save();
+        // If not demo mode OR not a config error, throw the original error
         res.status(500).json({
           success: false,
-          message: 'Failed to generate AI response',
-          error: getErrorMessage(llmError),
-          data: { conversation },
+          message: 'Failed to generate response',
+          error: errorMsg,
         });
         return;
       }
