@@ -20,7 +20,8 @@ function getPreferredLLMProvider(): 'anthropic' | 'gemini' {
   if (preferred === 'gemini') return 'gemini';
   if (preferred === 'anthropic') return 'anthropic';
   if (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY) return 'gemini';
-  return 'anthropic';
+  if (process.env.ANTHROPIC_API_KEY) return 'anthropic';
+  return 'gemini';
 }
 
 /**
@@ -171,7 +172,7 @@ Return ONLY a valid JSON object with all fields listed above plus "reasoning": "
         method: 'POST',
         headers: {
           'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
+          'anthropic-version': '2024-10-22',
           'content-type': 'application/json',
         },
         body: JSON.stringify({

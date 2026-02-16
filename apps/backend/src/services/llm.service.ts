@@ -97,14 +97,14 @@ export const LLM_PROVIDERS: Record<string, LLMProvider> = {
     models: [
       {
         id: 'claude-sonnet-4-20250514',
-        name: 'Claude 3.5 Sonnet',
+        name: 'Claude Sonnet 4',
         maxTokens: 8192,
         contextWindow: 200000,
         pricing: { input: 0.003, output: 0.015 }
       },
       {
         id: 'claude-opus-4-20250514',
-        name: 'Claude 3 Opus',
+        name: 'Claude Opus 4',
         maxTokens: 4096,
         contextWindow: 200000,
         pricing: { input: 0.015, output: 0.075 }
