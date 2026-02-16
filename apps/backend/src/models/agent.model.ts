@@ -32,7 +32,7 @@ export interface IAgent extends Omit<Document, 'model'> {
   description: string;
   user: Types.ObjectId;
   tenantId?: string;
-  provider: 'openai' | 'together' | 'anthropic' | 'cohere' | 'custom';
+  provider: 'openai' | 'together' | 'anthropic' | 'cohere' | 'google' | 'gemini' | 'custom';
   model: string;
   apiKeyId: Types.ObjectId;
   systemPrompt: string;
@@ -121,7 +121,7 @@ const AgentSchema = new Schema<IAgent>({
   provider: {
     type: String,
     required: [true, 'LLM provider is required'],
-    enum: ['openai', 'together', 'anthropic', 'gemini', 'cohere', 'custom'],
+    enum: ['openai', 'together', 'anthropic', 'gemini', 'cohere', 'google', 'custom'],
   },
   model: {
     type: String,

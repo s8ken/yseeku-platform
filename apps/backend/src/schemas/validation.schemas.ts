@@ -64,7 +64,7 @@ export const refreshTokenSchema = z.object({
 export const createAgentSchema = z.object({
   name: nonEmptyString.min(2, 'Agent name must be at least 2 characters').max(100),
   description: z.string().max(500).optional(),
-  provider: z.enum(['openai', 'anthropic', 'together', 'cohere', 'google']),
+  provider: z.enum(['openai', 'anthropic', 'together', 'cohere', 'google', 'gemini']),
   model: nonEmptyString,
   systemPrompt: z.string().max(10000).optional(),
   temperature: z.number().min(0).max(2).default(0.7),
