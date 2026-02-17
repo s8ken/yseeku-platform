@@ -5,7 +5,7 @@
  * Works with OpenAI, Anthropic, or any async function.
  */
 
-import { TrustReceipt, TrustReceiptData, SignedReceipt, QualityMetrics } from './trust-receipt';
+import { TrustReceipt, TrustReceiptData, SignedReceipt, Scores } from './trust-receipt';
 import { generateKeyPair, hexToBytes, bytesToHex, getPublicKey } from './crypto';
 
 /**
@@ -16,26 +16,50 @@ export interface TrustReceiptsConfig {
   privateKey?: string | Uint8Array;
   /** Ed25519 public key (hex string or Uint8Array) - derived from private if not provided */
   publicKey?: string | Uint8Array;
-  /** Default interaction mode */
-  defaultMode?: 'standard' | 'constitutional';
-  /** Custom metrics calculator */
-  calculateMetrics?: (response: unknown) => QualityMetrics;
+  /** Default agent/model identifier */
+  defaultAgentId?: string;
+  /** Custom scores calculator */
+  calculateScores?: (prompt: unknown, response: unknown) => Scores;
 }
 
 /**
  * Options for wrapping an AI call
  */
-export interface WrapOptions {
+export interface WrapOptions<TInput = unknown> {
   /** Session identifier for this interaction */
   sessionId: string;
-  /** Interaction mode (overrides default) */
-  mode?: 'standard' | 'constitutional';
+  /** The prompt/input being sent to the AI */
+  input: TInput;
+  /** Agent/model identifier (overrides default) */
+  agentId?: string;
   /** Previous receipt for hash chaining */
   previousReceipt?: SignedReceipt;
   /** Custom metadata to include */
   metadata?: Record<string, unknown>;
-  /** Custom metrics (if not using calculator) */
-  metrics?: QualityMetrics;
+  /** Attestation scores (if not using calculator) */
+  scores?: Scores;
+  /** Custom response extractor for hashing */
+  extractResponse?: (response: unknown) => unknown;
+}
+
+/**
+ * Options for creating a receipt manually
+ */
+export interface CreateReceiptOptions {
+  /** Session identifier */
+  sessionId: string;
+  /** The prompt/input */
+  prompt: unknown;
+  /** The response/output */
+  response: unknown;
+  /** Agent/model identifier */
+  agentId?: string;
+  /** Previous receipt for hash chaining */
+  previousReceipt?: SignedReceipt;
+  /** Custom metadata */
+  metadata?: Record<string, unknown>;
+  /** Attestation scores */
+  scores?: Scores;
 }
 
 /**
@@ -49,13 +73,28 @@ export interface WrappedResponse<T> {
 }
 
 /**
- * Default metrics for responses (conservative values)
+ * Extract text content from common AI response formats
  */
-const DEFAULT_METRICS: QualityMetrics = {
-  clarity: 0.8,
-  integrity: 0.9,
-  quality: 0.85,
-};
+function extractResponseContent(response: unknown): unknown {
+  if (!response || typeof response !== 'object') {
+    return response;
+  }
+
+  const r = response as Record<string, unknown>;
+
+  // OpenAI format: { choices: [{ message: { content: "..." } }] }
+  if (Array.isArray(r.choices) && r.choices[0]?.message?.content) {
+    return r.choices[0].message.content;
+  }
+
+  // Anthropic format: { content: [{ text: "..." }] }
+  if (Array.isArray(r.content) && r.content[0]?.text) {
+    return r.content[0].text;
+  }
+
+  // Fallback: return as-is
+  return response;
+}
 
 /**
  * TrustReceipts - Main SDK class
@@ -70,29 +109,27 @@ const DEFAULT_METRICS: QualityMetrics = {
  * });
  *
  * const openai = new OpenAI();
+ * const messages = [{ role: 'user', content: 'Hello!' }];
  *
  * const { response, receipt } = await receipts.wrap(
- *   () => openai.chat.completions.create({
- *     model: 'gpt-4',
- *     messages: [{ role: 'user', content: 'Hello!' }],
- *   }),
- *   { sessionId: 'user-123' }
+ *   () => openai.chat.completions.create({ model: 'gpt-4', messages }),
+ *   { sessionId: 'user-123', input: messages }
  * );
  *
  * console.log(response.choices[0].message.content);
- * console.log('Receipt hash:', receipt.selfHash);
+ * console.log('Receipt hash:', receipt.receiptHash);
  * ```
  */
 export class TrustReceipts {
   private privateKey: Uint8Array;
   private publicKey: Uint8Array;
-  private defaultMode: 'standard' | 'constitutional';
-  private calculateMetrics?: (response: unknown) => QualityMetrics;
+  private defaultAgentId?: string;
+  private calculateScores?: (prompt: unknown, response: unknown) => Scores;
   private initialized: Promise<void>;
 
   constructor(config: TrustReceiptsConfig = {}) {
-    this.defaultMode = config.defaultMode ?? 'standard';
-    this.calculateMetrics = config.calculateMetrics;
+    this.defaultAgentId = config.defaultAgentId;
+    this.calculateScores = config.calculateScores;
 
     // Initialize keys (may be async)
     this.privateKey = new Uint8Array(32);
@@ -138,13 +175,19 @@ export class TrustReceipts {
    *
    * @example
    * ```typescript
+   * const messages = [{ role: 'user', content: 'Hello!' }];
+   *
    * const { response, receipt } = await receipts.wrap(
    *   () => anthropic.messages.create({
    *     model: 'claude-3-sonnet-20240229',
    *     max_tokens: 1024,
-   *     messages: [{ role: 'user', content: 'Hello!' }],
+   *     messages,
    *   }),
-   *   { sessionId: 'session-abc', mode: 'constitutional' }
+   *   {
+   *     sessionId: 'session-abc',
+   *     input: messages,
+   *     agentId: 'claude-3-sonnet',
+   *   }
    * );
    * ```
    */
@@ -155,19 +198,24 @@ export class TrustReceipts {
     // Execute the AI call
     const response = await fn();
 
-    // Calculate metrics
-    const metrics = options.metrics ?? this.calculateMetrics?.(response) ?? DEFAULT_METRICS;
+    // Extract response content for hashing
+    const responseContent = options.extractResponse
+      ? options.extractResponse(response)
+      : extractResponseContent(response);
+
+    // Calculate scores
+    const scores =
+      options.scores ?? this.calculateScores?.(options.input, responseContent) ?? {};
 
     // Create receipt
     const receiptData: TrustReceiptData = {
       sessionId: options.sessionId,
-      mode: options.mode ?? this.defaultMode,
-      metrics,
-      previousHash: options.previousReceipt?.selfHash,
-      metadata: {
-        ...options.metadata,
-        wrappedAt: new Date().toISOString(),
-      },
+      prompt: options.input,
+      response: responseContent,
+      scores,
+      agentId: options.agentId ?? this.defaultAgentId,
+      prevReceiptHash: options.previousReceipt?.receiptHash,
+      metadata: options.metadata,
     };
 
     const receipt = new TrustReceipt(receiptData);
@@ -182,19 +230,23 @@ export class TrustReceipts {
   /**
    * Create a receipt manually (without wrapping a call)
    *
+   * Useful for streaming responses or custom scenarios.
+   *
    * @param options - Receipt options
    * @returns Signed trust receipt
    */
-  async createReceipt(options: WrapOptions): Promise<SignedReceipt> {
+  async createReceipt(options: CreateReceiptOptions): Promise<SignedReceipt> {
     await this.initialized;
 
-    const metrics = options.metrics ?? DEFAULT_METRICS;
+    const scores = options.scores ?? {};
 
     const receiptData: TrustReceiptData = {
       sessionId: options.sessionId,
-      mode: options.mode ?? this.defaultMode,
-      metrics,
-      previousHash: options.previousReceipt?.selfHash,
+      prompt: options.prompt,
+      response: options.response,
+      scores,
+      agentId: options.agentId ?? this.defaultAgentId,
+      prevReceiptHash: options.previousReceipt?.receiptHash,
       metadata: options.metadata,
     };
 
@@ -256,8 +308,8 @@ export class TrustReceipts {
       // Verify chain (skip first receipt)
       if (i > 0) {
         const previous = receipts[i - 1];
-        if (current.previousHash !== previous.selfHash) {
-          errors.push(`Receipt ${i}: Chain broken (previousHash mismatch)`);
+        if (current.prevReceiptHash !== previous.receiptHash) {
+          errors.push(`Receipt ${i}: Chain broken (prevReceiptHash mismatch)`);
         }
       }
     }
@@ -289,3 +341,6 @@ export class TrustReceipts {
     };
   }
 }
+
+// Re-export for convenience
+export { Scores, SignedReceipt, TrustReceipt, TrustReceiptData } from './trust-receipt';

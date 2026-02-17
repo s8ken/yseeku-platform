@@ -29,11 +29,14 @@ describe('TrustReceipts SDK', () => {
 
     const receipt = new TrustReceipt({
       sessionId: 'test-session',
-      mode: 'standard',
-      metrics: { clarity: 0.9, integrity: 0.95, quality: 0.85 },
+      prompt: 'What is 2+2?',
+      response: '4',
+      scores: { accuracy: 1.0, clarity: 0.95 },
     });
 
-    assert.ok(receipt.selfHash, 'Should have selfHash');
+    assert.ok(receipt.receiptHash, 'Should have receiptHash');
+    assert.ok(receipt.promptHash, 'Should have promptHash');
+    assert.ok(receipt.responseHash, 'Should have responseHash');
     assert.strictEqual(receipt.isSigned, false, 'Should not be signed yet');
 
     await receipt.sign(privateKey);
@@ -45,48 +48,127 @@ describe('TrustReceipts SDK', () => {
     assert.strictEqual(valid, true, 'Signature should be valid');
   });
 
+  test('TrustReceipt hashes content deterministically', async () => {
+    const { privateKey } = await generateKeyPair();
+
+    const receipt1 = new TrustReceipt({
+      sessionId: 'test',
+      prompt: { messages: [{ role: 'user', content: 'Hello' }] },
+      response: 'Hi there!',
+      scores: {},
+    });
+
+    const receipt2 = new TrustReceipt({
+      sessionId: 'test',
+      prompt: { messages: [{ role: 'user', content: 'Hello' }] },
+      response: 'Hi there!',
+      scores: {},
+    });
+
+    // Same content should produce same hashes (ignoring timestamp)
+    assert.strictEqual(receipt1.promptHash, receipt2.promptHash, 'Same prompt should hash same');
+    assert.strictEqual(receipt1.responseHash, receipt2.responseHash, 'Same response should hash same');
+  });
+
   test('TrustReceipt chain verification works', async () => {
     const { privateKey, publicKey } = await generateKeyPair();
 
     const receipt1 = new TrustReceipt({
       sessionId: 'chain-test',
-      mode: 'standard',
-      metrics: { clarity: 0.8, integrity: 0.9, quality: 0.85 },
+      prompt: 'First question',
+      response: 'First answer',
+      scores: { quality: 0.9 },
     });
     await receipt1.sign(privateKey);
 
     const receipt2 = new TrustReceipt({
       sessionId: 'chain-test',
-      mode: 'standard',
-      metrics: { clarity: 0.85, integrity: 0.92, quality: 0.88 },
-      previousHash: receipt1.selfHash,
+      prompt: 'Second question',
+      response: 'Second answer',
+      scores: { quality: 0.85 },
+      prevReceiptHash: receipt1.receiptHash,
     });
     await receipt2.sign(privateKey);
 
     assert.strictEqual(receipt2.verifyChain(receipt1), true, 'Chain should be valid');
-    assert.strictEqual(receipt2.previousHash, receipt1.selfHash, 'previousHash should match');
+    assert.strictEqual(receipt2.prevReceiptHash, receipt1.receiptHash, 'prevReceiptHash should match');
   });
 
-  test('TrustReceipts.wrap creates signed receipt', async () => {
-    const { privateKey, publicKey } = await TrustReceipts.generateKeyPair();
+  test('TrustReceipts.wrap creates signed receipt with content hashes', async () => {
+    const { privateKey } = await TrustReceipts.generateKeyPair();
 
     const receipts = new TrustReceipts({ privateKey });
 
     // Mock AI call
-    const mockAiCall = async () => ({ content: 'Hello, world!' });
+    const mockMessages = [{ role: 'user', content: 'Hello!' }];
+    const mockAiCall = async () => ({
+      choices: [{ message: { content: 'Hi there!' } }],
+    });
 
     const { response, receipt } = await receipts.wrap(mockAiCall, {
       sessionId: 'wrap-test',
-      metrics: { clarity: 0.9, integrity: 0.95, quality: 0.9 },
+      input: mockMessages,
+      agentId: 'gpt-4',
+      scores: { clarity: 0.95 },
     });
 
-    assert.deepStrictEqual(response, { content: 'Hello, world!' });
-    assert.ok(receipt.selfHash);
+    assert.deepStrictEqual(response, { choices: [{ message: { content: 'Hi there!' } }] });
+    assert.ok(receipt.receiptHash);
+    assert.ok(receipt.promptHash);
+    assert.ok(receipt.responseHash);
     assert.ok(receipt.signature);
     assert.strictEqual(receipt.sessionId, 'wrap-test');
+    assert.strictEqual(receipt.agentId, 'gpt-4');
+    assert.deepStrictEqual(receipt.scores, { clarity: 0.95 });
 
     const valid = await receipts.verifyReceipt(receipt);
     assert.strictEqual(valid, true, 'Receipt should be valid');
+  });
+
+  test('TrustReceipts.wrap auto-extracts OpenAI response content', async () => {
+    const receipts = new TrustReceipts();
+
+    const mockResponse = {
+      choices: [{ message: { content: 'Hello from OpenAI!' } }],
+    };
+
+    const { receipt } = await receipts.wrap(async () => mockResponse, {
+      sessionId: 'openai-test',
+      input: 'test prompt',
+    });
+
+    // The responseHash should be of the extracted text, not the full object
+    // We can verify by creating a receipt with just the text
+    const directReceipt = new TrustReceipt({
+      sessionId: 'direct',
+      prompt: 'test',
+      response: 'Hello from OpenAI!',
+      scores: {},
+    });
+
+    assert.strictEqual(receipt.responseHash, directReceipt.responseHash);
+  });
+
+  test('TrustReceipts.wrap auto-extracts Anthropic response content', async () => {
+    const receipts = new TrustReceipts();
+
+    const mockResponse = {
+      content: [{ type: 'text', text: 'Hello from Claude!' }],
+    };
+
+    const { receipt } = await receipts.wrap(async () => mockResponse, {
+      sessionId: 'anthropic-test',
+      input: 'test prompt',
+    });
+
+    const directReceipt = new TrustReceipt({
+      sessionId: 'direct',
+      prompt: 'test',
+      response: 'Hello from Claude!',
+      scores: {},
+    });
+
+    assert.strictEqual(receipt.responseHash, directReceipt.responseHash);
   });
 
   test('TrustReceipts.verifyChain validates chain integrity', async () => {
@@ -94,15 +176,18 @@ describe('TrustReceipts SDK', () => {
 
     const receipts = new TrustReceipts({ privateKey });
 
-    const mockCall = async () => ({ ok: true });
-
-    const { receipt: r1 } = await receipts.wrap(mockCall, { sessionId: 's1' });
-    const { receipt: r2 } = await receipts.wrap(mockCall, {
+    const { receipt: r1 } = await receipts.wrap(async () => ({ text: 'r1' }), {
       sessionId: 's1',
+      input: 'q1',
+    });
+    const { receipt: r2 } = await receipts.wrap(async () => ({ text: 'r2' }), {
+      sessionId: 's1',
+      input: 'q2',
       previousReceipt: r1,
     });
-    const { receipt: r3 } = await receipts.wrap(mockCall, {
+    const { receipt: r3 } = await receipts.wrap(async () => ({ text: 'r3' }), {
       sessionId: 's1',
+      input: 'q3',
       previousReceipt: r2,
     });
 
@@ -116,8 +201,10 @@ describe('TrustReceipts SDK', () => {
 
     const original = new TrustReceipt({
       sessionId: 'roundtrip-test',
-      mode: 'constitutional',
-      metrics: { clarity: 0.75, integrity: 0.88, quality: 0.82 },
+      prompt: { text: 'Hello' },
+      response: { text: 'Hi' },
+      scores: { quality: 0.82 },
+      agentId: 'test-agent',
       metadata: { custom: 'data' },
     });
     await original.sign(privateKey);
@@ -126,9 +213,11 @@ describe('TrustReceipts SDK', () => {
     const restored = TrustReceipt.fromJSON(json);
 
     assert.strictEqual(restored.sessionId, original.sessionId);
-    assert.strictEqual(restored.selfHash, original.selfHash);
+    assert.strictEqual(restored.receiptHash, original.receiptHash);
+    assert.strictEqual(restored.promptHash, original.promptHash);
+    assert.strictEqual(restored.responseHash, original.responseHash);
     assert.strictEqual(restored.signature, original.signature);
-    assert.strictEqual(restored.mode, original.mode);
+    assert.strictEqual(restored.agentId, original.agentId);
 
     const valid = await restored.verify(publicKey);
     assert.strictEqual(valid, true, 'Restored receipt should verify');
@@ -148,14 +237,45 @@ describe('TrustReceipts SDK', () => {
 
     const receipt = new TrustReceipt({
       sessionId: 'invalid-sig-test',
-      mode: 'standard',
-      metrics: { clarity: 0.5, integrity: 0.5, quality: 0.5 },
+      prompt: 'test',
+      response: 'test',
+      scores: {},
     });
     await receipt.sign(key1);
 
     // Verify with wrong key
     const valid = await receipt.verify(key2);
     assert.strictEqual(valid, false, 'Wrong key should fail verification');
+  });
+
+  test('Receipt timestamp is ISO 8601 format', async () => {
+    const receipt = new TrustReceipt({
+      sessionId: 'timestamp-test',
+      prompt: 'test',
+      response: 'test',
+      scores: {},
+    });
+
+    // ISO 8601 format: YYYY-MM-DDTHH:mm:ss.sssZ
+    assert.match(receipt.timestamp, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/);
+  });
+
+  test('createReceipt creates manual receipts', async () => {
+    const receipts = new TrustReceipts();
+
+    const receipt = await receipts.createReceipt({
+      sessionId: 'manual-test',
+      prompt: 'Streaming prompt',
+      response: 'Accumulated streaming response',
+      agentId: 'claude-3',
+      scores: { completeness: 0.9 },
+    });
+
+    assert.ok(receipt.receiptHash);
+    assert.ok(receipt.promptHash);
+    assert.ok(receipt.responseHash);
+    assert.ok(receipt.signature);
+    assert.strictEqual(receipt.agentId, 'claude-3');
   });
 });
 

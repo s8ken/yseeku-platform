@@ -1,27 +1,41 @@
 {
   "name": "@sonate/trust-receipts",
   "version": "0.1.0",
-  "description": "Trust Receipts SDK - Cryptographically signed audit trails for AI interactions",
+  "description": "SSL/TLS for AI — cryptographically sign and verify every interaction",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "node --test dist/tests/*.test.js"
+    "test": "node --test dist/tests/*.test.js",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "ai",
-    "trust",
-    "audit",
-    "cryptography",
+    "ai-trust",
+    "trust-receipt",
     "ed25519",
+    "ai-governance",
+    "verifiable-ai",
+    "ssl-for-ai",
+    "audit-trail",
+    "cryptographic-signatures",
     "openai",
     "anthropic",
-    "llm"
+    "llm",
+    "ai-compliance"
   ],
-  "author": "YSEEKU",
+  "author": "SONATE",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/s8ken/yseeku-platform.git",
+    "directory": "packages/trust-receipts"
+  },
+  "bugs": {
+    "url": "https://github.com/s8ken/yseeku-platform/issues"
+  },
+  "homepage": "https://github.com/s8ken/yseeku-platform/tree/main/packages/trust-receipts#readme",
   "dependencies": {
     "@noble/ed25519": "^3.0.0",
     "json-canonicalize": "^2.0.0"
@@ -52,5 +66,8 @@
   "files": [
     "dist",
     "README.md"
-  ]
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

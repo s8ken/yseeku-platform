@@ -1,15 +1,13 @@
 /**
  * @sonate/trust-receipts
  *
- * Trust Receipts SDK - Cryptographically signed audit trails for AI interactions.
+ * SSL/TLS for AI — cryptographically sign and verify every interaction.
  *
- * Like SSL certificates for web connections, Trust Receipts provide verifiable
- * proof that AI interactions occurred as claimed, enabling:
- *
- * - Audit trails for compliance
- * - Tamper-evident logs
- * - Chain-of-custody for AI outputs
- * - Quality metrics tracking
+ * Trust Receipts create verifiable audit trails for AI interactions:
+ * - Hash prompt and response content (RFC 8785 canonicalization)
+ * - Chain receipts with cryptographic links
+ * - Sign with Ed25519 for non-repudiation
+ * - Track attestation scores
  *
  * @example
  * ```typescript
@@ -21,17 +19,16 @@
  * });
  *
  * const openai = new OpenAI();
+ * const messages = [{ role: 'user', content: 'Hello!' }];
  *
  * const { response, receipt } = await receipts.wrap(
- *   () => openai.chat.completions.create({
- *     model: 'gpt-4',
- *     messages: [{ role: 'user', content: 'Hello!' }],
- *   }),
- *   { sessionId: 'user-123' }
+ *   () => openai.chat.completions.create({ model: 'gpt-4', messages }),
+ *   { sessionId: 'user-123', input: messages }
  * );
  *
- * // response is the OpenAI response
- * // receipt is a signed, hash-chained audit record
+ * // receipt.promptHash = SHA-256 of canonicalized input
+ * // receipt.responseHash = SHA-256 of AI response
+ * // receipt.signature = Ed25519 signature
  * ```
  *
  * @packageDocumentation
@@ -42,6 +39,7 @@ export { TrustReceipts } from './wrapper';
 export type {
   TrustReceiptsConfig,
   WrapOptions,
+  CreateReceiptOptions,
   WrappedResponse,
 } from './wrapper';
 
@@ -50,6 +48,8 @@ export { TrustReceipt } from './trust-receipt';
 export type {
   TrustReceiptData,
   SignedReceipt,
+  Scores,
+  // Backwards compatibility
   QualityMetrics,
 } from './trust-receipt';
 
