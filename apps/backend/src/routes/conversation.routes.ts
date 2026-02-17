@@ -781,17 +781,20 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
               {
                 $set: {
                   self_hash: aiTrustEval.receiptHash,
+                  receipt_id: aiTrustEval.receipt.id,
                   session_id: conversation._id.toString(),
-                  version: aiTrustEval.receipt.version || '1.0.0',
+                  version: aiTrustEval.receipt.version || '2.0.0',
                   timestamp: aiTrustEval.timestamp,
                   mode: aiTrustEval.receipt.mode || 'constitutional',
-                  ciq_metrics: aiTrustEval.receipt.ciq_metrics || { clarity: 0, integrity: 0, quality: 0 },
-                  previous_hash: (aiTrustEval.receipt as any).previous_hash,
+                  ciq_metrics: aiTrustEval.receipt.telemetry?.ciq_metrics || { clarity: 0, integrity: 0, quality: 0 },
+                  previous_hash: aiTrustEval.receipt.chain?.previous_hash,
                   signature: aiTrustEval.signature,
                   tenant_id: tenantId,
                   issuer: aiTrustEval.issuer,
                   subject: aiTrustEval.subject,
                   agent_id: aiMessage.agentId,
+                  agent_did: aiTrustEval.receipt.agent_did,
+                  human_did: aiTrustEval.receipt.human_did,
                   proof: (aiTrustEval as any).proof,
                   // Analysis method transparency (v2.1)
                   evaluated_by: aiTrustEval.evaluatedBy,

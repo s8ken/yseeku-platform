@@ -436,23 +436,22 @@ router.post('/receipts/:receiptHash/verify', protect, llmLimiter, async (req: Re
     let hashValid = false;
     let signatureValid = false;
 
-    // Method 1: Try cryptographic signature verification if receipt has proper structure
-    if (receipt.version && receipt.session_id && receipt.timestamp && receipt.mode && receipt.ciq_metrics) {
+    // Method 1: Try cryptographic signature verification
+    // Support V2 format (id + signature.value) and V1 fallback (self_hash + string signature)
+    if (receipt.version && receipt.session_id && receipt.timestamp) {
       try {
-        // Normalize self_hash
-        if (!receipt.self_hash && receiptHashValue) {
-          receipt.self_hash = receiptHashValue;
-        }
+        const receiptId = receipt.id || receipt.self_hash || receiptHashValue;
+        hashValid = receiptId === receiptHashValue;
 
-        const trustReceipt = new TrustReceipt(receipt);
-
-        // Check if hash matches (recalculate and compare)
-        hashValid = trustReceipt.self_hash === receiptHashValue;
-
-        // If receipt has a signature, verify it cryptographically
-        if (receipt.signature) {
+        // V2 format: signature is an object with .value
+        if (receipt.signature?.value && receipt.id) {
+          signatureValid = await trustService.verifyReceipt(receipt as any);
+          if (signatureValid) isValid = true;
+        } else if (typeof receipt.signature === 'string' && receipt.self_hash) {
+          // V1 fallback: use @sonate/core TrustReceipt
+          const trustReceipt = new TrustReceipt(receipt);
           trustReceipt.signature = receipt.signature;
-          signatureValid = await trustService.verifyReceipt(trustReceipt);
+          signatureValid = await trustService.verifyReceipt(trustReceipt as any);
           if (signatureValid) isValid = true;
         } else if (hashValid) {
           // No signature but hash is valid - partial verification
