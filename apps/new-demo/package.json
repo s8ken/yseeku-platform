@@ -12,7 +12,7 @@
   "dependencies": {
     "chart.js": "^4.4.0",
     "gsap": "^3.12.2",
-    "lucide-react": "^0.563.0",
+    "lucide-react": "^0.568.0",
     "three": "^0.182.0"
   },
   "devDependencies": {
