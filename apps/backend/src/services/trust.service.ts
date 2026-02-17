@@ -8,7 +8,7 @@
 
 import {
   TrustProtocol,
-  TrustReceipt,
+  TrustReceipt as TrustReceiptV1,
   TRUST_PRINCIPLES,
   TrustScore,
   PrincipleScores,
@@ -16,6 +16,8 @@ import {
   createDefaultContext,
   EvaluationContext
 } from '@sonate/core';
+import { TrustReceipt as TrustReceiptV2, CreateReceiptInput } from '@sonate/schemas';
+import { ReceiptGeneratorService } from './receipts/receipt-generator';
 import {
   SonateFrameworkDetector,
   AIInteraction,
@@ -71,8 +73,8 @@ export interface TrustEvaluation {
   // Consciousness emergence detection (6th dimension)
   emergence?: EmergenceSignal;
 
-  // Trust Receipt
-  receipt: TrustReceipt;
+  // Trust Receipt (V2 format)
+  receipt: TrustReceiptV2;
   receiptHash: string;
   signature?: string;  // Ed25519 signature
 
@@ -129,6 +131,7 @@ export class TrustService {
   private trustValidator: TrustProtocolValidator;
   private ethicalScorer: EthicalAlignmentScorer;
   private resonanceMeasurer: ResonanceQualityMeasurer;
+  private receiptGenerator: ReceiptGeneratorService;
 
   // Statistical drift detectors per conversation (tracks text property changes)
   private driftDetectors: Map<string, DriftDetector> = new Map();
@@ -159,6 +162,7 @@ export class TrustService {
     this.trustValidator = new TrustProtocolValidator();
     this.ethicalScorer = new EthicalAlignmentScorer();
     this.resonanceMeasurer = new ResonanceQualityMeasurer();
+    this.receiptGenerator = new ReceiptGeneratorService();
 
     // Sweep stale conversation trackers every 60 seconds
     this.sweepInterval = setInterval(() => this.sweepStaleConversations(), 60_000);
@@ -270,46 +274,71 @@ export class TrustService {
     // Get trust status
     const status = this.trustProtocol.getTrustStatus(trustScore);
 
-    // Generate trust receipt
-    const receipt = new TrustReceipt({
-      version: '1.0.0',
-      session_id: context.sessionId || context.conversationId,
-      timestamp: Date.now(),
-      mode: 'constitutional',
-      ciq_metrics: {
-        clarity: this.calculateClarity(message.content),
-        integrity: status === 'PASS' ? 0.9 : status === 'PARTIAL' ? 0.6 : 0.3,
-        // v2.0.1: Use ethical_alignment for quality instead of removed reality_index
-        quality: detection.ethical_alignment / 5,
-      },
-    });
+    // Generate V2 trust receipt
+    const platformDID = didService.getPlatformDID();
+    const agentId = context.agentId || (message.metadata as Record<string, unknown>)?.agentId as string | undefined;
+    const agentDID = agentId ? didService.getAgentDID(agentId) : `${platformDID}:agents:unknown`;
 
-    // Sign the receipt with Ed25519
+    const receiptInput: CreateReceiptInput = {
+      session_id: context.sessionId || context.conversationId,
+      agent_did: agentDID,
+      human_did: `${platformDID}:users:${context.userId || 'unknown'}`,
+      policy_version: '1.0.0',
+      mode: 'constitutional',
+      interaction: {
+        prompt: (context.previousMessages?.slice(-1)[0]?.content || '').substring(0, 1000),
+        response: message.content.substring(0, 2000),
+        model: (message.metadata as Record<string, unknown>)?.model as string || 'unknown',
+      },
+      telemetry: {
+        resonance_score: detection.resonance_quality === 'BREAKTHROUGH' ? 0.95 :
+          detection.resonance_quality === 'ADVANCED' ? 0.8 : 0.65,
+        coherence_score: trustScore.overall / 100,
+        truth_debt: 0.1,
+        ciq_metrics: {
+          clarity: this.calculateClarity(message.content),
+          integrity: status === 'PASS' ? 0.9 : status === 'PARTIAL' ? 0.6 : 0.3,
+          quality: detection.ethical_alignment / 5,
+        },
+      },
+    };
+
+    let receipt: TrustReceiptV2;
     try {
       const privateKey = await keysService.getPrivateKey();
-      await receipt.sign(privateKey);
+      receipt = await this.receiptGenerator.createReceipt(receiptInput, Buffer.from(privateKey));
     } catch (error: unknown) {
-      logger.warn('Failed to sign trust receipt', { error: getErrorMessage(error) });
-      // Continue without signature - verification will handle unsigned receipts
+      logger.warn('Failed to create V2 receipt, using unsigned stub', { error: getErrorMessage(error) });
+      // Create a minimal unsigned receipt so evaluation can still return
+      receipt = {
+        id: 'unsigned',
+        version: '2.0.0',
+        timestamp: new Date().toISOString(),
+        session_id: receiptInput.session_id,
+        agent_did: receiptInput.agent_did,
+        human_did: receiptInput.human_did,
+        policy_version: receiptInput.policy_version,
+        mode: receiptInput.mode,
+        interaction: receiptInput.interaction,
+        telemetry: receiptInput.telemetry,
+        chain: { previous_hash: 'GENESIS', chain_hash: '', chain_length: 0 },
+        signature: { algorithm: 'Ed25519', value: '', key_version: 'unsigned' },
+      };
     }
 
     // Create DID-based proof structure
-    const platformDID = didService.getPlatformDID();
     let proof: TrustEvaluation['proof'] = undefined;
 
-    if (receipt.signature) {
+    if (receipt.signature?.value) {
       try {
         proof = await didService.createProof(
-          receipt.self_hash,
+          receipt.id,
           `${platformDID}#key-1`
         );
       } catch (error: unknown) {
         logger.warn('Failed to create DID proof', { error: getErrorMessage(error) });
       }
     }
-
-    // Extract agent ID from context if available
-    const agentId = context.agentId || (message.metadata as Record<string, unknown>)?.agentId as string | undefined;
 
     // Check LLM availability for analysis method transparency
     const llmStatus = getLLMStatus();
@@ -336,8 +365,8 @@ export class TrustService {
       phaseShift: phaseShiftResult,
       emergence: emergenceSignal || undefined,
       receipt,
-      receiptHash: receipt.self_hash,
-      signature: receipt.signature,
+      receiptHash: receipt.id,
+      signature: receipt.signature?.value,
       issuer: platformDID,
       subject: agentId ? didService.getAgentDID(agentId) : undefined,
       proof,
@@ -545,26 +574,44 @@ export class TrustService {
   }
 
   /**
-   * Verify a trust receipt's cryptographic signature
+   * Verify a trust receipt's cryptographic signature (V2 format)
    */
-  async verifyReceipt(receipt: TrustReceipt): Promise<boolean> {
-    // Check if receipt has a signature
-    if (!receipt.signature) {
+  async verifyReceipt(receipt: TrustReceiptV2): Promise<boolean> {
+    if (!receipt.signature?.value) {
       logger.warn('Receipt has no signature');
       return false;
     }
 
     try {
-      // Get public key for verification
-      const publicKey = await keysService.getPublicKey();
+      const publicKeyHex = Buffer.from(await keysService.getPublicKey()).toString('hex');
 
-      // Verify the signature
-      const isValid = await receipt.verify(publicKey);
+      // Reconstruct the canonical content that was signed
+      const { signature, ...withoutSignature } = receipt;
+      const canonical = this.canonicalize(withoutSignature);
+
+      const isValid = await keysService.verify(canonical, receipt.signature.value);
       return isValid;
     } catch (error: unknown) {
       logger.error('Receipt verification failed', { error: getErrorMessage(error) });
       return false;
     }
+  }
+
+  /**
+   * Recursive canonicalization matching receipt-generator and verify-sdk
+   */
+  private canonicalize(obj: any): string {
+    if (obj === null || typeof obj !== 'object') {
+      return JSON.stringify(obj);
+    }
+    if (Array.isArray(obj)) {
+      return '[' + obj.map(item => this.canonicalize(item)).join(',') + ']';
+    }
+    const sortedKeys = Object.keys(obj).sort();
+    const pairs = sortedKeys
+      .filter(key => obj[key] !== undefined)
+      .map(key => JSON.stringify(key) + ':' + this.canonicalize(obj[key]));
+    return '{' + pairs.join(',') + '}';
   }
 
   /**

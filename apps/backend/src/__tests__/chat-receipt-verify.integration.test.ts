@@ -129,12 +129,12 @@ jest.mock('../services/keys.service', () => ({
 // Mock DID service
 jest.mock('../services/did.service', () => ({
   didService: {
-    getPlatformDID: jest.fn().mockReturnValue('did:sonate:platform-test'),
-    getAgentDID: jest.fn().mockReturnValue('did:sonate:agent-test'),
+    getPlatformDID: jest.fn().mockReturnValue('did:web:yseeku.com'),
+    getAgentDID: jest.fn().mockReturnValue('did:web:yseeku.com:agents:test-agent-id'),
     createProof: jest.fn().mockResolvedValue({
       type: 'Ed25519Signature2020',
       created: new Date().toISOString(),
-      verificationMethod: 'did:sonate:platform-test#key-1',
+      verificationMethod: 'did:web:yseeku.com#key-1',
       proofPurpose: 'assertionMethod',
       proofValue: 'mock-proof-value',
     }),
@@ -195,38 +195,51 @@ describe('Chat → Receipt → Verify Integration', () => {
     expect(evaluation.status).toBeDefined();
     expect(['PASS', 'PARTIAL', 'FAIL']).toContain(evaluation.status);
 
-    // Verify receipt was generated
+    // Verify receipt was generated (V2 format)
     expect(evaluation.receipt).toBeDefined();
     expect(evaluation.receiptHash).toBeDefined();
-    expect(evaluation.receiptHash).toMatch(/^[a-f0-9]{64}$/); // SHA-256 hex
 
-    // Verify receipt has required fields for verification endpoint
     const receipt = evaluation.receipt;
-    expect(receipt.self_hash).toBeDefined();
-    expect(receipt.self_hash).toMatch(/^[a-f0-9]{64}$/);
+    expect(receipt.version).toBe('2.0.0');
     expect(receipt.timestamp).toBeDefined();
-    expect(receipt.version).toBe('1.0.0');
     expect(receipt.mode).toBe('constitutional');
     expect(receipt.session_id).toBe('test-conversation-id');
-    expect(receipt.ciq_metrics).toBeDefined();
+    expect(receipt.interaction).toBeDefined();
+    expect(receipt.agent_did).toBeDefined();
+    expect(receipt.human_did).toBeDefined();
+    expect(receipt.chain).toBeDefined();
+
+    // receiptHash should match receipt.id
+    expect(evaluation.receiptHash).toBe(receipt.id);
+
+    // If fully signed (depends on Ed25519 availability in test env),
+    // verify cryptographic fields
+    if (receipt.id !== 'unsigned') {
+      expect(receipt.id).toMatch(/^[a-f0-9]{64}$/);
+      expect(receipt.signature.algorithm).toBe('Ed25519');
+      expect(receipt.signature.value.length).toBeGreaterThan(0);
+    }
   });
 
-  it('should pass structure check in verify endpoint with v1 receipt format', () => {
-    // Simulate what the verify endpoint checks
+  it('should pass structure check in verify endpoint with V2 receipt format', () => {
+    // Simulate what the V2 verify endpoint checks
     const receipt = {
-      self_hash: 'a'.repeat(64),
-      timestamp: Date.now(),
-      version: '1.0.0',
-      mode: 'constitutional',
+      id: 'a'.repeat(64),
+      timestamp: new Date().toISOString(),
+      version: '2.0.0' as const,
+      mode: 'constitutional' as const,
       session_id: 'test-session',
-      ciq_metrics: { clarity: 0.8, integrity: 0.9, quality: 0.7 },
-      signature: 'b'.repeat(128),
+      agent_did: 'did:web:yseeku.com:agents:test',
+      human_did: 'did:web:yseeku.com:users:test',
+      policy_version: '1.0.0',
+      interaction: { prompt: 'test', response: 'test', model: 'test' },
+      chain: { previous_hash: 'GENESIS', chain_hash: 'b'.repeat(64), chain_length: 1 },
+      signature: { algorithm: 'Ed25519' as const, value: 'c'.repeat(128), key_version: 'v1' },
     };
 
-    // Structure check (matches public-demo.routes.ts verify endpoint)
-    const hasId = !!(receipt.self_hash || (receipt as any).id || (receipt as any).receiptHash);
+    const hasId = !!receipt.id;
     const hasTimestamp = !!receipt.timestamp;
-    const hasSignature = typeof receipt.signature === 'string' && receipt.signature.length > 0;
+    const hasSignature = !!receipt.signature?.value;
 
     expect(hasId).toBe(true);
     expect(hasTimestamp).toBe(true);
@@ -235,11 +248,11 @@ describe('Chat → Receipt → Verify Integration', () => {
 
   it('should fail structure check when required fields are missing', () => {
     const invalidReceipt = {
-      version: '1.0.0',
+      version: '2.0.0',
       mode: 'constitutional',
     };
 
-    const hasId = !!((invalidReceipt as any).self_hash || (invalidReceipt as any).id || (invalidReceipt as any).receiptHash);
+    const hasId = !!(invalidReceipt as any).id;
     const hasTimestamp = !!(invalidReceipt as any).timestamp;
 
     expect(hasId).toBe(false);

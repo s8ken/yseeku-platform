@@ -26,6 +26,11 @@ import {
   FileText
 } from 'lucide-react';
 
+interface VerificationCheck {
+  status: 'PASS' | 'FAIL' | 'WARN';
+  message: string;
+}
+
 interface VerificationResult {
   verified: boolean;
   receipt?: any;
@@ -35,9 +40,12 @@ interface VerificationResult {
   timestamp?: string;
   violations?: string[];
   error?: string;
-  signatureValid?: boolean;
-  hashValid?: boolean;
-  foundInDatabase?: boolean;
+  checks?: {
+    structure?: VerificationCheck;
+    signature?: VerificationCheck;
+    chain?: VerificationCheck;
+    timestamp?: VerificationCheck;
+  };
   publicKey?: string;
 }
 
@@ -138,15 +146,21 @@ export default function VerifyPage() {
       return;
     }
 
-    // Support multiple hash field names: id (new format), self_hash, receiptHash, hash
-    const hashToVerify = receipt.id || receipt.self_hash || receipt.receiptHash || receipt.hash;
-    
-    if (!hashToVerify && !receipt.signature) {
-      toast.error('Invalid Receipt', {
-        description: 'Receipt must contain an id/hash field or signature for verification.',
-      });
+    // V2 format requires receipt.id
+    if (!receipt.id) {
+      if (receipt.self_hash) {
+        toast.error('Outdated Receipt Format', {
+          description: 'This receipt uses an older format (self_hash). Please use a receipt generated with the current API (V2 format with "id" field).',
+        });
+      } else {
+        toast.error('Invalid Receipt', {
+          description: 'Receipt must contain an "id" field for verification.',
+        });
+      }
       return;
     }
+
+    const hashToVerify = receipt.id;
 
     setIsVerifying(true);
     setVerificationResult(null);
@@ -168,15 +182,15 @@ export default function VerifyPage() {
         verified: data.valid || false,
         receipt: receipt,
         receiptHash: hashToVerify || data.receipt?.id,
-        trustScore: receipt.telemetry?.resonance_score 
-          ? receipt.telemetry.resonance_score * 10 
-          : (receipt.ciq_metrics?.overall_trust_score || receipt.trustScore?.overall || receipt.trustScore || 0),
-        status: data.valid ? 'PASS' : 'FAIL',
-        timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
-        violations: receipt.ciq_metrics?.violations || receipt.trustScore?.violations || [],
-        signatureValid: data.checks?.signature?.status === 'PASS',
-        hashValid: data.checks?.chain?.status === 'PASS',
-        foundInDatabase: false, // Public demo doesn't check database
+        trustScore: receipt.telemetry?.resonance_score
+          ? receipt.telemetry.resonance_score * 10
+          : (receipt.telemetry?.ciq_metrics
+            ? ((receipt.telemetry.ciq_metrics.clarity || 0) + (receipt.telemetry.ciq_metrics.integrity || 0) + (receipt.telemetry.ciq_metrics.quality || 0)) / 3 * 10
+            : 0),
+        status: data.overallStatus || (data.valid ? 'VERIFIED' : 'FAILED'),
+        timestamp: receipt.timestamp || new Date().toISOString(),
+        violations: [],
+        checks: data.checks || {},
         publicKey: data.publicKey,
       };
 
@@ -387,34 +401,44 @@ export default function VerifyPage() {
                 </div>
               )}
 
-              {/* Cryptographic Verification Details */}
+              {/* Cryptographic Verification Details - All 4 Checks */}
               <div className="space-y-2 pt-2 border-t">
-                <Label className="text-xs text-muted-foreground">Verification Details</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className={`flex items-center gap-2 p-2 rounded text-sm ${
-                    verificationResult.signatureValid
-                      ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
-                  }`}>
-                    {verificationResult.signatureValid ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
-                    <span>Signature {verificationResult.signatureValid ? 'Valid' : 'N/A'}</span>
-                  </div>
-                  <div className={`flex items-center gap-2 p-2 rounded text-sm ${
-                    verificationResult.hashValid
-                      ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
-                  }`}>
-                    {verificationResult.hashValid ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
-                    <span>Hash {verificationResult.hashValid ? 'Valid' : 'N/A'}</span>
-                  </div>
-                  <div className={`flex items-center gap-2 p-2 rounded text-sm ${
-                    verificationResult.foundInDatabase
-                      ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
-                  }`}>
-                    {verificationResult.foundInDatabase ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
-                    <span>In Database</span>
-                  </div>
+                <Label className="text-xs text-muted-foreground">Verification Checks</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['structure', 'signature', 'chain', 'timestamp'] as const).map((checkName) => {
+                    const check = verificationResult.checks?.[checkName];
+                    const passed = check?.status === 'PASS';
+                    const warn = check?.status === 'WARN';
+                    const label = checkName.charAt(0).toUpperCase() + checkName.slice(1);
+                    return (
+                      <div
+                        key={checkName}
+                        className={`flex items-start gap-2 p-2 rounded text-sm ${
+                          passed
+                            ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                            : warn
+                              ? 'bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300'
+                              : check
+                                ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                                : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                        }`}
+                      >
+                        {passed ? (
+                          <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        ) : warn ? (
+                          <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        )}
+                        <div>
+                          <span className="font-medium">{label}: {check?.status || 'N/A'}</span>
+                          {check?.message && (
+                            <p className="text-xs opacity-80 mt-0.5">{check.message}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
                 {verificationResult.publicKey && (
                   <div className="mt-2">
@@ -453,12 +477,45 @@ export default function VerifyPage() {
             </>
           )}
 
-          {!verificationResult.verified && verificationResult.error && (
-            <div className="space-y-1">
-              <Label className="text-xs text-red-700 dark:text-red-300">Error Details</Label>
-              <p className="text-sm bg-white dark:bg-slate-950 rounded px-3 py-2 border border-red-300 dark:border-red-700">
-                {verificationResult.error}
-              </p>
+          {!verificationResult.verified && (
+            <div className="space-y-2">
+              {verificationResult.error && (
+                <div className="space-y-1">
+                  <Label className="text-xs text-red-700 dark:text-red-300">Error Details</Label>
+                  <p className="text-sm bg-white dark:bg-slate-950 rounded px-3 py-2 border border-red-300 dark:border-red-700">
+                    {verificationResult.error}
+                  </p>
+                </div>
+              )}
+              {verificationResult.checks && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-red-700 dark:text-red-300">Failed Checks</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['structure', 'signature', 'chain', 'timestamp'] as const).map((checkName) => {
+                      const check = verificationResult.checks?.[checkName];
+                      if (!check) return null;
+                      const passed = check.status === 'PASS';
+                      const label = checkName.charAt(0).toUpperCase() + checkName.slice(1);
+                      return (
+                        <div
+                          key={checkName}
+                          className={`flex items-start gap-2 p-2 rounded text-sm ${
+                            passed
+                              ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                              : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                          }`}
+                        >
+                          {passed ? <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" /> : <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />}
+                          <div>
+                            <span className="font-medium">{label}: {check.status}</span>
+                            <p className="text-xs opacity-80 mt-0.5">{check.message}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </CardContent>

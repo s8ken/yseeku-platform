@@ -29,8 +29,8 @@ const ReceiptZodSchema = z.object({
   version: z.literal('2.0.0'),
   timestamp: z.string().datetime('Invalid ISO 8601 timestamp'),
   session_id: z.string().min(1),
-  agent_did: z.string().regex(/^did:sonate:[a-zA-Z0-9]{40}$/, 'Invalid agent DID'),
-  human_did: z.string().regex(/^did:sonate:[a-zA-Z0-9]{40}$/, 'Invalid human DID'),
+  agent_did: z.string().regex(/^did:(web|sonate):.+$/, 'Invalid agent DID'),
+  human_did: z.string().regex(/^did:(web|sonate):.+$/, 'Invalid human DID'),
   policy_version: z.string(),
   mode: z.enum(['constitutional', 'directive']),
   interaction: z.object({

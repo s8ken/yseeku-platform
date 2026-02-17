@@ -191,41 +191,38 @@ router.post('/verify', async (req: Request, res: Response) => {
 
     const checks: Record<string, { status: string; message: string }> = {};
 
-    // 1. Check required fields (support both v2 'id' and v1 'self_hash' formats)
-    const hasId = !!(receipt.id || receipt.self_hash || receipt.receiptHash);
+    // Reject V1 receipts
+    if (receipt.self_hash && !receipt.id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Unsupported format',
+        message: 'Receipt format v1 is no longer supported. Please use current API.'
+      });
+    }
+
+    // 1. Structure check (V2-only: require receipt.id)
+    const hasId = !!receipt.id;
     const hasTimestamp = !!receipt.timestamp;
-    const hasSignature = receipt.signature?.value || (typeof receipt.signature === 'string' && receipt.signature.length > 0);
+    const hasSignature = !!receipt.signature?.value;
 
     checks.structure = {
-      status: hasId && hasTimestamp ? 'PASS' : 'FAIL',
-      message: hasId && hasTimestamp ? 'Required fields present' : `Missing required fields: ${!hasId ? 'id/self_hash' : ''} ${!hasTimestamp ? 'timestamp' : ''}`.trim()
+      status: hasId && hasTimestamp && hasSignature ? 'PASS' : 'FAIL',
+      message: hasId && hasTimestamp && hasSignature
+        ? 'Required fields present (id, timestamp, signature)'
+        : `Missing required fields: ${[!hasId && 'id', !hasTimestamp && 'timestamp', !hasSignature && 'signature'].filter(Boolean).join(', ')}`
     };
 
-    // 2. Verify signature (supports both v2 { value, algorithm } and v1 plain string formats)
+    // 2. Verify Ed25519 signature over canonical receipt content (without signature field)
     if (hasSignature) {
       try {
-        const sigValue = typeof receipt.signature === 'string' ? receipt.signature : receipt.signature.value;
-        const receiptHash = receipt.id || receipt.self_hash;
-
-        let isValid = false;
-
-        if (receiptHash) {
-          // v1 format: signature is over the self_hash (SHA-256 of canonical payload)
-          const messageHash = Buffer.from(receiptHash, 'hex');
-          isValid = await keysService.verify(messageHash, sigValue);
-        }
-
-        if (!isValid) {
-          // v2 fallback: signature is over the canonical receipt content
-          const receiptWithoutSig = { ...receipt };
-          delete receiptWithoutSig.signature;
-          const canonicalContent = canonicalize(receiptWithoutSig);
-          isValid = await keysService.verify(canonicalContent, sigValue);
-        }
+        const receiptWithoutSig = { ...receipt };
+        delete receiptWithoutSig.signature;
+        const canonicalContent = canonicalize(receiptWithoutSig);
+        const isValid = await keysService.verify(canonicalContent, receipt.signature.value);
 
         checks.signature = {
           status: isValid ? 'PASS' : 'FAIL',
-          message: isValid ? 'Ed25519 signature verified' : 'Signature verification failed'
+          message: isValid ? 'Ed25519 signature verified' : 'Signature verification failed - content may be tampered'
         };
       } catch (e) {
         checks.signature = {
@@ -235,21 +232,20 @@ router.post('/verify', async (req: Request, res: Response) => {
       }
     } else {
       checks.signature = {
-        status: 'WARN',
+        status: 'FAIL',
         message: 'No signature present'
       };
     }
 
     // 3. Check chain hash
     if (receipt.chain?.chain_hash && receipt.chain?.previous_hash) {
-      // Reconstruct the content used for chain hash: without signature, with empty chain_hash
       const receiptForChain = { ...receipt };
       delete receiptForChain.signature;
       receiptForChain.chain = { ...receipt.chain, chain_hash: '' };
       const contentForChain = canonicalize(receiptForChain);
       const chainContent = contentForChain + receipt.chain.previous_hash;
       const expectedChainHash = crypto.createHash('sha256').update(chainContent).digest('hex');
-      
+
       const chainValid = receipt.chain.chain_hash === expectedChainHash;
       checks.chain = {
         status: chainValid ? 'PASS' : 'FAIL',
@@ -267,10 +263,15 @@ router.post('/verify', async (req: Request, res: Response) => {
       const receiptTime = new Date(receipt.timestamp);
       const now = new Date();
       const isFuture = receiptTime > now;
-      
+
       checks.timestamp = {
         status: isFuture ? 'FAIL' : 'PASS',
         message: isFuture ? 'Timestamp is in the future' : `Issued ${receiptTime.toISOString()}`
+      };
+    } else {
+      checks.timestamp = {
+        status: 'FAIL',
+        message: 'No timestamp present'
       };
     }
 
@@ -287,6 +288,7 @@ router.post('/verify', async (req: Request, res: Response) => {
         checks,
         receipt: {
           id: receipt.id,
+          version: receipt.version,
           timestamp: receipt.timestamp,
           session_id: receipt.session_id,
           agent_did: receipt.agent_did,

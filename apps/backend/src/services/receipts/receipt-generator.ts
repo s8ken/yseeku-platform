@@ -52,12 +52,31 @@ export class ReceiptGeneratorService {
   }
 
   /**
+   * Recursively canonicalize an object for deterministic JSON output.
+   * Sorts keys at every level, filters undefined values.
+   * Must match the canonicalize() in public-demo.routes.ts and verify-sdk.
+   */
+  private canonicalize(obj: any): string {
+    if (obj === null || typeof obj !== 'object') {
+      return JSON.stringify(obj);
+    }
+    if (Array.isArray(obj)) {
+      return '[' + obj.map(item => this.canonicalize(item)).join(',') + ']';
+    }
+    const sortedKeys = Object.keys(obj).sort();
+    const pairs = sortedKeys
+      .filter(key => obj[key] !== undefined)
+      .map(key => JSON.stringify(key) + ':' + this.canonicalize(obj[key]));
+    return '{' + pairs.join(',') + '}';
+  }
+
+  /**
    * Generate a unique receipt ID from canonical content
-   * 
+   *
    * Uses SHA-256 hash of canonicalized JSON for deterministic, collision-resistant IDs
    */
   private generateReceiptId(content: Record<string, any>): string {
-    const canonical = JSON.stringify(content, Object.keys(content).sort());
+    const canonical = this.canonicalize(content);
     const hash = createHash('sha256').update(canonical).digest('hex');
     return hash;
   }
@@ -70,11 +89,11 @@ export class ReceiptGeneratorService {
   }
 
   /**
-   * Canonicalize content for consistent hashing
+   * Canonicalize content for consistent hashing (strips signature)
    */
   private canonicalizeContent(receipt: Partial<TrustReceipt>): string {
     const { signature, ...withoutSignature } = receipt;
-    return JSON.stringify(withoutSignature, Object.keys(withoutSignature).sort());
+    return this.canonicalize(withoutSignature);
   }
 
   /**
@@ -155,16 +174,31 @@ export class ReceiptGeneratorService {
         metadata: input.metadata,
       };
 
-      // Generate receipt ID before signing
+      // Generate receipt ID from base content (with chain_hash='')
       const id = this.generateReceiptId(receiptBase);
 
       // Add ID to receipt
-      const receiptForSigning: Partial<TrustReceipt> = {
+      const receiptWithId: Partial<TrustReceipt> = {
         ...receiptBase,
         id,
       };
 
-      // Canonicalize content for signing
+      // Compute chain hash BEFORE signing (hash of canonical content + previous hash)
+      // Uses content without signature, with chain_hash=''
+      const canonicalForChain = this.canonicalizeContent(receiptWithId as TrustReceipt);
+      const chainContent = canonicalForChain + receiptBase.chain!.previous_hash;
+      const chainHash = this.generateHash(chainContent);
+
+      // Update chain hash in receipt, then sign the complete content
+      const receiptForSigning: Partial<TrustReceipt> = {
+        ...receiptWithId,
+        chain: {
+          ...receiptBase.chain!,
+          chain_hash: chainHash,
+        },
+      };
+
+      // Canonicalize content for signing (without signature, WITH chain_hash)
       const canonical = this.canonicalizeContent(receiptForSigning as TrustReceipt);
 
       // Sign the receipt
@@ -172,10 +206,6 @@ export class ReceiptGeneratorService {
         canonical,
         agentPrivateKey
       );
-
-      // Compute chain hash (hash of canonical + previous hash)
-      const chainContent = canonical + receiptBase.chain!.previous_hash;
-      const chainHash = this.generateHash(chainContent);
 
       // Build final receipt
       const finalReceipt: TrustReceipt = {
