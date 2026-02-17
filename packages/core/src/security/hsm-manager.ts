@@ -5,18 +5,14 @@
  * Fallback to software-based management when HSM is unavailable
  */
 
-import crypto, { createHash } from 'crypto';
+import crypto from 'crypto';
 
-// Configure @noble/ed25519 v3 with sha512
-let ed25519Module: any = null;
-function getEd25519() {
-  if (!ed25519Module) {
-    ed25519Module = require('@noble/ed25519');
-    ed25519Module.hashes.sha512 = (message: Uint8Array) =>
-      new Uint8Array(createHash('sha512').update(message).digest());
-  }
-  return ed25519Module;
-}
+import {
+  loadEd25519,
+  generateEd25519KeyPair,
+  signEd25519,
+  verifyEd25519,
+} from '../utils/ed25519-loader';
 
 export interface HSMConfig {
   enabled: boolean;
@@ -201,7 +197,7 @@ export class HSMManager {
     if (this.config.enabled && this.config.provider !== 'none') {
       keyPair = await this.generateKeyPairInHSM(generatedKeyId);
     } else {
-      keyPair = this.generateKeyPairSoftware(generatedKeyId);
+      keyPair = await this.generateKeyPairSoftware(generatedKeyId);
     }
 
     // Store metadata
@@ -233,9 +229,9 @@ export class HSMManager {
       case 'gcp-kms':
         return await this.generateKeyPairGCP(keyId);
       case 'soft-hsm':
-        return this.generateKeyPairSoftware(keyId);
+        return await this.generateKeyPairSoftware(keyId);
       default:
-        return this.generateKeyPairSoftware(keyId);
+        return await this.generateKeyPairSoftware(keyId);
     }
   }
 
@@ -245,7 +241,7 @@ export class HSMManager {
   private async generateKeyPairAWS(keyId: string): Promise<KeyPair> {
     // In production, this would call AWS CloudHSM SDK
     // For now, generate software keys
-    const softwarePair = this.generateKeyPairSoftware(keyId);
+    const softwarePair = await this.generateKeyPairSoftware(keyId);
 
     // Store private key securely (in production, this would be in HSM)
     // For this demo, we'll just return the public key
@@ -261,7 +257,7 @@ export class HSMManager {
    */
   private async generateKeyPairAzure(keyId: string): Promise<KeyPair> {
     // In production, this would call Azure Key Vault SDK
-    const softwarePair = this.generateKeyPairSoftware(keyId);
+    const softwarePair = await this.generateKeyPairSoftware(keyId);
     return {
       publicKey: softwarePair.publicKey,
       privateKey: undefined,
@@ -274,7 +270,7 @@ export class HSMManager {
    */
   private async generateKeyPairGCP(keyId: string): Promise<KeyPair> {
     // In production, this would call GCP KMS SDK
-    const softwarePair = this.generateKeyPairSoftware(keyId);
+    const softwarePair = await this.generateKeyPairSoftware(keyId);
     return {
       publicKey: softwarePair.publicKey,
       privateKey: undefined,
@@ -285,10 +281,8 @@ export class HSMManager {
   /**
    * Generate software key pair (fallback)
    */
-  private generateKeyPairSoftware(keyId: string): KeyPair {
-    const ed25519 = getEd25519();
-    const privateKey = (ed25519.utils.randomPrivateKey ?? ed25519.utils.randomSecretKey)();
-    const publicKey = ed25519.getPublicKey(privateKey);
+  private async generateKeyPairSoftware(keyId: string): Promise<KeyPair> {
+    const { privateKey, publicKey } = await generateEd25519KeyPair();
 
     return {
       publicKey,
@@ -370,8 +364,7 @@ export class HSMManager {
    * Sign with software (fallback)
    */
   private async signSoftware(privateKey: Uint8Array, message: Uint8Array): Promise<Uint8Array> {
-    const ed25519 = getEd25519();
-    return await ed25519.sign(message, privateKey);
+    return await signEd25519(message, privateKey);
   }
 
   /**
@@ -383,8 +376,7 @@ export class HSMManager {
       throw new Error(`Key ${keyId} not found`);
     }
 
-    const ed25519 = getEd25519();
-    const valid = await ed25519.verify(signature, message, keyPair.publicKey);
+    const valid = await verifyEd25519(signature, message, keyPair.publicKey);
 
     return {
       valid,

@@ -13,25 +13,9 @@
 import { createHash } from 'crypto';
 
 import { canonicalizeJSON } from './utils/crypto-advanced';
+import { signEd25519, verifyEd25519 } from './utils/ed25519-loader';
 
 import { CIQMetrics } from './index';
-
-let ed25519Promise: Promise<any> | null = null;
-
-async function loadEd25519(): Promise<any> {
-  if (!ed25519Promise) {
-    ed25519Promise = (new Function('return import("@noble/ed25519")')() as Promise<any>).then(
-      (ed25519) => {
-        // Configure sha512 for @noble/ed25519 v3
-        ed25519.hashes.sha512 = (message: Uint8Array) =>
-          new Uint8Array(createHash('sha512').update(message).digest());
-        return ed25519;
-      }
-    );
-  }
-
-  return ed25519Promise;
-}
 
 export interface SonateTrustReceipt {
   id: string; // SHA-256 Hash of the interaction
@@ -126,8 +110,7 @@ export class TrustReceipt {
    */
   async sign(privateKey: Uint8Array): Promise<void> {
     const messageHash = Buffer.from(this.self_hash, 'hex');
-    const ed25519 = await loadEd25519();
-    const signature = await ed25519.sign(messageHash, privateKey);
+    const signature = await signEd25519(messageHash, privateKey);
     this.signature = Buffer.from(signature).toString('hex');
   }
 
@@ -142,8 +125,7 @@ export class TrustReceipt {
     try {
       const messageHash = Buffer.from(this.self_hash, 'hex');
       const signature = Buffer.from(this.signature, 'hex');
-      const ed25519 = await loadEd25519();
-      return await ed25519.verify(signature, messageHash, publicKey);
+      return await verifyEd25519(signature, messageHash, publicKey);
     } catch (error) {
       return false;
     }
@@ -159,8 +141,7 @@ export class TrustReceipt {
       session_nonce: this.session_nonce || '',
     });
     const msg = createHash('sha256').update(payload).digest();
-    const ed25519 = await loadEd25519();
-    const signature = await ed25519.sign(msg, privateKey);
+    const signature = await signEd25519(msg, privateKey);
     this.signature = Buffer.from(signature).toString('hex');
   }
 
@@ -177,8 +158,7 @@ export class TrustReceipt {
     const msg = createHash('sha256').update(payload).digest();
     const signature = Buffer.from(this.signature, 'hex');
     try {
-      const ed25519 = await loadEd25519();
-      return await ed25519.verify(signature, msg, publicKey);
+      return await verifyEd25519(signature, msg, publicKey);
     } catch {
       return false;
     }

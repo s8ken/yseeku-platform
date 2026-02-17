@@ -9,6 +9,11 @@ import crypto from 'crypto';
 
 import { canonicalize } from 'json-canonicalize';
 
+import {
+  loadEd25519,
+  generateEd25519KeyPair as sharedGenerateEd25519KeyPair,
+} from './ed25519-loader';
+
 export type SignatureAlgorithm = 'Ed25519' | 'ES256K' | 'RS256';
 
 export interface SignatureVerificationResult {
@@ -25,23 +30,7 @@ export interface CanonicalizeOptions {
 const sha256Sync = (msg: Uint8Array): Uint8Array =>
   new Uint8Array(crypto.createHash('sha256').update(msg).digest());
 
-let ed25519Promise: Promise<any> | null = null;
 let secp256k1Promise: Promise<any> | null = null;
-
-async function loadEd25519(): Promise<any> {
-  if (!ed25519Promise) {
-    ed25519Promise = (new Function('return import("@noble/ed25519")')() as Promise<any>).then(
-      (ed25519) => {
-        // Configure sha512 for @noble/ed25519 v3
-        ed25519.hashes.sha512 = (message: Uint8Array) =>
-          new Uint8Array(crypto.createHash('sha512').update(message).digest());
-        return ed25519;
-      }
-    );
-  }
-
-  return ed25519Promise;
-}
 
 async function loadSecp256k1(): Promise<any> {
   if (!secp256k1Promise) {
@@ -61,10 +50,10 @@ export function canonicalizeJSON(
 ): string {
   if (options.method === 'JCS') {
     return canonicalize(data);
-  } 
+  }
     // URDNA2015 for RDF - placeholder for future implementation
     throw new Error('URDNA2015 not yet implemented');
-  
+
 }
 
 /**
@@ -298,14 +287,11 @@ export async function generateEd25519KeyPair(): Promise<{
   publicKey: Uint8Array;
   privateKey: Uint8Array;
 }> {
-  const ed25519 = await loadEd25519();
-  const privateKey = (ed25519.utils.randomPrivateKey ?? ed25519.utils.randomSecretKey)();
-  const publicKey = await ed25519.getPublicKey(privateKey);
-  return { publicKey, privateKey };
+  return sharedGenerateEd25519KeyPair();
 }
 
 /**
- * Sign data with Ed25519
+ * Sign data with Ed25519 (canonicalizes JSON first)
  */
 export async function signEd25519(data: any, privateKey: Uint8Array): Promise<Uint8Array> {
   const canonical = canonicalizeJSON(data);

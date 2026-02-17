@@ -6,24 +6,12 @@
  * Uses Ed25519 for high-performance digital signatures
  */
 
-import crypto from 'crypto';
-
-let ed25519Promise: Promise<any> | null = null;
-
-async function loadEd25519(): Promise<any> {
-  if (!ed25519Promise) {
-    ed25519Promise = (new Function('return import("@noble/ed25519")')() as Promise<any>).then(
-      (ed25519) => {
-        // Configure sha512 for @noble/ed25519 v3
-        ed25519.hashes.sha512 = (message: Uint8Array) =>
-          new Uint8Array(crypto.createHash('sha512').update(message).digest());
-        return ed25519;
-      }
-    );
-  }
-
-  return ed25519Promise;
-}
+import {
+  loadEd25519,
+  generateEd25519KeyPair,
+  signEd25519,
+  verifyEd25519,
+} from './ed25519-loader';
 
 /**
  * Sign a payload with Ed25519 private key
@@ -34,8 +22,7 @@ async function loadEd25519(): Promise<any> {
  */
 export async function signPayload(payload: string, privateKey: Uint8Array): Promise<string> {
   const message = Buffer.from(payload, 'utf-8');
-  const ed25519 = await loadEd25519();
-  const signature = await ed25519.sign(message, privateKey);
+  const signature = await signEd25519(message, privateKey);
   return Buffer.from(signature).toString('hex');
 }
 
@@ -55,8 +42,7 @@ export async function verifySignature(
   try {
     const message = Buffer.from(payload, 'utf-8');
     const sig = Buffer.from(signature, 'hex');
-    const ed25519 = await loadEd25519();
-    return await ed25519.verify(sig, message, publicKey);
+    return await verifyEd25519(sig, message, publicKey);
   } catch (error) {
     return false;
   }
@@ -71,9 +57,5 @@ export async function generateKeyPair(): Promise<{
   privateKey: Uint8Array;
   publicKey: Uint8Array;
 }> {
-  const ed25519 = await loadEd25519();
-  const privateKey = (ed25519.utils.randomPrivateKey ?? ed25519.utils.randomSecretKey)();
-  const publicKey = await ed25519.getPublicKey(privateKey);
-
-  return { privateKey, publicKey };
+  return generateEd25519KeyPair();
 }
