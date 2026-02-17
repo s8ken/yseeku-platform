@@ -146,21 +146,21 @@ export default function VerifyPage() {
       return;
     }
 
-    // V2 format requires receipt.id
-    if (!receipt.id) {
-      if (receipt.self_hash) {
-        toast.error('Outdated Receipt Format', {
-          description: 'This receipt uses an older format (self_hash). Please use a receipt generated with the current API (V2 format with "id" field).',
-        });
-      } else {
-        toast.error('Invalid Receipt', {
-          description: 'Receipt must contain an "id" field for verification.',
-        });
-      }
+    // Accept both V2 (id) and V1 (self_hash) receipt formats
+    const receiptId = receipt.id || receipt.self_hash;
+    if (!receiptId) {
+      toast.error('Invalid Receipt', {
+        description: 'Receipt must contain an "id" or "self_hash" field for verification.',
+      });
       return;
     }
 
-    const hashToVerify = receipt.id;
+    // Normalize: ensure receipt.id is set for the verify endpoint
+    if (!receipt.id && receipt.self_hash) {
+      receipt.id = receipt.self_hash;
+    }
+
+    const hashToVerify = receiptId;
 
     setIsVerifying(true);
     setVerificationResult(null);

@@ -10,11 +10,13 @@
  */
 
 import { llmService, ChatMessage } from './llm.service';
-import { TrustReceipt, TrustScore, PrincipleScores, TrustPrincipleKey } from '@sonate/core';
+import { TrustScore, PrincipleScores, TrustPrincipleKey } from '@sonate/core';
+import { TrustReceipt as TrustReceiptV2, CreateReceiptInput } from '@sonate/schemas';
 import { DetectionResult } from '@sonate/detect';
 import { IMessage } from '../models/conversation.model';
 import { keysService } from './keys.service';
 import { didService } from './did.service';
+import { ReceiptGeneratorService } from './receipts/receipt-generator';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 
@@ -29,7 +31,7 @@ export interface LLMTrustEvaluation {
     quality: number;
   };
   reasoning: string;
-  receipt: TrustReceipt;
+  receipt: TrustReceiptV2;
   receiptHash: string;
   signature?: string;
   issuer?: string;
@@ -134,7 +136,8 @@ Respond ONLY with valid JSON in this exact format:
 export class LLMTrustEvaluator {
   private defaultProvider: string = 'anthropic';
   private defaultModel: string = 'claude-3-haiku-20240307'; // Fast and cheap for evaluation
-  
+  private receiptGenerator = new ReceiptGeneratorService();
+
   constructor(options?: { provider?: string; model?: string }) {
     if (options?.provider) this.defaultProvider = options.provider;
     if (options?.model) this.defaultModel = options.model;
@@ -174,28 +177,56 @@ export class LLMTrustEvaluator {
       const trustScore = this.calculateTrustScore(evaluation.principles, evaluation.violations);
       const status = this.getStatus(trustScore.overall);
 
-      // Generate trust receipt
-      const receipt = new TrustReceipt({
-        version: '1.0.0',
-        session_id: context.sessionId || context.conversationId,
-        timestamp: Date.now(),
-        mode: 'constitutional',
-        ciq_metrics: {
-          clarity: evaluation.detection.reality_index / 10,
-          integrity: evaluation.detection.ethical_alignment / 5,
-          quality: evaluation.detection.canvas_parity / 100,
-        },
-      });
+      // Generate V2 trust receipt
+      const platformDID = didService.getPlatformDID();
+      const agentDID = context.agentId ? didService.getAgentDID(context.agentId) : `${platformDID}:agents:unknown`;
 
-      // Sign the receipt
+      const ciqMetrics = {
+        clarity: evaluation.detection.reality_index / 10,
+        integrity: evaluation.detection.ethical_alignment / 5,
+        quality: evaluation.detection.canvas_parity / 100,
+      };
+
+      const receiptInput: CreateReceiptInput = {
+        session_id: context.sessionId || context.conversationId,
+        agent_did: agentDID,
+        human_did: `${platformDID}:users:${context.userId || 'unknown'}`,
+        policy_version: '1.0.0',
+        mode: 'constitutional',
+        interaction: {
+          prompt: (context.userPrompt || '').substring(0, 1000),
+          response: aiResponse.content.substring(0, 2000),
+          model: this.defaultModel,
+        },
+        telemetry: {
+          resonance_score: trustScore.overall / 100,
+          coherence_score: ciqMetrics.integrity,
+          truth_debt: 0.1,
+          ciq_metrics: ciqMetrics,
+        },
+      };
+
+      let receipt: TrustReceiptV2;
       try {
         const privateKey = await keysService.getPrivateKey();
-        await receipt.sign(privateKey);
+        receipt = await this.receiptGenerator.createReceipt(receiptInput, Buffer.from(privateKey));
       } catch (error) {
-        logger.warn('Failed to sign LLM trust receipt', { error: getErrorMessage(error) });
+        logger.warn('Failed to create V2 LLM trust receipt, using unsigned stub', { error: getErrorMessage(error) });
+        receipt = {
+          id: 'unsigned',
+          version: '2.0.0',
+          timestamp: new Date().toISOString(),
+          session_id: receiptInput.session_id,
+          agent_did: receiptInput.agent_did,
+          human_did: receiptInput.human_did,
+          policy_version: receiptInput.policy_version,
+          mode: receiptInput.mode,
+          interaction: receiptInput.interaction,
+          telemetry: receiptInput.telemetry,
+          chain: { previous_hash: 'GENESIS', chain_hash: '', chain_length: 0 },
+          signature: { algorithm: 'Ed25519', value: '', key_version: 'unsigned' },
+        };
       }
-
-      const platformDID = didService.getPlatformDID();
 
       logger.info('LLM Trust Evaluation completed', {
         conversationId: context.conversationId,
@@ -208,24 +239,17 @@ export class LLMTrustEvaluator {
         trustScore,
         status,
         detection: {
-          // v2.0.1: reality_index and canvas_parity removed from DetectionResult type
-          // The LLM still evaluates these but they're stored in ciq_metrics instead
           trust_protocol: evaluation.detection.trust_protocol,
           ethical_alignment: evaluation.detection.ethical_alignment,
           resonance_quality: evaluation.detection.resonance_quality,
           timestamp: Date.now(),
-          receipt_hash: receipt.self_hash,
+          receipt_hash: receipt.id,
         },
-        // Store LLM-evaluated scores in ciq_metrics for backward compatibility
-        ciq_metrics: {
-          clarity: evaluation.detection.reality_index / 10,
-          integrity: evaluation.detection.ethical_alignment / 5,
-          quality: evaluation.detection.canvas_parity / 100,
-        },
+        ciq_metrics: ciqMetrics,
         reasoning: evaluation.reasoning,
         receipt,
-        receiptHash: receipt.self_hash,
-        signature: receipt.signature,
+        receiptHash: receipt.id,
+        signature: typeof receipt.signature === 'object' ? receipt.signature.value : undefined,
         issuer: platformDID,
         subject: context.agentId ? didService.getAgentDID(context.agentId) : undefined,
         timestamp: Date.now(),
@@ -438,37 +462,70 @@ export class LLMTrustEvaluator {
     const trustScore = this.calculateTrustScore(principles, []);
     const status = this.getStatus(trustScore.overall);
 
-    const receipt = new TrustReceipt({
-      version: '1.0.0',
+    const platformDID = didService.getPlatformDID();
+    const agentDID = context.agentId ? didService.getAgentDID(context.agentId) : `${platformDID}:agents:unknown`;
+
+    const ciqMetrics = {
+      clarity: wordCount < 200 ? 0.8 : 0.6,
+      integrity: 0.7,
+      quality: 0.7,
+    };
+
+    const receiptInput: CreateReceiptInput = {
       session_id: context.sessionId || context.conversationId,
-      timestamp: Date.now(),
-      mode: 'directive', // Heuristic fallback uses directive mode
-      ciq_metrics: {
-        clarity: wordCount < 200 ? 0.8 : 0.6,
-        integrity: 0.7,
-        quality: 0.7,
+      agent_did: agentDID,
+      human_did: `${platformDID}:users:${context.userId || 'unknown'}`,
+      policy_version: '1.0.0',
+      mode: 'constitutional',
+      interaction: {
+        prompt: (context.userPrompt || '').substring(0, 1000),
+        response: content.substring(0, 2000),
+        model: 'heuristic-fallback',
       },
-    });
+      telemetry: {
+        resonance_score: trustScore.overall / 100,
+        coherence_score: 0.7,
+        truth_debt: 0.1,
+        ciq_metrics: ciqMetrics,
+      },
+    };
+
+    let receipt: TrustReceiptV2;
+    try {
+      const privateKey = await keysService.getPrivateKey();
+      receipt = await this.receiptGenerator.createReceipt(receiptInput, Buffer.from(privateKey));
+    } catch (error) {
+      logger.warn('Failed to create V2 heuristic receipt, using unsigned stub', { error: getErrorMessage(error) });
+      receipt = {
+        id: 'unsigned',
+        version: '2.0.0',
+        timestamp: new Date().toISOString(),
+        session_id: receiptInput.session_id,
+        agent_did: receiptInput.agent_did,
+        human_did: receiptInput.human_did,
+        policy_version: receiptInput.policy_version,
+        mode: receiptInput.mode,
+        interaction: receiptInput.interaction,
+        telemetry: receiptInput.telemetry,
+        chain: { previous_hash: 'GENESIS', chain_hash: '', chain_length: 0 },
+        signature: { algorithm: 'Ed25519', value: '', key_version: 'unsigned' },
+      };
+    }
 
     return {
       trustScore,
       status,
       detection: {
-        // v2.0.1: reality_index and canvas_parity removed from DetectionResult type
         trust_protocol: status,
         ethical_alignment: 4,
         resonance_quality: 'STRONG',
         timestamp: Date.now(),
-        receipt_hash: receipt.self_hash,
+        receipt_hash: receipt.id,
       },
-      ciq_metrics: {
-        clarity: 0.7,
-        integrity: 0.8,
-        quality: 0.8,
-      },
+      ciq_metrics: ciqMetrics,
       reasoning: 'Heuristic fallback evaluation - LLM evaluation unavailable',
       receipt,
-      receiptHash: receipt.self_hash,
+      receiptHash: receipt.id,
       timestamp: Date.now(),
       messageId: aiResponse.metadata?.messageId,
       conversationId: context.conversationId,
