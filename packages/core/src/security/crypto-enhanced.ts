@@ -8,6 +8,10 @@ import { createHash, generateKeyPairSync } from 'crypto';
 
 import * as ed25519 from '@noble/ed25519';
 
+// Configure sha512 for @noble/ed25519 v3
+(ed25519 as any).hashes.sha512 = (message: Uint8Array) =>
+  new Uint8Array(createHash('sha512').update(message).digest());
+
 import { TrustReceipt, TrustReceiptData } from '../trust-receipt';
 
 export interface EnhancedKeyPair {

@@ -7,6 +7,17 @@
 
 import crypto, { createHash } from 'crypto';
 
+// Configure @noble/ed25519 v3 with sha512
+let ed25519Module: any = null;
+function getEd25519() {
+  if (!ed25519Module) {
+    ed25519Module = require('@noble/ed25519');
+    ed25519Module.hashes.sha512 = (message: Uint8Array) =>
+      new Uint8Array(createHash('sha512').update(message).digest());
+  }
+  return ed25519Module;
+}
+
 export interface HSMConfig {
   enabled: boolean;
   provider?: 'aws-cloudhsm' | 'azure-key-vault' | 'gcp-kms' | 'soft-hsm' | 'none';
@@ -275,7 +286,7 @@ export class HSMManager {
    * Generate software key pair (fallback)
    */
   private generateKeyPairSoftware(keyId: string): KeyPair {
-    const ed25519 = require('@noble/ed25519');
+    const ed25519 = getEd25519();
     const privateKey = (ed25519.utils.randomPrivateKey ?? ed25519.utils.randomSecretKey)();
     const publicKey = ed25519.getPublicKey(privateKey);
 
@@ -359,7 +370,7 @@ export class HSMManager {
    * Sign with software (fallback)
    */
   private async signSoftware(privateKey: Uint8Array, message: Uint8Array): Promise<Uint8Array> {
-    const ed25519 = require('@noble/ed25519');
+    const ed25519 = getEd25519();
     return await ed25519.sign(message, privateKey);
   }
 
@@ -372,7 +383,7 @@ export class HSMManager {
       throw new Error(`Key ${keyId} not found`);
     }
 
-    const ed25519 = require('@noble/ed25519');
+    const ed25519 = getEd25519();
     const valid = await ed25519.verify(signature, message, keyPair.publicKey);
 
     return {

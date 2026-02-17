@@ -32,8 +32,9 @@ async function loadEd25519(): Promise<any> {
   if (!ed25519Promise) {
     ed25519Promise = (new Function('return import("@noble/ed25519")')() as Promise<any>).then(
       (ed25519) => {
-        (ed25519).etc.sha512Sync = (...m: Uint8Array[]) =>
-          new Uint8Array(crypto.createHash('sha512').update(m[0]).digest());
+        // Configure sha512 for @noble/ed25519 v3
+        ed25519.hashes.sha512 = (message: Uint8Array) =>
+          new Uint8Array(crypto.createHash('sha512').update(message).digest());
         return ed25519;
       }
     );
