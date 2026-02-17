@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -41,6 +42,7 @@ export default function RootLayout({
             <Toaster position="top-right" expand={true} richColors />
           </ThemeProvider>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
