@@ -61,6 +61,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.js"
+    },
+    "./anchor": {
+      "types": "./dist/anchor.d.ts",
+      "import": "./dist/anchor.js",
+      "require": "./dist/anchor.js"
     }
   },
   "files": [

@@ -121,6 +121,45 @@ console.log(result.valid);   // true if all signatures and chains valid
 console.log(result.errors);  // Array of any errors found
 ```
 
+## Bitcoin Anchoring (OpenTimestamps)
+
+For stronger timestamp guarantees, anchor receipt hashes to Bitcoin:
+
+```typescript
+import { TrustReceipts, anchor, upgradeAnchor } from '@sonate/trust-receipts';
+
+const { receipt } = await receipts.wrap(aiCall, { sessionId: 's1', input });
+
+// Submit to OpenTimestamps calendar servers
+const proof = await anchor(receipt.receiptHash);
+console.log('Anchored to calendars:', proof.calendars);
+console.log('Status:', proof.status); // 'pending' initially
+
+// Store the proof with your receipt
+await saveToDatabase({ receipt, anchorProof: proof });
+
+// Later (after ~1-2 hours), upgrade to get Bitcoin confirmation
+const upgraded = await upgradeAnchor(proof);
+if (upgraded.status === 'confirmed') {
+  console.log('Confirmed in Bitcoin block:', upgraded.bitcoinBlock);
+}
+```
+
+**How it works:**
+1. Your `receiptHash` is submitted to OpenTimestamps calendar servers
+2. Calendars aggregate hashes into a Merkle tree
+3. The Merkle root is committed to Bitcoin (~hourly)
+4. Your proof can be independently verified against the blockchain
+
+**Chain anchoring:** Since receipts are hash-chained, anchoring the final receipt transitively anchors the entire conversation:
+
+```typescript
+import { anchorChain } from '@sonate/trust-receipts';
+
+// Anchor entire conversation with one proof
+const chainProof = await anchorChain([r1.receiptHash, r2.receiptHash, r3.receiptHash]);
+```
+
 ## Attestation Scores
 
 Scores are user-defined floats between 0 and 1. Define whatever metrics matter for your use case:
@@ -205,25 +244,60 @@ const { response, receipt } = await receipts.wrap(
 | Key Size | 32 bytes (256 bits) |
 | Signature Size | 64 bytes (512 bits) |
 | Timestamp | ISO 8601 UTC |
+| Anchoring | OpenTimestamps (Bitcoin) |
 
-## Known Limitations
+## Public Key Discovery
+
+For production deployments, publish your public key at a well-known location:
+
+```
+https://yourdomain.com/.well-known/sonate-keys.json
+```
+
+Example format:
+
+```json
+{
+  "keys": [{
+    "id": "default",
+    "publicKey": "abc123def456...",
+    "algorithm": "Ed25519",
+    "created": "2026-02-18T00:00:00Z"
+  }]
+}
+```
+
+This allows third parties to verify your receipts without out-of-band key exchange.
+
+## Known Limitations & Roadmap
 
 ### Timestamps
 
-Timestamps are system-generated (UTC ISO 8601). For stronger non-repudiation guarantees in adversarial contexts, integrate an external Timestamp Authority (RFC 3161) or anchor chain heads to a public blockchain.
+**Current:** System-generated UTC timestamps. Hash chaining enforces ordering, but individual timestamps are self-reported.
 
-**Roadmap**: Optional TSA integration via OpenTimestamps or similar service.
+**Mitigation:** Use `anchor()` to commit receipt hashes to Bitcoin via OpenTimestamps for blockchain-backed proof of existence.
 
-### Content vs. Metadata
+**Roadmap:** RFC 3161 TSA integration for enterprise compliance.
 
-The SDK hashes the full prompt and response content. For very large payloads, consider:
-- Hashing a summary or key sections
-- Using the `extractResponse` option to select specific fields
-- Storing full content separately with the `receiptHash` as reference
+### Large Payloads
 
-### Verification Independence
+**Current:** Full prompt/response content is hashed. SHA-256 is fast (~5ms for 1MB), but very large payloads may add latency.
 
-Receipts can be verified by anyone with the public key. For production deployments, consider publishing public keys to a well-known location or integrating with a PKI.
+**Mitigation:** Use `extractResponse` option to hash only relevant fields, or store content externally with `receiptHash` as reference.
+
+```typescript
+const { receipt } = await receipts.wrap(fn, {
+  sessionId: 's1',
+  input: messages,
+  extractResponse: (r) => r.choices[0].message.content, // Hash only the text
+});
+```
+
+### Key Management
+
+**Current:** Keys are provided by the caller. No built-in key rotation or HSM support.
+
+**Roadmap:** Key rotation helpers, HSM/KMS integration guides.
 
 ## Use Cases
 

@@ -63,3 +63,12 @@ export {
   bytesToHex,
   hexToBytes,
 } from './crypto';
+
+// Anchoring (OpenTimestamps)
+export {
+  anchor,
+  upgradeAnchor,
+  verifyAnchor,
+  anchorChain,
+} from './anchor';
+export type { AnchorProof } from './anchor';
