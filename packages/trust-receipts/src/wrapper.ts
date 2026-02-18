@@ -40,6 +40,8 @@ export interface WrapOptions<TInput = unknown> {
   scores?: Scores;
   /** Custom response extractor for hashing */
   extractResponse?: (response: unknown) => unknown;
+  /** Include full prompt/response content in receipt (default: false, hashes only) */
+  includeContent?: boolean;
 }
 
 /**
@@ -60,6 +62,8 @@ export interface CreateReceiptOptions {
   metadata?: Record<string, unknown>;
   /** Attestation scores */
   scores?: Scores;
+  /** Include full prompt/response content in receipt (default: false, hashes only) */
+  includeContent?: boolean;
 }
 
 /**
@@ -216,6 +220,7 @@ export class TrustReceipts {
       agentId: options.agentId ?? this.defaultAgentId,
       prevReceiptHash: options.previousReceipt?.receiptHash,
       metadata: options.metadata,
+      includeContent: options.includeContent,
     };
 
     const receipt = new TrustReceipt(receiptData);
@@ -248,6 +253,7 @@ export class TrustReceipts {
       agentId: options.agentId ?? this.defaultAgentId,
       prevReceiptHash: options.previousReceipt?.receiptHash,
       metadata: options.metadata,
+      includeContent: options.includeContent,
     };
 
     const receipt = new TrustReceipt(receiptData);

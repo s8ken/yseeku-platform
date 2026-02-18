@@ -260,6 +260,60 @@ describe('TrustReceipts SDK', () => {
     assert.match(receipt.timestamp, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/);
   });
 
+  test('Receipt with includeContent: true contains full content', async () => {
+    const { privateKey } = await generateKeyPair();
+
+    const prompt = { messages: [{ role: 'user', content: 'What is 2+2?' }] };
+    const response = 'The answer is 4.';
+
+    const receipt = new TrustReceipt({
+      sessionId: 'content-test',
+      prompt,
+      response,
+      scores: { accuracy: 1.0 },
+      includeContent: true,
+    });
+    await receipt.sign(privateKey);
+
+    const json = receipt.toJSON();
+    assert.deepStrictEqual(json.promptContent, prompt, 'Should include prompt content');
+    assert.strictEqual(json.responseContent, response, 'Should include response content');
+    assert.ok(json.promptHash, 'Should still have prompt hash');
+    assert.ok(json.responseHash, 'Should still have response hash');
+  });
+
+  test('Receipt without includeContent omits content', async () => {
+    const receipt = new TrustReceipt({
+      sessionId: 'no-content-test',
+      prompt: 'secret prompt',
+      response: 'secret response',
+      scores: {},
+    });
+
+    const json = receipt.toJSON();
+    assert.strictEqual(json.promptContent, undefined, 'Should not include prompt content');
+    assert.strictEqual(json.responseContent, undefined, 'Should not include response content');
+    assert.ok(json.promptHash, 'Should have prompt hash');
+    assert.ok(json.responseHash, 'Should have response hash');
+  });
+
+  test('wrap with includeContent: true includes content in receipt', async () => {
+    const receipts = new TrustReceipts();
+    const inputMessages = [{ role: 'user', content: 'Hello!' }];
+
+    const { receipt } = await receipts.wrap(
+      async () => ({ choices: [{ message: { content: 'Hi!' } }] }),
+      {
+        sessionId: 'wrap-content-test',
+        input: inputMessages,
+        includeContent: true,
+      }
+    );
+
+    assert.deepStrictEqual(receipt.promptContent, inputMessages, 'Should include prompt content');
+    assert.strictEqual(receipt.responseContent, 'Hi!', 'Should include extracted response content');
+  });
+
   test('createReceipt creates manual receipts', async () => {
     const receipts = new TrustReceipts();
 

@@ -42,6 +42,8 @@ export interface TrustReceiptData {
   prevReceiptHash?: string;
   /** Optional custom metadata */
   metadata?: Record<string, unknown>;
+  /** Include full prompt/response content in receipt (default: false, hashes only) */
+  includeContent?: boolean;
 }
 
 /**
@@ -70,6 +72,10 @@ export interface SignedReceipt {
   signature: string;
   /** Custom metadata */
   metadata: Record<string, unknown>;
+  /** Full prompt content (only present if includeContent: true) */
+  promptContent?: unknown;
+  /** Full response content (only present if includeContent: true) */
+  responseContent?: unknown;
 }
 
 /**
@@ -86,6 +92,8 @@ export class TrustReceipt {
   readonly prevReceiptHash: string | null;
   readonly metadata: Record<string, unknown>;
   readonly receiptHash: string;
+  readonly promptContent?: unknown;
+  readonly responseContent?: unknown;
 
   private _signature: string = '';
 
@@ -98,6 +106,12 @@ export class TrustReceipt {
     this.scores = { ...data.scores };
     this.prevReceiptHash = data.prevReceiptHash ?? null;
     this.metadata = data.metadata ?? {};
+
+    if (data.includeContent) {
+      this.promptContent = data.prompt;
+      this.responseContent = data.response;
+    }
+
     this.receiptHash = this.computeReceiptHash();
   }
 
@@ -193,7 +207,7 @@ export class TrustReceipt {
    * Export as JSON object
    */
   toJSON(): SignedReceipt {
-    return {
+    const json: SignedReceipt = {
       version: this.version,
       timestamp: this.timestamp,
       sessionId: this.sessionId,
@@ -206,6 +220,15 @@ export class TrustReceipt {
       signature: this._signature,
       metadata: this.metadata,
     };
+
+    if (this.promptContent !== undefined) {
+      json.promptContent = this.promptContent;
+    }
+    if (this.responseContent !== undefined) {
+      json.responseContent = this.responseContent;
+    }
+
+    return json;
   }
 
   /**
@@ -228,6 +251,12 @@ export class TrustReceipt {
     (receipt as any).prevReceiptHash = data.prevReceiptHash;
     (receipt as any).metadata = data.metadata;
     (receipt as any).receiptHash = data.receiptHash;
+    if (data.promptContent !== undefined) {
+      (receipt as any).promptContent = data.promptContent;
+    }
+    if (data.responseContent !== undefined) {
+      (receipt as any).responseContent = data.responseContent;
+    }
     receipt._signature = data.signature;
 
     return receipt;
