@@ -1,4 +1,4 @@
-# @sonate/core
+# @yseeku/core
 
 Core trust protocol implementation for the SONATE platform.
 
@@ -17,7 +17,7 @@ This package provides the foundational trust infrastructure that all SONATE modu
 ## Installation
 
 ```bash
-npm install @sonate/core
+npm install @yseeku/core
 ```
 
 ## Usage
@@ -25,7 +25,7 @@ npm install @sonate/core
 ### Calculate Trust Score
 
 ```typescript
-import { TrustProtocol, SonateScorer } from '@sonate/core';
+import { TrustProtocol, SonateScorer } from '@yseeku/core';
 
 const scorer = new SonateScorer();
 const score = scorer.scoreInteraction({
@@ -46,8 +46,8 @@ console.log(score.violations); // []
 ### Generate Trust Receipt
 
 ```typescript
-import { TrustReceipt } from '@sonate/core';
-import { generateKeyPair } from '@sonate/core';
+import { TrustReceipt } from '@yseeku/core';
+import { generateKeyPair } from '@yseeku/core';
 
 const { privateKey, publicKey } = await generateKeyPair();
 
@@ -73,7 +73,7 @@ const isValid = await receipt.verify(publicKey);
 ### Hash Chaining
 
 ```typescript
-import { TrustReceipt, genesisHash } from '@sonate/core';
+import { TrustReceipt, genesisHash } from '@yseeku/core';
 
 // First receipt
 const receipt1 = new TrustReceipt({
@@ -141,7 +141,7 @@ MIT
 
 - Allowed: Protocol logic (6-principle trust algorithm, trust receipts, hashing, signatures, CIQ metrics)
 - Not Allowed: UI components, production monitoring logic, orchestration workflows, experiments
-- Import Example: `import { TrustProtocol, hashChain } from '@sonate/core'`
+- Import Example: `import { TrustProtocol, hashChain } from '@yseeku/core'`
 
 All SONATE trust scores MUST use `TrustProtocol` with 0–10 inputs and weights from `TRUST_PRINCIPLES`.
 

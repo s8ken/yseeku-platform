@@ -1,17 +1,17 @@
-# @sonate/verify-sdk
+# @yseeku/verify-sdk
 
 Client-side SDK for verifying SONATE Trust Receipts. Works in Node.js and browsers — zero backend calls required.
 
 ## Install
 
 ```bash
-npm install @sonate/verify-sdk
+npm install @yseeku/verify-sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { verify, fetchPublicKey } from '@sonate/verify-sdk';
+import { verify, fetchPublicKey } from '@yseeku/verify-sdk';
 
 // Fetch the SONATE public key (or provide your own)
 const publicKey = await fetchPublicKey();
@@ -78,7 +78,7 @@ const key = await fetchPublicKey('https://your-server.com/api/public-key');
 Deterministic JSON serialization (RFC 8785). Useful for building custom verification flows.
 
 ```typescript
-import { canonicalize } from '@sonate/verify-sdk';
+import { canonicalize } from '@yseeku/verify-sdk';
 
 const canonical = canonicalize({ b: 2, a: 1 });
 // '{"a":1,"b":2}'
@@ -99,7 +99,7 @@ The SDK uses Web Crypto API in browsers and falls back to Node.js `crypto` modul
 
 ```html
 <script type="module">
-  import { verify, fetchPublicKey } from '@sonate/verify-sdk';
+  import { verify, fetchPublicKey } from '@yseeku/verify-sdk';
 
   const publicKey = await fetchPublicKey();
   const result = await verify(receiptFromAPI, publicKey);
@@ -141,8 +141,8 @@ interface TrustReceipt {
 
 ## Related Packages
 
-- [`@sonate/trust-receipts`](https://www.npmjs.com/package/@sonate/trust-receipts) — Generate signed receipts in your own applications
-- [`@sonate/schemas`](https://www.npmjs.com/package/@sonate/schemas) — JSON Schema + TypeScript types
+- [`@yseeku/trust-receipts`](https://www.npmjs.com/package/@yseeku/trust-receipts) — Generate signed receipts in your own applications
+- [`@yseeku/schemas`](https://www.npmjs.com/package/@yseeku/schemas) — JSON Schema + TypeScript types
 
 ## License
 

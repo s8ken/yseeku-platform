@@ -1,11 +1,11 @@
-# @sonate/schemas
+# @yseeku/schemas
 
 Shared schema definitions for SONATE Trust Receipts — JSON Schema validation + TypeScript types.
 
 ## Install
 
 ```bash
-npm install @sonate/schemas
+npm install @yseeku/schemas
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install @sonate/schemas
 ### Validate a receipt
 
 ```typescript
-import { receiptValidator } from '@sonate/schemas';
+import { receiptValidator } from '@yseeku/schemas';
 
 const result = receiptValidator.validateJSON(receipt);
 if (result.valid) {
@@ -33,7 +33,7 @@ import type {
   HashChain,
   CreateReceiptInput,
   VerificationResult,
-} from '@sonate/schemas';
+} from '@yseeku/schemas';
 ```
 
 ## What's Included
@@ -81,9 +81,9 @@ interaction: {
 
 ## Related Packages
 
-- [`@sonate/trust-receipts`](https://www.npmjs.com/package/@sonate/trust-receipts) — Generate signed receipts
-- [`@sonate/verify-sdk`](https://www.npmjs.com/package/@sonate/verify-sdk) — Verify receipts (browser + Node.js)
-- [`@sonate/core`](https://www.npmjs.com/package/@sonate/core) — Core trust protocol
+- [`@yseeku/trust-receipts`](https://www.npmjs.com/package/@yseeku/trust-receipts) — Generate signed receipts
+- [`@yseeku/verify-sdk`](https://www.npmjs.com/package/@yseeku/verify-sdk) — Verify receipts (browser + Node.js)
+- [`@yseeku/core`](https://www.npmjs.com/package/@yseeku/core) — Core trust protocol
 
 ## License
 
