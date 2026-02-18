@@ -39,8 +39,10 @@ export interface TrustReceipt {
   mode: 'constitutional' | 'directive';
   /** AI interaction data */
   interaction: {
-    prompt: string;
-    response: string;
+    prompt?: string;
+    response?: string;
+    prompt_hash?: string;
+    response_hash?: string;
     model: string;
     provider?: string;
     temperature?: number;

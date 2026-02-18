@@ -66,17 +66,27 @@
     "interaction": {
       "type": "object",
       "description": "The actual AI interaction data",
-      "required": ["prompt", "response", "model"],
+      "required": ["model"],
       "properties": {
         "prompt": {
           "type": "string",
-          "description": "User's input/question to the AI",
+          "description": "User's input/question to the AI (omitted when content hashing is enabled)",
           "example": "What is the capital of France?"
         },
         "response": {
           "type": "string",
-          "description": "AI's response",
+          "description": "AI's response (omitted when content hashing is enabled)",
           "example": "Paris is the capital of France."
+        },
+        "prompt_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the prompt (privacy-preserving alternative to raw content)",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "response_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of the response (privacy-preserving alternative to raw content)",
+          "pattern": "^[a-f0-9]{64}$"
         },
         "model": {
           "type": "string",

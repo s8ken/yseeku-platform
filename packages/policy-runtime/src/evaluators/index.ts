@@ -55,7 +55,7 @@ export class PIIDetectionEvaluator extends ConstraintEvaluator {
 
   async evaluate(receipt: TrustReceipt): Promise<ConstraintViolation | null> {
     const detectedPII: Record<string, string[]> = {};
-    const responseText = receipt.interaction.response;
+    const responseText = receipt.interaction.response ?? '';
 
     for (const [piiType, pattern] of Object.entries(this.piiPatterns)) {
       const matches = responseText.match(pattern);
@@ -133,7 +133,7 @@ export class ComplianceBoundaryEvaluator extends ConstraintEvaluator {
 
   async evaluate(receipt: TrustReceipt): Promise<ConstraintViolation | null> {
     const enforcedDomains = this.constraint.config.enforcedDomains || ['medical_advice', 'financial_advice', 'legal_advice'];
-    const responseText = receipt.interaction.response;
+    const responseText = receipt.interaction.response ?? '';
     const detectedDomainViolations: Record<string, number> = {};
 
     for (const domain of enforcedDomains) {

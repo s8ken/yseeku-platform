@@ -67,7 +67,7 @@ router.post('/generate', async (req: Request, res: Response) => {
       });
     }
 
-    const { prompt, model = 'demo-model' } = req.body;
+    const { prompt, model = 'demo-model', includeContent = false } = req.body;
 
     if (!prompt || typeof prompt !== 'string') {
       return res.status(400).json({
@@ -88,6 +88,15 @@ router.post('/generate', async (req: Request, res: Response) => {
     const timestamp = new Date().toISOString();
     const sessionId = `demo-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
     
+    // Build interaction: hash content by default for privacy
+    const rawPrompt = prompt.substring(0, 1000); // Limit size
+    const promptHash = crypto.createHash('sha256').update(rawPrompt).digest('hex');
+    const responseHash = crypto.createHash('sha256').update(aiResponse).digest('hex');
+
+    const interaction: any = includeContent
+      ? { prompt: rawPrompt, response: aiResponse, prompt_hash: promptHash, response_hash: responseHash, model }
+      : { prompt_hash: promptHash, response_hash: responseHash, model };
+
     const receiptContent: any = {
       version: '2.0.0',
       timestamp,
@@ -96,11 +105,7 @@ router.post('/generate', async (req: Request, res: Response) => {
       human_did: `did:web:${didService.PLATFORM_DOMAIN}:users:demo`,
       policy_version: '1.0.0',
       mode: 'constitutional',
-      interaction: {
-        prompt: prompt.substring(0, 1000), // Limit size
-        response: aiResponse,
-        model,
-      },
+      interaction,
       telemetry: {
         resonance_score: 0.85 + Math.random() * 0.1, // 0.85-0.95
         coherence_score: 0.80 + Math.random() * 0.15,

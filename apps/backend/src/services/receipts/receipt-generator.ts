@@ -31,6 +31,8 @@ interface ReceiptGeneratorConfig {
   agentKeyVersion: string;
   enableTelemetry: boolean;
   enablePolicyState: boolean;
+  /** When false (default), raw prompt/response are replaced with SHA-256 hashes */
+  includeContent: boolean;
 }
 
 /**
@@ -48,6 +50,7 @@ export class ReceiptGeneratorService {
       agentKeyVersion: config.agentKeyVersion || 'key_v1',
       enableTelemetry: config.enableTelemetry !== false,
       enablePolicyState: config.enablePolicyState !== false,
+      includeContent: config.includeContent === true, // default: false (hashes only)
     };
   }
 
@@ -154,6 +157,25 @@ export class ReceiptGeneratorService {
       const now = new Date();
       const timestamp = now.toISOString();
 
+      // Build interaction: hash content by default, include raw text only when opted in
+      let interaction: AIInteraction;
+      if (this.config.includeContent) {
+        // Include raw content AND hashes
+        interaction = {
+          ...input.interaction,
+          prompt_hash: createHash('sha256').update(input.interaction.prompt || '').digest('hex'),
+          response_hash: createHash('sha256').update(input.interaction.response || '').digest('hex'),
+        };
+      } else {
+        // Privacy-by-default: hashes only, no raw content
+        const { prompt, response, ...rest } = input.interaction;
+        interaction = {
+          ...rest,
+          prompt_hash: createHash('sha256').update(prompt || '').digest('hex'),
+          response_hash: createHash('sha256').update(response || '').digest('hex'),
+        };
+      }
+
       // Build receipt without signature or IDs (to compute them)
       const receiptBase: Partial<TrustReceipt> = {
         version: '2.0.0',
@@ -163,7 +185,7 @@ export class ReceiptGeneratorService {
         human_did: input.human_did,
         policy_version: input.policy_version,
         mode: input.mode,
-        interaction: input.interaction,
+        interaction,
         telemetry: this.config.enableTelemetry ? input.telemetry : undefined,
         policy_state: this.config.enablePolicyState ? input.policy_state : undefined,
         chain: {
@@ -217,7 +239,7 @@ export class ReceiptGeneratorService {
         human_did: input.human_did,
         policy_version: input.policy_version,
         mode: input.mode,
-        interaction: input.interaction,
+        interaction,
         telemetry: this.config.enableTelemetry ? input.telemetry : undefined,
         policy_state: this.config.enablePolicyState ? input.policy_state : undefined,
         chain: {

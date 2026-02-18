@@ -79,12 +79,18 @@ export type SignatureAlgorithm = 'Ed25519';
  * AI Interaction data
  */
 export interface AIInteraction {
-  /** User's input/question to the AI */
-  prompt: string;
-  
-  /** AI's response */
-  response: string;
-  
+  /** User's input/question to the AI (omitted when content hashing is enabled) */
+  prompt?: string;
+
+  /** AI's response (omitted when content hashing is enabled) */
+  response?: string;
+
+  /** SHA-256 hash of the prompt (privacy-preserving alternative to raw content) */
+  prompt_hash?: string;
+
+  /** SHA-256 hash of the response (privacy-preserving alternative to raw content) */
+  response_hash?: string;
+
   /** Model identifier used (e.g., 'gpt-4-turbo', 'claude-3-sonnet') */
   model: string;
   

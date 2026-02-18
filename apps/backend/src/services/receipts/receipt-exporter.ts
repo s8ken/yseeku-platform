@@ -443,8 +443,8 @@ export class ReceiptExporterService {
             interaction: {
               model: receipt.interaction.model,
               provider: receipt.interaction.provider,
-              prompt_length: receipt.interaction.prompt.length,
-              response_length: receipt.interaction.response.length,
+              prompt_length: receipt.interaction.prompt?.length ?? 0,
+              response_length: receipt.interaction.response?.length ?? 0,
             },
             telemetry: receipt.telemetry,
             policy_state: receipt.policy_state,

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { verifySignature } from '@/../../packages/lab/src/receipts/signing'
+import { verifySignature } from '../../../../../../packages/lab/src/receipts/signing'
 
 export async function POST(req: Request){
   try{
