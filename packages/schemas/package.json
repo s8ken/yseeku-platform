@@ -10,6 +10,24 @@
     "lint": "eslint src",
     "clean": "rm -rf dist"
   },
+  "keywords": [
+    "sonate",
+    "trust-receipt",
+    "json-schema",
+    "ai-governance",
+    "typescript"
+  ],
+  "author": "SONATE",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/s8ken/yseeku-platform.git",
+    "directory": "packages/schemas"
+  },
+  "bugs": {
+    "url": "https://github.com/s8ken/yseeku-platform/issues"
+  },
+  "homepage": "https://github.com/s8ken/yseeku-platform/tree/main/packages/schemas#readme",
   "dependencies": {
     "ajv": "^8.12.0",
     "zod": "^3.22.4"
@@ -21,8 +39,12 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "README.md"
   ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "publishConfig": {
     "access": "public"
   }

@@ -27,10 +27,20 @@
     "sonate",
     "trust-protocol",
     "constitutional-ai",
-    "sonate"
+    "ed25519",
+    "ai-governance"
   ],
-  "author": "YSEEKU",
+  "author": "SONATE",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/s8ken/yseeku-platform.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/s8ken/yseeku-platform/issues"
+  },
+  "homepage": "https://github.com/s8ken/yseeku-platform/tree/main/packages/core#readme",
   "dependencies": {
     "@noble/ed25519": "^3.0.0",
     "@noble/hashes": "^2.0.1",
@@ -72,5 +82,16 @@
       "text",
       "html"
     ]
+  },
+  "files": [
+    "dist",
+    "!dist/tests",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

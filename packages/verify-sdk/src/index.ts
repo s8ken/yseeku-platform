@@ -180,7 +180,7 @@ async function verifyEd25519(
       if (isBrowser && crypto.subtle) {
         // Browser: use crypto.subtle via async
         ed.etc.sha512Async = async (message: Uint8Array) => {
-          const hashBuffer = await crypto.subtle.digest('SHA-512', message);
+          const hashBuffer = await crypto.subtle.digest('SHA-512', new Uint8Array(message));
           return new Uint8Array(hashBuffer);
         };
       } else {
@@ -453,5 +453,3 @@ export function isTrustedIssuer(receipt: TrustReceipt, trustedIssuers: string[])
   );
 }
 
-// Export types
-export type { TrustReceipt, VerificationResult, PublicKeyInfo };

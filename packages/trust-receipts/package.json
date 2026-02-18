@@ -1,6 +1,6 @@
 {
   "name": "@sonate/trust-receipts",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "SSL/TLS for AI — cryptographically sign and verify every interaction",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -70,9 +70,13 @@
   },
   "files": [
     "dist",
+    "!dist/tests",
     "README.md"
   ],
   "engines": {
     "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
