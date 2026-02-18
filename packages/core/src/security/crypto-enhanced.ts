@@ -6,8 +6,7 @@
 
 import { createHash, generateKeyPairSync } from 'crypto';
 
-import * as ed25519 from '@noble/ed25519';
-
+import { loadEd25519, signEd25519, verifyEd25519 } from '../utils/ed25519-loader';
 import { TrustReceipt, TrustReceiptData } from '../trust-receipt';
 
 export interface EnhancedKeyPair {
@@ -211,7 +210,7 @@ export class EnhancedCryptoManager {
     });
 
     const chainHash = createHash(this.hashAlgorithm).update(chainData).digest('hex');
-    const signature = await ed25519.sign(Buffer.from(chainHash, 'hex'), privateKey);
+    const signature = await signEd25519(Buffer.from(chainHash, 'hex'), privateKey);
     return Buffer.from(signature).toString('hex');
   }
 
@@ -234,7 +233,7 @@ export class EnhancedCryptoManager {
       const chainHash = createHash(this.hashAlgorithm).update(chainData).digest('hex');
       const signature = Buffer.from(chainSignature, 'hex');
 
-      return await ed25519.verify(signature, Buffer.from(chainHash, 'hex'), publicKey);
+      return await verifyEd25519(signature, Buffer.from(chainHash, 'hex'), publicKey);
     } catch (error) {
       return false;
     }
@@ -334,9 +333,9 @@ export const EnhancedCryptoUtils = {
     try {
       if (type === 'public') {
         return key.includes('BEGIN PUBLIC KEY') && key.includes('END PUBLIC KEY');
-      } 
+      }
         return key.includes('BEGIN PRIVATE KEY') && key.includes('END PRIVATE KEY');
-      
+
     } catch {
       return false;
     }
@@ -353,15 +352,15 @@ export const EnhancedCryptoUtils = {
         .replace(/-----END (PUBLIC|PRIVATE) KEY-----/, '')
         .replace(/\s/g, '');
       return new Uint8Array(Buffer.from(keyContent, 'base64'));
-    } 
+    }
       // Convert Uint8Array to PEM (simplified)
       const keyContent = Buffer.from(key).toString('base64');
       const isPrivate = keyContent.length > 100; // Simple heuristic
       if (isPrivate) {
         return `-----BEGIN PRIVATE KEY-----\n${keyContent}\n-----END PRIVATE KEY-----`;
-      } 
+      }
         return `-----BEGIN PUBLIC KEY-----\n${keyContent}\n-----END PUBLIC KEY-----`;
-      
-    
+
+
   },
 };

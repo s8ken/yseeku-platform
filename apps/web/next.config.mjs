@@ -255,28 +255,36 @@ const nextConfig = {
       '@radix-ui/react-dialog'
     ]
   },
-  // webpack: (config, { isServer }) => {
-  //   if (!isServer) {
-  //     config.resolve.fallback = {
-  //       ...config.resolve.fallback,
-  //       fs: false,
-  //       path: false,
-  //       crypto: false,
-  //       os: false,
-  //       net: false,
-  //       tls: false,
-  //       child_process: false,
-  //     };
-  //   }
-  //   config.resolve.alias = {
-  //     ...config.resolve.alias,
-  //     'node:crypto': 'crypto',
-  //     'node:fs': 'fs',
-  //     'node:path': 'path',
-  //     'node:perf_hooks': 'perf_hooks',
-  //   };
-  //   return config;
-  // },
+  turbopack: {
+    resolveAlias: {
+      'node:crypto': 'crypto',
+      'node:fs': { browser: '' },
+      'node:path': { browser: '' },
+      'node:perf_hooks': { browser: '' },
+    },
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+        os: false,
+        net: false,
+        tls: false,
+        child_process: false,
+      };
+    }
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'node:crypto': 'crypto',
+      'node:fs': 'fs',
+      'node:path': 'path',
+      'node:perf_hooks': 'perf_hooks',
+    };
+    return config;
+  },
 };
 
 export default nextConfig;
