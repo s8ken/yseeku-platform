@@ -14,7 +14,8 @@ import {
   PrincipleScores,
   PrincipleEvaluator,
   createDefaultContext,
-  EvaluationContext
+  EvaluationContext,
+  CIQMetrics
 } from '@sonate/core';
 import {
   SonateFrameworkDetector,
@@ -223,17 +224,15 @@ export class TrustService {
     // Get trust status
     const status = this.trustProtocol.getTrustStatus(trustScore);
 
-    // Generate trust receipt
+    // Generate trust receipt with CIQ metrics derived from detection signals
+    const ciqMetrics = this.calculateCIQMetrics(detection);
+
     const receipt = new TrustReceipt({
       version: '1.0.0',
       session_id: context.sessionId || context.conversationId,
       timestamp: Date.now(),
       mode: 'constitutional',
-      ciq_metrics: {
-        clarity: this.calculateClarity(message.content),
-        integrity: status === 'PASS' ? 0.9 : status === 'PARTIAL' ? 0.6 : 0.3,
-        quality: detection.reality_index / 10,
-      },
+      ciq_metrics: ciqMetrics,
     });
 
     // Sign the receipt with Ed25519
@@ -363,26 +362,43 @@ export class TrustService {
   }
 
   /**
-   * Calculate clarity score (0-1)
+   * Calculate CIQ metrics from detection results
+   *
+   * Derives meaningful scores from actual detection signals instead of
+   * naive text heuristics:
+   *
+   * - Clarity: Communication effectiveness (from resonance quality + ethical alignment)
+   *   High resonance = AI is communicating well; high ethics = clear, honest communication
+   *
+   * - Integrity: Honesty and transparency (from ethical alignment + reality index)
+   *   Ethical AI that maintains factual accuracy = high integrity
+   *
+   * - Quality: Overall response value (from reality index + resonance quality)
+   *   Accurate, well-communicated response = high quality
    */
-  private calculateClarity(content: string): number {
-    const wordCount = content.split(/\s+/).length;
-    const hasStructure = content.includes('\n') || content.includes('-') || content.includes('•');
-    const avgWordLength = content.length / wordCount;
+  private calculateCIQMetrics(detection: DetectionResult): CIQMetrics {
+    // Convert resonance_quality to numeric (0-1)
+    const resonanceScore =
+      detection.resonance_quality === 'BREAKTHROUGH' ? 1.0
+      : detection.resonance_quality === 'ADVANCED' ? 0.8
+      : 0.6;
 
-    let score = 0.5;
+    // Ethical alignment: 0-5 scale → 0-1
+    const ethicalScore = Math.min(detection.ethical_alignment / 5, 1);
 
-    // Shorter, clearer messages
-    if (wordCount < 100) score += 0.2;
-    if (wordCount > 500) score -= 0.2;
+    // Reality index: 0-10 scale → 0-1
+    const realityScore = detection.reality_index / 10;
 
-    // Well-structured
-    if (hasStructure) score += 0.2;
+    return {
+      // Clarity: resonance (communication quality) + ethics (clear = honest)
+      clarity: resonanceScore * 0.6 + ethicalScore * 0.4,
 
-    // Not overly complex
-    if (avgWordLength < 6) score += 0.1;
+      // Integrity: ethics (honesty) + reality (accuracy)
+      integrity: ethicalScore * 0.7 + realityScore * 0.3,
 
-    return Math.min(Math.max(score, 0), 1.0);
+      // Quality: reality (accuracy) + resonance (usefulness)
+      quality: realityScore * 0.7 + resonanceScore * 0.3,
+    };
   }
 
   /**

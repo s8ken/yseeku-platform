@@ -10,19 +10,30 @@ import Anthropic from '@anthropic-ai/sdk';
 import { TrustReceipts, Scores } from '../src';
 
 /**
- * Custom scores calculator based on Claude's response
+ * Example scores calculator for Claude responses
+ *
+ * IMPORTANT: This is a placeholder demonstrating the API pattern.
+ * In production, implement domain-specific scoring logic such as:
+ *
+ * - LLM-as-judge evaluation (use a second model to assess quality)
+ * - Task completion metrics (did the code compile? did tests pass?)
+ * - Semantic similarity to expected outputs
+ * - Human feedback integration (ratings, corrections)
+ * - Safety/guardrail compliance checks
+ *
+ * These text-length heuristics are NOT reliable quality indicators.
+ * Replace them with metrics meaningful to your use case.
  */
 function calculateClaudeScores(prompt: unknown, response: unknown): Scores {
+  // Placeholder: Replace with domain-specific evaluation
   const text = typeof response === 'string' ? response : '';
-
-  // Simple heuristics (in production, use more sophisticated analysis)
   const wordCount = text.split(/\s+/).length;
   const hasCodeBlock = text.includes('```');
 
   return {
-    // Clarity: longer, structured responses tend to be clearer
+    // Example placeholder (not a real clarity measure)
     clarity: Math.min(0.5 + wordCount / 200, 0.98),
-    // Quality: code blocks and reasonable length indicate quality
+    // Example placeholder (not a real quality measure)
     quality: Math.min(0.7 + (hasCodeBlock ? 0.1 : 0) + wordCount / 500, 0.95),
   };
 }
