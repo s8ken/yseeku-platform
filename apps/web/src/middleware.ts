@@ -22,6 +22,11 @@ async function authMiddleware(req: NextRequest): Promise<NextResponse> {
     return NextResponse.next();
   }
 
+  // Skip auth for overseer dashboard (public analytics)
+  if (pathname.startsWith('/dashboard/overseer')) {
+    return NextResponse.next();
+  }
+
   const auth = req.headers.get('authorization');
   const cookieToken = req.cookies.get('session_token')?.value;
   const BEARER_PREFIX_LENGTH = 7;
