@@ -359,12 +359,12 @@ export default function LiveDashboardPage() {
       warning: alertsData?.summary?.warning || 0,
     },
     principles: {
-      consent: kpisData.principleScores?.consent / 10 || 8.5,
-      inspection: kpisData.principleScores?.inspection / 10 || 8.7,
-      validation: kpisData.principleScores?.validation / 10 || 8.3,
-      override: kpisData.principleScores?.override / 10 || 9.0,
-      disconnect: kpisData.principleScores?.disconnect / 10 || 8.8,
-      moral: kpisData.principleScores?.moral / 10 || 8.6,
+      consent: kpisData.principleScores?.consent || 8.5,
+      inspection: kpisData.principleScores?.inspection || 8.7,
+      validation: kpisData.principleScores?.validation || 8.3,
+      override: kpisData.principleScores?.override || 9.0,
+      disconnect: kpisData.principleScores?.disconnect || 8.8,
+      moral: kpisData.principleScores?.recognition || 8.6,
     },
   } : null;
 

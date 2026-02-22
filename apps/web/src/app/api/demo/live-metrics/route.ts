@@ -7,8 +7,16 @@ export async function GET(request: NextRequest) {
       data: {
         tenant: 'demo-tenant',
         timestamp: new Date().toISOString(),
-        trustScoreAvg: 7.1,
+        trustScoreAvg: 7.4,
         trustScoreTrend: 0.3,
+        principleScores: {
+          consent: 7.8,
+          inspection: 7.6,
+          validation: 7.5,
+          override: 7.4,
+          disconnect: 7.3,
+          recognition: 7.2,
+        },
         activeAgents: 12,
         interactionsLast5Min: 34,
         interactionsPerMinute: [6, 7, 5, 8, 6, 5],
