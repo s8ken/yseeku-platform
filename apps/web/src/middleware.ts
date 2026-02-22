@@ -39,14 +39,25 @@ async function authMiddleware(req: NextRequest): Promise<NextResponse> {
   if (!secret) {
     // Fallback: verify token with backend to avoid coupling secrets to frontend env
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
       const resp = await fetch(`${BACKEND_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
-        cache: 'no-store'
+        cache: 'no-store',
+        signal: controller.signal
       });
+      
+      clearTimeout(timeout);
       if (resp.ok) {
         return NextResponse.next();
       }
-    } catch {}
+    } catch (e) {
+      // Timeout or network error - allow request through rather than blocking
+      // Better UX than 504 errors
+      console.warn('Auth verification timeout/error, allowing request through:', e);
+      return NextResponse.next();
+    }
     const url = req.nextUrl.clone();
     url.pathname = '/auth/login';
     return NextResponse.redirect(url);

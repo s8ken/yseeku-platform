@@ -4,6 +4,9 @@ const BACKEND_URL = process.env.INTERNAL_API_URL ?? process.env.BACKEND_URL ?? '
 
 export async function POST(_request: NextRequest): Promise<NextResponse> {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     const backendResponse = await fetch(
       `${BACKEND_URL}/api/auth/guest`,
       {
@@ -11,9 +14,11 @@ export async function POST(_request: NextRequest): Promise<NextResponse> {
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: controller.signal
       }
     );
 
+    clearTimeout(timeout);
     const data = await backendResponse.json();
     const response = NextResponse.json(data, { status: backendResponse.status });
 

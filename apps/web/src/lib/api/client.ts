@@ -70,10 +70,16 @@ export async function fetchAPI<T>(
 
   if (!token && typeof window !== 'undefined' && !isAuthInitEndpoint) {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+
       const guestRes = await fetch(`${API_BASE}/api/auth/guest`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal
       });
+      
+      clearTimeout(timeout);
       
       if (guestRes.ok) {
         const data = await guestRes.json();
@@ -87,7 +93,7 @@ export async function fetchAPI<T>(
         }
       }
     } catch (e) {
-      // Silent fail for auto guest login
+      // Silent fail for auto guest login (timeout, network error, etc)
     }
   }
 
@@ -114,20 +120,32 @@ export async function fetchAPI<T>(
   const fullUrl = `${API_BASE}${path}`;
   
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout for main API calls
+
     const response = await fetch(fullUrl, {
       ...options,
       headers,
+      signal: controller.signal
     });
+
+    clearTimeout(timeout);
 
     if (!response.ok) {
       if (response.status === 401 && !isAuthInitEndpoint && retryCount < 1) {
         // On 401, try to get a new token via guest login before giving up
         // Don't clear existing token until we've tried to refresh
         try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+
           const guestRes = await fetch(`${API_BASE}/api/auth/guest`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal
           });
+          
+          clearTimeout(timeout);
           
           if (guestRes.ok) {
             const data = await guestRes.json();
