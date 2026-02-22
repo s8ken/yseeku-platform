@@ -1,26 +1,18 @@
 /**
  * Policy Management API Routes
  * 
- * Endpoints for managing and enforcing policies
+ * NOTE: This file is disabled - @sonate/policy-runtime not yet available
+ * Routes will be restored when the package is ready for production
  */
 
-import { Router, Request, Response } from 'express';
-import { z } from 'zod';
-// TODO: Restore @sonate/policy-runtime imports when package is ready
-// import type { PolicyEvaluator, AIPolicy } from '@sonate/policy-runtime';
-// import {
-//   createPolicyFromTemplate,
-//   PIIProtectionPolicy,
-//   TruthDebtThresholdPolicy,
-//   ComplianceBoundaryPolicy,
-//   CoherenceConsistencyPolicy,
-// } from '@sonate/policy-runtime';
-
-// Placeholder types - replace when @sonate/policy-runtime is available
-type PolicyEvaluator = any;
-type AIPolicy = any;
+import { Router } from 'express';
 
 const router = Router();
+
+// Routes disabled - package not available
+// TODO: Restore when @sonate/policy-runtime package is built
+
+export default router;
 
 // In-memory storage for now (will move to database)
 const policyStorage = new Map<string, AIPolicy>();
