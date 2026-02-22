@@ -6,14 +6,19 @@
 
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import type { PolicyEvaluator, AIPolicy } from '@sonate/policy-runtime';
-import {
-  createPolicyFromTemplate,
-  PIIProtectionPolicy,
-  TruthDebtThresholdPolicy,
-  ComplianceBoundaryPolicy,
-  CoherenceConsistencyPolicy,
-} from '@sonate/policy-runtime';
+// TODO: Restore @sonate/policy-runtime imports when package is ready
+// import type { PolicyEvaluator, AIPolicy } from '@sonate/policy-runtime';
+// import {
+//   createPolicyFromTemplate,
+//   PIIProtectionPolicy,
+//   TruthDebtThresholdPolicy,
+//   ComplianceBoundaryPolicy,
+//   CoherenceConsistencyPolicy,
+// } from '@sonate/policy-runtime';
+
+// Placeholder types - replace when @sonate/policy-runtime is available
+type PolicyEvaluator = any;
+type AIPolicy = any;
 
 const router = Router();
 

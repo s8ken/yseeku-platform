@@ -13,11 +13,17 @@ import {
   PolicyAlertService,
   type AlertEvent,
 } from './policy-alerts';
-import { PolicyEngine } from '@sonate/policy';
-import {
-  CoherenceTracker,
-  ResonanceMonitor,
-} from '@sonate/monitoring';
+// TODO: Restore @sonate/policy imports when package is ready
+// import { PolicyEngine } from '@sonate/policy';
+// import {
+//   CoherenceTracker,
+//   ResonanceMonitor,
+// } from '@sonate/monitoring';
+
+// Placeholder types - replace when packages are available
+type PolicyEngine = any;
+type CoherenceTracker = any;
+type ResonanceMonitor = any;
 
 let alertService: PolicyAlertService | null = null;
 

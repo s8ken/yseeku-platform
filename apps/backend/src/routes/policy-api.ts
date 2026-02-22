@@ -7,23 +7,39 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import type { TrustReceipt } from '@sonate/schemas';
-import {
-  PolicyEngine,
-  PolicyRegistry,
-  symbiRules,
-  symbiPrinciples,
-  type PolicyEvaluationResult,
-} from '@sonate/policy';
-import {
-  TruthDebtCalculator,
-  CoherenceTracker,
-  ResonanceMonitor,
-  type TruthDebtAnalysis,
-  type CoherenceAnalysis,
-  type ResonanceMeasure,
-} from '@sonate/monitoring';
-import type { PolicyAuditLogger } from './policy-audit-logger';
-import type { PolicyAlertService } from './policy-alerts';
+// TODO: Restore @sonate/policy and @sonate/monitoring imports when packages are ready
+// import {
+//   PolicyEngine,
+//   PolicyRegistry,
+//   symbiRules,
+//   symbiPrinciples,
+//   type PolicyEvaluationResult,
+// } from '@sonate/policy';
+// import {
+//   TruthDebtCalculator,
+//   CoherenceTracker,
+//   ResonanceMonitor,
+//   type TruthDebtAnalysis,
+//   type CoherenceAnalysis,
+//   type ResonanceMeasure,
+// } from '@sonate/monitoring';
+// import type { PolicyAuditLogger } from './policy-audit-logger';
+// import type { PolicyAlertService } from './policy-alerts';
+
+// Placeholder types - replace when packages are available
+type PolicyEngine = any;
+type PolicyRegistry = any;
+type PolicyEvaluationResult = any;
+type TruthDebtCalculator = any;
+type CoherenceTracker = any;
+type ResonanceMonitor = any;
+type TruthDebtAnalysis = any;
+type CoherenceAnalysis = any;
+type ResonanceMeasure = any;
+type PolicyAuditLogger = any;
+type PolicyAlertService = any;
+const symbiRules: any = {};
+const symbiPrinciples: any = {};
 
 /**
  * API Response Types
@@ -381,7 +397,7 @@ export class PolicyAPIService {
         success: true,
         data: {
           total: rules.length,
-          rules: rules.map(r => ({
+          rules: rules.map((r: any) => ({
             id: r.id,
             name: r.name,
             description: r.description,
@@ -412,7 +428,7 @@ export class PolicyAPIService {
         success: true,
         data: {
           total: principles.length,
-          principles: principles.map(p => ({
+          principles: principles.map((p: any) => ({
             id: p.id,
             name: p.name,
             description: p.description,

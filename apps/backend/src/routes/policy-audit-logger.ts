@@ -6,7 +6,11 @@
  */
 
 import type { TrustReceipt } from '@sonate/schemas';
-import type { PolicyEvaluationResult } from '@sonate/policy';
+// TODO: Restore @sonate/policy imports when package is ready
+// import type { PolicyEvaluationResult } from '@sonate/policy';
+
+// Placeholder type - replace when package is available
+type PolicyEvaluationResult = any;
 
 /**
  * Audit Log Entry
@@ -76,9 +80,9 @@ export class PolicyAuditLogger {
     metrics: { truthDebt: number; coherence: number; resonance: number }
   ): void {
     const violationCounts = {
-      critical: evaluation.violations.filter(v => v.severity === 'critical').length,
-      high: evaluation.violations.filter(v => v.severity === 'high').length,
-      medium: evaluation.violations.filter(v => v.severity === 'medium').length,
+      critical: evaluation.violations.filter((v: any) => v.severity === 'critical').length,
+      high: evaluation.violations.filter((v: any) => v.severity === 'high').length,
+      medium: evaluation.violations.filter((v: any) => v.severity === 'medium').length,
       low: evaluation.violations.filter(v => v.severity === 'low').length,
     };
 

@@ -8,9 +8,17 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import type { TrustReceipt } from '@sonate/schemas';
-import { PolicyEngine } from '@sonate/policy';
-import { CoherenceTracker, ResonanceMonitor, TruthDebtCalculator } from '@sonate/monitoring';
-import type { PolicyEvaluationResult } from '@sonate/policy';
+// TODO: Restore @sonate/policy and @sonate/monitoring imports when packages are ready
+// import { PolicyEngine } from '@sonate/policy';
+// import { CoherenceTracker, ResonanceMonitor, TruthDebtCalculator } from '@sonate/monitoring';
+// import type { PolicyEvaluationResult } from '@sonate/policy';
+
+// Placeholder types - replace when packages are available
+type PolicyEngine = any;
+type PolicyEvaluationResult = any;
+type CoherenceTracker = any;
+type ResonanceMonitor = any;
+type TruthDebtCalculator = any;
 
 /**
  * Alert Event Types

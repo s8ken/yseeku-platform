@@ -31,11 +31,17 @@ import {
 } from '@sonate/detect';
 // v2.0.1: Removed RealityIndexCalculator and CanvasParityCalculator imports
 // These calculators were cut as liabilities (trivially gamed metadata flags)
-import {
-  ConversationalMetrics,
-  PhaseShiftMetrics,
-  ConversationTurn
-} from '@sonate/lab';
+// TODO: Restore @sonate/lab imports when package is ready
+// import {
+//   ConversationalMetrics,
+//   PhaseShiftMetrics,
+//   ConversationTurn
+// } from '@sonate/lab';
+
+// Placeholder types - replace when package is available
+type ConversationalMetrics = any;
+type PhaseShiftMetrics = any;
+type ConversationTurn = any;
 import { IMessage } from '../models/conversation.model';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
