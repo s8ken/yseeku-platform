@@ -788,6 +788,14 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
                   timestamp: aiTrustEval.timestamp,
                   mode: v2Receipt.mode || 'constitutional',
                   ciq_metrics: v2Receipt.telemetry?.ciq_metrics || { clarity: 0, integrity: 0, quality: 0 },
+                  // NEW: Principle scores from receipt
+                  sonate_principles: v2Receipt.telemetry?.sonate_principles || {},
+                  overall_trust_score: v2Receipt.telemetry?.overall_trust_score || aiTrustEval.trustScore.overall || 0,
+                  trust_status: v2Receipt.telemetry?.trust_status || aiTrustEval.status || 'PARTIAL',
+                  // NEW: Weight metadata for audit trail
+                  principle_weights: v2Receipt.telemetry?.principle_weights || {},
+                  weight_source: v2Receipt.telemetry?.weight_source || aiTrustEval.weight_source || 'standard',
+                  weight_policy_id: v2Receipt.telemetry?.weight_policy_id || aiTrustEval.weight_policy_id || 'base-standard',
                   previous_hash: v2Receipt.chain?.previous_hash,
                   signature: aiTrustEval.signature,
                   tenant_id: tenantId,
@@ -809,6 +817,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
               conversationId: conversation._id.toString(),
               tenantId,
               receiptHash: aiTrustEval.receiptHash,
+              weightSource: aiTrustEval.weight_source,
             });
           } catch (persistErr: any) {
             logger.error('[TRUST RECEIPT] Failed to persist AI trust receipt', { 

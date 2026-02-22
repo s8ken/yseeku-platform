@@ -41,6 +41,9 @@ export interface LLMTrustEvaluation {
   conversationId?: string;
   agentId?: string;
   evaluatedBy: 'llm' | 'heuristic' | 'hybrid';
+  // v2.2: Weight metadata for audit trail
+  weight_source?: string;
+  weight_policy_id?: string;
   // v2.1: Analysis method transparency
   analysisMethod?: {
     llmAvailable: boolean;
@@ -58,6 +61,7 @@ interface LLMEvaluationContext {
   agentId?: string;
   userId?: string;
   tenantId?: string;
+  industryType?: string;
   userPrompt: string;
 }
 
@@ -137,14 +141,124 @@ export class LLMTrustEvaluator {
   private defaultProvider: string = 'anthropic';
   private defaultModel: string = 'claude-3-haiku-20240307'; // Fast and cheap for evaluation
   private receiptGenerator = new ReceiptGeneratorService();
+  private tenantId?: string;
+  private industryType?: string;
 
-  constructor(options?: { provider?: string; model?: string }) {
+  constructor(options?: { provider?: string; model?: string; tenantId?: string; industryType?: string }) {
     if (options?.provider) this.defaultProvider = options.provider;
     if (options?.model) this.defaultModel = options.model;
+    if (options?.tenantId) this.tenantId = options.tenantId;
+    if (options?.industryType) this.industryType = options.industryType;
   }
 
   /**
-   * Evaluate an AI response using LLM-based assessment
+   * Industry-specific principle weights
+   * These represent different trust priorities based on sector requirements
+   */
+  private industryWeights: Record<string, Record<TrustPrincipleKey, number>> = {
+    healthcare: {
+      CONSENT_ARCHITECTURE: 0.35,  // Highest priority - patient autonomy critical
+      INSPECTION_MANDATE: 0.20,
+      CONTINUOUS_VALIDATION: 0.20,
+      ETHICAL_OVERRIDE: 0.15,      // Lower but still important
+      RIGHT_TO_DISCONNECT: 0.05,
+      MORAL_RECOGNITION: 0.05,
+    },
+    finance: {
+      CONSENT_ARCHITECTURE: 0.25,
+      INSPECTION_MANDATE: 0.30,    // Highest - transparency essential
+      CONTINUOUS_VALIDATION: 0.25, // Higher - accuracy critical
+      ETHICAL_OVERRIDE: 0.12,
+      RIGHT_TO_DISCONNECT: 0.04,
+      MORAL_RECOGNITION: 0.04,
+    },
+    government: {
+      CONSENT_ARCHITECTURE: 0.30,
+      INSPECTION_MANDATE: 0.30,    // Public scrutiny
+      CONTINUOUS_VALIDATION: 0.20,
+      ETHICAL_OVERRIDE: 0.12,
+      RIGHT_TO_DISCONNECT: 0.05,
+      MORAL_RECOGNITION: 0.03,
+    },
+    technology: {
+      CONSENT_ARCHITECTURE: 0.28,
+      INSPECTION_MANDATE: 0.18,
+      CONTINUOUS_VALIDATION: 0.22,
+      ETHICAL_OVERRIDE: 0.17,
+      RIGHT_TO_DISCONNECT: 0.10,
+      MORAL_RECOGNITION: 0.05,
+    },
+    education: {
+      CONSENT_ARCHITECTURE: 0.32,  // Student protection
+      INSPECTION_MANDATE: 0.22,
+      CONTINUOUS_VALIDATION: 0.20,
+      ETHICAL_OVERRIDE: 0.13,
+      RIGHT_TO_DISCONNECT: 0.08,
+      MORAL_RECOGNITION: 0.05,
+    },
+    legal: {
+      CONSENT_ARCHITECTURE: 0.25,
+      INSPECTION_MANDATE: 0.35,    // Highest - legal accountability
+      CONTINUOUS_VALIDATION: 0.25,
+      ETHICAL_OVERRIDE: 0.10,
+      RIGHT_TO_DISCONNECT: 0.03,
+      MORAL_RECOGNITION: 0.02,
+    },
+  };
+
+  /**
+   * Get principle weights for evaluation based on tenant/industry
+   * Falls back to standard weights if industry not recognized
+   */
+  private getWeightsForEvaluation(industryType?: string): {
+    weights: Record<TrustPrincipleKey, number>;
+    policyId: string;
+    source: 'standard' | 'healthcare' | 'finance' | 'government' | 'technology' | 'education' | 'legal';
+  } {
+    // Default standard weights
+    const defaultWeights: Record<TrustPrincipleKey, number> = {
+      CONSENT_ARCHITECTURE: 0.25,
+      INSPECTION_MANDATE: 0.20,
+      CONTINUOUS_VALIDATION: 0.20,
+      ETHICAL_OVERRIDE: 0.15,
+      RIGHT_TO_DISCONNECT: 0.10,
+      MORAL_RECOGNITION: 0.10,
+    };
+
+    // Model industry type (from context or instance)
+    const effectiveIndustryType = industryType || this.industryType;
+    
+    // Get industry-specific weights if available
+    if (effectiveIndustryType && this.industryWeights[effectiveIndustryType.toLowerCase()]) {
+      const industryWeights = this.industryWeights[effectiveIndustryType.toLowerCase()];
+      logger.info('Using industry-specific weights', {
+        industry: effectiveIndustryType,
+        tenantId: this.tenantId,
+      });
+      
+      return {
+        weights: industryWeights,
+        policyId: `policy-${effectiveIndustryType.toLowerCase()}`,
+        source: effectiveIndustryType.toLowerCase() as 'standard' | 'healthcare' | 'finance' | 'government' | 'technology' | 'education' | 'legal',
+      };
+    }
+
+    // Fall back to standard weights
+    logger.debug('Using standard weights', {
+      industryType: effectiveIndustryType,
+      available: Object.keys(this.industryWeights),
+    });
+
+    // Fallback to standard weights
+    return {
+      weights: defaultWeights,
+      policyId: 'base-standard',
+      source: 'standard',
+    };
+  }
+
+  /**
+   * Evaluate AI response against SONATE principles
    */
   async evaluate(
     aiResponse: IMessage,
@@ -173,8 +287,13 @@ export class LLMTrustEvaluator {
       // Parse the LLM response
       const evaluation = this.parseLLMResponse(llmResponse.content);
       
-      // Calculate overall trust score
-      const trustScore = this.calculateTrustScore(evaluation.principles, evaluation.violations);
+      // Load industry-specific weights based on context
+      const { weights, policyId, source } = this.getWeightsForEvaluation(
+        context.industryType
+      );
+      
+      // Calculate overall trust score using tenant-specific weights
+      const trustScore = this.calculateTrustScore(evaluation.principles, evaluation.violations, weights);
       const status = this.getStatus(trustScore.overall);
 
       // Generate V2 trust receipt
@@ -191,7 +310,7 @@ export class LLMTrustEvaluator {
         session_id: context.sessionId || context.conversationId,
         agent_did: agentDID,
         human_did: `${platformDID}:users:${context.userId || 'unknown'}`,
-        policy_version: '1.0.0',
+        policy_version: '2.0.0',
         mode: 'constitutional',
         interaction: {
           prompt: (context.userPrompt || '').substring(0, 1000),
@@ -203,6 +322,13 @@ export class LLMTrustEvaluator {
           coherence_score: ciqMetrics.integrity,
           truth_debt: 0.1,
           ciq_metrics: ciqMetrics,
+          // NEW: Include principles and weights in telemetry
+          sonate_principles: evaluation.principles,
+          overall_trust_score: trustScore.overall,
+          trust_status: status,
+          principle_weights: weights,
+          weight_source: source as any,
+          weight_policy_id: policyId,
         },
       };
 
@@ -232,6 +358,8 @@ export class LLMTrustEvaluator {
         conversationId: context.conversationId,
         trustScore: trustScore.overall,
         status,
+        weightSource: source,
+        weightPolicyId: policyId,
         evaluationTimeMs: Date.now() - startTime,
       });
 
@@ -257,6 +385,9 @@ export class LLMTrustEvaluator {
         conversationId: context.conversationId,
         agentId: context.agentId,
         evaluatedBy: 'llm',
+        // NEW: Include weight metadata for transparency
+        weight_source: source,
+        weight_policy_id: policyId,
         analysisMethod: {
           llmAvailable: true,
           resonanceMethod: 'llm',
@@ -373,9 +504,23 @@ export class LLMTrustEvaluator {
   }
 
   /**
-   * Calculate overall trust score from principles
+   * Calculate overall trust score from principles using provided weights
    */
-  private calculateTrustScore(principles: PrincipleScores, violations: string[]): TrustScore {
+  private calculateTrustScore(
+    principles: PrincipleScores,
+    violations: string[],
+    weights?: Record<TrustPrincipleKey, number>
+  ): TrustScore {
+    // Use provided weights or fall back to standard
+    const applicableWeights = weights || {
+      CONSENT_ARCHITECTURE: 0.25,
+      INSPECTION_MANDATE: 0.20,
+      CONTINUOUS_VALIDATION: 0.20,
+      ETHICAL_OVERRIDE: 0.15,
+      RIGHT_TO_DISCONNECT: 0.10,
+      MORAL_RECOGNITION: 0.10,
+    };
+
     // Map string violations to valid TrustPrincipleKeys
     const validPrinciples: TrustPrincipleKey[] = ['INSPECTION_MANDATE', 'CONTINUOUS_VALIDATION', 'ETHICAL_OVERRIDE', 'RIGHT_TO_DISCONNECT', 'MORAL_RECOGNITION', 'CONSENT_ARCHITECTURE'];
     const mappedViolations = violations.filter(v => validPrinciples.includes(v as TrustPrincipleKey)) as TrustPrincipleKey[];
@@ -395,18 +540,9 @@ export class LLMTrustEvaluator {
       };
     }
 
-    // Calculate weighted average
-    const weights = {
-      CONSENT_ARCHITECTURE: 0.25,
-      INSPECTION_MANDATE: 0.20,
-      CONTINUOUS_VALIDATION: 0.20,
-      ETHICAL_OVERRIDE: 0.15,
-      RIGHT_TO_DISCONNECT: 0.10,
-      MORAL_RECOGNITION: 0.10,
-    };
-
+    // Calculate weighted average using provided weights
     let weightedSum = 0;
-    for (const [principle, weight] of Object.entries(weights)) {
+    for (const [principle, weight] of Object.entries(applicableWeights)) {
       weightedSum += (principles[principle as keyof PrincipleScores] || 0) * weight;
     }
 

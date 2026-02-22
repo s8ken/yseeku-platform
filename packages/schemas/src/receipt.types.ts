@@ -147,6 +147,39 @@ export interface Telemetry {
     /** Overall value (0-1) */
     quality?: number;
   };
+  
+  // NEW: SYMBI principle scores and metrics (v2.2)
+  /** SYMBI constitutional principle scores (0-10 each) */
+  sonate_principles?: {
+    CONSENT_ARCHITECTURE?: number;
+    INSPECTION_MANDATE?: number;
+    CONTINUOUS_VALIDATION?: number;
+    ETHICAL_OVERRIDE?: number;
+    RIGHT_TO_DISCONNECT?: number;
+    MORAL_RECOGNITION?: number;
+  };
+  
+  /** Overall trust score derived from weighted principles (0-100) */
+  overall_trust_score?: number;
+  
+  /** Trust status from principle evaluation */
+  trust_status?: 'PASS' | 'PARTIAL' | 'FAIL';
+  
+  /** Weights applied to principles for calculation */
+  principle_weights?: {
+    CONSENT_ARCHITECTURE?: number;
+    INSPECTION_MANDATE?: number;
+    CONTINUOUS_VALIDATION?: number;
+    ETHICAL_OVERRIDE?: number;
+    RIGHT_TO_DISCONNECT?: number;
+    MORAL_RECOGNITION?: number;
+  };
+  
+  /** Which policy's weights were applied (standard|healthcare|finance|government|etc) */
+  weight_source?: string;
+  
+  /** Policy ID reference for the weights used */
+  weight_policy_id?: string;
 }
 
 /**

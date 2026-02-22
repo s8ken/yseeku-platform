@@ -104,6 +104,10 @@ export interface TrustEvaluation {
     trustMethod: 'content-analysis' | 'metadata-only';
     confidence: number; // 0-1, overall confidence in scores
   };
+
+  // v2.2: Weight metadata for audit trail
+  weight_source?: string;
+  weight_policy_id?: string;
 }
 
 export interface TrustAnalytics {

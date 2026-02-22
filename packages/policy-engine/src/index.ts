@@ -6,6 +6,7 @@
 // Core services
 export { PolicyEvaluatorService } from './services/policy-evaluator';
 export { SymbiEvaluator } from './evaluators/symbi-evaluator';
+export { IndustryPolicies } from './policies/industry-policies';
 
 // Types and interfaces
 export * from './types';

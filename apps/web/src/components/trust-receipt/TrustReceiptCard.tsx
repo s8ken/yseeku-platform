@@ -32,6 +32,11 @@ export interface TrustEvaluation {
   messageId?: string;
   conversationId?: string;
   analysisMethod?: AnalysisMethod;
+  weight_source?: string; // Industry policy applied (healthcare, finance, etc)
+  weight_policy_id?: string; // Policy reference ID for audit trail
+  overall_trust_score?: number; // Recomputed overall score using industry weights
+  trust_status?: 'PASS' | 'PARTIAL' | 'FAIL'; // Trust status (may differ from status if weights changed)
+  principle_weights?: Record<string, number>; // Industry-specific principle weights
 }
 
 export interface TrustReceiptProps { 
@@ -93,7 +98,7 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
 }) => { 
   const [showLegacyMetrics, setShowLegacyMetrics] = useState(false);
   const [copied, setCopied] = useState(false);
-  const { trustScore, status, detection, receipt, receiptHash, timestamp, analysisMethod } = evaluation;
+  const { trustScore, status, detection, receipt, receiptHash, timestamp, analysisMethod, weight_source, weight_policy_id, principle_weights } = evaluation;
   
   const handleCopyReceipt = async () => {
     if (receipt) {
@@ -114,9 +119,16 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
           <Shield className={`w-5 h-5 ${status === 'PASS' ? 'text-emerald-400' : status === 'PARTIAL' ? 'text-amber-400' : 'text-red-500'}`} /> 
           <span className="text-xs tracking-widest uppercase opacity-70">SONATE Trust Receipt</span> 
         </div> 
-        <div className={`px-3 py-1 text-xs font-bold border rounded-full ${statusStyle}`}> 
-          {status} 
-        </div> 
+        <div className="flex items-center gap-2">
+          {weight_source && (
+            <div className={`px-2 py-1 text-[9px] font-semibold border rounded-full bg-slate-800/60 border-slate-600 text-slate-300 uppercase tracking-wider`}> 
+              {weight_source}
+            </div>
+          )}
+          <div className={`px-3 py-1 text-xs font-bold border rounded-full ${statusStyle}`}> 
+            {status} 
+          </div> 
+        </div>
       </div> 
 
       {/* --- Analysis Method Indicator --- */}
@@ -206,6 +218,48 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
                 ⚠️ Critical principle violation detected. Overall score capped at 0.
               </p>
             )}
+          </div>
+        )}
+
+        {/* --- Section 3.5: Weight Policy Metadata --- */}
+        {weight_source && (
+          <div className="p-3 rounded bg-slate-800/40 border border-slate-600/50 text-slate-200 text-[10px]">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 font-bold uppercase tracking-wider">
+                <Calculator size={12} /> Weight Policy Applied
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-400">Industry Policy:</span>
+                <span className="px-2 py-0.5 rounded-full bg-slate-700/50 border border-slate-600 text-slate-200 font-semibold">
+                  {weight_source}
+                </span>
+              </div>
+              {weight_policy_id && (
+                <div className="flex justify-between items-center text-[9px]">
+                  <span className="text-slate-500">Policy ID:</span>
+                  <span className="font-mono text-slate-400">{weight_policy_id}</span>
+                </div>
+              )}
+              {principle_weights && Object.keys(principle_weights).length > 0 && (
+                <div className="mt-2 pt-1.5 border-t border-slate-600/30">
+                  <div className="text-slate-500 mb-1 text-[9px]">Weight Distribution:</div>
+                  <div className="grid grid-cols-2 gap-1 text-[9px]">
+                    {Object.entries(principle_weights).map(([principleKey, weight]) => (
+                      <div key={principleKey} className="flex justify-between">
+                        <span className="text-slate-500 truncate">
+                          {PRINCIPLE_INFO[principleKey]?.name.split(' ')[0] || principleKey.slice(0, 8)}
+                        </span>
+                        <span className="font-mono text-slate-300 ml-1">
+                          {(weight * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
  

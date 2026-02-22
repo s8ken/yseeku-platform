@@ -71,6 +71,9 @@ Thumbs.db
 .trae/
 .omc/
 
+# External repos (cloned into workspace)
+ycq-website/
+
 # Test files (if not needed in repo)
 archive_tester.py
 verify_fixes.py

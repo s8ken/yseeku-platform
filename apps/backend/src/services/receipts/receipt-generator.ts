@@ -58,6 +58,18 @@ export class ReceiptGeneratorService {
    * Recursively canonicalize an object for deterministic JSON output.
    * Sorts keys at every level, filters undefined values.
    * Must match the canonicalize() in public-demo.routes.ts and verify-sdk.
+   * 
+   * PHASE 2: SYMBI Principle Inclusion
+   * This function processes telemetry fields including:
+   * - sonate_principles (0-10 scores per SONATE principle)
+   * - overall_trust_score (0-100 weighted result)
+   * - trust_status (PASS|PARTIAL|FAIL)
+   * - principle_weights (weight distribution applied)
+   * - weight_source (policy: standard|healthcare|finance|etc)
+   * - weight_policy_id (policy reference for audit trail)
+   * 
+   * All principle and weight data is canonicalized for Ed25519 signature,
+   * ensuring signature verification confirms data integrity.
    */
   private canonicalize(obj: any): string {
     if (obj === null || typeof obj !== 'object') {
@@ -177,6 +189,8 @@ export class ReceiptGeneratorService {
       }
 
       // Build receipt without signature or IDs (to compute them)
+      // PHASE 2: Telemetry (including principle scores and weight metadata) included here
+      // The entire telemetry object will be deterministically canonicalized and signed
       const receiptBase: Partial<TrustReceipt> = {
         version: '2.0.0',
         timestamp,
@@ -186,6 +200,9 @@ export class ReceiptGeneratorService {
         policy_version: input.policy_version,
         mode: input.mode,
         interaction,
+        // PHASE 2: Telemetry with principle scores and weight metadata
+        // Includes: sonate_principles (0-10 per principle), overall_trust_score (0-100),
+        // trust_status (PASS|PARTIAL|FAIL), principle_weights, weight_source, weight_policy_id
         telemetry: this.config.enableTelemetry ? input.telemetry : undefined,
         policy_state: this.config.enablePolicyState ? input.policy_state : undefined,
         chain: {
@@ -221,9 +238,18 @@ export class ReceiptGeneratorService {
       };
 
       // Canonicalize content for signing (without signature, WITH chain_hash)
+      // PHASE 2: This canonical JSON includes all principle scores and weight metadata:
+      // - sonate_principles: Individual SONATE principle scores (0-10)
+      // - overall_trust_score: Weighted trust result (0-100)
+      // - trust_status: Constitutional compliance status
+      // - principle_weights: Weight distribution per industry/policy
+      // - weight_source: Policy identifier for audit trail
+      // - weight_policy_id: Policy reference ID
+      // The Ed25519 signature below covers ALL of this canonical content
       const canonical = this.canonicalizeContent(receiptForSigning as TrustReceipt);
 
       // Sign the receipt
+      // PHASE 2: Signature verification will confirm all principle and weight data is intact
       const { signature: signatureValue, timestamp: signedAt } = await this.signReceipt(
         canonical,
         agentPrivateKey

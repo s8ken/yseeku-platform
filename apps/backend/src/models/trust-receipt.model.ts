@@ -34,6 +34,28 @@ export interface ITrustReceipt extends Document {
     proofValue: string;   // Base64 encoded signature
   };
 
+  // v2.2: SYMBI principle scores and weight metadata (NEW)
+  sonate_principles?: {
+    CONSENT_ARCHITECTURE?: number;
+    INSPECTION_MANDATE?: number;
+    CONTINUOUS_VALIDATION?: number;
+    ETHICAL_OVERRIDE?: number;
+    RIGHT_TO_DISCONNECT?: number;
+    MORAL_RECOGNITION?: number;
+  };
+  overall_trust_score?: number;  // 0-100
+  trust_status?: 'PASS' | 'PARTIAL' | 'FAIL';
+  principle_weights?: {
+    CONSENT_ARCHITECTURE?: number;
+    INSPECTION_MANDATE?: number;
+    CONTINUOUS_VALIDATION?: number;
+    ETHICAL_OVERRIDE?: number;
+    RIGHT_TO_DISCONNECT?: number;
+    MORAL_RECOGNITION?: number;
+  };
+  weight_source?: string;  // 'standard'|'healthcare'|'finance'|etc
+  weight_policy_id?: string;  // Policy reference
+
   // v2.1: Analysis method transparency (LLM vs Heuristic detection)
   evaluated_by?: 'llm' | 'heuristic' | 'hybrid';
   analysis_method?: {
@@ -106,6 +128,37 @@ const TrustReceiptSchema = new Schema<ITrustReceipt>({
     verificationMethod: String,
     proofPurpose: String,
     proofValue: String,
+  },
+
+  // v2.2: SYMBI principle scores and weight metadata (NEW)
+  sonate_principles: {
+    CONSENT_ARCHITECTURE: Number,
+    INSPECTION_MANDATE: Number,
+    CONTINUOUS_VALIDATION: Number,
+    ETHICAL_OVERRIDE: Number,
+    RIGHT_TO_DISCONNECT: Number,
+    MORAL_RECOGNITION: Number,
+  },
+  overall_trust_score: Number,
+  trust_status: {
+    type: String,
+    enum: ['PASS', 'PARTIAL', 'FAIL'],
+  },
+  principle_weights: {
+    CONSENT_ARCHITECTURE: Number,
+    INSPECTION_MANDATE: Number,
+    CONTINUOUS_VALIDATION: Number,
+    ETHICAL_OVERRIDE: Number,
+    RIGHT_TO_DISCONNECT: Number,
+    MORAL_RECOGNITION: Number,
+  },
+  weight_source: {
+    type: String,
+    index: true,
+  },
+  weight_policy_id: {
+    type: String,
+    index: true,
   },
 
   // v2.1: Analysis method transparency
