@@ -48,7 +48,8 @@ import {
   Webhook,
   MessageSquare,
   Compass,
-  GraduationCap
+  GraduationCap,
+  Eye
 } from 'lucide-react';
 import { useTutorialStore } from '@/store/useTutorialStore';
 import { dashboardTutorialSteps } from '@/components/tutorial/steps';
@@ -94,6 +95,7 @@ const moduleSections: ModuleSection[] = [
       { title: 'Trust Receipts', href: '/dashboard/receipts', icon: Fingerprint, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Verify Receipt', href: '/dashboard/verify', icon: ShieldCheck, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Risk & Compliance', href: '/dashboard/risk', icon: Waves, roles: ['admin', 'user'], module: 'detect' },
+      { title: 'Overseer', href: '/dashboard/overseer', icon: Eye, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Alerts', href: '/dashboard/alerts', icon: AlertTriangle, roles: ['admin', 'user'], module: 'detect' },
     ]
   },
@@ -138,6 +140,7 @@ const ESSENTIAL_ITEMS = new Set([
   '/dashboard/interactions', // Interactions (enterprise tracking)
   '/dashboard/receipts',  // Trust Receipts
   '/dashboard/risk',      // Risk & Compliance
+  '/dashboard/overseer',  // Overseer Analytics
   '/dashboard/alerts',    // Alerts
   '/dashboard/lab/resonance', // Resonance Lab (Third Mind)
   '/dashboard/lab/emergence', // Emergence Lab (Bedau detection)
