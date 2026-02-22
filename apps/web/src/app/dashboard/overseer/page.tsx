@@ -215,6 +215,12 @@ export default function OverseerHub() {
                       </p>
                     </div>
 
+                    <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-4">
+                      <p className="text-sm text-amber-200">
+                        <strong>Context:</strong> Early prototyping conversations included manual credential sharing during development. Overseer correctly flags these as high-risk patterns under current governance policies. This reflects early-stage necessity, not architectural flaws—modern SONATE prevents such patterns entirely.
+                      </p>
+                    </div>
+
                     <div className="border-l-4 border-primary pl-4">
                       <h3 className="font-semibold mb-2">Framework Validation</h3>
                       <p className="text-sm text-muted-foreground mb-3">
