@@ -1,10 +1,15 @@
-SONATE Platform - Proprietary License
+SONATE Platform - Proprietary Source-Available License
 
 Copyright (c) 2024-2026 Yseeku Pty Ltd. All Rights Reserved.
 
 NOTICE: This software and associated documentation files (the "Software") are
 proprietary and confidential. The Software is made available for viewing and
 reference purposes only ("Source Available").
+
+IMPORTANT: Some components of this platform are MIT-licensed (open source).
+See LICENSING.md for a complete breakdown of which components are open,
+which are proprietary, and our philosophy on verification, transparency,
+and standards.
 
 PERMISSIONS:
 - You MAY view and study the source code for personal, educational purposes
@@ -18,10 +23,19 @@ RESTRICTIONS:
 - You MAY NOT sublicense, sell, or transfer the Software
 - You MAY NOT remove or alter any proprietary notices
 
+EXCEPTIONS:
+MIT-licensed components within this repository are exempted from the above
+restrictions. See LICENSING.md for the complete list.
+
 CONTRIBUTIONS:
 By submitting a pull request or contribution, you agree to assign all rights
 to Yseeku Pty Ltd and grant a perpetual, irrevocable license to use your
 contribution in any way.
+
+VERIFICATION & OPEN STANDARDS:
+- Verification SDKs (MIT): https://github.com/s8ken/sonate-verify-sdk
+- Specifications (public domain): Trust Receipt Specification v1.0
+- Anyone can independently verify SONATE trust receipts without our infrastructure
 
 COMMERCIAL LICENSING:
 For commercial use, enterprise licensing, or partnership inquiries, contact:
@@ -31,5 +45,3 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED. IN NO EVENT SHALL YSEEKU PTY LTD BE LIABLE FOR ANY CLAIM, DAMAGES,
 OR OTHER LIABILITY ARISING FROM THE USE OF THE SOFTWARE.
 
-For verification SDKs and client libraries under MIT license, see:
-  https://github.com/s8ken/sonate-verify-sdk
