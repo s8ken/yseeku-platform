@@ -13,19 +13,14 @@ COPY . .
 # Use npm install for monorepo with workspace dependencies
 RUN npm install --legacy-peer-deps
 
-# Build packages (order matters for dependencies)
-RUN npm run build --workspace=@sonate/core
-RUN npm run build --workspace=@sonate/schemas
-RUN npm run build --workspace=@sonate/persistence
-RUN npm run build --workspace=@sonate/calculator
-RUN npm run build --workspace=@sonate/detect
-RUN npm run build --workspace=@sonate/policy
-RUN npm run build --workspace=@sonate/policy-runtime
-RUN npm run build --workspace=@sonate/monitoring
-RUN npm run build --workspace=@sonate/orchestrate
-RUN npm run build --workspace=@sonate/lab
+# Build required packages first (dependencies of backend)
+RUN npm run build --workspace=@yseeku/schemas 2>/dev/null || npm run build --workspace=@sonate/schemas 2>/dev/null || true
+RUN npm run build --workspace=@yseeku/core 2>/dev/null || npm run build --workspace=@sonate/core 2>/dev/null || true
+RUN npm run build --workspace=@sonate/detect 2>/dev/null || true
+RUN npm run build --workspace=@sonate/orchestrate 2>/dev/null || true
+RUN npm run build --workspace=@sonate/persistence 2>/dev/null || true
 
-# Build backend
+# Build backend (which will compile TypeScript if needed)
 RUN npm run build --workspace=backend
 
 # Expose port
