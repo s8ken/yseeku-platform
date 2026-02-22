@@ -2,31 +2,32 @@
 // MIGRATION: This file now delegates to @sonate/calculator (V2)
 // The legacy implementation has been removed in favor of the single source of truth.
 
-import {
-  CalculatorV2,
-  Transcript,
-  RobustResonanceResult,
-  ExplainedResonance,
-  EvidenceChunk,
-  DimensionEvidence
-} from '@sonate/calculator';
+// DISABLED: @sonate/calculator not yet built - disabling all exports
+// import {
+//   CalculatorV2,
+//   Transcript,
+//   RobustResonanceResult,
+//   ExplainedResonance,
+//   EvidenceChunk,
+//   DimensionEvidence
+// } from '@sonate/calculator';
 
-// Export types for backward compatibility
-export {
-  Transcript,
-  RobustResonanceResult,
-  ExplainedResonance,
-  EvidenceChunk,
-  DimensionEvidence
-};
+// // Export types for backward compatibility
+// export {
+//   Transcript,
+//   RobustResonanceResult,
+//   ExplainedResonance,
+//   EvidenceChunk,
+//   DimensionEvidence
+// };
 
-/**
- * Enhanced main function with all mathematical improvements
- * Delegates fully to CalculatorV2
- */
-export async function robustSonateResonance(transcript: Transcript): Promise<RobustResonanceResult> {
-  return CalculatorV2.compute(transcript);
-}
+// /**
+//  * Enhanced main function with all mathematical improvements
+//  * Delegates fully to CalculatorV2
+//  */
+// export async function robustSonateResonance(transcript: Transcript): Promise<RobustResonanceResult> {
+//   return CalculatorV2.compute(transcript);
+// }
 
 /**
  * Explainable resonance function with detailed evidence

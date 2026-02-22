@@ -56,25 +56,28 @@ export interface AIInteraction {
 }
 
 // New V2.1 Exports
-export { RobustResonanceResult, Transcript } from './calculator';
+// DISABLED: @sonate/calculator not yet built
+// export { RobustResonanceResult, Transcript } from './calculator';
 export { resonanceWithStickiness, StickyResonance, SessionState } from './stickiness';
 export { adversarialCheck, AdversarialEvidence } from '@sonate/core';
 export { classifyStakes, StakesEvidence } from '@sonate/core';
 export { applyModelBiasCorrection, normalizeScore, normalizeEmbedding } from '@sonate/core';
-export {
-  CalculatorV2,
-  CANONICAL_WEIGHTS as CANONICAL_WEIGHTS_V2,
-  DYNAMIC_THRESHOLDS as DYNAMIC_THRESHOLDS_V2,
-} from '@sonate/calculator';
+// DISABLED: @sonate/calculator not yet built
+// export {
+//   CalculatorV2,
+//   CANONICAL_WEIGHTS as CANONICAL_WEIGHTS_V2,
+//   DYNAMIC_THRESHOLDS as DYNAMIC_THRESHOLDS_V2,
+// } from '@sonate/calculator';
 
 // Re-export specific methods for backward compatibility if needed, 
 // strictly delegating to CalculatorV2
-export {
-  robustSonateResonance,
-  robustSonateResonance as robustSonateResonanceV2,
-  explainableSonateResonance,
-  explainableSonateResonance as explainableSonateResonanceV2
-} from './calculator';
+// DISABLED: @sonate/calculator not yet built
+// export {
+//   robustSonateResonance,
+//   robustSonateResonance as robustSonateResonanceV2,
+//   explainableSonateResonance,
+//   explainableSonateResonance as explainableSonateResonanceV2
+// } from './calculator';
 
 // Resonance Engine Client
 export {
