@@ -114,6 +114,11 @@ export const overseerApi = {
       body: JSON.stringify({ mode }),
     });
   },
+
+  async getArchiveReport(): Promise<any> {
+    const res = await fetchAPI<{ success: boolean; data: any }>('/api/overseer/archive-report');
+    return res.data;
+  },
 };
 
 export default overseerApi;

@@ -40,6 +40,7 @@ import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
 import { WithDemoWatermark } from '@/components/demo-watermark';
 import { useTrustAnalytics, useDashboardKPIs } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
+import overseerApi from '@/lib/api/overseer';
 
 interface Analytics {
   averageTrustScore: number;
@@ -65,9 +66,39 @@ export default function TrustAnalyticsPage() {
   const { data: analyticsData, isLoading, refetch } = useTrustAnalytics();
   const { data: kpisData } = useDashboardKPIs();
   const [timeRange, setTimeRange] = useState({ days: 7, start: '', end: '' });
+  const [realReport, setRealReport] = useState<any>(null);
 
-  // Build analytics from the demo-aware data
-  const analytics = analyticsData ? {
+  useEffect(() => {
+    // Try to load real archive report if available
+    const loadRealData = async () => {
+      try {
+        const report = await overseerApi.getArchiveReport();
+        if (report) {
+          setRealReport(report);
+          toast.success('Loaded real archive analysis data');
+        }
+      } catch (e) {
+        console.log('Using demo data (Archive report not found)');
+      }
+    };
+    loadRealData();
+  }, []);
+
+  // Build analytics from real report if available, otherwise use demo data
+  const analytics = realReport ? {
+    averageTrustScore: realReport.stats.trustProtocolRates.PASS * 10 / (realReport.stats.totalConversations || 1), // Rough approx
+    totalInteractions: realReport.stats.totalConversations,
+    passRate: (realReport.stats.trustProtocolRates.PASS / realReport.stats.totalConversations) * 100,
+    partialRate: (realReport.stats.trustProtocolRates.PARTIAL / realReport.stats.totalConversations) * 100,
+    failRate: (realReport.stats.trustProtocolRates.FAIL / realReport.stats.totalConversations) * 100,
+    commonViolations: [], // Not in summary stats, would need deep dive
+    recentTrends: [], // Static snapshot
+    principleScores: {
+      reality: realReport.conversations.reduce((acc: number, c: any) => acc + c.fiveD.realityIndexAvg, 0) / realReport.stats.totalConversations,
+      ethical: realReport.conversations.reduce((acc: number, c: any) => acc + c.fiveD.ethicalAlignmentAvg, 0) / realReport.stats.totalConversations * 2, // Scale to 10
+      canvas: realReport.conversations.reduce((acc: number, c: any) => acc + c.fiveD.canvasParityAvg, 0) / realReport.stats.totalConversations / 10, // Scale to 10
+    }
+  } : (analyticsData ? {
     averageTrustScore: analyticsData.averageTrustScore || 0,
     totalInteractions: analyticsData.totalInteractions || 0,
     passRate: analyticsData.passRate || 0,
@@ -76,7 +107,7 @@ export default function TrustAnalyticsPage() {
     commonViolations: analyticsData.commonViolations || [],
     recentTrends: analyticsData.recentTrends || [],
     principleScores: analyticsData.principleScores || {},
-  } : null;
+  } : null);
 
   const loadAnalytics = async () => {
     refetch();
