@@ -77,6 +77,7 @@ async function authMiddleware(req: NextRequest): Promise<NextResponse> {
 export const middleware = authMiddleware;
 
 export const config = {
-  // Only protect authenticated routes - exclude the public overseer dashboard
+  // Only protect authenticated dashboard routes
+  // Exclude: /demo (public demo), /dashboard (hub), /dashboard/overseer (public analytics)
   matcher: ['/dashboard/(trust|settings|analytics|agents|profile|chat)/:path*']
 };

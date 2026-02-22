@@ -71,7 +71,7 @@ export async function fetchAPI<T>(
   if (!token && typeof window !== 'undefined' && !isAuthInitEndpoint) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+      const timeout = setTimeout(() => controller.abort(), 8000); // 8 second timeout
 
       const guestRes = await fetch(`${API_BASE}/api/auth/guest`, {
         method: 'POST',
@@ -94,6 +94,7 @@ export async function fetchAPI<T>(
       }
     } catch (e) {
       // Silent fail for auto guest login (timeout, network error, etc)
+      console.warn('Auto guest login failed, continuing:', (e as Error)?.message);
     }
   }
 
@@ -121,7 +122,7 @@ export async function fetchAPI<T>(
   
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout for main API calls
+    const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout for main API calls
 
     const response = await fetch(fullUrl, {
       ...options,
@@ -137,7 +138,7 @@ export async function fetchAPI<T>(
         // Don't clear existing token until we've tried to refresh
         try {
           const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+          const timeout = setTimeout(() => controller.abort(), 8000); // 8 second timeout
 
           const guestRes = await fetch(`${API_BASE}/api/auth/guest`, {
             method: 'POST',
