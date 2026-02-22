@@ -18,17 +18,24 @@ class SocketService {
 
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
-    this.socket = io(SOCKET_URL, {
-      auth: {
-        token
-      },
-      transports: ['websocket'],
-      autoConnect: true,
-      reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 500,
-      reconnectionDelayMax: 5000,
-    });
+    try {
+      this.socket = io(SOCKET_URL, {
+        auth: {
+          token
+        },
+        transports: ['websocket'],
+        autoConnect: true,
+        connectTimeout: 5000,  // Fail fast if backend unreachable
+        reconnection: true,
+        reconnectionAttempts: 3,  // Reduced from 10 to fail faster
+        reconnectionDelay: 500,
+        reconnectionDelayMax: 2000,  // Reduced from 5000
+      });
+    } catch (error) {
+      console.warn('Failed to initialize Socket.IO:', error);
+      // Don't throw - graceful degradation if socket fails
+      return;
+    }
 
     this.socket.on('connect', () => {
       // Connection status is tracked via useSocket hook
