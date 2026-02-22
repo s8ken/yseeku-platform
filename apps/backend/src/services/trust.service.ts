@@ -712,10 +712,12 @@ export class TrustService {
     // Get or create phase-shift tracker for this conversation
     let tracker = this.phaseShiftTrackers.get(conversationId);
     if (!tracker) {
-      tracker = new ConversationalMetrics({
-        yellowThreshold: TrustService.PHASE_SHIFT_YELLOW_THRESHOLD,
-        redThreshold: TrustService.PHASE_SHIFT_RED_THRESHOLD,
-      });
+      // ConversationalMetrics is disabled - package @sonate/lab not ready
+      // tracker = new ConversationalMetrics({
+      //   yellowThreshold: TrustService.PHASE_SHIFT_YELLOW_THRESHOLD,
+      //   redThreshold: TrustService.PHASE_SHIFT_RED_THRESHOLD,
+      // });
+      tracker = {} as any; // Placeholder
       this.phaseShiftTrackers.set(conversationId, tracker);
     }
 
