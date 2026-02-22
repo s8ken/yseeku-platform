@@ -22,11 +22,6 @@ async function authMiddleware(req: NextRequest): Promise<NextResponse> {
     return NextResponse.next();
   }
 
-  // Skip auth for overseer dashboard (public analytics)
-  if (pathname.startsWith('/dashboard/overseer')) {
-    return NextResponse.next();
-  }
-
   const auth = req.headers.get('authorization');
   const cookieToken = req.cookies.get('session_token')?.value;
   const BEARER_PREFIX_LENGTH = 7;
@@ -71,5 +66,6 @@ async function authMiddleware(req: NextRequest): Promise<NextResponse> {
 export const middleware = authMiddleware;
 
 export const config = {
-  matcher: ['/dashboard/:path*']
+  // Only protect authenticated routes - exclude the public overseer dashboard
+  matcher: ['/dashboard/(trust|settings|analytics|agents|profile|chat)/:path*']
 };
