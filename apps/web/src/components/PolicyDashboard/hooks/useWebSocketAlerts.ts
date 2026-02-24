@@ -20,7 +20,7 @@ export const useWebSocketAlerts = (autoConnect = true): UseWebSocketAlertsReturn
     if (!autoConnect) return;
 
     // Connect to WebSocket server
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001';
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'ws://localhost:3001';
     const newSocket = io(wsUrl.replace('ws://', 'http://'), {
       reconnection: true,
       reconnectionDelay: 1000,

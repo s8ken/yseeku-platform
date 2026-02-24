@@ -32,7 +32,7 @@ export const useMetricsData = (
   const fetchMetrics = useCallback(async () => {
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || '';
       const endpoint = agentDid
         ? `${apiUrl}/api/v2/policy/metrics/${agentDid}`
         : `${apiUrl}/api/v2/policy/stats`;

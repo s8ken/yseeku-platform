@@ -8,7 +8,8 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { TrustReceiptCard, TrustReceiptCompact } from '../receipt-components';
+import { TrustReceiptCard } from './TrustReceiptCard';
+import { TrustReceiptCompact } from './TrustReceiptCompact';
 
 // Mock receipt data
 const mockReceipt = {
