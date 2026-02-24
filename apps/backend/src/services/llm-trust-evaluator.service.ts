@@ -16,7 +16,7 @@ import { DetectionResult } from '@sonate/detect';
 import { IMessage } from '../models/conversation.model';
 import { keysService } from './keys.service';
 import { didService } from './did.service';
-import { ReceiptGeneratorService } from './receipts/receipt-generator';
+import { getReceiptGenerator } from './receipts/receipt-generator';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 
@@ -140,7 +140,7 @@ Respond ONLY with valid JSON in this exact format:
 export class LLMTrustEvaluator {
   private defaultProvider: string = 'anthropic';
   private defaultModel: string = 'claude-3-haiku-20240307'; // Fast and cheap for evaluation
-  private receiptGenerator = new ReceiptGeneratorService();
+  private receiptGenerator = getReceiptGenerator();
   private tenantId?: string;
   private industryType?: string;
 

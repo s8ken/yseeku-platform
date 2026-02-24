@@ -340,6 +340,22 @@ export class ReceiptGeneratorService {
   }
 
   /**
+   * Restore chain state from a persisted receipt (called at server startup).
+   *
+   * After a restart the in-memory chain resets to GENESIS. Call this once,
+   * after the database connection is established, to resume the chain from
+   * where it left off so new receipts link correctly to prior ones.
+   */
+  restoreChainState(chainHash: string, chainLength: number): void {
+    this.previousHash = chainHash;
+    this.chainLength = chainLength;
+    logger.info('Receipt chain state restored', {
+      chainLength,
+      previousHash: `${chainHash.substring(0, 16)}...`,
+    });
+  }
+
+  /**
    * Reset chain state (useful for testing or new sessions)
    */
   resetChainState() {

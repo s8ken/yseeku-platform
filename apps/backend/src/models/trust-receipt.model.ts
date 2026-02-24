@@ -18,6 +18,8 @@ export interface ITrustReceipt extends Document {
     quality: number;
   };
   previous_hash?: string;
+  chain_hash?: string;
+  chain_length?: number;
   signature?: string;
   session_nonce?: string;
   tenant_id?: string;
@@ -99,6 +101,11 @@ const TrustReceiptSchema = new Schema<ITrustReceipt>({
     quality: Number,
   },
   previous_hash: String,
+  chain_hash: {
+    type: String,
+    index: true,
+  },
+  chain_length: Number,
   signature: String,
   session_nonce: String,
   tenant_id: {

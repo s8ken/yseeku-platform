@@ -85,6 +85,8 @@ import { createTenantRateLimiter } from './middleware/tenant-rate-limit';
 import { initCrypto } from '@sonate/core';
 import { setIoInstance } from './utils/socket'; // Import setIoInstance
 import { keysService } from './services/keys.service'; // Import for eager initialization
+import { TrustReceiptModel } from './models/trust-receipt.model';
+import { getReceiptGenerator } from './services/receipts/receipt-generator';
 // Note: input-validation.ts provides additional sanitization and security features
 // Available for use on sensitive routes requiring extra validation
 // import { sanitizeInput } from './middleware/input-validation';
@@ -283,6 +285,23 @@ async function startServer() {
       host: 'MongoDB',
       status: 'connected',
     });
+
+    // Restore receipt chain state from the most recent persisted receipt so
+    // new receipts link correctly across server restarts and deploys.
+    try {
+      const latestReceipt = await TrustReceiptModel
+        .findOne({ chain_hash: { $exists: true, $ne: null } })
+        .sort({ chain_length: -1 })
+        .lean();
+      if (latestReceipt?.chain_hash && latestReceipt?.chain_length != null) {
+        getReceiptGenerator().restoreChainState(latestReceipt.chain_hash, latestReceipt.chain_length);
+      } else {
+        logger.info('Receipt chain state: no persisted chain found, starting from genesis');
+      }
+    } catch (chainErr: unknown) {
+      const msg = chainErr instanceof Error ? chainErr.message : String(chainErr);
+      logger.warn('Failed to restore receipt chain state, proceeding from genesis', { error: msg });
+    }
 
     const adminEmail = process.env.ADMIN_EMAIL;
     const adminPassword = process.env.ADMIN_PASSWORD;

@@ -136,6 +136,8 @@ router.post(
             quality: 0,
           },
           previous_hash: receipt.chain?.previous_hash,
+          chain_hash: receipt.chain?.chain_hash,
+          chain_length: receipt.chain?.chain_length,
           signature: receipt.signature?.value,
           tenant_id: (req as any).tenant || 'default',
           issuer: receipt.agent_did,
