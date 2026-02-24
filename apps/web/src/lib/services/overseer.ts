@@ -74,7 +74,7 @@ export function parseArchiveReport(markdown: string): ArchiveReport {
   const lines = markdown.split('\n')
   
   // Extract statistics section
-  const trustMatch = markdown.match(/High:\s*(\d+).*?Medium:\s*(\d+).*?Low:\s*(\d+)/s)
+  const trustMatch = markdown.match(/High:\s*(\d+)[\s\S]*?Medium:\s*(\d+)[\s\S]*?Low:\s*(\d+)/)
   const trust: TrustDistribution = {
     high: trustMatch ? parseInt(trustMatch[1]) : 0,
     medium: trustMatch ? parseInt(trustMatch[2]) : 0,
@@ -82,7 +82,7 @@ export function parseArchiveReport(markdown: string): ArchiveReport {
   }
   
   // Extract drift events
-  const driftMatch = markdown.match(/(\d+)\s*extreme.*?(\d+)\s*critical.*?(\d+)\s*moderate/is)
+  const driftMatch = markdown.match(/(\d+)\s*extreme[\s\S]*?(\d+)\s*critical[\s\S]*?(\d+)\s*moderate/i)
   const drift: DriftMetrics = {
     extreme: driftMatch ? parseInt(driftMatch[1]) : 0,
     critical: driftMatch ? parseInt(driftMatch[2]) : 0,

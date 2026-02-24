@@ -47,8 +47,6 @@ export function Login() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: { username: string; password: string; tenant: string }) => {
-      console.log('Login attempt with:', { email: data.username, tenant: data.tenant, hasCsrf: !!csrfToken });
-
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -64,9 +62,7 @@ export function Login() {
         }),
       });
 
-      console.log('Login response status:', response.status);
       const responseData = await response.json().catch(() => ({}));
-      console.log('Login response data:', responseData);
 
       if (!response.ok) {
         throw new Error(responseData.message || responseData.error || `Login failed (${response.status})`);

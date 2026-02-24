@@ -1,9 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { getAuthToken, setAuthToken, clearAuthToken } from '@/lib/api/client';
 
 interface User {
   username: string;
+  role?: string;
 }
 
 interface AuthContextType {
@@ -11,13 +13,9 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string, tenant?: string) => Promise<void>;
   logout: () => void;
-  refreshToken: () => Promise<void>;
 }
-
-const TOKEN_KEY = 'auth_token';
-const EXPIRY_KEY = 'auth_expiry';
 
 export const useAuth = (): AuthContextType => {
   const [user, setUser] = useState<User | null>(null);
@@ -27,116 +25,72 @@ export const useAuth = (): AuthContextType => {
 
   // Initialize from localStorage on mount
   useEffect(() => {
-    const savedToken = localStorage.getItem(TOKEN_KEY);
-    const expiry = localStorage.getItem(EXPIRY_KEY);
+    const savedToken = getAuthToken();
 
-    if (savedToken && expiry) {
-      const now = Date.now();
-      if (now < parseInt(expiry)) {
-        setToken(savedToken);
-        setIsAuthenticated(true);
-        // Decode token to get username (simple JWT decode without verification)
-        try {
-          const parts = savedToken.split('.');
-          if (parts.length === 3) {
-            const decoded = JSON.parse(atob(parts[1]));
-            setUser({ username: decoded.username });
-          }
-        } catch (err) {
-          console.error('Failed to decode token:', err);
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(EXPIRY_KEY);
+    if (savedToken) {
+      setToken(savedToken);
+      setIsAuthenticated(true);
+      // Decode token payload (without verification — that's the server's job)
+      try {
+        const parts = savedToken.split('.');
+        if (parts.length === 3) {
+          const decoded = JSON.parse(atob(parts[1]));
+          setUser({ username: decoded.username, role: decoded.role });
         }
-      } else {
-        // Token expired
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(EXPIRY_KEY);
+      } catch {
+        clearAuthToken();
       }
     }
     setIsLoading(false);
   }, []);
 
-  const login = useCallback(async (username: string, password: string) => {
+  const login = useCallback(async (username: string, password: string, tenant?: string) => {
     setIsLoading(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${apiUrl}/api/v2/auth/login`, {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, tenant }),
       });
 
       if (!response.ok) {
-        throw new Error('Login failed');
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Login failed');
       }
 
       const data = await response.json();
-      const { token: newToken, expiresIn } = data;
+      const newToken = data.token;
 
-      // Calculate expiry time
-      const expiryTime = Date.now() + expiresIn * 1000;
-
-      // Store token and expiry
-      localStorage.setItem(TOKEN_KEY, newToken);
-      localStorage.setItem(EXPIRY_KEY, expiryTime.toString());
-
+      setAuthToken(newToken);
       setToken(newToken);
-      setUser({ username });
-      setIsAuthenticated(true);
 
-      // Set up token refresh before expiry
-      setTimeout(() => {
-        refreshToken();
-      }, (expiresIn - 60) * 1000); // Refresh 60 seconds before expiry
+      // Decode user from token
+      try {
+        const parts = newToken.split('.');
+        if (parts.length === 3) {
+          const decoded = JSON.parse(atob(parts[1]));
+          setUser({ username: decoded.username, role: decoded.role });
+        }
+      } catch {
+        setUser({ username });
+      }
+
+      setIsAuthenticated(true);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(EXPIRY_KEY);
+    clearAuthToken();
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('user');
+      sessionStorage.removeItem('tenant');
+    }
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
   }, []);
-
-  const refreshToken = useCallback(async () => {
-    if (!token) return;
-
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${apiUrl}/api/v2/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Token refresh failed');
-      }
-
-      const data = await response.json();
-      const { token: newToken, expiresIn } = data;
-
-      const expiryTime = Date.now() + expiresIn * 1000;
-
-      localStorage.setItem(TOKEN_KEY, newToken);
-      localStorage.setItem(EXPIRY_KEY, expiryTime.toString());
-
-      setToken(newToken);
-
-      // Schedule next refresh
-      setTimeout(() => {
-        refreshToken();
-      }, (expiresIn - 60) * 1000);
-    } catch (err) {
-      console.error('Token refresh failed:', err);
-      logout();
-    }
-  }, [token]);
 
   return {
     user,
@@ -145,6 +99,5 @@ export const useAuth = (): AuthContextType => {
     isAuthenticated,
     login,
     logout,
-    refreshToken,
   };
 };

@@ -88,3 +88,6 @@ symbi_resonance_calculator.py
 # Build outputs (dist directories)
 **/dist/
 dist/
+
+# Claude Code worktrees
+.claude/

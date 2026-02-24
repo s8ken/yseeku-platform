@@ -105,10 +105,7 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
     setVerificationResult(null);
     try {
       // Pass the full receipt data for cryptographic verification
-      console.log('[Verify] Starting verification for hash:', receipt.hash);
-      console.log('[Verify] Receipt data:', receipt.receiptData);
       const result = await api.verifyTrustReceipt(receipt.hash, receipt.receiptData);
-      console.log('[Verify] Result:', result);
       setVerificationResult(result.valid ? 'success' : 'fail');
     } catch (err) {
       console.error('[Verify] Verification failed:', err);

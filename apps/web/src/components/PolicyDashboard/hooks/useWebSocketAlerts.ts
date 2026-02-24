@@ -30,20 +30,18 @@ export const useWebSocketAlerts = (autoConnect = true): UseWebSocketAlertsReturn
 
     newSocket.on('connect', () => {
       setIsConnected(true);
-      console.log('WebSocket connected');
     });
 
     newSocket.on('disconnect', () => {
       setIsConnected(false);
-      console.log('WebSocket disconnected');
     });
 
     newSocket.on('alert', (alert: Alert) => {
       setAlerts((prev) => [alert, ...prev.slice(0, 999)]);
     });
 
-    newSocket.on('subscribed', (data) => {
-      console.log('Subscribed to alerts:', data);
+    newSocket.on('subscribed', () => {
+      // Subscription confirmed
     });
 
     setSocket(newSocket);

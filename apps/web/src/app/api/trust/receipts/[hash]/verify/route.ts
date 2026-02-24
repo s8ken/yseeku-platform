@@ -6,9 +6,9 @@ const BACKEND_URL = process.env.INTERNAL_API_URL ?? process.env.BACKEND_URL ?? '
 // GET handler for simple verification by hash
 export async function GET(
     request: NextRequest,
-    { params }: { params: { hash: string } }
+    { params }: { params: Promise<{ hash: string }> }
 ): Promise<NextResponse> {
-    const hash = params.hash;
+    const { hash } = await params;
 
     try {
         // Get auth token from request headers
@@ -36,9 +36,9 @@ export async function GET(
 // POST handler for verification with full receipt data
 export async function POST(
     request: NextRequest,
-    { params }: { params: { hash: string } }
+    { params }: { params: Promise<{ hash: string }> }
 ): Promise<NextResponse> {
-    const hash = params.hash;
+    const { hash } = await params;
 
     try {
         const authHeader = request.headers.get('Authorization');
@@ -59,7 +59,6 @@ export async function POST(
 
         // If backend doesn't have it (404), fallback to local verification of the provided data
         if (!backendResponse.ok && backendResponse.status === 404) {
-            console.log('Backend returned 404 for verification, falling back to local check');
             return fallbackVerification(hash);
         }
 

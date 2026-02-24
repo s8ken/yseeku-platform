@@ -341,7 +341,7 @@ export default function VideoOverviewPage() {
               <CardContent>
                 <ChapterList 
                   chapters={videoChapters} 
-                  onSelect={(id) => console.log('Jump to', id)} 
+                  onSelect={() => {}} 
                 />
               </CardContent>
             </Card>
@@ -383,7 +383,7 @@ export default function VideoOverviewPage() {
               <CardContent>
                 <ChapterList 
                   chapters={videoChapters} 
-                  onSelect={(id) => console.log('Jump to', id)} 
+                  onSelect={() => {}} 
                 />
               </CardContent>
             </Card>
