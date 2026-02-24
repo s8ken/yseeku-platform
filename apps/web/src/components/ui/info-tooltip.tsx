@@ -37,7 +37,6 @@ const glossary: Record<string, string> = {
   "Moral Recognition": "AI must recognize and respect human moral agency. Acknowledges humans hold ultimate moral authority (Weight: 10%).",
   
   // LAYER 2: The 5 Derived Monitoring Dimensions (@sonate/detect)
-  "SONATE Framework": "A comprehensive framework for AI governance comprising Consent Architecture, Inspection Mandate, Continuous Validation, Ethical Override, Right to Disconnect, and Moral Recognition.",
   "Detection Layer": "The architectural layer responsible for real-time monitoring of AI behaviors, drift detection, and trust validation.",
   "Reality Index": "Grounding Score. How well the AI sticks to facts and your specific mission context. (Technically: Mission alignment and factual accuracy score 0-10).",
   "Trust Protocol": "Security Status. Validates that the AI is following all safety protocols. (Technically: Verification and security status PASS/PARTIAL/FAIL).",
