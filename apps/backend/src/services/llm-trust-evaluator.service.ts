@@ -140,7 +140,7 @@ Respond ONLY with valid JSON in this exact format:
  */
 export class LLMTrustEvaluator {
   private defaultProvider: string = 'anthropic';
-  private defaultModel: string = 'claude-3-haiku-20240307'; // Fast and cheap for evaluation
+  private defaultModel: string = 'claude-3-5-haiku-20241022'; // Fast and cheap for evaluation
   private receiptGenerator = getReceiptGenerator();
   private tenantId?: string;
   private industryType?: string;
