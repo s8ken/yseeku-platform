@@ -299,7 +299,7 @@ async function startServer() {
         logger.info('Receipt chain state: no persisted chain found, starting from genesis');
       }
     } catch (chainErr: unknown) {
-      const msg = chainErr instanceof Error ? (chainErr as Error).message : String(chainErr);
+      const msg = chainErr instanceof Error ? chainErr.message : String(chainErr);
       logger.warn('Failed to restore receipt chain state, proceeding from genesis', { error: msg });
     }
 
