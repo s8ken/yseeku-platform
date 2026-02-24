@@ -33,8 +33,19 @@
 // The functions and constants below referenced CalculatorV2 which doesn't exist,
 // causing a ReferenceError at runtime. Stubbed until the calculator package ships.
 
-export type Transcript = unknown;
-export type ExplainedResonance = unknown;
+export interface Transcript {
+  text: string;
+  turns?: { role: string; content: string }[];
+}
+
+export interface ExplainedResonance {
+  r_m: number;
+  stakes: { level: string; score: number };
+  adversarial: { detected: boolean; score: number };
+  breakdown: Record<string, number>;
+  top_evidence: string[];
+  audit_trail: string[];
+}
 
 /**
  * Explainable resonance function with detailed evidence

@@ -22,13 +22,10 @@ export interface AIInteraction {
     context: string;
     metadata: Record<string, any>;
 }
-export { RobustResonanceResult, Transcript } from './calculator';
 export { resonanceWithStickiness, StickyResonance, SessionState } from './stickiness';
 export { adversarialCheck, AdversarialEvidence } from '@sonate/core';
 export { classifyStakes, StakesEvidence } from '@sonate/core';
 export { applyModelBiasCorrection, normalizeScore, normalizeEmbedding } from '@sonate/core';
-export { CalculatorV2, CANONICAL_WEIGHTS as CANONICAL_WEIGHTS_V2, DYNAMIC_THRESHOLDS as DYNAMIC_THRESHOLDS_V2, } from '@sonate/calculator';
-export { robustSonateResonance, robustSonateResonance as robustSonateResonanceV2, explainableSonateResonance, explainableSonateResonance as explainableSonateResonanceV2 } from './calculator';
 export { ResonanceClient, InteractionData, SonateDimensions, ResonanceReceipt, } from './ResonanceClient';
 export { BedauIndexCalculator, createBedauIndexCalculator, calculateBedauIndex, type BedauMetrics, type SemanticIntent, type SurfacePattern, } from './bedau-index';
 export { detectEmergence, type EmergenceSignal } from './emergence-detection';

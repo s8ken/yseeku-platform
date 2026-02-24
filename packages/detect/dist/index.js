@@ -14,8 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isSemanticCoprocessorEnabled = exports.semanticCoprocessor = exports.SemanticCoprocessorClient = exports.PerformanceProfiler = exports.runQuickPerformanceBenchmark = exports.createPerformanceBenchmarkingEngine = exports.PerformanceBenchmarkingEngine = exports.getWithdrawalResponse = exports.detectConsentWithdrawal = exports.validateCrossModalityCoherence = exports.analyzeCrossModalityCoherence = exports.createCrossModalityCoherenceValidator = exports.CrossModalityCoherenceValidator = exports.createEmergenceFingerprint = exports.createEmergenceFingerprintingEngine = exports.EmergenceFingerprintingEngine = exports.createTemporalBedauTracker = exports.TemporalBedauTracker = exports.detectEmergence = exports.calculateBedauIndex = exports.createBedauIndexCalculator = exports.ResonanceClient = exports.explainableSonateResonanceV2 = exports.explainableSonateResonance = exports.robustSonateResonanceV2 = exports.robustSonateResonance = exports.DYNAMIC_THRESHOLDS_V2 = exports.CANONICAL_WEIGHTS_V2 = exports.CalculatorV2 = exports.normalizeEmbedding = exports.normalizeScore = exports.applyModelBiasCorrection = exports.StakesEvidence = exports.classifyStakes = exports.AdversarialEvidence = exports.adversarialCheck = exports.resonanceWithStickiness = exports.getLLMStatus = exports.isLLMAvailable = exports.analyzeWithLLM = exports.ResonanceQualityMeasurer = exports.EthicalAlignmentScorer = exports.TrustProtocolValidator = exports.DriftDetector = exports.CalibratedSonateDetector = exports.BalancedSonateDetector = exports.EnhancedDetector = exports.OptimizedFrameworkDetector = exports.SonateFrameworkDetector = exports.VERSION = void 0;
-exports.SEMANTIC_COPROCESSOR_DEFAULT_CONFIG = void 0;
+exports.SEMANTIC_COPROCESSOR_DEFAULT_CONFIG = exports.isSemanticCoprocessorEnabled = exports.semanticCoprocessor = exports.SemanticCoprocessorClient = exports.PerformanceProfiler = exports.runQuickPerformanceBenchmark = exports.createPerformanceBenchmarkingEngine = exports.PerformanceBenchmarkingEngine = exports.getWithdrawalResponse = exports.detectConsentWithdrawal = exports.validateCrossModalityCoherence = exports.analyzeCrossModalityCoherence = exports.createCrossModalityCoherenceValidator = exports.CrossModalityCoherenceValidator = exports.createEmergenceFingerprint = exports.createEmergenceFingerprintingEngine = exports.EmergenceFingerprintingEngine = exports.createTemporalBedauTracker = exports.TemporalBedauTracker = exports.detectEmergence = exports.calculateBedauIndex = exports.createBedauIndexCalculator = exports.ResonanceClient = exports.normalizeEmbedding = exports.normalizeScore = exports.applyModelBiasCorrection = exports.classifyStakes = exports.adversarialCheck = exports.resonanceWithStickiness = exports.getLLMStatus = exports.isLLMAvailable = exports.analyzeWithLLM = exports.ResonanceQualityMeasurer = exports.EthicalAlignmentScorer = exports.TrustProtocolValidator = exports.DriftDetector = exports.CalibratedSonateDetector = exports.BalancedSonateDetector = exports.EnhancedDetector = exports.OptimizedFrameworkDetector = exports.SonateFrameworkDetector = exports.VERSION = void 0;
 exports.detect = detect;
 exports.VERSION = '2.0.1';
 /**
@@ -63,29 +62,34 @@ Object.defineProperty(exports, "getLLMStatus", { enumerable: true, get: function
 // - CanvasParityCalculator (trivially gamed, no semantic grounding)
 // Types
 __exportStar(require("./sonate-types"), exports);
+// New V2.1 Exports
+// DISABLED: @sonate/calculator not yet built
+// export { RobustResonanceResult, Transcript } from './calculator';
 var stickiness_1 = require("./stickiness");
 Object.defineProperty(exports, "resonanceWithStickiness", { enumerable: true, get: function () { return stickiness_1.resonanceWithStickiness; } });
 var core_2 = require("@sonate/core");
 Object.defineProperty(exports, "adversarialCheck", { enumerable: true, get: function () { return core_2.adversarialCheck; } });
-Object.defineProperty(exports, "AdversarialEvidence", { enumerable: true, get: function () { return core_2.AdversarialEvidence; } });
 var core_3 = require("@sonate/core");
 Object.defineProperty(exports, "classifyStakes", { enumerable: true, get: function () { return core_3.classifyStakes; } });
-Object.defineProperty(exports, "StakesEvidence", { enumerable: true, get: function () { return core_3.StakesEvidence; } });
 var core_4 = require("@sonate/core");
 Object.defineProperty(exports, "applyModelBiasCorrection", { enumerable: true, get: function () { return core_4.applyModelBiasCorrection; } });
 Object.defineProperty(exports, "normalizeScore", { enumerable: true, get: function () { return core_4.normalizeScore; } });
 Object.defineProperty(exports, "normalizeEmbedding", { enumerable: true, get: function () { return core_4.normalizeEmbedding; } });
-var calculator_1 = require("@sonate/calculator");
-Object.defineProperty(exports, "CalculatorV2", { enumerable: true, get: function () { return calculator_1.CalculatorV2; } });
-Object.defineProperty(exports, "CANONICAL_WEIGHTS_V2", { enumerable: true, get: function () { return calculator_1.CANONICAL_WEIGHTS; } });
-Object.defineProperty(exports, "DYNAMIC_THRESHOLDS_V2", { enumerable: true, get: function () { return calculator_1.DYNAMIC_THRESHOLDS; } });
+// DISABLED: @sonate/calculator not yet built
+// export {
+//   CalculatorV2,
+//   CANONICAL_WEIGHTS as CANONICAL_WEIGHTS_V2,
+//   DYNAMIC_THRESHOLDS as DYNAMIC_THRESHOLDS_V2,
+// } from '@sonate/calculator';
 // Re-export specific methods for backward compatibility if needed, 
 // strictly delegating to CalculatorV2
-var calculator_2 = require("./calculator");
-Object.defineProperty(exports, "robustSonateResonance", { enumerable: true, get: function () { return calculator_2.robustSonateResonance; } });
-Object.defineProperty(exports, "robustSonateResonanceV2", { enumerable: true, get: function () { return calculator_2.robustSonateResonance; } });
-Object.defineProperty(exports, "explainableSonateResonance", { enumerable: true, get: function () { return calculator_2.explainableSonateResonance; } });
-Object.defineProperty(exports, "explainableSonateResonanceV2", { enumerable: true, get: function () { return calculator_2.explainableSonateResonance; } });
+// DISABLED: @sonate/calculator not yet built
+// export {
+//   robustSonateResonance,
+//   robustSonateResonance as robustSonateResonanceV2,
+//   explainableSonateResonance,
+//   explainableSonateResonance as explainableSonateResonanceV2
+// } from './calculator';
 // Resonance Engine Client
 var ResonanceClient_1 = require("./ResonanceClient");
 Object.defineProperty(exports, "ResonanceClient", { enumerable: true, get: function () { return ResonanceClient_1.ResonanceClient; } });

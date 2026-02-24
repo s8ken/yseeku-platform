@@ -17,8 +17,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@sonate/schemas": "file:../../../packages/schemas",
-    "@sonate/core": "file:../../../packages/core",
+    "@sonate/schemas": "*",
+    "@sonate/core": "*",
     "chalk": "^5.3.0",
     "commander": "^11.1.0",
     "fs-extra": "^11.2.0",
