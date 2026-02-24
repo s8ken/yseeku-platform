@@ -1,0 +1,960 @@
+openapi: 3.1.0
+info:
+  title: SONATE Platform API
+  version: 2.0.0
+  description: |
+    YSEEKU SONATE — The Trust Layer for AI.
+
+    Enterprise AI governance platform implementing the SONATE constitutional trust
+    framework with cryptographically signed trust receipts, real-time policy evaluation,
+    and Ed25519 hash-chained audit trails.
+
+    ## Authentication
+    Most endpoints require a Bearer token obtained via `POST /api/auth/guest` or
+    `POST /api/auth/login`.  Pass it as `Authorization: Bearer <token>`.
+
+    ## Trust Receipt Lifecycle
+    1. User sends a chat message → backend generates an AI response
+    2. AI response is evaluated against SONATE principles → trust score computed
+    3. The receipt is Ed25519-signed, hash-chained, and persisted
+    4. Third parties can verify any receipt using the public key at
+       `/.well-known/sonate-pubkey.json`
+
+  contact:
+    name: YSEEKU
+    url: https://yseeku.com
+  license:
+    name: BSL 1.1
+    identifier: BUSL-1.1
+
+servers:
+  - url: https://yseeku-backend.fly.dev
+    description: Production (Fly.io — Sydney)
+  - url: http://localhost:4000
+    description: Local development
+
+tags:
+  - name: Auth
+    description: Authentication and token management
+  - name: Conversations
+    description: Chat sessions with AI agents and trust scoring
+  - name: Trust
+    description: Trust receipts — generate, list, verify
+  - name: Policy
+    description: SONATE constitutional policy engine
+  - name: Policy Alerts
+    description: Violation alerting and acknowledgement
+  - name: Policy Overrides
+    description: Authorized policy exception management
+  - name: Policy Audit
+    description: Audit trail and compliance reporting
+  - name: Resonance
+    description: Resonance analysis of human-AI interactions
+  - name: Public Keys
+    description: Cryptographic key discovery for receipt verification
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ═══════════════════ Health ═══════════════════════════
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      tags: [Health]
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  version: { type: string, example: "2.0.0" }
+
+  # ═══════════════════ Auth ════════════════════════════
+  /api/auth/guest:
+    post:
+      summary: Create a guest session
+      operationId: guestLogin
+      tags: [Auth]
+      security: []
+      responses:
+        "201":
+          description: Guest session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /api/auth/login:
+    post:
+      summary: Authenticate with email/username + password
+      operationId: login
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                email: { type: string, format: email }
+                username: { type: string }
+                password: { type: string, format: password }
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      operationId: register
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: { type: string, minLength: 2 }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "409":
+          description: Email already in use
+
+  # ═══════════════════ Conversations ═══════════════════
+  /api/conversations:
+    get:
+      summary: List conversations for current user
+      operationId: listConversations
+      tags: [Conversations]
+      parameters:
+        - name: archived
+          in: query
+          schema: { type: boolean }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50, maximum: 500 }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+      responses:
+        "200":
+          description: Paginated conversation list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      conversations:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Conversation"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+
+    post:
+      summary: Create a new conversation
+      operationId: createConversation
+      tags: [Conversations]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title: { type: string }
+                agentId: { type: string }
+                ciEnabled: { type: boolean, default: false }
+                contextTags: { type: array, items: { type: string } }
+      responses:
+        "201":
+          description: Conversation created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      conversation:
+                        $ref: "#/components/schemas/Conversation"
+
+  /api/conversations/{id}/messages:
+    get:
+      summary: Get messages in a conversation
+      operationId: getMessages
+      tags: [Conversations]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Message list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Message"
+
+    post:
+      summary: Send a message and receive AI response with trust receipt
+      description: |
+        This is the **core value loop endpoint**. It:
+        1. Stores the user's message
+        2. Generates an AI response via the configured agent
+        3. Evaluates the AI response against SONATE principles
+        4. Creates an Ed25519-signed, hash-chained trust receipt
+        5. Returns the message, trust score, and receipt together
+      operationId: sendMessage
+      tags: [Conversations]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string, description: User message text }
+                agentId: { type: string, description: Agent to use (optional) }
+                generateResponse: { type: boolean, default: true }
+      responses:
+        "200":
+          description: Message sent; AI response with trust evaluation returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      conversation:
+                        $ref: "#/components/schemas/Conversation"
+                      lastMessage:
+                        $ref: "#/components/schemas/Message"
+
+  # ═══════════════════ Trust ═══════════════════════════
+  /api/trust/receipts:
+    get:
+      summary: List trust receipts
+      operationId: listReceipts
+      tags: [Trust]
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+      responses:
+        "200":
+          description: Paginated receipt list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      receipts:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TrustReceipt"
+
+  /api/trust/receipts/{receiptHash}:
+    get:
+      summary: Get receipt by hash
+      operationId: getReceipt
+      tags: [Trust]
+      parameters:
+        - name: receiptHash
+          in: path
+          required: true
+          schema: { type: string, pattern: "^[a-f0-9]{64}$" }
+      responses:
+        "200":
+          description: Receipt found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    $ref: "#/components/schemas/TrustReceipt"
+        "404":
+          description: Receipt not found
+
+  /api/trust/receipts/{receiptHash}/verify:
+    post:
+      summary: Verify a trust receipt's cryptographic signature
+      description: |
+        Checks Ed25519 signature integrity and validates the receipt
+        against the platform's public key.
+      operationId: verifyReceipt
+      tags: [Trust]
+      parameters:
+        - name: receiptHash
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [receipt]
+              properties:
+                receipt:
+                  $ref: "#/components/schemas/TrustReceipt"
+      responses:
+        "200":
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      verified: { type: boolean }
+                      chain_valid: { type: boolean }
+                      signature_valid: { type: boolean }
+
+  # ═══════════════════ Resonance ═══════════════════════
+  /trust/analyze:
+    post:
+      summary: Analyze resonance between user input and AI response
+      operationId: analyzeResonance
+      tags: [Resonance]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userInput, aiResponse]
+              properties:
+                userInput: { type: string }
+                aiResponse: { type: string }
+                history: { type: array, items: { type: object } }
+      responses:
+        "200":
+          description: Resonance analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  r_m: { type: number, description: Resonance magnitude (0-1) }
+                  resonance_quality: { type: string, enum: [STRONG, ADVANCED, BREAKTHROUGH] }
+
+  # ═══════════════════ Policy Engine ═══════════════════
+  /policy/evaluate:
+    post:
+      summary: Evaluate a trust receipt against SONATE principles
+      operationId: evaluatePolicy
+      tags: [Policy]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [receipt]
+              properties:
+                receipt:
+                  $ref: "#/components/schemas/TrustReceipt"
+                principleIds:
+                  type: array
+                  items: { type: string }
+                  description: Subset of principles to evaluate (default is all)
+      responses:
+        "200":
+          description: Evaluation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    $ref: "#/components/schemas/PolicyEvaluation"
+
+  /policy/evaluate/batch:
+    post:
+      summary: Batch evaluate multiple receipts
+      operationId: evaluatePolicyBatch
+      tags: [Policy]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [receipts]
+              properties:
+                receipts:
+                  type: array
+                  maxItems: 100
+                  items:
+                    $ref: "#/components/schemas/TrustReceipt"
+                principleIds:
+                  type: array
+                  items: { type: string }
+      responses:
+        "200":
+          description: Batch result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      total: { type: integer }
+                      passed: { type: integer }
+                      failed: { type: integer }
+                      evaluationTimeMs: { type: number }
+
+  /policy/principles:
+    get:
+      summary: List SONATE principles
+      operationId: listPrinciples
+      tags: [Policy]
+      responses:
+        "200":
+          description: All registered principles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SonatePrinciple"
+
+  /policy/stats:
+    get:
+      summary: Policy engine statistics
+      operationId: policyStats
+      tags: [Policy]
+      responses:
+        "200":
+          description: Engine stats and configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      stats: { type: object }
+                      config:
+                        type: object
+                        properties:
+                          enabledPrinciples: { type: array, items: { type: string } }
+                          maxEvaluationTimeMs: { type: number }
+                          strictMode: { type: boolean }
+
+  /policy/check:
+    post:
+      summary: Quick pass/block check for a receipt
+      operationId: policyCheck
+      tags: [Policy]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [receipt]
+              properties:
+                receipt:
+                  $ref: "#/components/schemas/TrustReceipt"
+      responses:
+        "200":
+          description: Block decision
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      blocked: { type: boolean }
+                      action: { type: string, enum: [allow, block] }
+
+  # ═══════════════════ Policy Alerts ═══════════════════
+  /policy-alerts:
+    get:
+      summary: List unacknowledged violation alerts
+      operationId: listAlerts
+      tags: [Policy Alerts]
+      responses:
+        "200":
+          description: Alert list with stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      alerts: { type: array, items: { type: object } }
+                      stats: { type: object }
+
+  /policy-alerts/{id}/acknowledge:
+    post:
+      summary: Acknowledge an alert
+      operationId: acknowledgeAlert
+      tags: [Policy Alerts]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Alert acknowledged
+
+  # ═══════════════════ Policy Overrides ════════════════
+  /policy-overrides:
+    get:
+      summary: List active policy overrides
+      operationId: listOverrides
+      tags: [Policy Overrides]
+      responses:
+        "200":
+          description: Override list with stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      overrides: { type: array, items: { type: object } }
+                      stats: { type: object }
+
+    post:
+      summary: Create a policy override (admin only)
+      operationId: createOverride
+      tags: [Policy Overrides]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [principleId, reason, durationMs]
+              properties:
+                principleId: { type: string }
+                reason: { type: string }
+                durationMs: { type: integer }
+                scope: { type: string }
+      responses:
+        "201":
+          description: Override created
+
+  /policy-overrides/{id}:
+    delete:
+      summary: Revoke an override
+      operationId: revokeOverride
+      tags: [Policy Overrides]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+      responses:
+        "200":
+          description: Override revoked
+
+  # ═══════════════════ Policy Audit ════════════════════
+  /policy-audit:
+    get:
+      summary: List audit trail entries
+      operationId: listAuditEntries
+      tags: [Policy Audit]
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50, maximum: 500 }
+      responses:
+        "200":
+          description: Audit entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { type: array, items: { type: object } }
+
+  /policy-audit/compliance-report:
+    post:
+      summary: Generate compliance report for a time period
+      operationId: complianceReport
+      tags: [Policy Audit]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [startDate, endDate]
+              properties:
+                startDate: { type: string, format: date-time }
+                endDate: { type: string, format: date-time }
+      responses:
+        "200":
+          description: Compliance report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      summary:
+                        type: object
+                        properties:
+                          totalEvaluations: { type: integer }
+                          passRate: { type: number }
+                          period: { type: string }
+
+  # ═══════════════════ Policies ════════════════════════
+  /policies:
+    get:
+      summary: List all SONATE policy principles and rule counts
+      operationId: listPolicies
+      tags: [Policy]
+      responses:
+        "200":
+          description: Principle summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      principles:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/SonatePrinciple"
+                      totalRules: { type: integer }
+
+  /policies/{principleId}/rules:
+    get:
+      summary: Get rules for a specific principle
+      operationId: getRulesForPrinciple
+      tags: [Policy]
+      parameters:
+        - name: principleId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Rule list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PolicyRule"
+        "404":
+          description: Principle not found
+
+  # ═══════════════════ Public Keys ═════════════════════
+  /.well-known/sonate-pubkey.json:
+    get:
+      summary: Platform Ed25519 public key (JWK format)
+      description: |
+        Use this key to independently verify any SONATE trust receipt.
+        No authentication required. CORS enabled for all origins.
+      operationId: getPublicKey
+      tags: [Public Keys]
+      security: []
+      responses:
+        "200":
+          description: Ed25519 public key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  kty: { type: string, example: OKP }
+                  crv: { type: string, example: Ed25519 }
+                  x: { type: string, description: Base64url-encoded public key }
+                  kid: { type: string, example: sonate-trust-signing-key-v1 }
+                  use: { type: string, example: sig }
+                  alg: { type: string, example: EdDSA }
+                  sonate:
+                    type: object
+                    properties:
+                      version: { type: string }
+                      algorithm: { type: string, example: Ed25519 }
+                      keyFormat:
+                        type: object
+                        properties:
+                          hex: { type: string, description: 32-byte hex public key }
+                          base64url: { type: string }
+
+# ═══════════════════ Components ═══════════════════════
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success: { type: boolean, example: false }
+              message: { type: string }
+              error: { type: string }
+
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        success: { type: boolean }
+        message: { type: string }
+        data:
+          type: object
+          properties:
+            user:
+              type: object
+              properties:
+                id: { type: string }
+                name: { type: string }
+                email: { type: string, format: email }
+            tokens:
+              type: object
+              properties:
+                accessToken: { type: string }
+                refreshToken: { type: string }
+                expiresIn: { type: integer, example: 3600 }
+                tokenType: { type: string, example: Bearer }
+
+    Pagination:
+      type: object
+      properties:
+        total: { type: integer }
+        limit: { type: integer }
+        offset: { type: integer }
+
+    Conversation:
+      type: object
+      properties:
+        _id: { type: string }
+        title: { type: string }
+        user: { type: string }
+        agents: { type: array, items: { type: string } }
+        messages: { type: array, items: { $ref: "#/components/schemas/Message" } }
+        ciEnabled: { type: boolean }
+        contextTags: { type: array, items: { type: string } }
+        isArchived: { type: boolean }
+        lastActivity: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+
+    Message:
+      type: object
+      properties:
+        sender: { type: string, enum: [user, ai, system] }
+        content: { type: string }
+        agentId: { type: string }
+        ciModel: { type: string }
+        trustScore: { type: number, minimum: 0, maximum: 5 }
+        timestamp: { type: string, format: date-time }
+        metadata:
+          type: object
+          properties:
+            messageId: { type: string }
+            model: { type: string }
+            provider: { type: string }
+            trustEvaluation:
+              type: object
+              properties:
+                trustScore:
+                  type: object
+                  properties:
+                    overall: { type: number, minimum: 0, maximum: 10 }
+                    violations: { type: array, items: { type: string } }
+                status: { type: string, enum: [PASS, PARTIAL, FAIL] }
+                receiptHash: { type: string, description: SHA-256 hash of the trust receipt }
+                receipt:
+                  $ref: "#/components/schemas/TrustReceipt"
+                evaluatedBy: { type: string, enum: [heuristic, llm] }
+
+    TrustReceipt:
+      type: object
+      description: |
+        Ed25519-signed, hash-chained record of an AI interaction evaluation.
+        Every AI response generates a trust receipt that is independently verifiable.
+      properties:
+        id: { type: string, description: SHA-256 content hash }
+        version: { type: string, example: "2.0.0" }
+        timestamp: { type: string, format: date-time }
+        session_id: { type: string }
+        agent_did: { type: string, description: "DID of the AI agent (did:web:…)" }
+        human_did: { type: string, description: "DID of the human user" }
+        policy_version: { type: string }
+        mode: { type: string, enum: [constitutional, directive] }
+        interaction:
+          type: object
+          properties:
+            prompt: { type: string }
+            response: { type: string }
+            model: { type: string }
+        telemetry:
+          type: object
+          properties:
+            resonance_score: { type: number, minimum: 0, maximum: 1 }
+            principles: { type: object, additionalProperties: { type: number } }
+            ciq_metrics:
+              type: object
+              properties:
+                clarity: { type: number }
+                integrity: { type: number }
+                quality: { type: number }
+        chain:
+          type: object
+          properties:
+            previous_hash: { type: string }
+            chain_hash: { type: string }
+            chain_length: { type: integer }
+        signature:
+          type: object
+          properties:
+            algorithm: { type: string, example: Ed25519 }
+            value: { type: string, description: Hex-encoded Ed25519 signature }
+            public_key: { type: string, description: Hex-encoded 32-byte public key }
+            key_version: { type: string }
+            timestamp_signed: { type: string, format: date-time }
+
+    PolicyEvaluation:
+      type: object
+      properties:
+        passed: { type: boolean }
+        violations:
+          type: array
+          items:
+            type: object
+            properties:
+              ruleId: { type: string }
+              principleId: { type: string }
+              message: { type: string }
+              severity: { type: string, enum: [low, medium, high, critical] }
+        metadata:
+          type: object
+          properties:
+            evaluationTimeMs: { type: number }
+            principlesEvaluated: { type: integer }
+            rulesChecked: { type: integer }
+
+    SonatePrinciple:
+      type: object
+      properties:
+        id: { type: string, example: sentience-aware }
+        name: { type: string, example: Sentience-Aware Processing }
+        description: { type: string }
+        ruleCount: { type: integer }
+        rules: { type: array, items: { type: string } }
+
+    PolicyRule:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        severity: { type: string, enum: [low, medium, high, critical] }
+        enabled: { type: boolean }

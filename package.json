@@ -29,6 +29,7 @@
     "pre-commit": "npm run quality",
     "pre-push": "npm run build && npm run test",
     "clean": "turbo run clean && rm -rf node_modules",
+    "e2e:smoke": "node scripts/e2e-smoke.mjs",
 
     "demo:interactive": "npm run dev --workspace @sonate/new-demo",
     "version:check": "node scripts/version-sync.js",
