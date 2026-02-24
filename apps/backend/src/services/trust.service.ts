@@ -17,7 +17,8 @@ import {
   EvaluationContext
 } from '@sonate/core';
 import { TrustReceipt as TrustReceiptV2, CreateReceiptInput } from '@sonate/schemas';
-import { ReceiptGeneratorService } from './receipts/receipt-generator';
+import { getReceiptGenerator, ReceiptGeneratorService } from './receipts/receipt-generator';
+import { persistReceipt } from './receipts/persist-receipt';
 import {
   SonateFrameworkDetector,
   AIInteraction,
@@ -172,7 +173,7 @@ export class TrustService {
     this.trustValidator = new TrustProtocolValidator();
     this.ethicalScorer = new EthicalAlignmentScorer();
     this.resonanceMeasurer = new ResonanceQualityMeasurer();
-    this.receiptGenerator = new ReceiptGeneratorService();
+    this.receiptGenerator = getReceiptGenerator();
 
     // Sweep stale conversation trackers every 60 seconds
     this.sweepInterval = setInterval(() => this.sweepStaleConversations(), 60_000);
@@ -335,6 +336,11 @@ export class TrustService {
         signature: { algorithm: 'Ed25519', value: '', key_version: 'unsigned' },
       };
     }
+
+    // Persist receipt so chain tip survives restarts
+    await persistReceipt(receipt, 'default', {
+      evaluated_by: 'heuristic',
+    });
 
     // Create DID-based proof structure
     let proof: TrustEvaluation['proof'] = undefined;

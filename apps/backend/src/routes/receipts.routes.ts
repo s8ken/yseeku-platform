@@ -16,9 +16,10 @@ import { z } from 'zod';
 import { protect } from '../middleware/auth.middleware';
 import { validateBody } from '../middleware/validation.middleware';
 import {
-  ReceiptGeneratorService,
+  getReceiptGenerator,
   ReceiptValidatorService,
   ReceiptExporterService,
+  persistReceipt,
   type ExportFormat,
   type ExportFilter,
 } from '../services/receipts';
@@ -28,8 +29,8 @@ import logger from '../utils/logger';
 
 const router = Router();
 
-// Initialize services
-const generator = new ReceiptGeneratorService();
+// Initialize services — use singleton to maintain chain continuity
+const generator = getReceiptGenerator();
 const validator = new ReceiptValidatorService();
 const exporter = new ReceiptExporterService();
 
@@ -122,33 +123,8 @@ router.post(
       // Generate receipt
       const receipt = await generator.createReceipt(input, agentPrivateKey);
 
-      // Persist receipt to database
-      try {
-        await TrustReceiptModel.create({
-          self_hash: receipt.id,
-          session_id: receipt.session_id,
-          version: receipt.version,
-          timestamp: new Date(receipt.timestamp).getTime(),
-          mode: receipt.mode,
-          ciq_metrics: receipt.telemetry?.ciq_metrics || {
-            clarity: 0,
-            integrity: 0,
-            quality: 0,
-          },
-          previous_hash: receipt.chain?.previous_hash,
-          signature: receipt.signature?.value,
-          tenant_id: (req as any).tenant || 'default',
-          issuer: receipt.agent_did,
-          subject: receipt.human_did,
-        });
-        logger.info('Receipt persisted to database', { id: receipt.id });
-      } catch (dbErr: unknown) {
-        // Log but don't fail the request — the receipt was generated successfully
-        logger.warn('Failed to persist receipt to database', {
-          error: dbErr instanceof Error ? dbErr.message : String(dbErr),
-          receipt_id: receipt.id,
-        });
-      }
+      // Persist receipt to database (fire-and-forget)
+      await persistReceipt(receipt, (req as any).tenant || 'default');
 
       res.status(201).json({
         success: true,

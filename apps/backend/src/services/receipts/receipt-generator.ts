@@ -27,6 +27,35 @@ import {
 import { signPayload, generateKeyPair } from '@sonate/core';
 import logger from '../../utils/logger';
 
+/**
+ * Simple promise-based mutex to serialise createReceipt calls.
+ * Prevents two concurrent requests from reading the same previousHash
+ * and forking the chain.
+ */
+class Mutex {
+  private _queue: Array<() => void> = [];
+  private _locked = false;
+
+  async acquire(): Promise<void> {
+    if (!this._locked) {
+      this._locked = true;
+      return;
+    }
+    return new Promise<void>((resolve) => {
+      this._queue.push(resolve);
+    });
+  }
+
+  release(): void {
+    const next = this._queue.shift();
+    if (next) {
+      next();
+    } else {
+      this._locked = false;
+    }
+  }
+}
+
 interface ReceiptGeneratorConfig {
   agentKeyVersion: string;
   enableTelemetry: boolean;
@@ -44,6 +73,7 @@ export class ReceiptGeneratorService {
   private config: ReceiptGeneratorConfig;
   private previousHash: string = 'GENESIS';
   private chainLength: number = 0;
+  private readonly mutex = new Mutex();
 
   constructor(config: Partial<ReceiptGeneratorConfig> = {}) {
     this.config = {
@@ -165,6 +195,8 @@ export class ReceiptGeneratorService {
     input: CreateReceiptInput,
     agentPrivateKey: string | Buffer
   ): Promise<TrustReceipt> {
+    // Serialise chain access so concurrent requests cannot fork the chain.
+    await this.mutex.acquire();
     try {
       const now = new Date();
       const timestamp = now.toISOString();
@@ -308,6 +340,8 @@ export class ReceiptGeneratorService {
         error: err instanceof Error ? err.message : String(err),
       });
       throw err;
+    } finally {
+      this.mutex.release();
     }
   }
 
@@ -345,6 +379,30 @@ export class ReceiptGeneratorService {
   resetChainState() {
     this.previousHash = 'GENESIS';
     this.chainLength = 0;
+  }
+
+  /**
+   * Restore chain state from a persisted receipt (called at server startup).
+   *
+   * After a restart the in-memory chain resets to GENESIS. Call this once,
+   * after the database connection is established, to resume the chain from
+   * where it left off so new receipts link correctly to prior ones.
+   *
+   * @throws if the provided values are clearly invalid (corrupt DB record)
+   */
+  restoreChainState(chainHash: string, chainLength: number): void {
+    if (typeof chainHash !== 'string' || !/^[a-f0-9]{64}$/i.test(chainHash)) {
+      throw new Error(`Invalid chainHash for restore: ${chainHash}`);
+    }
+    if (typeof chainLength !== 'number' || chainLength < 1 || !Number.isInteger(chainLength)) {
+      throw new Error(`Invalid chainLength for restore: ${chainLength}`);
+    }
+    this.previousHash = chainHash;
+    this.chainLength = chainLength;
+    logger.info('Receipt chain state restored', {
+      chainLength,
+      previousHash: `${chainHash.substring(0, 16)}...`,
+    });
   }
 }
 
