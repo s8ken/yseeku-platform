@@ -4,14 +4,11 @@ import type { Server as SocketIOServer } from 'socket.io';
 import { analyzeInteraction } from './controllers/resonanceController';
 import receiptsRoutes from './routes/receipts.routes';
 import didResolverRoutes from './routes/did-resolver.routes';
-// TODO: Restore policy routes when @sonate/policy packages are ready
-// import policiesRoutes from './routes/policies.routes';
-// import { createPolicyAPIService } from './routes/policy-api';
-// import { createAlertRoutes, initializeAlertService } from './routes/policy-alerts-routes';
-// import { createOverrideRoutes, initializeOverrideManager } from './routes/policy-overrides-routes';
-// import { createAuditRoutes, initializeAuditLogger } from './routes/policy-audit-routes';
-// import { createAuditLogger } from './routes/policy-audit-logger';
-// import { createOverrideManager } from './routes/policy-override-manager';
+import policiesRoutes from './routes/policies.routes';
+import policyApiRoutes from './routes/policy-api';
+import policyAlertRoutes from './routes/policy-alerts-routes';
+import policyOverrideRoutes from './routes/policy-overrides-routes';
+import policyAuditRoutes from './routes/policy-audit-routes';
 import { authMiddleware, optionalAuthMiddleware } from './middleware/auth';
 
 let router: Router;
@@ -26,13 +23,12 @@ export function initializeRoutes(httpServer?: HTTPServer, ioInstance?: SocketIOS
   router.use('/receipts', receiptsRoutes);
   router.use('/dids', didResolverRoutes);
 
-  // Phase 2A: Policy Engine routes DISABLED
-  // TODO: Restore when @sonate/policy packages are ready
-  // router.use('/policies', policiesRoutes);
-  // Policy service initialization disabled
-  // Policy alert routes disabled
-  // Override management routes disabled
-  // Audit logging routes disabled
+  // Phase 2A: Policy Engine routes
+  router.use('/policies', policiesRoutes);
+  router.use('/policy', policyApiRoutes);
+  router.use('/policy-alerts', policyAlertRoutes);
+  router.use('/policy-overrides', policyOverrideRoutes);
+  router.use('/policy-audit', policyAuditRoutes);
 
   // The new "Third Mind" Endpoint (no auth required)
   router.post('/trust/analyze', analyzeInteraction);
