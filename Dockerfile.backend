@@ -14,8 +14,8 @@ COPY . .
 RUN npm install --legacy-peer-deps
 
 # Build required packages first (dependencies of backend)
-RUN npm run build --workspace=@yseeku/schemas 2>/dev/null || npm run build --workspace=@sonate/schemas 2>/dev/null || true
-RUN npm run build --workspace=@yseeku/core 2>/dev/null || npm run build --workspace=@sonate/core 2>/dev/null || true
+RUN npm run build --workspace=@sonate/schemas 2>/dev/null || true
+RUN npm run build --workspace=@sonate/core 2>/dev/null || true
 RUN npm run build --workspace=@sonate/detect 2>/dev/null || true
 RUN npm run build --workspace=@sonate/orchestrate 2>/dev/null || true
 RUN npm run build --workspace=@sonate/persistence 2>/dev/null || true

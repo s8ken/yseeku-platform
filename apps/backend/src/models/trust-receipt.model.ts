@@ -36,7 +36,7 @@ export interface ITrustReceipt extends Document {
     proofValue: string;   // Base64 encoded signature
   };
 
-  // v2.2: SYMBI principle scores and weight metadata (NEW)
+  // v2.2: SONATE principle scores and weight metadata (NEW)
   sonate_principles?: {
     CONSENT_ARCHITECTURE?: number;
     INSPECTION_MANDATE?: number;
@@ -140,7 +140,7 @@ const TrustReceiptSchema = new Schema<ITrustReceipt>({
     proofValue: String,
   },
 
-  // v2.2: SYMBI principle scores and weight metadata (NEW)
+  // v2.2: SONATE principle scores and weight metadata (NEW)
   sonate_principles: {
     CONSENT_ARCHITECTURE: Number,
     INSPECTION_MANDATE: Number,

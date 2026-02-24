@@ -61,7 +61,7 @@ describe('PolicyAPIService', () => {
       expect(engine).toBeDefined();
     });
 
-    it('should register SYMBI rules and principles', () => {
+    it('should register SONATE rules and principles', () => {
       const engine = service.getEngine();
       const stats = engine.getStats();
       

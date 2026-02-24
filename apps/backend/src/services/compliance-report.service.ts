@@ -12,7 +12,7 @@ import { logger } from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 
 // Report types
-export type ReportType = 'trust_summary' | 'symbi_compliance' | 'incident_report' | 'agent_audit' | 'full_audit';
+export type ReportType = 'trust_summary' | 'sonate_compliance' | 'incident_report' | 'agent_audit' | 'full_audit';
 export type ReportFormat = 'json' | 'html' | 'csv';
 
 export interface ReportConfig {
@@ -41,7 +41,7 @@ export interface TrustSummaryReport {
   recommendations: string[];
 }
 
-export interface SymbiComplianceReport {
+export interface SonateComplianceReport {
   meta: ReportMeta;
   overallScore: number;
   status: 'compliant' | 'partial' | 'non-compliant';
@@ -151,8 +151,8 @@ class ComplianceReportService {
         case 'trust_summary':
           report = await this.generateTrustSummary(config);
           break;
-        case 'symbi_compliance':
-          report = await this.generateSymbiCompliance(config);
+        case 'sonate_compliance':
+          report = await this.generateSonateCompliance(config);
           break;
         case 'incident_report':
           report = await this.generateIncidentReport(config);
@@ -296,7 +296,7 @@ class ComplianceReportService {
   /**
    * Generate SONATE Compliance Report
    */
-  private async generateSymbiCompliance(config: ReportConfig): Promise<SymbiComplianceReport> {
+  private async generateSonateCompliance(config: ReportConfig): Promise<SonateComplianceReport> {
     const { tenantId, startDate, endDate } = config;
     
     // In production, this would calculate actual principle scores from data
@@ -342,7 +342,7 @@ class ComplianceReportService {
     }
     
     return {
-      meta: this.createMeta('symbi_compliance', tenantId, startDate, endDate),
+      meta: this.createMeta('sonate_compliance', tenantId, startDate, endDate),
       overallScore: Math.round(overallScore * 10) / 10,
       status: overallScore >= 8 ? 'compliant' : overallScore >= 6 ? 'partial' : 'non-compliant',
       principles,
@@ -430,23 +430,23 @@ class ComplianceReportService {
    * Generate Full Audit Report (combines all reports)
    */
   private async generateFullAudit(config: ReportConfig): Promise<any> {
-    const [trustSummary, symbiCompliance, incidentReport] = await Promise.all([
+    const [trustSummary, sonateCompliance, incidentReport] = await Promise.all([
       this.generateTrustSummary(config),
-      this.generateSymbiCompliance(config),
+      this.generateSonateCompliance(config),
       this.generateIncidentReport(config),
     ]);
     
     return {
       meta: this.createMeta('full_audit', config.tenantId, config.startDate, config.endDate),
       trust: trustSummary,
-      sonate: symbiCompliance,
+      sonate: sonateCompliance,
       incidents: incidentReport,
       executiveSummary: {
-        overallHealth: symbiCompliance.status,
+        overallHealth: sonateCompliance.status,
         trustScore: trustSummary.summary.avgTrustScore,
-        complianceScore: symbiCompliance.overallScore,
+        complianceScore: sonateCompliance.overallScore,
         criticalIncidents: incidentReport.summary.bySeverity.find(s => s.severity === 'critical')?.count || 0,
-        certificationReady: symbiCompliance.certificationReady,
+        certificationReady: sonateCompliance.certificationReady,
         recommendations: trustSummary.recommendations,
       },
     };

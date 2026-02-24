@@ -6,7 +6,7 @@
  */
 
 import { Connection } from 'mongoose';
-import { runPhase3Migration, verifyPhase3Migration } from './phase-3-symbi-scoring';
+import { runPhase3Migration, verifyPhase3Migration } from './phase-3-sonate-scoring';
 
 export interface MigrationResult {
   name: string;
@@ -22,9 +22,9 @@ export interface MigrationResult {
  */
 export const migrations = [
   {
-    name: 'phase-3-symbi-scoring',
+    name: 'phase-3-sonate-scoring',
     version: '2.2.0',
-    description: 'Add SYMBI principle scores and weight metadata to receipts',
+    description: 'Add SONATE principle scores and weight metadata to receipts',
     run: runPhase3Migration,
     verify: verifyPhase3Migration,
   },

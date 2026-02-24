@@ -226,7 +226,7 @@ export function AgentCreateModal({ open, onClose, onCreate }: AgentCreateModalPr
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="symbi-core">SYMBI Core</SelectItem>
+                  <SelectItem value="SONATE-core">SONATE Core</SelectItem>
                   <SelectItem value="overseer">Overseer</SelectItem>
                 </SelectContent>
               </Select>

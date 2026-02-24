@@ -173,7 +173,7 @@ export function AgentEditModal({ agent, open, onClose, onUpdate }: AgentEditModa
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="symbi-core">SYMBI Core</SelectItem>
+                  <SelectItem value="SONATE-core">SONATE Core</SelectItem>
                   <SelectItem value="overseer">Overseer</SelectItem>
                 </SelectContent>
               </Select>

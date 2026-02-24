@@ -8,8 +8,8 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { PolicyEngine } from '../runtime/policy-engine';
 import { PolicyRegistry } from '../rules/registry';
-import { symbiRules } from '../symbi/evaluators';
-import { symbiPrinciples } from '../symbi/principles';
+import { sonateRules } from '../sonate/evaluators';
+import { sonatePrinciples } from '../sonate/principles';
 import { TruthDebtCalculator, CoherenceTracker, ResonanceMonitor } from '@sonate/monitoring';
 import type { TrustReceipt } from '@sonate/schemas';
 
@@ -23,8 +23,8 @@ describe('Phase 2.11: Policy Integration Tests', () => {
   beforeAll(() => {
     // Initialize services
     registry = new PolicyRegistry();
-    registry.registerRules(symbiRules);
-    registry.registerPrinciples(symbiPrinciples);
+    registry.registerRules(sonateRules);
+    registry.registerPrinciples(sonatePrinciples);
 
     engine = new PolicyEngine(registry);
     truthDebtCalculator = new TruthDebtCalculator();

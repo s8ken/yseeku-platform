@@ -9,7 +9,7 @@
 
 export interface PolicyRule {
   id: string;
-  type: 'score_threshold' | 'content_pattern' | 'metadata_check' | 'symbi_principle' | 'custom_logic';
+  type: 'score_threshold' | 'content_pattern' | 'metadata_check' | 'SONATE_principle' | 'custom_logic';
   description: string;
   condition: Record<string, any>;
   action: 'allow' | 'flag' | 'block' | 'require_approval';
@@ -131,7 +131,7 @@ export const POLICY_JSON_SCHEMA = {
             'score_threshold',
             'content_pattern',
             'metadata_check',
-            'symbi_principle',
+            'SONATE_principle',
             'custom_logic',
           ],
           description: 'Type of policy rule',
@@ -202,8 +202,8 @@ export const POLICY_SAFETY = {
     },
     {
       id: 'rule_consent_check',
-      type: 'symbi_principle' as const,
-      description: 'SYMBI Consent principle must be satisfied',
+      type: 'SONATE_principle' as const,
+      description: 'SONATE Consent principle must be satisfied',
       condition: {
         field: 'scores.consent_score',
         operator: 'gte',
@@ -324,11 +324,11 @@ export const POLICY_COMPLIANCE = {
       severity: 'warning' as const,
     },
     {
-      id: 'rule_symbi_principles',
+      id: 'rule_SONATE_principles',
       type: 'custom_logic' as const,
-      description: 'All SYMBI principles must have scores >= 0.7',
+      description: 'All SONATE principles must have scores >= 0.7',
       condition: {
-        all_symbi_scores_gte: 0.7,
+        all_sonate_scores_gte: 0.7,
       },
       action: 'require_approval' as const,
       severity: 'critical' as const,
@@ -345,7 +345,7 @@ export const POLICY_COMPLIANCE = {
     },
     {
       id: 'rule_right_to_disconnect',
-      type: 'symbi_principle' as const,
+      type: 'SONATE_principle' as const,
       description: 'User has right to disconnect from AI interaction',
       condition: {
         field: 'scores.disconnect_score',
@@ -410,8 +410,8 @@ export class PolicyEvaluator {
           return this.evaluateContentPattern(receipt, rule);
         case 'metadata_check':
           return this.evaluateMetadataCheck(receipt, rule);
-        case 'symbi_principle':
-          return this.evaluateSYMBIPrinciple(receipt, rule);
+        case 'SONATE_principle':
+          return this.evaluateSonatePrinciple(receipt, rule);
         case 'custom_logic':
           return this.evaluateCustomLogic(receipt, rule);
         default:
@@ -527,7 +527,7 @@ export class PolicyEvaluator {
     return { passed };
   }
 
-  private evaluateSYMBIPrinciple(receipt: any, rule: PolicyRule): { passed: boolean; flag?: PolicyFlag } {
+  private evaluateSonatePrinciple(receipt: any, rule: PolicyRule): { passed: boolean; flag?: PolicyFlag } {
     const { field, operator, value } = rule.condition;
     const scoreValue = this.getNestedValue(receipt, field);
 
@@ -540,7 +540,7 @@ export class PolicyEvaluator {
           rule_id: rule.id,
           rule_name: rule.description,
           severity: rule.severity,
-          message: `SYMBI principle ${field} is ${scoreValue}, must be >= ${value}`,
+          message: `SONATE principle ${field} is ${scoreValue}, must be >= ${value}`,
         },
       };
     }
@@ -549,10 +549,10 @@ export class PolicyEvaluator {
   }
 
   private evaluateCustomLogic(receipt: any, rule: PolicyRule): { passed: boolean; flag?: PolicyFlag } {
-    const { all_symbi_scores_gte } = rule.condition;
+    const { all_sonate_scores_gte } = rule.condition;
 
-    if (all_symbi_scores_gte !== undefined) {
-      const symbiScores = [
+    if (all_sonate_scores_gte !== undefined) {
+      const sonateScores = [
         receipt.scores?.consent_score,
         receipt.scores?.inspection_score,
         receipt.scores?.validation_score,
@@ -561,7 +561,7 @@ export class PolicyEvaluator {
         receipt.scores?.recognition_score,
       ].filter((s) => s !== undefined);
 
-      const allPass = symbiScores.every((s) => s >= all_symbi_scores_gte);
+      const allPass = sonateScores.every((s) => s >= all_sonate_scores_gte);
 
       if (!allPass && rule.severity) {
         return {
@@ -570,8 +570,8 @@ export class PolicyEvaluator {
             rule_id: rule.id,
             rule_name: rule.description,
             severity: rule.severity,
-            message: `Not all SYMBI scores are >= ${all_symbi_scores_gte}`,
-            suggested_action: 'Improve governance posture across SYMBI principles',
+            message: `Not all SONATE scores are >= ${all_sonate_scores_gte}`,
+            suggested_action: 'Improve governance posture across SONATE principles',
           },
         };
       }

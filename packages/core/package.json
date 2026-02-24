@@ -1,5 +1,5 @@
 {
-  "name": "@yseeku/core",
+  "name": "@sonate/core",
   "version": "1.4.0",
   "description": "Core trust protocol implementation for SONATE platform",
   "main": "dist/index.js",

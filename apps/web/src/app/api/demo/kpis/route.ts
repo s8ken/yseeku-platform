@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         experimentsRunning: 3,
         orchestratorsActive: 5,
         sonateDimensions: {
-          trustProtocol: 'SYMBI v3.2',
+          trustProtocol: 'SONATE v3.2',
           ethicalAlignment: 8.7,
           resonanceQuality: 'OPTIMAL',
           realityIndex: 0,

@@ -5,11 +5,11 @@
  * Provides rule lookup, validation, and management
  */
 
-import type { PolicyRule, SymbiPrinciple } from '../types';
+import type { PolicyRule, SonatePrinciple } from '../types';
 
 export class PolicyRegistry {
   private rules: Map<string, PolicyRule> = new Map();
-  private principles: Map<string, SymbiPrinciple> = new Map();
+  private principles: Map<string, SonatePrinciple> = new Map();
 
   /**
    * Register a new policy rule
@@ -32,9 +32,9 @@ export class PolicyRegistry {
   }
 
   /**
-   * Register a SYMBI principle
+   * Register a SONATE principle
    */
-  registerPrinciple(principle: SymbiPrinciple): void {
+  registerPrinciple(principle: SonatePrinciple): void {
     if (this.principles.has(principle.id)) {
       throw new Error(`Principle '${principle.id}' already registered`);
     }
@@ -50,7 +50,7 @@ export class PolicyRegistry {
   /**
    * Register multiple principles
    */
-  registerPrinciples(principles: SymbiPrinciple[]): void {
+  registerPrinciples(principles: SonatePrinciple[]): void {
     principles.forEach(principle => this.registerPrinciple(principle));
   }
 
@@ -71,14 +71,14 @@ export class PolicyRegistry {
   /**
    * Get a principle by ID
    */
-  getPrinciple(id: string): SymbiPrinciple | undefined {
+  getPrinciple(id: string): SonatePrinciple | undefined {
     return this.principles.get(id);
   }
 
   /**
    * Get all registered principles
    */
-  getAllPrinciples(): SymbiPrinciple[] {
+  getAllPrinciples(): SonatePrinciple[] {
     return Array.from(this.principles.values());
   }
 

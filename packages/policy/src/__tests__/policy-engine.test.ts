@@ -7,8 +7,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PolicyEngine } from '../runtime/policy-engine';
 import { PolicyRegistry } from '../rules/registry';
-import { symbiRules, symbiPrinciples } from '../symbi/evaluators';
-import { symbiPrinciples as principles } from '../symbi/principles';
+import { sonateRules, sonatePrinciples } from '../sonate/evaluators';
+import { sonatePrinciples as principles } from '../sonate/principles';
 import type { TrustReceipt } from '@sonate/schemas';
 
 // Helper to create a mock receipt
@@ -58,9 +58,9 @@ describe('PolicyEngine', () => {
 
   beforeEach(() => {
     registry = new PolicyRegistry();
-    // Register all SYMBI rules
-    registry.registerRules(symbiRules);
-    // Register all SYMBI principles
+    // Register all SONATE rules
+    registry.registerRules(sonateRules);
+    // Register all SONATE principles
     registry.registerPrinciples(principles);
     engine = new PolicyEngine(registry);
   });

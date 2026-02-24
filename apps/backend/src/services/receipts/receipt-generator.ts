@@ -89,7 +89,7 @@ export class ReceiptGeneratorService {
    * Sorts keys at every level, filters undefined values.
    * Must match the canonicalize() in public-demo.routes.ts and verify-sdk.
    * 
-   * PHASE 2: SYMBI Principle Inclusion
+   * PHASE 2: SONATE Principle Inclusion
    * This function processes telemetry fields including:
    * - sonate_principles (0-10 scores per SONATE principle)
    * - overall_trust_score (0-100 weighted result)

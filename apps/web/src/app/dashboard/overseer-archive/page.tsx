@@ -54,7 +54,7 @@ export default function OverseerArchiveDashboard() {
           </div>
           <h1 className="text-4xl font-bold mb-4">What SONATE Would Have Caught</h1>
           <p className="text-lg text-blue-100 max-w-2xl">
-            Retrospective validation of the SYMBI framework against {data.metadata.totalDocuments.toLocaleString()} conversations spanning 
+            Retrospective validation of the SONATE framework against {data.metadata.totalDocuments.toLocaleString()} conversations spanning 
             {' '}{new Date(data.metadata.timelineStart).toLocaleDateString()} to {new Date(data.metadata.timelineEnd).toLocaleDateString()}
           </p>
         </div>

@@ -34,7 +34,7 @@ interface TrustSettings {
     compactView: boolean;
     showReceiptHash: boolean;
     showPrincipleBreakdown: boolean;
-    showSymbiDimensions: boolean;
+    showSONATEDimensions: boolean;
     autoExpandViolations: boolean;
     colorScheme: 'default' | 'colorblind' | 'monochrome';
   };
@@ -62,7 +62,7 @@ export default function TrustSettingsPage() {
       compactView: false,
       showReceiptHash: true,
       showPrincipleBreakdown: true,
-      showSymbiDimensions: true,
+      showSONATEDimensions: true,
       autoExpandViolations: true,
       colorScheme: 'default',
     },
@@ -157,7 +157,7 @@ export default function TrustSettingsPage() {
         compactView: false,
         showReceiptHash: true,
         showPrincipleBreakdown: true,
-        showSymbiDimensions: true,
+        showSONATEDimensions: true,
         autoExpandViolations: true,
         colorScheme: 'default',
       },
@@ -425,11 +425,11 @@ export default function TrustSettingsPage() {
             </div>
             <Switch
               id="show-sonate-dimensions"
-              checked={settings.display.showSymbiDimensions}
+              checked={settings.display.showSONATEDimensions}
               onCheckedChange={(checked) =>
                 setSettings({
                   ...settings,
-                  display: { ...settings.display, showSymbiDimensions: checked },
+                  display: { ...settings.display, showSONATEDimensions: checked },
                 })
               }
             />

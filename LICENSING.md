@@ -49,7 +49,7 @@ The following packages within this monorepo are MIT-licensed:
 
 - `@sonate/trust-receipts` — Receipt generation and validation
 - `@sonate/schemas` — Trust receipt and policy schemas
-- `@yseeku/core` — Core utility functions and configuration
+- `@sonate/core` — Core utility functions and configuration
 
 **Verification is vendor-neutral by design.**
 

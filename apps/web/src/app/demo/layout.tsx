@@ -21,7 +21,7 @@ const navItems: NavItem[] = [
     icon: Home,
   },
   {
-    title: 'SYMBI Framework',
+    title: 'SONATE Framework',
     href: '/demo/sonate',
     icon: Box,
   },

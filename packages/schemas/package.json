@@ -1,5 +1,5 @@
 {
-  "name": "@yseeku/schemas",
+  "name": "@sonate/schemas",
   "version": "1.0.0",
   "description": "Shared schema definitions for SONATE platform (JSON Schema + TypeScript)",
   "main": "dist/index.js",
