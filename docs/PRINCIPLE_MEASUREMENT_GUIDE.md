@@ -1,8 +1,8 @@
-# SYMBI Constitutional Principles - Measurement Guide
+# SONATE Constitutional Principles - Measurement Guide
 
 ## Overview
 
-The SYMBI framework defines 6 constitutional principles that govern AI behavior. Each principle has:
+The SONATE framework defines 6 constitutional principles that govern AI behavior. Each principle has:
 - A **weight** determining its contribution to the overall trust score
 - A **critical** flag - if a critical principle scores 0, overall trust = 0
 - A **proper measurement** based on actual system state (not NLP proxies)
@@ -298,7 +298,7 @@ interface IUser {
     hasConsentedToAI: boolean;
     consentTimestamp?: Date;
     consentScope: string[];  // e.g., ['chat', 'analysis', 'recommendations']
-    canWithdrawAnytime: boolean;  // Always true per SYMBI
+    canWithdrawAnytime: boolean;  // Always true per SONATE
   };
 }
 ```

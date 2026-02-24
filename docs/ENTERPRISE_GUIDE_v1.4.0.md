@@ -2,7 +2,7 @@
 
 ## Overview
 
-Yseeku-Platform v1.4.0 represents the pinnacle of enterprise AI governance platforms, combining the analytical depth of SYMBI-Resonate with the orchestration power of SYMBI-Symphony, enhanced with revolutionary Bedau Index emergence research and comprehensive enterprise integration capabilities.
+Yseeku-Platform v1.4.0 represents the pinnacle of enterprise AI governance platforms, combining the analytical depth of SONATE-Resonate with the orchestration power of SONATE-Symphony, enhanced with revolutionary Bedau Index emergence research and comprehensive enterprise integration capabilities.
 
 ### Version Highlights
 

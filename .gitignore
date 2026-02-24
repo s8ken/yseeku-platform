@@ -83,7 +83,7 @@ demo.html
 comprehensive-demo.html
 
 # Duplicate Python files (if already in packages/)
-symbi_resonance_calculator.py
+sonate_resonance_calculator.py
 
 # Build outputs (dist directories)
 **/dist/

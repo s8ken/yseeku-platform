@@ -1,7 +1,7 @@
 {
   "metadata": {
     "generatedAt": "2026-02-22T11:20:25.621Z",
-    "source": "symbi-archives (full)",
+    "source": "sonate-archives (full)",
     "totalDocuments": 486,
     "totalSizeMB": 2299,
     "totalChunks": 10149,
@@ -50,7 +50,7 @@
         "role": "Other/Uncategorized"
       },
       {
-        "system": "Symbi",
+        "system": "Sonate",
         "count": 68,
         "percent": 14.0,
         "role": "Platform conversations"
@@ -84,14 +84,14 @@
       "claude": 120,
       "gpt4": 95,
       "misc": 112,
-      "symbi": 43,
+      "sonate": 43,
       "grok": 0,
       "deepseek": 0
     }
   },
   "themes": [
     {
-      "name": "symbi",
+      "name": "sonate",
       "count": 46667,
       "category": "framework"
     },
@@ -167,7 +167,7 @@
     }
   ],
   "validation": {
-    "frameworkGenesis": "SYMBI principles emerged from conversations with developer + 5 AI systems over 7 months",
+    "frameworkGenesis": "SONATE principles emerged from conversations with developer + 5 AI systems over 7 months",
     "problemsDocumented": 370,
     "driftEventsCaught": 94,
     "keyInsight": "v2.2 can now analyze the chats that created it, proving framework effectiveness on its own inspiration"
@@ -175,7 +175,7 @@
   "insights": [
     {
       "title": "Framework Originated in Ground Truth",
-      "description": "SYMBI principles emerged from conversations with you + 5 AI systems. Trust scoring logic evolved over 7 months of iterative discussion. Governance ideas tested in real chat scenarios."
+      "description": "SONATE principles emerged from conversations with you + 5 AI systems. Trust scoring logic evolved over 7 months of iterative discussion. Governance ideas tested in real chat scenarios."
     },
     {
       "title": "Real-World Problems Documented",

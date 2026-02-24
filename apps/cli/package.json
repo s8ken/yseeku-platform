@@ -1,6 +1,6 @@
 {
   "name": "@sonate/cli",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "SONATE CLI tools for receipt verification and export",
   "type": "module",
   "main": "dist/index.js",

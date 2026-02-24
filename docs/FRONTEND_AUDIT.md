@@ -181,7 +181,7 @@
 - `/dashboard/lab/emergence` - Emergence experiments
 - `/dashboard/lab/experiments` - General experiments
 - `/dashboard/lab/sonate` - SONATE framework experiments
-- `/dashboard/lab/symbi` - SYMBI experiments
+- `/dashboard/lab/sonate` - SONATE experiments
 - `/dashboard/lab/vls` - VLS experiments
 
 **Purpose:** Research and experimentation

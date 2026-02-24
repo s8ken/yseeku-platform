@@ -399,7 +399,7 @@ test('Phase 2 verification shows signature covers telemetry', () => {
 console.log('\nTest Suite 6: Database Schema\n');
 
 test('Phase 3 creates weight_source index', () => {
-  const migrationPath = __dirname + '/../migrations/phase-3-symbi-scoring.ts';
+  const migrationPath = __dirname + '/../migrations/phase-3-sonate-scoring.ts';
   if (!fileExists(migrationPath)) throw new Error('File not found');
   if (!fileContains(migrationPath, /weight_source/)) {
     throw new Error('weight_source index not created');
@@ -407,7 +407,7 @@ test('Phase 3 creates weight_source index', () => {
 });
 
 test('Phase 3 creates weight_policy_id index', () => {
-  const migrationPath = __dirname + '/../migrations/phase-3-symbi-scoring.ts';
+  const migrationPath = __dirname + '/../migrations/phase-3-sonate-scoring.ts';
   if (!fileExists(migrationPath)) throw new Error('File not found');
   if (!fileContains(migrationPath, /weight_policy_id/)) {
     throw new Error('weight_policy_id index not created');
@@ -415,7 +415,7 @@ test('Phase 3 creates weight_policy_id index', () => {
 });
 
 test('Compound index on (weight_source, trust_status)', () => {
-  const migrationPath = __dirname + '/../migrations/phase-3-symbi-scoring.ts';
+  const migrationPath = __dirname + '/../migrations/phase-3-sonate-scoring.ts';
   if (!fileExists(migrationPath)) throw new Error('File not found');
   if (!fileContains(migrationPath, /weight_source.*trust_status|trust_status.*weight_source/)) {
     throw new Error('Compound index not created');
@@ -423,7 +423,7 @@ test('Compound index on (weight_source, trust_status)', () => {
 });
 
 test('Migration is idempotent (safe to run multiple times)', () => {
-  const migrationPath = __dirname + '/../migrations/phase-3-symbi-scoring.ts';
+  const migrationPath = __dirname + '/../migrations/phase-3-sonate-scoring.ts';
   if (!fileExists(migrationPath)) throw new Error('File not found');
   if (!fileContains(migrationPath, /idempotent|already exists/i)) {
     // Let it pass anyway since implementation might handle silently
@@ -543,7 +543,7 @@ test('Phase 2: Receipt includes telemetry object', () => {
 });
 
 test('Phase 3: Migration creates proper indexes', () => {
-  const migrationPath = __dirname + '/../migrations/phase-3-symbi-scoring.ts';
+  const migrationPath = __dirname + '/../migrations/phase-3-sonate-scoring.ts';
   if (!fileExists(migrationPath)) throw new Error('File not found');
   if (!fileContains(migrationPath, /createIndex/)) {
     throw new Error('Indexes not created');
@@ -571,7 +571,7 @@ test('All 7 phases integrated (1A+1B, 2, 3, 4, 5, 6, 7)', () => {
   const phases = [
     { file: 'llm-trust-evaluator.service.ts', text: 'Phase 1' },
     { file: 'receipt-generator.ts', text: 'Phase 2' },
-    { file: 'phase-3-symbi-scoring.ts', text: 'Phase 3' },
+    { file: 'phase-3-sonate-scoring.ts', text: 'Phase 3' },
     { file: 'TrustReceiptCard.tsx', text: 'Phase 4' },
     { file: 'TRUST_RECEIPT_SPECIFICATION_v2.2.md', text: 'Phase 5' }
   ];

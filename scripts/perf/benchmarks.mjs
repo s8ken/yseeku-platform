@@ -8,7 +8,7 @@ const mockReceipt = {
   session_id: "550e8400-e29b-41d4-a716-446655440000",
   timestamp: Date.now(),
   mode: "constitutional",
-  directive: "Analyze symbiotic resonance",
+  directive: "Analyze SONATEotic resonance",
   outcome: { text: "Resonance detected at 0.85" },
   ciq_metrics: {
     resonance: 85,

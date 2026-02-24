@@ -915,7 +915,7 @@
 <body>
     <!-- Technical Note Banner -->
     <div style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 15px; text-align: center; color: white; font-size: 14px; border-bottom: 2px solid rgba(255,255,255,0.2);">
-        <strong>✅ UPDATED:</strong> This demo now shows the accurate 6 SYMBI Constitutional Principles
+        <strong>✅ UPDATED:</strong> This demo now shows the accurate 6 SONATE Constitutional Principles
         (<span style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">CONSENT_ARCHITECTURE</span>,
         <span style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">INSPECTION_MANDATE</span>,
         <span style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">CONTINUOUS_VALIDATION</span>,
@@ -964,7 +964,7 @@
                 <div class="module-section">
                     <button class="nav-tab active" onclick="switchTab('overview')">Overview</button>
                     <button class="nav-tab detect" onclick="switchTab('agents')">Agents</button>
-                    <button class="nav-tab detect" onclick="switchTab('symbi')">SYMBI</button>
+                    <button class="nav-tab detect" onclick="switchTab('SONATE')">SONATE</button>
                     <button class="nav-tab detect" onclick="switchTab('vectorPhase')">Vector Phase Space</button>
                     <button class="nav-tab detect" onclick="switchTab('basinDynamics')">Basin Dynamics</button>
                     <button class="nav-tab detect" onclick="switchTab('memoryLattice')">Memory Lattice</button>
@@ -1086,7 +1086,7 @@
             <div id="agents" class="tab-content">
                 <div class="module-header detect">
                     <h2>🤖 Agent Monitoring</h2>
-                    <p>Real-time agent status with SYMBI trust scoring</p>
+                    <p>Real-time agent status with SONATE Trust scoring</p>
                 </div>
 
                 <div class="gauge-container">
@@ -1154,15 +1154,15 @@
                 </div>
             </div>
 
-            <!-- SYMBI Analysis Tab -->
-            <div id="symbi" class="tab-content">
+            <!-- SONATE Analysis Tab -->
+            <div id="SONATE" class="tab-content">
                 <div class="module-header detect">
-                    <h2>🧬 SYMBI Analysis</h2>
+                    <h2>🧬 SONATE Analysis</h2>
                     <p>Constitutional framework trust scoring with cryptographic verification</p>
                 </div>
 
                 <div class="chart-container">
-                    <canvas id="symbiRadarChart"></canvas>
+                    <canvas id="SONATERadarChart"></canvas>
                 </div>
 
                 <div class="grid">
@@ -1584,7 +1584,7 @@
             <!-- Trust Principles Tab -->
             <div id="principles" class="tab-content">
                 <div class="module-header orchestrate">
-                    <h2>⚖️ SYMBI Constitutional Principles</h2>
+                    <h2>⚖️ SONATE Constitutional Principles</h2>
                     <p>Six fundamental principles governing AI behavior and trust (with weighted scoring)</p>
                 </div>
 
@@ -2053,7 +2053,7 @@
             </div>
             <div class="feature">
                 <div class="feature-icon">🧬</div>
-                <h4>SYMBI</h4>
+                <h4>SONATE</h4>
                 <p>Trust framework</p>
             </div>
             <div class="feature">
@@ -2262,7 +2262,7 @@
         // Glossary Terms
         const glossaryTerms = [
             { term: "Bedau Index", definition: "A mathematical measure of weak emergence in complex systems, quantifying the relationship between microscopic and macroscopic states" },
-            { term: "SYMBI", definition: "Scalable Your-Meaning-Based Intelligence framework for constitutional AI trust scoring" },
+            { term: "SONATE", definition: "Scalable Your-Meaning-Based Intelligence framework for constitutional AI trust scoring" },
             { term: "Vector Phase Space", definition: "Mathematical representation of agent drift as vector misalignment rather than radial distance" },
             { term: "Emergence Basin", definition: "Regions in phase space where emergent behaviors are stable and self-reinforcing" },
             { term: "Contextual Memory Lattice", definition: "Network of historical context with decaying weights for causal explanation paths" },
@@ -2355,8 +2355,8 @@
             }
             
             // Initialize tab-specific content
-            if (tabName === 'symbi') {
-                updateSymbiChart();
+            if (tabName === 'SONATE') {
+                updateSONATEChart();
             } else if (tabName === 'emergence') {
                 updateEmergenceChart();
             } else if (tabName === 'resonance') {
@@ -2446,7 +2446,7 @@
             { title: "Governance Indicators", content: "Monitor Layer 1 Narrative state and Ethical Floor compliance in real-time.", target: "governance-indicators" },
             { title: "Three Module Architecture", content: "Navigate between DETECT (monitoring), LAB (analysis), and ORCHESTRATE (governance) modules.", target: "nav-tabs" },
             { title: "Platform Overview", content: "See real-time metrics across all three modules and system health status.", target: "overview" },
-            { title: "Agent Monitoring", content: "Track individual agent status with SYMBI trust scoring and drift vectors.", target: "agents" },
+            { title: "Agent Monitoring", content: "Track individual agent status with SONATE Trust scoring and drift vectors.", target: "agents" },
             { title: "Vector Phase Space", content: "Visualize drift as vector misalignment with dynamic phase space analysis.", target: "vectorPhase" },
             { title: "Emergence Calculator", content: "Quantify emergence using the Bedau Index with advanced parameters.", target: "calculator" },
             { title: "Trust Principles", content: "Explore the six constitutional principles governing AI behavior.", target: "principles" },
@@ -2565,10 +2565,10 @@
 
         // Chart Initialization
         function initializeCharts() {
-            // SYMBI Radar Chart
-            const symbiCtx = document.getElementById('symbiRadarChart');
-            if (symbiCtx) {
-                new Chart(symbiCtx, {
+            // SONATE Radar Chart
+            const SONATECtx = document.getElementById('SONATERadarChart');
+            if (SONATECtx) {
+                new Chart(SONATECtx, {
                     type: 'radar',
                     data: {
                         labels: ['CONSENT\n(25%)', 'INSPECTION\n(20%)', 'VALIDATION\n(20%)', 'OVERRIDE\n(15%)', 'DISCONNECT\n(10%)', 'MORAL\n(10%)'],
@@ -2607,7 +2607,7 @@
             }
         }
 
-        function updateSymbiChart() {
+        function updateSONATEChart() {
             // Chart is initialized on load, this can be used for real-time updates
         }
 
@@ -3204,11 +3204,11 @@
     <footer style="margin-top: 60px; padding: 40px 20px; background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border-top: 2px solid #333; text-align: center;">
         <div style="max-width: 800px; margin: 0 auto;">
             <h3 style="margin-bottom: 20px; font-size: 18px; background: linear-gradient(135deg, #3b82f6, #8b5cf6, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                Part of the SYMBI Ecosystem
+                Part of the SONATE Ecosystem
             </h3>
             <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-bottom: 30px;">
-                <a href="https://symbi.world" target="_blank" style="color: #a0a0a0; text-decoration: none; font-size: 14px;">
-                    <div style="font-weight: 600; color: white;">symbi.world</div>
+                <a href="https://SONATE.world" target="_blank" style="color: #a0a0a0; text-decoration: none; font-size: 14px;">
+                    <div style="font-weight: 600; color: white;">SONATE.world</div>
                     <div>Philosophy &amp; Manifesto</div>
                 </a>
                 <a href="https://gammatria.com" target="_blank" style="color: #a0a0a0; text-decoration: none; font-size: 14px;">

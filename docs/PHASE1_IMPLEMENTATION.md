@@ -25,7 +25,7 @@ Phase 1 focused on exposing the platform's **hidden gems** - high-value features
 - `apps/web/src/app/dashboard/agents/page.tsx` - Updated SONATE dimensions
 - `apps/web/src/app/dashboard/learn/foundations/trust-receipts/page.tsx` - Removed from learning page
 - `apps/web/src/app/demo/sonate/page.tsx` - Updated to 3 dimensions
-- `apps/web/src/app/demo/symbi/page.tsx` - Updated to 3 dimensions
+- `apps/web/src/app/demo/sonate/page.tsx` - Updated to 3 dimensions
 - `apps/web/src/app/dashboard/lab/sonate/page.tsx` - Updated to 4 dimensions
 
 **Result:** All pages now display only v2.0.1 validated dimensions:

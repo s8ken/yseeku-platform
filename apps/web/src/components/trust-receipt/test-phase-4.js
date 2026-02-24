@@ -256,7 +256,7 @@ What Phase 4 Delivers:
   ✓ Overall trust score unchanged from backend calculation
 
 Next steps:
-  1. Review SYMBI_SCORING_BATTLE_READY.md for Phase 5 specifications
+  1. Review SONATE_SCORING_BATTLE_READY.md for Phase 5 specifications
   2. Proceed with Phase 5: Documentation Updates
   3. Then Phase 6: Testing (unit, integration, E2E)
   4. Then Phase 7: Production Deployment

@@ -3,7 +3,7 @@ const path = require('path')
 const readline = require('readline')
 
 /**
- * Enhanced Overseer Analysis: Combined Archives + SYMBI-Archives
+ * Enhanced Overseer Analysis: Combined Archives + sonate-archives
  * Analyzes 581 conversations across 7 months to validate SONATE framework
  */
 
@@ -62,27 +62,27 @@ async function runCombinedAnalysis() {
 
   console.log(`✅ Found ${localFiles.length} local archive files\n`)
 
-  // 2. Analyze symbi-archives JSONL
-  const symbiArchivesPath = 'c:\\Users\\Stephen\\symbi-archives'
-  console.log(`📂 Scanning symbi-archives: ${symbiArchivesPath}`)
+  // 2. Analyze sonate-archives JSONL
+  const sonateArchivesPath = 'c:\\Users\\Stephen\\sonate-archives'
+  console.log(`📂 Scanning sonate-archives: ${sonateArchivesPath}`)
 
-  let symbiConvos = []
-  if (fs.existsSync(path.join(symbiArchivesPath, 'index.jsonl'))) {
-    symbiConvos = await analyzeJsonlArchives(path.join(symbiArchivesPath, 'index.jsonl'))
+  let sonateConvos = []
+  if (fs.existsSync(path.join(sonateArchivesPath, 'index.jsonl'))) {
+    sonateConvos = await analyzeJsonlArchives(path.join(sonateArchivesPath, 'index.jsonl'))
   }
 
-  console.log(`✅ Found ${symbiConvos.length} symbi-archives documents\n`)
+  console.log(`✅ Found ${sonateConvos.length} sonate-archives documents\n`)
 
   // 3. Combine and analyze
   const systemCounts = {}
-  const allConvos = [...localFiles, ...symbiConvos]
+  const allConvos = [...localFiles, ...sonateConvos]
 
   allConvos.forEach(c => {
     systemCounts[c.aiSystem] = (systemCounts[c.aiSystem] || 0) + 1
   })
 
-  const totalSize = symbiConvos.reduce((sum, c) => sum + (c.contentSize || 0), 0)
-  const totalChunks = symbiConvos.reduce((sum, c) => sum + (c.numChunks || 0), 0)
+  const totalSize = sonateConvos.reduce((sum, c) => sum + (c.contentSize || 0), 0)
+  const totalChunks = sonateConvos.reduce((sum, c) => sum + (c.numChunks || 0), 0)
 
   // 4. Generate report
   const report = `# SONATE Combined Archive Analysis
@@ -92,11 +92,11 @@ Generated: ${new Date().toISOString()}
 
 ### Ground-Truth Dataset
 - **Local Archives**: ${localFiles.length} conversations (Feb 2025 snapshot)
-- **SYMBI-Archives**: ${symbiConvos.length} conversations (June-Dec 2025, complete project timeline)
+- **sonate-archives**: ${sonateConvos.length} conversations (June-Dec 2025, complete project timeline)
 - **Total**: ${allConvos.length} conversations across 7+ months
 
 ### Data Scale
-- **Symbi-Archives Content**: ${Math.round(totalSize / 1024 / 1024)}MB
+- **sonate-archives Content**: ${Math.round(totalSize / 1024 / 1024)}MB
 - **Document Chunks**: ${totalChunks}
 - **Timeline**: June 2025 → February 2026
 
@@ -123,7 +123,7 @@ You have **581 real conversations** that:
 
 1. **Created the framework** (June-Dec 2025)
    - Raw explorations of AI trust, drift, sovereignty
-   - Philosophical foundations of SYMBI
+   - Philosophical foundations of SONATE
    - Prototype trust scoring ideas
 
 2. **Built the platform** (Jan-Feb 2026)
