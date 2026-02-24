@@ -1,6 +1,14 @@
 /**
- * Production-Ready Semantic Embedding System
- * Supports multiple embedding models and provides enterprise-grade semantic analysis
+ * Embedding System with Multiple Provider Support
+ *
+ * DEFAULT MODE (local/no provider configured):
+ *   Generates deterministic hash-based pseudo-vectors using Math.sin(hash).
+ *   These are NOT learned representations — they provide structural similarity
+ *   signals but do not capture semantic meaning.
+ *
+ * PROVIDER MODE (openai/together/huggingface):
+ *   When DETECT_EMBEDDINGS_PROVIDER is set, calls external embedding APIs
+ *   for real ML-based semantic vectors.
  */
 
 import axios from 'axios';

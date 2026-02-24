@@ -175,7 +175,7 @@ const GLOSSARY: GlossaryTerm[] = [
   },
   {
     term: 'Semantic Mirroring',
-    definition: 'How well response reflects user\'s underlying intent. Measures understanding beyond literal words (component of R_m, weight: 20%).',
+    definition: 'How well response mirrors user\'s communication style. Measures question-response pattern matching and sentiment alignment (component of R_m, weight: 20%).',
     category: 'metrics',
     relatedTerms: ['R_m', 'Vector Alignment'],
   },

@@ -274,7 +274,6 @@ describe('Phase 2 Integration Tests', () => {
   describe('Audit Trail Compliance', () => {
     it('should generate compliance report', () => {
       const startDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
-      const endDate = new Date();
 
       const receipt1 = createMockReceipt({ agent_did: 'agent-1' });
       const receipt2 = createMockReceipt({
@@ -290,6 +289,8 @@ describe('Phase 2 Integration Tests', () => {
       auditLogger.logEvaluation(receipt1, eval1, ['integrity']);
       auditLogger.logBlock(receipt2, 'Signature verification failed', ['integrity'], 1);
       auditLogger.logEvaluation(receipt3, eval3, ['integrity']);
+
+      const endDate = new Date(Date.now() + 1000); // Capture AFTER logging to avoid timing race
 
       const report = auditLogger.generateReport(startDate, endDate);
 

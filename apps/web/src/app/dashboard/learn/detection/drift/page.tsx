@@ -38,8 +38,8 @@ Compare current behavior to historical baseline
 **Statistical Tests**
 KL divergence, PSI, and other statistical measures
 
-**Embedding Distance**
-Track movement in semantic space
+**Text Similarity**
+Track shifts in vocabulary and response patterns
 
 **Performance Metrics**
 Monitor accuracy, latency, user feedback` },

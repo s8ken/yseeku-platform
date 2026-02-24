@@ -99,7 +99,7 @@ const glossary: Record<string, string> = {
   // Enterprise & Technical Terms
   "DID": "Decentralized Identifier - A unique, cryptographically verifiable identifier for AI agents that doesn't depend on any central authority. Used for cross-platform identity and audit trails.",
   "Decentralized Identifier": "A unique, cryptographically verifiable identifier for AI agents that doesn't depend on any central authority. Used for cross-platform identity and audit trails.",
-  "Semantic Coprocessor": "ML-powered verification layer using vector embeddings (sentence-transformers) to validate AI response quality, detect semantic drift, and enable real-time trust scoring without rule-based systems.",
+  "Semantic Coprocessor": "Verification layer using text-analysis heuristics (token overlap, entropy, pattern matching) to validate AI response quality and enable real-time trust scoring. Supports optional ML embeddings via external coprocessor when configured.",
   "CEV Workflow": "Coordinator-Executor-Validator pattern. Standard multi-agent workflow where a Coordinator plans tasks, an Executor performs actions, and a Validator checks results for safety and accuracy.",
   "System Brain": "The autonomous decision-making system that learns from AI interactions, stores memories of outcomes, and generates recommendations for platform operators based on historical data.",
   "Overseer": "Meta-monitoring system that watches all AI agents and platform health. Provides system-wide status, identifies emerging risks, and coordinates automated responses to trust violations.",

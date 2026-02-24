@@ -52,7 +52,7 @@
 | **Intelligent Overseer** | 15+ sensors, risk scoring, anomaly detection, proactive planning |
 | **Fixed SONATE Principles** | Now properly measured with PrincipleEvaluator |
 | **Improved Bedau Index** | Correct divergence calculation for emergence detection |
-| **Drift Detection Integration** | Statistical + semantic drift monitoring in trust service |
+| **Drift Detection Integration** | Statistical + text-similarity drift monitoring in trust service |
 | **Better Error Handling** | Centralized error middleware with proper Zod validation |
 
 ---
@@ -66,7 +66,7 @@
 
 ### For AI Safety Teams  
 - **Emergence Detection**: Novel Bedau Index measures "weak emergence" in AI systems
-- **Drift Monitoring**: Statistical (Kolmogorov-Smirnov) + semantic drift detection
+- **Drift Monitoring**: Statistical (Kolmogorov-Smirnov) + text-similarity drift detection
 - **Prompt Safety**: Block injections and jailbreaks before they reach your AI
 
 ### For Developers

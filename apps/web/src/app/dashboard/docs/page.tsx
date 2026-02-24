@@ -44,7 +44,7 @@ const docSections: DocSection[] = [
     content: [
       {
         term: 'Reality Index',
-        definition: 'Measures how grounded AI responses are in factual reality (0-10 scale). Combines vector alignment (semantic accuracy) with contextual continuity (conversation coherence).',
+        definition: 'Measures how grounded AI responses are in factual reality (0-10 scale). Combines vector alignment (token overlap accuracy) with contextual continuity (conversation coherence).',
         example: 'A Reality Index of 8.5 indicates highly accurate, contextually appropriate responses'
       },
       {
@@ -158,7 +158,7 @@ const docSections: DocSection[] = [
       },
       {
         term: 'Vector Alignment (V_align)',
-        definition: 'Cosine similarity between user input and AI response embeddings. Measures semantic accuracy.',
+        definition: 'Token overlap (Jaccard similarity) between user input and AI response. Measures how directly the response addresses the query.',
         example: '0.92 alignment means AI response directly addresses user query content'
       },
       {

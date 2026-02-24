@@ -5,11 +5,12 @@
  * Evaluates: Creativity, synthesis quality, innovation markers
  *
  * SCORING METHODS (in priority order):
- * 1. Python Resonance Engine (deep semantic analysis via ML)
- * 2. LLM Analysis (Claude-based content evaluation)
- * 3. Enhanced Heuristics (structural + keyword analysis)
+ * 1. Python Resonance Engine — requires separate sidecar deployment (not included in repo)
+ * 2. LLM Analysis — requires ANTHROPIC_API_KEY (Claude-based content evaluation)
+ * 3. Enhanced Heuristics — DEFAULT: structural + keyword analysis (regex, word frequency)
  *
- * ENHANCED: Proper fallback chain with transparent method reporting
+ * In standard deployment, method 3 (heuristics) is the active scorer.
+ * Methods 1-2 activate only when their external dependencies are configured.
  */
 
 import { ResonanceEngineClient, ResonanceResult } from './resonance-engine-client';
@@ -77,7 +78,7 @@ export class ResonanceQualityMeasurer {
             innovation: (metrics.components.vector_alignment || 0) * 10,
             total: metrics.R_m * 30,
           },
-          indicators: ['Deep semantic analysis via Resonance Engine'],
+          indicators: ['Scored via Python Resonance Engine sidecar'],
           confidence: 0.95,
         };
       }

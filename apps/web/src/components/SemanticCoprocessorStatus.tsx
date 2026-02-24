@@ -29,18 +29,18 @@ interface CoprocessorHealth {
 export function SemanticCoprocessorStatus() {
   const { isDemo } = useDemo();
 
-  // In demo mode, show coprocessor as available with simulated stats
+  // In demo mode, show honest heuristic-based scoring stats
   const { data: stats, isLoading: statsLoading } = useQuery<SemanticCoprocessorStats>({
     queryKey: ['semantic-coprocessor-stats'],
     queryFn: async () => {
       if (isDemo) {
-        // Simulated demo stats
+        // Demo stats — honestly reflecting heuristic-based analysis
         return {
           totalRequests: 1503,
           successfulRequests: 1428,
           failedRequests: 15,
-          fallbackActivations: 60,
-          isAvailable: true,
+          fallbackActivations: 1503, // All requests use heuristic fallback when coprocessor is not deployed
+          isAvailable: false,
           lastHealthCheck: Date.now(),
         };
       }
@@ -57,18 +57,16 @@ export function SemanticCoprocessorStatus() {
     queryKey: ['semantic-coprocessor-health'],
     queryFn: async () => {
       if (isDemo) {
+        // Demo: coprocessor not deployed, heuristic mode active
         return {
-          status: 'ok' as const,
-          models_loaded: {
-            fast: 'all-MiniLM-L6-v2',
-            accurate: 'all-mpnet-base-v2',
-          },
+          status: 'degraded' as const,
+          models_loaded: {},
           version: '1.0.0',
-          uptime_seconds: 123456,
+          uptime_seconds: 0,
           cache_stats: {
-            hits: 450,
-            misses: 12,
-            total: 462,
+            hits: 0,
+            misses: 0,
+            total: 0,
           },
         };
       }
@@ -144,20 +142,24 @@ export function SemanticCoprocessorStatus() {
         {stats && (
           <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">ML Usage Rate</span>
+              <span className="text-xs text-muted-foreground">
+                {mlUsageRate > 0 ? 'ML Embeddings Rate' : 'Analysis Mode'}
+              </span>
               <span className="text-xs font-medium flex items-center gap-1">
                 <Zap className="h-3 w-3" />
-                {mlUsageRate}%
+                {mlUsageRate > 0 ? `${mlUsageRate}%` : 'Heuristic'}
               </span>
             </div>
             <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
               <div 
                 className="h-full bg-[var(--detect-primary)] transition-all" 
-                style={{ width: `${mlUsageRate}%` }} 
+                style={{ width: `${Math.max(mlUsageRate, 100)}%` }} 
               />
             </div>
             <p className="text-[10px] text-muted-foreground">
-              {stats.totalRequests - stats.fallbackActivations} of {stats.totalRequests} requests used ML embeddings
+              {mlUsageRate > 0
+                ? `${stats.totalRequests - stats.fallbackActivations} of ${stats.totalRequests} requests used ML embeddings`
+                : `${stats.totalRequests} requests analyzed via heuristic scoring (token overlap, entropy, pattern matching)`}
             </p>
           </div>
         )}
