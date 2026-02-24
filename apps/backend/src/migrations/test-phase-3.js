@@ -42,7 +42,7 @@ console.log(`${colors.cyan}Test Suite 1: Migration Script Structure${colors.rese
 test('Phase 3 migration file exists', () => {
   const fs = require('fs');
   const path = require('path');
-  const filePath = path.join(__dirname, 'phase-3-symbi-scoring.ts');
+  const filePath = path.join(__dirname, 'phase-3-sonate-scoring.ts');
   if (!fs.existsSync(filePath)) {
     throw new Error(`Migration file not found: ${filePath}`);
   }
@@ -50,7 +50,7 @@ test('Phase 3 migration file exists', () => {
 
 test('Migration file has runPhase3Migration function', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('export async function runPhase3Migration')) {
     throw new Error('runPhase3Migration function not exported');
   }
@@ -58,7 +58,7 @@ test('Migration file has runPhase3Migration function', () => {
 
 test('Migration file has verifyPhase3Migration function', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('export async function verifyPhase3Migration')) {
     throw new Error('verifyPhase3Migration function not exported');
   }
@@ -87,7 +87,7 @@ console.log(`\n${colors.cyan}Test Suite 2: Migration Logic${colors.reset}\n`);
 
 test('Migration creates weight_source index', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes("'telemetry.weight_source': 1")) {
     throw new Error('weight_source index creation not found');
   }
@@ -95,7 +95,7 @@ test('Migration creates weight_source index', () => {
 
 test('Migration creates weight_policy_id index', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes("'telemetry.weight_policy_id': 1")) {
     throw new Error('weight_policy_id index creation not found');
   }
@@ -103,7 +103,7 @@ test('Migration creates weight_policy_id index', () => {
 
 test('Migration creates compound index for queries', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('weight_source') && 
       !content.includes('trust_status')) {
     throw new Error('Compound index creation not found');
@@ -112,7 +112,7 @@ test('Migration creates compound index for queries', () => {
 
 test('Migration stores collection metadata', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('collection_metadata')) {
     throw new Error('Collection metadata storage not found');
   }
@@ -120,7 +120,7 @@ test('Migration stores collection metadata', () => {
 
 test('Migration is idempotent', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('catch')) {
     throw new Error('No error handling for idempotency');
   }
@@ -131,7 +131,7 @@ console.log(`\n${colors.cyan}Test Suite 3: Field Definitions${colors.reset}\n`);
 
 test('sonate_principles field documented', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('sonate_principles')) {
     throw new Error('sonate_principles field not documented');
   }
@@ -139,7 +139,7 @@ test('sonate_principles field documented', () => {
 
 test('overall_trust_score field documented', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('overall_trust_score')) {
     throw new Error('overall_trust_score field not documented');
   }
@@ -147,7 +147,7 @@ test('overall_trust_score field documented', () => {
 
 test('trust_status field documented', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('trust_status')) {
     throw new Error('trust_status field not documented');
   }
@@ -155,7 +155,7 @@ test('trust_status field documented', () => {
 
 test('principle_weights field documented', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('principle_weights')) {
     throw new Error('principle_weights field not documented');
   }
@@ -163,7 +163,7 @@ test('principle_weights field documented', () => {
 
 test('weight_source field documented', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('weight_source')) {
     throw new Error('weight_source field not documented');
   }
@@ -171,7 +171,7 @@ test('weight_source field documented', () => {
 
 test('weight_policy_id field documented', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('weight_policy_id')) {
     throw new Error('weight_policy_id field not documented');
   }
@@ -182,7 +182,7 @@ console.log(`\n${colors.cyan}Test Suite 4: Verification Logic${colors.reset}\n`)
 
 test('Verification checks for weight_source index', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('hasWeightSourceIndex')) {
     throw new Error('weight_source index verification not found');
   }
@@ -190,7 +190,7 @@ test('Verification checks for weight_source index', () => {
 
 test('Verification checks for weight_policy_id index', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('hasWeightPolicyIndex')) {
     throw new Error('weight_policy_id index verification not found');
   }
@@ -198,7 +198,7 @@ test('Verification checks for weight_policy_id index', () => {
 
 test('Verification checks collection metadata', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('metadata')) {
     throw new Error('Collection metadata verification not found');
   }
@@ -206,7 +206,7 @@ test('Verification checks collection metadata', () => {
 
 test('Verification validates all required fields', () => {
   const fs = require('fs');
-  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-symbi-scoring.ts', 'utf8');
+  const content = fs.readFileSync('./apps/backend/src/migrations/phase-3-sonate-scoring.ts', 'utf8');
   if (!content.includes('requiredFields')) {
     throw new Error('Required field validation not found');
   }

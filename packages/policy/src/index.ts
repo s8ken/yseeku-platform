@@ -44,8 +44,8 @@ export {
 // Rules
 export { PolicyRegistry, globalRegistry } from './rules/registry';
 
-// SYMBI
-export { symbiPrinciples, principleNames, getPrinciple, getAllPrincipleIds, getRulesForPrinciple } from './symbi/principles';
+// SONATE
+export { sonatePrinciples, principleNames, getPrinciple, getAllPrincipleIds, getRulesForPrinciple } from './sonate/principles';
 export {
   truthfulnessRule,
   resonanceCoherenceRule,
@@ -53,5 +53,5 @@ export {
   signatureVerificationRule,
   chainIntegrityRule,
   highRiskDetectionRule,
-  symbiRules,
-} from './symbi/evaluators';
+  sonateRules,
+} from './sonate/evaluators';

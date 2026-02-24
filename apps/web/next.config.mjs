@@ -9,10 +9,8 @@ const nextConfig = {
     '*.replit.dev',
   ],
   typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
+    // Type errors are now fixed — enforce checking during builds
+    ignoreBuildErrors: false,
   },
   async headers() {
     return [

@@ -1,6 +1,6 @@
 {
   "name": "@sonate/orchestrate",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "Production agent management and orchestration for SONATE platform",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

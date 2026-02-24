@@ -29,7 +29,7 @@
 
 **Commit: `6a714fa` - "v2.0.1: Remove liability calculators, fix embedding terminology"**
 
-This is the most significant recent change, representing a strategic pivot based on external expert feedback (Symbi LLM partner).
+This is the most significant recent change, representing a strategic pivot based on external expert feedback (Sonate LLM partner).
 
 **What Was Removed:**
 1. `RealityIndexCalculator` - Trivially gamed metadata flags

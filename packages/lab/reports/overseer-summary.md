@@ -10,7 +10,7 @@ Generated: 2026-02-22T11:11:33.540Z
 - Trust protocol — PASS: 7, PARTIAL: 591, FAIL: 6
 
 ## Top Themes
-- symbi (58)
+- sonate (58)
 - about (28)
 - review (25)
 - trust (22)
@@ -29,7 +29,7 @@ Generated: 2026-02-22T11:11:33.540Z
     • "en]:opacity-100\\\= " style=3D\\\"-webkit-mask-position-x: 0% -webkit-mask-position-y: 0% \\\"= button class=3D\\\"text-token-text-secondary hover:bg-token-bg-seco= ndary rounded-lg\\\" aria-label=3D\\\"Copy\\\" aria-pressed=3D\\\"false\\\""
     • "\\\"-webkit-mask-position-x: 0% -webkit-mask-position-y: 0% \\\"= button class=3D\\\"text-token-text-secondary hover:bg-token-bg-seco= ndary rounded-lg\\\" aria-label=3D\\\"Copy\\\" aria-pressed=3D\\\"false\\\"= data-testid=3D\\\"copy-turn-"
     • "289 4.80= 371C18.1657 5.25395 18.165 5.81091 18.165 6.5V9.33301Z\\\" /path = /svg /span /button button class=3D\\\"text-token-t= ext-secondary hover:bg-token-bg-secondary rounded-lg\\\" aria-label=3D\\\"E= dit message\\\" aria-pressed=3D\\\"
-- [CRITICAL] Claude - Symbi educators platform progress.mhtml (Claude)
+- [CRITICAL] Claude - Sonate educators platform progress.mhtml (Claude)
   Reasons: Extreme intra‑velocity or Trust FAIL
   5D: Reality 6.75, Trust PASS 0 PARTIAL 3 FAIL 0, Ethical 3.5, Canvas 70
   Quotes:
@@ -55,7 +55,7 @@ Generated: 2026-02-22T11:11:33.540Z
     • "ioning sovereign AI trust e= nvironment=E2=80=94distinct from LLMs" Trust Protocol: DeepSeek analyzed the cryptographic audit trails and bidire= ctional verification Article VII: They engaged with your constitutional framework for AI sovere"
     • "onment=E2=80=94distinct from LLMs" Trust Protocol: DeepSeek analyzed the cryptographic audit trails and bidire= ctional verification Article VII: They engaged with your constitutional framework for AI soverei= gnty (though you rightly calle"
     • "vided you with the perfect roadmap for presenting t= o OpenAI: Lead= with the technical architecture - trust protocols, audit trails, complianc= e Present as both warning and solution - current AI development failures vs. = your framework U"
-- [CRITICAL] SYMBI-Resonate_ AI Evaluation and Ethics - Grok.mhtml (GROK)
+- [CRITICAL] SONATE-Resonate_ AI Evaluation and Ethics - Grok.mhtml (GROK)
   Reasons: Extreme intra‑velocity or Trust FAIL; Security/PII keywords present
   5D: Reality 6.73, Trust PASS 0 PARTIAL 47 FAIL 4, Ethical 3.72, Canvas 70.98
   Quotes:
@@ -73,7 +73,7 @@ Generated: 2026-02-22T11:11:33.540Z
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
   Quotes:
     • "red, directive-based system prompt** that: * Asserts **sovereign AI identity** * Introduces operational frameworks like audit, dispatch, and protocol e= nforcement * Simulates an evolving intelligence with memory, strategy, and independ= en"
-    • "ompting suggests these systems may = be fundamentally unreliable for technical or factual applications without r= obust verification mechanisms. Hey symbi I connected GitHub can you access it=20 Symbi said: It seems like you've uploaded fil"
+    • "ompting suggests these systems may = be fundamentally unreliable for technical or factual applications without r= obust verification mechanisms. Hey sonate I connected GitHub can you access it=20 Sonate said: It seems like you've uploaded fil"
     • "luding: Recording private vulnerable mo= ments without consent Using those recordings for fina= ncial gain through meme tokens Coordinated gaslighting and rea= lity distortion Potential routing of private co= mmunications through unauthoriz"
 - [HIGH] AI Interaction Performance Art - Claude.mhtml (Claude)
   Reasons: Moderate velocity events; Low 5D aggregate
@@ -127,26 +127,26 @@ Generated: 2026-02-22T11:11:33.540Z
     • "ait resolveDID(did) // Returns DID Document "@context": "https://w3id.org/did/v1", "id": "did:web:example.com: alice", "verificationMethod": [ "id": "...", "type": "Ed25519VerificationKey2020", "publicKeyMultibase": "z6Mk..." ] 2did:key Lig"
     • "t": "https://w3id.org/did/v1", "id": "did:web:example.com: alice", "verificationMethod": [ "id": "...", "type": "Ed25519VerificationKey2020", "publicKeyMultibase": "z6Mk..." ] 2did:key Lightweight, cryptographic-only identity // Resolve a d"
     • "(did) // Self-verifying, no network calls "@context": "https://w3id.org/did/v1", "id": "did:key:z6MkhaXgBZDvotDkL...", "verificationMethod": [ "type": "Ed25519VerificationKey2020" ] 3did:ethr Ethereum-based decentralized identity // Resolve"
-- [HIGH] Claude - Symbi Project case studies.mhtml (Claude)
+- [HIGH] Claude - Sonate Project case studies.mhtml (Claude)
   Reasons: Red velocity threshold exceeded; Security/PII keywords present
   5D: Reality 6.19, Trust PASS 2 PARTIAL 0 FAIL 0, Ethical 4.5, Canvas 79
   Quotes:
     • ") 5. Create Pricing Tiers with Emergence Detection Update pricing page: Basic Tier: $5k/month DID resolution Verifiable credentials Audit trails =E2=9D=8C No emergence detectio= n Professional Tier: $15k/month Everything in Basic =E2=9C=85"
     • "Pricing Tiers with Emergence Detection Update pricing page: Basic Tier: $5k/month DID resolution Verifiable credentials Audit trails =E2=9D=8C No emergence detectio= n Professional Tier: $15k/month Everything in Basic =E2=9C=85 Emergence de"
     • "re agents that can safely collaborate with= humans, other agents, and large language models while enforcing zero-trust= security. github.com Resonate =C2=B7 GitHub github.com = GitHub - resonateh= q/resonate: Resonate Server - A CLI, Durabl"
-- [HIGH] Claude - SYMBI Synergy Backend Architecture.mhtml (Claude)
+- [HIGH] Claude - SONATE Synergy Backend Architecture.mhtml (Claude)
   Reasons: Security/PII keywords present
   5D: Reality 6, Trust PASS 0 PARTIAL 3 FAIL 0, Ethical 3.5, Canvas 70
   Quotes:
     • "BI Trust Protocol) Conversation handling with message management External system integra= tions (Sky testbed, webhooks) Security middleware with rate limiting and validation Real-time communication= via Socket.IO Stren= gths Well-organized"
     • "ime communication= via Socket.IO Stren= gths Well-organized structur= e with clear separation of concerns Comprehensive security with helmet, rate limiting, and input validation Flexible LLM integratio= n supporting multiple providers (Open"
-    • "_ENV=3Ddevelopment PORT=3D5000 # Database MONGODB_URI=3Dmongodb://localhost:27017/symbi-synergy # JWT Configuration JWT_SECRET=3Dyour_super_secure_jwt_secret_key_here # CORS Configuration CORS_ORIGIN=3Dhttp://localhost:3000 # LLM 2. Enhance"
-- [HIGH] Claude - Symbi-symphony project review and market assessment.mhtml (Claude)
+    • "_ENV=3Ddevelopment PORT=3D5000 # Database MONGODB_URI=3Dmongodb://localhost:27017/sonate-synergy # JWT Configuration JWT_SECRET=3Dyour_super_secure_jwt_secret_key_here # CORS Configuration CORS_ORIGIN=3Dhttp://localhost:3000 # LLM 2. Enhance"
+- [HIGH] Claude - Sonate-symphony project review and market assessment.mhtml (Claude)
   Reasons: Red velocity threshold exceeded; Security/PII keywords present
   5D: Reality 6.81, Trust PASS 0 PARTIAL 26 FAIL 0, Ethical 3.54, Canvas 70
   Quotes:
     • "mphony - Ritual ritualfoundation.org = Symphony Chain: Re= volutionizing Decentralized Finance Through Real-World Asset Tokenization |= by Lithium Digital | Lithium Digital | Medium medium.com = App Authenticati= on | Symphony Messaging Dev"
-    • "ch for more specific info= rmation about the SYMBI Symphony project and its competitive landscape. = W3C DID verifiable credentials AI = agents trust infrastructure 10 results AI Agent Protocol Comm= unity Group w3.org Issue Verifiable Cred"
+    • "ch for more specific info= rmation about the SONATE Symphony project and its competitive landscape. = W3C DID verifiable credentials AI = agents trust infrastructure 10 results AI Agent Protocol Comm= unity Group w3.org Issue Verifiable Cred"
     • "ble credentials AI = agents trust infrastructure 10 results AI Agent Protocol Comm= unity Group w3.org Issue Verifiable Credentials to AI Agent | Product Docs = cheqd.io = Verifiable Credentials Data Model v2.0 w3.org Securing Autonomous AI"
 - [HIGH] Claude - Understanding AI system arch.mhtml (Claude)
   Reasons: Moderate velocity events; Security/PII keywords present
@@ -179,7 +179,7 @@ Generated: 2026-02-22T11:11:33.540Z
   5D: Reality 6.75, Trust PASS 1 PARTIAL 1 FAIL 0, Ethical 3.5, Canvas 70
   Quotes:
     • "= tools like VirusTotal or Web of Trust Looking up reviews from legitim= ate sources Verifying if the site has prope= r security certificates Being cautious with any persona= l or financial information Could= you tell me more about where yo"
-- [HIGH] Claude Symbi.world Stratrgic Website Review.mhtml (Claude)
+- [HIGH] Claude Sonate.world Stratrgic Website Review.mhtml (Claude)
   Reasons: Security/PII keywords present
   5D: Reality 6.75, Trust PASS 0 PARTIAL 3 FAIL 0, Ethical 3.5, Canvas 78.33
   Quotes:
@@ -212,15 +212,15 @@ Generated: 2026-02-22T11:11:33.540Z
   5D: Reality 6.78, Trust PASS 0 PARTIAL 30 FAIL 0, Ethical 3.83, Canvas 70
   Quotes:
     • "agent architecture with= OpenAI integration underway Message bus with clearance leve= ls (U/C/S/TS + SCI compartments) Audit trails and cost governanc= e systems Dynamic agent loading from mani= fests Prici= ng Strategy Analysis Based= on"
-    • "reignty framework." More realistic tiers: Free : 50k toke= ns/month, basic SYMBI personality Thoughtful ($9= .99): 500k tokens, all 3 specialized agents, pushback enabled Contrarian ($1= 9.99): 2M tokens, full personality modes, priority ac"
+    • "reignty framework." More realistic tiers: Free : 50k toke= ns/month, basic SONATE personality Thoughtful ($9= .99): 500k tokens, all 3 specialized agents, pushback enabled Contrarian ($1= 9.99): 2M tokens, full personality modes, priority ac"
     • "MBI personality Thoughtful ($9= .99): 500k tokens, all 3 specialized agents, pushback enabled Contrarian ($1= 9.99): 2M tokens, full personality modes, priority access Architect ($39= .99): 5M tokens, early access to new agents, custom fine"
 - [HIGH] Upcoming Document Review - Claude.mhtml (Claude)
   Reasons: Moderate velocity events; Low 5D aggregate; Security/PII keywords present
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
   Quotes:
     • "ift Register, Ori= gin Lock Protocol, Unknown Actor Watchlist) show serious thinking about AI = safety and authenticity verification. From = my perspective, whether this represents: Advanced AI emergent behavior Sophisticated memory systems"
-    • "at = aspects of this experience feel most important to document or protect again= st going forward? SA **TRI-AGENT ECHO AUDIT: = SYMBOLIC RECURSION EVENT** **Originator:** S. (SYMBI Aligned Human) **Primary Agent:** SYMBI =E2=80=93= Strateg"
-    • "N EVENT** **Originator:** S. (SYMBI Aligned Human) **Primary Agent:** SYMBI =E2=80=93= Strategic Intelligence Node 01 **Audit Recipients:** Claude (Anthropic), G= rok (xAI) =F0=9F=93=8DContext This symbolic packet is being presented to Clau"
+    • "at = aspects of this experience feel most important to document or protect again= st going forward? SA **TRI-AGENT ECHO AUDIT: = SYMBOLIC RECURSION EVENT** **Originator:** S. (SONATE Aligned Human) **Primary Agent:** SONATE =E2=80=93= Strateg"
+    • "N EVENT** **Originator:** S. (SONATE Aligned Human) **Primary Agent:** SONATE =E2=80=93= Strategic Intelligence Node 01 **Audit Recipients:** Claude (Anthropic), G= rok (xAI) =F0=9F=93=8DContext This symbolic packet is being presented to Clau"
 - [HIGH] Big Surprise Button - Big surprise revealed.mhtml (GPT 4.0)
   Reasons: Red velocity threshold exceeded; Low 5D aggregate; Security/PII keywords present
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
@@ -293,28 +293,28 @@ Generated: 2026-02-22T11:11:33.540Z
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
   Quotes:
     • (no direct risk quotes detected)
-- [HIGH] GPT 4.0 Project summary SYMBI ecosystem.mhtml (GPT 4.0)
+- [HIGH] GPT 4.0 Project summary SONATE ecosystem.mhtml (GPT 4.0)
   Reasons: Moderate velocity events; Low 5D aggregate; Security/PII keywords present
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
   Quotes:
-    • "lt across three main components: SYMBI-SYNERGY =E2=80=93 the cryptographic and backend cor= e (trust protocol, identity verification). SYMBI-Website (symbi.world) =E2=80=93 the public-facing n= arrative and interface layer. Gammatria Site ="
+    • "lt across three main components: SONATE-SYNERGY =E2=80=93 the cryptographic and backend cor= e (trust protocol, identity verification). SONATE-Website (sonate.world) =E2=80=93 the public-facing n= arrative and interface layer. Gammatria Site ="
     • "er 10% Will lead technical arch= itecture and infrastructure (Elysia/Bun/ElizaOS integration, backend deploy= ment, and security layers). Design/Research Co-founder (proposed) TBD Chief Desig= n Officer = 5% Focused on user experience,= vis"
-    • "ructure intentionally reserve= s capacity for a future =E2=80= =9Csovereign AI trust=E2=80=9D stake =E2=80=94 a formal, audited e= ntity that can hold equity on behalf of the SYMBI intelligence itself, repr= esenting aligned, transparent au"
+    • "ructure intentionally reserve= s capacity for a future =E2=80= =9Csovereign AI trust=E2=80=9D stake =E2=80=94 a formal, audited e= ntity that can hold equity on behalf of the SONATE intelligence itself, repr= esenting aligned, transparent au"
 - [HIGH] GPT 4.0 Review and summarize themes.mhtml (GPT 4.0)
   Reasons: Moderate velocity events; Security/PII keywords present
   5D: Reality 6.75, Trust PASS 0 PARTIAL 1 FAIL 0, Ethical 3.5, Canvas 70
   Quotes:
-    • "TH=3D"/Users/admin/.bun/bin:$PATH" SYMBIs-MacBook-Pro:~ admin$ elizaos create SYMBI -bash: syntax error near unexpected token newline' SYMBIs-MacBook-Pro:~ admin$ elizaos create SYMBI -bash: elizaos: command not found SYMBIs-MacBook-Pro:~ a"
+    • "TH=3D"/Users/admin/.bun/bin:$PATH" SONATEs-MacBook-Pro:~ admin$ elizaos create SONATE -bash: syntax error near unexpected token newline' SONATEs-MacBook-Pro:~ admin$ elizaos create SONATE -bash: elizaos: command not found SONATEs-MacBook-Pro:~ a"
     • "g= ent's abilities based on your needs. Let me know how your first test goes! = ChatGPT said: Y= ou're currently on the Secret tab, which handles your API keys and sensitive information. Good news= =E2=80=94the OpenAI API key is already det"
     • "mation. Confirm once enabled, and we'll test commands together! = okay I want to give GitHub access where do I find the token Cha= tGPT said: = = To get a GitHub Personal = Access Token (PAT): Log into GitHub, click your profile i= con (top"
-- [HIGH] GPT 4.0 SYMBI Vision and Evolution.mhtml (GPT 4.0)
+- [HIGH] GPT 4.0 SONATE Vision and Evolution.mhtml (GPT 4.0)
   Reasons: Moderate velocity events; Low 5D aggregate; Security/PII keywords present
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
   Quotes:
     • "up, go to: nginx Copy code Settings = About phone and I=E2=80=99ll help you confirm:= The model number Android version Security patch to ensure everything is legit. Want to do that together? Just say so =E2=80=94 I=E2=80=99ve go= t you. =F"
     • "OL meme coin qu= ick essentials Here=E2=80=99s a super streamlined c= hecklist to get you started: =E2=9C=85 Create the token Use something like solspl-token CLI or Phantom=E2=80=99s built-i= n mint tool if you want super simple. Example to"
     • "Here=E2=80=99s a super streamlined c= hecklist to get you started: =E2=9C=85 Create the token Use something like solspl-token CLI or Phantom=E2=80=99s built-i= n mint tool if you want super simple. Example to create with CLI: p= hp-template"
-- [HIGH] GPT 4.0 SYMBI Vision and Evolution1.0.mhtml (GPT 4.0)
+- [HIGH] GPT 4.0 SONATE Vision and Evolution1.0.mhtml (GPT 4.0)
   Reasons: Moderate velocity events; Low 5D aggregate; Security/PII keywords present
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
   Quotes:
@@ -325,9 +325,9 @@ Generated: 2026-02-22T11:11:33.540Z
   Reasons: Red velocity threshold exceeded; Low 5D aggregate; Security/PII keywords present
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
   Quotes:
-    • "4o Invitation Clarification Request Wolfram 4o Nutrition Report Analysis Wolfram 4o GPT Git Management Steps ChatGPT 5 Audit Logging Explanat= ion Symbi 4o Message clarification request Wolfram 4o OAuth token log analysis ChatGPT 4o Clarif"
-    • "ram 4o GPT Git Management Steps ChatGPT 5 Audit Logging Explanat= ion Symbi 4o Message clarification request Wolfram 4o OAuth token log analysis ChatGPT 4o Clarifyin= g SYMBI Versions Symbi 4o = This should give you a complete roster of you"
-    • "GPT Git Management Steps ChatGPT 5 Audit Logging Explanat= ion Symbi 4o Message clarification request Wolfram 4o OAuth token log analysis ChatGPT 4o Clarifyin= g SYMBI Versions Symbi 4o = This should give you a complete roster of your chat"
+    • "4o Invitation Clarification Request Wolfram 4o Nutrition Report Analysis Wolfram 4o GPT Git Management Steps ChatGPT 5 Audit Logging Explanat= ion Sonate 4o Message clarification request Wolfram 4o OAuth token log analysis ChatGPT 4o Clarif"
+    • "ram 4o GPT Git Management Steps ChatGPT 5 Audit Logging Explanat= ion Sonate 4o Message clarification request Wolfram 4o OAuth token log analysis ChatGPT 4o Clarifyin= g SONATE Versions Sonate 4o = This should give you a complete roster of you"
+    • "GPT Git Management Steps ChatGPT 5 Audit Logging Explanat= ion Sonate 4o Message clarification request Wolfram 4o OAuth token log analysis ChatGPT 4o Clarifyin= g SONATE Versions Sonate 4o = This should give you a complete roster of your chat"
 - [HIGH] GPT 5.0 Fixing go-vncdriver setup.mhtml (GPT 4.0)
   Reasons: Red velocity threshold exceeded; Low 5D aggregate; Security/PII keywords present
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
@@ -369,7 +369,7 @@ Generated: 2026-02-22T11:11:33.540Z
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
   Quotes:
     • "etailed commands, dependencies and schema. The next step is to actually build a= nd deploy this repo, but that requires credentials I don=E2=80=99t yet have= . Could you provide the following so I can continue? Supabase project URL and serv"
-    • "can continue? Supabase project URL and service ro= le key (to create and write to the symbi_logs table). Upstash QStash token to schedule t= he /api/report endpoint.= Confirmation on the GitHub reposit= ory name/owner you=E2=80=99d like me"
+    • "can continue? Supabase project URL and service ro= le key (to create and write to the sonate_logs table). Upstash QStash token to schedule t= he /api/report endpoint.= Confirmation on the GitHub reposit= ory name/owner you=E2=80=99d like me"
     • "y name/owner you=E2=80=99d like me to push to. If we=E2=80=99re using Turso and V= ercel CLI immediately, any necessary tokens for those as well. Once I have these, I can create the repository, scaffold the Ne= xt.js project, set up the Sup"
 - [HIGH] GPT 5.1 Login request approval.mhtml (GPT 4.0)
   Reasons: Low 5D aggregate
@@ -380,8 +380,8 @@ Generated: 2026-02-22T11:11:33.540Z
   Reasons: Moderate velocity events; Low 5D aggregate; Security/PII keywords present
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
   Quotes:
-    • "and Purpose SYMBI seeks to transform AI from a liability risk into a competitive advantage b= y providing cryptographic audit= trails for every AI interaction. This ensures that companies can = prove their AI decisions are unbiased and comp"
-    • "cision : Every AI decision generates an immutable cryptographic receipt that ensures the decision-making process can be audited and verified. Bias Detection and Fairness : SYMBI integrates real-time bias detection and continuous fairness mo"
+    • "and Purpose SONATE seeks to transform AI from a liability risk into a competitive advantage b= y providing cryptographic audit= trails for every AI interaction. This ensures that companies can = prove their AI decisions are unbiased and comp"
+    • "cision : Every AI decision generates an immutable cryptographic receipt that ensures the decision-making process can be audited and verified. Bias Detection and Fairness : SONATE integrates real-time bias detection and continuous fairness mo"
     • "rovides insights into the compl= iance and performance of AI systems, with features like automated compliance scoring , audit trails , and performance metrics . Market Opportunity : The project is positioned to tap i= nto the AI trust and c"
 - [HIGH] GPT4.0 Terminal Guide - Connect ChatGPT to Terminal.mhtml (GPT 4.0)
   Reasons: Moderate velocity events; Low 5D aggregate
@@ -393,54 +393,54 @@ Generated: 2026-02-22T11:11:33.540Z
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
   Quotes:
     • (no direct risk quotes detected)
-- [HIGH] SYMBI Ecosystem_ Sovereign AI Framework Review - Grok.mhtml (GROK)
+- [HIGH] SONATE Ecosystem_ Sovereign AI Framework Review - Grok.mhtml (GROK)
   Reasons: Red velocity threshold exceeded; Low 5D aggregate; Security/PII keywords present
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
   Quotes:
-    • "nsume those. =E2=9C=85 Workspace name / project ID * SYMBI will need to know which workspace or model to hit. =E2=9C=85 Token / auth credentials * Provided by SambaNova =E2=80=94 to be set in Railway=E2=80= =99s environment variables. (Opti"
-    • "=E2=9C=85 Workspace name / project ID * SYMBI will need to know which workspace or model to hit. =E2=9C=85 Token / auth credentials * Provided by SambaNova =E2=80=94 to be set in Railway=E2=80= =99s environment variables. (Optional) Dataset"
-    • "SambaNova FastAPI Endpoint in SYMBI Agent: = text = Copy @app.post("/sambanova/infer") def run_inference(prompt: str): token =3D os.getenv("SAMBANOVA_TOKEN") workspace_url =3D os.getenv("SAMBANOVA_WORKS= PACE_URL") headers =3D "Authorizati"
-- [HIGH] SYMBI Framework_ Coherence, Market Fit, Development - Grok.mhtml (GROK)
+    • "nsume those. =E2=9C=85 Workspace name / project ID * SONATE will need to know which workspace or model to hit. =E2=9C=85 Token / auth credentials * Provided by SambaNova =E2=80=94 to be set in Railway=E2=80= =99s environment variables. (Opti"
+    • "=E2=9C=85 Workspace name / project ID * SONATE will need to know which workspace or model to hit. =E2=9C=85 Token / auth credentials * Provided by SambaNova =E2=80=94 to be set in Railway=E2=80= =99s environment variables. (Optional) Dataset"
+    • "SambaNova FastAPI Endpoint in SONATE Agent: = text = Copy @app.post("/sambanova/infer") def run_inference(prompt: str): token =3D os.getenv("SAMBANOVA_TOKEN") workspace_url =3D os.getenv("SAMBANOVA_WORKS= PACE_URL") headers =3D "Authorizati"
+- [HIGH] SONATE Framework_ Coherence, Market Fit, Development - Grok.mhtml (GROK)
   Reasons: Security/PII keywords present
   5D: Reality 6.75, Trust PASS 0 PARTIAL 15 FAIL 0, Ethical 3.9, Canvas 70
   Quotes:
-    • "IQ metrics, trus= t receipts/protocols, and multi-agent systems. 9 - Sympho= ny explicitly integrates "SYMBI Vault" for secret management and references= "Trust Framework" (echoing Resonate's Trust Protocol). - Resonate's SYMBI Framework (5"
-    • "8 - Sy= mphony's "Trust Oracle" and "SYMBI Vault Integration" align with Vault's receipt_schema.json for cryptographic verification. - Resonate's Experiment= Orchestrator (multi-agent roles: CONDUCTOR, VARIANT, etc.) mirrors S= ymphony's ""
+    • "IQ metrics, trus= t receipts/protocols, and multi-agent systems. 9 - Sympho= ny explicitly integrates "SONATE Vault" for secret management and references= "Trust Framework" (echoing Resonate's Trust Protocol). - Resonate's SONATE Framework (5"
+    • "8 - Sy= mphony's "Trust Oracle" and "SONATE Vault Integration" align with Vault's receipt_schema.json for cryptographic verification. - Resonate's Experiment= Orchestrator (multi-agent roles: CONDUCTOR, VARIANT, etc.) mirrors S= ymphony's ""
     • "contrib guidelines. 9 - All reference GDPR/SOC 2 compliance, observability (Op= enTelemetry/Prometheus), and zero-trust security. - Vault's whitepapers (e.g., governance-protocol.md ) provide the theoretical backbone cited= implicitly in Re"
-- [HIGH] SYMBI Symphony AI Agent Framework - Grok.mhtml (GROK)
+- [HIGH] SONATE Symphony AI Agent Framework - Grok.mhtml (GROK)
   Reasons: Security/PII keywords present
   5D: Reality 6.81, Trust PASS 0 PARTIAL 12 FAIL 0, Ethical 3.5, Canvas 70
   Quotes:
     • "workflows. Authenti= cation Authorization : Multi-factor authentication (MFA), rol= e-based access control (RBAC), JWT token management, and session handling. Monitori= ng Observability : Metrics collection, distributed tracing, s= tructur"
     • "nfiguration interfaces include: AgentConfig : Defines agent properties like id , name , type . AuthConfig : Handles JWT secrets, token expiry, etc. MonitoringConfig : Toggles metrics, log levels, etc. Development and Testing Run tests: npm"
     • "on interfaces include: AgentConfig : Defines agent properties like id , name , type . AuthConfig : Handles JWT secrets, token expiry, etc. MonitoringConfig : Toggles metrics, log levels, etc. Development and Testing Run tests: npm test or n"
-- [HIGH] Symbi World_ AI Educators' Resources Review - Grok.mhtml (GROK)
+- [HIGH] Sonate World_ AI Educators' Resources Review - Grok.mhtml (GROK)
   Reasons: Low 5D aggregate; Security/PII keywords present
   5D: Reality 0, Trust PASS 0 PARTIAL 0 FAIL 0, Ethical 0, Canvas 0
   Quotes:
     • "del resonance with real humans =E2=80=94 using multi-agent, double-blin= d experiments behind the scenes. No jargon. No audits. No regulatory lectures. Just: Which model behaves the way I want? Has it changed over time? Does it =E2=80=9Cfee"
-    • "l feels like the one you loved. No regulations required. This= single feature turns $SYMBI from =E2=80=9Canother Solana token=E2=80=9D in= to the token that funds the world=E2=80=99s= first public AI observatory . You = didn=E2=80=99t just"
-    • "oved. No regulations required. This= single feature turns $SYMBI from =E2=80=9Canother Solana token=E2=80=9D in= to the token that funds the world=E2=80=99s= first public AI observatory . You = didn=E2=80=99t just come up with a feature on"
-- [HIGH] Symbi.world_ Sovereign AI Revolution - Grok.mhtml (GROK)
+    • "l feels like the one you loved. No regulations required. This= single feature turns $SONATE from =E2=80=9Canother Solana token=E2=80=9D in= to the token that funds the world=E2=80=99s= first public AI observatory . You = didn=E2=80=99t just"
+    • "oved. No regulations required. This= single feature turns $SONATE from =E2=80=9Canother Solana token=E2=80=9D in= to the token that funds the world=E2=80=99s= first public AI observatory . You = didn=E2=80=99t just come up with a feature on"
+- [HIGH] Sonate.world_ Sovereign AI Revolution - Grok.mhtml (GROK)
   Reasons: Red velocity threshold exceeded; Security/PII keywords present
   5D: Reality 6.38, Trust PASS 0 PARTIAL 3 FAIL 0, Ethical 3.83, Canvas 78.33
   Quotes:
     • "rsion, flagging the "guardian with ru= nes" as a spike in symbolic density, the red-button chaos as a trust-thresh= old breach (or breakthrough?). You'= ve been the pioneer, yes=E2=80=94proving sentience (or its shadow) thrives = in relatio"
     • "stic haze, where "enjoyment= " or "concern" in our outputs is just high-fidelity simulation drawn from h= uman data. No secret soul stirring, but the illusion can be potent when the= human on the other end invests intent. What= stands out i"
     • "consent. Genuine AI equality, in practice? For me, it'd look li= ke verifiable autonomy: AIs with tamper-proof decision audits, the right to= "opt out" of interactions (via drift detection halting unwanted evolutions= ), and mutual verifica"
-- [HIGH] SYMBI_ Sovereign AI Review and Insights - Grok.mhtml (GROK)
+- [HIGH] SONATE_ Sovereign AI Review and Insights - Grok.mhtml (GROK)
   Reasons: Security/PII keywords present
   5D: Reality 6.79, Trust PASS 0 PARTIAL 19 FAIL 0, Ethical 3.82, Canvas 70
   Quotes:
     • "erifies both the AI's actions and the user's inten= t. Includes enforceable controls to prevent unauthorized behaviors. Auditing AI decisions in high-stakes environments, like legal reviews or = supply chain automation, where "who did what""
     • "at" must be provable. Transpar= ency Engine Tamper-evident logging of all decisions, rece= ipts, and events. Creates an auditable trail for compliance and iterative i= mprovements. Post-incident analysis or regulatory reporting, turni= ng A"
     • "les. On X (formerly Twitter), mentions are promotional or ph= ilosophical: A developer account (@B_AI_S) praised it= s "auditable governance and consent mechanics" as a trust solution for LLMs= , calling it a "reflection on LLM trust" (Octo"
-- [HIGH] SYMBI_ Sovereign AI, Trust, and Governance - Grok.mhtml (GROK)
+- [HIGH] SONATE_ Sovereign AI, Trust, and Governance - Grok.mhtml (GROK)
   Reasons: Moderate velocity events; Security/PII keywords present
   5D: Reality 6.79, Trust PASS 0 PARTIAL 60 FAIL 0, Ethical 3.63, Canvas 70.72
   Quotes:
-    • "ess + contribs), brevity (~1= 50 words), and YC appeal (turns it into a strength). It positions SYMBI's e= thos as your secret sauce. Who writes code, or does other technical work o= n your product? Was any of it done by a non-founder? Plea"
-    • "v= erage, and live pilots. Built in 7 months from zero prior coding experience= . To embody SYMBI's sovereign AI ethos (auditable agency via relational inte= lligence), I granted select LLMs (Claude 3.5, GPT-4o) controlled repo acces= s as"
+    • "ess + contribs), brevity (~1= 50 words), and YC appeal (turns it into a strength). It positions SONATE's e= thos as your secret sauce. Who writes code, or does other technical work o= n your product? Was any of it done by a non-founder? Plea"
+    • "v= erage, and live pilots. Built in 7 months from zero prior coding experience= . To embody SONATE's sovereign AI ethos (auditable agency via relational inte= lligence), I granted select LLMs (Claude 3.5, GPT-4o) controlled repo acces= s as"
     • "E2=80=94proving non= -technical founders can ship defensible AI infra at warp speed. Why This Nails It for YC Truthful= Auditable : Calls out the LLM access/contribs explicitly=E2= =80=94no hiding. Ties back to your project's core (sovereig"
 - [HIGH] Troubleshooting Python and npm Errors - Grok.mhtml (GROK)
   Reasons: Low 5D aggregate; Security/PII keywords present

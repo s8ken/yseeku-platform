@@ -1,6 +1,6 @@
 {
   "name": "@sonate/policy",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "Policy Engine for SONATE - Runtime governance and principle enforcement",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

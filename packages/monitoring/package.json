@@ -1,6 +1,6 @@
 {
   "name": "@sonate/monitoring",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "Monitoring and metrics for SONATE policy engine",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

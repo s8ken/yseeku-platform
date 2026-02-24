@@ -1,11 +1,11 @@
 # AI Agent Guidelines for YSEEKU SONATE
 
 ## Project Overview
-YSEEKU SONATE is an enterprise AI governance platform implementing the SYMBI trust framework.
+YSEEKU SONATE is an enterprise AI governance platform implementing the SONATE trust framework.
 
 ## Key Concepts
 - **Trust Receipts**: Ed25519 signed, hash-chained records of AI interactions
-- **SYMBI Principles**: 6 constitutional principles (Consent, Inspection, Validation, Override, Disconnect, Recognition)
+- **SONATE Principles**: 6 constitutional principles (Consent, Inspection, Validation, Override, Disconnect, Recognition)
 - **CIQ Metrics**: Clarity, Integrity, Quality scores for each interaction
 
 ## Architecture
@@ -16,7 +16,7 @@ YSEEKU SONATE is an enterprise AI governance platform implementing the SYMBI tru
 
 ## Important Files
 - `packages/core/src/receipts/trust-receipt.ts` - Cryptographic receipt implementation
-- `packages/core/src/principles/principle-evaluator.ts` - SYMBI principle scoring
+- `packages/core/src/principles/principle-evaluator.ts` - SONATE principle scoring
 - `apps/backend/src/services/keys.service.ts` - Ed25519 key management
 - `apps/backend/src/middleware/auth* @s8ken
 /apps/backend/src/routes/conversation.routes.ts` - Chat + receipt generation

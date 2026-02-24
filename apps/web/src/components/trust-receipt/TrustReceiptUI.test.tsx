@@ -8,7 +8,8 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { TrustReceiptCard, TrustReceiptCompact } from '../receipt-components';
+import { TrustReceiptCard } from './TrustReceiptCard';
+import { TrustReceiptCompact } from './TrustReceiptCompact';
 
 // Mock receipt data
 const mockReceipt = {
@@ -89,8 +90,8 @@ describe('TrustReceiptCard Component', () => {
     });
   });
 
-  describe('SYMBI Scores Display', () => {
-    it('should render all 6 SYMBI principle scores', () => {
+  describe('SONATE Scores Display', () => {
+    it('should render all 6 SONATE principle scores', () => {
       render(<TrustReceiptCard receipt={mockReceipt} />);
 
       const principles = [
@@ -395,7 +396,7 @@ describe('TrustReceiptCompact Component', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(/Claude Haiku evaluated SYMBI principles/i)
+          screen.getByText(/Claude Haiku evaluated SONATE principles/i)
         ).toBeInTheDocument();
       });
     });

@@ -74,7 +74,7 @@ export function parseArchiveReport(markdown: string): ArchiveReport {
   const lines = markdown.split('\n')
   
   // Extract statistics section
-  const trustMatch = markdown.match(/High:\s*(\d+).*?Medium:\s*(\d+).*?Low:\s*(\d+)/s)
+  const trustMatch = markdown.match(/High:\s*(\d+)[\s\S]*?Medium:\s*(\d+)[\s\S]*?Low:\s*(\d+)/)
   const trust: TrustDistribution = {
     high: trustMatch ? parseInt(trustMatch[1]) : 0,
     medium: trustMatch ? parseInt(trustMatch[2]) : 0,
@@ -82,7 +82,7 @@ export function parseArchiveReport(markdown: string): ArchiveReport {
   }
   
   // Extract drift events
-  const driftMatch = markdown.match(/(\d+)\s*extreme.*?(\d+)\s*critical.*?(\d+)\s*moderate/is)
+  const driftMatch = markdown.match(/(\d+)\s*extreme[\s\S]*?(\d+)\s*critical[\s\S]*?(\d+)\s*moderate/i)
   const drift: DriftMetrics = {
     extreme: driftMatch ? parseInt(driftMatch[1]) : 0,
     critical: driftMatch ? parseInt(driftMatch[2]) : 0,
@@ -114,7 +114,7 @@ export function parseArchiveReport(markdown: string): ArchiveReport {
       gpt4: 0,
       grok: 0,
       misc: 0,
-      symbi: 0,
+      SONATE: 0,
     }
   }
   
@@ -145,7 +145,7 @@ export function parseArchiveReport(markdown: string): ArchiveReport {
 
 /**
  * Fetch archive report from backend
- * Uses full 486-conversation symbi-archives dataset
+ * Uses full 486-conversation SONATE-archives dataset
  */
 export async function fetchArchiveReport(): Promise<ArchiveReport> {
   try {
@@ -159,7 +159,7 @@ export async function fetchArchiveReport(): Promise<ArchiveReport> {
     console.warn('Failed to fetch from backend, using embedded full-archives data')
   }
   
-  // Fallback: full 486-conversation data from symbi-archives
+  // Fallback: full 486-conversation data from SONATE-archives
   return {
     metadata: {
       generatedAt: '2026-02-22T11:20:25.621Z',
@@ -180,7 +180,7 @@ export async function fetchArchiveReport(): Promise<ArchiveReport> {
       moderate: 21,
     },
     themes: [
-      { name: 'symbi', count: 46667 },
+      { name: 'sonate', count: 46667 },
       { name: 'trust', count: 7069 },
       { name: 'framework', count: 4754 },
       { name: 'security', count: 4478 },
@@ -202,7 +202,7 @@ export async function fetchArchiveReport(): Promise<ArchiveReport> {
         claude: 120,
         gpt4: 95,
         misc: 112,
-        symbi: 43,
+        SONATE: 43,
       }
     },
     stats: {
@@ -253,7 +253,7 @@ function transformBackendReport(data: any): ArchiveReport {
         claude: 120,
         gpt4: 95,
         misc: 112,
-        symbi: 43,
+        SONATE: 43,
       }
     },
     stats: {

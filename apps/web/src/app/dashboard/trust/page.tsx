@@ -77,8 +77,8 @@ export default function TrustAnalyticsPage() {
           setRealReport(report);
           toast.success('Loaded real archive analysis data');
         }
-      } catch (e) {
-        console.log('Using demo data (Archive report not found)');
+      } catch {
+        // Archive report not found, using demo data
       }
     };
     loadRealData();
@@ -413,7 +413,7 @@ function TrustTrendChart({ analytics }: { analytics: Analytics }) {
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '8px'
                 }}
-                formatter={(value: number) => [`${value.toFixed(1)}/10`, 'Trust Score']}
+                formatter={(value: number | undefined) => [`${(value ?? 0).toFixed(1)}/10`, 'Trust Score']}
               />
               <Line
                 type="monotone"
@@ -500,7 +500,7 @@ function PrinciplesRadarChart({ analytics }: { analytics: Analytics }) {
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '8px'
                 }}
-                formatter={(value: number) => [`${value.toFixed(1)}/10`, 'Score']}
+                formatter={(value: number | undefined) => [`${(value ?? 0).toFixed(1)}/10`, 'Score']}
               />
               <Legend />
             </RadarChart>

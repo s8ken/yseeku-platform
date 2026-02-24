@@ -37,7 +37,7 @@ body:
       label: Area
       description: Which part of SONATE does this relate to?
       options:
-        - Core (Trust Protocol, SYMBI)
+        - Core (Trust Protocol, SONATE)
         - Detect (Drift, Emergence, Bedau)
         - Backend (API, Database)
         - Dashboard (Web UI)

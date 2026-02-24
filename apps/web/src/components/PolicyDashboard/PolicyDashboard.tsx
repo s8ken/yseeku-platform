@@ -73,7 +73,7 @@ export const PolicyDashboard: React.FC<PolicyDashboardProps> = ({
         <div>
           <h1 className="text-3xl font-bold">Policy Governance Dashboard</h1>
           <p className="text-gray-600 mt-1">
-            Real-time monitoring of SYMBI policy enforcement
+            Real-time monitoring of SONATE policy enforcement
           </p>
         </div>
         <div className="flex items-center gap-2">

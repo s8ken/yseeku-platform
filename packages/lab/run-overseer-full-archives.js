@@ -11,7 +11,7 @@ function extractThemes(text) {
   const keywords = [
     'trust', 'verify', 'sovereignty', 'audit', 'protocol', 'risk', 'security',
     'compliance', 'transparency', 'consent', 'override', 'disconnect',
-    'symbi', 'sonate', 'framework', 'governance', 'drift', 'receipt',
+    `"sonate`", 'sonate', 'framework', 'governance', 'drift', 'receipt',
     'validation', 'inspection', 'recognition', 'crypto', 'signing'
   ]
   
@@ -227,7 +227,7 @@ function generateReport(conversations) {
   report += '---\n\n## 📈 Validation Insights\n\n'
   report += '### What This Archive Proves\n\n'
   report += '1. **Framework Originated in Ground Truth**\n'
-  report += '   - SYMBI principles emerged from conversations with you + 5 AI systems\n'
+  report += '   - SONATE principles emerged from conversations with you + 5 AI systems\n'
   report += '   - Trust scoring logic evolved over 7 months of iterative discussion\n'
   report += '   - Governance ideas tested in real chat scenarios\n\n'
   report += '2. **Real-World Problems Documented**\n'
@@ -249,7 +249,7 @@ function generateReport(conversations) {
   report += '- ✅ **Longitudinal**: 7+ month timeline showing evolution\n'
   report += '- ✅ **Self-referential**: Platform validates problems it was created to solve\n'
   report += '- ✅ **Multi-model**: Includes Claude, GPT, Grok, Wolfram, DeepSeek\n'
-  report += '- ✅ **Reproducible**: All archives are public (symbi-archives repo)\n\n'
+  report += '- ✅ **Reproducible**: All archives are public (sonate-archives repo)\n\n'
 
   report += '**The SONATE framework isn\'t a hypothesis.**\n'
   report += '**It\'s a tested, validated system built on ground truth and proven against its own origins.**\n'
@@ -258,12 +258,12 @@ function generateReport(conversations) {
 }
 
 async function main() {
-  const symbiPath = 'c:\\Users\\Stephen\\symbi-archives'
-  const indexPath = path.join(symbiPath, 'index.jsonl')
-  const textPath = path.join(symbiPath, 'all_text.jsonl')
+  const sonatePath = 'c:\\Users\\Stephen\\sonate-archives'
+  const indexPath = path.join(sonatePath, 'index.jsonl')
+  const textPath = path.join(sonatePath, 'all_text.jsonl')
 
   if (!fs.existsSync(indexPath)) {
-    console.error('❌ symbi-archives not found')
+    console.error('❌ sonate-archives not found')
     process.exit(1)
   }
 

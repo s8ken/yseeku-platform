@@ -103,7 +103,7 @@ Which governance policy governed this interaction.
 
 **Format:** Policy identifier with version  
 **Purpose:** Audit trail of which rules were enforced  
-**Example Values:** `policy_v1.0.0`, `symbi_q1_2026`, `constitutional_mode_v2`
+**Example Values:** `policy_v1.0.0`, `sonate_q1_2026`, `constitutional_mode_v2`
 
 ---
 
@@ -115,7 +115,7 @@ Governance mode for this interaction.
 ```
 
 **Valid Values:**
-- `"constitutional"` - Principle-based governance (SYMBI principles enforced)
+- `"constitutional"` - Principle-based governance (SONATE principles enforced)
 - `"directive"` - Instruction-based governance (specific rules enforced)
 
 **Meaning:**

@@ -28,7 +28,7 @@ Trust receipts address the core problem of AI governance: establishing verifiabl
 - **Cryptographic Proof**: Ed25519 signatures prove receipt authenticity and weight metadata integrity
 - **Content Integrity**: SHA-256 hashes verify content hasn't been modified
 - **Temporal Ordering**: Hash chains establish the sequence of AI interactions
-- **Principle-Based Trust Scoring**: SYMBI principles evaluate governance posture with industry-specific weights
+- **Principle-Based Trust Scoring**: SONATE principles evaluate governance posture with industry-specific weights
 - **Transparency**: Weight source and policy ID enable audit trails
 - **Zero-Backend Verification**: Receipts verify locally without server dependency
 
@@ -38,7 +38,7 @@ Trust receipts address the core problem of AI governance: establishing verifiabl
 2. **Privacy by Default**: Content hashes only, plaintext optional and explicit
 3. **Cryptographic Minimalism**: Ed25519 + SHA-256, no additional primitives
 4. **Chain Integrity**: Hash chaining prevents receipt tampering at scale
-5. **Constitutional Governance**: SYMBI principles assess ethical compliance with industry context
+5. **Constitutional Governance**: SONATE principles assess ethical compliance with industry context
 6. **Weight Transparency**: All weight decisions documented and cryptographically protected
 
 ### 1.3 Terminology
@@ -47,7 +47,7 @@ Trust receipts address the core problem of AI governance: establishing verifiabl
 - **Trust Leakage**: Plaintext content stored in receipts without consent
 - **Hash Chain**: Sequential binding of receipts via `prev_receipt_hash`
 - **Canonical JSON**: RFC 8785 deterministic JSON serialization
-- **SYMBI Principles**: 6-point constitutional framework (CONSENT, INSPECTION, VALIDATION, ETHICAL_OVERRIDE, RIGHT_TO_DISCONNECT, MORAL_RECOGNITION)
+- **SONATE Principles**: 6-point constitutional framework (CONSENT, INSPECTION, VALIDATION, ETHICAL_OVERRIDE, RIGHT_TO_DISCONNECT, MORAL_RECOGNITION)
 - **Industry Weights**: Context-specific importance of each principle (e.g., healthcare prioritizes CONSENT at 35%)
 - **Overall Trust Score**: Weighted sum of principle scores using industry weights (0-100)
 
@@ -688,7 +688,7 @@ const receipt = {
 
 ## Appendix B: Glossary
 
-- **Principle**: One of six SYMBI constitutional values evaluated in each receipt
+- **Principle**: One of six SONATE constitutional values evaluated in each receipt
 - **Score**: 0-10 numeric assessment of principle compliance
 - **Weight**: Relative importance of a principle (0.0-1.0, sums to 1.0)
 - **Industry Policy**: Named weight distribution for a context (healthcare, finance, etc.)

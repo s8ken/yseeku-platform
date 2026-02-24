@@ -250,7 +250,7 @@ test('Migration test suite passes (Phase 3)', () => {
 // ============================================================
 console.log('\nTest Suite 5: Critical Architecture Requirements\n');
 
-test('6 SYMBI principles defined', () => {
+test('6 SONATE principles defined', () => {
   const principles = [
     'CONSENT_ARCHITECTURE',
     'INSPECTION_MANDATE',

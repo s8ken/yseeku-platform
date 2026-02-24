@@ -148,8 +148,8 @@ export interface Telemetry {
     quality?: number;
   };
   
-  // NEW: SYMBI principle scores and metrics (v2.2)
-  /** SYMBI constitutional principle scores (0-10 each) */
+  // NEW: SONATE principle scores and metrics (v2.2)
+  /** SONATE constitutional principle scores (0-10 each) */
   sonate_principles?: {
     CONSENT_ARCHITECTURE?: number;
     INSPECTION_MANDATE?: number;

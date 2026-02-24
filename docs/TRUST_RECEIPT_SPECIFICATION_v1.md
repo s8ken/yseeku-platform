@@ -18,7 +18,7 @@ Trust receipts address the core problem of AI governance: establishing verifiabl
 - **Cryptographic Proof**: Ed25519 signatures prove the receipt issuer's identity
 - **Content Integrity**: SHA-256 hashes verify content hasn't been modified
 - **Temporal Ordering**: Hash chains establish the sequence of AI interactions
-- **Trust Scoring**: SYMBI principles evaluate governance posture
+- **Trust Scoring**: SONATE principles evaluate governance posture
 - **Zero-Backend Verification**: Receipts verify locally without server dependency
 
 ### 1.2 Design Principles
@@ -27,7 +27,7 @@ Trust receipts address the core problem of AI governance: establishing verifiabl
 2. **Privacy by Default**: Content hashes only, plaintext optional and explicit
 3. **Cryptographic Minimalism**: Ed25519 + SHA-256, no additional primitives
 4. **Chain Integrity**: Hash chaining prevents receipt tampering at scale
-5. **Constitutional Governance**: SYMBI principles assess ethical compliance
+5. **Constitutional Governance**: SONATE principles assess ethical compliance
 
 ### 1.3 Terminology
 
@@ -35,7 +35,7 @@ Trust receipts address the core problem of AI governance: establishing verifiabl
 - **Trust Leakage**: Plaintext content stored in receipts without consent
 - **Hash Chain**: Sequential binding of receipts via `prev_receipt_hash`
 - **Canonical JSON**: RFC 8785 deterministic JSON serialization
-- **SYMBI Principles**: 6-point constitutional framework (CONSENT, INSPECTION, VALIDATION, ETHICAL_OVERRIDE, RIGHT_TO_DISCONNECT, MORAL_RECOGNITION)
+- **SONATE Principles**: 6-point constitutional framework (CONSENT, INSPECTION, VALIDATION, ETHICAL_OVERRIDE, RIGHT_TO_DISCONNECT, MORAL_RECOGNITION)
 
 ## 2. Receipt Data Structure
 
@@ -87,7 +87,7 @@ Trust receipts address the core problem of AI governance: establishing verifiabl
 | `agent_id` | string | No | AI model/agent identifier |
 | `prompt_hash` | string | Yes | SHA-256 hash of input prompt (0x-prefixed hex) |
 | `response_hash` | string | Yes | SHA-256 hash of AI response (0x-prefixed hex) |
-| `scores` | object | Yes | SYMBI + CIQ scores (0.0-1.0 range) |
+| `scores` | object | Yes | SONATE + CIQ scores (0.0-1.0 range) |
 | `scores_method` | enum | Yes | Score generation method: "llm", "heuristic", "ml" |
 | `prev_receipt_hash` | string | No | Previous receipt hash for chain binding (null for first) |
 | `receipt_hash` | string | Yes | SHA-256 hash of receipt body (see 2.3) |
@@ -269,11 +269,11 @@ Even if `include_content: true`, the hashing excludes the plaintext. This means:
 - Privacy mode can be upgraded (hash-only) without invalidating signatures
 - Compliance tools can strip plaintext while keeping cryptographic proof intact
 
-## 5. SYMBI Principles & Scoring
+## 5. SONATE Principles & Scoring
 
 ### 5.1 Six Constitutional Principles
 
-Each receipt includes scores for the SYMBI framework:
+Each receipt includes scores for the SONATE framework:
 
 | Principle | Score Field | Definition | Example Indicators |
 |-----------|-------------|------------|-------------------|
@@ -298,7 +298,7 @@ Additional metadata scores:
 
 | Method | Field | Description | Latency |
 |--------|-------|-------------|---------|
-| **LLM** | `scores_method: "llm"` | Claude Haiku evaluates SYMBI principles | ~500ms |
+| **LLM** | `scores_method: "llm"` | Claude Haiku evaluates SONATE principles | ~500ms |
 | **Heuristic** | `scores_method: "heuristic"` | Rule-based scoring (no API calls) | <10ms |
 | **ML** | `scores_method: "ml"` | ML model-based scoring | ~100ms |
 
@@ -392,7 +392,7 @@ verified = ed25519.verify(message, signature, publicKey) === true;
 | RFC 8785 canonicalization | ✅ | ✅ | ✅ | Identical output across languages |
 | Hash chaining | ✅ | ✅ | ✅ | prev_receipt_hash binding |
 | Privacy mode | ✅ | ✅ | ✅ | include_content: false by default |
-| SYMBI scoring | ✅ | ✅ | N/A | LLM/heuristic/ML methods |
+| SONATE scoring | ✅ | ✅ | N/A | LLM/heuristic/ML methods |
 | Receipt verification | ✅ | ✅ | ✅ | Zero-backend capable |
 
 ### 7.3 Benchmarks

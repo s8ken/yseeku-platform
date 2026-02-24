@@ -25,7 +25,7 @@ class SocketService {
         },
         transports: ['websocket'],
         autoConnect: true,
-        connectTimeout: 5000,  // Fail fast if backend unreachable
+        timeout: 5000,  // Fail fast if backend unreachable
         reconnection: true,
         reconnectionAttempts: 3,  // Reduced from 10 to fail faster
         reconnectionDelay: 500,

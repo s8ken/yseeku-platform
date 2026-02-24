@@ -97,7 +97,7 @@ export default function OverseerHub() {
             </CardHeader>
             <CardContent className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                The SYMBI principles, drift detection logic, security flagging, and trust scoring were all refined through these conversations. 
+                The SONATE principles, drift detection logic, security flagging, and trust scoring were all refined through these conversations. 
                 This dashboard proves the framework successfully identifies the real problems it was built to solve.
               </p>
               <p className="text-xs text-muted-foreground italic">
@@ -336,7 +336,7 @@ export default function OverseerHub() {
                             style={{ width: `${(comparison.archiveTrustAvg / 10) * 100}%` }}
                           />
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">Baseline from symbi-archives</p>
+                        <p className="text-xs text-muted-foreground mt-2">Baseline from SONATE-archives</p>
                       </div>
 
                       <div>
@@ -409,7 +409,7 @@ export default function OverseerHub() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border">
-                  <h3 className="font-semibold mb-2">Archive: symbi-archives</h3>
+                  <h3 className="font-semibold mb-2">Archive: SONATE-archives</h3>
                   <ul className="text-sm text-muted-foreground space-y-1">
                     <li>• 486 conversations</li>
                     <li>• 2.3GB total</li>

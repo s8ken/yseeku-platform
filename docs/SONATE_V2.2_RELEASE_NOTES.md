@@ -2,7 +2,7 @@
 
 **Release Date**: 2026-02-22  
 **Version**: 2.2  
-**Scope**: Industry-weighted SYMBI principles with cryptographic protection  
+**Scope**: Industry-weighted SONATE principles with cryptographic protection  
 **Phases Implemented**: 7/7 (57% infrastructure complete)
 
 ## Executive Summary
@@ -23,7 +23,7 @@ All weights are **cryptographically signed**, enabling regulatory compliance and
 #### LLMTrustEvaluator (apps/backend/src/services/llm-trust-evaluator.service.ts)
 
 **Before (v1.0)**:
-- Evaluated 6 SYMBI principles as binary assessments
+- Evaluated 6 SONATE principles as binary assessments
 - Returned CIQ metrics (0.0-1.0 decimal)
 - Used hardcoded weights {25%, 20%, 20%, 15%, 10%, 10%}
 
@@ -155,7 +155,7 @@ interface TrustEvaluation {
 
 ### 4. Database Schema Evolution
 
-#### Phase 3 Migration (apps/backend/src/migrations/phase-3-symbi-scoring.ts)
+#### Phase 3 Migration (apps/backend/src/migrations/phase-3-sonate-scoring.ts)
 
 **Actions**:
 1. Creates index: `db.receipts.createIndex({ "telemetry.weight_source": 1 })`

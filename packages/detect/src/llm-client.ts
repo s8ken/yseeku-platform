@@ -176,7 +176,7 @@ Return ONLY a valid JSON object with all fields listed above plus "reasoning": "
           'content-type': 'application/json',
         },
         body: JSON.stringify({
-          model: process.env.SONATE_ANTHROPIC_MODEL || 'claude-3-haiku-20240307',
+          model: process.env.SONATE_ANTHROPIC_MODEL || 'claude-3-5-haiku-20241022',
           max_tokens: 1000,
           messages: [{ role: 'user', content: prompts[type] }],
         }),

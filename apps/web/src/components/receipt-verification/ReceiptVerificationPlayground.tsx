@@ -320,14 +320,14 @@ export function ReceiptVerificationPlayground() {
                                 key={key}
                                 className="bg-slate-800 px-2 py-1 rounded text-slate-300"
                               >
-                                {key}: {typeof value === 'number' ? value.toFixed(2) : value}
+                                {key}: {typeof value === 'number' ? value.toFixed(2) : String(value)}
                               </span>
                             ))}
                           </div>
                         </div>
                       )}
 
-                      {receipt.prompt_content && (
+                      {receipt.prompt_content != null && (
                         <div>
                           <p className="text-slate-500">Prompt (plaintext)</p>
                           <p className="bg-slate-800 p-2 rounded text-slate-300 break-words">

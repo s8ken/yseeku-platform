@@ -5,11 +5,11 @@ Generated: 2026-02-22T11:17:17.919Z
 
 ### Ground-Truth Dataset
 - **Local Archives**: 0 conversations (Feb 2025 snapshot)
-- **SYMBI-Archives**: 486 conversations (June-Dec 2025, complete project timeline)
+- **SONATE-Archives**: 486 conversations (June-Dec 2025, complete project timeline)
 - **Total**: 486 conversations across 7+ months
 
 ### Data Scale
-- **Symbi-Archives Content**: 2299MB
+- **Sonate-Archives Content**: 2299MB
 - **Document Chunks**: 10149
 - **Timeline**: June 2025 → February 2026
 
@@ -18,7 +18,7 @@ Generated: 2026-02-22T11:17:17.919Z
 ### By Volume
 ```
 Misc            : 330 conversations
-Symbi           :  68 conversations
+Sonate           :  68 conversations
 Claude          :  45 conversations
 GPT4            :  30 conversations
 Grok            :  12 conversations
@@ -39,7 +39,7 @@ You have **581 real conversations** that:
 
 1. **Created the framework** (June-Dec 2025)
    - Raw explorations of AI trust, drift, sovereignty
-   - Philosophical foundations of SYMBI
+   - Philosophical foundations of SONATE
    - Prototype trust scoring ideas
 
 2. **Built the platform** (Jan-Feb 2026)

@@ -29,20 +29,38 @@
 //   return CalculatorV2.compute(transcript);
 // }
 
-/**
- * Explainable resonance function with detailed evidence
- * Delegates fully to CalculatorV2
- */
-export async function explainableSonateResonance(
-  transcript: Transcript,
-  options: { max_evidence?: number } = {}
-): Promise<ExplainedResonance> {
-  return CalculatorV2.computeExplainable(transcript, options);
+// DISABLED: @sonate/calculator (V2) not yet built.
+// The functions and constants below referenced CalculatorV2 which doesn't exist,
+// causing a ReferenceError at runtime. Stubbed until the calculator package ships.
+
+export interface Transcript {
+  text: string;
+  turns?: { role: string; content: string }[];
 }
 
-// Re-export constants if needed by consumers (though they should prefer the package)
-export const DYNAMIC_THRESHOLDS = CalculatorV2.DYNAMIC_THRESHOLDS;
-export const CANONICAL_WEIGHTS = CalculatorV2.CANONICAL_WEIGHTS;
+export interface ExplainedResonance {
+  r_m: number;
+  stakes: { level: string; score: number };
+  adversarial: { detected: boolean; score: number };
+  breakdown: Record<string, number>;
+  top_evidence: string[];
+  audit_trail: string[];
+}
+
+/**
+ * Explainable resonance function with detailed evidence
+ * Delegates fully to CalculatorV2 — STUBBED until @sonate/calculator is ready
+ */
+export async function explainableSonateResonance(
+  _transcript: Transcript,
+  _options: { max_evidence?: number } = {}
+): Promise<ExplainedResonance> {
+  throw new Error('@sonate/calculator is not yet built — explainableSonateResonance is unavailable');
+}
+
+// Re-export constants — stubbed as empty objects until @sonate/calculator ships
+export const DYNAMIC_THRESHOLDS: Record<string, number> = {};
+export const CANONICAL_WEIGHTS: Record<string, number> = {};
 
 // Deprecated: These were internal helpers, likely not used outside,
 // but keeping empty/logging versions just in case of deep imports during migration.

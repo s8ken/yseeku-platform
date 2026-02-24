@@ -20,7 +20,7 @@ export const useWebSocketAlerts = (autoConnect = true): UseWebSocketAlertsReturn
     if (!autoConnect) return;
 
     // Connect to WebSocket server
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001';
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'ws://localhost:3001';
     const newSocket = io(wsUrl.replace('ws://', 'http://'), {
       reconnection: true,
       reconnectionDelay: 1000,
@@ -30,20 +30,18 @@ export const useWebSocketAlerts = (autoConnect = true): UseWebSocketAlertsReturn
 
     newSocket.on('connect', () => {
       setIsConnected(true);
-      console.log('WebSocket connected');
     });
 
     newSocket.on('disconnect', () => {
       setIsConnected(false);
-      console.log('WebSocket disconnected');
     });
 
     newSocket.on('alert', (alert: Alert) => {
       setAlerts((prev) => [alert, ...prev.slice(0, 999)]);
     });
 
-    newSocket.on('subscribed', (data) => {
-      console.log('Subscribed to alerts:', data);
+    newSocket.on('subscribed', () => {
+      // Subscription confirmed
     });
 
     setSocket(newSocket);

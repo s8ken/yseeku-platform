@@ -17,7 +17,7 @@ function extractToken(req: Request): string | null {
         return [name, rest.join('=')]
       })
     )
-    return cookies.session_token || cookies.auth_token || null
+    return cookies.session_token || null
   }
   return null
 }

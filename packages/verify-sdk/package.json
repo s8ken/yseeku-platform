@@ -1,6 +1,6 @@
 {
-  "name": "@yseeku/verify-sdk",
-  "version": "1.0.0",
+  "name": "@sonate/verify-sdk",
+  "version": "2.0.0",
   "description": "Client-side SDK for verifying SONATE trust receipts",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

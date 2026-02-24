@@ -50,7 +50,7 @@ export const OperatorIncidentManager: React.FC<OperatorIncidentManagerProps> = (
                   className="text-xs px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                   onClick={(e) => {
                     e.stopPropagation();
-                    alert('Escalation would be handled here');
+                    window.alert('Escalation would be handled here');
                   }}
                 >
                   Escalate

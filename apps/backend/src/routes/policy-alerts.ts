@@ -1,25 +1,24 @@
 /**
  * Policy Alert WebSocket Service
  * 
- * NOTE: This file is disabled - @sonate/policy and @sonate/monitoring packages not yet available
- * Service will be restored when packages are ready for production
+ * Real-time policy violation alerts via Socket.IO using @sonate/policy
  */
 
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HTTPServer } from 'http';
+import {
+  createViolationDetector,
+  AlertChannel,
+  AlertPriority,
+  type ViolationAlert,
+} from '@sonate/policy';
+import logger from '../utils/logger';
 
-// Alert types disabled - packages not available
-export enum AlertType {
-  POLICY_VIOLATION = 'policy_violation',
-  ANOMALY_DETECTED = 'anomaly_detected',
-  COHERENCE_CHANGE = 'coherence_change',
-  RESONANCE_UPDATE = 'resonance_update',
-  METRICS_SNAPSHOT = 'metrics_snapshot',
-}
+export { AlertChannel as AlertType, AlertPriority };
 
 export interface AlertEvent {
   id: string;
-  type: AlertType;
+  type: string;
   timestamp: string;
   priority: 'critical' | 'high' | 'medium' | 'low';
   subject: string;
@@ -27,19 +26,39 @@ export interface AlertEvent {
   data?: Record<string, any>;
 }
 
-// Stub service - restore when packages are available
+/**
+ * Policy Alert Service — broadcasts violation alerts over Socket.IO
+ */
 export class PolicyAlertService {
-  constructor(_io: SocketIOServer, _server?: HTTPServer) {}
-  
+  private io: SocketIOServer;
+  private detector;
+  private intervalId?: NodeJS.Timeout;
+
+  constructor(io: SocketIOServer, _server?: HTTPServer) {
+    this.io = io;
+    this.detector = createViolationDetector({
+      channels: [AlertChannel.CONSOLE, AlertChannel.WEBSOCKET],
+      priorities: { critical: true, high: true, medium: true, low: false },
+    });
+  }
+
   async start(): Promise<void> {
-    // Disabled
+    logger.info('PolicyAlertService started');
   }
-  
+
   async stop(): Promise<void> {
-    // Disabled
+    if (this.intervalId) clearInterval(this.intervalId);
+    logger.info('PolicyAlertService stopped');
   }
-  
+
+  /**
+   * Broadcast an alert to connected clients
+   */
+  broadcastAlert(alert: AlertEvent): void {
+    this.io.emit('policy:alert', alert);
+  }
+
   getConnectedClientsCount(): number {
-    return 0;
+    return this.io.engine?.clientsCount ?? 0;
   }
 }

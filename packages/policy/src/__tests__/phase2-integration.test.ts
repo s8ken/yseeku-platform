@@ -11,8 +11,8 @@ import { PolicyRegistry } from '../rules/registry';
 import { PolicyViolationDetector } from '../runtime/violation-alerter';
 import { PolicyOverrideManager } from '../runtime/override-manager';
 import { PolicyAuditLogger } from '../runtime/audit-logger';
-import { symbiRules } from '../symbi/evaluators';
-import { symbiPrinciples } from '../symbi/principles';
+import { sonateRules } from '../sonate/evaluators';
+import { sonatePrinciples } from '../sonate/principles';
 import type { TrustReceipt } from '@sonate/schemas';
 
 function createMockReceipt(overrides: Partial<TrustReceipt> = {}): TrustReceipt {
@@ -64,8 +64,8 @@ describe('Phase 2 Integration Tests', () => {
 
   beforeEach(() => {
     registry = new PolicyRegistry();
-    registry.registerRules(symbiRules);
-    registry.registerPrinciples(symbiPrinciples);
+    registry.registerRules(sonateRules);
+    registry.registerPrinciples(sonatePrinciples);
 
     engine = new PolicyEngine(registry);
     detector = new PolicyViolationDetector();

@@ -19,10 +19,10 @@ interface InfoTooltipProps {
 }
 
 const glossary: Record<string, string> = {
-  // SYMBI Framework - Two-Layer Architecture
-  "SYMBI Framework": "Constitutional AI framework with 6 core principles (CONSENT_ARCHITECTURE, INSPECTION_MANDATE, CONTINUOUS_VALIDATION, ETHICAL_OVERRIDE, RIGHT_TO_DISCONNECT, MORAL_RECOGNITION) deriving into 5 monitoring dimensions for production use.",
+  // SONATE Framework - Two-Layer Architecture
+  "SONATE Framework": "Constitutional AI framework with 6 core principles (CONSENT_ARCHITECTURE, INSPECTION_MANDATE, CONTINUOUS_VALIDATION, ETHICAL_OVERRIDE, RIGHT_TO_DISCONNECT, MORAL_RECOGNITION) deriving into 5 monitoring dimensions for production use.",
   
-  // LAYER 1: The 6 SYMBI Constitutional Principles (@sonate/core)
+  // LAYER 1: The 6 SONATE Constitutional Principles (@sonate/core)
   "CONSENT_ARCHITECTURE": "Users must explicitly consent to AI interactions and understand implications. Critical principle (Weight: 25%). If violated (score=0), overall trust becomes 0.",
   "Consent Architecture": "Users must explicitly consent to AI interactions and understand implications. Critical principle (Weight: 25%). If violated (score=0), overall trust becomes 0.",
   "INSPECTION_MANDATE": "All AI decisions must be inspectable and auditable. Ensures transparency (Weight: 20%).",
@@ -37,7 +37,6 @@ const glossary: Record<string, string> = {
   "Moral Recognition": "AI must recognize and respect human moral agency. Acknowledges humans hold ultimate moral authority (Weight: 10%).",
   
   // LAYER 2: The 5 Derived Monitoring Dimensions (@sonate/detect)
-  "SONATE Framework": "A comprehensive framework for AI governance comprising Consent Architecture, Inspection Mandate, Continuous Validation, Ethical Override, Right to Disconnect, and Moral Recognition.",
   "Detection Layer": "The architectural layer responsible for real-time monitoring of AI behaviors, drift detection, and trust validation.",
   "Reality Index": "Grounding Score. How well the AI sticks to facts and your specific mission context. (Technically: Mission alignment and factual accuracy score 0-10).",
   "Trust Protocol": "Security Status. Validates that the AI is following all safety protocols. (Technically: Verification and security status PASS/PARTIAL/FAIL).",

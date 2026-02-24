@@ -198,8 +198,8 @@ router.get('/callback/:provider', async (req: Request, res: Response) => {
       }
     }
 
-    // Set auth cookie and redirect
-    res.cookie('auth_token', appToken, {
+    // Set session cookie and redirect (must be "session_token" to match frontend middleware)
+    res.cookie('session_token', appToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -259,8 +259,8 @@ router.get('/logout/:provider', async (req: Request, res: Response) => {
     const { provider } = req.params;
     const { idToken, returnUrl } = req.query;
 
-    // Clear our auth cookie
-    res.clearCookie('auth_token');
+    // Clear our session cookie
+    res.clearCookie('session_token');
 
     // Get provider logout URL
     const logoutUrl = await ssoService.getLogoutUrl(

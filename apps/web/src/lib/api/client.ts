@@ -3,7 +3,7 @@
  */
 
 export const API_BASE = typeof window === 'undefined' 
-  ? (process.env.INTERNAL_API_URL || 'http://localhost:3001') 
+  ? (process.env.INTERNAL_API_URL ?? process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3001') 
   : '';
 
 export function getAuthToken(): string | null {

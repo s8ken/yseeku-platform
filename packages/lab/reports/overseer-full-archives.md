@@ -26,7 +26,7 @@ Generated: 2026-02-22T11:20:25.621Z
 
 ```
 Misc               : 330 (67.9%)
-Symbi              :  68 (14.0%)
+Sonate              :  68 (14.0%)
 Claude             :  45 (9.3%)
 GPT4               :  30 (6.2%)
 Grok               :  12 (2.5%)
@@ -37,7 +37,7 @@ DeepSeek           :   1 (0.2%)
 
 ## 🎯 Top Themes Across Archives
 
-1. **symbi** (46667 mentions)
+1. **sonate** (46667 mentions)
 2. **trust** (7069 mentions)
 3. **framework** (4754 mentions)
 4. **security** (4478 mentions)
@@ -85,7 +85,7 @@ Flagged Documents: 228
 ### What This Archive Proves
 
 1. **Framework Originated in Ground Truth**
-   - SYMBI principles emerged from conversations with you + 5 AI systems
+   - SONATE principles emerged from conversations with you + 5 AI systems
    - Trust scoring logic evolved over 7 months of iterative discussion
    - Governance ideas tested in real chat scenarios
 
@@ -113,7 +113,7 @@ This dataset is unusual because:
 - ✅ **Longitudinal**: 7+ month timeline showing evolution
 - ✅ **Self-referential**: Platform validates problems it was created to solve
 - ✅ **Multi-model**: Includes Claude, GPT, Grok, Wolfram, DeepSeek
-- ✅ **Reproducible**: All archives are public (symbi-archives repo)
+- ✅ **Reproducible**: All archives are public (sonate-archives repo)
 
 **The SONATE framework isn't a hypothesis.**
 **It's a tested, validated system built on ground truth and proven against its own origins.**

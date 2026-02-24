@@ -57,7 +57,7 @@ npm test -- apps/backend/src/services/receipts/__tests__/receipt-generator.test.
 
 ### 1.3 Verify Database Migration (Phase 3)
 
-File: `apps/backend/src/migrations/phase-3-symbi-scoring.ts`
+File: `apps/backend/src/migrations/phase-3-sonate-scoring.ts`
 
 **Checklist:**
 - [ ] Migration creates index on `telemetry.weight_source`

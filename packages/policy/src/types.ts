@@ -73,9 +73,9 @@ export interface PolicyContext {
 }
 
 /**
- * SYMBI Principle Definition
+ * SONATE Principle Definition
  */
-export interface SymbiPrinciple {
+export interface SonatePrinciple {
   id: string;
   name: string;
   description: string;

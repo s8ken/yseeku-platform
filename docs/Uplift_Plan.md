@@ -3,7 +3,7 @@
 ## Executive Summary
 - Elevate from promising prototype to enterprise-ready in 90 days.
 - Focus on infrastructure, observability, comprehensive testing, security hardening, and operational maturity.
-- Validate novel features (Bedau Index, System Brain) while productizing proven ones (Cryptographic Trust Receipts, SYMBI framework).
+- Validate novel features (Bedau Index, System Brain) while productizing proven ones (Cryptographic Trust Receipts, SONATE framework).
 
 ## Objectives
 - Ship Minimum Viable Production in 60 days with reliable deployments and monitoring.

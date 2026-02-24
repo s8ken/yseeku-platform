@@ -250,7 +250,6 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       } catch (err: any) {
         // Retry once if this was a new conversation and we got a 502/500/504 (backend cold start or race condition)
         if (!conversationId && (err.status === 502 || err.message?.includes('502') || err.status === 500 || err.status === 504)) {
-          console.log('[ChatContainer] Retrying message send for new conversation (cold start detected)...');
           await new Promise(r => setTimeout(r, 2000));
           convRes = await api.sendMessage(convId, input, undefined);
         } else {
@@ -281,7 +280,6 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           });
 
           // Invalidate dashboard queries for consent withdrawal interactions too
-          console.log('[ChatContainer] Invalidating dashboard after consent withdrawal');
           invalidateDashboard();
           return;
         }
@@ -318,17 +316,11 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 
           // Invalidate dashboard queries so new interaction data appears
           // This ensures KPIs, trust scores, and interaction counts update
-          console.log('[ChatContainer] Invalidating dashboard after AI response', {
-            conversationId: convId,
-            trustScore: trustEval?.trustScore?.overall,
-            status: trustEval?.status,
-          });
           invalidateDashboard();
 
           // Double-invalidate after a delay to ensure backend indexing/receipt creation is complete
           // (Fixes issue where receipts don't appear immediately after chat)
           setTimeout(() => {
-            console.log('[ChatContainer] Delayed invalidation for receipts consistency');
             invalidateDashboard();
           }, 2000);
         } else if (msg.sender === 'user') {

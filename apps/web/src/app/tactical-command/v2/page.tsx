@@ -375,7 +375,7 @@ export default function TacticalCommandV2StandalonePage() {
         )}
 
         <KpiStrip 
-          kpis={kpis} 
+          kpis={kpis as any} 
           loading={kpisLoading} 
           agentsLoading={agentsLoading} 
           agentsSummary={agentsSummary}

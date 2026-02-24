@@ -1132,11 +1132,20 @@ router.post('/:id/export', protect, async (req: Request, res: Response): Promise
       data: exportResult,
     });
   } catch (error: unknown) {
+    const errMsg = getErrorMessage(error);
+    // Return 501 for unimplemented features
+    if (errMsg.includes('not yet implemented')) {
+      res.status(501).json({
+        success: false,
+        message: 'IPFS export is not yet available. This feature is planned for a future release.',
+      });
+      return;
+    }
     logger.error('Export conversation error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to export conversation',
-      error: getErrorMessage(error),
+      error: errMsg,
     });
   }
 });

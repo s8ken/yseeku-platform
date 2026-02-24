@@ -17,6 +17,7 @@ import { IMessage } from '../models/conversation.model';
 import { keysService } from './keys.service';
 import { didService } from './did.service';
 import { getReceiptGenerator } from './receipts/receipt-generator';
+import { persistReceipt } from './receipts/persist-receipt';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 
@@ -139,7 +140,7 @@ Respond ONLY with valid JSON in this exact format:
  */
 export class LLMTrustEvaluator {
   private defaultProvider: string = 'anthropic';
-  private defaultModel: string = 'claude-3-haiku-20240307'; // Fast and cheap for evaluation
+  private defaultModel: string = 'claude-3-5-haiku-20241022'; // Fast and cheap for evaluation
   private receiptGenerator = getReceiptGenerator();
   private tenantId?: string;
   private industryType?: string;
@@ -353,6 +354,17 @@ export class LLMTrustEvaluator {
           signature: { algorithm: 'Ed25519', value: '', key_version: 'unsigned' },
         };
       }
+
+      // Persist receipt so chain tip survives restarts
+      await persistReceipt(receipt, this.tenantId || 'default', {
+        evaluated_by: 'llm',
+        sonate_principles: evaluation.principles as unknown as Record<string, number>,
+        overall_trust_score: trustScore.overall,
+        trust_status: status,
+        principle_weights: weights as unknown as Record<string, number>,
+        weight_source: source,
+        weight_policy_id: policyId,
+      });
 
       logger.info('LLM Trust Evaluation completed', {
         conversationId: context.conversationId,
@@ -647,6 +659,11 @@ export class LLMTrustEvaluator {
         signature: { algorithm: 'Ed25519', value: '', key_version: 'unsigned' },
       };
     }
+
+    // Persist heuristic receipt so chain tip survives restarts
+    await persistReceipt(receipt, this.tenantId || 'default', {
+      evaluated_by: 'heuristic',
+    });
 
     return {
       trustScore,

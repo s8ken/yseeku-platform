@@ -131,15 +131,9 @@ ConversationSchema.index({ ciEnabled: 1 });
 ConversationSchema.index({ ethicalScore: 1 });
 ConversationSchema.index({ isArchived: 1 });
 
-// Method to export conversation to IPFS (placeholder for future implementation)
+// IPFS export - not yet implemented (planned feature)
 ConversationSchema.methods.exportToIPFS = async function (): Promise<{ success: boolean; hash: string; timestamp: Date }> {
-  // This would be implemented with actual IPFS integration
-  // For now, generate a placeholder hash
-  return {
-    success: true,
-    hash: `ipfs-${this._id}-${Date.now()}`,
-    timestamp: new Date(),
-  };
+  throw new Error('IPFS export is not yet implemented. This feature is planned for a future release.');
 };
 
 // Method to calculate ethical score based on message trust scores

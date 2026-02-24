@@ -2,7 +2,7 @@
 /**
  * Phase 3 Migration CLI Runner
  * 
- * Runs the Phase 3 database migration for SYMBI scoring updates
+ * Runs the Phase 3 database migration for SONATE scoring updates
  * 
  * Usage:
  *   npm run migrate:phase-3                    (default environment)
@@ -36,7 +36,7 @@ async function runMigration() {
   const env = process.env.NODE_ENV || 'development';
 
   console.log(`\n${'═'.repeat(60)}`);
-  console.log('  PHASE 3: SYMBI Scoring Database Migration');
+  console.log('  PHASE 3: SONATE Scoring Database Migration');
   console.log(`${'═'.repeat(60)}\n`);
 
   console.log(`Environment: ${env}`);
@@ -57,7 +57,7 @@ async function runMigration() {
 
   try {
     // Load the migration module
-    const migrationPath = path.join(__dirname, './phase-3-symbi-scoring');
+    const migrationPath = path.join(__dirname, './phase-3-sonate-scoring');
     let migrateModule: any;
 
     try {
@@ -67,7 +67,7 @@ async function runMigration() {
       console.log('Attempting TypeScript import...');
       try {
         // Dynamic import for TypeScript files
-        const { runPhase3Migration, verifyPhase3Migration } = await import('./phase-3-symbi-scoring');
+        const { runPhase3Migration, verifyPhase3Migration } = await import('./phase-3-sonate-scoring');
         migrateModule = { runPhase3Migration, verifyPhase3Migration };
       } catch (e) {
         throw new Error(`Failed to load migration module: ${error}`);
