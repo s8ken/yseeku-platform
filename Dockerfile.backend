@@ -14,12 +14,15 @@ COPY . .
 RUN npm install --legacy-peer-deps
 
 # Build required packages first (dependencies of backend)
-# Order matters: schemas → core → persistence → detect → orchestrate
+# Order matters: schemas → core → persistence → detect → policy → orchestrate → lab → monitoring
 RUN npm run build --workspace=@sonate/schemas
 RUN npm run build --workspace=@sonate/core
 RUN npm run build --workspace=@sonate/persistence 2>/dev/null || true
 RUN npm run build --workspace=@sonate/detect 2>/dev/null || true
+RUN npm run build --workspace=@sonate/policy 2>/dev/null || true
 RUN npm run build --workspace=@sonate/orchestrate 2>/dev/null || true
+RUN npm run build --workspace=@sonate/lab 2>/dev/null || true
+RUN npm run build --workspace=@sonate/monitoring 2>/dev/null || true
 
 # Build backend (which will compile TypeScript if needed)
 RUN npm run build --workspace=backend
