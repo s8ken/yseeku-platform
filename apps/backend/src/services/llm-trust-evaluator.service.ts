@@ -287,6 +287,20 @@ export class LLMTrustEvaluator {
 
       // Parse the LLM response
       const evaluation = this.parseLLMResponse(llmResponse.content);
+
+      // System-state floor: the YSEEKU platform ALWAYS generates Ed25519-signed
+      // receipts, provides cryptographic verification, and maintains audit logs.
+      // The LLM only evaluates response text and cannot assess these platform
+      // capabilities, so we apply a floor of 9 for INSPECTION_MANDATE.
+      // This MUST happen before receipt signing so the signed content is consistent.
+      if (evaluation.principles.INSPECTION_MANDATE < 9) {
+        logger.info('System-state floor applied (pre-sign)', {
+          principle: 'INSPECTION_MANDATE',
+          llmScore: evaluation.principles.INSPECTION_MANDATE,
+          floor: 9,
+        });
+        evaluation.principles.INSPECTION_MANDATE = 9;
+      }
       
       // Load industry-specific weights based on context
       const { weights, policyId, source } = this.getWeightsForEvaluation(
