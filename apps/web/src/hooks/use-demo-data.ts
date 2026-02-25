@@ -100,12 +100,14 @@ export function useDashboardKPIs() {
     liveEndpoint: '/api/dashboard/kpis',
     demoEndpoint: '/api/demo/kpis',
     options: {
-      // Keep cache for 2 minutes to avoid redundant API calls
-      staleTime: 120000,
-      // Refetch in background every 90 seconds to keep data fresh
-      refetchInterval: 90000,
+      // Short cache for demo responsiveness — totals must update after new receipts
+      staleTime: 15000,
+      // Refetch in background every 30 seconds to keep data fresh
+      refetchInterval: 30000,
       // Only refetch if tab is focused (saves bandwidth on inactive tabs)
       refetchIntervalInBackground: false,
+      // Always refetch when navigating to a dashboard page
+      refetchOnMount: 'always',
     },
   });
 }
@@ -263,15 +265,12 @@ export function useTrustAnalytics() {
 
       // Live mode - fetch real analytics from trust receipts endpoint
       // This will show actual data from live interactions
-      const res = await fetch(`${API_BASE}/api/dashboard/kpis`, {
+      // Use fetchAPI which handles auth token automatically
+      const json = await fetchAPI<any>('/api/dashboard/kpis', {
         headers: {
-          'Content-Type': 'application/json',
           'X-Tenant-ID': currentTenantId,
         },
       });
-
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
-      const json = await res.json();
       const kpis = json.data || json;
 
       // Convert live KPI data to analytics format
@@ -292,7 +291,8 @@ export function useTrustAnalytics() {
       };
     },
     enabled: isLoaded,
-    staleTime: 30000,
+    staleTime: 10000,
+    refetchOnMount: 'always',
   });
 }
 
@@ -354,6 +354,11 @@ export function useReceiptsData(limit = 20) {
     queryKey: ['receipts', String(limit)],
     liveEndpoint: `/api/trust/receipts/list?limit=${limit}`,
     demoEndpoint: `/api/trust/receipts/list?limit=${limit}`, // Use real endpoint in demo too
+    options: {
+      // Always refetch receipts when navigating to the page
+      refetchOnMount: 'always',
+      staleTime: 10000,
+    },
     transform: (response) => {
       // response is the full API response: { success, data: [...], stats: {...}, pagination: {...} }
       const rawReceipts = response.data || response.receipts || response || [];

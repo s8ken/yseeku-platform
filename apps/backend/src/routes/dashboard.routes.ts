@@ -79,7 +79,7 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
                         {
                           $gte: [
                             { $avg: ['$ciq_metrics.clarity', '$ciq_metrics.integrity', '$ciq_metrics.quality'] },
-                            6
+                            0.6  // CIQ values are 0-1 scale; 0.6 = 6/10 pass threshold
                           ]
                         },
                         1,
@@ -109,7 +109,7 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
                         {
                           $gte: [
                             { $avg: ['$ciq_metrics.clarity', '$ciq_metrics.integrity', '$ciq_metrics.quality'] },
-                            6
+                            0.6  // CIQ values are 0-1 scale
                           ]
                         },
                         1,
@@ -139,7 +139,7 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
                         {
                           $gte: [
                             { $avg: ['$ciq_metrics.clarity', '$ciq_metrics.integrity', '$ciq_metrics.quality'] },
-                            6
+                            0.6  // CIQ values are 0-1 scale
                           ]
                         },
                         1,
@@ -264,8 +264,8 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
         trustScore: liveKPIs.trustScore,
       });
 
-      // Cache the KPI response for 90 seconds (generous for live updates)
-      await cacheSet(cacheKey, liveKPIs, 90);
+      // Cache the KPI response for 15 seconds (short TTL for responsive updates)
+      await cacheSet(cacheKey, liveKPIs, 15);
 
       res.json({
         success: true,
