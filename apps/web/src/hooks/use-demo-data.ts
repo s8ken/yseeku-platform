@@ -35,10 +35,14 @@ async function fetchData<T>(
     },
   });
 
-  // Extract data from response
+  // When a transform is provided, pass the FULL response so transforms
+  // can access sibling fields like stats, pagination, etc.
+  // When no transform, extract .data for backward compatibility.
+  if (transform) {
+    return transform(response);
+  }
   const data = (response as any).data || response;
-
-  return transform ? transform(data) : data;
+  return data;
 }
 
 export function useDemoData<T>(config: DemoDataConfig<T>) {
@@ -164,10 +168,13 @@ export function useAlertsData() {
     queryKey: ['alerts'],
     liveEndpoint: '/api/dashboard/alerts',
     demoEndpoint: '/api/demo/alerts',
-    transform: (data) => ({
-      alerts: data.alerts || [],
-      summary: data.summary || { critical: 0, warning: 0, total: 0 },
-    }),
+    transform: (response) => {
+      const data = response.data || response;
+      return {
+        alerts: data.alerts || [],
+        summary: data.summary || { critical: 0, warning: 0, total: 0 },
+      };
+    },
   });
 }
 
@@ -191,12 +198,15 @@ export function useRiskData() {
     queryKey: ['risk'],
     liveEndpoint: '/api/dashboard/risk',
     demoEndpoint: '/api/demo/risk',
-    transform: (data) => ({
-      currentRisk: data.currentRisk || data.riskScore || 0,
-      trend: data.trend || 'stable',
-      factors: data.factors || data.riskFactors || [],
-      history: data.history || data.riskHistory || [],
-    }),
+    transform: (response) => {
+      const data = response.data || response;
+      return {
+        currentRisk: data.currentRisk || data.riskScore || 0,
+        trend: data.trend || 'stable',
+        factors: data.factors || data.riskFactors || [],
+        history: data.history || data.riskHistory || [],
+      };
+    },
   });
 }
 
@@ -344,37 +354,54 @@ export function useReceiptsData(limit = 20) {
     queryKey: ['receipts', String(limit)],
     liveEndpoint: `/api/trust/receipts/list?limit=${limit}`,
     demoEndpoint: `/api/trust/receipts/list?limit=${limit}`, // Use real endpoint in demo too
-    transform: (data) => {
-      const receipts = (data.data || data.receipts || data || []).map((r: any) => {
+    transform: (response) => {
+      // response is the full API response: { success, data: [...], stats: {...}, pagination: {...} }
+      const rawReceipts = response.data || response.receipts || response || [];
+      const receipts = (Array.isArray(rawReceipts) ? rawReceipts : []).map((r: any) => {
         // In demo mode, mark receipts as verified based on CIQ quality
-        // (demo receipts lack DB signatures but should showcase a healthy system)
         const hasSignature = !!r.signature;
         const demoVerified = r.ciq_metrics ? r.ciq_metrics.quality >= 0.5 : true;
 
-        // CIQ metrics are stored as 0-10 values, average them for trust score
-        // Display as X.X/10 format
-        const avgCiq = r.ciq_metrics 
-          ? (r.ciq_metrics.clarity + r.ciq_metrics.integrity + r.ciq_metrics.quality) / 3 
-          : 0;
-        
+        // CIQ metrics from DB are on 0-1 scale; scale to 0-10 for display
+        const ciq = r.ciq_metrics;
+        const scale = (v: number) => (v != null && v <= 1 ? v * 10 : v ?? 0);
+        const clarity10 = scale(ciq?.clarity);
+        const integrity10 = scale(ciq?.integrity);
+        const quality10 = scale(ciq?.quality);
+
+        // Prefer overall_trust_score from receipt (0-100 → 0-10)
+        const avgCiq = r.overall_trust_score != null
+          ? Math.round(r.overall_trust_score) / 10
+          : ciq
+            ? Math.round(((clarity10 + integrity10 + quality10) / 3) * 10) / 10
+            : 0;
+
         return {
           id: r._id || r.id || r.self_hash,
           session_id: r.session_id || '',
           agent_id: r.agent_id,
-          trust_score: Math.round(avgCiq * 10) / 10, // Keep as 0-10 scale with 1 decimal
+          trust_score: avgCiq, // 0-10 scale
           hash: r.self_hash || r.hash || '',
           verified: isDemo ? demoVerified : hasSignature,
           created_at: r.createdAt || new Date(r.timestamp || Date.now()).toISOString(),
           ciq_metrics: r.ciq_metrics,
+          // Pass through SONATE principle scores and other fields
+          sonate_principles: r.sonate_principles,
+          overall_trust_score: r.overall_trust_score,
+          signature: r.signature,
+          previous_hash: r.previous_hash,
+          agent_did: r.agent_did,
+          human_did: r.human_did,
+          timestamp: r.timestamp,
         };
       });
 
-      // Use stats from API if available, otherwise calculate from receipts
-      const stats = data.stats || {
-        total: data.pagination?.total || receipts.length,
+      // Use stats from API response (available because transform gets full response)
+      const stats = response.stats || {
+        total: response.pagination?.total || receipts.length,
         verified: receipts.filter((r: any) => r.verified).length,
         invalid: receipts.filter((r: any) => !r.verified).length,
-        chainLength: data.pagination?.total || receipts.length,
+        chainLength: response.pagination?.total || receipts.length,
       };
 
       return {
