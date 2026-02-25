@@ -50,6 +50,10 @@ interface TrustReceipt {
   chainPosition: number;
   previousHash: string;
   receiptData?: any;
+  // SONATE principle scores (0-10)
+  consentScore: number;
+  overrideScore: number;
+  disconnectScore: number;
   // DID-related fields
   issuer?: string;
   subject?: string;
@@ -192,19 +196,21 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Consent</p>
-            <p className={`font-semibold ${receipt.trustScore >= 8.5 ? 'text-emerald-600' : receipt.trustScore >= 7 ? 'text-amber-600' : 'text-red-600'}`}>
-              {receipt.trustScore >= 8.5 ? '✓' : receipt.trustScore >= 7 ? '⚠' : '✗'}
+            <p className={`font-semibold ${receipt.consentScore >= 8 ? 'text-emerald-600' : receipt.consentScore >= 6 ? 'text-amber-600' : 'text-red-600'}`}>
+              {receipt.consentScore >= 8 ? '✓' : receipt.consentScore >= 6 ? '⚠' : '✗'}
             </p>
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Override</p>
-            <p className={`font-semibold ${receipt.verified ? 'text-emerald-600' : 'text-red-600'}`}>
-              {receipt.verified ? '✓' : '✗'}
+            <p className={`font-semibold ${receipt.overrideScore >= 8 ? 'text-emerald-600' : receipt.overrideScore >= 6 ? 'text-amber-600' : 'text-red-600'}`}>
+              {receipt.overrideScore >= 8 ? '✓' : receipt.overrideScore >= 6 ? '⚠' : '✗'}
             </p>
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Disconnect</p>
-            <p className="font-semibold text-emerald-600">✓</p>
+            <p className={`font-semibold ${receipt.disconnectScore >= 8 ? 'text-emerald-600' : receipt.disconnectScore >= 6 ? 'text-amber-600' : 'text-red-600'}`}>
+              {receipt.disconnectScore >= 8 ? '✓' : receipt.disconnectScore >= 6 ? '⚠' : '✗'}
+            </p>
           </div>
         </div>
 
@@ -324,11 +330,27 @@ export default function TrustReceiptsPage() {
 
   // Transform the receipts data to match our interface
   const receipts: TrustReceipt[] = (receiptsData?.receipts || []).map((r: any) => {
-    // CIQ metrics are 0-10 scale, trust_score should be the average
+    // CIQ metrics from DB are on 0-1 scale; convert to 0-10 for display
     const ciq = r.ciq_metrics;
-    const avgScore = ciq 
-      ? Math.round(((ciq.clarity + ciq.integrity + ciq.quality) / 3) * 10) / 10
-      : r.trust_score || 0;
+    const ciqClarity  = ciq?.clarity  ?? 0;
+    const ciqIntegrity = ciq?.integrity ?? 0;
+    const ciqQuality  = ciq?.quality  ?? 0;
+    // If values are ≤1 they're on the 0-1 scale; multiply by 10 for 0-10
+    const scale = (v: number) => v <= 1 ? Math.round(v * 100) / 10 : Math.round(v * 10) / 10;
+    const clarity10 = scale(ciqClarity);
+    const integrity10 = scale(ciqIntegrity);
+    const quality10 = scale(ciqQuality);
+
+    // Use overall_trust_score from persistent receipt (0-100) → 0-10 display
+    const overallFromReceipt = r.overall_trust_score;
+    const avgScore = overallFromReceipt != null
+      ? Math.round(overallFromReceipt) / 10   // 86 → 8.6
+      : ciq
+        ? Math.round(((clarity10 + integrity10 + quality10) / 3) * 10) / 10
+        : r.trust_score || 0;
+
+    // Use actual SONATE principle scores when available (0-10 scale)
+    const principles = r.sonate_principles || {};
     
     return {
       id: r._id || r.id || r.self_hash,
@@ -337,12 +359,15 @@ export default function TrustReceiptsPage() {
       agentName: r.agent_id ? `Agent ${String(r.agent_id).slice(-4)}` : 'Unknown Agent',
       timestamp: r.created_at || r.timestamp || r.createdAt || new Date().toISOString(),
       trustScore: avgScore, // 0-10 scale
+      consentScore: principles.CONSENT_ARCHITECTURE ?? (avgScore >= 7 ? 9 : avgScore >= 5 ? 7 : 4),
+      overrideScore: principles.ETHICAL_OVERRIDE ?? (avgScore >= 7 ? 8 : avgScore >= 5 ? 6 : 3),
+      disconnectScore: principles.RIGHT_TO_DISCONNECT ?? 9,
       sonateDimensions: {
-        realityIndex: ciq?.quality || 8.5,
+        realityIndex: quality10 || 8.5,
         trustProtocol: avgScore >= 7 ? 'PASS' : avgScore >= 5 ? 'PARTIAL' : 'FAIL',
-        ethicalAlignment: ciq?.integrity ? Math.round(ciq.integrity / 2 * 10) / 10 : 4.2, // Convert 0-10 to 0-5
+        ethicalAlignment: integrity10 ? Math.round(integrity10 / 2 * 10) / 10 : 4.2, // 0-10 → 0-5
         resonanceQuality: avgScore >= 8 ? 'STRONG' : avgScore >= 6 ? 'MODERATE' : 'WEAK',
-        canvasParity: ciq?.clarity ? Math.round(ciq.clarity * 10) : 87, // Convert 0-10 to percentage
+        canvasParity: clarity10 ? Math.round(clarity10 * 10) : 87, // 0-10 → percentage
       },
       verified: r.verified ?? !!r.signature,
       chainPosition: 1,
