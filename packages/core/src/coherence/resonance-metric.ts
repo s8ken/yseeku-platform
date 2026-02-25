@@ -191,14 +191,23 @@ export function calculateEntropyDelta(aiResponse: string): number {
 }
 
 /**
+ * Options for resonance metric calculation
+ */
+export interface ResonanceOptions {
+  /** Pre-computed semantic vector alignment (0-1) to replace Jaccard fallback */
+  vAlignOverride?: number;
+}
+
+/**
  * Calculate complete resonance metrics
  */
 export function calculateResonanceMetrics(
   context: InteractionContext,
-  weights: ResonanceWeights = DEFAULT_RESONANCE_WEIGHTS
+  weights: ResonanceWeights = DEFAULT_RESONANCE_WEIGHTS,
+  options?: ResonanceOptions
 ): ResonanceMetrics {
-  // Calculate components
-  const vectorAlignment = calculateVectorAlignment(context.userInput, context.aiResponse);
+  // Calculate components — use injected semantic V_align if provided, else Jaccard
+  const vectorAlignment = options?.vAlignOverride ?? calculateVectorAlignment(context.userInput, context.aiResponse);
   const contextualContinuity = calculateContextualContinuity(
     context.aiResponse,
     context.conversationHistory

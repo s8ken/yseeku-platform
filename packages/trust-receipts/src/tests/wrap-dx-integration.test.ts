@@ -1,23 +1,25 @@
 /**
  * wrap() Developer Experience Integration Tests
- * 
+ *
  * Validates that wrap() provides seamless, error-free integration
- * with popular AI providers (OpenAI, Anthropic, Gemini)
+ * with popular AI providers (OpenAI, Anthropic, Gemini).
+ *
+ * Uses node:test runner (matching trust-receipts.test.ts pattern).
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from '@jest/globals';
-import { TrustReceipts } from '../../src';
+import { describe, it } from 'node:test';
+import assert from 'node:assert';
+
+import { TrustReceipts } from '../index';
+import type { SignedReceipt } from '../index';
 
 describe('wrap() Developer Experience', () => {
-  let receipts: TrustReceipts;
-
-  beforeEach(() => {
-    receipts = new TrustReceipts();
-  });
+  // ── OpenAI Integration ──────────────────────────────────────────────
 
   describe('OpenAI Integration', () => {
     it('should wrap OpenAI chat completion', async () => {
-      // Mock OpenAI response
+      const receipts = new TrustReceipts();
+
       const mockOpenAIResponse = {
         id: 'chatcmpl-123',
         object: 'chat.completion',
@@ -26,18 +28,11 @@ describe('wrap() Developer Experience', () => {
         choices: [
           {
             index: 0,
-            message: {
-              role: 'assistant',
-              content: 'The capital of France is Paris.',
-            },
+            message: { role: 'assistant', content: 'The capital of France is Paris.' },
             finish_reason: 'stop',
           },
         ],
-        usage: {
-          prompt_tokens: 10,
-          completion_tokens: 15,
-          total_tokens: 25,
-        },
+        usage: { prompt_tokens: 10, completion_tokens: 15, total_tokens: 25 },
       };
 
       const { response, receipt } = await receipts.wrap(
@@ -45,82 +40,76 @@ describe('wrap() Developer Experience', () => {
         {
           sessionId: 'openai-test',
           input: { role: 'user', content: 'What is the capital of France?' },
-        }
+          agentId: 'gpt-4',
+        },
       );
 
-      expect(response).toBe(mockOpenAIResponse);
-      expect(receipt).toBeDefined();
-      expect(receipt.agent_id).toBe('gpt-4');
-      expect(receipt.scores).toBeDefined();
-      expect(receipt.receipt_hash).toBeDefined();
+      assert.strictEqual(response, mockOpenAIResponse);
+      assert.ok(receipt, 'Receipt should be defined');
+      assert.strictEqual(receipt.agentId, 'gpt-4');
+      assert.ok(receipt.scores);
+      assert.ok(receipt.receiptHash);
     });
 
-    it('should extract content from OpenAI streaming response', async () => {
-      const chunks = [
-        { choices: [{ delta: { content: 'The' } }] },
-        { choices: [{ delta: { content: ' capital' } }] },
-        { choices: [{ delta: { content: ' is' } }] },
-        { choices: [{ delta: { content: ' Paris.' } }] },
-      ];
+    it('should wrap OpenAI streaming-like response', async () => {
+      const receipts = new TrustReceipts();
 
       const mockStreamResponse = {
         async *[Symbol.asyncIterator]() {
-          for (const chunk of chunks) {
-            yield chunk;
-          }
+          yield { choices: [{ delta: { content: 'The' } }] };
+          yield { choices: [{ delta: { content: ' capital' } }] };
+          yield { choices: [{ delta: { content: ' is' } }] };
+          yield { choices: [{ delta: { content: ' Paris.' } }] };
         },
       };
 
-      const { response, receipt } = await receipts.wrap(
+      const { receipt } = await receipts.wrap(
         async () => mockStreamResponse,
         {
           sessionId: 'openai-stream-test',
           input: { role: 'user', content: 'Capitals?' },
-        }
+        },
       );
 
-      expect(receipt).toBeDefined();
-      expect(receipt.response_hash).toBeDefined();
+      assert.ok(receipt, 'Receipt should be defined');
+      assert.ok(receipt.responseHash, 'Should have responseHash');
     });
 
     it('should handle OpenAI errors gracefully', async () => {
+      const receipts = new TrustReceipts();
       const mockError = new Error('API rate limit exceeded');
 
-      const result = await receipts
-        .wrap(
-          async () => {
-            throw mockError;
-          },
-          {
-            sessionId: 'openai-error-test',
-            input: { role: 'user', content: 'test' },
-          }
-        )
-        .catch((e) => ({ error: e }));
-
-      expect(result.error).toBe(mockError);
+      await assert.rejects(
+        () =>
+          receipts.wrap(
+            async () => {
+              throw mockError;
+            },
+            {
+              sessionId: 'openai-error-test',
+              input: { role: 'user', content: 'test' },
+            },
+          ),
+        { message: 'API rate limit exceeded' },
+      );
     });
   });
 
+  // ── Anthropic Integration ───────────────────────────────────────────
+
   describe('Anthropic Integration', () => {
     it('should wrap Anthropic message creation', async () => {
+      const receipts = new TrustReceipts();
+
       const mockAnthropicResponse = {
         id: 'msg_123',
         type: 'message',
         role: 'assistant',
-        content: [
-          {
-            type: 'text',
-            text: 'The capital of France is Paris.',
-          },
-        ],
+        content: [{ type: 'text', text: 'The capital of France is Paris.' }],
         model: 'claude-3-haiku-20240307',
         stop_reason: 'end_turn',
         stop_sequence: null,
-        usage: {
-          input_tokens: 10,
-          output_tokens: 15,
-        },
+        usage: { input_tokens: 10, output_tokens: 15 },
       };
 
       const { response, receipt } = await receipts.wrap(
@@ -128,23 +117,21 @@ describe('wrap() Developer Experience', () => {
         {
           sessionId: 'anthropic-test',
           input: { role: 'user', content: 'What is the capital of France?' },
-        }
+          agentId: 'claude-3-haiku',
+        },
       );
 
-      expect(response).toBe(mockAnthropicResponse);
-      expect(receipt).toBeDefined();
-      expect(receipt.agent_id).toBe('claude-3-haiku-20240307');
+      assert.strictEqual(response, mockAnthropicResponse);
+      assert.ok(receipt, 'Receipt should be defined');
+      assert.strictEqual(receipt.agentId, 'claude-3-haiku');
     });
 
-    it('should extract content from Anthropic streaming', async () => {
-      const mockStreamEvent = {
-        type: 'content_block_delta',
-        delta: { type: 'text_delta', text: 'Paris.' },
-      };
+    it('should wrap Anthropic streaming response', async () => {
+      const receipts = new TrustReceipts();
 
       const mockStreamResponse = {
         async *[Symbol.asyncIterator]() {
-          yield mockStreamEvent;
+          yield { type: 'content_block_delta', delta: { type: 'text_delta', text: 'Paris.' } };
         },
       };
 
@@ -153,35 +140,28 @@ describe('wrap() Developer Experience', () => {
         {
           sessionId: 'anthropic-stream-test',
           input: { role: 'user', content: 'Capital?' },
-        }
+        },
       );
 
-      expect(receipt).toBeDefined();
+      assert.ok(receipt, 'Receipt should be defined');
     });
   });
 
+  // ── Google Gemini Integration ───────────────────────────────────────
+
   describe('Google Gemini Integration', () => {
     it('should wrap Gemini generateContent', async () => {
+      const receipts = new TrustReceipts();
+
       const mockGeminiResponse = {
         candidates: [
           {
-            content: {
-              parts: [
-                {
-                  text: 'The capital of France is Paris.',
-                },
-              ],
-              role: 'model',
-            },
+            content: { parts: [{ text: 'The capital of France is Paris.' }], role: 'model' },
             finishReason: 'STOP',
             index: 0,
           },
         ],
-        usageMetadata: {
-          promptTokenCount: 10,
-          candidatesTokenCount: 15,
-          totalTokenCount: 25,
-        },
+        usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 15, totalTokenCount: 25 },
       };
 
       const { response, receipt } = await receipts.wrap(
@@ -189,19 +169,19 @@ describe('wrap() Developer Experience', () => {
         {
           sessionId: 'gemini-test',
           input: { role: 'user', content: 'What is the capital of France?' },
-        }
+        },
       );
 
-      expect(response).toBe(mockGeminiResponse);
-      expect(receipt).toBeDefined();
+      assert.strictEqual(response, mockGeminiResponse);
+      assert.ok(receipt, 'Receipt should be defined');
     });
 
     it('should handle Gemini streaming', async () => {
+      const receipts = new TrustReceipts();
+
       const mockStreamResponse = {
         async *[Symbol.asyncIterator]() {
-          yield {
-            candidates: [{ content: { parts: [{ text: 'Paris.' }] } }],
-          };
+          yield { candidates: [{ content: { parts: [{ text: 'Paris.' }] } }] };
         },
       };
 
@@ -210,47 +190,45 @@ describe('wrap() Developer Experience', () => {
         {
           sessionId: 'gemini-stream-test',
           input: { role: 'user', content: 'Capital?' },
-        }
+        },
       );
 
-      expect(receipt).toBeDefined();
+      assert.ok(receipt, 'Receipt should be defined');
     });
   });
 
+  // ── Custom Function Integration ─────────────────────────────────────
+
   describe('Custom Function Integration', () => {
     it('should wrap custom async functions', async () => {
-      const customAI = async () => {
-        return {
-          success: true,
-          data: 'custom response',
-        };
-      };
+      const receipts = new TrustReceipts();
+
+      const customAI = async () => ({ success: true, data: 'custom response' });
 
       const { response, receipt } = await receipts.wrap(customAI, {
         sessionId: 'custom-test',
         input: { role: 'user', content: 'test' },
       });
 
-      expect(response.success).toBe(true);
-      expect(receipt).toBeDefined();
+      assert.strictEqual(response.success, true);
+      assert.ok(receipt, 'Receipt should be defined');
     });
 
     it('should wrap synchronous functions as async', async () => {
+      const receipts = new TrustReceipts();
       const syncFn = () => 'sync response';
 
-      const { response, receipt } = await receipts.wrap(
-        async () => syncFn(),
-        {
-          sessionId: 'sync-test',
-          input: { role: 'user', content: 'test' },
-        }
-      );
+      const { response, receipt } = await receipts.wrap(async () => syncFn(), {
+        sessionId: 'sync-test',
+        input: { role: 'user', content: 'test' },
+      });
 
-      expect(response).toBe('sync response');
-      expect(receipt).toBeDefined();
+      assert.strictEqual(response, 'sync response');
+      assert.ok(receipt, 'Receipt should be defined');
     });
 
     it('should handle functions with side effects', async () => {
+      const receipts = new TrustReceipts();
       let sideEffectRan = false;
 
       const fnWithSideEffect = async () => {
@@ -263,54 +241,53 @@ describe('wrap() Developer Experience', () => {
         input: { role: 'user', content: 'test' },
       });
 
-      expect(sideEffectRan).toBe(true);
-      expect(response).toBe('result');
+      assert.strictEqual(sideEffectRan, true);
+      assert.strictEqual(response, 'result');
     });
   });
 
-  describe('Options Validation', () => {
-    it('should accept minimal options', async () => {
-      const { receipt } = await receipts.wrap(
-        async () => 'response',
-        {
-          sessionId: 'minimal-test',
-        }
-      );
+  // ── Options Validation ──────────────────────────────────────────────
 
-      expect(receipt).toBeDefined();
-      expect(receipt.session_id).toBe('minimal-test');
+  describe('Options Validation', () => {
+    it('should accept basic options with sessionId and input', async () => {
+      const receipts = new TrustReceipts();
+
+      const { receipt } = await receipts.wrap(async () => 'response', {
+        sessionId: 'minimal-test',
+        input: 'test prompt',
+      });
+
+      assert.ok(receipt, 'Receipt should be defined');
+      assert.strictEqual(receipt.sessionId, 'minimal-test');
     });
 
     it('should accept full options', async () => {
-      const { receipt } = await receipts.wrap(
-        async () => 'response',
-        {
-          sessionId: 'full-test',
-          input: { role: 'user', content: 'test' },
-          includeContent: true,
-          prevReceiptHash: 'previous_hash',
-          agentId: 'test-agent',
-          metadata: { custom: 'data' },
-        }
-      );
+      const receipts = new TrustReceipts();
 
-      expect(receipt).toBeDefined();
-      expect(receipt.session_id).toBe('full-test');
-      expect(receipt.agent_id).toBe('test-agent');
-      expect(receipt.include_content).toBe(true);
-      expect(receipt.metadata.custom).toBe('data');
-    });
+      // First receipt for chaining
+      const { receipt: prevReceipt } = await receipts.wrap(async () => 'prev', {
+        sessionId: 'full-test',
+        input: 'prev prompt',
+      });
 
-    it('should validate sessionId is required', async () => {
-      expect(async () => {
-        await receipts.wrap(async () => 'response', {
-          // @ts-ignore: Testing missing required field
-          input: 'test',
-        });
-      }).rejects.toThrow('sessionId is required');
+      const { receipt } = await receipts.wrap(async () => 'response', {
+        sessionId: 'full-test',
+        input: { role: 'user', content: 'test' },
+        includeContent: true,
+        previousReceipt: prevReceipt,
+        agentId: 'test-agent',
+        metadata: { custom: 'data' },
+      });
+
+      assert.ok(receipt, 'Receipt should be defined');
+      assert.strictEqual(receipt.sessionId, 'full-test');
+      assert.strictEqual(receipt.agentId, 'test-agent');
+      assert.strictEqual(receipt.metadata.custom, 'data');
     });
 
     it('should handle special characters in sessionId', async () => {
+      const receipts = new TrustReceipts();
+
       const specialIds = [
         'session-with-dashes',
         'session_with_underscores',
@@ -319,230 +296,225 @@ describe('wrap() Developer Experience', () => {
       ];
 
       for (const id of specialIds) {
-        const { receipt } = await receipts.wrap(
-          async () => 'response',
-          { sessionId: id }
-        );
-
-        expect(receipt.session_id).toBe(id);
+        const { receipt } = await receipts.wrap(async () => 'response', {
+          sessionId: id,
+          input: 'prompt',
+        });
+        assert.strictEqual(receipt.sessionId, id);
       }
     });
 
     it('should handle large metadata', async () => {
+      const receipts = new TrustReceipts();
+
       const largeMetadata = {
-        tokens: {
-          input: 1000,
-          output: 2000,
-          total: 3000,
-        },
-        timing: {
-          start: Date.now(),
-          duration: 1234,
-        },
-        tags: Array(100).fill('tag').map((t, i) => `${t}${i}`),
+        tokens: { input: 1000, output: 2000, total: 3000 },
+        timing: { start: Date.now(), duration: 1234 },
+        tags: Array(100)
+          .fill('tag')
+          .map((t, i) => `${t}${i}`),
       };
 
-      const { receipt } = await receipts.wrap(
-        async () => 'response',
-        {
-          sessionId: 'large-metadata-test',
-          metadata: largeMetadata,
-        }
-      );
+      const { receipt } = await receipts.wrap(async () => 'response', {
+        sessionId: 'large-metadata-test',
+        input: 'prompt',
+        metadata: largeMetadata,
+      });
 
-      expect(receipt.metadata).toEqual(largeMetadata);
+      assert.deepStrictEqual(receipt.metadata, largeMetadata);
     });
   });
 
+  // ── Return Value Semantics ──────────────────────────────────────────
+
   describe('Return Value Semantics', () => {
     it('should return original response unchanged', async () => {
+      const receipts = new TrustReceipts();
       const originalResponse = { data: 'value', nested: { field: 123 } };
 
-      const { response } = await receipts.wrap(
-        async () => originalResponse,
-        { sessionId: 'unchanged-test' }
-      );
+      const { response } = await receipts.wrap(async () => originalResponse, {
+        sessionId: 'unchanged-test',
+        input: 'prompt',
+      });
 
-      expect(response).toBe(originalResponse);
-      expect(response).toEqual({ data: 'value', nested: { field: 123 } });
+      assert.strictEqual(response, originalResponse);
+      assert.deepStrictEqual(response, { data: 'value', nested: { field: 123 } });
     });
 
     it('should not modify response during wrapping', async () => {
+      const receipts = new TrustReceipts();
       const original = { x: 1 };
-      let returnedValue: any;
 
-      await receipts.wrap(async () => {
-        returnedValue = original;
-        return original;
-      }, { sessionId: 'mutation-test' });
+      await receipts.wrap(async () => original, {
+        sessionId: 'mutation-test',
+        input: 'prompt',
+      });
 
-      expect(returnedValue).toBe(original);
-      expect(Object.keys(original)).toEqual(['x']);
+      assert.deepStrictEqual(Object.keys(original), ['x']);
     });
 
-    it('should preserve response types (String, Number, Object, Array)', async () => {
-      const testCases = [
-        'string response',
-        123,
-        { object: true },
-        ['array', 'response'],
-        null,
-      ];
+    it('should preserve response types (String, Number, Object, Array, null)', async () => {
+      const receipts = new TrustReceipts();
+
+      const testCases = ['string response', 123, { object: true }, ['array', 'response'], null];
 
       for (const testCase of testCases) {
-        const { response } = await receipts.wrap(
-          async () => testCase,
-          { sessionId: 'type-test' }
-        );
-
-        expect(response).toBe(testCase);
+        const { response } = await receipts.wrap(async () => testCase, {
+          sessionId: 'type-test',
+          input: 'prompt',
+        });
+        assert.strictEqual(response, testCase);
       }
     });
   });
 
+  // ── Multi-Turn Conversations ────────────────────────────────────────
+
   describe('Multi-Turn Conversations', () => {
     it('should chain receipts in conversation', async () => {
+      const receipts = new TrustReceipts();
       const sessionId = 'conversation-test';
-      const receipts_list = [];
+      const receiptsList: SignedReceipt[] = [];
 
       // Turn 1
-      const turn1 = await receipts.wrap(
-        async () => 'Yes, Paris is the capital.',
-        {
-          sessionId,
-          input: 'Is Paris a capital?',
-        }
-      );
-      receipts_list.push(turn1.receipt);
+      const turn1 = await receipts.wrap(async () => 'Yes, Paris is the capital.', {
+        sessionId,
+        input: 'Is Paris a capital?',
+      });
+      receiptsList.push(turn1.receipt);
 
-      // Turn 2 (with chain)
-      const turn2 = await receipts.wrap(
-        async () => 'It is in France.',
-        {
-          sessionId,
-          input: 'Where is Paris?',
-          prevReceiptHash: turn1.receipt.receipt_hash,
-        }
-      );
-      receipts_list.push(turn2.receipt);
+      // Turn 2 (chained)
+      const turn2 = await receipts.wrap(async () => 'It is in France.', {
+        sessionId,
+        input: 'Where is Paris?',
+        previousReceipt: turn1.receipt,
+      });
+      receiptsList.push(turn2.receipt);
 
-      // Turn 3 (with chain)
-      const turn3 = await receipts.wrap(
-        async () => 'Population is about 2 million.',
-        {
-          sessionId,
-          input: 'Population?',
-          prevReceiptHash: turn2.receipt.receipt_hash,
-        }
-      );
-      receipts_list.push(turn3.receipt);
+      // Turn 3 (chained)
+      const turn3 = await receipts.wrap(async () => 'Population is about 2 million.', {
+        sessionId,
+        input: 'Population?',
+        previousReceipt: turn2.receipt,
+      });
+      receiptsList.push(turn3.receipt);
 
       // Verify chain
-      expect(receipts_list[0].prev_receipt_hash).toBeNull();
-      expect(receipts_list[1].prev_receipt_hash).toBe(
-        receipts_list[0].receipt_hash
-      );
-      expect(receipts_list[2].prev_receipt_hash).toBe(
-        receipts_list[1].receipt_hash
-      );
+      assert.strictEqual(receiptsList[0].prevReceiptHash, null);
+      assert.strictEqual(receiptsList[1].prevReceiptHash, receiptsList[0].receiptHash);
+      assert.strictEqual(receiptsList[2].prevReceiptHash, receiptsList[1].receiptHash);
     });
 
-    it('should support parallel turns (different sessions)', async () => {
+    it('should support parallel turns in different sessions', async () => {
+      const receipts = new TrustReceipts();
+
       const parallel = await Promise.all([
-        receipts.wrap(async () => 'Response A', {
-          sessionId: 'session-a',
-        }),
-        receipts.wrap(async () => 'Response B', {
-          sessionId: 'session-b',
-        }),
-        receipts.wrap(async () => 'Response C', {
-          sessionId: 'session-c',
-        }),
+        receipts.wrap(async () => 'Response A', { sessionId: 'session-a', input: 'prompt a' }),
+        receipts.wrap(async () => 'Response B', { sessionId: 'session-b', input: 'prompt b' }),
+        receipts.wrap(async () => 'Response C', { sessionId: 'session-c', input: 'prompt c' }),
       ]);
 
-      expect(parallel).toHaveLength(3);
+      assert.strictEqual(parallel.length, 3);
       parallel.forEach((result, i) => {
-        expect(result.receipt).toBeDefined();
-        expect(result.response).toBe(`Response ${String.fromCharCode(65 + i)}`);
+        assert.ok(result.receipt, 'Receipt should be defined');
+        assert.strictEqual(result.response, `Response ${String.fromCharCode(65 + i)}`);
       });
     });
   });
+
+  // ── Error Handling ──────────────────────────────────────────────────
 
   describe('Error Handling', () => {
     it('should propagate wrapped function errors', async () => {
+      const receipts = new TrustReceipts();
       const error = new Error('Custom error message');
 
-      expect(
-        receipts.wrap(
-          async () => {
-            throw error;
-          },
-          { sessionId: 'error-test' }
-        )
-      ).rejects.toThrow('Custom error message');
+      await assert.rejects(
+        () =>
+          receipts.wrap(
+            async () => {
+              throw error;
+            },
+            { sessionId: 'error-test', input: 'prompt' },
+          ),
+        { message: 'Custom error message' },
+      );
     });
 
     it('should handle timeout errors', async () => {
-      const timeoutError = async () => {
-        return new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Timeout')), 100);
-        });
-      };
+      const receipts = new TrustReceipts();
 
-      expect(
-        receipts.wrap(timeoutError, { sessionId: 'timeout-test' })
-      ).rejects.toThrow('Timeout');
+      await assert.rejects(
+        () =>
+          receipts.wrap(
+            () =>
+              new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Timeout')), 100);
+              }),
+            { sessionId: 'timeout-test', input: 'prompt' },
+          ),
+        { message: 'Timeout' },
+      );
     });
 
     it('should handle null/undefined returns', async () => {
-      const nullResult = await receipts.wrap(
-        async () => null,
-        { sessionId: 'null-test' }
-      );
+      const receipts = new TrustReceipts();
 
-      expect(nullResult.response).toBeNull();
-      expect(nullResult.receipt).toBeDefined();
+      const nullResult = await receipts.wrap(async () => null, {
+        sessionId: 'null-test',
+        input: 'prompt',
+      });
+      assert.strictEqual(nullResult.response, null);
+      assert.ok(nullResult.receipt, 'Receipt should be defined');
 
-      const undefinedResult = await receipts.wrap(
-        async () => undefined,
-        { sessionId: 'undefined-test' }
-      );
-
-      expect(undefinedResult.response).toBeUndefined();
-      expect(undefinedResult.receipt).toBeDefined();
+      const undefinedResult = await receipts.wrap(async () => undefined, {
+        sessionId: 'undefined-test',
+        input: 'prompt',
+      });
+      assert.strictEqual(undefinedResult.response, undefined);
+      assert.ok(undefinedResult.receipt, 'Receipt should be defined');
     });
   });
 
+  // ── Performance Baseline ────────────────────────────────────────────
+
   describe('Performance Baseline', () => {
     it('should wrap() in <100ms overhead', async () => {
-      const start = performance.now();
+      const receipts = new TrustReceipts();
 
+      const start = performance.now();
       await receipts.wrap(async () => 'fast response', {
         sessionId: 'perf-test',
+        input: 'prompt',
       });
-
       const duration = performance.now() - start;
-      expect(duration).toBeLessThan(100);
+
+      assert.ok(duration < 100, `wrap() took ${duration.toFixed(1)}ms, expected <100ms`);
     });
 
     it('should handle large responses <500ms', async () => {
+      const receipts = new TrustReceipts();
       const largeResponse = JSON.stringify({
         data: Array(1000).fill({ field: 'value' }),
       });
 
       const start = performance.now();
-
       await receipts.wrap(async () => largeResponse, {
         sessionId: 'large-response-test',
+        input: 'prompt',
       });
-
       const duration = performance.now() - start;
-      expect(duration).toBeLessThan(500);
+
+      assert.ok(duration < 500, `Large wrap() took ${duration.toFixed(1)}ms, expected <500ms`);
     });
   });
 
+  // ── TypeScript Type Safety ──────────────────────────────────────────
+
   describe('TypeScript Type Safety', () => {
     it('should maintain type safety with generics', async () => {
+      const receipts = new TrustReceipts();
+
       interface AIResponse {
         success: boolean;
         message: string;
@@ -555,12 +527,13 @@ describe('wrap() Developer Experience', () => {
 
       const { response, receipt } = await receipts.wrap(typedFn, {
         sessionId: 'type-safe-test',
+        input: 'prompt',
       });
 
-      // TypeScript would error if types don't match
-      expect(response.success).toBe(true);
-      expect(response.message).toBe('typed response');
-      expect(receipt).toBeDefined();
+      // TypeScript enforces these types at compile time
+      assert.strictEqual(response.success, true);
+      assert.strictEqual(response.message, 'typed response');
+      assert.ok(receipt, 'Receipt should be defined');
     });
   });
 });

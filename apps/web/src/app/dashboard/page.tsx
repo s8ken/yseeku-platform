@@ -191,7 +191,7 @@ export default function DashboardPage() {
   const hasNoData = !kpis || kpis.totalInteractions === 0;
   const hasNoAlerts = !alerts || alerts.alerts.length === 0;
 
-  const trustScoreStatus = kpis?.trustScore ?? 0 >= 80 ? 'success' : kpis?.trustScore ?? 0 >= 60 ? 'warning' : 'error';
+  const trustScoreStatus = (kpis?.trustScore ?? 0) >= 80 ? 'success' : (kpis?.trustScore ?? 0) >= 60 ? 'warning' : 'error';
   const alertsStatus = (alerts?.summary?.total ?? 0) > 5 ? 'warning' : (alerts?.summary?.total ?? 0) > 0 ? 'neutral' : 'success';
 
   const handleStartChat = () => {

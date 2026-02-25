@@ -34,6 +34,9 @@ export { ResonanceQualityMeasurer, ResonanceAnalysisResult, ResonanceLevel } fro
 // LLM Analysis utilities
 export { analyzeWithLLM, isLLMAvailable, getLLMStatus, LLMAnalysisResult } from './llm-client';
 
+// Semantic Embeddings
+export { embedder, cosineSimilarity, SemanticEmbedder } from './real-embeddings';
+
 // DEPRECATED in v2.0.1 - removed:
 // - RealityIndexCalculator (trivially gamed metadata flags)
 // - CanvasParityCalculator (trivially gamed, no semantic grounding)

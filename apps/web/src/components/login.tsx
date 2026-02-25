@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Shield, Lock, User, Building2 } from 'lucide-react';
+import { Shield, Lock, User, Building2, Sparkles } from 'lucide-react';
 
 function IconWrapper({ children, className }: { children: React.ReactNode; className?: string }) {
   const [mounted, setMounted] = useState(false);
@@ -193,9 +193,16 @@ export function Login() {
               </div>
             </form>
             
-            <div className="mt-6 pt-6 border-t border-slate-700">
+            <div className="mt-6 pt-6 border-t border-slate-700 space-y-3">
+              <a
+                href="/demo"
+                className="flex items-center justify-center gap-2 w-full rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-2.5 text-sm font-medium text-cyan-400 hover:bg-cyan-500/20 transition-colors"
+              >
+                <Sparkles className="h-4 w-4" />
+                Try Interactive Demo
+              </a>
               <p className="text-xs text-slate-500 text-center">
-                Contact your administrator for credentials
+                No account required for demo mode
               </p>
             </div>
           </CardContent>

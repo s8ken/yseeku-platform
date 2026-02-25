@@ -422,7 +422,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </div>
 
-            <Link href="/tactical-command/v2" target="_blank" rel="noreferrer">
+            <Link href="/dashboard/tactical-command">
               <Button variant="outline" size="sm" className="gap-2">
                 <Compass className="h-4 w-4" />
                 <span className="hidden sm:inline">Tactical Command</span>

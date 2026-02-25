@@ -32,17 +32,11 @@ import {
 } from '@sonate/detect';
 // v2.0.1: Removed RealityIndexCalculator and CanvasParityCalculator imports
 // These calculators were cut as liabilities (trivially gamed metadata flags)
-// TODO: Restore @sonate/lab imports when package is ready
-// import {
-//   ConversationalMetrics,
-//   PhaseShiftMetrics,
-//   ConversationTurn
-// } from '@sonate/lab';
-
-// Placeholder types - replace when package is available
-type ConversationalMetrics = any;
-type PhaseShiftMetrics = any;
-type ConversationTurn = any;
+import {
+  ConversationalMetrics,
+  type PhaseShiftMetrics,
+  type ConversationTurn,
+} from '@sonate/lab';
 import { IMessage } from '../models/conversation.model';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
@@ -718,12 +712,10 @@ export class TrustService {
     // Get or create phase-shift tracker for this conversation
     let tracker = this.phaseShiftTrackers.get(conversationId);
     if (!tracker) {
-      // ConversationalMetrics is disabled - package @sonate/lab not ready
-      // tracker = new ConversationalMetrics({
-      //   yellowThreshold: TrustService.PHASE_SHIFT_YELLOW_THRESHOLD,
-      //   redThreshold: TrustService.PHASE_SHIFT_RED_THRESHOLD,
-      // });
-      tracker = {} as any; // Placeholder
+      tracker = new ConversationalMetrics({
+        yellowThreshold: TrustService.PHASE_SHIFT_YELLOW_THRESHOLD,
+        redThreshold: TrustService.PHASE_SHIFT_RED_THRESHOLD,
+      });
       this.phaseShiftTrackers.set(conversationId, tracker);
     }
 

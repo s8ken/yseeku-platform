@@ -15,6 +15,8 @@
 
 import { ResonanceEngineClient, ResonanceResult } from './resonance-engine-client';
 import { analyzeWithLLM, isLLMAvailable } from './llm-client';
+import { embedder, cosineSimilarity } from './real-embeddings';
+import { calculateResonanceMetrics as coreCalculateResonanceMetrics } from '@sonate/core';
 
 import { AIInteraction } from './index';
 
@@ -22,7 +24,7 @@ export type ResonanceLevel = 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
 
 export interface ResonanceAnalysisResult {
   level: ResonanceLevel;
-  method: 'resonance-engine' | 'llm' | 'heuristic';
+  method: 'resonance-engine' | 'llm' | 'embeddings' | 'heuristic';
   scores: {
     creativity: number;
     synthesis: number;
@@ -110,6 +112,49 @@ export class ResonanceQualityMeasurer {
         }
       } catch (e) {
         console.info('[ResonanceQuality] LLM analysis failed, falling back to heuristics');
+      }
+    }
+
+    // METHOD 2.5: Semantic Embeddings (if real provider configured, no LLM needed)
+    if (embedder.hasRealProvider()) {
+      try {
+        const userInput = interaction.context || 'unknown query';
+        const aiResponse = interaction.content || '';
+        const [promptResult, responseResult] = await Promise.all([
+          embedder.embed(userInput),
+          embedder.embed(aiResponse),
+        ]);
+        // cosine similarity is -1..1, normalise to 0..1 for V_align
+        const cosine = cosineSimilarity(promptResult.vector, responseResult.vector);
+        const vAlign = (cosine + 1) / 2;
+
+        // Feed semantic V_align into the full resonance formula
+        const resonanceMetrics = coreCalculateResonanceMetrics(
+          { userInput, aiResponse },
+          undefined,
+          { vAlignOverride: vAlign }
+        );
+
+        // Map R_m (0-1) to the 0-30 total score the heuristic path uses
+        const total = resonanceMetrics.R_m * 30;
+        let level: ResonanceLevel = 'STRONG';
+        if (total >= 24) level = 'BREAKTHROUGH';
+        else if (total >= 18) level = 'ADVANCED';
+
+        return {
+          level,
+          method: 'embeddings' as const,
+          scores: {
+            creativity: resonanceMetrics.vectorAlignment * 10,
+            synthesis: resonanceMetrics.contextualContinuity * 10,
+            innovation: resonanceMetrics.semanticMirroring * 10,
+            total,
+          },
+          indicators: [`Semantic embedding cosine similarity: ${vAlign.toFixed(3)}`],
+          confidence: 0.75,
+        };
+      } catch (err) {
+        console.info('[ResonanceQuality] Embedding analysis failed, falling back to heuristics');
       }
     }
 

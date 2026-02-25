@@ -32,7 +32,7 @@ import { AIInteraction, DetectionResult } from './index';
 export interface ExtendedDetectionResult extends DetectionResult {
   analysisMethod: {
     llmAvailable: boolean;
-    resonanceMethod: 'resonance-engine' | 'llm' | 'heuristic';
+    resonanceMethod: 'resonance-engine' | 'llm' | 'embeddings' | 'heuristic';
     ethicsMethod: 'llm' | 'heuristic';
     trustMethod: 'content-analysis' | 'metadata-only';
     confidence: number;

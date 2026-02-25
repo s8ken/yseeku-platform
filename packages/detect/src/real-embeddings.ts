@@ -57,6 +57,14 @@ export class SemanticEmbedder {
   };
   private cacheInitialized: boolean = false;
 
+  /**
+   * Check whether a real embedding provider (openai/together/huggingface) is configured.
+   * Returns false for the default 'local' hash-based pseudo-vectors.
+   */
+  hasRealProvider(): boolean {
+    return this.config.provider !== 'local';
+  }
+
   constructor(config: Partial<EmbeddingConfig> = {}) {
     this.config = {
       model: 'sentence-transformers',
