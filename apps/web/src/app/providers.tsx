@@ -15,8 +15,8 @@ function makeQueryClient() {
         gcTime: 5 * 60 * 1000,
         // Don't refetch on window focus (reduces API calls)
         refetchOnWindowFocus: false,
-        // Don't refetch on mount if data is fresh
-        refetchOnMount: false,
+        // Refetch on mount if data is stale (ensures invalidated queries refresh on navigation)
+        refetchOnMount: true,
         // Refetch on reconnect
         refetchOnReconnect: true,
         // Retry failed requests once

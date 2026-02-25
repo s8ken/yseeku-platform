@@ -304,7 +304,7 @@ export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({
             <span className="font-mono opacity-60">{receiptHash || 'PENDING_SIGNATURE'}</span> 
           </div> 
           <div className="flex justify-between items-center mt-3 text-[10px] text-slate-600"> 
-             <span>{new Date(timestamp).toUTCString()}</span> 
+             <span>{timestamp ? new Date(timestamp).toUTCString() : new Date().toUTCString()}</span> 
              <div className="flex items-center gap-2">
                {receipt && (
                  <button

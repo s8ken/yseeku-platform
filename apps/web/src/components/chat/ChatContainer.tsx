@@ -95,7 +95,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   onConversationCreated
 }) => {
   const { isDemo, isFirstVisit } = useDemo();
-  const { invalidateDashboard } = useDashboardInvalidation();
+  const { invalidateDashboard, invalidateAndRefetch } = useDashboardInvalidation();
   const [messages, setMessages] = useState<ChatMessageProps[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -314,14 +314,14 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           };
           setMessages(prev => [...prev, assistantMessage]);
 
-          // Invalidate dashboard queries so new interaction data appears
-          // This ensures KPIs, trust scores, and interaction counts update
-          invalidateDashboard();
+          // Invalidate AND refetch dashboard queries so new interaction data appears
+          // Uses invalidateAndRefetch for immediate UI update + delayed second pass
+          // to catch backend indexing/receipt creation that completes after the response
+          invalidateAndRefetch();
 
-          // Double-invalidate after a delay to ensure backend indexing/receipt creation is complete
-          // (Fixes issue where receipts don't appear immediately after chat)
+          // Second invalidation after delay to ensure backend indexing is complete
           setTimeout(() => {
-            invalidateDashboard();
+            invalidateAndRefetch();
           }, 2000);
         } else if (msg.sender === 'user') {
           // This is just a user message - no trust evaluation for user input

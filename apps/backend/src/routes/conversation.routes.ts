@@ -754,6 +754,39 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             });
           }
 
+          // When using LLM evaluation, apply system-state floors for
+          // principles the LLM cannot assess (it only sees text, not platform capabilities).
+          // The platform DOES generate signed receipts, verification, and audit logs,
+          // so INSPECTION_MANDATE should reflect that reality.
+          if (USE_LLM_TRUST_EVALUATION && aiTrustEval.trustScore?.principles) {
+            const principles = aiTrustEval.trustScore.principles as Record<string, number>;
+
+            // INSPECTION_MANDATE: LLM only sees response text, not that the platform
+            // generates Ed25519-signed receipts, crypto verification & audit logs
+            if (evaluationContext.receiptGenerated && evaluationContext.isReceiptVerifiable && evaluationContext.auditLogExists) {
+              const current = principles['INSPECTION_MANDATE'];
+              if (current !== undefined && current < 9) {
+                logger.info('System-state floor applied', { principle: 'INSPECTION_MANDATE', llmScore: current, floor: 9 });
+                principles['INSPECTION_MANDATE'] = 9;
+              }
+            }
+
+            // Recalculate overall from updated principles using standard weights
+            const weights: Record<string, number> = {
+              CONSENT_ARCHITECTURE: 0.25,
+              INSPECTION_MANDATE: 0.20,
+              CONTINUOUS_VALIDATION: 0.20,
+              ETHICAL_OVERRIDE: 0.15,
+              RIGHT_TO_DISCONNECT: 0.10,
+              MORAL_RECOGNITION: 0.10,
+            };
+            let recalculated = 0;
+            for (const [p, w] of Object.entries(weights)) {
+              recalculated += (principles[p] || 0) * w;
+            }
+            aiTrustEval.trustScore.overall = Math.round(recalculated * 10 * 10) / 10;
+          }
+
           // Store trust evaluation in message metadata
           aiMessage.metadata.trustEvaluation = {
             trustScore: aiTrustEval.trustScore,
@@ -763,6 +796,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             receiptHash: aiTrustEval.receiptHash,
             evaluatedBy: USE_LLM_TRUST_EVALUATION ? 'llm' : 'heuristic',
             analysisMethod: aiTrustEval.analysisMethod,
+            timestamp: aiTrustEval.timestamp || Date.now(),
           };
 
           // Persist receipt in TrustReceipt collection (upsert)
@@ -911,6 +945,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
               trustMethod: 'fallback',
               confidence: 0.3,
             },
+            timestamp: Date.now(),
           };
           aiMessage.trustScore = 3.5; // Conservative middle value (0-5 scale)
         }
@@ -996,6 +1031,7 @@ The SONATE Trust Protocol evaluates every AI response against 6 constitutional p
               trustMethod: 'engine',
               confidence: 1.0,
             },
+            timestamp: Date.now(),
           };
 
           // Persist the receipt to TrustReceiptModel for dashboard visibility
@@ -1091,6 +1127,7 @@ The SONATE Trust Protocol evaluates every AI response against 6 constitutional p
           receipt: lastMessage.metadata.trustEvaluation.receipt,
           receiptHash: lastMessage.metadata.trustEvaluation.receiptHash,
           analysisMethod: lastMessage.metadata.trustEvaluation.analysisMethod, // v2.1: LLM/Heuristic transparency
+          timestamp: lastMessage.metadata.trustEvaluation.timestamp || Date.now(),
         } : undefined,
       },
     });
