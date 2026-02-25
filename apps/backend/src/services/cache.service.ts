@@ -15,3 +15,18 @@ export async function cacheSet<T>(key: string, value: T, ttlSeconds = 300): Prom
   await redis.set(key, JSON.stringify(value), 'EX', ttlSeconds);
 }
 
+export async function cacheDel(pattern: string): Promise<void> {
+  if (!redis) return;
+  // If pattern contains wildcard, use SCAN + DEL; otherwise direct DEL
+  if (pattern.includes('*')) {
+    let cursor = '0';
+    do {
+      const [next, keys] = await redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+      cursor = next;
+      if (keys.length > 0) await redis.del(...keys);
+    } while (cursor !== '0');
+  } else {
+    await redis.del(pattern);
+  }
+}
+

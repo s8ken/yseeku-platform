@@ -23,6 +23,7 @@ import { EvaluationContext } from '@sonate/core';
 import { detectConsentWithdrawal, getWithdrawalResponse } from '@sonate/detect';
 import { keysService } from '../services/keys.service';
 import didService from '../services/did.service';
+import { cacheDel } from '../services/cache.service';
 
 // Helper to canonicalize objects for consistent hashing
 function canonicalize(obj: any): string {
@@ -853,6 +854,15 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
               receiptHash: aiTrustEval.receiptHash,
               weightSource: aiTrustEval.weight_source,
             });
+
+            // Bust the KPI cache so the next dashboard request gets fresh data
+            try {
+              await cacheDel(`kpis:${tenantId}:*`);
+              logger.debug('[TRUST RECEIPT] KPI cache cleared after receipt persistence', { tenantId });
+            } catch (cacheErr) {
+              // Non-critical — cache will expire naturally
+              logger.debug('[TRUST RECEIPT] KPI cache clear skipped', { tenantId });
+            }
           } catch (persistErr: any) {
             logger.error('[TRUST RECEIPT] Failed to persist AI trust receipt', { 
               error: persistErr?.message || persistErr,

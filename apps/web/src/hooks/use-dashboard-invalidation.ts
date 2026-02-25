@@ -25,24 +25,31 @@ export function useDashboardInvalidation() {
     
     // Invalidate trust-related queries
     queryClient.invalidateQueries({ queryKey: ['trust-analytics'] });
-    
     queryClient.invalidateQueries({ queryKey: ['trust-receipts'] });
     queryClient.invalidateQueries({ queryKey: ['receipts'] });
     
     // Invalidate alerts (interactions can trigger alerts)
     queryClient.invalidateQueries({ queryKey: ['alerts'] });
     
-    // Invalidate live metrics
+    // Invalidate live metrics (used by Live Monitor)
     queryClient.invalidateQueries({ queryKey: ['live-metrics'] });
     
-    // Invalidate agents (interaction count updates)
+    // Invalidate agents (both dashboard and live monitor variants)
     queryClient.invalidateQueries({ queryKey: ['agents'] });
+    queryClient.invalidateQueries({ queryKey: ['agents-live'] });
     
     // Invalidate risk data
     queryClient.invalidateQueries({ queryKey: ['risk'] });
     
     // Invalidate interactions list
     queryClient.invalidateQueries({ queryKey: ['interactions'] });
+
+    // Invalidate live monitor page queries
+    queryClient.invalidateQueries({ queryKey: ['conversations-live'] });
+    queryClient.invalidateQueries({ queryKey: ['emergence-recent'] });
+
+    // Invalidate overseer/tactical command data
+    queryClient.invalidateQueries({ queryKey: ['overseer'] });
   }, [queryClient]);
 
   /**
@@ -50,13 +57,17 @@ export function useDashboardInvalidation() {
    * Use this for a more immediate UI update
    */
   const invalidateAndRefetch = useCallback(async () => {
-    // First invalidate
+    // First invalidate all dashboard-related queries
     invalidateDashboard();
     
-    // Then refetch critical queries
+    // Then force-refetch all critical queries for immediate UI update
     await Promise.allSettled([
       queryClient.refetchQueries({ queryKey: ['dashboard-kpis'], exact: false }),
       queryClient.refetchQueries({ queryKey: ['trust-analytics'], exact: false }),
+      queryClient.refetchQueries({ queryKey: ['receipts'], exact: false }),
+      queryClient.refetchQueries({ queryKey: ['live-metrics'], exact: false }),
+      queryClient.refetchQueries({ queryKey: ['alerts'], exact: false }),
+      queryClient.refetchQueries({ queryKey: ['conversations-live'], exact: false }),
     ]);
   }, [invalidateDashboard, queryClient]);
 
