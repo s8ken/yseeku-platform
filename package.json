@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
-    "@supabase/supabase-js": "^2.95.3",
+    "@supabase/supabase-js": "^2.98.0",
     "@types/express": "^5.0.0",
     "@types/express-serve-static-core": "^5.0.0",
     "@types/node": "^20.0.0",
