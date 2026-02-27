@@ -12,6 +12,10 @@ interface SemanticCoprocessorStats {
   fallbackActivations: number;
   isAvailable: boolean;
   lastHealthCheck: number;
+  mode?: 'provider' | 'sidecar' | 'structural';
+  provider?: string;
+  cacheHitRate?: number;
+  avgInferenceTimeMs?: number;
 }
 
 interface CoprocessorHealth {
