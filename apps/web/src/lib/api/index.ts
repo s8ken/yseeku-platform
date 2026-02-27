@@ -89,6 +89,7 @@ export const api = {
   streamMessage: conversationsApi.streamMessage,
   listConversations: conversationsApi.listConversations,
   deleteConversation: conversationsApi.deleteConversation,
+  exportToIPFS: conversationsApi.exportToIPFS,
 
   // Lab
   getExperiments: labApi.getExperiments,

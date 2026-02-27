@@ -93,7 +93,7 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
         severity: eventSeverity,
         description: `Trust score ${trustPercentage}% with ${violationCount} violation${violationCount !== 1 ? 's' : ''}`,
         category: 'trust_violation',
-        resolved: false, // In the future, this could be stored in conversation metadata
+        resolved: (conv as any).isResolved ?? false,
         created_at: conv.lastActivity.toISOString(),
         conversationId: conv._id.toString(),
         agentId: conv.agents && conv.agents.length > 0 ? conv.agents[0].toString() : undefined,
@@ -101,25 +101,35 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
           ethicalScore,
           trustPercentage,
           violationCount,
-          violations: violations.slice(0, 5), // First 5 unique violations
+          violations: violations.slice(0, 5),
           messageCount: conv.messages.length,
+          resolvedAt: (conv as any).resolvedAt?.toISOString(),
+          resolvedBy: (conv as any).resolvedBy,
+          resolutionNote: (conv as any).resolutionNote,
         },
       };
 
       riskEvents.push(event);
     }
 
-    // Apply pagination
-    const paginatedEvents = riskEvents.slice(offsetNum, offsetNum + limitNum);
+    // Apply pagination after filtering by resolved status if requested
+    const filteredByResolved = resolved === 'true'
+      ? riskEvents.filter(e => e.resolved)
+      : resolved === 'false'
+        ? riskEvents.filter(e => !e.resolved)
+        : riskEvents;
 
-    // Calculate summary statistics
+    const paginatedEvents = filteredByResolved.slice(offsetNum, offsetNum + limitNum);
+
+    // Calculate summary statistics from real data
+    const resolvedCount = riskEvents.filter(e => e.resolved).length;
     const summary = {
       total: riskEvents.length,
       critical: riskEvents.filter(e => e.severity === 'critical').length,
       error: riskEvents.filter(e => e.severity === 'error').length,
       warning: riskEvents.filter(e => e.severity === 'warning').length,
-      resolved: 0, // Not yet implemented
-      active: riskEvents.length,
+      resolved: resolvedCount,
+      active: riskEvents.length - resolvedCount,
     };
 
     logger.info('Risk events fetched', {
@@ -157,15 +167,14 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
 
 /**
  * POST /api/risk-events/:id/resolve
- * Mark a risk event as resolved
- *
- * In the future, this would update conversation metadata
- * For now, it's a placeholder that returns success
+ * Mark a risk event (low-trust conversation) as resolved.
+ * Persists resolution metadata to the conversation document.
  */
 router.post('/:id/resolve', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const userId = req.userId;
+    const { note } = req.body;
 
     // Verify the conversation belongs to the user
     const conversation = await Conversation.findOne({
@@ -181,11 +190,38 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
       return;
     }
 
-    // In the future, update conversation metadata to mark as resolved
-    // For now, just log and return success
+    if ((conversation as any).isResolved) {
+      res.status(409).json({
+        success: false,
+        message: 'Risk event is already resolved',
+        data: {
+          id,
+          resolved: true,
+          resolvedAt: (conversation as any).resolvedAt?.toISOString(),
+        },
+      });
+      return;
+    }
+
+    const resolvedAt = new Date();
+
+    // Persist resolution to the conversation document
+    await Conversation.updateOne(
+      { _id: id },
+      {
+        $set: {
+          isResolved: true,
+          resolvedAt,
+          resolvedBy: userId,
+          resolutionNote: note ?? '',
+        },
+      }
+    );
+
     logger.info('Risk event marked as resolved', {
       userId,
       conversationId: id,
+      resolvedAt: resolvedAt.toISOString(),
     });
 
     res.json({
@@ -194,7 +230,9 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
       data: {
         id,
         resolved: true,
-        resolvedAt: new Date().toISOString(),
+        resolvedAt: resolvedAt.toISOString(),
+        resolvedBy: userId,
+        resolutionNote: note ?? '',
       },
     });
   } catch (error) {

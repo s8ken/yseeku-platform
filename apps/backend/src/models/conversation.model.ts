@@ -29,8 +29,18 @@ export interface IConversation extends Document {
   lastActivity: Date;
   createdAt: Date;
 
+  // Risk event resolution tracking
+  isResolved: boolean;
+  resolvedAt?: Date;
+  resolvedBy?: string;
+  resolutionNote?: string;
+
+  // IPFS audit bundle pinning
+  ipfsCid?: string;
+  ipfsPinnedAt?: Date;
+
   // Methods
-  exportToIPFS(): Promise<{ success: boolean; hash: string; timestamp: Date }>;
+  exportToIPFS(): Promise<{ success: boolean; cid: string; gatewayUrl: string; pinnedAt: string }>;
   calculateEthicalScore(): Promise<IConversation>;
 }
 
@@ -115,6 +125,32 @@ const ConversationSchema = new Schema<IConversation>({
     type: Date,
     default: Date.now,
   },
+
+  // Risk event resolution tracking
+  isResolved: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
+  resolvedAt: {
+    type: Date,
+  },
+  resolvedBy: {
+    type: String,
+  },
+  resolutionNote: {
+    type: String,
+    trim: true,
+  },
+
+  // IPFS audit bundle pinning
+  ipfsCid: {
+    type: String,
+    index: true,
+  },
+  ipfsPinnedAt: {
+    type: Date,
+  },
 });
 
 // Update lastActivity timestamp when new messages are added
@@ -131,9 +167,23 @@ ConversationSchema.index({ ciEnabled: 1 });
 ConversationSchema.index({ ethicalScore: 1 });
 ConversationSchema.index({ isArchived: 1 });
 
-// IPFS export - not yet implemented (planned feature)
-ConversationSchema.methods.exportToIPFS = async function (): Promise<{ success: boolean; hash: string; timestamp: Date }> {
-  throw new Error('IPFS export is not yet implemented. This feature is planned for a future release.');
+// IPFS export — delegates to IpfsService (requires PINATA_JWT env var)
+ConversationSchema.methods.exportToIPFS = async function (): Promise<{
+  success: boolean;
+  cid: string;
+  gatewayUrl: string;
+  pinnedAt: string;
+}> {
+  // Lazy-import to avoid circular dependency at module load time
+  const { ipfsService } = await import('../services/ipfs.service');
+  const tenantId = (this as any).tenantId ?? 'default';
+  const result = await ipfsService.pinConversation(this._id.toString(), tenantId);
+  return {
+    success: true,
+    cid: result.cid,
+    gatewayUrl: result.gatewayUrl,
+    pinnedAt: result.pinnedAt,
+  };
 };
 
 // Method to calculate ethical score based on message trust scores

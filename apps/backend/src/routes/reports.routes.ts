@@ -7,6 +7,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { protect } from '../middleware/auth.middleware';
 import { complianceReportService, ReportType, ReportFormat } from '../services/compliance-report.service';
+import { GeneratedReport } from '../models/generated-report.model';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 
@@ -46,7 +47,52 @@ router.post('/generate', protect, async (req: Request, res: Response): Promise<v
       includeDetails: body.includeDetails,
       agentIds: body.agentIds,
     });
-    
+
+    // Persist the generated report to history (JSON format only — HTML/CSV too large)
+    if (body.format === 'json' && report && typeof report === 'object') {
+      const reportPayload = report as any;
+      const payloadStr = JSON.stringify(report);
+      const reportId = reportPayload?.meta?.reportId
+        || reportPayload?.reportId
+        || `${body.type}-${Date.now()}`;
+
+      // Extract a summary for the history list view
+      const summary: Record<string, any> = {};
+      if (reportPayload?.summary?.totalConversations !== undefined)
+        summary.totalConversations = reportPayload.summary.totalConversations;
+      if (reportPayload?.summary?.avgTrustScore !== undefined)
+        summary.avgTrustScore = reportPayload.summary.avgTrustScore;
+      if (reportPayload?.summary?.complianceRate !== undefined)
+        summary.complianceRate = reportPayload.summary.complianceRate;
+      if (reportPayload?.status !== undefined)
+        summary.status = reportPayload.status;
+      if (reportPayload?.overallScore !== undefined)
+        summary.avgTrustScore = reportPayload.overallScore;
+
+      try {
+        await GeneratedReport.create({
+          reportId,
+          type: body.type,
+          format: body.format,
+          tenantId,
+          generatedBy: (req as any).userId,
+          startDate,
+          endDate,
+          summary,
+          payload: report,
+          sizeBytes: Buffer.byteLength(payloadStr, 'utf8'),
+          generatedAt: new Date(),
+        });
+        logger.info('Report persisted to history', { reportId, type: body.type, tenantId });
+      } catch (persistError) {
+        // Never block report delivery because of history persistence failure
+        logger.warn('Failed to persist report to history', {
+          error: getErrorMessage(persistError),
+          reportId,
+        });
+      }
+    }
+
     // Set appropriate content type
     if (body.format === 'html') {
       res.setHeader('Content-Type', 'text/html');
@@ -154,20 +200,76 @@ router.get('/presets', protect, (req: Request, res: Response): void => {
 
 /**
  * GET /api/reports/history
- * Get previously generated reports (placeholder for future implementation)
+ * Get previously generated reports for this tenant.
  */
 router.get('/history', protect, async (req: Request, res: Response): Promise<void> => {
-  // In production, this would query stored reports
-  res.json({
-    success: true,
-    data: [],
-    message: 'Report history will be available in a future release',
-  });
+  try {
+    const tenantId = (req as any).tenant || 'default';
+    const limit = Math.min(Number(req.query.limit ?? 20), 100);
+    const offset = Number(req.query.offset ?? 0);
+    const type = req.query.type as string | undefined;
+
+    const filter: Record<string, any> = { tenantId };
+    if (type) filter.type = type;
+
+    const [reports, total] = await Promise.all([
+      GeneratedReport.find(filter)
+        .sort({ generatedAt: -1 })
+        .skip(offset)
+        .limit(limit)
+        .select('-payload')   // Exclude large payload from list view
+        .lean(),
+      GeneratedReport.countDocuments(filter),
+    ]);
+
+    res.json({
+      success: true,
+      data: reports.map(r => ({
+        reportId: r.reportId,
+        type: r.type,
+        format: r.format,
+        tenantId: r.tenantId,
+        generatedBy: r.generatedBy,
+        startDate: r.startDate,
+        endDate: r.endDate,
+        summary: r.summary,
+        sizeBytes: r.sizeBytes,
+        generatedAt: r.generatedAt,
+      })),
+      meta: { total, limit, offset, hasMore: (offset + limit) < total },
+    });
+  } catch (error) {
+    logger.error('Failed to fetch report history', { error: getErrorMessage(error) });
+    res.status(500).json({ success: false, error: 'Failed to fetch report history' });
+  }
+});
+
+/**
+ * GET /api/reports/history/:reportId
+ * Retrieve the full payload of a previously generated report.
+ */
+router.get('/history/:reportId', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { reportId } = req.params;
+    const tenantId = (req as any).tenant || 'default';
+
+    const report = await GeneratedReport.findOne({ reportId, tenantId }).lean();
+
+    if (!report) {
+      res.status(404).json({ success: false, error: 'Report not found' });
+      return;
+    }
+
+    res.json({ success: true, data: report });
+  } catch (error) {
+    logger.error('Failed to fetch report by ID', { error: getErrorMessage(error) });
+    res.status(500).json({ success: false, error: 'Failed to fetch report' });
+  }
 });
 
 /**
  * GET /api/reports/schedule
- * Get scheduled reports (placeholder for future implementation)
+ * Scheduled reports — planned feature, returns empty list with metadata.
  */
 router.get('/schedule', protect, async (req: Request, res: Response): Promise<void> => {
   res.json({

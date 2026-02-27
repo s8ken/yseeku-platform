@@ -151,6 +151,10 @@ export class PolicyAuditLogger {
       violations: violationCounts,
       decision,
       metrics,
+      // Store individual violated ruleIds in metadata for report aggregation
+      metadata: {
+        violatedRuleIds: evaluation.violations.map((v: any) => v.ruleId).filter(Boolean),
+      },
     };
 
     this.addEntry(entry);
@@ -425,12 +429,31 @@ export class PolicyAuditLogger {
       byPrinciple,
       bySeverity,
       topViolatingAgents,
-      topViolatedRules: [], // TODO: Implement
-      overrideUsage: {
-        totalCreated: entries.filter(e => e.entryType === AuditEntryType.OVERRIDE_CREATED).length,
-        totalUsed: entries.filter(e => e.entryType === AuditEntryType.OVERRIDE_USED).length,
-        averageUsesPerOverride: 0, // TODO: Calculate
-      },
+      topViolatedRules: (() => {
+        // Aggregate ruleId counts from entry metadata (stored by logEvaluation)
+        const ruleCounts: Record<string, number> = {};
+        for (const entry of entries) {
+          const ruleIds: string[] = entry.metadata?.violatedRuleIds ?? [];
+          for (const ruleId of ruleIds) {
+            ruleCounts[ruleId] = (ruleCounts[ruleId] ?? 0) + 1;
+          }
+        }
+        return Object.entries(ruleCounts)
+          .map(([ruleId, violationCount]) => ({ ruleId, violationCount }))
+          .sort((a, b) => b.violationCount - a.violationCount)
+          .slice(0, 10);
+      })(),
+      overrideUsage: (() => {
+        const totalCreated = entries.filter(e => e.entryType === AuditEntryType.OVERRIDE_CREATED).length;
+        const totalUsed = entries.filter(e => e.entryType === AuditEntryType.OVERRIDE_USED).length;
+        return {
+          totalCreated,
+          totalUsed,
+          averageUsesPerOverride: totalCreated > 0
+            ? Math.round((totalUsed / totalCreated) * 100) / 100
+            : 0,
+        };
+      })(),
     };
   }
 
