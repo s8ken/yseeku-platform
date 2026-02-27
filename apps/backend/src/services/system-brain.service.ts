@@ -144,7 +144,25 @@ Respond with valid JSON only:
    * Run a "Thinking Cycle" - The Brain reviews the system state
    */
   async think(tenantId: string, mode: 'advisory' | 'enforced' = 'advisory') {
-    if (this.isThinking || !this.brainAgentId) return;
+    if (this.isThinking) {
+      logger.debug('Brain already thinking, skipping cycle', { tenantId, mode });
+      return;
+    }
+    
+    // Auto-initialize if not initialized
+    if (!this.brainAgentId) {
+      logger.info('Brain not initialized, initializing now', { tenantId });
+      try {
+        await this.initialize(tenantId);
+      } catch (initError: unknown) {
+        logger.error('Failed to initialize brain agent', { 
+          tenantId, 
+          error: getErrorMessage(initError) 
+        });
+        return;
+      }
+    }
+    
     this.isThinking = true;
 
     try {
