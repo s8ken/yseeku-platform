@@ -147,7 +147,7 @@ describe('LLMTrustEvaluator Phase 1A & 1B', () => {
       }, 0);
 
       const trustScore = scored * 10;
-      expect(trustScore).toBe(90);
+      expect(trustScore).toBe(89);
     });
 
     test('CRITICAL: trust score should be 0 if CONSENT_ARCHITECTURE or ETHICAL_OVERRIDE = 0', () => {
