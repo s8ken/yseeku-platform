@@ -161,6 +161,28 @@ export const conversationsApi = {
   async deleteConversation(id: string): Promise<void> {
     await fetchAPI(`/api/conversations/${id}`, { method: 'DELETE' });
   },
+
+  async exportToIPFS(id: string): Promise<{
+    cid: string;
+    gatewayUrl: string;
+    pinataUrl: string;
+    pinnedAt: string;
+    sizeBytes?: number;
+    alreadyPinned: boolean;
+  }> {
+    const res = await fetchAPI<{
+      success: boolean;
+      data: {
+        cid: string;
+        gatewayUrl: string;
+        pinataUrl: string;
+        pinnedAt: string;
+        sizeBytes?: number;
+        alreadyPinned: boolean;
+      };
+    }>(`/api/conversations/${id}/export`, { method: 'POST' });
+    return res.data;
+  },
 };
 
 export default conversationsApi;

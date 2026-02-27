@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ChatMessage, ChatMessageProps } from './ChatMessage';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Send, Loader2, ShieldCheck, AlertTriangle, Download, FileJson, FileText, Filter, Share2, TrendingUp, TrendingDown, Minus, BarChart2, StopCircle } from 'lucide-react';
+import { Send, Loader2, ShieldCheck, AlertTriangle, Download, FileJson, FileText, Filter, Share2, TrendingUp, TrendingDown, Minus, BarChart2, StopCircle, Pin, ExternalLink } from 'lucide-react';
 import { api, TrustEvaluation } from '@/lib/api';
 import { socketService, TrustViolationData } from '@/lib/socket';
 import { cn } from '@/lib/utils';
@@ -106,6 +106,8 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   const [conversationId, setConversationId] = useState<string | null>(initialConversationId);
   const [demoPreloaded, setDemoPreloaded] = useState(false);
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
+  const [isPinningToIPFS, setIsPinningToIPFS] = useState(false);
+  const [ipfsCid, setIpfsCid] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -449,6 +451,59 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     });
   };
 
+  const handlePinToIPFS = async () => {
+    if (!conversationId) {
+      toast.error('No active conversation to pin');
+      return;
+    }
+
+    setIsPinningToIPFS(true);
+    try {
+      const result = await api.exportToIPFS(conversationId);
+      setIpfsCid(result.cid);
+
+      if (result.alreadyPinned) {
+        toast.success('Already Pinned', {
+          description: (
+            <span>
+              CID: <code className="font-mono text-xs">{result.cid.slice(0, 20)}…</code>
+              {' '}—{' '}
+              <a href={result.gatewayUrl} target="_blank" rel="noopener noreferrer"
+                className="underline">View on IPFS ↗</a>
+            </span>
+          ) as any,
+        });
+      } else {
+        toast.success('Pinned to IPFS', {
+          description: (
+            <span>
+              Audit bundle permanently stored.{' '}
+              <a href={result.gatewayUrl} target="_blank" rel="noopener noreferrer"
+                className="underline">View on IPFS ↗</a>
+            </span>
+          ) as any,
+          duration: 8000,
+        });
+      }
+    } catch (err: any) {
+      const msg: string = err?.message ?? String(err);
+
+      if (msg.includes('PINATA_NOT_CONFIGURED')) {
+        toast.error('IPFS Not Configured', {
+          description: 'Contact your administrator to enable IPFS pinning (requires Pinata API key).',
+        });
+      } else if (msg.includes('PINATA_AUTH_ERROR')) {
+        toast.error('Pinata Authentication Failed', {
+          description: 'Check the PINATA_JWT environment variable.',
+        });
+      } else {
+        toast.error('Pin to IPFS Failed', { description: msg });
+      }
+    } finally {
+      setIsPinningToIPFS(false);
+    }
+  };
+
   const filteredMessages = messages.filter(msg => {
     if (filterStatus === 'all') return true;
     return msg.evaluation?.status === filterStatus;
@@ -527,6 +582,27 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
             >
               <FileText className="h-3 w-3" />
               Markdown
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePinToIPFS}
+              disabled={messages.length === 0 || !conversationId || isPinningToIPFS}
+              title={ipfsCid ? `Pinned to IPFS — CID: ${ipfsCid}` : 'Pin full audit bundle to IPFS for permanent, tamper-evident storage'}
+              className={cn(
+                "h-7 text-xs gap-1",
+                ipfsCid
+                  ? "border-emerald-400 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                  : "hover:border-violet-400 hover:text-violet-600 dark:hover:text-violet-400"
+              )}
+            >
+              {isPinningToIPFS
+                ? <Loader2 className="h-3 w-3 animate-spin" />
+                : ipfsCid
+                  ? <ExternalLink className="h-3 w-3" />
+                  : <Pin className="h-3 w-3" />
+              }
+              {isPinningToIPFS ? 'Pinning…' : ipfsCid ? 'On IPFS' : 'Pin'}
             </Button>
           </div>
         </div>

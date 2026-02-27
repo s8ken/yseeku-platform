@@ -1126,8 +1126,12 @@ The SONATE Trust Protocol evaluates every AI response against 6 constitutional p
 
 /**
  * @route   POST /api/conversations/:id/export
- * @desc    Export conversation to IPFS
+ * @desc    Pin conversation audit bundle to IPFS via Pinata
  * @access  Private
+ *
+ * Returns the IPFS CID and gateway URL on success.
+ * Requires PINATA_JWT to be set in environment variables.
+ * If already pinned, returns the existing CID immediately (idempotent).
  */
 router.post('/:id/export', protect, async (req: Request, res: Response): Promise<void> => {
   try {
@@ -1137,34 +1141,75 @@ router.post('/:id/export', protect, async (req: Request, res: Response): Promise
     });
 
     if (!conversation) {
-      res.status(404).json({
-        success: false,
-        message: 'Conversation not found',
+      res.status(404).json({ success: false, message: 'Conversation not found' });
+      return;
+    }
+
+    // Idempotent: if already pinned, return existing CID
+    if ((conversation as any).ipfsCid) {
+      const cid = (conversation as any).ipfsCid as string;
+      const gateway = (process.env.PINATA_GATEWAY ?? 'https://ipfs.io/ipfs').replace(/\/$/, '');
+      res.json({
+        success: true,
+        message: 'Conversation was already pinned to IPFS',
+        data: {
+          cid,
+          gatewayUrl: `${gateway}/${cid}`,
+          pinataUrl: `https://gateway.pinata.cloud/ipfs/${cid}`,
+          pinnedAt: (conversation as any).ipfsPinnedAt?.toISOString(),
+          alreadyPinned: true,
+        },
       });
       return;
     }
 
-    const exportResult = await conversation.exportToIPFS();
+    // Check Pinata is configured before attempting
+    if (!process.env.PINATA_JWT) {
+      res.status(503).json({
+        success: false,
+        message: 'IPFS export is not configured. Set PINATA_JWT in your environment variables. ' +
+          'Create a free account at https://pinata.cloud to get started.',
+        code: 'PINATA_NOT_CONFIGURED',
+      });
+      return;
+    }
+
+    const { ipfsService } = await import('../services/ipfs.service');
+    const tenantId = (req as any).tenant ?? 'default';
+    const result = await ipfsService.pinConversation(req.params.id, tenantId);
 
     res.json({
       success: true,
-      message: 'Conversation exported successfully',
-      data: exportResult,
+      message: 'Conversation audit bundle pinned to IPFS',
+      data: {
+        cid: result.cid,
+        gatewayUrl: result.gatewayUrl,
+        pinataUrl: result.pinataUrl,
+        pinnedAt: result.pinnedAt,
+        sizeBytes: result.sizeBytes,
+        alreadyPinned: false,
+        verificationNote:
+          'This bundle contains all signed trust receipts for this conversation. ' +
+          'Verify receipts independently using @sonate/verify-sdk.',
+      },
     });
   } catch (error: unknown) {
     const errMsg = getErrorMessage(error);
-    // Return 501 for unimplemented features
-    if (errMsg.includes('not yet implemented')) {
-      res.status(501).json({
+    logger.error('IPFS export error', { error: errMsg, conversationId: req.params.id });
+
+    // Surface Pinata auth errors cleanly
+    if (errMsg.includes('401') || errMsg.toLowerCase().includes('unauthorized')) {
+      res.status(401).json({
         success: false,
-        message: 'IPFS export is not yet available. This feature is planned for a future release.',
+        message: 'Pinata authentication failed. Check your PINATA_JWT value.',
+        code: 'PINATA_AUTH_ERROR',
       });
       return;
     }
-    logger.error('Export conversation error:', error);
+
     res.status(500).json({
       success: false,
-      message: 'Failed to export conversation',
+      message: 'Failed to pin conversation to IPFS',
       error: errMsg,
     });
   }
