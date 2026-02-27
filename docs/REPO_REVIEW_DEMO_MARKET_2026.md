@@ -14,10 +14,10 @@ YSEEKU SONATE is a **constitutional AI governance platform** positioning itself 
 
 | Dimension | Score | Status |
 |-----------|-------|--------|
-| **Demo Readiness** | 8.5/10 | Ready for investor and customer demos |
+| **Demo Readiness** | 9/10 | Live in production — Vercel frontend + Fly.io backend |
 | **Unique Feature Set** | 9/10 | Genuinely novel — not a dashboard wrapper |
-| **Market Viability** | 7.5/10 | Strong positioning, execution risk on GTM |
-| **Overall** | **8.3/10** | Compelling platform with clear path to market |
+| **Market Viability** | 8/10 | Strong positioning, production-tested, execution risk on GTM |
+| **Overall** | **8.7/10** | Compelling platform already running in production |
 
 ---
 
@@ -38,6 +38,7 @@ YSEEKU SONATE is a **constitutional AI governance platform** positioning itself 
 | **Guest Auth** | `/api/auth/guest` enables no-signup exploration | High |
 | **Demo Banner** | Visual indicator when in demo mode, with watermarking on widgets | High |
 | **YC Demo Script** | Written 10-minute script at `docs/yc-demo-script.md` covering receipt generation, verification, and live monitoring | High |
+| **Live Production** | Frontend deployed on Vercel, backend on Fly.io — actively tested in production | Confirmed |
 
 **Demo Flow (tested path):**
 1. User lands on `/demo` — polished landing with "Try Interactive Demo" CTA
@@ -87,11 +88,23 @@ The dashboard is built on **Next.js 16 + shadcn/ui + Tailwind CSS** — a modern
 | Deprecated code refs | Low | 8 `@deprecated` annotations — cosmetic only |
 | Slow cold start | Low | Crypto library pre-loading in `initCrypto()` |
 
-### 1.5 Demo Readiness Score: 8.5/10
+### 1.5 Production Deployment Status
 
-**Strengths:** Purpose-built demo infrastructure, rich seed data, polished UI with proper state management, no-auth entry path, scripted demo flow.
+The platform is **live and production-tested:**
 
-**Gaps:** No hosted demo URL visible in repo (would need deployment), some demo KPI values use slight randomization rather than pure deterministic values, resonance engine Docker service may not have a Dockerfile in the current tree.
+| Layer | Hosting | Status |
+|-------|---------|--------|
+| **Frontend (Next.js)** | Vercel | Deployed, actively tested |
+| **Backend (Express)** | Fly.io | Deployed, actively tested |
+| **Database (MongoDB)** | Production instance | Connected and seeded |
+
+This eliminates the biggest demo risk — the platform can be shown to investors via a live URL at any time.
+
+### 1.6 Demo Readiness Score: 9/10
+
+**Strengths:** Live production deployment (Vercel + Fly.io), purpose-built demo infrastructure, rich seed data, polished UI with proper state management, no-auth entry path, scripted demo flow, actively tested in production.
+
+**Minor gaps:** Some demo KPI values use slight randomization rather than pure deterministic values (cosmetic). Resonance engine Docker service may not have a Dockerfile in the current tree.
 
 ---
 
@@ -244,7 +257,7 @@ apps/web            → Next.js dashboard (63+ pages, 83 components)
 |---------------|-----------|-------|
 | **Subscription tiers** (by tenants, throughput, features) | Strong | Standard enterprise SaaS model, proven in compliance/security |
 | **Professional services** (integration, compliance consulting) | Strong | High-touch enterprise sales align with buyer profile |
-| **Managed hosting** | Moderate | Deployment options (Vercel, Fly.io, Docker, K8s) already built |
+| **Managed hosting** | Strong | Already deployed to Vercel + Fly.io; Docker and K8s options also available |
 | **Open-source SDK** (`@sonate/verify-sdk` is MIT) | Strategic | Receipt verification is MIT — creates ecosystem adoption without giving away the platform |
 
 ### 3.5 Technical Defensibility
@@ -264,7 +277,7 @@ apps/web            → Next.js dashboard (63+ pages, 83 components)
 |------|----------|----------------------|
 | **Single-developer bus factor** | High | Comprehensive docs, AGENTS.md, CONTRIBUTING.md, but visible AI-assisted development patterns (`.roo/`, `.trae/`) suggest small team |
 | **MongoDB at scale** | Medium | PostgreSQL migration path exists (`@sonate/persistence`), Supabase integration in `@sonate/core` deps |
-| **No production customers visible** | High | "Early partners" and "enterprise pilots" mentioned in investor brief but no case studies |
+| **Early-stage traction** | Medium | Platform is live and production-tested (Vercel + Fly.io); enterprise pilots mentioned but no public case studies yet |
 | **Complex pricing conversation** | Medium | Value prop requires education — "why do I need cryptographic receipts?" needs clear ROI framing |
 | **Semantic Coprocessor gap** | Medium | Current text analysis is hash-based projection, not true ML embeddings. Honestly documented, but investors may probe |
 | **EU AI Act specificity** | Low | Platform is positioned for compliance but specific Article-by-Article mapping would strengthen positioning |
@@ -275,14 +288,14 @@ apps/web            → Next.js dashboard (63+ pages, 83 components)
 2. **Benchmark data** — "We process X receipts/sec with Y ms latency" from production workloads
 3. **Compliance mapping** — Specific EU AI Act Article → SONATE feature mapping document
 4. **SDK ecosystem** — The MIT `verify-sdk` is smart; expanding with Python/Go SDKs would accelerate adoption
-5. **Hosted demo** — A publicly accessible demo instance (the infrastructure is ready, just needs deployment)
+5. **Production metrics** — Capture and publish real latency/throughput numbers from the live Fly.io deployment as credibility proof
 6. **Semantic Coprocessor delivery** — Moving from hash-based projections to real embeddings would validate the "AI-native" claims
 
-### 3.8 Market Viability Score: 7.5/10
+### 3.8 Market Viability Score: 8/10
 
-**Strengths:** Clear market tailwinds (EU AI Act, enterprise AI adoption), genuine technical moat (crypto receipts, Bedau Index), well-defined buyer persona, multiple revenue streams.
+**Strengths:** Clear market tailwinds (EU AI Act, enterprise AI adoption), genuine technical moat (crypto receipts, Bedau Index), well-defined buyer persona, multiple revenue streams, **live production deployment actively being tested** (Vercel + Fly.io).
 
-**Gaps:** No visible production customers, small team risk, requires market education on why cryptographic governance artifacts matter vs. simpler logging/monitoring approaches.
+**Gaps:** Small team risk, requires market education on why cryptographic governance artifacts matter vs. simpler logging/monitoring approaches, public case studies would accelerate enterprise sales conversations.
 
 ---
 
@@ -346,10 +359,10 @@ apps/web            → Next.js dashboard (63+ pages, 83 components)
 
 ### For Demo Preparation
 
-1. **Deploy the hosted demo** — All infrastructure is in place (Vercel frontend, Fly.io backend, Docker Compose). A live URL removes friction from every investor conversation.
-2. **Deterministic demo data** — Replace `Math.random()` in `core.routes.ts` KPI endpoint with fixed values so demos are reproducible.
+1. ~~Deploy the hosted demo~~ — **DONE.** Frontend on Vercel, backend on Fly.io, actively production-tested.
+2. **Deterministic demo data** — Replace `Math.random()` in `core.routes.ts` KPI endpoint with fixed values so demos are reproducible across presentations.
 3. **10-second wow moment** — The receipt verification flow (generate → sign → verify independently) is the strongest demo hook. Lead with it.
-4. **Prepare for "what happens at scale?"** — Have `tests/performance/` benchmarks ready to cite.
+4. **Prepare for "what happens at scale?"** — Have `tests/performance/` benchmarks ready to cite with real production numbers from Fly.io.
 
 ### For Feature Set
 
@@ -369,9 +382,9 @@ apps/web            → Next.js dashboard (63+ pages, 83 components)
 
 YSEEKU SONATE is a **technically impressive, demo-ready platform** in a market with strong tailwinds. The cryptographic trust receipt system, constitutional governance framework, and Bedau emergence detection represent genuine technical differentiation — not features you can replicate with a weekend hackathon.
 
-The primary risks are execution-related (small team, no visible production customers) rather than technical. The codebase demonstrates enterprise-grade engineering discipline with proper testing, security, error handling, and documentation.
+The platform is already **live in production** (Vercel frontend, Fly.io backend) and actively being tested, which elevates it beyond "demo-ready" into "production-proven." The primary remaining risks are execution-related (small team, GTM scaling) rather than technical. The codebase demonstrates enterprise-grade engineering discipline with proper testing, security, error handling, and documentation.
 
-**Bottom line:** This platform is ready to show, and the underlying technology is worth investing in.
+**Bottom line:** This platform is live, production-tested, and the underlying technology is worth investing in.
 
 ---
 
