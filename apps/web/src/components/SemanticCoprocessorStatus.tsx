@@ -16,10 +16,15 @@ interface SemanticCoprocessorStats {
 
 interface CoprocessorHealth {
   status: 'ok' | 'degraded' | 'error';
-  models_loaded: Record<string, string>;
-  version: string;
-  uptime_seconds: number;
-  cache_stats: {
+  available: boolean;
+  mode: 'provider' | 'sidecar' | 'structural';
+  provider?: string;
+  model?: string;
+  message?: string;
+  models_loaded?: Record<string, string>;
+  version?: string;
+  uptime_seconds?: number;
+  cache_stats?: {
     hits: number;
     misses: number;
     total: number;
@@ -82,11 +87,12 @@ export function SemanticCoprocessorStatus() {
   const isLoading = statsLoading || healthLoading;
   const isAvailable = stats?.isAvailable ?? false;
   const healthStatus = health?.status ?? 'error';
+  const embeddingMode = health?.mode || stats?.mode || 'structural';
 
   // Calculate metrics
   const mlUsageRate = stats && stats.totalRequests > 0 
     ? Math.round(((stats.totalRequests - stats.fallbackActivations) / stats.totalRequests) * 100) 
-    : 0;
+    : (embeddingMode === 'provider' || embeddingMode === 'sidecar') ? 100 : 0;
   
   const successRate = stats && stats.totalRequests > 0
     ? Math.round((stats.successfulRequests / stats.totalRequests) * 100)
@@ -117,11 +123,28 @@ export function SemanticCoprocessorStatus() {
       <CardContent className="space-y-3">
         {/* Status */}
         <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">Status</span>
+          <span className="text-xs text-muted-foreground">Mode</span>
           <span className={`text-xs font-medium ${statusColor}`}>
-            {isLoading ? 'Checking...' : isAvailable ? 'Available' : 'Unavailable'}
+            {isLoading ? 'Checking...' : embeddingMode === 'provider' ? 'API Provider' : embeddingMode === 'sidecar' ? 'ML Sidecar' : 'Structural'}
           </span>
         </div>
+
+        {/* Provider Info */}
+        {embeddingMode === 'provider' && health?.provider && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Provider</span>
+            <span className="text-xs font-medium capitalize">{health.provider}</span>
+          </div>
+        )}
+
+        {embeddingMode === 'provider' && health?.model && (
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Model</span>
+            <span className="text-xs font-medium truncate max-w-[150px]" title={health.model}>
+              {health.model.split('/').pop()}
+            </span>
+          </div>
+        )}
 
         {/* Model Info */}
         {health?.models_loaded && Object.keys(health.models_loaded).length > 0 && (
@@ -158,8 +181,12 @@ export function SemanticCoprocessorStatus() {
             </div>
             <p className="text-[10px] text-muted-foreground">
               {mlUsageRate > 0
-                ? `${stats.totalRequests - stats.fallbackActivations} of ${stats.totalRequests} requests used ML embeddings`
-                : `${stats.totalRequests} requests analyzed via heuristic scoring (token overlap, entropy, pattern matching)`}
+                ? embeddingMode === 'provider' 
+                  ? `Using ${health?.provider || 'API'} embeddings for semantic analysis`
+                  : embeddingMode === 'sidecar'
+                    ? `${stats.totalRequests - stats.fallbackActivations} of ${stats.totalRequests} requests used ML embeddings`
+                    : 'Structural mode active'
+                : `${stats.totalRequests} requests analyzed via hash-based projections (deterministic, not semantic)`}
             </p>
           </div>
         )}
