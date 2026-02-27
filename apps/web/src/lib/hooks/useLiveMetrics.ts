@@ -17,35 +17,25 @@ export function useLiveMetrics() {
   useEffect(() => {
     // Load initial metrics
     fetchLiveMetrics()
-      .then(setMetrics)
-      .finally(() => setLoading(false))
-
-    // Try to connect to Socket.IO
-    try {
-      const socket = require('socket.io-client').io(
-        process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
-      )
-
-      socket.on('connect', () => {
+      .then((data) => {
+        setMetrics(data)
         setConnected(true)
       })
+      .catch(() => setConnected(false))
+      .finally(() => setLoading(false))
 
-      socket.on('trust:receipt', (data: LiveMetrics) => {
-        setMetrics((prev) => [data, ...prev].slice(0, 100))
-      })
+    // Poll for new metrics every 5 seconds
+    const interval = setInterval(() => {
+      fetchLiveMetrics()
+        .then((data) => {
+          setMetrics(data)
+          setConnected(true)
+        })
+        .catch(() => setConnected(false))
+    }, 5000)
 
-      socket.on('disconnect', () => {
-        setConnected(false)
-      })
-
-      return () => {
-        socket.off('trust:receipt')
-        socket.off('connect')
-        socket.off('disconnect')
-        socket.disconnect()
-      }
-    } catch (err) {
-      console.warn('Socket.IO not available, running in fallback mode')
+    return () => {
+      clearInterval(interval)
     }
   }, [])
 

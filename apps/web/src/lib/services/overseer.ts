@@ -271,12 +271,22 @@ function transformBackendReport(data: any): ArchiveReport {
  */
 export async function fetchLiveMetrics(): Promise<LiveMetrics[]> {
   try {
-    const response = await fetch('/api/overseer/metrics')
+    const response = await fetch('/api/trust/receipts?limit=50&sort=recent')
     if (response.ok) {
-      return response.json()
+      const data = await response.json()
+      const receipts = data.data?.receipts || data.data || []
+      
+      // Transform receipts into LiveMetrics format
+      return receipts.map((receipt: any) => ({
+        timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
+        trustScore: receipt.trust_score !== undefined ? receipt.trust_score / 10 : 8.0, // Convert 0-100 to 0-10
+        source: receipt.model || receipt.agent_model || 'unknown',
+        securityFlags: receipt.security_flags || [],
+        velocityScore: receipt.drift_analysis?.velocity || 0
+      }))
     }
   } catch (err) {
-    console.warn('Failed to fetch live metrics')
+    console.warn('Failed to fetch live metrics', err)
   }
   
   // Fallback: return empty array

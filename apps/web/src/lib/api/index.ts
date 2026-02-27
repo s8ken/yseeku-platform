@@ -286,8 +286,8 @@ export const api = {
     if (tenant) params.set('tenant', tenant);
     if (limit) params.set('limit', limit.toString());
     const query = params.toString() ? `?${params.toString()}` : '';
-    const res = await fetchAPI<{ success: boolean; data: { cycles: Array<any> } }>(`/api/brain/cycles${query}`);
-    return res.data?.cycles || [];
+    const res = await fetchAPI<{ success: boolean; data: Array<any> }>(`/api/overseer/cycles${query}`);
+    return res.data || [];
   },
 
   async deleteBrainMemory(id: string): Promise<void> {
