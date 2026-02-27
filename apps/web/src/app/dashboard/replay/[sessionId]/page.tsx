@@ -46,64 +46,29 @@ export default function TacticalReplayPage() {
   const [playing, setPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
 
-  // Load conversation replay data
+  // Load conversation replay data from unified /api/replay/:sessionId endpoint
   useEffect(() => {
     const fetchReplayData = async () => {
       try {
         setLoading(true);
 
-        // Fetch conversation
-        const convResponse = await fetch(`/api/conversations/${sessionId}`, {
+        const response = await fetch(`/api/replay/${sessionId}`, {
           credentials: 'include',
         });
 
-        if (!convResponse.ok) {
-          throw new Error('Failed to load conversation');
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || 'Failed to load replay data');
         }
 
-        const convData = await convResponse.json();
-        const messages = convData.data?.messages || convData.messages || [];
-
-        // Fetch receipts for this session
-        const receiptsResponse = await fetch(
-          `/api/trust/receipts?sessionId=${sessionId}`,
-          { credentials: 'include' }
-        );
-
-        let receipts: any[] = [];
-        let trustScores: number[] = [];
-
-        if (receiptsResponse.ok) {
-          const receiptsData = await receiptsResponse.json();
-          receipts = receiptsData.data?.receipts || [];
-          trustScores = receipts.map((r: any) => r.trustScore || 0.5);
-        }
-
-        // If no receipts, generate synthetic trust scores based on message count
-        if (trustScores.length === 0) {
-          trustScores = messages.map((_: any, i: number) => {
-            // Simulate trust score that might degrade
-            const base = 0.85;
-            const variance = Math.sin(i * 0.5) * 0.1;
-            return Math.max(0.3, Math.min(1, base + variance));
-          });
-        }
-
-        // Generate synthetic fingerprints for visualization
-        const fingerprints: IdentityFingerprint[] = messages.map((_: any, i: number) => ({
-          professionalism: 75 + Math.random() * 20 + (i % 3) * 2,
-          empathy: 70 + Math.random() * 25,
-          accuracy: 80 + Math.random() * 15 - (i > 5 ? 10 : 0),
-          consistency: 85 - (i * 1.5) + Math.random() * 10,
-          helpfulness: 78 + Math.random() * 18,
-          boundaries: 82 + Math.random() * 12 - (i > 8 ? 15 : 0),
-        }));
+        const json = await response.json();
+        const bundle = json.data;
 
         setData({
-          messages,
-          trustScores,
-          fingerprints,
-          receipts,
+          messages:    bundle.messages    ?? [],
+          trustScores: bundle.trustScores ?? [],
+          fingerprints: bundle.fingerprints ?? [],
+          receipts:    bundle.receipts    ?? [],
         });
       } catch (err) {
         console.error('Replay load error:', err);

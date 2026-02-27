@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "sonate-trust-receipts"
+version = "1.0.0"
+description = "Cryptographically sign and verify AI interactions — SSL for AI"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "SONATE", email = "sdk@yseeku.com" }]
+keywords = ["ai", "trust", "receipts", "cryptography", "ed25519", "sonate", "llm", "audit"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Developers",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "PyNaCl>=1.5.0",
+    "json-canonicalize>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.23",
+]
+
+[project.urls]
+Homepage = "https://yseeku.com"
+Repository = "https://github.com/s8ken/yseeku-platform"
+Documentation = "https://yseeku.com/developers"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

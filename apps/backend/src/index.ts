@@ -56,6 +56,7 @@ import compareRoutes from './routes/compare.routes';
 import consentRoutes from './routes/consent.routes';
 import proofRoutes from './routes/proof.routes';
 import safeguardsRoutes from './routes/safeguards.routes';
+import replayRoutes from './routes/replay.routes';
 import interactionsRoutes from './routes/interactions.routes';
 import semanticCoprocessorRoutes from './routes/semantic-coprocessor.routes';
 import phaseShiftRoutes from './routes/phase-shift.routes';
@@ -212,6 +213,7 @@ app.use('/api/webhooks', webhookRoutes); // Webhook configuration and delivery
 app.use('/api/live', liveRoutes); // Live dashboard metrics
 app.use('/api/safety', safetyRoutes); // Prompt safety scanning
 app.use('/api/reports', reportsRoutes); // Compliance reports
+app.use('/api/replay', replayRoutes); // Tactical Replay — real CIQ/SONATE-derived bundles
 app.use('/api/compare', compareRoutes); // Multi-model comparison
 app.use('/api/consent', consentRoutes); // Consent configuration and escalation
 app.use('/api/proof', proofRoutes); // Public /proof demo widget (no auth required)
