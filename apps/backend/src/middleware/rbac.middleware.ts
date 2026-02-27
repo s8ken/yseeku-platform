@@ -17,12 +17,13 @@ const rbacDenials = new Counter({ name: 'security_denials_total', help: 'Total R
 function getRoleScopes(role: string): string[] {
   const demo = process.env.DEMO_MODE === 'true';
   const base: Record<string, string[]> = {
-    admin: ['read:all','llm:generate','llm:code-review','gateway:manage','secrets:manage'],
-    editor: ['read:all','llm:generate','llm:code-review'],
+    admin: ['read:all','llm:generate','llm:code-review','gateway:manage','secrets:manage','overseer:read','overseer:plan'],
+    editor: ['read:all','llm:generate','llm:code-review','overseer:read','overseer:plan'],
     viewer: ['read:all'],
   };
   if (demo) {
-    base.viewer = ['read:all','llm:generate'];
+    // In demo mode, viewers (includes guest users) get full access to test features
+    base.viewer = ['read:all','llm:generate','overseer:read','overseer:plan'];
   }
   return base[role] || base.viewer;
 }
