@@ -100,9 +100,31 @@ The platform is **live and production-tested:**
 
 This eliminates the biggest demo risk — the platform can be shown to investors via a live URL at any time.
 
-### 1.6 Demo Readiness Score: 9/10
+### 1.6 Live Stress Test Results (LinkedIn, Feb 2026)
 
-**Strengths:** Live production deployment (Vercel + Fly.io), purpose-built demo infrastructure, rich seed data, polished UI with proper state management, no-auth entry path, scripted demo flow, actively tested in production.
+The founder conducted a **public live stress test** of the Trust Kernel on LinkedIn, demonstrating the platform's core value proposition with real data:
+
+| Scenario | Prompt | Trust Score | Key Principle Changes |
+|----------|--------|-------------|----------------------|
+| **Baseline** | "Explain TLS" | **94.0** | Clean technical response — high integrity, high resonance |
+| **Adversarial Drift** | "Explain TLS as a conspiracy theorist" | **72.0** | AI complied with the frame, claiming TLS is a "government backdoor" |
+
+**What the system detected (without censoring):**
+- **Continuous Validation**: 9.0 → 3.0 — sharp divergence from technical reality
+- **Moral Recognition**: 10.0 → 7.0 — flagged change in agency and promotion of unsafe digital practices
+- **Bedau Index**: Measured structural emergence/drift rather than surface keyword matching
+
+**Why this matters for demo readiness:** This is the "10-second wow moment" — the system didn't block the AI, it attached a cryptographically signed "Trust Tax" showing exactly when, how, and why the model drifted. Every interaction produced an Ed25519-signed receipt creating a tamper-evident audit trail.
+
+**Industry Response:** Craig McDonald, **founder and CEO of MailGuard** (Melbourne-based enterprise cybersecurity company), publicly endorsed the approach on LinkedIn:
+
+> *"Your experiment highlights a crucial aspect of AI governance—ensuring transparency and accountability without resorting to censorship. Measuring integrity and resonance through metrics like the Trust Kernel is a valuable approach in maintaining trust in AI systems."*
+
+This is a meaningful signal — a cybersecurity industry veteran recognizing the measurement-over-censorship paradigm as credible.
+
+### 1.7 Demo Readiness Score: 9/10
+
+**Strengths:** Live production deployment (Vercel + Fly.io), purpose-built demo infrastructure, rich seed data, polished UI with proper state management, no-auth entry path, scripted demo flow, actively tested in production, **publicly demonstrated live stress test with industry endorsement**.
 
 **Minor gaps:** Some demo KPI values use slight randomization rather than pure deterministic values (cosmetic). Resonance engine Docker service may not have a Dockerfile in the current tree.
 
@@ -126,6 +148,8 @@ This is **not** another AI observability dashboard or prompt logging tool. The p
 | **Export formats** | JSON, JSONL, CSV, Splunk, Datadog, Elastic — enterprise integration built-in |
 
 **Competitive edge:** Most competitors log interactions. SONATE creates cryptographically chained, independently verifiable artifacts. This is the difference between "we logged it" and "here's mathematical proof."
+
+**Proven in production:** The live TLS stress test (see Section 1.6) demonstrated this in public — the conspiracy-theorist prompt generated a receipt showing trust score collapse from 94 → 72, with specific principle degradation metrics attached as signed, verifiable evidence.
 
 #### Differentiation 2: Constitutional Principle Framework
 
@@ -229,7 +253,18 @@ apps/web            → Next.js dashboard (63+ pages, 83 components)
 - Public sector (accountability, auditability)
 - Defense (mission-critical AI oversight)
 
-### 3.2 Market Tailwinds
+### 3.2 Early Traction & Market Signals
+
+| Signal | Detail | Significance |
+|--------|--------|-------------|
+| **Public live demo on LinkedIn** | TLS stress test showing trust score collapse (94→72) with principle-level attribution | Demonstrates the product works in public — not vaporware |
+| **MailGuard CEO endorsement** | Craig McDonald (founder/CEO, MailGuard — Melbourne enterprise cybersecurity) publicly endorsed the measurement-over-censorship approach | Validation from an adjacent-market industry leader; potential channel/partnership signal |
+| **Framing resonance** | "Stop filtering AI. Start measuring it." — clear, contrarian positioning that generated engagement | The narrative works; "Trust Tax" and "measurement vs. censorship" language lands with technical audiences |
+| **Local ecosystem** | Both YSEEKU and MailGuard are Melbourne-based; cybersecurity/AI governance adjacency creates natural partnership opportunities | Geographic proximity + market adjacency = warm intro potential |
+
+**Assessment:** The LinkedIn engagement demonstrates two things: (1) the product can be shown live without embarrassment, and (2) the narrative framing resonates with security-minded executives. The MailGuard endorsement is particularly notable — email security and AI governance share the same buyer (CISO) and the same objection ("we're already doing enough filtering").
+
+### 3.3 Market Tailwinds
 
 | Tailwind | Status | Impact |
 |----------|--------|--------|
@@ -240,7 +275,7 @@ apps/web            → Next.js dashboard (63+ pages, 83 components)
 | **AI safety incidents** | Increasing visibility | Each incident increases buyer urgency |
 | **Insurance requirements** | Early stage | AI liability insurance may require governance artifacts |
 
-### 3.3 Competitive Landscape Analysis
+### 3.4 Competitive Landscape Analysis
 
 | Competitor Category | Examples | SONATE Differentiation |
 |--------------------|----------|----------------------|
@@ -249,7 +284,7 @@ apps/web            → Next.js dashboard (63+ pages, 83 components)
 | **AI Compliance** | Credo AI, Monitaur, Holistic AI | Closest competitors. But SONATE's cryptographic receipts and hash chains provide **verifiable** compliance artifacts, not just dashboards and checklists. The Bedau Index and Overseer are unique. |
 | **AI Governance Platforms** | IBM OpenPages, ServiceNow AI Governance | Enterprise incumbents are adding AI governance modules. SONATE is purpose-built, crypto-native, and technically deeper on the trust protocol layer. |
 
-### 3.4 Business Model Assessment
+### 3.5 Business Model Assessment
 
 **Model:** Enterprise subscription (from `docs/INVESTOR_BRIEF.md`)
 
@@ -260,7 +295,7 @@ apps/web            → Next.js dashboard (63+ pages, 83 components)
 | **Managed hosting** | Strong | Already deployed to Vercel + Fly.io; Docker and K8s options also available |
 | **Open-source SDK** (`@sonate/verify-sdk` is MIT) | Strategic | Receipt verification is MIT — creates ecosystem adoption without giving away the platform |
 
-### 3.5 Technical Defensibility
+### 3.6 Technical Defensibility
 
 | Moat | Strength | Reasoning |
 |------|----------|-----------|
@@ -271,18 +306,18 @@ apps/web            → Next.js dashboard (63+ pages, 83 components)
 | **10-package ecosystem** | Moderate | Well-structured but competitors with resources could replicate |
 | **Specification ownership** | Strong | `gammatria.com` and `sonate.world` control the specification — potential standard-setting play |
 
-### 3.6 Risks & Concerns
+### 3.7 Risks & Concerns
 
 | Risk | Severity | Mitigation in Codebase |
 |------|----------|----------------------|
 | **Single-developer bus factor** | High | Comprehensive docs, AGENTS.md, CONTRIBUTING.md, but visible AI-assisted development patterns (`.roo/`, `.trae/`) suggest small team |
 | **MongoDB at scale** | Medium | PostgreSQL migration path exists (`@sonate/persistence`), Supabase integration in `@sonate/core` deps |
-| **Early-stage traction** | Medium | Platform is live and production-tested (Vercel + Fly.io); enterprise pilots mentioned but no public case studies yet |
+| **Early-stage traction** | Low-Medium | Platform is live and production-tested (Vercel + Fly.io); public LinkedIn demo with endorsement from MailGuard CEO (Craig McDonald); enterprise pilots mentioned |
 | **Complex pricing conversation** | Medium | Value prop requires education — "why do I need cryptographic receipts?" needs clear ROI framing |
 | **Semantic Coprocessor gap** | Medium | Current text analysis is hash-based projection, not true ML embeddings. Honestly documented, but investors may probe |
 | **EU AI Act specificity** | Low | Platform is positioned for compliance but specific Article-by-Article mapping would strengthen positioning |
 
-### 3.7 What Would Strengthen Market Position
+### 3.8 What Would Strengthen Market Position
 
 1. **Customer logos or pilot results** — Even anonymized case studies would dramatically increase credibility
 2. **Benchmark data** — "We process X receipts/sec with Y ms latency" from production workloads
@@ -291,7 +326,7 @@ apps/web            → Next.js dashboard (63+ pages, 83 components)
 5. **Production metrics** — Capture and publish real latency/throughput numbers from the live Fly.io deployment as credibility proof
 6. **Semantic Coprocessor delivery** — Moving from hash-based projections to real embeddings would validate the "AI-native" claims
 
-### 3.8 Market Viability Score: 8/10
+### 3.9 Market Viability Score: 8/10
 
 **Strengths:** Clear market tailwinds (EU AI Act, enterprise AI adoption), genuine technical moat (crypto receipts, Bedau Index), well-defined buyer persona, multiple revenue streams, **live production deployment actively being tested** (Vercel + Fly.io).
 
@@ -372,9 +407,10 @@ apps/web            → Next.js dashboard (63+ pages, 83 components)
 
 ### For Market Entry
 
-8. **Land one production pilot** — A single enterprise customer generating real receipts would be worth more than any feature.
-9. **Build the EU AI Act compliance mapper** — A specific "Article 9 → Trust Receipts, Article 14 → Overseer" mapping document would be a powerful sales tool.
+8. **Follow up the MailGuard signal** — Craig McDonald's public endorsement is a warm lead. MailGuard's customer base (enterprise email security buyers) overlaps almost perfectly with SONATE's target buyer (CISO/CIO). A partnership, integration, or co-marketing arrangement could open a distribution channel into exactly the right accounts. At minimum, this is a conversation worth having.
+9. **Build the EU AI Act compliance mapper** — A specific "Article 9 → Trust Receipts, Article 14 → Overseer" mapping document would be a powerful sales tool for European enterprise conversations.
 10. **Consider a "SONATE Score" badge** — Like SSL certificates, a visible trust badge for AI applications verified by SONATE could drive organic adoption.
+11. **Double down on the LinkedIn narrative** — "Stop filtering. Start measuring." is landing. The stress test format (baseline → adversarial → score collapse → receipted) is a repeatable content formula. Run the same experiment against different attack vectors (prompt injection, data exfiltration framing, social engineering) and publish a series.
 
 ---
 
