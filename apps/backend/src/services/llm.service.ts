@@ -373,7 +373,14 @@ export class LLMService {
       }, `openai:${model}`);
     } catch (error: unknown) {
       logger.error('OpenAI API Error', { error: getErrorMessage(error) });
-      throw new Error(`OpenAI API Error: ${getErrorMessage(error)}`);
+      const msg = getErrorMessage(error);
+      if (msg.toLowerCase().includes('insufficient_quota') || msg.toLowerCase().includes('billing') || msg.toLowerCase().includes('credit')) {
+        throw new Error(`AI_BILLING_ERROR: The OpenAI account has insufficient quota. Please top up at platform.openai.com/billing.`);
+      }
+      if ((error as any)?.status === 429 || msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('too many requests')) {
+        throw new Error(`AI_RATE_LIMIT_ERROR: Too many requests to OpenAI. Please wait a moment before trying again.`);
+      }
+      throw new Error(`OpenAI API Error: ${msg}`);
     }
   }
 
@@ -439,7 +446,14 @@ export class LLMService {
       }, `anthropic:${resolvedModel}`);
     } catch (error: unknown) {
       logger.error('Anthropic API Error', { error: getErrorMessage(error) });
-      throw new Error(`Anthropic API Error: ${getErrorMessage(error)}`);
+      const msg = getErrorMessage(error);
+      if (msg.toLowerCase().includes('credit balance is too low') || msg.toLowerCase().includes('insufficient credits') || msg.toLowerCase().includes('billing')) {
+        throw new Error(`AI_BILLING_ERROR: The Anthropic account has insufficient credits. Please top up at console.anthropic.com/settings/billing.`);
+      }
+      if ((error as any)?.status === 429 || msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('too many requests')) {
+        throw new Error(`AI_RATE_LIMIT_ERROR: Too many requests to Anthropic. Please wait a moment before trying again.`);
+      }
+      throw new Error(`Anthropic API Error: ${msg}`);
     }
   }
 

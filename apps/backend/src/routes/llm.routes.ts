@@ -121,11 +121,32 @@ router.post('/generate', protect, requireScopes(['llm:generate']), llmLimiter, a
     logger.error('LLM generation error:', error);
 
     // Handle specific error types
-    if (getErrorMessage(error).includes('API key not configured')) {
+    const errMsg = getErrorMessage(error);
+    if (errMsg.includes('API key not configured') || errMsg.includes('not configured')) {
       res.status(401).json({
         success: false,
-        message: getErrorMessage(error),
+        message: errMsg,
         requiresApiKey: true,
+      });
+      return;
+    }
+
+    if (errMsg.includes('AI_BILLING_ERROR') || errMsg.includes('credit balance is too low') || errMsg.includes('insufficient credits') || errMsg.includes('insufficient_quota')) {
+      res.status(503).json({
+        success: false,
+        message: 'AI service temporarily unavailable',
+        error: 'The AI service is temporarily unavailable due to insufficient credits. Please contact your administrator.',
+        code: 'BILLING_ERROR',
+      });
+      return;
+    }
+
+    if (errMsg.includes('AI_RATE_LIMIT_ERROR') || errMsg.includes('rate limit') || errMsg.includes('too many requests')) {
+      res.status(429).json({
+        success: false,
+        message: 'Too many requests',
+        error: 'The AI service is currently rate limited. Please wait a moment before trying again.',
+        code: 'RATE_LIMIT_ERROR',
       });
       return;
     }
@@ -133,7 +154,7 @@ router.post('/generate', protect, requireScopes(['llm:generate']), llmLimiter, a
     res.status(500).json({
       success: false,
       message: 'Failed to generate response',
-      error: getErrorMessage(error),
+      error: errMsg,
     });
   }
 });

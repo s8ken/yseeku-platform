@@ -342,10 +342,25 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 
       console.error('Failed to get trust evaluation:', error);
 
-      // Error handling
-      toast.error('Session Error', {
-        description: error.message || 'Failed to get AI response. Please check your API keys.',
-      });
+      // Error handling — show specific messages for known error classes
+      const isBillingError = error.status === 503 || error.message?.includes('BILLING_ERROR') || error.message?.includes('insufficient credits') || error.message?.includes('temporarily unavailable');
+      const isRateLimitError = error.status === 429 || error.message?.includes('RATE_LIMIT_ERROR') || error.message?.includes('rate limited') || error.message?.includes('rate limit');
+
+      if (isBillingError) {
+        toast.error('Service Unavailable', {
+          description: 'The AI service is temporarily unavailable. Please try again later or contact your administrator.',
+          duration: 8000,
+        });
+      } else if (isRateLimitError) {
+        toast.error('Too Many Requests', {
+          description: 'Please wait a moment before sending another message.',
+          duration: 5000,
+        });
+      } else {
+        toast.error('Session Error', {
+          description: error.message || 'Failed to get AI response. Please check your API keys.',
+        });
+      }
     } finally {
       abortControllerRef.current = null;
       setIsLoading(false);

@@ -940,7 +940,31 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
         // If it's a real API error (e.g. rate limit, content policy), show that instead
         const tenantId = req.userTenant || 'live-tenant';
         const isConfigError = errorMsg.includes('not configured') || errorMsg.includes('API key');
-        
+        const isBillingError = errorMsg.includes('AI_BILLING_ERROR') || errorMsg.includes('credit balance is too low') || errorMsg.includes('insufficient credits') || errorMsg.includes('insufficient_quota');
+        const isRateLimitError = errorMsg.includes('AI_RATE_LIMIT_ERROR') || errorMsg.includes('rate limit') || errorMsg.includes('too many requests');
+
+        // Billing errors → 503 Service Unavailable with user-friendly message
+        if (isBillingError) {
+          res.status(503).json({
+            success: false,
+            message: 'AI service temporarily unavailable',
+            error: 'The AI service is temporarily unavailable due to insufficient credits. Please contact your administrator.',
+            code: 'BILLING_ERROR',
+          });
+          return;
+        }
+
+        // Rate limit errors → 429 Too Many Requests
+        if (isRateLimitError) {
+          res.status(429).json({
+            success: false,
+            message: 'Too many requests',
+            error: 'The AI service is currently rate limited. Please wait a moment before sending another message.',
+            code: 'RATE_LIMIT_ERROR',
+          });
+          return;
+        }
+
         if ((tenantId === 'demo-tenant' || tenantId === 'demo') && isConfigError) {
           const demoFallbackContent = `I'm currently running in demo mode without a configured LLM provider.
 
