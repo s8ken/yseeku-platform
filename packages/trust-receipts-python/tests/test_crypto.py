@@ -59,11 +59,12 @@ class TestHashing:
         assert len(result) == 64
 
     def test_sha256_known_value(self):
-        # SHA-256 of "abc"
+        # Cross-check against stdlib directly — avoids hard-coding test vectors
+        import hashlib
         result = sha256("abc")
-        assert result == "ba7816bf8f01cfea414140de5dae2ec73b00361bbef0469348423f656b46a84"[0:len(result)]
-        # Just check it's deterministic
-        assert sha256("abc") == sha256("abc")
+        expected = hashlib.sha256(b"abc").hexdigest()
+        assert result == expected
+        assert len(result) == 64
 
     def test_sha256_deterministic(self):
         assert sha256("test") == sha256("test")

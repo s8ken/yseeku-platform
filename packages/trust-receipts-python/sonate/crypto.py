@@ -7,8 +7,8 @@ and RFC 8785 JSON canonicalization.
 
 import hashlib
 from typing import Tuple, Union
-from nacl import signing, utils
-import json_canonicalize
+from nacl import signing, encoding
+import jcs
 
 
 def sha256(data: Union[str, bytes]) -> str:
@@ -20,7 +20,7 @@ def sha256(data: Union[str, bytes]) -> str:
 
 def canonicalize_json(obj: any) -> str:
     """RFC 8785 JSON canonicalization"""
-    return json_canonicalize.canonicalize(obj)
+    return jcs.canonicalize(obj).decode('utf-8')
 
 
 def canonicalize_and_hash(obj: any) -> str:
@@ -32,8 +32,8 @@ def canonicalize_and_hash(obj: any) -> str:
 def generate_key_pair() -> Tuple[str, str]:
     """Generate new Ed25519 key pair"""
     private_key = signing.SigningKey.generate()
-    private_hex = private_key.encode(encoder=utils.HexEncoder).decode('ascii')
-    public_hex = private_key.verify_key.encode(encoder=utils.HexEncoder).decode('ascii')
+    private_hex = private_key.encode(encoder=encoding.HexEncoder).decode('ascii')
+    public_hex = private_key.verify_key.encode(encoder=encoding.HexEncoder).decode('ascii')
     return private_hex, public_hex
 
 
@@ -41,9 +41,9 @@ def get_public_key(private_key: Union[str, bytes]) -> str:
     """Derive public key from private key"""
     if isinstance(private_key, str):
         private_key = bytes.fromhex(private_key)
-    
+
     signing_key = signing.SigningKey(private_key)
-    return signing_key.verify_key.encode(encoder=utils.HexEncoder).decode('ascii')
+    return signing_key.verify_key.encode(encoder=encoding.HexEncoder).decode('ascii')
 
 
 def sign(message: Union[str, bytes], private_key: Union[str, bytes]) -> str:
