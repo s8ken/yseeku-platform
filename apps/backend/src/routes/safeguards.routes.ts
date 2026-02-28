@@ -50,7 +50,7 @@ router.post('/evaluate', protect, async (req: Request, res: Response): Promise<v
       return;
     }
 
-    const result = await relationalSafeguardsService.evaluate(conversationId, tenantId);
+    const result = await relationalSafeguardsService.evaluate(conversationId as string, tenantId as string);
 
     res.json({
       success: true,
@@ -74,7 +74,7 @@ router.get('/evaluate/:conversationId', protect, async (req: Request, res: Respo
     const { conversationId } = req.params;
     const tenantId = (req as any).tenant || 'default';
 
-    const result = await relationalSafeguardsService.evaluate(conversationId, tenantId);
+    const result = await relationalSafeguardsService.evaluate(conversationId as string, tenantId as string);
 
     res.json({
       success: true,

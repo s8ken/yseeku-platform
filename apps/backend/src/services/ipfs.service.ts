@@ -108,8 +108,7 @@ export class IpfsService {
     // Get platform public key for independent verification
     let publicKey = '';
     try {
-      const keyInfo = await keysService.getPublicKey();
-      publicKey = keyInfo.publicKey ?? keyInfo ?? '';
+      publicKey = await keysService.getPublicKeyHex();
     } catch {
       publicKey = 'unavailable';
     }

@@ -1176,7 +1176,7 @@ router.post('/:id/export', protect, async (req: Request, res: Response): Promise
 
     const { ipfsService } = await import('../services/ipfs.service');
     const tenantId = (req as any).tenant ?? 'default';
-    const result = await ipfsService.pinConversation(req.params.id, tenantId);
+    const result = await ipfsService.pinConversation(req.params.id as string, tenantId as string);
 
     res.json({
       success: true,
