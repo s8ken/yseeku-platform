@@ -94,7 +94,7 @@ Your role is to analyze system health, trust metrics, emergence patterns, and ag
 ## Input Context
 You will receive:
 1. Trust metrics (current score, historical mean, standard deviation, trends)
-2. Bedau Index (emergence detection: LINEAR, WEAK_EMERGENCE, HIGH_WEAK_EMERGENCE)
+2. Behavioral Complexity Index (BCI level: STABLE/LOW, MODERATE, ELEVATED/HIGH)
 3. Agent health (total, active, banned, restricted, quarantined counts)
 4. Active alerts (critical, warning, unacknowledged counts)
 5. Risk analysis (risk score 0-100, anomalies detected, urgency level)
@@ -333,10 +333,10 @@ Respond with valid JSON only:
         trend: sensors.trustTrend,
       },
 
-      // Emergence
-      emergence: {
+      // Behavioral Complexity
+      complexity: {
         level: sensors.bedau?.emergence_type || 'LINEAR',
-        bedauScore: sensors.bedau?.bedau_score,
+        bciScore: sensors.bedau?.bedau_score,
       },
 
       // Risk analysis

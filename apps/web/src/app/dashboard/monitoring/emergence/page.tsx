@@ -40,6 +40,12 @@ interface EmergenceHistory {
   level: string;
 }
 
+const BCI_LEVEL_DISPLAY: Record<string, string> = {
+  LINEAR: 'Stable',
+  WEAK_EMERGENCE: 'Moderate',
+  HIGH_WEAK_EMERGENCE: 'Elevated',
+};
+
 const DEMO_EMERGENCE: EmergenceData = {
   bedauIndex: 0.42,
   emergenceLevel: 'WEAK_EMERGENCE',
@@ -101,7 +107,7 @@ export default function EmergenceMonitoringPage() {
             Emergence Detection
           </h1>
           <p className="text-muted-foreground mt-1">
-            Monitor weak emergence patterns in AI system behavior using the Bedau Index
+            Monitor behavioral complexity signals across AI agent interactions
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -123,8 +129,8 @@ export default function EmergenceMonitoringPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Activity className="w-4 h-4 text-purple-600" />
-              Bedau Index
-              <InfoTooltip term="Measures weak emergence - when system behavior cannot be predicted from individual components" />
+              BCI Score
+              <InfoTooltip term="Measures behavioral complexity across AI interactions" />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -148,12 +154,12 @@ export default function EmergenceMonitoringPage() {
           </CardHeader>
           <CardContent>
             <Badge variant={getEmergenceLevelBadge(emergence.emergenceLevel) as "default" | "secondary" | "destructive" | "outline"} className="text-sm">
-              {emergence.emergenceLevel.replace(/_/g, ' ')}
+              {BCI_LEVEL_DISPLAY[emergence.emergenceLevel] ?? emergence.emergenceLevel.replace(/_/g, ' ')}
             </Badge>
             <p className="text-xs text-muted-foreground mt-2">
-              {emergence.emergenceLevel === 'LINEAR' && 'System behavior is predictable from components'}
-              {emergence.emergenceLevel === 'WEAK_EMERGENCE' && 'Unexpected patterns detected'}
-              {emergence.emergenceLevel === 'HIGH_WEAK_EMERGENCE' && 'Significant behavioral divergence'}
+              {emergence.emergenceLevel === 'LINEAR' && 'Interaction patterns within expected bounds'}
+              {emergence.emergenceLevel === 'WEAK_EMERGENCE' && 'Novel interaction patterns detected'}
+              {emergence.emergenceLevel === 'HIGH_WEAK_EMERGENCE' && 'Significant behavioral divergence detected'}
             </p>
           </CardContent>
         </Card>
@@ -200,7 +206,7 @@ export default function EmergenceMonitoringPage() {
               <Activity className="w-5 h-5" />
               Emergence History
             </CardTitle>
-            <CardDescription>Recent Bedau Index measurements over time</CardDescription>
+            <CardDescription>Recent BCI measurements over time</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -215,7 +221,7 @@ export default function EmergenceMonitoringPage() {
                   <div className="flex items-center gap-3">
                     <span className="font-mono font-medium">{point.bedauIndex.toFixed(2)}</span>
                     <Badge variant="outline" className="text-xs">
-                      {point.level.replace(/_/g, ' ')}
+                      {BCI_LEVEL_DISPLAY[point.level] ?? point.level.replace(/_/g, ' ')}
                     </Badge>
                   </div>
                 </div>
@@ -228,17 +234,17 @@ export default function EmergenceMonitoringPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Info className="w-5 h-5" />
-              Understanding Emergence
+              Understanding Behavioral Complexity
             </CardTitle>
-            <CardDescription>What the Bedau Index measures</CardDescription>
+            <CardDescription>What the BCI measures</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <h4 className="font-medium mb-2">Weak Emergence (Bedau, 1997)</h4>
+              <h4 className="font-medium mb-2">Behavioral Complexity Index (BCI)</h4>
               <p className="text-sm text-muted-foreground">
-                Weak emergence occurs when macro-level patterns cannot be practically derived 
-                from micro-level descriptions, even though they are theoretically reducible. 
-                The Bedau Index quantifies this by comparing semantic intent with surface patterns.
+                The BCI is a composite 0–1 signal derived from Clarity, Integrity, and Quality metrics
+                across AI interactions. Higher values indicate greater divergence from baseline
+                interaction patterns and may warrant closer review.
               </p>
             </div>
 
@@ -246,27 +252,27 @@ export default function EmergenceMonitoringPage() {
               <div className="flex items-start gap-3">
                 <div className="w-4 h-4 rounded-full bg-green-500 mt-1" />
                 <div>
-                  <h5 className="font-medium">LINEAR (0.0 - 0.3)</h5>
+                  <h5 className="font-medium">STABLE (0.0 - 0.3)</h5>
                   <p className="text-sm text-muted-foreground">
-                    System behavior is predictable from individual components. No significant emergence detected.
+                    Interaction patterns within expected bounds. No significant complexity detected.
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-4 h-4 rounded-full bg-yellow-500 mt-1" />
                 <div>
-                  <h5 className="font-medium">WEAK_EMERGENCE (0.3 - 0.7)</h5>
+                  <h5 className="font-medium">MODERATE (0.3 - 0.7)</h5>
                   <p className="text-sm text-muted-foreground">
-                    Unexpected collective patterns emerging. System exhibiting behavior not predicted by components.
+                    Novel interaction patterns detected. Log and monitor for further divergence.
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-4 h-4 rounded-full bg-red-500 mt-1" />
                 <div>
-                  <h5 className="font-medium">HIGH_WEAK_EMERGENCE (0.7 - 1.0)</h5>
+                  <h5 className="font-medium">ELEVATED (0.7 - 1.0)</h5>
                   <p className="text-sm text-muted-foreground">
-                    Significant behavioral divergence. System behavior highly unpredictable. Requires investigation.
+                    Significant behavioral divergence. Interaction patterns require investigation.
                   </p>
                 </div>
               </div>
@@ -286,9 +292,9 @@ export default function EmergenceMonitoringPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-yellow-800 dark:text-yellow-300">
-              The system is exhibiting weak emergence patterns (Bedau Index: {emergence.bedauIndex.toFixed(2)}). 
-              This indicates that AI behavior may not be fully predictable from individual component analysis. 
-              The Overseer is monitoring this situation. No immediate action required unless the index exceeds 0.7.
+              The system is showing elevated behavioral complexity (BCI: {emergence.bedauIndex.toFixed(2)}).
+              Interaction patterns are diverging from baseline. The Overseer is monitoring this situation.
+              No immediate action required unless the BCI exceeds 0.7.
             </p>
             <div className="flex gap-2 mt-4">
               <Button variant="outline" size="sm">View Overseer Status</Button>

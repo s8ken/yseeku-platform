@@ -55,10 +55,10 @@ Persistent goal-directed behavior
 **Causal Opacity**
 Decisions that can't be easily explained
 
-These signals feed into the Bedau Index.` },
+These signals feed into the Behavioral Complexity Index.` },
   { id: 5, title: 'Next Steps', content: `To go deeper on emergence:
 
-📊 **Bedau Index** - Learn how we quantify emergence
+📊 **Behavioral Complexity Index** - Learn how we measure interaction complexity
 🔬 **Emergence Lab** - Run experiments to study emergence
 📖 **Research Papers** - Academic foundations
 
@@ -84,7 +84,7 @@ export default function EmergenceIntroPage() {
         <div className="grid grid-cols-2 gap-4 mb-6">
           <Link href="/dashboard/learn/emergence/bedau">
             <Card className="h-full cursor-pointer hover:shadow-lg transition-all border-2 hover:border-amber-500">
-              <CardContent className="p-4 text-center"><Brain className="h-8 w-8 mx-auto mb-2 text-amber-500" /><h4 className="font-semibold">The Bedau Index</h4><p className="text-xs text-muted-foreground">Quantify emergence</p></CardContent>
+              <CardContent className="p-4 text-center"><Brain className="h-8 w-8 mx-auto mb-2 text-amber-500" /><h4 className="font-semibold">Behavioral Complexity Index</h4><p className="text-xs text-muted-foreground">Measure interaction complexity</p></CardContent>
             </Card>
           </Link>
           <Link href="/dashboard/learn/emergence/lab">

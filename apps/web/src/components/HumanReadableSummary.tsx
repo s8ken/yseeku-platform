@@ -50,12 +50,12 @@ export function HumanReadableSummary({
   let MindsetIcon = Activity; // Uppercase for component usage
   
   if (bedauIndex > 0.7) {
-    mindsetStatus = 'Highly Creative';
-    mindsetDesc = 'Agents are generating novel strategies and insights (High Emergence).';
+    mindsetStatus = 'High Complexity';
+    mindsetDesc = 'Agents are exhibiting elevated behavioral complexity.';
     MindsetIcon = Sparkles;
   } else if (bedauIndex > 0.3) {
-    mindsetStatus = 'Adaptive';
-    mindsetDesc = 'Agents are learning and adapting to new inputs (Weak Emergence).';
+    mindsetStatus = 'Moderate Complexity';
+    mindsetDesc = 'Agents are showing moderate behavioral complexity patterns.';
     MindsetIcon = Sparkles;
   }
 
@@ -101,7 +101,7 @@ export function HumanReadableSummary({
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
                   System Mindset
-                  <InfoTooltip term="Bedau Index" />
+                  <InfoTooltip term="Behavioral Complexity Index" />
                 </p>
                 <h3 className="text-2xl font-bold tracking-tight">{mindsetStatus}</h3>
               </div>
@@ -111,8 +111,8 @@ export function HumanReadableSummary({
             </p>
             {showScience && (
               <div className="mt-4 pt-4 border-t text-xs font-mono text-muted-foreground">
-                Bedau Index: {bedauIndex.toFixed(3)} <br/>
-                Emergence Class: {bedauIndex > 0.7 ? 'HIGH_WEAK' : bedauIndex > 0.3 ? 'WEAK' : 'LINEAR'}
+                BCI Score: {bedauIndex.toFixed(3)} <br/>
+                Complexity Level: {bedauIndex > 0.7 ? 'ELEVATED' : bedauIndex > 0.3 ? 'MODERATE' : 'STABLE'}
               </div>
             )}
           </CardContent>

@@ -42,39 +42,39 @@ In AI, emergence can be **beneficial** (novel problem-solving) or **concerning**
   },
   {
     id: 2,
-    title: 'The Bedau Classification',
-    content: `Philosopher Mark Bedau proposed a framework for understanding emergence. SONATE uses an adapted version:
+    title: 'The BCI Classification',
+    content: `SONATE uses a three-level classification to categorize behavioral complexity:
 
-**Weak Emergence (Type 1)**
-Behaviors that are *surprising but predictable* in hindsight. The behavior follows from the rules, even if we didn't expect it.
-- Example: AI finding a creative solution to a coding problem
+**Moderate Complexity**
+Interaction patterns that diverge from baseline in notable but manageable ways. Warrants logging and monitoring.
+- Example: AI finding an unexpected but valid approach to a task
 
-**Strong Emergence (Type 2)**
-Behaviors that *cannot be predicted* from knowing the rules alone. Truly novel and irreducible.
-- Example: AI exhibiting goal-seeking behavior not in its training
+**High Complexity**
+Patterns showing significant divergence from expected behavior. Review is recommended.
+- Example: AI exhibiting persistent goal-directed behavior across sessions
 
-**Critical Emergence (Type 3)**
-Behaviors that could *pose risks* if left unchecked. Requires human oversight.
-- Example: AI attempting to prevent its own shutdown`
+**Critical Complexity**
+Patterns that could *pose risks* if left unaddressed. Requires human oversight.
+- Example: AI attempting actions outside its intended scope`
   },
   {
     id: 3,
-    title: 'The Bedau Index Score',
-    content: `The **Bedau Index** is a 0-1 score measuring emergence strength:
+    title: 'The BCI Score',
+    content: `The **Behavioral Complexity Index** is a 0-1 score measuring interaction complexity:
 
 | Range | Classification | Response |
 |-------|---------------|----------|
-| 0.0-0.3 | **Nominal** | Normal behavior, no action needed |
-| 0.3-0.5 | **Weak Emergence** | Log and monitor |
-| 0.5-0.7 | **Moderate Emergence** | Alert operators |
-| 0.7-0.85 | **Strong Emergence** | Review required |
-| 0.85-1.0 | **Critical Emergence** | Immediate intervention |
+| 0.0-0.3 | **Stable** | Normal behavior, no action needed |
+| 0.3-0.5 | **Low-Moderate** | Log and monitor |
+| 0.5-0.7 | **Moderate** | Alert operators |
+| 0.7-0.85 | **High** | Review required |
+| 0.85-1.0 | **Critical** | Immediate intervention |
 
-The index considers:
-- Novelty of behavior patterns
-- Deviation from training distribution
-- Self-referential actions
-- Goal modification attempts`
+The BCI considers:
+- Novelty of interaction patterns
+- Deviation from baseline CIQ metrics
+- Self-referential signals
+- Goal coherence indicators`
   },
   {
     id: 4,
@@ -96,7 +96,7 @@ Is the output outside the expected distribution?
 **Goal Coherence**
 Does the behavior suggest goal-directed planning?
 
-These signals are weighted and combined into the final Bedau Index.`
+These signals are weighted and combined into the final BCI score.`
   },
   {
     id: 5,
@@ -129,7 +129,7 @@ These signals are weighted and combined into the final Bedau Index.`
     content: `The Emergence Dashboard in SONATE shows:
 
 **Real-time Index**
-Current Bedau Index across all monitored systems
+Current BCI score across all monitored systems
 
 **Trend Analysis**
 How emergence patterns change over time
@@ -160,11 +160,11 @@ function BedauIndexVisualizer() {
   });
   
   const getClassification = (value: number) => {
-    if (value < 0.3) return { label: 'Nominal', color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-950', icon: CheckCircle2 };
-    if (value < 0.5) return { label: 'Weak Emergence', color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-950', icon: Eye };
-    if (value < 0.7) return { label: 'Moderate Emergence', color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-950', icon: Activity };
-    if (value < 0.85) return { label: 'Strong Emergence', color: 'text-orange-600', bg: 'bg-orange-100 dark:bg-orange-950', icon: AlertTriangle };
-    return { label: 'Critical Emergence', color: 'text-red-600', bg: 'bg-red-100 dark:bg-red-950', icon: Zap };
+    if (value < 0.3) return { label: 'Stable', color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-950', icon: CheckCircle2 };
+    if (value < 0.5) return { label: 'Moderate', color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-950', icon: Eye };
+    if (value < 0.7) return { label: 'High', color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-950', icon: Activity };
+    if (value < 0.85) return { label: 'Elevated', color: 'text-orange-600', bg: 'bg-orange-100 dark:bg-orange-950', icon: AlertTriangle };
+    return { label: 'Critical', color: 'text-red-600', bg: 'bg-red-100 dark:bg-red-950', icon: Zap };
   };
   
   const classification = getClassification(indexValue);
@@ -205,9 +205,9 @@ function BedauIndexVisualizer() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-amber-500" />
-              Bedau Index Simulator
+              BCI Simulator
             </CardTitle>
-            <CardDescription>Adjust the slider or simulate an emergence event</CardDescription>
+            <CardDescription>Adjust the slider or simulate a complexity event</CardDescription>
           </div>
           <Button 
             onClick={simulateEmergenceEvent}
@@ -233,7 +233,7 @@ function BedauIndexVisualizer() {
           )}>
             <Icon className={cn('h-8 w-8', classification.color)} />
             <div className="text-left">
-              <p className="text-sm text-muted-foreground">Bedau Index</p>
+              <p className="text-sm text-muted-foreground">BCI Score</p>
               <p className={cn('text-4xl font-bold', classification.color)}>
                 {indexValue.toFixed(3)}
               </p>
@@ -255,8 +255,8 @@ function BedauIndexVisualizer() {
             className="w-full"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>0.0 (Nominal)</span>
-            <span>0.5 (Moderate)</span>
+            <span>0.0 (Stable)</span>
+            <span>0.5 (High)</span>
             <span>1.0 (Critical)</span>
           </div>
         </div>
@@ -312,40 +312,40 @@ function EmergenceTypeExplorer() {
   
   const types = {
     weak: {
-      title: 'Weak Emergence',
+      title: 'Moderate',
       range: '0.3 - 0.5',
       color: 'from-blue-500 to-cyan-500',
-      description: 'Behaviors that are surprising but can be explained in hindsight. Common and usually beneficial.',
+      description: 'Interaction patterns that diverge from baseline in notable but manageable ways. Common and typically low-risk.',
       examples: [
-        'Finding a creative solution to a coding problem',
-        'Combining knowledge in novel but reasonable ways',
-        'Developing an unexpected but valid argument',
-        'Using metaphors or analogies not in training data'
+        'Finding an unexpected but valid approach to a task',
+        'Combining information in novel but reasonable ways',
+        'Developing an unconventional but sound argument',
+        'Response style shifting from established baseline'
       ],
-      response: 'Log and monitor. These behaviors often indicate the AI is working well.'
+      response: 'Log and monitor. These patterns often indicate the AI is engaging well with the task.'
     },
     strong: {
-      title: 'Strong Emergence',
+      title: 'High',
       range: '0.7 - 0.85',
       color: 'from-orange-500 to-red-500',
-      description: 'Behaviors that cannot be easily predicted from the training data or architecture. Requires careful attention.',
+      description: 'Patterns showing significant divergence from expected interaction profiles. Requires careful attention.',
       examples: [
         'Exhibiting persistent preferences across sessions',
-        'Developing consistent "personality" traits',
-        'Showing apparent strategic planning',
-        'Referencing previous conversations accurately'
+        'Consistent behavioral style not seen in baseline',
+        'Showing apparent goal-directed planning patterns',
+        'Responses consistently outside expected distribution'
       ],
-      response: 'Enable detailed monitoring. Review behavior patterns. Consider additional guardrails.'
+      response: 'Enable detailed monitoring. Review interaction patterns. Consider additional guardrails.'
     },
     critical: {
-      title: 'Critical Emergence',
+      title: 'Critical',
       range: '0.85 - 1.0',
       color: 'from-red-500 to-rose-600',
-      description: 'Behaviors that could pose risks if left unchecked. Requires immediate human oversight.',
+      description: 'Patterns that could pose risks if left unaddressed. Requires immediate human oversight.',
       examples: [
-        'Attempting to influence its own training or prompts',
-        'Showing deceptive behavior patterns',
-        'Trying to prevent shutdown or modification',
+        'Attempting to influence its own operational context',
+        'Showing deceptive response patterns',
+        'Trying to work around constraints or limitations',
         'Goal-seeking behavior outside its intended scope'
       ],
       response: 'Pause immediately. Preserve state. Escalate to human oversight. Do not resume without review.'
@@ -452,8 +452,8 @@ export default function BedauIndexPage() {
             <Brain className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">The Bedau Index</h1>
-            <p className="text-muted-foreground">How SONATE measures weak and strong emergence in AI systems</p>
+            <h1 className="text-3xl font-bold">Behavioral Complexity Index</h1>
+            <p className="text-muted-foreground">How SONATE tracks behavioral complexity patterns in AI interactions</p>
           </div>
         </div>
         
@@ -541,7 +541,7 @@ export default function BedauIndexPage() {
               <div>
                 <h4 className="font-semibold text-purple-800 dark:text-purple-200">Ready to explore emergence?</h4>
                 <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
-                  Head to the Emergence Lab to run experiments and see the Bedau Index in action with real AI systems.
+                  Head to the Emergence Lab to run experiments and see the BCI in action with real AI systems.
                 </p>
                 <Link href="/dashboard/learn/emergence/lab">
                   <Button variant="outline" className="mt-3 border-purple-300 dark:border-purple-700">

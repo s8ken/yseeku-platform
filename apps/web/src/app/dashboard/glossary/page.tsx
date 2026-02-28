@@ -189,16 +189,16 @@ const GLOSSARY: GlossaryTerm[] = [
 
   // Statistical Terms
   {
-    term: 'Bedau Index',
-    definition: 'A composite metric (0-1) measuring emergent behavior in AI systems, based on Mark Bedau\'s complexity theory. >0.7 = strong emergence.',
+    term: 'Behavioral Complexity Index (BCI)',
+    definition: 'A composite 0–1 signal measuring behavioral complexity across AI interactions, derived from Clarity, Integrity, and Quality metrics. Higher values indicate greater divergence from baseline interaction patterns.',
     category: 'statistics',
     relatedTerms: ['Emergence', 'Novelty'],
   },
   {
     term: 'Emergence',
-    definition: 'Unexpected collective behaviors arising from multi-agent interactions that cannot be predicted from individual agents alone.',
+    definition: 'Patterns of collective AI behavior that diverge significantly from baseline interaction metrics.',
     category: 'statistics',
-    relatedTerms: ['Bedau Index', 'Unpredictability'],
+    relatedTerms: ['Behavioral Complexity Index', 'Unpredictability'],
   },
   {
     term: 'p-value',

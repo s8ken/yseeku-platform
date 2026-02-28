@@ -414,7 +414,7 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                         <Fingerprint className="h-8 w-8 text-muted-foreground" />
                         <div className="flex-1">
-                          <p className="text-xs text-muted-foreground">Bedau Index</p>
+                          <p className="text-xs text-muted-foreground">Behavioral Complexity</p>
                           <p className="text-sm font-medium">{(displayKpis.bedau?.index ?? 0).toFixed(2)}</p>
                         </div>
                       </div>
