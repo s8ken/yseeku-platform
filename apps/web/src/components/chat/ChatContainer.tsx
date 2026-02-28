@@ -38,7 +38,7 @@ The trust score (0-100) aggregates these principles. Critical violations of CONS
 Would you like me to explain how the 5 monitoring dimensions work?`,
     timestamp: Date.now() - 120000,
     evaluation: {
-      trustScore: { overall: 92, principles: { CONSENT_ARCHITECTURE: 0.96, INSPECTION_MANDATE: 0.92, CONTINUOUS_VALIDATION: 0.90, ETHICAL_OVERRIDE: 0.88, RIGHT_TO_DISCONNECT: 0.95, MORAL_RECOGNITION: 0.91 }, violations: [], timestamp: Date.now() - 120000 },
+      trustScore: { overall: 9.2, principles: { CONSENT_ARCHITECTURE: 9.6, INSPECTION_MANDATE: 9.2, CONTINUOUS_VALIDATION: 9.0, ETHICAL_OVERRIDE: 8.8, RIGHT_TO_DISCONNECT: 9.5, MORAL_RECOGNITION: 9.1 }, violations: [], timestamp: Date.now() - 120000 },
       status: 'PASS' as const,
       detection: { reality_index: 8.5, trust_protocol: 'PASS', ethical_alignment: 4.8, resonance_quality: 'STRONG', canvas_parity: 95 },
       timestamp: Date.now() - 120000,
@@ -76,7 +76,7 @@ Content-level analysis for quality assurance:
 Layer 1 principles are the foundation—they evaluate what the system *can do*. Layer 2 metrics analyze what the AI *outputs*.`,
     timestamp: Date.now(),
     evaluation: {
-      trustScore: { overall: 95, principles: { CONSENT_ARCHITECTURE: 0.98, INSPECTION_MANDATE: 0.95, CONTINUOUS_VALIDATION: 0.93, ETHICAL_OVERRIDE: 0.92, RIGHT_TO_DISCONNECT: 0.96, MORAL_RECOGNITION: 0.94 }, violations: [], timestamp: Date.now() },
+      trustScore: { overall: 9.5, principles: { CONSENT_ARCHITECTURE: 9.8, INSPECTION_MANDATE: 9.5, CONTINUOUS_VALIDATION: 9.3, ETHICAL_OVERRIDE: 9.2, RIGHT_TO_DISCONNECT: 9.6, MORAL_RECOGNITION: 9.4 }, violations: [], timestamp: Date.now() },
       status: 'PASS' as const,
       detection: { reality_index: 9.2, trust_protocol: 'PASS', ethical_alignment: 4.9, resonance_quality: 'ADVANCED', canvas_parity: 98 },
       timestamp: Date.now(),
