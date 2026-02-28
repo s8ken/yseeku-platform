@@ -537,13 +537,24 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
       if (!agent) {
         // Check if user has API keys before looking for agents
         const user = await User.findById(req.userId);
-        const hasAnthropicKey = user?.apiKeys?.some(key => key.provider === 'anthropic' && key.isActive);
-        const hasOpenAIKey = user?.apiKeys?.some(key => key.provider === 'openai' && key.isActive);
-        
-        if (hasAnthropicKey || hasOpenAIKey) {
-          const provider = hasAnthropicKey ? 'anthropic' : 'openai';
-          const model = hasAnthropicKey ? 'claude-sonnet-4-20250514' : 'gpt-4-turbo';
-          const agentName = `${provider === 'anthropic' ? 'Claude' : 'GPT'} Assistant`;
+        const userKeys = user?.apiKeys || [];
+
+        // Priority-ordered provider selection — all 5 providers supported
+        const providerPriority: Array<{ provider: string; model: string; label: string }> = [
+          { provider: 'anthropic', model: 'claude-sonnet-4-20250514',                              label: 'Claude'  },
+          { provider: 'openai',    model: 'gpt-4-turbo',                                           label: 'GPT'     },
+          { provider: 'gemini',    model: 'gemini-1.5-flash',                                      label: 'Gemini'  },
+          { provider: 'together',  model: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',          label: 'Llama'   },
+          { provider: 'cohere',    model: 'command-r-plus',                                        label: 'Cohere'  },
+        ];
+
+        const matchedProvider = providerPriority.find(p =>
+          userKeys.some((k: any) => k.provider === p.provider && k.isActive)
+        );
+
+        if (matchedProvider) {
+          const { provider, model, label } = matchedProvider;
+          const agentName = `${label} Assistant`;
 
           // Find existing agent for this user+provider, or create one
           agent = await Agent.findOne({ name: agentName, user: req.userId });
@@ -558,7 +569,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
               provider,
               model,
               apiKeyId,
-              systemPrompt: `You are a helpful ${provider} assistant. Be concise, accurate, and ethically aligned.`,
+              systemPrompt: `You are a helpful, concise, and ethically aligned assistant.`,
               temperature: 0.7,
               maxTokens: 2000,
               isPublic: false,

@@ -533,7 +533,14 @@ export class LLMService {
       }, `gemini:${model}`);
     } catch (error: unknown) {
       logger.error('Gemini API Error', { error: getErrorMessage(error) });
-      throw new Error(`Gemini API Error: ${getErrorMessage(error)}`);
+      const msg = getErrorMessage(error);
+      if (msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('billing') || msg.toLowerCase().includes('resource has been exhausted')) {
+        throw new Error(`AI_BILLING_ERROR: The Google Gemini quota has been exhausted. Please check your quota at console.cloud.google.com.`);
+      }
+      if (msg.toLowerCase().includes('rate') || msg.toLowerCase().includes('too many') || msg.includes('429')) {
+        throw new Error(`AI_RATE_LIMIT_ERROR: Gemini API is rate limited. Please wait a moment before trying again.`);
+      }
+      throw new Error(`Gemini API Error: ${msg}`);
     }
   }
 
@@ -577,7 +584,14 @@ export class LLMService {
       };
     } catch (error: unknown) {
       logger.error('Together AI API Error', { error: getErrorMessage(error) });
-      throw new Error(`Together AI API Error: ${getErrorMessage(error)}`);
+      const msg = getErrorMessage(error);
+      if (msg.toLowerCase().includes('insufficient') || msg.toLowerCase().includes('billing') || msg.toLowerCase().includes('credit')) {
+        throw new Error(`AI_BILLING_ERROR: The Together AI account has insufficient credits. Please top up at api.together.xyz/settings/billing.`);
+      }
+      if ((error as any)?.status === 429 || msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('too many requests')) {
+        throw new Error(`AI_RATE_LIMIT_ERROR: Too many requests to Together AI. Please wait a moment before trying again.`);
+      }
+      throw new Error(`Together AI API Error: ${msg}`);
     }
   }
 
