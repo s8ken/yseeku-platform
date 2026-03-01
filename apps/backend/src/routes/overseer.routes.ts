@@ -180,16 +180,17 @@ router.get('/status', protect, requireTenant, async (req: Request, res: Response
   try {
     const tenant = req.userTenant || 'default';
 
-    // Fetch the most recent brain cycle for this tenant first,
-    // then fall back to ANY recent cycle (Overseer is a global brain,
-    // scheduler may use Tenant._id which differs from JWT tenant strings)
-    let lastCycle = await BrainCycle.findOne({ tenantId: tenant })
+    // Overseer is a global brain — the scheduler stores cycles under
+    // Tenant._id (ObjectId) while JWT resolves to string names like
+    // 'default' or 'demo-tenant'. Always fetch the most recent cycle
+    // globally, then fall back to tenant-specific if needed.
+    let lastCycle = await BrainCycle.findOne()
       .sort({ completedAt: -1 })
       .lean();
 
     if (!lastCycle) {
-      // Fallback: get most recent cycle from any tenant (global Overseer)
-      lastCycle = await BrainCycle.findOne()
+      // Edge case: try tenant-specific (shouldn't normally happen)
+      lastCycle = await BrainCycle.findOne({ tenantId: tenant })
         .sort({ completedAt: -1 })
         .lean();
     }
