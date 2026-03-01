@@ -227,7 +227,8 @@ export default function RiskManagementPage() {
   });
 
   // Build trust principles from demo-aware KPI data
-  const avgScore = kpisData?.trustScore ? kpisData.trustScore * 10 : 0;
+  // trustScore is now on 0-100 scale from backend
+  const avgScore = kpisData?.trustScore || 0;
   
   const trustPrinciples: TrustPrinciple[] = kpisData?.principleScores ? [
     { name: 'Consent Architecture', weight: 25, score: kpisData.principleScores.consent || Math.round(avgScore), critical: true },
@@ -255,7 +256,7 @@ export default function RiskManagementPage() {
   }, 0);
 
   const metrics: RiskMetrics = {
-    overallRiskScore: kpisData?.riskScore || Math.round(Math.max(0, 100 - overallTrustScore) * 0.2),
+    overallRiskScore: kpisData?.riskScore ? Math.round(kpisData.riskScore * 10) : Math.round(Math.max(0, 100 - overallTrustScore)), // riskScore from backend is 0-10, display as 0-100
     trustScore: overallTrustScore,
     complianceRate: passRate,
     activeAlerts: alertsData?.summary?.total || riskAlerts.length,

@@ -205,12 +205,12 @@ router.get('/status', protect, requireTenant, async (req: Request, res: Response
         message: lastCycle?.thought || 'Systems operating within normal parameters. Awaiting next analysis cycle.',
         metrics: lastCycle?.metrics ? {
           agentCount: lastCycle.metrics.agentCount || 0,
-          systemTrustScore: lastCycle.metrics.avgTrust || 8.0,
+          systemTrustScore: lastCycle.metrics.avgTrust ? Math.round(lastCycle.metrics.avgTrust * 10 * 10) / 10 : 80.0, // Convert 0-10 to 0-100 scale
           alertsProcessed: lastCycle.metrics.alertsProcessed || 0,
           actionsPlanned: lastCycle.metrics.actionsPlanned || 0,
         } : {
           agentCount: 0,
-          systemTrustScore: 8.0,
+          systemTrustScore: 80.0, // Default 80/100 when no cycles
           alertsProcessed: 0,
           actionsPlanned: 0,
         },

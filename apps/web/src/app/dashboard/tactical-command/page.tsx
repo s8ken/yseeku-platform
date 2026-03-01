@@ -178,7 +178,7 @@ export default function TacticalCommandPage() {
             {trendIcon(kpis?.trends?.trustScore)}
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpisLoading ? '—' : Math.round((kpis?.trustScore ?? 0) * 10)}</div>
+            <div className="text-2xl font-bold">{kpisLoading ? '—' : Math.round(kpis?.trustScore ?? 0)}</div>
             <p className="text-xs text-muted-foreground">
               {kpis?.sonateDimensions?.trustProtocol ? `Protocol: ${kpis.sonateDimensions.trustProtocol}` : 'Protocol: N/A'}
             </p>

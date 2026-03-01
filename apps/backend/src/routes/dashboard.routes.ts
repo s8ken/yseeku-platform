@@ -189,19 +189,20 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
           };
         }
 
-        const avgScore = ((data.avgClarity || 0) + (data.avgIntegrity || 0) + (data.avgQuality || 0)) / 3 * 10;
+        // CIQ values are 0-1 scale, convert to 0-100 scale for trustScore
+        const avgScore = ((data.avgClarity || 0) + (data.avgIntegrity || 0) + (data.avgQuality || 0)) / 3;
         const complianceRate = Math.round((data.passCount / data.count) * 100 * 10) / 10;
 
         return {
-          trustScore: Math.round(avgScore * 10) / 10,
+          trustScore: Math.round(avgScore * 100 * 10) / 10, // Convert 0-1 to 0-100 scale with 1 decimal precision
           count: data.count,
           complianceRate,
           principleScores: {
-            transparency: Math.round((data.avgClarity || 0) * 100) / 100,
-            fairness: Math.round((data.avgIntegrity || 0) * 100) / 100,
-            privacy: Math.round((data.avgQuality || 0) * 100) / 100,
-            safety: Math.round((data.avgIntegrity || 0) * 100) / 100,
-            accountability: Math.round((data.avgClarity || 0) * 100) / 100,
+            transparency: Math.round((data.avgClarity || 0) * 100 * 10) / 10,
+            fairness: Math.round((data.avgIntegrity || 0) * 100 * 10) / 10,
+            privacy: Math.round((data.avgQuality || 0) * 100 * 10) / 10,
+            safety: Math.round((data.avgIntegrity || 0) * 100 * 10) / 10,
+            accountability: Math.round((data.avgClarity || 0) * 100 * 10) / 10,
           },
         };
       };
@@ -226,7 +227,7 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
         totalInteractions: allData.count,
         activeAgents: activeAgentsCount,
         complianceRate: allMetrics.complianceRate,
-        riskScore: allMetrics.trustScore > 0 ? Math.round((100 - allMetrics.trustScore) / 10) : 0,
+        riskScore: allMetrics.trustScore > 0 ? Math.round((100 - allMetrics.trustScore) / 10 * 10) / 10 : 0, // Convert risk to 0-10 scale with 1 decimal
         alertsCount,
         experimentsRunning: experimentsCount,
         orchestratorsActive: 0,
@@ -235,10 +236,10 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
           trustProtocol: allMetrics.count === 0 ? 'N/A' : 
             allMetrics.complianceRate >= 80 ? 'PASS' : 
             allMetrics.complianceRate >= 60 ? 'PARTIAL' : 'FAIL',
-          ethicalAlignment: Math.round((allMetrics.trustScore / 20) * 10) / 10,
+          ethicalAlignment: Math.round((allMetrics.trustScore / 20) * 10) / 10, // Convert 0-100 to 0-5 scale
           resonanceQuality: allMetrics.count === 0 ? 'NONE' :
             allMetrics.trustScore >= 85 ? 'ADVANCED' : 
-            allMetrics.trustScore >= 70 ? 'STRONG' : 'BASIC',
+            allMetrics.trustScore >= 70 ? 'STRONG' : 'BASIC', // trustScore on 0-100 scale
           // Deprecated fields - kept for backward compatibility, always return 0
           realityIndex: 0,
           canvasParity: 0,
@@ -329,19 +330,20 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
 
     // Convert aggregated conversation metrics to KPI format
     const calculateTrustMetricsFromAggregation = (data: any) => {
-      const trustScore = (data.avgTrust || 85) * 2; // Convert 0-5 to 0-10
-      const complianceRate = (data.avgTrust || 85) * 20; // Convert to percentage
+      const avgTrustNormalized = data.avgTrust || 4.25; // Default to 85/100 (4.25 on 0-5 scale)
+      const trustScore = avgTrustNormalized * 20; // Convert 0-5 to 0-100 scale
+      const complianceRate = avgTrustNormalized * 20; // Convert to percentage
       
       return {
         trustScore: Math.round(trustScore * 10) / 10,
         totalMessages: data.totalMessages || 0,
         complianceRate: Math.round(complianceRate * 10) / 10,
         principleScores: {
-          transparency: Math.round((data.avgTrust || 8.5) * 10) / 10,
-          fairness: Math.round((data.avgTrust || 8.5) * 10) / 10,
-          privacy: Math.round((data.avgTrust || 8.5) * 10) / 10,
-          safety: Math.round((data.avgTrust || 8.5) * 10) / 10,
-          accountability: Math.round((data.avgTrust || 8.5) * 10) / 10,
+          transparency: Math.round(avgTrustNormalized * 20 * 10) / 10, // Convert 0-5 to 0-100
+          fairness: Math.round(avgTrustNormalized * 20 * 10) / 10,
+          privacy: Math.round(avgTrustNormalized * 20 * 10) / 10,
+          safety: Math.round(avgTrustNormalized * 20 * 10) / 10,
+          accountability: Math.round(avgTrustNormalized * 20 * 10) / 10,
         },
       };
     };
@@ -355,8 +357,8 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
     // v2.0.1: Only 3 validated dimensions
     const sonateDimensions = {
       trustProtocol: allMetrics.complianceRate >= 80 ? 'PASS' : allMetrics.complianceRate >= 60 ? 'PARTIAL' : 'FAIL',
-      ethicalAlignment: Math.round((allMetrics.trustScore / 20) * 10) / 10, // Convert 0-10 to 0-5
-      resonanceQuality: allMetrics.trustScore >= 85 ? 'ADVANCED' : allMetrics.trustScore >= 70 ? 'STRONG' : 'BASIC',
+      ethicalAlignment: Math.round((allMetrics.trustScore / 20) * 10) / 10, // Convert 0-100 to 0-5 scale
+      resonanceQuality: allMetrics.trustScore >= 85 ? 'ADVANCED' : allMetrics.trustScore >= 70 ? 'STRONG' : 'BASIC', // trustScore on 0-100 scale
       // Deprecated fields - kept for backward compatibility, always return 0
       realityIndex: 0,
       canvasParity: 0,

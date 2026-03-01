@@ -241,7 +241,7 @@ export default function DashboardPage() {
       {/* Human-Readable Summary - only show if we have data */}
       {kpis && !hasNoData && (
         <HumanReadableSummary 
-          trustScore={kpis.trustScore}
+          trustScore={Math.round(kpis.trustScore)}
           bedauIndex={displayKpis.bedau?.index ?? 0}
           activeAgents={kpis.activeAgents}
           interactionsCount={kpis.totalInteractions}
@@ -275,7 +275,7 @@ export default function DashboardPage() {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <KPICard
                   title="Trust Score"
-                  value={kpis.trustScore}
+                  value={Math.round(kpis.trustScore)}
                   unit="/100"
                   icon={Shield}
                   trend={kpis.trends?.trustScore}
