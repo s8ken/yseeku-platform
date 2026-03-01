@@ -78,8 +78,9 @@ export async function gatherSensors(tenantId: string): Promise<SensorData> {
     return ((ciq.quality || 0) + (ciq.integrity || 0) + (ciq.clarity || 0)) / 3;
   });
 
+  // avgTrust on 0-100 scale (CIQ metrics are 0-1, so multiply by 100)
   const avgTrust = trustScores.length > 0
-    ? Math.round(trustScores.reduce((s, v) => s + v, 0) / trustScores.length)
+    ? Math.round((trustScores.reduce((s, v) => s + v, 0) / trustScores.length) * 100)
     : 85;
 
   // 3. Historical statistics

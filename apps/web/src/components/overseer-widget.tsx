@@ -226,13 +226,26 @@ export function OverseerWidget() {
             {/* Metrics Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 pt-4 border-t border-white/10">
               {/* System Trust */}
-              <MetricCard
-                icon={<Shield size={14} />}
-                label="System Trust"
-                value={status.metrics?.systemTrustScore?.toFixed(1) || 'N/A'}
-                suffix="/10"
-                trend={status.metrics?.systemTrustScore ? (status.metrics.systemTrustScore >= 7 ? 'up' : status.metrics.systemTrustScore >= 5 ? 'stable' : 'down') : undefined}
-              />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="cursor-help">
+                    <MetricCard
+                      icon={<Shield size={14} />}
+                      label="System Trust"
+                      value={status.metrics?.systemTrustScore?.toFixed(1) || 'N/A'}
+                      suffix="/100"
+                      trend={status.metrics?.systemTrustScore ? (status.metrics.systemTrustScore >= 70 ? 'up' : status.metrics.systemTrustScore >= 50 ? 'stable' : 'down') : undefined}
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p className="text-sm">
+                    <strong>System Trust</strong> is Overseer's evaluation of overall system health based on recent AI interactions.
+                    This differs from <strong>Overall Trust Score</strong> which measures individual interaction quality.
+                    System Trust considers aggregate patterns, trends, and governance metrics.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
 
               {/* Active Agents */}
               <MetricCard

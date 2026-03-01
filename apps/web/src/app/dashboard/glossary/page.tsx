@@ -137,6 +137,12 @@ const GLOSSARY: GlossaryTerm[] = [
     relatedTerms: ['SONATE Framework', 'Reality Index', 'Trust Protocol'],
   },
   {
+    term: 'System Trust',
+    definition: 'Overseer\'s holistic evaluation (0-100) of overall system health based on recent AI interactions, aggregate patterns, trends, and governance metrics. Differs from Overall Trust Score which measures individual interaction quality. System Trust considers cross-agent patterns and system-wide risk indicators.',
+    category: 'technical',
+    relatedTerms: ['Trust Score', 'Overseer', 'Trust Protocol'],
+  },
+  {
     term: 'Trust Receipt',
     definition: 'Cryptographically signed record of a trust verification event, forming an immutable audit trail. Contains interaction details, trust scores, and cryptographic signatures.',
     category: 'technical',
