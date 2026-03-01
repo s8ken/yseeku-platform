@@ -73,15 +73,18 @@ export async function gatherSensors(tenantId: string): Promise<SensorData> {
     .lean();
 
   // 2. Calculate trust metrics with history
-  const trustScores = receipts.map((r: any) => {
-    const ciq = r.ciq_metrics || {};
-    return ((ciq.quality || 0) + (ciq.integrity || 0) + (ciq.clarity || 0)) / 3;
-  });
+  // Filter out unevaluated receipts (CIQ all zeros = no evaluation was performed)
+  const trustScores = receipts
+    .map((r: any) => {
+      const ciq = r.ciq_metrics || {};
+      return ((ciq.quality || 0) + (ciq.integrity || 0) + (ciq.clarity || 0)) / 3;
+    })
+    .filter((score: number) => score > 0); // Exclude unevaluated receipts
 
   // avgTrust on 0-100 scale (CIQ metrics are 0-1, so multiply by 100)
   const avgTrust = trustScores.length > 0
-    ? Math.round((trustScores.reduce((s, v) => s + v, 0) / trustScores.length) * 100)
-    : 85;
+    ? Math.round((trustScores.reduce((s: number, v: number) => s + v, 0) / trustScores.length) * 100)
+    : 85; // Default to 85/100 when no evaluated receipts exist
 
   // 3. Historical statistics
   const historicalMean = calculateMean(trustScores);
