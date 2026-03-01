@@ -21,7 +21,7 @@ import { authApi } from './auth';
 import { dashboardApi } from './dashboard';
 import { agentsApi } from './agents';
 import { trustApi } from './trust';
-import { overseerApi } from './overseer';
+import { overseerApi, executeAction, getActionLog } from './overseer';
 import { conversationsApi } from './conversations';
 import { labApi } from './lab';
 import { adminApi } from './admin';
@@ -81,6 +81,8 @@ export const api = {
   getOverseerEffectiveness: overseerApi.getEffectiveness,
   getOverseerRecommendations: overseerApi.getRecommendations,
   setOverseerMode: overseerApi.setMode,
+  executeAction,
+  getActionLog,
 
   // Conversations
   createConversation: conversationsApi.createConversation,

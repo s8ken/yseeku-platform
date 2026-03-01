@@ -49,7 +49,9 @@ import {
   MessageSquare,
   Compass,
   GraduationCap,
-  Eye
+  Eye,
+  Zap,
+  TrendingUp
 } from 'lucide-react';
 import { useTutorialStore } from '@/store/useTutorialStore';
 import { dashboardTutorialSteps } from '@/components/tutorial/steps';
@@ -87,14 +89,17 @@ const moduleSections: ModuleSection[] = [
     badge: 'LIVE',
     items: [
       { title: 'Dashboard', href: '/dashboard', icon: Home, roles: ['admin', 'user', 'viewer'], module: 'detect' },
-      { title: 'Tactical Command', href: '/dashboard/tactical-command', icon: Compass, roles: ['admin', 'user', 'viewer'], module: 'detect' },
+      { title: 'Incident Response', href: '/dashboard/tactical-command', icon: Compass, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Live Monitor', href: '/dashboard/monitoring/live', icon: Activity, roles: ['admin', 'user'], module: 'detect' },
+      { title: 'Phase-Shift Velocity', href: '/dashboard/monitoring/phase-shift', icon: Zap, roles: ['admin', 'user'], module: 'detect' },
+      { title: 'Drift Detection', href: '/dashboard/monitoring/drift', icon: TrendingUp, roles: ['admin', 'user'], module: 'detect' },
+      { title: 'Emergence', href: '/dashboard/monitoring/emergence', icon: Waves, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Trust Session', href: '/dashboard/chat', icon: Sparkles, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Agents', href: '/dashboard/agents', icon: Bot, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Interactions', href: '/dashboard/interactions', icon: MessageSquare, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Trust Receipts', href: '/dashboard/receipts', icon: Fingerprint, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Verify Receipt', href: '/dashboard/verify', icon: ShieldCheck, roles: ['admin', 'user', 'viewer'], module: 'detect' },
-      { title: 'Risk & Compliance', href: '/dashboard/risk', icon: Waves, roles: ['admin', 'user'], module: 'detect' },
+      { title: 'Risk & Compliance', href: '/dashboard/risk', icon: BarChart3, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Overseer', href: '/dashboard/overseer', icon: Eye, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Alerts', href: '/dashboard/alerts', icon: AlertTriangle, roles: ['admin', 'user'], module: 'detect' },
     ]
@@ -134,7 +139,10 @@ const moduleSections: ModuleSection[] = [
 const ESSENTIAL_ITEMS = new Set([
   '/dashboard',           // Main dashboard
   '/dashboard/tactical-command',
-  '/dashboard/monitoring/live', // Live Monitor (Phase-Shift Velocity)
+  '/dashboard/monitoring/live', // Live Monitor
+  '/dashboard/monitoring/phase-shift', // Phase-Shift Velocity
+  '/dashboard/monitoring/drift', // Drift Detection
+  '/dashboard/monitoring/emergence', // Linguistic Emergence
   '/dashboard/chat',      // Trust Session
   '/dashboard/agents',    // Agents
   '/dashboard/interactions', // Interactions (enterprise tracking)
@@ -425,7 +433,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link href="/dashboard/tactical-command">
               <Button variant="outline" size="sm" className="gap-2">
                 <Compass className="h-4 w-4" />
-                <span className="hidden sm:inline">Tactical Command</span>
+                <span className="hidden sm:inline">Incident Response</span>
               </Button>
             </Link>
 

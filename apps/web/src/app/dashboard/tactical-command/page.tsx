@@ -2,167 +2,281 @@
 
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { fetchAPI } from '@/lib/api/client';
 import { useDashboardKPIs } from '@/hooks/use-demo-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { toast } from 'sonner';
 import {
   Activity,
   AlertTriangle,
   Bot,
   CheckCircle2,
   ExternalLink,
-  GitBranch,
   RefreshCw,
-  TrendingDown,
+  Shield,
+  ShieldAlert,
+  Siren,
   TrendingUp,
+  Waves,
+  Zap,
+  Play,
+  Clock,
 } from 'lucide-react';
 
-type Trend = { change: number; direction: string };
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-const trendIcon = (trend?: Trend) => {
-  if (!trend) return null;
-  if (trend.direction === 'up') return <TrendingUp className="h-4 w-4 text-emerald-600" />;
-  if (trend.direction === 'down') return <TrendingDown className="h-4 w-4 text-red-600" />;
-  return <Activity className="h-4 w-4 text-muted-foreground" />;
+interface ActiveSignal {
+  id: string;
+  kind: 'phase-shift' | 'drift' | 'emergence';
+  label: string;
+  severity: 'warning' | 'critical';
+  value: string;
+  conversationId?: string;
+  timestamp?: number;
+}
+
+interface ActionRecommendation {
+  id: string;
+  actionType: string;
+  target?: string;
+  reason?: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  confidence: number;
+}
+
+interface ActionLogEntry {
+  id: string;
+  actionType: string;
+  target: string;
+  executedAt: string;
+  success: boolean;
+  userId?: string;
+  reason?: string;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const KIND_ICON: Record<string, React.ReactNode> = {
+  'phase-shift': <Zap className="h-4 w-4 text-blue-600" />,
+  drift: <TrendingUp className="h-4 w-4 text-orange-600" />,
+  emergence: <Waves className="h-4 w-4 text-purple-600" />,
 };
 
-const severityBadgeClass = (severity: string) => {
-  const s = String(severity || '').toLowerCase();
-  if (s === 'critical') return 'bg-red-600 text-white';
-  if (s === 'error' || s === 'high') return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-  if (s === 'warning' || s === 'medium') return 'bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-300';
-  if (s === 'info' || s === 'low') return 'bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-300';
-  return 'bg-muted text-muted-foreground';
+const KIND_LABEL: Record<string, string> = {
+  'phase-shift': 'Phase-Shift',
+  drift: 'Drift',
+  emergence: 'Emergence',
 };
 
-export default function TacticalCommandPage() {
-  const {
-    data: kpis,
-    isLoading: kpisLoading,
-    refetch: refetchKpis,
-    isFetching: kpisFetching,
-  } = useDashboardKPIs();
+const PRIORITY_CONFIG: Record<string, { badge: 'default' | 'secondary' | 'destructive' | 'outline'; label: string }> = {
+  critical: { badge: 'destructive', label: 'Critical' },
+  high: { badge: 'default', label: 'High' },
+  medium: { badge: 'secondary', label: 'Medium' },
+  low: { badge: 'outline', label: 'Low' },
+};
 
-  const {
-    data: alertsResp,
-    isLoading: alertsLoading,
-    refetch: refetchAlerts,
-    isFetching: alertsFetching,
-  } = useQuery({
-    queryKey: ['tactical-command', 'alerts', 'active'],
-    queryFn: async () => {
-      const mod = await import('@/lib/api');
-      return (mod.api.getAlertsManagement({ status: 'active' }) as any) as any;
-    },
-  });
+const ACTION_LABELS: Record<string, string> = {
+  ban_agent: 'Ban Agent',
+  restrict_agent: 'Restrict Agent',
+  quarantine_agent: 'Quarantine Agent',
+  unban_agent: 'Unban Agent',
+  alert: 'Raise Alert',
+  adjust_threshold: 'Adjust Threshold',
+};
 
-  const {
-    data: agentsResp,
-    isLoading: agentsLoading,
-    refetch: refetchAgents,
-    isFetching: agentsFetching,
-  } = useQuery({
-    queryKey: ['tactical-command', 'agents'],
+const isDestructive = (actionType: string) =>
+  ['ban_agent', 'quarantine_agent', 'restrict_agent'].includes(actionType);
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function IncidentResponsePage() {
+  // System Health KPIs
+  const { data: kpis, isLoading: kpisLoading, refetch: refetchKpis, isFetching: kpisFetching } = useDashboardKPIs();
+
+  // Agents for fleet count
+  const { data: agentsResp, refetch: refetchAgents, isFetching: agentsFetching } = useQuery({
+    queryKey: ['incident-response', 'agents'],
     queryFn: () => api.getAgents(),
   });
 
-  const {
-    data: workflows,
-    isLoading: workflowsLoading,
-    refetch: refetchWorkflows,
-    isFetching: workflowsFetching,
-  } = useQuery({
-    queryKey: ['tactical-command', 'workflows'],
-    queryFn: () => api.getWorkflows(),
+  // PSV recent alerts
+  const { data: psvResp, refetch: refetchPsv, isFetching: psvFetching } = useQuery({
+    queryKey: ['incident-response', 'psv-recent'],
+    queryFn: () =>
+      fetchAPI<{ success: boolean; data: { events: any[]; count: number } }>(
+        '/api/phase-shift/recent?limit=5'
+      ).catch(() => ({ success: false, data: { events: [], count: 0 } })),
+    refetchInterval: 20000,
   });
 
-  const isRefreshing = kpisFetching || alertsFetching || agentsFetching || workflowsFetching;
+  // Drift recent alerts
+  const { data: driftResp, refetch: refetchDrift, isFetching: driftFetching } = useQuery({
+    queryKey: ['incident-response', 'drift-recent'],
+    queryFn: () =>
+      fetchAPI<{ success: boolean; data: { events: any[]; count: number } }>(
+        '/api/drift/recent?limit=5'
+      ).catch(() => ({ success: false, data: { events: [], count: 0 } })),
+    refetchInterval: 20000,
+  });
 
-  const alerts = useMemo(() => {
-    const list = (alertsResp as any)?.data?.alerts;
-    return Array.isArray(list) ? list : [];
-  }, [alertsResp]);
+  // Emergence recent signals
+  const { data: emergenceResp, refetch: refetchEmergence, isFetching: emergenceFetching } = useQuery({
+    queryKey: ['incident-response', 'emergence-recent'],
+    queryFn: () =>
+      fetchAPI<{ success: boolean; data: { signals: any[]; count: number } }>(
+        '/api/emergence/recent?limit=5'
+      ).catch(() => ({ success: false, data: { signals: [], count: 0 } })),
+    refetchInterval: 20000,
+  });
 
-  const alertsSummary = useMemo(() => {
-    const summary = (alertsResp as any)?.data?.summary;
-    if (summary) {
-      return {
-        critical: Number(summary?.critical || 0),
-        error: Number(summary?.error || 0),
-        warning: Number(summary?.warning || 0),
-        info: Number(summary?.info || 0),
-        active: Number(summary?.active || 0),
-      };
-    }
+  // Brain recommendations
+  const { data: recsResp, refetch: refetchRecs, isFetching: recsFetching } = useQuery({
+    queryKey: ['incident-response', 'recommendations'],
+    queryFn: () =>
+      fetchAPI<{ success: boolean; data: { recommendations: ActionRecommendation[] } }>(
+        '/api/actions/recommendations'
+      ).catch(() => ({ success: false, data: { recommendations: [] } })),
+    refetchInterval: 30000,
+  });
 
-    const counts = { critical: 0, error: 0, warning: 0, info: 0, active: 0 };
-    for (const a of alerts) {
-      const s = String((a as any).severity || '').toLowerCase();
-      if (s === 'critical') counts.critical += 1;
-      else if (s === 'error' || s === 'high') counts.error += 1;
-      else if (s === 'warning' || s === 'medium') counts.warning += 1;
-      else if (s === 'info' || s === 'low') counts.info += 1;
-      counts.active += 1;
-    }
+  // Recent action log
+  const { data: logResp, refetch: refetchLog, isFetching: logFetching } = useQuery({
+    queryKey: ['incident-response', 'action-log'],
+    queryFn: () =>
+      fetchAPI<{ success: boolean; data: { log: ActionLogEntry[]; count: number } }>(
+        '/api/actions/log?limit=8'
+      ).catch(() => ({ success: false, data: { log: [], count: 0 } })),
+    refetchInterval: 15000,
+  });
 
-    return counts;
-  }, [alertsResp, alerts]);
+  // Execute action mutation
+  const executeMutation = useMutation({
+    mutationFn: async (rec: ActionRecommendation) => {
+      if (isDestructive(rec.actionType)) {
+        const ok = window.confirm(
+          `⚠️ Confirm ${ACTION_LABELS[rec.actionType] ?? rec.actionType}\n\nTarget: ${rec.target ?? 'unknown'}\nReason: ${rec.reason ?? '—'}\n\nThis action will modify agent status.`
+        );
+        if (!ok) throw new Error('Action cancelled by operator');
+      }
+      return api.executeAction({
+        actionType: rec.actionType,
+        target: rec.target ?? '',
+        recommendationId: rec.id,
+        reason: rec.reason,
+      });
+    },
+    onSuccess: (_, rec) => {
+      toast.success(`${ACTION_LABELS[rec.actionType] ?? rec.actionType} executed`, {
+        description: `Target: ${rec.target ?? 'unknown'}`,
+      });
+      refetchLog();
+    },
+    onError: (err: any) => {
+      if (err.message === 'Action cancelled by operator') {
+        toast.info('Action cancelled');
+      } else {
+        toast.error('Failed to execute action', { description: err.message });
+      }
+    },
+  });
 
-  const agents = useMemo(() => {
-    const list = (agentsResp as any)?.data?.agents;
-    return Array.isArray(list) ? list : [];
-  }, [agentsResp]);
+  // ── Derived data ──────────────────────────────────────────────────────────
 
   const agentsSummary = useMemo(() => {
     const s = (agentsResp as any)?.data?.summary;
-    return {
-      total: Number(s?.total || 0),
-      active: Number(s?.active || 0),
-      inactive: Number(s?.inactive || 0),
-      avgTrustScore: Number(s?.avgTrustScore || 0),
-    };
+    return { total: Number(s?.total || 0), active: Number(s?.active || 0) };
   }, [agentsResp]);
+
+  const activeSignals = useMemo<ActiveSignal[]>(() => {
+    const signals: ActiveSignal[] = [];
+
+    // PSV signals
+    for (const ev of (psvResp as any)?.data?.events ?? []) {
+      signals.push({
+        id: `psv-${ev.conversationId}-${ev.timestamp}`,
+        kind: 'phase-shift',
+        label: `PSV ${Number(ev.currentVelocity ?? ev.velocity ?? 0).toFixed(2)} — ${ev.transitionType ?? 'phase shift'}`,
+        severity: ev.alertLevel === 'red' ? 'critical' : 'warning',
+        value: `v=${Number(ev.currentVelocity ?? ev.velocity ?? 0).toFixed(2)}`,
+        conversationId: ev.conversationId,
+        timestamp: ev.timestamp,
+      });
+    }
+
+    // Drift signals
+    for (const ev of (driftResp as any)?.data?.events ?? []) {
+      signals.push({
+        id: `drift-${ev.conversationId}-${ev.timestamp}`,
+        kind: 'drift',
+        label: `Drift score ${Math.round(ev.driftScore)}`,
+        severity: ev.alertLevel === 'red' ? 'critical' : 'warning',
+        value: `${Math.round(ev.driftScore)}/100`,
+        conversationId: ev.conversationId,
+        timestamp: ev.timestamp,
+      });
+    }
+
+    // Emergence signals (only strong+)
+    for (const s of (emergenceResp as any)?.data?.signals ?? []) {
+      if (!['strong', 'breakthrough'].includes(s.level)) continue;
+      signals.push({
+        id: `em-${s.id ?? s.conversationId}`,
+        kind: 'emergence',
+        label: `${s.type?.replace(/_/g, ' ') ?? 'signal'} — ${s.level}`,
+        severity: s.level === 'breakthrough' ? 'critical' : 'warning',
+        value: `${(s.confidence * 100).toFixed(0)}% conf`,
+        conversationId: s.conversationId,
+        timestamp: s.timestamp ? new Date(s.timestamp).getTime() : undefined,
+      });
+    }
+
+    // Sort by timestamp desc
+    signals.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
+    return signals;
+  }, [psvResp, driftResp, emergenceResp]);
+
+  const recommendations: ActionRecommendation[] = (recsResp as any)?.data?.recommendations ?? [];
+  const actionLog: ActionLogEntry[] = (logResp as any)?.data?.log ?? [];
+
+  const isRefreshing = kpisFetching || agentsFetching || psvFetching || driftFetching || emergenceFetching || recsFetching || logFetching;
+
+  const handleRefreshAll = () => {
+    refetchKpis(); refetchAgents(); refetchPsv(); refetchDrift();
+    refetchEmergence(); refetchRecs(); refetchLog();
+  };
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="flex-1 space-y-6 p-4 pt-6 md:p-8">
+      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tactical Command</h1>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+            <Siren className="h-7 w-7 text-red-600" />
+            Incident Response Hub
+          </h1>
           <p className="text-muted-foreground mt-1">
-            Operational view of metrics, alerts, agents, and workflows.
+            Active signals, actionable recommendations, and execution log — all in one place.
           </p>
-          {kpis?.timestamp && (
-            <div className="text-xs text-muted-foreground mt-2">
-              Last updated: {new Date(kpis.timestamp).toLocaleString()}
-            </div>
-          )}
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/dashboard/monitoring">
+          <Link href="/dashboard/brain">
             <Button variant="outline" size="sm" className="gap-2">
               <Activity className="h-4 w-4" />
-              Monitoring
-            </Button>
-          </Link>
-          <Link href="/tactical-command/v2" target="_blank" rel="noreferrer">
-            <Button variant="outline" size="sm" className="gap-2">
-              <ExternalLink className="h-4 w-4" />
-              Open v2
+              System Brain
             </Button>
           </Link>
           <Button
             variant="outline"
             size="sm"
             className="gap-2"
-            onClick={() => {
-              refetchKpis();
-              refetchAlerts();
-              refetchAgents();
-              refetchWorkflows();
-            }}
+            onClick={handleRefreshAll}
             disabled={isRefreshing}
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -171,201 +285,130 @@ export default function TacticalCommandPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Trust Index</CardTitle>
-            {trendIcon(kpis?.trends?.trustScore)}
+      {/* System Health Strip */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Trust Index</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{kpisLoading ? '—' : Math.round((kpis?.trustScore ?? 0) * 10)}</div>
-            <p className="text-xs text-muted-foreground">
-              {kpis?.sonateDimensions?.trustProtocol ? `Protocol: ${kpis.sonateDimensions.trustProtocol}` : 'Protocol: N/A'}
-            </p>
+            <Progress value={(kpis?.trustScore ?? 0) * 100} className="h-1 mt-2" />
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Compliance</CardTitle>
-            {trendIcon(kpis?.trends?.compliance)}
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Compliance</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{kpisLoading ? '—' : `${Math.round(kpis?.complianceRate ?? 0)}%`}</div>
-            <p className="text-xs text-muted-foreground">Pass rate (tenant-scoped)</p>
+            <Progress value={kpis?.complianceRate ?? 0} className="h-1 mt-2" />
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Risk Score</CardTitle>
-            {trendIcon(kpis?.trends?.risk)}
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Risk Score</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpisLoading ? '—' : (kpis?.riskScore ?? 0)}</div>
-            <p className="text-xs text-muted-foreground">Lower is better</p>
+            <div className={`text-2xl font-bold ${(kpis?.riskScore ?? 0) > 60 ? 'text-red-600' : (kpis?.riskScore ?? 0) > 30 ? 'text-amber-600' : ''}`}>
+              {kpisLoading ? '—' : (kpis?.riskScore ?? 0)}
+            </div>
+            <Progress value={kpis?.riskScore ?? 0} className="h-1 mt-2" />
           </CardContent>
         </Card>
-
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Interactions</CardTitle>
-            {trendIcon(kpis?.trends?.interactions)}
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Active Agents</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpisLoading ? '—' : (kpis?.totalInteractions ?? 0)}</div>
-            <p className="text-xs text-muted-foreground">Total receipts/messages</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
-            <Bot className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{agentsLoading ? '—' : agentsSummary.active}</div>
-            <p className="text-xs text-muted-foreground">Total: {agentsLoading ? '—' : agentsSummary.total}</p>
+            <div className="text-2xl font-bold">{agentsSummary.active}</div>
+            <p className="text-xs text-muted-foreground mt-1">of {agentsSummary.total} total</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-12">
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        {/* Active Signals */}
         <Card className="lg:col-span-7">
           <CardHeader className="flex flex-row items-start justify-between gap-4">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-600" />
-                Alerts
+                <ShieldAlert className="h-5 w-5 text-red-600" />
+                Active Signals
+                {activeSignals.length > 0 && (
+                  <Badge variant="destructive" className="ml-1">{activeSignals.length}</Badge>
+                )}
               </CardTitle>
-              <CardDescription>
-                Active alerts requiring triage
-              </CardDescription>
+              <CardDescription>Phase-Shift, Drift, and Emergence alerts requiring attention</CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge className={severityBadgeClass('critical')}>Critical: {alertsSummary.critical}</Badge>
-              <Badge className={severityBadgeClass('error')}>Error: {alertsSummary.error}</Badge>
-              <Badge className={severityBadgeClass('warning')}>Warning: {alertsSummary.warning}</Badge>
-              <Link href="/dashboard/alerts">
-                <Button variant="outline" size="sm">Manage</Button>
+            <div className="flex items-center gap-1">
+              <Link href="/dashboard/monitoring/phase-shift">
+                <Button variant="ghost" size="sm" className="text-xs gap-1 text-blue-600">
+                  <Zap className="h-3 w-3" /> PSV
+                </Button>
+              </Link>
+              <Link href="/dashboard/monitoring/drift">
+                <Button variant="ghost" size="sm" className="text-xs gap-1 text-orange-600">
+                  <TrendingUp className="h-3 w-3" /> Drift
+                </Button>
+              </Link>
+              <Link href="/dashboard/monitoring/emergence">
+                <Button variant="ghost" size="sm" className="text-xs gap-1 text-purple-600">
+                  <Waves className="h-3 w-3" /> Emergence
+                </Button>
               </Link>
             </div>
           </CardHeader>
           <CardContent>
-            {alertsLoading ? (
-              <div className="text-sm text-muted-foreground">Loading alerts…</div>
-            ) : alerts.length === 0 ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle2 className="h-4 w-4" />
-                No active alerts
+            {activeSignals.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-10 text-muted-foreground">
+                <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+                <p className="text-sm font-medium">All clear — no active signals</p>
+                <p className="text-xs">Phase-Shift, Drift, and Emergence monitors show no alerts</p>
               </div>
             ) : (
               <div className="space-y-2">
-                {alerts.slice(0, 8).map((a: any) => (
-                  <div key={a.id} className="flex items-start justify-between gap-4 rounded-md border p-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <Badge className={severityBadgeClass(a.severity)}>{String(a.severity || 'unknown')}</Badge>
-                        <div className="font-medium truncate">{a.title}</div>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{a.description}</div>
-                      <div className="text-[11px] text-muted-foreground mt-2">
-                        {a.timestamp ? new Date(a.timestamp).toLocaleString() : ''}
-                        {a.type ? ` • ${a.type}` : ''}
-                      </div>
-                    </div>
-                    <div className="shrink-0">
-                      <Link href="/dashboard/alerts">
-                        <Button variant="outline" size="sm">Open</Button>
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-5">
-          <CardHeader className="flex flex-row items-start justify-between gap-4">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5 text-muted-foreground" />
-                Agents
-              </CardTitle>
-              <CardDescription>
-                Fleet overview (trust + activity)
-              </CardDescription>
-            </div>
-            <Link href="/dashboard/agents">
-              <Button variant="outline" size="sm">View all</Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            {agentsLoading ? (
-              <div className="text-sm text-muted-foreground">Loading agents…</div>
-            ) : agents.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No agents found</div>
-            ) : (
-              <div className="space-y-2">
-                {agents
-                  .slice()
-                  .sort((a: any, b: any) => Number(b.trustScore || 0) - Number(a.trustScore || 0))
-                  .slice(0, 8)
-                  .map((agent: any) => (
-                    <div key={agent.id} className="flex items-center justify-between gap-4 rounded-md border p-3">
+                {activeSignals.map((signal) => (
+                  <div
+                    key={signal.id}
+                    className={`flex items-center justify-between gap-3 p-3 rounded-lg border ${
+                      signal.severity === 'critical'
+                        ? 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
+                        : 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="shrink-0">{KIND_ICON[signal.kind]}</div>
                       <div className="min-w-0">
-                        <div className="font-medium truncate">{agent.name}</div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {agent.lastInteraction ? `Last: ${new Date(agent.lastInteraction).toLocaleString()}` : 'Last: N/A'}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline" className="text-xs shrink-0">
+                            {KIND_LABEL[signal.kind]}
+                          </Badge>
+                          <span className="text-sm font-medium truncate">{signal.label}</span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs text-muted-foreground">{signal.value}</span>
+                          {signal.timestamp && (
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(signal.timestamp).toLocaleTimeString()}
+                            </span>
+                          )}
                         </div>
                       </div>
-                      <div className="shrink-0 text-right">
-                        <div className="text-sm font-semibold">{Number(agent.trustScore || 0).toFixed(1)}</div>
-                        <div className="text-[11px] text-muted-foreground">Trust</div>
-                      </div>
                     </div>
-                  ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-7">
-          <CardHeader className="flex flex-row items-start justify-between gap-4">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <GitBranch className="h-5 w-5 text-muted-foreground" />
-                Workflows
-              </CardTitle>
-              <CardDescription>
-                Multi-agent workflows and recent execution posture
-              </CardDescription>
-            </div>
-            <Link href="/dashboard/orchestrate">
-              <Button variant="outline" size="sm">Open orchestration</Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            {workflowsLoading ? (
-              <div className="text-sm text-muted-foreground">Loading workflows…</div>
-            ) : !workflows || (Array.isArray(workflows) && workflows.length === 0) ? (
-              <div className="text-sm text-muted-foreground">No workflows yet</div>
-            ) : (
-              <div className="space-y-2">
-                {(workflows as any[]).slice(0, 8).map((wf: any, idx: number) => (
-                  <div key={wf._id || wf.id || idx} className="flex items-center justify-between gap-4 rounded-md border p-3">
-                    <div className="min-w-0">
-                      <div className="font-medium truncate">{wf.name || 'Unnamed workflow'}</div>
-                      <div className="text-xs text-muted-foreground mt-1 line-clamp-1">
-                        {wf.description || 'No description'}
-                      </div>
-                    </div>
-                    <div className="shrink-0">
-                      {wf.status ? (
-                        <Badge variant={wf.status === 'active' ? 'default' : 'secondary'}>{wf.status}</Badge>
-                      ) : (
-                        <Badge variant="outline">unknown</Badge>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant={signal.severity === 'critical' ? 'destructive' : 'secondary'} className="text-xs">
+                        {signal.severity === 'critical' ? 'Critical' : 'Warning'}
+                      </Badge>
+                      {signal.conversationId && (
+                        <Link href={`/dashboard/interactions/${signal.conversationId}`}>
+                          <Button variant="outline" size="sm" className="gap-1 text-xs h-7">
+                            <ExternalLink className="h-3 w-3" />
+                            View
+                          </Button>
+                        </Link>
                       )}
                     </div>
                   </div>
@@ -375,31 +418,136 @@ export default function TacticalCommandPage() {
           </CardContent>
         </Card>
 
+        {/* Brain Recommendations */}
         <Card className="lg:col-span-5">
           <CardHeader>
-            <CardTitle>Command Checklist</CardTitle>
-            <CardDescription>Fast operator loop</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5 text-blue-600" />
+              Brain Recommendations
+            </CardTitle>
+            <CardDescription>Execute AI-generated actions directly</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="flex items-start gap-2">
-              <span className="text-muted-foreground">1.</span>
-              <span>Scan critical alerts and acknowledge ownership.</span>
+          <CardContent>
+            {recommendations.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
+                <Shield className="h-8 w-8" />
+                <p className="text-sm">No recommendations right now</p>
+                <p className="text-xs">System Brain generates these based on signals</p>
+                <Link href="/dashboard/brain">
+                  <Button variant="outline" size="sm" className="mt-2">Open System Brain</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {recommendations.slice(0, 6).map((rec: ActionRecommendation) => {
+                  const priorityCfg = PRIORITY_CONFIG[rec.priority] ?? PRIORITY_CONFIG.medium;
+                  const isExecuting = executeMutation.isPending && (executeMutation.variables as any)?.id === rec.id;
+                  return (
+                    <div key={rec.id} className="rounded-lg border p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant={priorityCfg.badge} className="text-xs shrink-0">
+                              {priorityCfg.label}
+                            </Badge>
+                            <span className="text-sm font-medium">
+                              {ACTION_LABELS[rec.actionType] ?? rec.actionType}
+                            </span>
+                          </div>
+                          {rec.target && (
+                            <div className="text-xs text-muted-foreground mt-0.5 font-mono truncate">
+                              {rec.target}
+                            </div>
+                          )}
+                          {rec.reason && (
+                            <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                              {rec.reason}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground shrink-0">
+                          {Math.round(rec.confidence * 100)}%
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={isDestructive(rec.actionType) ? 'destructive' : 'default'}
+                        className="w-full gap-2 h-7 text-xs"
+                        onClick={() => executeMutation.mutate(rec)}
+                        disabled={isExecuting || executeMutation.isPending}
+                      >
+                        {isExecuting ? (
+                          <RefreshCw className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Play className="h-3 w-3" />
+                        )}
+                        {isExecuting ? 'Executing…' : 'Execute'}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Actions Log */}
+        <Card className="lg:col-span-12">
+          <CardHeader className="flex flex-row items-start justify-between gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-muted-foreground" />
+                Recent Actions
+              </CardTitle>
+              <CardDescription>Operator-executed actions from System Brain recommendations</CardDescription>
             </div>
-            <div className="flex items-start gap-2">
-              <span className="text-muted-foreground">2.</span>
-              <span>Inspect agents with low trust and recent activity spikes.</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-muted-foreground">3.</span>
-              <span>Run the smallest workflow that mitigates risk.</span>
-            </div>
-            <div className="pt-2">
-              <Link href="/dashboard/brain">
-                <Button variant="outline" size="sm" className="w-full">
-                  Open System Brain
-                </Button>
-              </Link>
-            </div>
+            <Link href="/dashboard/agents">
+              <Button variant="outline" size="sm">Manage Agents</Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {actionLog.length === 0 ? (
+              <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+                <CheckCircle2 className="h-4 w-4" />
+                No actions executed yet — recommendations above can be actioned directly.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {actionLog.map((entry: ActionLogEntry) => (
+                  <div
+                    key={entry.id}
+                    className={`flex items-center justify-between gap-3 rounded-md border p-3 text-sm ${
+                      entry.success ? '' : 'border-red-200 bg-red-50 dark:bg-red-900/10'
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        {entry.success ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                        ) : (
+                          <AlertTriangle className="h-3.5 w-3.5 text-red-600 shrink-0" />
+                        )}
+                        <span className="font-medium">
+                          {ACTION_LABELS[entry.actionType] ?? entry.actionType}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5 font-mono truncate">
+                        {entry.target}
+                      </div>
+                      {entry.reason && (
+                        <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                          {entry.reason}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground shrink-0 text-right">
+                      {entry.executedAt ? new Date(entry.executedAt).toLocaleTimeString() : ''}
+                      <div>{entry.executedAt ? new Date(entry.executedAt).toLocaleDateString() : ''}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

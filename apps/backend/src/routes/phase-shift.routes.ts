@@ -286,4 +286,68 @@ router.get('/tenant/summary', protect, async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/phase-shift/recent
+ * Get recent conversations with phase-shift alerts
+ */
+router.get('/recent', protect, async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId;
+    const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
+
+    const conversations = await Conversation.find({ user: userId })
+      .select('_id messages')
+      .lean();
+
+    const alertedConversations: PhaseShiftMetrics[] = [];
+
+    for (const conversation of conversations) {
+      const aiMessages = (conversation.messages as IMessage[]).filter((m: IMessage) => m.sender === 'ai');
+      if (aiMessages.length === 0) continue;
+
+      const lastAiMessage = aiMessages[aiMessages.length - 1];
+      const psData = lastAiMessage.metadata?.trustEvaluation?.phaseShift;
+      if (!psData) continue;
+
+      const alertLevel = psData.alertLevel || 'none';
+      if (alertLevel === 'none') continue;
+
+      alertedConversations.push({
+        conversationId: (conversation as any)._id.toString(),
+        currentVelocity: psData.velocity || 0,
+        alertLevel,
+        deltaResonance: psData.deltaResonance || 0,
+        deltaCanvas: psData.deltaCanvas || 0,
+        identityStability: psData.identityStability || 1.0,
+        transitionType: psData.transitionType,
+        timestamp: lastAiMessage.timestamp ? new Date(lastAiMessage.timestamp).getTime() : Date.now(),
+        turnNumber: aiMessages.length,
+      });
+    }
+
+    // Sort by timestamp descending, then by velocity descending
+    alertedConversations.sort((a, b) => {
+      if (b.timestamp !== a.timestamp) return b.timestamp - a.timestamp;
+      return b.currentVelocity - a.currentVelocity;
+    });
+
+    const results = alertedConversations.slice(0, limit);
+
+    res.json({
+      success: true,
+      data: {
+        events: results,
+        count: results.length,
+        total: alertedConversations.length,
+      },
+    });
+  } catch (error) {
+    logger.error('Error fetching recent phase-shift events:', error);
+    res.status(500).json({
+      success: false,
+      error: getErrorMessage(error),
+    });
+  }
+});
+
 export default router;

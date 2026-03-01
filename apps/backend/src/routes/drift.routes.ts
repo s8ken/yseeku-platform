@@ -332,4 +332,68 @@ router.get('/tenant/summary', protect, async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/drift/recent
+ * Get recent conversations with drift alerts
+ */
+router.get('/recent', protect, async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId;
+    const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
+
+    const conversations = await Conversation.find({ user: userId })
+      .select('_id messages')
+      .lean();
+
+    const alertedConversations: DriftMetrics[] = [];
+
+    for (const conversation of conversations) {
+      const aiMessages = (conversation.messages as IMessage[]).filter((m: IMessage) => m.sender === 'ai');
+      if (aiMessages.length === 0) continue;
+
+      const lastAiMessage = aiMessages[aiMessages.length - 1];
+      const driftData = lastAiMessage.metadata?.trustEvaluation?.drift || lastAiMessage.metadata?.drift;
+      if (!driftData) continue;
+
+      const driftScore = driftData.driftScore || 0;
+      let alertLevel: 'none' | 'yellow' | 'red' = 'none';
+      if (driftScore > 60) alertLevel = 'red';
+      else if (driftScore > 30) alertLevel = 'yellow';
+
+      if (alertLevel === 'none') continue;
+
+      alertedConversations.push({
+        conversationId: (conversation as any)._id.toString(),
+        driftScore,
+        tokenDelta: driftData.tokenDelta || 0,
+        vocabDelta: driftData.vocabDelta || 0,
+        numericDelta: driftData.numericDelta || 0,
+        alertLevel,
+        timestamp: lastAiMessage.timestamp ? new Date(lastAiMessage.timestamp).getTime() : Date.now(),
+        turnNumber: aiMessages.length,
+      });
+    }
+
+    // Sort by drift score descending
+    alertedConversations.sort((a, b) => b.driftScore - a.driftScore);
+
+    const results = alertedConversations.slice(0, limit);
+
+    res.json({
+      success: true,
+      data: {
+        events: results,
+        count: results.length,
+        total: alertedConversations.length,
+      },
+    });
+  } catch (error) {
+    logger.error('[Drift] Error fetching recent drift events:', error);
+    res.status(500).json({
+      success: false,
+      error: getErrorMessage(error),
+    });
+  }
+});
+
 export default router;

@@ -122,3 +122,36 @@ export const overseerApi = {
 };
 
 export default overseerApi;
+
+export interface ExecuteActionParams {
+  actionType: string;
+  target: string;
+  recommendationId?: string;
+  reason?: string;
+}
+
+export interface ExecuteActionResult {
+  actionId: string;
+  actionType: string;
+  target: string;
+  executedAt: string;
+  result: Record<string, any>;
+}
+
+export async function executeAction(params: ExecuteActionParams): Promise<ExecuteActionResult> {
+  const res = await fetchAPI<{ success: boolean; data: ExecuteActionResult }>(
+    '/api/actions/execute',
+    {
+      method: 'POST',
+      body: JSON.stringify(params),
+    }
+  );
+  return res.data;
+}
+
+export async function getActionLog(limit = 10): Promise<any[]> {
+  const res = await fetchAPI<{ success: boolean; data: { log: any[]; count: number } }>(
+    `/api/actions/log?limit=${limit}`
+  );
+  return res.data?.log ?? [];
+}

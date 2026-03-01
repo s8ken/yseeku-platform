@@ -404,18 +404,45 @@ export default function SystemBrainDashboard() {
 
   // Handle recommendation actions
   const executeRecommendationMutation = useMutation({
-    mutationFn: async (rec: any) => {
-      // In a real implementation, this would call the specific API for the action
-      // For now, we simulate execution and then remove the recommendation
-      return new Promise(resolve => setTimeout(resolve, 1000));
+    mutationFn: async (rec: ActionRecommendation) => {
+      const destructive = ['ban_agent', 'quarantine_agent'].includes(rec.actionType);
+      if (destructive) {
+        const confirmed = window.confirm(
+          `⚠️ Confirm ${rec.actionType.replace('_', ' ').toUpperCase()}
+
+` +
+          `Target: ${rec.target ?? 'unknown'}
+` +
+          `Reason: ${rec.reason}
+
+` +
+          `This action will immediately affect the agent. Proceed?`
+        );
+        if (!confirmed) throw new Error('Action cancelled by operator');
+      }
+      return api.executeAction({
+        actionType: rec.actionType,
+        target: rec.target ?? '',
+        recommendationId: rec.id,
+        reason: rec.reason,
+      });
     },
-    onSuccess: (_, rec) => {
-      toast.success(`Executed action: ${rec.actionType}`);
+    onSuccess: (data, rec) => {
+      toast.success(`Executed: ${rec.actionType}`, {
+        description: `Action completed at ${new Date().toLocaleTimeString()}`,
+      });
       queryClient.setQueryData(['brain-recommendations', tenant], (old: any) => {
         if (!old) return old;
         if (Array.isArray(old)) return old.filter((r: any) => r?.id !== rec?.id);
         return old;
       });
+    },
+    onError: (error: any) => {
+      if (error.message === 'Action cancelled by operator') {
+        toast.info('Action cancelled');
+      } else {
+        toast.error('Failed to execute action', { description: error.message });
+      }
     },
   });
 

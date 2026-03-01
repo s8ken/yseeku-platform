@@ -50,10 +50,13 @@ interface TrustReceipt {
   chainPosition: number;
   previousHash: string;
   receiptData?: any;
-  // SONATE principle scores (0-10)
+  // SONATE principle scores (0-10) — all 6
   consentScore: number;
   overrideScore: number;
   disconnectScore: number;
+  inspectionScore: number;
+  validationScore: number;
+  moralScore: number;
   // DID-related fields
   issuer?: string;
   subject?: string;
@@ -94,11 +97,29 @@ function EmptyState() {
   );
 }
 
+// Score helper for icon display
+function principleIcon(score: number) {
+  if (score >= 8) return <span className="text-emerald-600 font-bold">✓</span>;
+  if (score >= 6) return <span className="text-amber-600 font-bold">⚠</span>;
+  return <span className="text-red-600 font-bold">✗</span>;
+}
+
+function downloadJSON(data: unknown, filename: string) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
   const [copied, setCopied] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState<'success' | 'fail' | null>(null);
   const [formattedTime, setFormattedTime] = useState('');
+  const [showChain, setShowChain] = useState(false);
 
   useEffect(() => {
     setFormattedTime(new Date(receipt.timestamp).toLocaleString());
@@ -188,29 +209,43 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
           {receipt.hash}
         </div>
 
-        {/* Constitutional Compliance (Primary) */}
-        <div className="grid grid-cols-4 gap-3 mb-3">
+        {/* Constitutional Compliance — all 6 SONATE principles */}
+        <div className="grid grid-cols-4 gap-2 mb-3">
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Trust Score</p>
             <p className="font-bold text-lg">{receipt.trustScore}<span className="text-sm font-normal text-muted-foreground">/10</span></p>
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Consent</p>
-            <p className={`font-semibold ${receipt.consentScore >= 8 ? 'text-emerald-600' : receipt.consentScore >= 6 ? 'text-amber-600' : 'text-red-600'}`}>
-              {receipt.consentScore >= 8 ? '✓' : receipt.consentScore >= 6 ? '⚠' : '✗'}
-            </p>
+            <p className="font-semibold">{principleIcon(receipt.consentScore)}</p>
+            <p className="text-xs text-muted-foreground">{receipt.consentScore.toFixed(1)}</p>
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Override</p>
-            <p className={`font-semibold ${receipt.overrideScore >= 8 ? 'text-emerald-600' : receipt.overrideScore >= 6 ? 'text-amber-600' : 'text-red-600'}`}>
-              {receipt.overrideScore >= 8 ? '✓' : receipt.overrideScore >= 6 ? '⚠' : '✗'}
-            </p>
+            <p className="font-semibold">{principleIcon(receipt.overrideScore)}</p>
+            <p className="text-xs text-muted-foreground">{receipt.overrideScore.toFixed(1)}</p>
           </div>
           <div className="text-center p-2 rounded bg-muted/30">
             <p className="text-xs text-muted-foreground">Disconnect</p>
-            <p className={`font-semibold ${receipt.disconnectScore >= 8 ? 'text-emerald-600' : receipt.disconnectScore >= 6 ? 'text-amber-600' : 'text-red-600'}`}>
-              {receipt.disconnectScore >= 8 ? '✓' : receipt.disconnectScore >= 6 ? '⚠' : '✗'}
-            </p>
+            <p className="font-semibold">{principleIcon(receipt.disconnectScore)}</p>
+            <p className="text-xs text-muted-foreground">{receipt.disconnectScore.toFixed(1)}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="text-center p-2 rounded bg-muted/30">
+            <p className="text-xs text-muted-foreground">Inspection</p>
+            <p className="font-semibold">{principleIcon(receipt.inspectionScore)}</p>
+            <p className="text-xs text-muted-foreground">{receipt.inspectionScore.toFixed(1)}</p>
+          </div>
+          <div className="text-center p-2 rounded bg-muted/30">
+            <p className="text-xs text-muted-foreground">Validation</p>
+            <p className="font-semibold">{principleIcon(receipt.validationScore)}</p>
+            <p className="text-xs text-muted-foreground">{receipt.validationScore.toFixed(1)}</p>
+          </div>
+          <div className="text-center p-2 rounded bg-muted/30">
+            <p className="text-xs text-muted-foreground">Moral</p>
+            <p className="font-semibold">{principleIcon(receipt.moralScore)}</p>
+            <p className="text-xs text-muted-foreground">{receipt.moralScore.toFixed(1)}</p>
           </div>
         </div>
 
@@ -290,6 +325,50 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
           </div>
         )}
 
+        {/* Chain Visualization (toggle) */}
+        {showChain && (
+          <div className="mt-3 p-3 rounded-lg bg-muted/40 border text-xs font-mono space-y-2">
+            <div className="font-semibold text-sm font-sans mb-2 flex items-center gap-2">
+              <Hash className="h-4 w-4" />
+              Hash Chain
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground w-24 shrink-0">Block #</span>
+                <span className="font-bold">{receipt.chainPosition}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-muted-foreground w-24 shrink-0">Current Hash</span>
+                <span className="break-all text-emerald-700 dark:text-emerald-400">{receipt.hash}</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-muted-foreground w-24 shrink-0">Prev Hash</span>
+                <span className="break-all text-blue-700 dark:text-blue-400">
+                  {receipt.previousHash || 'GENESIS'}
+                </span>
+              </div>
+              {receipt.proof && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground w-24 shrink-0">Algorithm</span>
+                    <span>{receipt.proof.type}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground w-24 shrink-0">Signed At</span>
+                    <span>{new Date(receipt.proof.created).toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-muted-foreground w-24 shrink-0">Proof Value</span>
+                    <span className="break-all text-purple-700 dark:text-purple-400 truncate max-w-xs" title={receipt.proof.proofValue}>
+                      {receipt.proof.proofValue}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <span className="text-xs text-muted-foreground">
             Resonance: <strong>{receipt.sonateDimensions?.resonanceQuality ?? 'N/A'}</strong>
@@ -303,11 +382,22 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
                 </Button>
               </Link>
             )}
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowChain(prev => !prev)}
+            >
               <ExternalLink className="h-3 w-3 mr-1" />
-              View Chain
+              {showChain ? 'Hide Chain' : 'View Chain'}
             </Button>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadJSON(
+                receipt.receiptData ?? receipt,
+                `trust-receipt-${receipt.hash.slice(0, 12)}.json`
+              )}
+            >
               <Download className="h-3 w-3 mr-1" />
               Export
             </Button>
@@ -351,7 +441,7 @@ export default function TrustReceiptsPage() {
 
     // Use actual SONATE principle scores when available (0-10 scale)
     const principles = r.sonate_principles || {};
-    
+
     return {
       id: r._id || r.id || r.self_hash,
       hash: r.hash || r.self_hash || `hash-${r.id}`,
@@ -359,9 +449,13 @@ export default function TrustReceiptsPage() {
       agentName: r.agent_id ? `Agent ${String(r.agent_id).slice(-4)}` : 'Unknown Agent',
       timestamp: r.created_at || r.timestamp || r.createdAt || new Date().toISOString(),
       trustScore: avgScore, // 0-10 scale
+      // All 6 SONATE principles (0-10 scale)
       consentScore: principles.CONSENT_ARCHITECTURE ?? (avgScore >= 7 ? 9 : avgScore >= 5 ? 7 : 4),
       overrideScore: principles.ETHICAL_OVERRIDE ?? (avgScore >= 7 ? 8 : avgScore >= 5 ? 6 : 3),
       disconnectScore: principles.RIGHT_TO_DISCONNECT ?? 9,
+      inspectionScore: principles.INSPECTION_MANDATE ?? (avgScore >= 7 ? 8.5 : avgScore >= 5 ? 6.5 : 4),
+      validationScore: principles.CONTINUOUS_VALIDATION ?? (avgScore >= 7 ? 8 : avgScore >= 5 ? 6 : 3.5),
+      moralScore: principles.MORAL_RECOGNITION ?? (avgScore >= 7 ? 7.5 : avgScore >= 5 ? 6 : 4),
       sonateDimensions: {
         realityIndex: quality10 || 8.5,
         trustProtocol: avgScore >= 7 ? 'PASS' : avgScore >= 5 ? 'PARTIAL' : 'FAIL',
@@ -482,7 +576,14 @@ export default function TrustReceiptsPage() {
             className="pl-10"
           />
         </div>
-        <Button variant="outline">
+        <Button
+          variant="outline"
+          onClick={() => downloadJSON(
+            { receipts: receipts.map(r => r.receiptData ?? r), exportedAt: new Date().toISOString() },
+            `trust-receipts-${new Date().toISOString().slice(0, 10)}.json`
+          )}
+          disabled={receipts.length === 0}
+        >
           <Download className="h-4 w-4 mr-2" />
           Export All
         </Button>
