@@ -180,14 +180,22 @@ router.get('/status', protect, requireTenant, async (req: Request, res: Response
   try {
     const tenant = req.userTenant || 'default';
 
-    // Fetch the most recent brain cycle
-    const lastCycle = await BrainCycle.findOne({ tenantId: tenant })
+    // Fetch the most recent brain cycle for this tenant first,
+    // then fall back to ANY recent cycle (Overseer is a global brain,
+    // scheduler may use Tenant._id which differs from JWT tenant strings)
+    let lastCycle = await BrainCycle.findOne({ tenantId: tenant })
       .sort({ completedAt: -1 })
       .lean();
 
-    // Fetch recent actions count
+    if (!lastCycle) {
+      // Fallback: get most recent cycle from any tenant (global Overseer)
+      lastCycle = await BrainCycle.findOne()
+        .sort({ completedAt: -1 })
+        .lean();
+    }
+
+    // Fetch recent actions count (check both tenant-specific and global)
     const recentActionsCount = await BrainAction.countDocuments({
-      tenantId: tenant,
       createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
     });
 
