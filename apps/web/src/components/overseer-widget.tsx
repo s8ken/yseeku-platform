@@ -138,9 +138,10 @@ export function OverseerWidget() {
   const mode = status.mode || status.metrics?.lastCycleMode || 'advisory';
 
   return (
-    <div className="space-y-4 mb-6">
-      {/* Header with Status and Mode */}
-      <div className="flex justify-between items-center">
+    <TooltipProvider>
+      <div className="space-y-4 mb-6">
+        {/* Header with Status and Mode */}
+        <div className="flex justify-between items-center">
         <Link href="/dashboard/brain" className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <Brain size={16} />
           <span>System Brain Dashboard</span>
@@ -359,6 +360,7 @@ export function OverseerWidget() {
         </Card>
       )}
     </div>
+    </TooltipProvider>
   );
 }
 
