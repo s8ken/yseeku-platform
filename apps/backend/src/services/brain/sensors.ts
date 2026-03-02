@@ -74,16 +74,23 @@ export async function gatherSensors(tenantId: string): Promise<SensorData> {
 
   // 2. Calculate trust metrics with history
   // Filter out unevaluated receipts (CIQ all zeros = no evaluation was performed)
+  // NOTE: CIQ values in DB may be on different scales:
+  //   - 0-1 scale (from trust.service.ts, llm-trust-evaluator)
+  //   - 0-5 scale (from demo routes, legacy seeding)
+  // We normalize all values to 0-1 before averaging.
   const trustScores = receipts
     .map((r: any) => {
       const ciq = r.ciq_metrics || {};
-      return ((ciq.quality || 0) + (ciq.integrity || 0) + (ciq.clarity || 0)) / 3;
+      const raw = ((ciq.quality || 0) + (ciq.integrity || 0) + (ciq.clarity || 0)) / 3;
+      // Normalize: if avg CIQ > 1, it's on a 0-5 (or 0-10) scale — divide to get 0-1
+      if (raw > 1) return raw / 5;
+      return raw;
     })
     .filter((score: number) => score > 0); // Exclude unevaluated receipts
 
-  // avgTrust on 0-100 scale (CIQ metrics are 0-1, so multiply by 100)
+  // avgTrust on 0-100 scale (normalized CIQ 0-1 × 100)
   const avgTrust = trustScores.length > 0
-    ? Math.round((trustScores.reduce((s: number, v: number) => s + v, 0) / trustScores.length) * 100)
+    ? Math.min(100, Math.round((trustScores.reduce((s: number, v: number) => s + v, 0) / trustScores.length) * 100))
     : 85; // Default to 85/100 when no evaluated receipts exist
 
   // 3. Historical statistics
