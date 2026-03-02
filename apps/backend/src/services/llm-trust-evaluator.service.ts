@@ -139,17 +139,39 @@ Respond ONLY with valid JSON in this exact format:
  * LLM-based trust evaluator class
  */
 export class LLMTrustEvaluator {
-  private defaultProvider: string = 'anthropic';
-  private defaultModel: string = 'claude-sonnet-4-20250514'; // Used for trust evaluation scoring
+  private defaultProvider: string;
+  private defaultModel: string;
   private receiptGenerator = getReceiptGenerator();
   private tenantId?: string;
   private industryType?: string;
 
   constructor(options?: { provider?: string; model?: string; tenantId?: string; industryType?: string }) {
-    if (options?.provider) this.defaultProvider = options.provider;
-    if (options?.model) this.defaultModel = options.model;
+    // Auto-detect best available provider from env vars
+    const { provider, model } = LLMTrustEvaluator.detectProvider();
+    this.defaultProvider = options?.provider || provider;
+    this.defaultModel = options?.model || model;
     if (options?.tenantId) this.tenantId = options.tenantId;
     if (options?.industryType) this.industryType = options.industryType;
+  }
+
+  private static detectProvider(): { provider: string; model: string } {
+    const preferred = (process.env.SONATE_LLM_PROVIDER || '').toLowerCase();
+    if (preferred === 'gemini' && (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY)) {
+      return { provider: 'gemini', model: process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash' };
+    }
+    if (preferred === 'anthropic' && process.env.ANTHROPIC_API_KEY) {
+      return { provider: 'anthropic', model: 'claude-sonnet-4-20250514' };
+    }
+    if (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY) {
+      return { provider: 'gemini', model: process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash' };
+    }
+    if (process.env.ANTHROPIC_API_KEY) {
+      return { provider: 'anthropic', model: 'claude-sonnet-4-20250514' };
+    }
+    if (process.env.OPENAI_API_KEY) {
+      return { provider: 'openai', model: 'gpt-4-turbo' };
+    }
+    return { provider: 'anthropic', model: 'claude-sonnet-4-20250514' };
   }
 
   /**

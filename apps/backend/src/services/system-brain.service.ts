@@ -55,19 +55,32 @@ export class SystemBrainService {
 
     if (existingBrain) {
       this.brainAgentId = existingBrain._id.toString();
+
+      // Ensure the existing brain agent uses the best available provider
+      const { provider, model } = this.detectBestProvider();
+      if (existingBrain.provider !== provider || existingBrain.model !== model) {
+        existingBrain.provider = provider as any;
+        existingBrain.model = model as any;
+        await existingBrain.save();
+        logger.info('Brain agent provider updated', { provider, model });
+      }
+
       return existingBrain;
     }
 
     // Use provided userId or fallback to a placeholder (though system should always provide one)
     const ownerId = userId || '000000000000000000000000';
 
+    // Auto-detect best available LLM provider based on env vars
+    const { provider, model } = this.detectBestProvider();
+
     // Create new Brain Agent with enhanced system prompt
     const brain = await Agent.create({
       name: 'YSEEKU Overseer',
       description: 'Autonomous System Governance Agent',
       user: ownerId,
-      provider: 'anthropic',
-      model: 'claude-sonnet-4-20250514',
+      provider,
+      model,
       apiKeyId: ownerId,
       systemPrompt: this.getSystemPrompt(),
       temperature: 0.1, // High precision
@@ -509,6 +522,40 @@ Respond with valid JSON only:
         logger.warn('Failed to update recommendations', { error: getErrorMessage(error) });
       }
     }
+  }
+
+  /**
+   * Auto-detect the best available LLM provider based on env vars.
+   * Priority: SONATE_LLM_PROVIDER env preference → Gemini (if key exists) → Anthropic → fallback Gemini.
+   */
+  private detectBestProvider(): { provider: string; model: string } {
+    const preferred = (process.env.SONATE_LLM_PROVIDER || '').toLowerCase();
+
+    if (preferred === 'gemini' && (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY)) {
+      const model = process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash';
+      logger.info('Brain agent using Gemini (SONATE_LLM_PROVIDER preference)', { model });
+      return { provider: 'gemini', model };
+    }
+    if (preferred === 'anthropic' && process.env.ANTHROPIC_API_KEY) {
+      return { provider: 'anthropic', model: 'claude-sonnet-4-20250514' };
+    }
+
+    // Auto-detect: prefer Gemini if key is available (cheaper, less likely to have billing issues)
+    if (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY) {
+      const model = process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash';
+      logger.info('Brain agent auto-detected Gemini as provider', { model });
+      return { provider: 'gemini', model };
+    }
+    if (process.env.ANTHROPIC_API_KEY) {
+      return { provider: 'anthropic', model: 'claude-sonnet-4-20250514' };
+    }
+    if (process.env.OPENAI_API_KEY) {
+      return { provider: 'openai', model: 'gpt-4-turbo' };
+    }
+
+    // Fallback (will fail at runtime if no keys are set)
+    logger.warn('No LLM API keys detected for brain agent — using Gemini as default');
+    return { provider: 'gemini', model: 'gemini-2.0-flash' };
   }
 
   /**

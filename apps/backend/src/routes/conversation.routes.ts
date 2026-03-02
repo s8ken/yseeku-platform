@@ -543,14 +543,21 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
         const providerPriority: Array<{ provider: string; model: string; label: string }> = [
           { provider: 'anthropic', model: 'claude-sonnet-4-20250514',                              label: 'Claude'  },
           { provider: 'openai',    model: 'gpt-4-turbo',                                           label: 'GPT'     },
-          { provider: 'gemini',    model: 'gemini-1.5-flash',                                      label: 'Gemini'  },
+          { provider: 'gemini',    model: process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash',   label: 'Gemini'  },
           { provider: 'together',  model: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',          label: 'Llama'   },
           { provider: 'cohere',    model: 'command-r-plus',                                        label: 'Cohere'  },
         ];
 
+        // Check user keys first, then fall back to system env var keys
+        const systemEnvKeys: Record<string, string | undefined> = {
+          anthropic: process.env.ANTHROPIC_API_KEY,
+          openai: process.env.OPENAI_API_KEY,
+          gemini: process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY,
+        };
+
         const matchedProvider = providerPriority.find(p =>
           userKeys.some((k: any) => k.provider === p.provider && k.isActive)
-        );
+        ) || providerPriority.find(p => !!systemEnvKeys[p.provider]);
 
         if (matchedProvider) {
           const { provider, model, label } = matchedProvider;
@@ -653,15 +660,61 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
       ];
 
       try {
-        // Generate response using LLM service
-        const llmResponse = await llmService.generate({
-          provider: agent.provider,
-          model: agent.model,
-          messages,
-          temperature: agent.temperature,
-          maxTokens: agent.maxTokens,
-          userId: req.userId,
-        });
+        // Generate response using LLM service — with provider fallback on billing/config errors
+        let llmResponse: { content: string; usage?: any; model?: string; provider?: string } | undefined;
+        let usedProvider: string = agent.provider;
+        let usedModel: string = agent.model;
+
+        try {
+          llmResponse = await llmService.generate({
+            provider: agent.provider,
+            model: agent.model,
+            messages,
+            temperature: agent.temperature,
+            maxTokens: agent.maxTokens,
+            userId: req.userId,
+          });
+        } catch (primaryError: unknown) {
+          const primaryMsg = getErrorMessage(primaryError);
+          const isFallbackable = primaryMsg.includes('AI_BILLING_ERROR') ||
+            primaryMsg.includes('credit balance') ||
+            primaryMsg.includes('insufficient') ||
+            primaryMsg.includes('not configured') ||
+            primaryMsg.includes('API key');
+
+          if (!isFallbackable) throw primaryError;
+
+          // Try system-level fallback providers (env var keys)
+          const fallbackProviders = [
+            { provider: 'gemini', model: process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash', key: process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY },
+            { provider: 'openai', model: 'gpt-4-turbo', key: process.env.OPENAI_API_KEY },
+          ].filter(f => f.key && f.provider !== agent.provider);
+
+          let fallbackSuccess = false;
+          for (const fb of fallbackProviders) {
+            try {
+              logger.info('Trying fallback LLM provider', { from: agent.provider, to: fb.provider });
+              llmResponse = await llmService.generate({
+                provider: fb.provider,
+                model: fb.model,
+                messages,
+                temperature: agent.temperature,
+                maxTokens: agent.maxTokens,
+              });
+              usedProvider = fb.provider;
+              usedModel = fb.model;
+              fallbackSuccess = true;
+              logger.info('Fallback LLM provider succeeded', { provider: fb.provider });
+              break;
+            } catch (fbError: unknown) {
+              logger.warn('Fallback provider also failed', { provider: fb.provider, error: getErrorMessage(fbError) });
+            }
+          }
+
+          if (!fallbackSuccess) throw primaryError; // Re-throw original error
+        }
+
+        if (!llmResponse) throw new Error('No LLM response generated');
 
         // Add AI response to conversation
         const aiMessage: IMessage = {
@@ -670,8 +723,8 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
           agentId: agent._id,
           metadata: {
             messageId: `msg-${Date.now()}-${Math.random().toString(36).substring(7)}`,
-            model: agent.model,
-            provider: agent.provider,
+            model: usedModel,
+            provider: usedProvider,
             usage: llmResponse.usage,
           },
           ciModel: agent.ciModel,
@@ -954,12 +1007,13 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
         const isBillingError = errorMsg.includes('AI_BILLING_ERROR') || errorMsg.includes('credit balance is too low') || errorMsg.includes('insufficient credits') || errorMsg.includes('insufficient_quota');
         const isRateLimitError = errorMsg.includes('AI_RATE_LIMIT_ERROR') || errorMsg.includes('rate limit') || errorMsg.includes('too many requests');
 
-        // Billing errors → 503 Service Unavailable with user-friendly message
+        // Billing errors → 503 Service Unavailable with specific message
         if (isBillingError) {
+          const providerName = agent.provider === 'anthropic' ? 'Anthropic' : agent.provider === 'openai' ? 'OpenAI' : agent.provider;
           res.status(503).json({
             success: false,
             message: 'AI service temporarily unavailable',
-            error: 'The AI service is temporarily unavailable due to insufficient credits. Please contact your administrator.',
+            error: `Your ${providerName} account has insufficient credits. Please top up at ${agent.provider === 'anthropic' ? 'console.anthropic.com/settings/billing' : 'your provider\'s billing page'}, or add a different API key in Settings.`,
             code: 'BILLING_ERROR',
           });
           return;

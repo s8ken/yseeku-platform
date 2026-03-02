@@ -347,8 +347,8 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       const isRateLimitError = error.status === 429 || error.message?.includes('RATE_LIMIT_ERROR') || error.message?.includes('rate limited') || error.message?.includes('rate limit');
 
       if (isBillingError) {
-        toast.error('Service Unavailable', {
-          description: 'The AI service is temporarily unavailable. Please try again later or contact your administrator.',
+        toast.error('Insufficient Credits', {
+          description: error.message || 'Your AI provider account has insufficient credits. Please top up or add a different API key in Settings.',
           duration: 8000,
         });
       } else if (isRateLimitError) {
