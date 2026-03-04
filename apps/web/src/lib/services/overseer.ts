@@ -49,7 +49,7 @@ export interface ArchiveReport {
 
 export interface LiveMetrics {
   timestamp: string
-  trustScore: number        // 0-10
+  trustScore: number        // 0-100
   source: string           // GPT4, Claude, Grok, etc
   securityFlags: string[]
   velocityScore: number    // drift indicator
@@ -121,7 +121,7 @@ export function parseArchiveReport(markdown: string): ArchiveReport {
   // Calculate stats
   const totalDocs = 486
   const stats = {
-    trustScoreAvg: (trust.high * 9 + trust.medium * 6.5 + trust.low * 3) / totalDocs,
+    trustScoreAvg: ((trust.high * 9 + trust.medium * 6.5 + trust.low * 3) / totalDocs) * 10, // 0-100 scale
     driftEventRate: (drift.extreme + drift.critical + drift.moderate) / totalDocs,
     securityFlagRate: (security.total / totalDocs) * 100,
   }
@@ -206,7 +206,7 @@ export async function fetchArchiveReport(): Promise<ArchiveReport> {
       }
     },
     stats: {
-      trustScoreAvg: 6.87,
+      trustScoreAvg: 68.7, // 0-100 scale
       driftEventRate: 0.194,
       securityFlagRate: 76.1,
     }
@@ -257,7 +257,7 @@ function transformBackendReport(data: any): ArchiveReport {
       }
     },
     stats: {
-      trustScoreAvg: data.summary?.trustDistribution?.avgTrustScore || 6.87,
+      trustScoreAvg: data.summary?.trustDistribution?.avgTrustScore ? data.summary.trustDistribution.avgTrustScore * 10 : 68.7, // 0-100 scale
       driftEventRate: (data.summary?.driftMetrics ? 
         (data.summary.driftMetrics.extreme + data.summary.driftMetrics.critical + data.summary.driftMetrics.moderate) / total
         : 0.194),
@@ -276,10 +276,10 @@ export async function fetchLiveMetrics(): Promise<LiveMetrics[]> {
       const data = await response.json()
       const receipts = data.data?.receipts || data.data || []
       
-      // Transform receipts into LiveMetrics format
+      // Transform receipts into LiveMetrics format (keep 0-100 scale)
       return receipts.map((receipt: any) => ({
         timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
-        trustScore: receipt.trust_score !== undefined ? receipt.trust_score / 10 : 8.0, // Convert 0-100 to 0-10
+        trustScore: receipt.trust_score !== undefined ? Number(receipt.trust_score) : 80, // 0-100 scale
         source: receipt.model || receipt.agent_model || 'unknown',
         securityFlags: receipt.security_flags || [],
         velocityScore: receipt.drift_analysis?.velocity || 0

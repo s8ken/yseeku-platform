@@ -23,7 +23,7 @@ export function LiveTrustMetrics({ metrics }: LiveTrustMetricsProps) {
   }
 
   const avgTrust = metrics.reduce((sum, m) => sum + m.trustScore, 0) / metrics.length
-  const lowTrustCount = metrics.filter(m => m.trustScore < 5).length
+  const lowTrustCount = metrics.filter(m => m.trustScore < 50).length
   const flaggedCount = metrics.filter(m => m.securityFlags.length > 0).length
 
   return (
@@ -33,7 +33,7 @@ export function LiveTrustMetrics({ metrics }: LiveTrustMetricsProps) {
       <div className="grid grid-cols-3 gap-4">
         <div className="p-4 bg-blue-50 rounded-lg">
           <div className="text-2xl font-bold text-blue-600">
-            {avgTrust.toFixed(1)}/10
+            {Math.round(avgTrust)}/100
           </div>
           <p className="text-xs text-gray-600 mt-1">Average Trust</p>
         </div>

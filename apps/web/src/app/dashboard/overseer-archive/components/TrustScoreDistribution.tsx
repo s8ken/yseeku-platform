@@ -79,7 +79,7 @@ export function TrustScoreDistribution({ distribution }: TrustScoreDistributionP
       <div className="mt-6 pt-4 border-t border-gray-200">
         <div className="text-xs text-gray-600">
           <p className="mb-2"><strong>Total Evaluated:</strong> {total} conversations</p>
-          <p><strong>Average Score:</strong> {((distribution.high * 9 + distribution.medium * 6.5 + distribution.low * 3) / total).toFixed(2)}/10</p>
+          <p><strong>Average Score:</strong> {(((distribution.high * 9 + distribution.medium * 6.5 + distribution.low * 3) / total) * 10).toFixed(1)}/100</p>
         </div>
       </div>
     </div>

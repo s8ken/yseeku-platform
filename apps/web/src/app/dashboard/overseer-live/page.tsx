@@ -70,7 +70,7 @@ export default function OverseerLiveDashboard() {
           
           <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div className="text-3xl font-bold text-blue-600 mb-1">
-              {comparison ? comparison.liveTrustAvg.toFixed(1) : '—'}/10
+              {comparison ? Math.round(comparison.liveTrustAvg) : '—'}/100
             </div>
             <span className="text-sm text-gray-600">Avg Trust Score</span>
           </div>
@@ -108,13 +108,13 @@ export default function OverseerLiveDashboard() {
                     <div className="flex justify-between mb-2">
                       <span className="text-sm font-medium text-gray-700">Archive Baseline</span>
                       <span className="text-lg font-bold text-gray-900">
-                        {comparison.archiveTrustAvg.toFixed(2)}
+                        {Math.round(comparison.archiveTrustAvg)}/100
                       </span>
                     </div>
                     <div className="w-full h-3 bg-gray-300 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-blue-500"
-                        style={{ width: `${(comparison.archiveTrustAvg / 10) * 100}%` }}
+                        style={{ width: `${comparison.archiveTrustAvg}%` }}
                       />
                     </div>
                   </div>
@@ -123,13 +123,13 @@ export default function OverseerLiveDashboard() {
                     <div className="flex justify-between mb-2">
                       <span className="text-sm font-medium text-gray-700">Live Performance</span>
                       <span className="text-lg font-bold text-gray-900">
-                        {comparison.liveTrustAvg.toFixed(2)}
+                        {Math.round(comparison.liveTrustAvg)}/100
                       </span>
                     </div>
                     <div className="w-full h-3 bg-gray-300 rounded-full overflow-hidden">
                       <div
                         className={`h-full ${comparison.liveTrustAvg > comparison.archiveTrustAvg ? 'bg-green-500' : 'bg-orange-500'}`}
-                        style={{ width: `${(comparison.liveTrustAvg / 10) * 100}%` }}
+                        style={{ width: `${comparison.liveTrustAvg}%` }}
                       />
                     </div>
                   </div>

@@ -117,7 +117,7 @@ export default function OverseerArchiveDashboard() {
                 demonstrated high trust scores, indicating stable, predictable behavior.
               </p>
               <p className="text-gray-600 text-xs">
-                Average trust score: <strong>{data.stats.trustScoreAvg.toFixed(2)}/10</strong>
+                Average trust score: <strong>{Math.round(data.stats.trustScoreAvg)}/100</strong>
               </p>
             </div>
 

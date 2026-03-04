@@ -1117,7 +1117,7 @@ The SONATE Trust Protocol evaluates every AI response against 6 constitutional p
                   version: signedReceipt.version,
                   timestamp: new Date(signedReceipt.timestamp),
                   mode: signedReceipt.mode,
-                  ciq_metrics: { clarity: 8, integrity: 9, quality: 8 },
+                  ciq_metrics: { clarity: 0.8, integrity: 0.9, quality: 0.8 },
                   sonateDimensions: {
                     resonance: signedReceipt.telemetry?.resonance_score || 0.85,
                     coherence: 0.9,

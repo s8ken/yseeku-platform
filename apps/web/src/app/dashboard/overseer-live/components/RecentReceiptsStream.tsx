@@ -25,8 +25,8 @@ export function RecentReceiptsStream({ metrics }: RecentReceiptsStreamProps) {
   }
 
   const getTrustColor = (score: number) => {
-    if (score >= 8) return 'text-green-600 bg-green-50'
-    if (score >= 6) return 'text-yellow-600 bg-yellow-50'
+    if (score >= 80) return 'text-green-600 bg-green-50'
+    if (score >= 60) return 'text-yellow-600 bg-yellow-50'
     return 'text-red-600 bg-red-50'
   }
 
@@ -59,7 +59,7 @@ export function RecentReceiptsStream({ metrics }: RecentReceiptsStreamProps) {
             
             <div className="text-right">
               <div className={`text-lg font-bold px-3 py-1 rounded ${getTrustColor(metric.trustScore)}`}>
-                {metric.trustScore.toFixed(1)}
+                {Math.round(metric.trustScore)}
               </div>
               {metric.securityFlags.length > 0 && (
                 <p className="text-xs text-red-600 mt-1">

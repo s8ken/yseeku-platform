@@ -413,7 +413,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 
       if (msg.evaluation) {
         markdown += `### Trust Evaluation\n\n`;
-        markdown += `- **Overall Score:** ${msg.evaluation.trustScore.overall}/10\n`;
+        markdown += `- **Overall Score:** ${msg.evaluation.trustScore.overall}/100\n`;
         markdown += `- **Status:** ${msg.evaluation.status}\n`;
         markdown += `- **Reality Index:** ${msg.evaluation.detection.reality_index}\n`;
         markdown += `- **Ethical Alignment:** ${msg.evaluation.detection.ethical_alignment}\n`;
@@ -666,14 +666,14 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
                   .slice(-10)
                   .map((msg, idx) => {
                     const score = msg.evaluation!.trustScore.overall;
-                    const height = (score / 10) * 100;
-                    const color = score >= 8 ? 'bg-green-500' : score >= 6 ? 'bg-amber-500' : 'bg-red-500';
+                    const height = Math.min(100, score); // 0-100 scale maps directly to percentage
+                    const color = score >= 80 ? 'bg-green-500' : score >= 60 ? 'bg-amber-500' : 'bg-red-500';
                     return (
                       <div
                         key={idx}
                         className={cn('flex-1 rounded-t transition-all', color)}
                         style={{ height: `${height}%` }}
-                        title={`Score: ${score}/10`}
+                        title={`Score: ${score}/100`}
                       />
                     );
                   })}
@@ -698,7 +698,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
                   AVG TRUST: {(messages
                     .filter(m => m.evaluation)
                     .reduce((sum, m) => sum + (m.evaluation?.trustScore.overall || 0), 0) /
-                    messages.filter(m => m.evaluation).length || 0).toFixed(1)}/10
+                    messages.filter(m => m.evaluation).length || 0).toFixed(0)}/100
                 </div>
                 <div className="text-[9px] text-slate-400">
                   MESSAGES: {messages.length}

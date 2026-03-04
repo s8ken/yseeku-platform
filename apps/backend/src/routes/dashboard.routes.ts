@@ -189,20 +189,36 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
           };
         }
 
-        // CIQ values are 0-1 scale, convert to 0-100 scale for trustScore
-        const avgScore = ((data.avgClarity || 0) + (data.avgIntegrity || 0) + (data.avgQuality || 0)) / 3;
+        // CIQ values SHOULD be 0-1 scale, but legacy/demo data may use 0-5 or 0-10.
+        // Normalize: if avg > 1, it's not 0-1 scale. If avg > 5, it's 0-10 scale.
+        const rawClarity = data.avgClarity || 0;
+        const rawIntegrity = data.avgIntegrity || 0;
+        const rawQuality = data.avgQuality || 0;
+        const rawAvg = (rawClarity + rawIntegrity + rawQuality) / 3;
+        
+        // Normalize to 0-1
+        let normalizedAvg: number;
+        if (rawAvg > 5) {
+          normalizedAvg = rawAvg / 10;  // Was 0-10 scale
+        } else if (rawAvg > 1) {
+          normalizedAvg = rawAvg / 5;   // Was 0-5 scale
+        } else {
+          normalizedAvg = rawAvg;       // Already 0-1
+        }
+        
+        const avgScore = Math.min(1, normalizedAvg); // Cap at 1.0
         const complianceRate = Math.round((data.passCount / data.count) * 100 * 10) / 10;
 
         return {
-          trustScore: Math.round(avgScore * 100 * 10) / 10, // Convert 0-1 to 0-100 scale with 1 decimal precision
+          trustScore: Math.min(100, Math.round(avgScore * 100 * 10) / 10), // Convert 0-1 to 0-100 scale, capped
           count: data.count,
           complianceRate,
           principleScores: {
-            transparency: Math.round((data.avgClarity || 0) * 100 * 10) / 10,
-            fairness: Math.round((data.avgIntegrity || 0) * 100 * 10) / 10,
-            privacy: Math.round((data.avgQuality || 0) * 100 * 10) / 10,
-            safety: Math.round((data.avgIntegrity || 0) * 100 * 10) / 10,
-            accountability: Math.round((data.avgClarity || 0) * 100 * 10) / 10,
+            transparency: Math.min(100, Math.round(((rawClarity > 5 ? rawClarity / 10 : rawClarity > 1 ? rawClarity / 5 : rawClarity)) * 100 * 10) / 10),
+            fairness: Math.min(100, Math.round(((rawIntegrity > 5 ? rawIntegrity / 10 : rawIntegrity > 1 ? rawIntegrity / 5 : rawIntegrity)) * 100 * 10) / 10),
+            privacy: Math.min(100, Math.round(((rawQuality > 5 ? rawQuality / 10 : rawQuality > 1 ? rawQuality / 5 : rawQuality)) * 100 * 10) / 10),
+            safety: Math.min(100, Math.round(((rawIntegrity > 5 ? rawIntegrity / 10 : rawIntegrity > 1 ? rawIntegrity / 5 : rawIntegrity)) * 100 * 10) / 10),
+            accountability: Math.min(100, Math.round(((rawClarity > 5 ? rawClarity / 10 : rawClarity > 1 ? rawClarity / 5 : rawClarity)) * 100 * 10) / 10),
           },
         };
       };

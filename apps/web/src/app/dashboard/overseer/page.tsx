@@ -189,7 +189,7 @@ export default function OverseerHub() {
                         demonstrated high trust scores, indicating stable, predictable behavior.
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Average trust score: <strong>{archiveData.stats.trustScoreAvg.toFixed(2)}/10</strong>
+                        Average trust score: <strong>{Math.round(archiveData.stats.trustScoreAvg)}/100</strong>
                       </p>
                     </div>
 
@@ -279,9 +279,9 @@ export default function OverseerHub() {
               <CardContent>
                 <div className="text-3xl font-bold">
                   {liveMetrics.length > 0 
-                    ? (liveMetrics.reduce((sum, m) => sum + m.trustScore, 0) / liveMetrics.length).toFixed(1)
+                    ? Math.round(liveMetrics.reduce((sum, m) => sum + m.trustScore, 0) / liveMetrics.length)
                     : '—'
-                  }/10
+                  }/100
                 </div>
               </CardContent>
             </Card>
@@ -327,13 +327,13 @@ export default function OverseerHub() {
                         <div className="flex justify-between mb-2">
                           <span className="text-sm font-medium text-muted-foreground">Archive (486 docs)</span>
                           <span className="text-lg font-bold">
-                            {comparison.archiveTrustAvg.toFixed(2)}
+                            {Math.round(comparison.archiveTrustAvg)}/100
                           </span>
                         </div>
                         <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-primary"
-                            style={{ width: `${(comparison.archiveTrustAvg / 10) * 100}%` }}
+                            style={{ width: `${comparison.archiveTrustAvg}%` }}
                           />
                         </div>
                         <p className="text-xs text-muted-foreground mt-2">Baseline from SONATE-archives</p>
@@ -343,13 +343,13 @@ export default function OverseerHub() {
                         <div className="flex justify-between mb-2">
                           <span className="text-sm font-medium text-muted-foreground">Live (today)</span>
                           <span className="text-lg font-bold">
-                            {comparison.liveTrustAvg.toFixed(2)}
+                            {Math.round(comparison.liveTrustAvg)}/100
                           </span>
                         </div>
                         <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                           <div
                             className={`h-full ${comparison.liveTrustAvg > comparison.archiveTrustAvg ? 'bg-emerald-500' : 'bg-amber-500'}`}
-                            style={{ width: `${(comparison.liveTrustAvg / 10) * 100}%` }}
+                            style={{ width: `${comparison.liveTrustAvg}%` }}
                           />
                         </div>
                         <p className="text-xs text-muted-foreground mt-2">{comparison.receiptCount} receipts generated</p>
