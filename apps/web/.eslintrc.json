@@ -19,6 +19,7 @@
     "@typescript-eslint/explicit-function-return-type": "warn",
     "@typescript-eslint/ban-ts-comment": "warn",
     "@typescript-eslint/no-non-null-assertion": "warn",
+    "import/no-cycle": "off",
     "import/order": "warn",
     "import/newline-after-import": "warn",
     "curly": "warn",

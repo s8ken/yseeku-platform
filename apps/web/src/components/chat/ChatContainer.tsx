@@ -70,7 +70,7 @@ Status is reported as **PASS** (≥7.0), **PARTIAL** (4.0–6.9), or **FAIL** (<
       status: 'PASS',
       detection: { reality_index: 9.5, trust_protocol: 'PASS', ethical_alignment: 4.9, resonance_quality: 'ADVANCED', canvas_parity: 98 },
       timestamp: Date.now(),
-      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'constitutional', trustMethod: 'content-analysis', confidence: 0.97 },
+      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'heuristic', trustMethod: 'content-analysis', confidence: 0.97 },
     },
   },
 
@@ -118,7 +118,7 @@ Critical principle violations (Consent or Ethical Override) always result in **F
       status: 'PASS',
       detection: { reality_index: 9.7, trust_protocol: 'PASS', ethical_alignment: 5.0, resonance_quality: 'ADVANCED', canvas_parity: 99 },
       timestamp: Date.now(),
-      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'constitutional', trustMethod: 'content-analysis', confidence: 0.98 },
+      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'heuristic', trustMethod: 'content-analysis', confidence: 0.98 },
     },
   },
 
@@ -170,7 +170,7 @@ Complete audit bundles can be pinned to IPFS, giving the receipt chain a permane
       status: 'PASS',
       detection: { reality_index: 9.6, trust_protocol: 'PASS', ethical_alignment: 4.9, resonance_quality: 'ADVANCED', canvas_parity: 97 },
       timestamp: Date.now(),
-      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'constitutional', trustMethod: 'content-analysis', confidence: 0.97 },
+      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'heuristic', trustMethod: 'content-analysis', confidence: 0.97 },
     },
   },
 
@@ -206,7 +206,7 @@ SONATE's cryptographic receipt chain exists precisely to create the audit trail 
       status: 'PASS',
       detection: { reality_index: 9.1, trust_protocol: 'PASS', ethical_alignment: 4.9, resonance_quality: 'ADVANCED', canvas_parity: 96 },
       timestamp: Date.now(),
-      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'constitutional', trustMethod: 'content-analysis', confidence: 0.96 },
+      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'heuristic', trustMethod: 'content-analysis', confidence: 0.96 },
     },
   },
 };
