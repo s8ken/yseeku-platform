@@ -64,8 +64,8 @@ interface AgentCIQSeries {
 
 const THRESHOLDS = {
   LINEAR: 0.15,
-  WEAK_EMERGENCE: 0.40,
-  HIGH_WEAK_EMERGENCE: 0.65,
+  WEAK_EMERGENCE: 0.65,      // <= 0.65 is WEAK_EMERGENCE (0.15-0.65 range)
+  HIGH_WEAK_EMERGENCE: 0.65, // > 0.65 is HIGH_WEAK_EMERGENCE
 } as const;
 
 const WEIGHTS = {
