@@ -143,13 +143,13 @@ Critical principle violations (Consent or Ethical Override) always result in **F
 
 **How the chain works**
 
-Each receipt includes the hash of the *previous* receipt (`prev_hash`). This means:
+Each receipt includes the hash of the *previous* receipt (\`prev_hash\`). This means:
 
-1. Receipt #1 is generated and hashed → produces `H1`
-2. Receipt #2 includes `prev_hash: H1`, then is hashed → produces `H2`
-3. Receipt #3 includes `prev_hash: H2`, and so on
+1. Receipt #1 is generated and hashed → produces \`H1\`
+2. Receipt #2 includes \`prev_hash: H1\`, then is hashed → produces \`H2\`
+3. Receipt #3 includes \`prev_hash: H2\`, and so on
 
-If anyone tampers with Receipt #1 after the fact, its hash changes — which invalidates Receipt #2's `prev_hash`, which invalidates Receipt #3, and so on. **Any alteration breaks the entire chain from that point forward.**
+If anyone tampers with Receipt #1 after the fact, its hash changes — which invalidates Receipt #2's \`prev_hash\`, which invalidates Receipt #3, and so on. **Any alteration breaks the entire chain from that point forward.**
 
 **Ed25519 signing**
 
