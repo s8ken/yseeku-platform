@@ -1,0 +1,37 @@
+{
+  "name": "sonate-receipt",
+  "version": "1.0.0",
+  "description": "SONATE Trust Receipt Client — SSL/TLS for AI. Sign and verify interactions.",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "author": "Stephen Aitken <stephen@yseeku.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/s8ken/yseeku-platform.git",
+    "directory": "packages/sonate-receipt"
+  },
+  "keywords": [
+    "sonate",
+    "trust-receipt",
+    "ai-trust",
+    "cryptography",
+    "governance",
+    "verifiable-ai"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --watch --dts",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@yseeku/trust-receipts": "^1.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}

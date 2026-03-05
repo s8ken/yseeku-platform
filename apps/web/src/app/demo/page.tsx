@@ -55,19 +55,26 @@ export default function DemoHome() {
       
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
         <div className="mb-6">
-          <span className="inline-flex items-center gap-2 bg-cyan-500/20 text-cyan-400 text-sm font-medium px-4 py-2 rounded-full border border-cyan-500/30">
-            <Shield className="h-4 w-4" />
-            The Trust Layer for AI
-          </span>
+          <Link href="https://github.com/s8ken/yseeku-platform/blob/main/docs/TRUST_RECEIPT_SPECIFICATION_v1.md" target="_blank">
+            <span className="inline-flex items-center gap-2 bg-cyan-500/20 text-cyan-400 text-sm font-medium px-4 py-2 rounded-full border border-cyan-500/30 hover:bg-cyan-500/30 transition-colors">
+              <Shield className="h-4 w-4" />
+              SONATE Protocol v1.0
+            </span>
+          </Link>
         </div>
 
-        <h1 className="text-6xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 mb-4">
-          YSEEKU
+        <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
+          AI actions should be <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">verifiable.</span>
         </h1>
-        <p className="text-xl md:text-2xl text-slate-300 mb-2">Enterprise AI Trust Platform</p>
-        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-10">
-          Cryptographic proof for every AI interaction. Real-time drift detection.
-          Enterprise compliance out of the box.
+        
+        <p className="text-xl md:text-2xl text-slate-300 mb-6 font-medium">
+          SONATE creates cryptographic receipts for every AI decision.
+        </p>
+        
+        <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+          The open standard for AI trust. Signed, hash-chained, and verifiable 
+          independent of the provider. Experience the YSEEKU enterprise orchestration 
+          platform in action.
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -75,53 +82,64 @@ export default function DemoHome() {
             size="lg" 
             onClick={handleEnterDemo}
             disabled={isRedirecting}
-            className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white px-8 py-6 text-lg"
+            className="bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white px-10 py-7 text-xl shadow-lg shadow-cyan-500/20"
           >
             {isRedirecting ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Entering Demo...
+                Initializing Protocol...
               </>
             ) : (
               <>
-                Try Interactive Demo
+                Enter Platform Demo
                 <ArrowRight className="ml-2 h-5 w-5" />
               </>
             )}
           </Button>
-          <Link href="https://yseeku.com/how-it-works" target="_blank">
-            <Button size="lg" variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-800 px-8 py-6 text-lg">
-              How It Works
+          <Link href="https://www.npmjs.com/package/sonate-receipt" target="_blank">
+            <Button size="lg" variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-800 px-10 py-7 text-xl">
+              npm install sonate-receipt
             </Button>
           </Link>
         </div>
         
+        <div className="flex items-center justify-center gap-8 mb-16 grayscale opacity-50">
+           <div className="text-slate-400 font-mono text-sm tracking-widest uppercase">Layer 1: SONATE</div>
+           <div className="w-12 h-px bg-slate-700"></div>
+           <div className="text-slate-400 font-mono text-sm tracking-widest uppercase">Layer 2: YSEEKU</div>
+        </div>
+        
         {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 text-left">
-            <div className="h-10 w-10 rounded-lg bg-cyan-500/20 flex items-center justify-center mb-4">
-              <Activity className="h-5 w-5 text-cyan-400" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 text-left transition-all hover:border-cyan-500/50 group">
+            <div className="h-12 w-12 rounded-xl bg-cyan-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Activity className="h-6 w-6 text-cyan-400" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Detect</h3>
-            <p className="text-sm text-slate-400">Real-time trust monitoring with cryptographic receipts and drift detection</p>
+            <h3 className="text-xl font-bold text-white mb-3">Detect</h3>
+            <p className="text-slate-400 leading-relaxed">Continuous verification of SONATE receipts with real-time drift & emergence monitoring.</p>
           </div>
           
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 text-left">
-            <div className="h-10 w-10 rounded-lg bg-purple-500/20 flex items-center justify-center mb-4">
-              <FlaskConical className="h-5 w-5 text-purple-400" />
+          <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 text-left transition-all hover:border-purple-500/50 group">
+            <div className="h-12 w-12 rounded-xl bg-purple-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <FlaskConical className="h-6 w-6 text-purple-400" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Lab</h3>
-            <p className="text-sm text-slate-400">Experiment with prompts, compare models, and analyze emergence patterns</p>
+            <h3 className="text-xl font-bold text-white mb-3">Lab</h3>
+            <p className="text-slate-400 leading-relaxed">Model-agnostic playground for stress-testing prompts against the SONATE principles.</p>
           </div>
           
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 text-left">
-            <div className="h-10 w-10 rounded-lg bg-emerald-500/20 flex items-center justify-center mb-4">
-              <Shield className="h-5 w-5 text-emerald-400" />
+          <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 text-left transition-all hover:border-emerald-500/50 group">
+            <div className="h-12 w-12 rounded-xl bg-emerald-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Shield className="h-6 w-6 text-emerald-400" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">Orchestrate</h3>
-            <p className="text-sm text-slate-400">Enterprise governance, compliance reporting, and multi-tenant management</p>
+            <h3 className="text-xl font-bold text-white mb-3">Orchestrate</h3>
+            <p className="text-slate-400 leading-relaxed">Enterprise-grade governance, automated audits, and multi-tenant fleet management.</p>
           </div>
         </div>
+
+        <p className="text-sm text-slate-500 mt-12 bg-slate-900/50 py-2 px-6 rounded-full inline-block border border-slate-800">
+          Independent Verification • Provider Agnostic • Open Protocol
+        </p>
+      </div>
 
         <p className="text-sm text-slate-500 mt-12">
           Demo uses sample data. No account required.

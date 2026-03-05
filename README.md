@@ -1,31 +1,74 @@
-# YSEEKU SONATE v2.0.0 — The Trust Layer for AI
+# YSEEKU / SONATE — The Trust Layer for AI
 
 <p align="center">
-  <strong>🔐 SONATE</strong>
+  <img src="https://img.shields.io/badge/Layer%201-SONATE%20Protocol-cyan.svg" alt="Layer 1: SONATE Protocol">
+  <img src="https://img.shields.io/badge/Layer%202-YSEEKU%20Platform-blueviolet.svg" alt="Layer 2: YSEEKU Platform">
+  <img src="https://img.shields.io/badge/Layer%203-SYMBI%20Experimental-purple.svg" alt="Layer 3: SYMBI Experimental">
 </p>
 
 <p align="center">
   <a href="https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml"><img src="https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml"><img src="https://github.com/s8ken/yseeku-platform/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
-  <img src="https://img.shields.io/badge/License-Proprietary-red.svg" alt="License: Proprietary">
+  <a href="https://www.npmjs.com/package/sonate-receipt"><img src="https://img.shields.io/npm/v/sonate-receipt.svg?style=flat-square" alt="npm: sonate-receipt"></a>
+  <img src="https://img.shields.io/badge/License-MIT/Proprietary-blue.svg" alt="License: MIT/Proprietary">
   <img src="https://img.shields.io/badge/version-2.0.0-brightgreen.svg" alt="Version: 2.0.0">
-  <img src="https://img.shields.io/badge/AI%20Trust-SONATE-blueviolet.svg" alt="AI Trust">
-  <img src="https://img.shields.io/badge/Enterprise-Ready-green.svg" alt="Enterprise Ready">
 </p>
 
 <p align="center">
-  <a href="https://yseeku.com/demo"><strong>🚀 Live Demo</strong></a> · <a href="https://yseeku.com"><strong>Website</strong></a> · <a href="#-api-overview"><strong>API Docs</strong></a>
+  <a href="https://demo.yseeku.com"><strong>🚀 Live Demo</strong></a> · <a href="https://yseeku.com"><strong>Website</strong></a> · <a href="https://github.com/s8ken/yseeku-platform/blob/main/docs/TRUST_RECEIPT_SPECIFICATION_v1.md"><strong>Protocol Spec</strong></a>
 </p>
 
-<p align="center">
-  <strong>Constitutional AI Governance • Real-Time Trust Scoring • Autonomous Oversight</strong>
-</p>
+---
+
+## 🏗️ The Ecosystem Architecture
+
+This workspace implements a three-layer trust ecosystem for artificial intelligence:
+
+1.  **Layer 1: SONATE (The Protocol)** — The open standard for AI verification. Defines the cryptographic **Trust Receipt** structure, signing rules, and verification process. (MIT Licensed)
+2.  **Layer 2: YSEEKU (The Platform)** — Enterprise trust orchestration. Provides real-time monitoring, drift detection, compliance reporting, and multi-tenant fleet management.
+3.  **Layer 3: SYMBI (The Experimental)** — Governance research and advanced agent emergence testing.
 
 ---
 
 ## 🎯 What is SONATE?
 
-**SONATE** is the **Trust Layer for AI** — a constitutional governance platform that makes AI systems trustworthy, auditable, and safe for enterprise deployment.
+**SONATE** is the **Verification Protocol for AI systems** — an open standard that makes AI actions auditable, independent of the provider.
+
+| Feature | Description |
+|---------|-------------|
+| **Trust Receipts** | Every AI decision results in a cryptographic receipt (**Ed25519 + SHA-256**) |
+| **Hash-Chained** | Interaction history is linked sequentially to prevent tampering or omissions |
+| **Independent** | Verify receipts anywhere, anytime, without platform lock-in |
+| **Provider-Agnostic** | Works with OpenAI, Anthropic, Gemini, or any LLM |
+
+### The Developer Moment (Move 2)
+
+```bash
+npm install sonate-receipt
+```
+
+```javascript
+import SONATE from 'sonate-receipt';
+
+// 1. Sign an interaction
+const { receipt } = await client.wrap(() => ai.generate(prompt), { context });
+
+// 2. Verify the truth
+const isValid = await client.verifyReceipt(receipt, publicKey);
+```
+
+---
+
+## 🚀 What is YSEEKU?
+
+**YSEEKU** is the **Enterprise Trust Orchestration Platform** that implements and monitors the SONATE protocol at scale.
+
+| Feature | Description |
+|---------|-------------|
+| **⚡ Real-Time Monitoring** | WebSocket-powered dashboards with <100ms updates on trust health |
+| **📊 Drift Detection** | Statistical (K-S) + Semantic drift monitoring to detect AI behavioral shifts |
+| **🔒 Safety Scanner** | Block injections, jailbreaks, and harmful content (80+ patterns) |
+| **📝 Compliance Engine** | Automated GDPR, SOC2, and ISO27001 reporting for auditors |
+| **🆚 Fleet Management** | Monitor and compare trust scores across your entire AI fleet |
 
 | Without SONATE | With SONATE |
 |----------------|-------------|
