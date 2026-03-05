@@ -256,7 +256,7 @@ async function seedConversations(userId: string, agentIds: string[]): Promise<vo
 }
 
 /**
- * Create demo trust receipts
+ * Create demo trust receipts — distributed across agents for fleet-level emergence
  */
 async function seedTrustReceipts(): Promise<void> {
   const existingCount = await TrustReceiptModel.countDocuments({ tenant_id: DEMO_TENANT_ID });
@@ -266,15 +266,36 @@ async function seedTrustReceipts(): Promise<void> {
   const sessionId = `demo-session-${Date.now()}`;
   let previousHash = '';
 
-  for (let i = 0; i < 30; i++) {
-    const timestamp = Date.now() - (30 - i) * 10 * 60 * 1000; // Every 10 mins
-    const clarity = 4 + Math.random() * 0.8;
-    const integrity = 4.2 + Math.random() * 0.6;
-    const quality = 3.8 + Math.random() * 1.0;
+  // Agent behavioral profiles — distinct CIQ signatures per agent
+  // This creates genuine inter-agent divergence for Bedau v2 fleet analysis
+  const agentProfiles = [
+    { id: 'agent-nova',     clarityBase: 4.2, integrityBase: 3.8, qualityBase: 4.5, drift: 0.02  },
+    { id: 'agent-sentinel', clarityBase: 4.8, integrityBase: 4.7, qualityBase: 4.0, drift: -0.01 },
+    { id: 'agent-echo',     clarityBase: 3.6, integrityBase: 4.3, qualityBase: 4.2, drift: 0.015 },
+    { id: 'agent-prism',    clarityBase: 4.5, integrityBase: 4.1, qualityBase: 4.6, drift: 0.005 },
+    { id: 'agent-atlas',    clarityBase: 4.0, integrityBase: 4.4, qualityBase: 3.9, drift: -0.008 },
+  ];
+
+  // Generate 100 receipts across 5 agents over 24 hours
+  const totalReceipts = 100;
+  for (let i = 0; i < totalReceipts; i++) {
+    const profile = agentProfiles[i % agentProfiles.length];
+    const timeOffset = i * (24 * 60 * 60 * 1000 / totalReceipts); // Spread across 24h
+    const timestamp = Date.now() - (24 * 60 * 60 * 1000) + timeOffset;
+
+    // Each agent drifts over time (correlated drift = emergence signal for Σ)
+    const driftFactor = profile.drift * (i / totalReceipts);
+    // Add per-agent noise (different variance = divergence signal for Φ)
+    const noise = () => (Math.random() - 0.5) * 0.6;
+
+    const clarity = Math.max(1, Math.min(5, profile.clarityBase + driftFactor + noise()));
+    const integrity = Math.max(1, Math.min(5, profile.integrityBase + driftFactor * 0.8 + noise()));
+    const quality = Math.max(1, Math.min(5, profile.qualityBase + driftFactor * 1.2 + noise()));
 
     const payload = JSON.stringify({
       session_id: sessionId,
       timestamp,
+      agent_id: profile.id,
       ciq: { clarity, integrity, quality },
       previous_hash: previousHash,
     });
@@ -287,6 +308,7 @@ async function seedTrustReceipts(): Promise<void> {
       version: '2.0.0',
       timestamp,
       mode: 'constitutional',
+      agent_id: profile.id,
       ciq_metrics: {
         clarity: Math.round(clarity * 100) / 100,
         integrity: Math.round(integrity * 100) / 100,
@@ -302,7 +324,7 @@ async function seedTrustReceipts(): Promise<void> {
   }
 
   await TrustReceiptModel.insertMany(receipts);
-  logger.info('Demo trust receipts seeded', { count: receipts.length });
+  logger.info('Demo trust receipts seeded', { count: receipts.length, agents: agentProfiles.length });
 }
 
 /**
