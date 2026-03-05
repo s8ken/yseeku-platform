@@ -19,8 +19,6 @@ import { IdentityPanel } from '@/components/tactical-command-v2/IdentityPanel';
 import { playAlertSound, showNotification } from '@/components/tactical-command-v2/utils';
 import type { AlertsManagementResponse, DemoAlertsResponse, DemoAgentsResponse, TacticalAgentsResponse, TacticalAlerts } from '@/components/tactical-command-v2/types';
 
-// Force dynamic rendering to avoid SSR issues with hooks
-export const dynamic_config = 'force-dynamic';
 
 // Auto-refresh intervals
 const LIVE_REFRESH_INTERVAL = 10000; // 10 seconds for live mode
