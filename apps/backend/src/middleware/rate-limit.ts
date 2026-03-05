@@ -12,7 +12,8 @@ function keyGenerator(req: Request): string {
 
 export const rateLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: Number(process.env.RATE_LIMIT_MAX) || 300, // Increased for development
+  // default ceiling; override in production via RATE_LIMIT_MAX (e.g. 60 requests per minute)
+  max: Number(process.env.RATE_LIMIT_MAX) || 300,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator,

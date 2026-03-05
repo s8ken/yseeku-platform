@@ -130,6 +130,8 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
       // If still not found, create a shadow user in MongoDB so they can store API keys
       if (!user) {
         securityLogger.info('Creating shadow MongoDB user', { requestId, email, userId });
+        // emit a lightweight audit log so provisioning is visible in security trails
+        securityLogger.info('audit.user.provision', { requestId, email, userId, source: 'auth.middleware' });
         try {
           user = await User.create({
             name: payload.username || payload.name || email.split('@')[0],
@@ -138,6 +140,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
             apiKeys: [],
           });
           securityLogger.info('Shadow user created', { requestId, mongoUserId: user._id });
+          securityLogger.info('audit.user.provisioned', { requestId, email, mongoUserId: user._id });
         } catch (createError: unknown) {
           const createErrorMsg = createError instanceof Error ? createError.message : 'Unknown error';
           securityLogger.error('Failed to create shadow user', { requestId, error: createErrorMsg });
@@ -195,13 +198,17 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
 
     // Ensure we always return JSON even for 500s
     if (!res.headersSent) {
-      res.status(500).json({
+      const payload: any = {
         success: false,
         message: `Authentication middleware error: ${getErrorMessage(error)}`,
         error: getErrorMessage(error),
-        details: err?.stack,
         requestId
-      });
+      };
+      // only include stack trace in non-production to avoid leaking internals
+      if (process.env.NODE_ENV !== 'production') {
+        payload.details = err?.stack;
+      }
+      res.status(500).json(payload);
     }
   }
 }
@@ -218,8 +225,8 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
     return;
   }
 
-  // Check if user has admin role
-  const isAdmin = req.user.role === 'admin' || req.user.email.endsWith('@yseeku.com');
+  // Check if user has admin role (do not grant implicit privileges based on email domain)
+  const isAdmin = req.user.role === 'admin';
 
   if (!isAdmin) {
     res.status(403).json({
@@ -247,13 +254,7 @@ export function requireRole(allowedRoles: string[]) {
     }
 
     const userRole = req.user.role || 'viewer';
-    const isYseekuAdmin = req.user.email?.endsWith('@yseeku.com');
-    
-    // yseeku.com emails always have access
-    if (isYseekuAdmin) {
-      next();
-      return;
-    }
+    // email domain no longer confers automatic access - rely on explicit roles
 
     if (!allowedRoles.includes(userRole)) {
       res.status(403).json({

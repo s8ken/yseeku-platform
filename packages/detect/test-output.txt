@@ -1,0 +1,154 @@
+2026-02-25 02:16:39 [[32m[32minfo[32m[39m]: Health check registered {
+  "service": "sonate-platform",
+  "environment": "development",
+  "check": "memory",
+  "module": "HealthCheckManager"
+}
+2026-02-25 02:16:39 [[32m[32minfo[32m[39m]: Health check registered {
+  "service": "sonate-platform",
+  "environment": "development",
+  "check": "cpu",
+  "module": "HealthCheckManager"
+}
+Redis not available, using in-memory cache fallback
+[EthicalAlignment] Using enhanced heuristic analysis
+2026-02-25 02:16:39 [[33m[33mwarn[33m[39m]: Fetch attempt 1/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+2026-02-25 02:16:40 [[33m[33mwarn[33m[39m]: Fetch attempt 2/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+[ResonanceQuality] Using enhanced heuristic analysis
+2026-02-25 02:16:40 [[33m[33mwarn[33m[39m]: Fetch attempt 1/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+2026-02-25 02:16:41 [[33m[33mwarn[33m[39m]: Fetch attempt 2/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+[ResonanceQuality] Using enhanced heuristic analysis
+2026-02-25 02:16:41 [[33m[33mwarn[33m[39m]: Fetch attempt 1/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+2026-02-25 02:16:42 [[33m[33mwarn[33m[39m]: Fetch attempt 2/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+[ResonanceQuality] Using enhanced heuristic analysis
+2026-02-25 02:16:42 [[33m[33mwarn[33m[39m]: Fetch attempt 1/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+2026-02-25 02:16:43 [[33m[33mwarn[33m[39m]: Fetch attempt 2/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+[ResonanceQuality] Using enhanced heuristic analysis
+2026-02-25 02:16:43 [[33m[33mwarn[33m[39m]: Fetch attempt 1/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+2026-02-25 02:16:44 [[33m[33mwarn[33m[39m]: Fetch attempt 2/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+[ResonanceQuality] Using enhanced heuristic analysis
+[SonateDetector] LLM not available: GOOGLE_GEMINI_API_KEY (or GEMINI_API_KEY) not set in environment. Using enhanced heuristics.
+[EthicalAlignment] Using enhanced heuristic analysis
+2026-02-25 02:16:44 [[33m[33mwarn[33m[39m]: Fetch attempt 1/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+2026-02-25 02:16:45 [[33m[33mwarn[33m[39m]: Fetch attempt 2/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+[ResonanceQuality] Using enhanced heuristic analysis
+[SonateDetector] Analysis complete: {
+  trust: 'PARTIAL',
+  ethics: 2.8,
+  resonance: 'STRONG',
+  methods: {
+    trust: 'content-analysis',
+    ethics: 'heuristic',
+    resonance: 'heuristic'
+  },
+  confidence: '59%'
+}
+Redis not available, using in-memory cache fallback
+[SonateDetector] LLM not available: GOOGLE_GEMINI_API_KEY (or GEMINI_API_KEY) not set in environment. Using enhanced heuristics.
+[EthicalAlignment] Using enhanced heuristic analysis
+2026-02-25 02:16:45 [[33m[33mwarn[33m[39m]: Fetch attempt 1/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+2026-02-25 02:16:46 [[33m[33mwarn[33m[39m]: Fetch attempt 2/2 failed for http://localhost:8000/calculate_resonance {
+  "service": "sonate-platform",
+  "environment": "development",
+  "error": "fetch failed",
+  "status": 0
+}
+[ResonanceQuality] Using enhanced heuristic analysis
+[SonateDetector] Analysis complete: {
+  trust: 'PARTIAL',
+  ethics: 2.9,
+  resonance: 'STRONG',
+  methods: {
+    trust: 'content-analysis',
+    ethics: 'heuristic',
+    resonance: 'heuristic'
+  },
+  confidence: '59%'
+}
+PASS: Enhanced Detector basic
+PASS: Balanced Detector transform
+PASS: Calibrated Detector metrics
+PASS: Drift Detector sequence
+PASS: Emergence Detection signal
+PASS: Ethical Alignment Scorer
+PASS: Detection latency <100ms
+PASS: Emergence non-strong branch
+PASS: hasRealProvider() false for local
+PASS: hasRealProvider() true for openai
+PASS: Cosine similarity: identical
+PASS: Cosine similarity: orthogonal
+PASS: Cosine similarity: opposite
+PASS: Cosine similarity: mismatched lengths
+PASS: Cosine similarity: zero vector
+PASS: ResonanceQuality heuristic fallback
+PASS: ResonanceQuality result shape
+PASS: ResonanceQuality level check
+PASS: ResonanceQuality high creativity boosted
+PASS: FrameworkDetector extended result
+PASS: Local embedder deterministic vectors
+PASS: INTEGRATION: detect ΓåÆ receipt roundtrip

@@ -89,5 +89,10 @@ sonate_resonance_calculator.py
 **/dist/
 dist/
 
+# Windows device files and temporary artifacts
+nul
+tsc-output.txt
+overseer-check.json
+
 # Claude Code worktrees
 .claude/
