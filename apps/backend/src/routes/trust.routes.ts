@@ -765,7 +765,13 @@ router.get('/receipts/list', protect, apiGatewayLimiter, async (req: Request, re
         .limit(Number(limit))
         .lean(),
       TrustReceiptModel.countDocuments({ tenant_id: tenantId }),
-      TrustReceiptModel.countDocuments({ tenant_id: tenantId, signature: { $exists: true, $ne: '' } }),
+      TrustReceiptModel.countDocuments({
+        tenant_id: tenantId,
+        $or: [
+          { signature: { $exists: true, $ne: '' } },
+          { self_hash: { $exists: true, $ne: '' }, trust_status: { $in: ['PASS', 'PARTIAL'] } },
+        ],
+      }),
     ]);
 
     res.json({

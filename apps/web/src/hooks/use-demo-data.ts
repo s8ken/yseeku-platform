@@ -363,13 +363,18 @@ export function useReceiptsData(limit = 20) {
       // response is the full API response: { success, data: [...], stats: {...}, pagination: {...} }
       const rawReceipts = response.data || response.receipts || response || [];
       const receipts = (Array.isArray(rawReceipts) ? rawReceipts : []).map((r: any) => {
-        // In demo mode, mark receipts as verified based on CIQ quality
+        // Mark as verified if: has signature, or has trust_status PASS/PARTIAL, or has valid self_hash
         const hasSignature = !!r.signature;
-        const demoVerified = r.ciq_metrics ? r.ciq_metrics.quality >= 0.5 : true;
+        const hasTrustProof = !!r.self_hash && ['PASS', 'PARTIAL'].includes(r.trust_status);
 
-        // CIQ metrics from DB are on 0-1 scale; scale to 0-10 for display
+        // CIQ metrics from DB: 0-1 scale (live) or 1-5 scale (demo seeder); normalize to 0-10
         const ciq = r.ciq_metrics;
-        const scale = (v: number) => (v != null && v <= 1 ? v * 10 : v ?? 0);
+        const scale = (v: number) => {
+          if (v == null) return 0;
+          if (v <= 1) return v * 10;
+          if (v <= 5) return v * 2;
+          return v;
+        };
         const clarity10 = scale(ciq?.clarity);
         const integrity10 = scale(ciq?.integrity);
         const quality10 = scale(ciq?.quality);
@@ -387,7 +392,7 @@ export function useReceiptsData(limit = 20) {
           agent_id: r.agent_id,
           trust_score: avgCiq, // 0-10 scale
           hash: r.self_hash || r.hash || '',
-          verified: isDemo ? demoVerified : hasSignature,
+          verified: hasSignature || hasTrustProof,
           created_at: r.createdAt || new Date(r.timestamp || Date.now()).toISOString(),
           ciq_metrics: r.ciq_metrics,
           // Pass through SONATE principle scores and other fields
