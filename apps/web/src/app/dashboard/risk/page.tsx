@@ -255,7 +255,19 @@ export default function RiskManagementPage() {
     { id: '4', title: 'Trust Protocol Validation', status: passRate >= 85 ? 'compliant' : 'warning', lastChecked: new Date().toISOString(), score: Math.round(passRate) },
   ];
 
-  const riskAlerts = riskEventsData?.data || [];
+  const riskAlerts: RiskEvent[] = (riskEventsData?.data || []).length > 0
+    ? riskEventsData!.data
+    : (alertsData?.alerts || [])
+        .filter((a) => a.status !== 'resolved')
+        .map((a) => ({
+          id: a.id,
+          title: a.title,
+          severity: a.severity,
+          description: a.description,
+          category: a.type || 'trust',
+          resolved: false,
+          created_at: a.timestamp,
+        }));
 
   const overallTrustScore = trustPrinciples.reduce((acc: number, principle: TrustPrinciple) => {
     return acc + (principle.score * principle.weight / 100);
