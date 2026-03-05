@@ -342,7 +342,8 @@ export const bedauService = {
       const allCombined: Array<{ combined: number; timestamp: number }> = [];
 
       for (const r of receipts) {
-        const agentId = (r as any).agent_id || 'unknown';
+        const rawAgentId = (r as any).agent_id;
+        const agentId = rawAgentId ? String(rawAgentId) : 'unknown';
         const c = normalizeCIQ(r.ciq_metrics?.clarity || 0);
         const i = normalizeCIQ(r.ciq_metrics?.integrity || 0);
         const q = normalizeCIQ(r.ciq_metrics?.quality || 0);
