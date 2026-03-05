@@ -369,7 +369,7 @@ export default function TrustReceiptsPage() {
         resonanceQuality: avgScore >= 8 ? 'STRONG' : avgScore >= 6 ? 'MODERATE' : 'WEAK',
         canvasParity: clarity10 ? Math.round(clarity10 * 10) : 87, // 0-10 → percentage
       },
-      verified: r.verified ?? !!r.signature ?? (!!r.self_hash && ['PASS', 'PARTIAL'].includes(r.trust_status)),
+      verified: r.verified ?? (!!r.signature || (!!r.self_hash && ['PASS', 'PARTIAL'].includes(r.trust_status))),
       chainPosition: 1,
       previousHash: r.previous_hash || '',
       receiptData: r,
