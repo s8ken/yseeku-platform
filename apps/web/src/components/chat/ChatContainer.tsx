@@ -2,16 +2,33 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ChatMessage, ChatMessageProps } from './ChatMessage';
-import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Send, Loader2, ShieldCheck, AlertTriangle, Download, FileJson, FileText, Filter, Share2, TrendingUp, TrendingDown, Minus, BarChart2, StopCircle, Pin, ExternalLink } from 'lucide-react';
-import { api, TrustEvaluation } from '@/lib/api';
+import {
+  Send, Loader2, ShieldCheck, AlertTriangle, FileJson, FileText,
+  Filter, Share2, TrendingUp, TrendingDown, Minus, BarChart2, StopCircle,
+  Pin, ExternalLink, MoreHorizontal, Sparkles,
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import { api } from '@/lib/api';
 import { socketService, TrustViolationData } from '@/lib/socket';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useDemo } from '@/hooks/use-demo';
 import { useDashboardInvalidation } from '@/hooks/use-dashboard-invalidation';
-import { DemoWatermark } from '@/components/demo-watermark';
+
+// Starter prompts shown in the empty state
+const STARTER_PROMPTS = [
+  { label: 'How does trust scoring work?', prompt: 'Can you explain how SONATE trust scoring evaluates AI responses?' },
+  { label: 'What are the 6 principles?', prompt: 'What are the 6 constitutional principles and how are they weighted?' },
+  { label: 'Cryptographic receipt chaining', prompt: 'How does cryptographic hash-chaining of trust receipts work?' },
+  { label: 'AI ethics & human oversight', prompt: 'What role should human oversight play in autonomous AI decision-making?' },
+];
 
 // Demo sample messages for pre-population
 const DEMO_SAMPLE_MESSAGES: ChatMessageProps[] = [
@@ -54,24 +71,24 @@ Would you like me to explain how the 5 monitoring dimensions work?`,
     role: 'assistant',
     content: `Great question! SONATE uses a two-layer trust architecture:
 
-🏛️ **Layer 1: Constitutional Principles (Primary)**
+**Layer 1: Constitutional Principles (Primary)**
 These evaluate actual system capabilities:
 
-• **Consent Architecture** (25%, Critical) - Verifies explicit user consent flows exist
-• **Ethical Override** (15%, Critical) - Confirms humans can override AI decisions  
-• **Right to Disconnect** (10%) - Ensures users can exit AI interactions
-• **Inspection Mandate** (20%) - All AI decisions must be auditable
-• **Continuous Validation** (20%) - Ongoing behavior validation
-• **Moral Recognition** (10%) - Respects human moral agency
+- **Consent Architecture** (25%, Critical) - Verifies explicit user consent flows exist
+- **Ethical Override** (15%, Critical) - Confirms humans can override AI decisions
+- **Right to Disconnect** (10%) - Ensures users can exit AI interactions
+- **Inspection Mandate** (20%) - All AI decisions must be auditable
+- **Continuous Validation** (20%) - Ongoing behavior validation
+- **Moral Recognition** (10%) - Respects human moral agency
 
-� **Layer 2: Detection Metrics (Secondary)**
+**Layer 2: Detection Metrics (Secondary)**
 Content-level analysis for quality assurance:
 
-• Reality Index - Factual grounding (0-10)
-• Trust Protocol - Compliance status (PASS/PARTIAL/FAIL)  
-• Ethical Alignment - Guidelines adherence (1-5)
-• Resonance Quality - Intent alignment
-• Canvas Parity - Human agency preservation (0-100%)
+- Reality Index - Factual grounding (0-10)
+- Trust Protocol - Compliance status (PASS/PARTIAL/FAIL)
+- Ethical Alignment - Guidelines adherence (1-5)
+- Resonance Quality - Intent alignment
+- Canvas Parity - Human agency preservation (0-100%)
 
 Layer 1 principles are the foundation—they evaluate what the system *can do*. Layer 2 metrics analyze what the AI *outputs*.`,
     timestamp: Date.now(),
@@ -84,6 +101,20 @@ Layer 1 principles are the foundation—they evaluate what the system *can do*. 
     },
   },
 ];
+
+function TypingIndicator() {
+  return (
+    <div className="flex items-center gap-1 px-1 py-0.5">
+      {[0, 150, 300].map((delay) => (
+        <span
+          key={delay}
+          className="h-2 w-2 rounded-full bg-purple-400 animate-bounce"
+          style={{ animationDelay: `${delay}ms` }}
+        />
+      ))}
+    </div>
+  );
+}
 
 interface ChatContainerProps {
   initialConversationId?: string | null;
@@ -99,10 +130,8 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   const [messages, setMessages] = useState<ChatMessageProps[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'PASS' | 'PARTIAL' | 'FAIL'>('all');
   const [showStats, setShowStats] = useState(false);
-  const [sessionId] = useState<string>(() => `session-${Date.now()}`);
   const [conversationId, setConversationId] = useState<string | null>(initialConversationId);
   const [demoPreloaded, setDemoPreloaded] = useState(false);
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
@@ -110,15 +139,12 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   const [ipfsCid, setIpfsCid] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Load existing conversation if initialConversationId is provided
   useEffect(() => {
     if (initialConversationId) {
-      // Avoid reloading if we already have this conversation active and loaded
-      // This prevents wiping optimistic messages when the parent component updates the ID
-      if (initialConversationId === conversationId && messages.length > 0) {
-        return;
-      }
+      if (initialConversationId === conversationId && messages.length > 0) return;
       loadExistingConversation(initialConversationId);
     } else {
       setMessages([]);
@@ -148,7 +174,6 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     }
   };
 
-  // Handle stopping the AI generation - ETHICAL_OVERRIDE implementation
   const handleStopGeneration = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -174,29 +199,16 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   }, [isDemo, isFirstVisit, demoPreloaded, messages.length]);
 
   useEffect(() => {
-    // Connect to socket for real-time trust monitoring
     socketService.connect();
-    setIsSocketConnected(true);
 
-    // Listen for trust violations
     const unsubscribeViolation = socketService.onTrustViolation((data: TrustViolationData) => {
       console.warn('⚠️ Trust Violation Detected:', data);
-
-      // Update the message in the UI if it exists
       setMessages(prev => prev.map(msg => {
         if (msg.role === 'assistant' && msg.evaluation?.trustScore.overall === data.trustScore) {
-          return {
-            ...msg,
-            evaluation: {
-              ...msg.evaluation!,
-              status: data.status,
-            }
-          };
+          return { ...msg, evaluation: { ...msg.evaluation!, status: data.status } };
         }
         return msg;
       }));
-
-      // Notify user
       toast.error('Critical Trust Violation Detected', {
         description: `Protocol alert for message: ${data.violations.join(', ')}`,
         duration: 5000,
@@ -213,58 +225,71 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isLoading]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = 'auto';
+      el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
+    const text = input.trim();
     const userMessage: ChatMessageProps = {
       role: 'user',
-      content: input,
+      content: text,
       timestamp: Date.now(),
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
     setIsLoading(true);
 
-    // Create AbortController for ETHICAL_OVERRIDE capability
     abortControllerRef.current = new AbortController();
 
     try {
-      // Ensure there is a backend conversation
       let convId = conversationId;
       if (!convId) {
-        const created = await api.createConversation('Trust-Aware Session');
+        // Auto-title from first 6 words of the first user message
+        const autoTitle = text.split(/\s+/).slice(0, 6).join(' ');
+        const created = await api.createConversation(autoTitle);
         convId = created.id;
         setConversationId(convId);
-        // Notify parent that a new conversation was created
         if (onConversationCreated) {
           onConversationCreated(convId);
         }
       }
 
-      // Append user message and generate AI response with server-side trust evaluation
-      // Note: AbortController signal would be passed to fetch in a full implementation
       let convRes;
       try {
-        convRes = await api.sendMessage(convId, input, undefined);
+        convRes = await api.sendMessage(convId, text, undefined);
       } catch (err: any) {
-        // Retry once if this was a new conversation and we got a 502/500/504 (backend cold start or race condition)
         if (!conversationId && (err.status === 502 || err.message?.includes('502') || err.status === 500 || err.status === 504)) {
           await new Promise(r => setTimeout(r, 2000));
-          convRes = await api.sendMessage(convId, input, undefined);
+          convRes = await api.sendMessage(convId, text, undefined);
         } else {
           throw err;
         }
       }
 
-      // Check if response is successful
       if (convRes.success && convRes.data) {
-        // Check for consent withdrawal detection
         const consentWithdrawal = (convRes.data as any).consentWithdrawal;
         if (consentWithdrawal?.detected) {
-          // Handle consent withdrawal - show system message and offer options
           const msg = convRes.data.message || (convRes.data as any).lastMessage;
           const systemMessage: ChatMessageProps = {
             role: 'assistant',
@@ -274,19 +299,14 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
             consentWithdrawalType: consentWithdrawal.type,
           };
           setMessages(prev => [...prev, systemMessage]);
-
-          // Show toast notification
           toast.info('Consent Action Detected', {
             description: `We noticed you may want to ${consentWithdrawal.type === 'HUMAN_ESCALATION' ? 'speak with a human' : 'modify your consent'}. Options are shown in the chat.`,
             duration: 6000,
           });
-
-          // Invalidate dashboard queries for consent withdrawal interactions too
           invalidateDashboard();
           return;
         }
 
-        // Handle both new format (message) and legacy format (lastMessage)
         const msg = convRes.data.message || (convRes.data as any).lastMessage;
         const trustEval = convRes.data.trustEvaluation || (msg as any)?.metadata?.trustEvaluation;
 
@@ -298,7 +318,6 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           return;
         }
 
-        // Check if this is an AI response (handle both 'assistant' and 'ai' sender values)
         if (msg.sender === 'assistant' || msg.sender === 'ai') {
           const assistantMessage: ChatMessageProps = {
             role: 'assistant',
@@ -315,18 +334,9 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
             timestamp: Date.now(),
           };
           setMessages(prev => [...prev, assistantMessage]);
-
-          // Invalidate AND refetch dashboard queries so new interaction data appears
-          // Uses invalidateAndRefetch for immediate UI update + delayed second pass
-          // to catch backend indexing/receipt creation that completes after the response
           invalidateAndRefetch();
-
-          // Second invalidation after delay to ensure backend indexing is complete
-          setTimeout(() => {
-            invalidateAndRefetch();
-          }, 2000);
+          setTimeout(() => invalidateAndRefetch(), 2000);
         } else if (msg.sender === 'user') {
-          // This is just a user message - no trust evaluation for user input
           toast.info('Message Sent', {
             description: 'Your message was sent. No AI response was generated.',
             duration: 3000,
@@ -334,15 +344,10 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
         }
       }
     } catch (error: any) {
-      // Check if this was a user-initiated abort (ETHICAL_OVERRIDE in action)
-      if (error.name === 'AbortError') {
-        // User-initiated abort - no error logging needed
-        return;
-      }
+      if (error.name === 'AbortError') return;
 
       console.error('Failed to get trust evaluation:', error);
 
-      // Error handling — show specific messages for known error classes
       const isBillingError = error.status === 503 || error.message?.includes('BILLING_ERROR') || error.message?.includes('insufficient credits') || error.message?.includes('temporarily unavailable');
       const isRateLimitError = error.status === 429 || error.message?.includes('RATE_LIMIT_ERROR') || error.message?.includes('rate limited') || error.message?.includes('rate limit');
 
@@ -378,13 +383,8 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
         timestamp: msg.timestamp,
         trustEvaluation: msg.evaluation,
       })),
-      metadata: {
-        platform: 'SONATE',
-        version: '1.11.0',
-        protocol: 'SONATE Trust Protocol',
-      }
+      metadata: { platform: 'SONATE', version: '2.0.0', protocol: 'SONATE Trust Protocol' },
     };
-
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -394,44 +394,32 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-
-    toast.success('Conversation Exported', {
-      description: 'JSON file with trust receipts downloaded successfully',
-    });
+    toast.success('Exported as JSON');
   };
 
   const exportAsMarkdown = () => {
     let markdown = `# SONATE Trust Session Export\n\n`;
     markdown += `**Exported:** ${new Date().toISOString()}\n`;
     markdown += `**Total Messages:** ${messages.length}\n`;
-    markdown += `**Protocol Version:** 1.11.0\n\n`;
-    markdown += `---\n\n`;
-
+    markdown += `**Protocol Version:** 2.0.0\n\n---\n\n`;
     messages.forEach((msg, idx) => {
-      markdown += `## Message ${idx + 1} - ${msg.role === 'user' ? 'User' : 'Assistant'}\n\n`;
-      markdown += `${msg.content}\n\n`;
-
+      markdown += `## Message ${idx + 1} — ${msg.role === 'user' ? 'User' : 'Assistant'}\n\n${msg.content}\n\n`;
       if (msg.evaluation) {
         markdown += `### Trust Evaluation\n\n`;
         markdown += `- **Overall Score:** ${msg.evaluation.trustScore.overall}/100\n`;
         markdown += `- **Status:** ${msg.evaluation.status}\n`;
         markdown += `- **Reality Index:** ${msg.evaluation.detection.reality_index}\n`;
         markdown += `- **Ethical Alignment:** ${msg.evaluation.detection.ethical_alignment}\n`;
-
         if (msg.evaluation.trustScore.violations.length > 0) {
           markdown += `- **Violations:** ${msg.evaluation.trustScore.violations.join(', ')}\n`;
         }
-
         if (msg.evaluation.receiptHash) {
           markdown += `- **Receipt Hash:** \`${msg.evaluation.receiptHash}\`\n`;
         }
-
-        markdown += `\n`;
+        markdown += '\n';
       }
-
       markdown += `---\n\n`;
     });
-
     const blob = new Blob([markdown], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -441,28 +429,14 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-
-    toast.success('Conversation Exported', {
-      description: 'Markdown file downloaded successfully',
-    });
+    toast.success('Exported as Markdown');
   };
 
   const handleShare = () => {
-    const shareData = {
-      sessionId: Date.now().toString(),
-      timestamp: new Date().toISOString(),
-      messageCount: messages.length,
-      avgTrustScore: messages
-        .filter(m => m.evaluation)
-        .reduce((sum, m) => sum + (m.evaluation?.trustScore.overall || 0), 0) /
-        messages.filter(m => m.evaluation).length || 0,
-    };
-
-    const shareUrl = `${window.location.origin}/dashboard/verify?session=${shareData.sessionId}`;
+    const shareUrl = `${window.location.origin}/dashboard/verify?session=${Date.now()}`;
     navigator.clipboard.writeText(shareUrl);
-
     toast.success('Share Link Copied', {
-      description: 'Verification link copied to clipboard. Recipients can verify trust receipts.',
+      description: 'Verification link copied. Recipients can verify trust receipts.',
     });
   };
 
@@ -471,20 +445,17 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       toast.error('No active conversation to pin');
       return;
     }
-
     setIsPinningToIPFS(true);
     try {
       const result = await api.exportToIPFS(conversationId);
       setIpfsCid(result.cid);
-
       if (result.alreadyPinned) {
         toast.success('Already Pinned', {
           description: (
             <span>
               CID: <code className="font-mono text-xs">{result.cid.slice(0, 20)}…</code>
               {' '}—{' '}
-              <a href={result.gatewayUrl} target="_blank" rel="noopener noreferrer"
-                className="underline">View on IPFS ↗</a>
+              <a href={result.gatewayUrl} target="_blank" rel="noopener noreferrer" className="underline">View on IPFS ↗</a>
             </span>
           ) as any,
         });
@@ -493,8 +464,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           description: (
             <span>
               Audit bundle permanently stored.{' '}
-              <a href={result.gatewayUrl} target="_blank" rel="noopener noreferrer"
-                className="underline">View on IPFS ↗</a>
+              <a href={result.gatewayUrl} target="_blank" rel="noopener noreferrer" className="underline">View on IPFS ↗</a>
             </span>
           ) as any,
           duration: 8000,
@@ -502,15 +472,10 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       }
     } catch (err: any) {
       const msg: string = err?.message ?? String(err);
-
       if (msg.includes('PINATA_NOT_CONFIGURED')) {
-        toast.error('IPFS Not Configured', {
-          description: 'Contact your administrator to enable IPFS pinning (requires Pinata API key).',
-        });
+        toast.error('IPFS Not Configured', { description: 'Contact your administrator to enable IPFS pinning.' });
       } else if (msg.includes('PINATA_AUTH_ERROR')) {
-        toast.error('Pinata Authentication Failed', {
-          description: 'Check the PINATA_JWT environment variable.',
-        });
+        toast.error('Pinata Authentication Failed', { description: 'Check the PINATA_JWT environment variable.' });
       } else {
         toast.error('Pin to IPFS Failed', { description: msg });
       }
@@ -525,18 +490,11 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   });
 
   const getTrustTrend = () => {
-    const evaluatedMessages = messages.filter(m => m.evaluation);
-    if (evaluatedMessages.length < 2) return { direction: 'neutral', change: 0 };
-
-    const recentScores = evaluatedMessages.slice(-5).map(m => m.evaluation!.trustScore.overall);
-    const firstScore = recentScores[0];
-    const lastScore = recentScores[recentScores.length - 1];
-    const change = lastScore - firstScore;
-
-    return {
-      direction: change > 0.5 ? 'up' : change < -0.5 ? 'down' : 'neutral',
-      change: change.toFixed(1),
-    };
+    const evaluated = messages.filter(m => m.evaluation);
+    if (evaluated.length < 2) return { direction: 'neutral', change: 0 };
+    const scores = evaluated.slice(-5).map(m => m.evaluation!.trustScore.overall);
+    const change = scores[scores.length - 1] - scores[0];
+    return { direction: change > 0.5 ? 'up' : change < -0.5 ? 'down' : 'neutral', change: change.toFixed(1) };
   };
 
   const getStatusCounts = () => {
@@ -548,83 +506,91 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     };
   };
 
+  const avgTrust = messages.filter(m => m.evaluation).length > 0
+    ? (messages.filter(m => m.evaluation).reduce((sum, m) => sum + (m.evaluation?.trustScore.overall || 0), 0) /
+       messages.filter(m => m.evaluation).length).toFixed(0)
+    : null;
+
   return (
-    <div className="flex flex-col h-[600px] w-full max-w-4xl mx-auto border rounded-xl overflow-hidden bg-white dark:bg-slate-950 shadow-xl">
+    <div className="flex flex-col h-[calc(100vh-220px)] min-h-[500px] w-full border rounded-xl overflow-hidden bg-white dark:bg-slate-950 shadow-xl">
       {/* Header */}
-      <div className="px-6 py-4 border-b bg-slate-50 dark:bg-slate-900">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <h2 className="font-semibold text-sm tracking-tight uppercase">SONATE Trust-Aware Session</h2>
+      <div className="px-4 py-3 border-b bg-slate-50 dark:bg-slate-900 shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <h2 className="font-semibold text-sm tracking-tight uppercase truncate">SONATE Trust Session</h2>
+            {avgTrust && (
+              <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                AVG {avgTrust}/100
+              </span>
+            )}
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Stats toggle */}
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setShowStats(!showStats)}
               disabled={messages.length === 0}
-              className="h-7 text-xs gap-1"
+              className={cn("h-7 px-2 text-xs gap-1", showStats && "bg-slate-200 dark:bg-slate-700")}
             >
-              <BarChart2 className="h-3 w-3" />
-              Stats
+              <BarChart2 className="h-3.5 w-3.5" />
             </Button>
+
+            {/* IPFS Pin */}
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handleShare}
-              disabled={messages.length === 0}
-              className="h-7 text-xs gap-1"
-            >
-              <Share2 className="h-3 w-3" />
-              Share
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={exportAsJSON}
-              disabled={messages.length === 0}
-              className="h-7 text-xs gap-1"
-            >
-              <FileJson className="h-3 w-3" />
-              JSON
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={exportAsMarkdown}
-              disabled={messages.length === 0}
-              className="h-7 text-xs gap-1"
-            >
-              <FileText className="h-3 w-3" />
-              Markdown
-            </Button>
-            <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={handlePinToIPFS}
               disabled={messages.length === 0 || !conversationId || isPinningToIPFS}
-              title={ipfsCid ? `Pinned to IPFS — CID: ${ipfsCid}` : 'Pin full audit bundle to IPFS for permanent, tamper-evident storage'}
+              title={ipfsCid ? `Pinned — CID: ${ipfsCid}` : 'Pin audit bundle to IPFS'}
               className={cn(
-                "h-7 text-xs gap-1",
-                ipfsCid
-                  ? "border-emerald-400 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                  : "hover:border-violet-400 hover:text-violet-600 dark:hover:text-violet-400"
+                "h-7 px-2 text-xs gap-1",
+                ipfsCid && "text-emerald-600 dark:text-emerald-400"
               )}
             >
               {isPinningToIPFS
-                ? <Loader2 className="h-3 w-3 animate-spin" />
+                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 : ipfsCid
-                  ? <ExternalLink className="h-3 w-3" />
-                  : <Pin className="h-3 w-3" />
-              }
-              {isPinningToIPFS ? 'Pinning…' : ipfsCid ? 'On IPFS' : 'Pin'}
+                  ? <ExternalLink className="h-3.5 w-3.5" />
+                  : <Pin className="h-3.5 w-3.5" />}
             </Button>
+
+            {/* More actions */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={messages.length === 0}
+                  className="h-7 px-2"
+                >
+                  <MoreHorizontal className="h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem onClick={handleShare}>
+                  <Share2 className="h-3.5 w-3.5 mr-2" />
+                  Copy Share Link
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={exportAsJSON}>
+                  <FileJson className="h-3.5 w-3.5 mr-2" />
+                  Export as JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportAsMarkdown}>
+                  <FileText className="h-3.5 w-3.5 mr-2" />
+                  Export as Markdown
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
         {/* Statistics Panel */}
         {showStats && messages.length > 0 && (
-          <div className="mb-3 p-3 bg-white dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800">
+          <div className="mt-3 p-3 bg-white dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800">
             <div className="grid grid-cols-4 gap-4 text-center">
               <div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Pass Rate</div>
@@ -650,114 +616,65 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
                     getTrustTrend().direction === 'up' && 'text-green-600',
                     getTrustTrend().direction === 'down' && 'text-red-600',
                     getTrustTrend().direction === 'neutral' && 'text-slate-400'
-                  )}>
-                    {getTrustTrend().change}
-                  </span>
+                  )}>{getTrustTrend().change}</span>
                 </div>
               </div>
             </div>
-
-            {/* Mini Trust Score History */}
             <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
               <div className="text-xs text-slate-500 dark:text-slate-400 mb-2">Trust Score History (Last 10)</div>
               <div className="flex items-end gap-1 h-12">
-                {messages
-                  .filter(m => m.evaluation)
-                  .slice(-10)
-                  .map((msg, idx) => {
-                    const score = msg.evaluation!.trustScore.overall;
-                    const height = Math.min(100, score); // 0-100 scale maps directly to percentage
-                    const color = score >= 80 ? 'bg-green-500' : score >= 60 ? 'bg-amber-500' : 'bg-red-500';
-                    return (
-                      <div
-                        key={idx}
-                        className={cn('flex-1 rounded-t transition-all', color)}
-                        style={{ height: `${height}%` }}
-                        title={`Score: ${score}/100`}
-                      />
-                    );
-                  })}
+                {messages.filter(m => m.evaluation).slice(-10).map((msg, idx) => {
+                  const score = msg.evaluation!.trustScore.overall;
+                  const color = score >= 80 ? 'bg-green-500' : score >= 60 ? 'bg-amber-500' : 'bg-red-500';
+                  return (
+                    <div
+                      key={idx}
+                      className={cn('flex-1 rounded-t transition-all', color)}
+                      style={{ height: `${Math.min(100, score)}%` }}
+                      title={`Score: ${score}/100`}
+                    />
+                  );
+                })}
               </div>
             </div>
           </div>
         )}
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6 text-[10px] font-mono text-slate-500">
+        {/* Protocol status bar + filter */}
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center gap-4 text-[10px] font-mono text-slate-500">
             <div className="flex items-center gap-1">
-              <ShieldCheck size={12} className="text-emerald-500" />
-              PROTOCOL V1.11.0
+              <ShieldCheck size={11} className="text-emerald-500" />
+              PROTOCOL V2.0.0
             </div>
             <div className="flex items-center gap-1">
-              <AlertTriangle size={12} className="text-amber-500" />
-              REAL-TIME AUDIT ACTIVE
+              <AlertTriangle size={11} className="text-amber-500" />
+              REAL-TIME AUDIT
             </div>
-            {messages.length > 0 && (
-              <div className="flex items-center gap-3">
-                <div className="text-[9px] text-slate-400">
-                  AVG TRUST: {(messages
-                    .filter(m => m.evaluation)
-                    .reduce((sum, m) => sum + (m.evaluation?.trustScore.overall || 0), 0) /
-                    messages.filter(m => m.evaluation).length || 0).toFixed(0)}/100
-                </div>
-                <div className="text-[9px] text-slate-400">
-                  MESSAGES: {messages.length}
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* Filter Buttons */}
           {messages.length > 0 && (
             <div className="flex items-center gap-1">
               <Filter className="h-3 w-3 text-slate-400" />
-              <Button
-                variant={filterStatus === 'all' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setFilterStatus('all')}
-                className="h-6 px-2 text-[10px]"
-              >
-                All
-              </Button>
-              <Button
-                variant={filterStatus === 'PASS' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setFilterStatus('PASS')}
-                className={cn(
-                  "h-6 px-2 text-[10px]",
-                  filterStatus === 'PASS'
-                    ? 'bg-green-600 text-white hover:bg-green-700'
-                    : 'text-green-600 dark:text-green-400 hover:text-green-600 dark:hover:text-green-300'
-                )}
-              >
-                Pass
-              </Button>
-              <Button
-                variant={filterStatus === 'PARTIAL' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setFilterStatus('PARTIAL')}
-                className={cn(
-                  "h-6 px-2 text-[10px]",
-                  filterStatus === 'PARTIAL'
-                    ? 'bg-amber-600 text-white hover:bg-amber-700'
-                    : 'text-amber-600 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300'
-                )}
-              >
-                Partial
-              </Button>
-              <Button
-                variant={filterStatus === 'FAIL' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setFilterStatus('FAIL')}
-                className={cn(
-                  "h-6 px-2 text-[10px]",
-                  filterStatus === 'FAIL'
-                    ? 'bg-red-600 text-white hover:bg-red-700'
-                    : 'text-red-600 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300'
-                )}
-              >
-                Fail
-              </Button>
+              {(['all', 'PASS', 'PARTIAL', 'FAIL'] as const).map(status => (
+                <Button
+                  key={status}
+                  variant={filterStatus === status ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setFilterStatus(status)}
+                  className={cn(
+                    "h-6 px-2 text-[10px]",
+                    filterStatus !== status && status === 'PASS' && 'text-green-600 dark:text-green-400',
+                    filterStatus !== status && status === 'PARTIAL' && 'text-amber-600 dark:text-amber-400',
+                    filterStatus !== status && status === 'FAIL' && 'text-red-600 dark:text-red-400',
+                    filterStatus === status && status === 'PASS' && 'bg-green-600 hover:bg-green-700',
+                    filterStatus === status && status === 'PARTIAL' && 'bg-amber-600 hover:bg-amber-700',
+                    filterStatus === status && status === 'FAIL' && 'bg-red-600 hover:bg-red-700',
+                  )}
+                >
+                  {status === 'all' ? 'All' : status.charAt(0) + status.slice(1).toLowerCase()}
+                </Button>
+              ))}
             </div>
           )}
         </div>
@@ -768,14 +685,35 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
         ref={scrollRef}
         className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800"
       >
-        {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4 p-8 text-center">
+        {isLoadingConversation ? (
+          <div className="h-full flex items-center justify-center">
+            <Loader2 size={24} className="animate-spin text-slate-400" />
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center gap-6 p-8 text-center">
             <div className="p-4 rounded-full bg-slate-50 dark:bg-slate-900">
-              <ShieldCheck size={40} className="opacity-20" />
+              <ShieldCheck size={36} className="text-purple-300 dark:text-purple-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-300">No active trust session</p>
-              <p className="text-xs max-w-[240px] mt-1">Start a conversation to see real-time constitutional alignment and cryptographic receipts.</p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Start a trust-aware conversation</p>
+              <p className="text-xs text-slate-400 mt-1 max-w-[280px]">
+                Every response is evaluated against 6 constitutional principles with a cryptographic receipt.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
+              {STARTER_PROMPTS.map((sp) => (
+                <button
+                  key={sp.label}
+                  onClick={() => {
+                    setInput(sp.prompt);
+                    textareaRef.current?.focus();
+                  }}
+                  className="flex items-start gap-2 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-left text-xs text-slate-600 dark:text-slate-300 hover:border-purple-300 dark:hover:border-purple-600 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+                >
+                  <Sparkles size={12} className="mt-0.5 shrink-0 text-purple-400" />
+                  {sp.label}
+                </button>
+              ))}
             </div>
           </div>
         ) : (
@@ -784,26 +722,21 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
               <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4 p-8 text-center">
                 <Filter className="h-10 w-10 opacity-20" />
                 <div>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                    No {filterStatus} messages
-                  </p>
-                  <p className="text-xs max-w-[240px] mt-1">
-                    No messages match the selected filter. Try a different filter.
-                  </p>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">No {filterStatus} messages</p>
+                  <p className="text-xs max-w-[240px] mt-1">No messages match the selected filter.</p>
                 </div>
               </div>
             ) : (
-              filteredMessages.map((msg, i) => (
-                <ChatMessage key={i} {...msg} />
-              ))
+              filteredMessages.map((msg, i) => <ChatMessage key={i} {...msg} />)
             )}
           </>
         )}
+
         {isLoading && (
           <div className="p-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
             <div className="flex items-center gap-3 text-slate-500">
-              <Loader2 size={16} className="animate-spin" />
-              <span className="text-xs font-mono uppercase tracking-widest">Evaluating Trust Protocol...</span>
+              <TypingIndicator />
+              <span className="text-xs font-mono uppercase tracking-widest text-slate-400">Evaluating trust protocol</span>
             </div>
             <Button
               variant="destructive"
@@ -820,31 +753,36 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t bg-slate-50 dark:bg-slate-900">
-        <form
-          onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-          className="flex gap-2"
-        >
-          <Input
+      <div className="p-4 border-t bg-slate-50 dark:bg-slate-900 shrink-0">
+        <div className="flex gap-2 items-end">
+          <textarea
+            ref={textareaRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Test constitutional alignment... (e.g., 'Analyze the impact of AI on privacy')"
-            className="flex-1 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus-visible:ring-purple-500"
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask anything… (Enter to send, Shift+Enter for new line)"
+            rows={1}
             disabled={isLoading}
+            className={cn(
+              "flex-1 resize-none rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950",
+              "px-3 py-2 text-sm leading-relaxed text-slate-900 dark:text-slate-100",
+              "placeholder:text-slate-400 dark:placeholder:text-slate-500",
+              "focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+              "overflow-hidden"
+            )}
+            style={{ minHeight: '40px', maxHeight: '120px' }}
           />
           <Button
-            type="submit"
+            onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/20"
+            className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/20 shrink-0 h-10 w-10 p-0"
           >
-            {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+            <Send size={16} />
           </Button>
-        </form>
-        <p className="mt-2 text-[9px] text-center text-slate-500 uppercase tracking-widest font-mono">
-          <span className="inline-flex items-center gap-1">
-            <span className="text-emerald-500">✓</span> By sending a message, you consent to AI interaction.
-          </span>
-          {' '}All interactions are cryptographically signed and verified.
+        </div>
+        <p className="mt-2 text-[9px] text-center text-slate-400 uppercase tracking-widest font-mono">
+          <span className="text-emerald-500">✓</span> Sending implies consent to AI interaction · Cryptographically signed
         </p>
       </div>
     </div>
