@@ -71,29 +71,42 @@ export default function ReportsPage() {
   const { data: reports, isLoading } = useQuery<ComplianceReport[]>({
     queryKey: ['reports'],
     queryFn: async () => {
-      const res = await fetch(`/api/reports`);
-      if (!res.ok) throw new Error('Failed to fetch reports');
-      const data = await res.json();
-      return data.reports || [];
+      const data = await fetchAPI<any>('/reports/history');
+      const items = data?.data || data?.reports || [];
+      return items.map((r: any) => ({
+        id: r._id || r.reportId || r.id,
+        type: (r.type || 'SONATE').toUpperCase(),
+        status: 'COMPLETED' as ReportStatus,
+        generatedAt: r.generatedAt || r.createdAt,
+        periodStart: r.startDate,
+        periodEnd: r.endDate,
+        summary: {
+          overallScore: (r.summary?.complianceRate || 0) / 100,
+          passedChecks: r.summary?.totalConversations || 0,
+          failedChecks: Math.round((r.summary?.totalConversations || 0) * (1 - (r.summary?.complianceRate || 100) / 100)),
+          warnings: 0,
+          riskLevel: (r.summary?.complianceRate || 100) >= 90 ? 'LOW' : (r.summary?.complianceRate || 100) >= 70 ? 'MEDIUM' : 'HIGH',
+        },
+        content: r.payload ? JSON.stringify(r.payload, null, 2) : undefined,
+      }));
     },
-    refetchInterval: 10000 // Refresh every 10s to catch completed reports
+    refetchInterval: 10000
   });
 
   // Generate report mutation
   const generateMutation = useMutation({
     mutationFn: async (params: { type: ReportType; criteria?: string }) => {
-      const res = await fetch(`/api/reports/generate`, {
+      return await fetchAPI<any>('/reports/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: params.type,
-          periodStart: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-          periodEnd: new Date().toISOString(),
+          type: params.type.toLowerCase(),
+          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          endDate: new Date().toISOString(),
+          format: 'json',
           ...(params.criteria && { criteria: params.criteria })
         })
       });
-      if (!res.ok) throw new Error('Failed to generate report');
-      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reports'] });
@@ -104,10 +117,7 @@ export default function ReportsPage() {
   // Delete report mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/reports/${id}`, {
-        method: 'DELETE'
-      });
-      if (!res.ok) throw new Error('Failed to delete report');
+      await fetchAPI<any>(`/reports/history/${id}`, { method: 'DELETE' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reports'] });
@@ -117,24 +127,42 @@ export default function ReportsPage() {
 
   // Download report
   const downloadReport = async (id: string, format: 'json' | 'csv') => {
-    const res = await fetch(`/api/reports/${id}/download?format=${format}`);
-    if (!res.ok) return;
-    
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `compliance-report-${id}.${format}`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const data = await fetchAPI<any>(`/reports/history/${id}`);
+      const payload = data?.data?.payload || data?.payload || data;
+      const content = format === 'json' ? JSON.stringify(payload, null, 2) : 'CSV export not yet implemented';
+      const blob = new Blob([content], { type: format === 'json' ? 'application/json' : 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `compliance-report-${id}.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch { /* ignore */ }
   };
 
   // View full report
   const viewReport = async (id: string) => {
-    const res = await fetch(`/api/reports/${id}`);
-    if (!res.ok) return;
-    const data = await res.json();
-    setViewingReport(data.report);
+    try {
+      const data = await fetchAPI<any>(`/reports/history/${id}`);
+      const r = data?.data || data;
+      setViewingReport({
+        id: r._id || r.reportId || id,
+        type: (r.type || 'SONATE').toUpperCase() as ReportType,
+        status: 'COMPLETED' as ReportStatus,
+        generatedAt: r.generatedAt || r.createdAt,
+        periodStart: r.startDate,
+        periodEnd: r.endDate,
+        summary: {
+          overallScore: (r.summary?.complianceRate || 0) / 100,
+          passedChecks: r.summary?.totalConversations || 0,
+          failedChecks: Math.round((r.summary?.totalConversations || 0) * (1 - (r.summary?.complianceRate || 100) / 100)),
+          warnings: 0,
+          riskLevel: (r.summary?.complianceRate || 100) >= 90 ? 'LOW' : (r.summary?.complianceRate || 100) >= 70 ? 'MEDIUM' : 'HIGH',
+        },
+        content: r.payload ? JSON.stringify(r.payload, null, 2) : undefined,
+      });
+    } catch { /* ignore */ }
   };
 
   const handleGenerate = () => {

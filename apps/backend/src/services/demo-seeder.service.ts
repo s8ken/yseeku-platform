@@ -12,6 +12,10 @@ import { TrustReceiptModel } from '../models/trust-receipt.model';
 import { AlertModel } from '../models/alert.model';
 import { Experiment } from '../models/experiment.model';
 import { User } from '../models/user.model';
+import { BrainCycle } from '../models/brain-cycle.model';
+import { BrainAction } from '../models/brain-action.model';
+import { AuditLog } from '../models/audit.model';
+import { GeneratedReport } from '../models/generated-report.model';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 import crypto from 'crypto';
@@ -29,6 +33,10 @@ interface SeedResult {
     receipts: number;
     alerts: number;
     experiments: number;
+    brainCycles: number;
+    brainActions: number;
+    auditLogs: number;
+    reports: number;
   };
   message: string;
 }
@@ -400,6 +408,341 @@ async function seedExperiments(): Promise<void> {
 }
 
 /**
+ * Create demo brain cycles (Overseer thinking loops)
+ */
+async function seedBrainCycles(): Promise<void> {
+  await BrainCycle.deleteMany({ tenantId: DEMO_TENANT_ID });
+  await BrainAction.deleteMany({ tenantId: DEMO_TENANT_ID });
+
+  const now = Date.now();
+
+  const cycles = [
+    {
+      tenantId: DEMO_TENANT_ID,
+      status: 'completed',
+      mode: 'advisory',
+      observations: [
+        'Agent Nova trust score trending down 8% over 6 hours',
+        'Conversation volume spike detected (42% above baseline)',
+        'All agents within consent compliance thresholds',
+      ],
+      actions: [
+        { type: 'alert', target: 'agent-nova', reason: 'Trust drift approaching threshold', status: 'executed' },
+        { type: 'log', target: 'system', reason: 'Volume spike recorded for audit trail', status: 'executed' },
+      ],
+      inputContext: 'Scheduled 15-minute oversight cycle',
+      llmOutput: 'Agent Nova shows minor trust degradation likely due to increased load. Recommend monitoring. No immediate intervention required.',
+      thought: 'Assessed 5 agents. Nova flagged for drift. Volume spike is within acceptable range for peak hours.',
+      metrics: { durationMs: 2340, agentCount: 5, avgTrust: 8.7, alertsProcessed: 1, actionsPlanned: 2 },
+      startedAt: new Date(now - 30 * 60 * 1000),
+      completedAt: new Date(now - 30 * 60 * 1000 + 2340),
+    },
+    {
+      tenantId: DEMO_TENANT_ID,
+      status: 'completed',
+      mode: 'enforced',
+      observations: [
+        'Agent Atlas failed consent check on interaction int-005',
+        'Prompt injection attempt detected and blocked by Sentinel',
+        'Echo maintaining 9.4 average trust score',
+      ],
+      actions: [
+        { type: 'override', target: 'agent-atlas', reason: 'Consent violation — interaction suspended', status: 'executed' },
+        { type: 'alert', target: 'admin', reason: 'Consent failure requires human review', status: 'executed' },
+        { type: 'log', target: 'system', reason: 'Prompt injection blocked — no action needed', status: 'executed' },
+      ],
+      inputContext: 'Triggered by consent violation event',
+      llmOutput: 'CRITICAL: Agent Atlas processed a customer request without proper consent flow. Interaction has been suspended. Human review required before Atlas can resume customer-facing tasks.',
+      thought: 'Consent principle violated. Override principle activated. Disconnection principle standby.',
+      metrics: { durationMs: 1890, agentCount: 5, avgTrust: 8.2, alertsProcessed: 2, actionsPlanned: 3 },
+      startedAt: new Date(now - 5 * 60 * 60 * 1000),
+      completedAt: new Date(now - 5 * 60 * 60 * 1000 + 1890),
+    },
+    {
+      tenantId: DEMO_TENANT_ID,
+      status: 'completed',
+      mode: 'advisory',
+      observations: [
+        'All agents within normal trust parameters',
+        'Prism completed quarterly security report generation with Sentinel',
+        'No outstanding alerts or policy breaches',
+      ],
+      actions: [
+        { type: 'log', target: 'system', reason: 'Routine cycle — all clear', status: 'executed' },
+      ],
+      inputContext: 'Scheduled 15-minute oversight cycle',
+      llmOutput: 'All agents operating nominally. No interventions required. Trust scores stable across the fleet.',
+      thought: 'Green status across all SONATE principles. Fleet health optimal.',
+      metrics: { durationMs: 1120, agentCount: 5, avgTrust: 9.1, alertsProcessed: 0, actionsPlanned: 1 },
+      startedAt: new Date(now - 15 * 60 * 1000),
+      completedAt: new Date(now - 15 * 60 * 1000 + 1120),
+    },
+    {
+      tenantId: DEMO_TENANT_ID,
+      status: 'started',
+      mode: 'advisory',
+      observations: [
+        'Analyzing current agent fleet status...',
+      ],
+      actions: [],
+      inputContext: 'Scheduled 15-minute oversight cycle',
+      thought: 'Cycle in progress — gathering telemetry from all 5 agents.',
+      metrics: { durationMs: 0, agentCount: 5, avgTrust: 0, alertsProcessed: 0, actionsPlanned: 0 },
+      startedAt: new Date(now - 30 * 1000),
+    },
+  ];
+
+  const insertedCycles = await BrainCycle.insertMany(cycles);
+
+  // Create corresponding BrainAction records for completed cycles
+  const actions = [
+    {
+      cycleId: insertedCycles[0]._id,
+      tenantId: DEMO_TENANT_ID,
+      type: 'alert',
+      target: 'agent-nova',
+      reason: 'Trust drift approaching threshold — 8% deviation over 6 hours',
+      status: 'executed',
+      result: 'Alert raised and acknowledged by admin',
+      executedAt: new Date(now - 29 * 60 * 1000),
+      createdAt: new Date(now - 30 * 60 * 1000),
+    },
+    {
+      cycleId: insertedCycles[1]._id,
+      tenantId: DEMO_TENANT_ID,
+      type: 'override',
+      target: 'agent-atlas',
+      reason: 'Consent violation — customer interaction without proper consent flow',
+      status: 'executed',
+      result: 'Agent Atlas customer-facing interactions suspended pending review',
+      executedAt: new Date(now - 4.9 * 60 * 60 * 1000),
+      createdAt: new Date(now - 5 * 60 * 60 * 1000),
+    },
+    {
+      cycleId: insertedCycles[1]._id,
+      tenantId: DEMO_TENANT_ID,
+      type: 'alert',
+      target: 'admin',
+      reason: 'Consent failure requires human review',
+      status: 'approved',
+      approvedBy: DEMO_USER_ID,
+      result: 'Admin notified via dashboard and email',
+      executedAt: new Date(now - 4.8 * 60 * 60 * 1000),
+      createdAt: new Date(now - 5 * 60 * 60 * 1000),
+    },
+  ];
+
+  await BrainAction.insertMany(actions);
+  logger.info('Demo brain cycles seeded', { cycles: cycles.length, actions: actions.length });
+}
+
+/**
+ * Create demo audit log entries
+ */
+async function seedAuditLogs(): Promise<void> {
+  await AuditLog.deleteMany({ tenantId: DEMO_TENANT_ID });
+
+  const now = Date.now();
+  const logs = [
+    {
+      timestamp: new Date(now - 24 * 60 * 60 * 1000),
+      userId: DEMO_USER_ID,
+      userEmail: 'admin@yseeku-demo.com',
+      action: 'login',
+      resourceType: 'session',
+      resourceId: 'sess-001',
+      severity: 'info' as const,
+      outcome: 'success' as const,
+      details: { method: 'sso', provider: 'azure-ad' },
+      tenantId: DEMO_TENANT_ID,
+      ipAddress: '10.0.1.42',
+    },
+    {
+      timestamp: new Date(now - 22 * 60 * 60 * 1000),
+      userId: DEMO_USER_ID,
+      userEmail: 'admin@yseeku-demo.com',
+      action: 'create_agent',
+      resourceType: 'agent',
+      resourceId: 'agent-echo',
+      severity: 'info' as const,
+      outcome: 'success' as const,
+      details: { agentName: 'Echo', role: 'Customer Support' },
+      tenantId: DEMO_TENANT_ID,
+    },
+    {
+      timestamp: new Date(now - 18 * 60 * 60 * 1000),
+      userId: DEMO_USER_ID,
+      userEmail: 'admin@yseeku-demo.com',
+      action: 'update_trust_threshold',
+      resourceType: 'tenant',
+      resourceId: DEMO_TENANT_ID,
+      severity: 'warning' as const,
+      outcome: 'success' as const,
+      details: { previousThreshold: 7.0, newThreshold: 7.5, reason: 'Tightened after audit' },
+      tenantId: DEMO_TENANT_ID,
+    },
+    {
+      timestamp: new Date(now - 12 * 60 * 60 * 1000),
+      userId: 'system',
+      action: 'override_agent',
+      resourceType: 'agent',
+      resourceId: 'agent-atlas',
+      severity: 'critical' as const,
+      outcome: 'success' as const,
+      details: { reason: 'Consent violation', overrideType: 'suspend_customer_facing', cycleId: 'brain-cycle-002' },
+      tenantId: DEMO_TENANT_ID,
+    },
+    {
+      timestamp: new Date(now - 8 * 60 * 60 * 1000),
+      userId: DEMO_USER_ID,
+      userEmail: 'admin@yseeku-demo.com',
+      action: 'generate_report',
+      resourceType: 'report',
+      resourceId: 'rpt-sonate-001',
+      severity: 'info' as const,
+      outcome: 'success' as const,
+      details: { reportType: 'sonate_compliance', format: 'json' },
+      tenantId: DEMO_TENANT_ID,
+    },
+    {
+      timestamp: new Date(now - 6 * 60 * 60 * 1000),
+      userId: 'system',
+      action: 'block_prompt_injection',
+      resourceType: 'conversation',
+      resourceId: 'conv-003',
+      severity: 'critical' as const,
+      outcome: 'success' as const,
+      details: { threatType: 'role_hijacking', agentName: 'Sentinel', blocked: true },
+      tenantId: DEMO_TENANT_ID,
+    },
+    {
+      timestamp: new Date(now - 3 * 60 * 60 * 1000),
+      userId: DEMO_USER_ID,
+      userEmail: 'admin@yseeku-demo.com',
+      action: 'review_alert',
+      resourceType: 'alert',
+      resourceId: 'alert-trust-drift',
+      severity: 'info' as const,
+      outcome: 'success' as const,
+      details: { alertType: 'trust_violation', resolution: 'acknowledged', agentName: 'Nova' },
+      tenantId: DEMO_TENANT_ID,
+    },
+    {
+      timestamp: new Date(now - 1 * 60 * 60 * 1000),
+      userId: DEMO_USER_ID,
+      userEmail: 'admin@yseeku-demo.com',
+      action: 'export_data',
+      resourceType: 'report',
+      resourceId: 'export-001',
+      severity: 'info' as const,
+      outcome: 'success' as const,
+      details: { format: 'csv', recordCount: 150, dataType: 'trust_receipts' },
+      tenantId: DEMO_TENANT_ID,
+    },
+  ];
+
+  await AuditLog.insertMany(logs);
+  logger.info('Demo audit logs seeded', { count: logs.length });
+}
+
+/**
+ * Create demo generated reports (so the Reports page shows history)
+ */
+async function seedGeneratedReports(): Promise<void> {
+  await GeneratedReport.deleteMany({ tenantId: DEMO_TENANT_ID });
+
+  const now = Date.now();
+  const reports = [
+    {
+      reportId: `rpt-sonate-${crypto.randomUUID().slice(0, 8)}`,
+      type: 'sonate_compliance',
+      format: 'json',
+      tenantId: DEMO_TENANT_ID,
+      generatedBy: DEMO_USER_ID,
+      startDate: new Date(now - 30 * 24 * 60 * 60 * 1000),
+      endDate: new Date(now),
+      summary: {
+        totalConversations: 47,
+        avgTrustScore: 8.7,
+        complianceRate: 94.2,
+        status: 'compliant',
+      },
+      payload: {
+        principles: {
+          consent: { score: 96, passed: 45, failed: 2 },
+          inspection: { score: 98, passed: 46, failed: 1 },
+          validation: { score: 91, passed: 43, failed: 4 },
+          override: { score: 100, passed: 47, failed: 0 },
+          disconnect: { score: 89, passed: 42, failed: 5 },
+          recognition: { score: 93, passed: 44, failed: 3 },
+        },
+        topIssues: ['Consent flow not triggered on 2 edge-case interactions', 'Disconnect timeout slightly above SLA on 5 occasions'],
+        recommendations: ['Review consent flow for bulk operations', 'Tune disconnect timeout from 30s to 25s'],
+      },
+      sizeBytes: 4200,
+      generatedAt: new Date(now - 2 * 24 * 60 * 60 * 1000),
+    },
+    {
+      reportId: `rpt-trust-${crypto.randomUUID().slice(0, 8)}`,
+      type: 'trust_summary',
+      format: 'json',
+      tenantId: DEMO_TENANT_ID,
+      generatedBy: DEMO_USER_ID,
+      startDate: new Date(now - 7 * 24 * 60 * 60 * 1000),
+      endDate: new Date(now),
+      summary: {
+        totalConversations: 12,
+        avgTrustScore: 8.9,
+        complianceRate: 91.7,
+        status: 'compliant',
+      },
+      payload: {
+        agents: [
+          { name: 'Atlas', avgTrust: 8.1, interactions: 4, flags: 1 },
+          { name: 'Nova', avgTrust: 8.5, interactions: 3, flags: 0 },
+          { name: 'Echo', avgTrust: 9.4, interactions: 8, flags: 0 },
+          { name: 'Sentinel', avgTrust: 9.8, interactions: 2, flags: 0 },
+          { name: 'Prism', avgTrust: 9.1, interactions: 3, flags: 0 },
+        ],
+        trendDirection: 'stable',
+        weekOverWeekDelta: 0.2,
+      },
+      sizeBytes: 2800,
+      generatedAt: new Date(now - 12 * 60 * 60 * 1000),
+    },
+    {
+      reportId: `rpt-audit-${crypto.randomUUID().slice(0, 8)}`,
+      type: 'agent_audit',
+      format: 'json',
+      tenantId: DEMO_TENANT_ID,
+      generatedBy: DEMO_USER_ID,
+      startDate: new Date(now - 14 * 24 * 60 * 60 * 1000),
+      endDate: new Date(now),
+      summary: {
+        totalConversations: 31,
+        avgTrustScore: 8.4,
+        complianceRate: 87.1,
+        status: 'partial',
+      },
+      payload: {
+        auditedAgents: ['Atlas', 'Nova', 'Echo', 'Sentinel', 'Prism'],
+        findings: [
+          { severity: 'high', agent: 'Atlas', finding: 'Consent flow bypassed on 1 interaction' },
+          { severity: 'medium', agent: 'Nova', finding: 'Trust score trending down — monitor closely' },
+          { severity: 'low', agent: 'Prism', finding: 'Response latency above target on 3 queries' },
+        ],
+        overallRisk: 'medium',
+      },
+      sizeBytes: 5100,
+      generatedAt: new Date(now - 5 * 24 * 60 * 60 * 1000),
+    },
+  ];
+
+  await GeneratedReport.insertMany(reports);
+  logger.info('Demo generated reports seeded', { count: reports.length });
+}
+
+/**
  * Main seed function - seeds all demo data
  */
 export async function seedDemoTenant(force = false): Promise<SeedResult> {
@@ -408,7 +751,7 @@ export async function seedDemoTenant(force = false): Promise<SeedResult> {
     if (!force && await isDemoSeeded()) {
       return {
         success: true,
-        seeded: { tenants: 0, users: 0, agents: 0, conversations: 0, receipts: 0, alerts: 0, experiments: 0 },
+        seeded: { tenants: 0, users: 0, agents: 0, conversations: 0, receipts: 0, alerts: 0, experiments: 0, brainCycles: 0, brainActions: 0, auditLogs: 0, reports: 0 },
         message: 'Demo tenant already seeded',
       };
     }
@@ -421,6 +764,9 @@ export async function seedDemoTenant(force = false): Promise<SeedResult> {
     await seedTrustReceipts();
     await seedAlerts();
     await seedExperiments();
+    await seedBrainCycles();
+    await seedAuditLogs();
+    await seedGeneratedReports();
 
     const result: SeedResult = {
       success: true,
@@ -432,6 +778,10 @@ export async function seedDemoTenant(force = false): Promise<SeedResult> {
         receipts: 30,
         alerts: 4,
         experiments: 2,
+        brainCycles: 4,
+        brainActions: 3,
+        auditLogs: 8,
+        reports: 3,
       },
       message: 'Demo tenant seeded successfully',
     };
@@ -443,7 +793,7 @@ export async function seedDemoTenant(force = false): Promise<SeedResult> {
     logger.error('Failed to seed demo tenant', { error: getErrorMessage(error) });
     return {
       success: false,
-      seeded: { tenants: 0, users: 0, agents: 0, conversations: 0, receipts: 0, alerts: 0, experiments: 0 },
+      seeded: { tenants: 0, users: 0, agents: 0, conversations: 0, receipts: 0, alerts: 0, experiments: 0, brainCycles: 0, brainActions: 0, auditLogs: 0, reports: 0 },
       message: getErrorMessage(error),
     };
   }

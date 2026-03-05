@@ -194,7 +194,15 @@ export default function TenantSettingsPage() {
   const { data: currentSettings, isLoading } = useQuery({
     queryKey: ['tenant-settings'],
     queryFn: async () => {
-      // Mock API call - replace with actual endpoint
+      // Load from localStorage (persisted per-browser)
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('yseeku-tenant-settings');
+        if (saved) {
+          try {
+            return { success: true, data: { ...defaultSettings, ...JSON.parse(saved) } };
+          } catch { /* fall through */ }
+        }
+      }
       return { success: true, data: defaultSettings };
     },
   });
@@ -207,13 +215,16 @@ export default function TenantSettingsPage() {
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (newSettings: TenantSettings) => {
-      // Mock API call - replace with actual endpoint
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Persist to localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('yseeku-tenant-settings', JSON.stringify(newSettings));
+      }
       return { success: true, data: newSettings };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenant-settings'] });
       setHasChanges(false);
+      toast.success('Settings saved successfully');
     },
   });
 

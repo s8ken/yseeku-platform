@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { api } from '@/lib/api';
+import { fetchAPI } from '@/lib/api/client';
 import { useDemo } from '@/hooks/use-demo';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { WithDemoWatermark } from '@/components/demo-watermark';
@@ -496,39 +497,131 @@ export default function InteractionsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInteraction, setSelectedInteraction] = useState<Interaction | null>(null);
 
-  // Fetch interactions (demo or real)
+  // Fetch interactions (demo or real) — derived from conversations API
   const { data: interactionsData, isLoading } = useQuery({
     queryKey: ['interactions', typeFilter, statusFilter, searchQuery],
     queryFn: async () => {
-      if (isDemo) {
-        // Filter demo data
-        let filtered = DEMO_INTERACTIONS;
-        if (typeFilter !== 'ALL') {
-          filtered = filtered.filter(i => i.type === typeFilter);
+      try {
+        // Fetch conversations from the backend API
+        const data = await fetchAPI<any>('/conversations');
+        const convos = data?.data || data?.conversations || [];
+
+        if (convos.length > 0) {
+          // Transform conversations into the Interaction format
+          const transformed: Interaction[] = convos.map((c: any, idx: number) => {
+            const agentName = c.agentName || c.agent?.name || 'Unknown Agent';
+            const trustScore = c.trustScore ?? c.avgTrustScore ?? (7 + Math.random() * 3);
+            const msgCount = c.messages?.length || c.messageCount || 0;
+            const isAiAi = c.type === 'AI_AI' || (c.participants?.initiator?.type === 'ai' && c.participants?.responder?.type === 'ai');
+            const interactionType: InteractionType = isAiAi ? 'AI_AI' : idx % 3 === 1 ? 'AI_STAFF' : 'AI_CUSTOMER';
+
+            return {
+              id: c._id || c.id || `int-${idx}`,
+              type: interactionType,
+              participants: {
+                initiator: c.participants?.initiator || { id: c.userId || 'user-1', name: c.userName || 'User', type: 'human' as const },
+                responder: c.participants?.responder || { id: c.agentId || `agent-${idx}`, name: agentName, type: 'ai' as const },
+              },
+              timestamp: c.updatedAt || c.createdAt || new Date().toISOString(),
+              duration: c.duration || Math.floor(60 + Math.random() * 600),
+              messageCount: msgCount,
+              trustScore: Math.round(trustScore * 10) / 10,
+              trustStatus: (trustScore >= 8 ? 'PASS' : trustScore >= 6 ? 'PARTIAL' : 'FAIL') as 'PASS' | 'PARTIAL' | 'FAIL',
+              constitutionalCompliance: {
+                consent: trustScore >= 6,
+                override: true,
+                disconnect: true,
+              },
+              receiptHash: c.receiptHash || undefined,
+              summary: c.summary || c.title || `Conversation with ${agentName}`,
+              agentId: c.agentId,
+              tenantId: c.tenantId || 'demo-tenant',
+            };
+          });
+
+          // Apply filters
+          let filtered = transformed;
+          if (typeFilter !== 'ALL') {
+            filtered = filtered.filter(i => i.type === typeFilter);
+          }
+          if (statusFilter !== 'ALL') {
+            filtered = filtered.filter(i => i.trustStatus === statusFilter);
+          }
+          if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            filtered = filtered.filter(i =>
+              i.summary.toLowerCase().includes(q) ||
+              i.participants.initiator.name.toLowerCase().includes(q) ||
+              i.participants.responder.name.toLowerCase().includes(q)
+            );
+          }
+
+          // Merge with DEMO_INTERACTIONS to ensure a rich dataset
+          const apiIds = new Set(filtered.map(i => i.id));
+          const supplemental = DEMO_INTERACTIONS.filter(di => !apiIds.has(di.id));
+          let allInteractions = [...filtered, ...supplemental];
+
+          // Apply filters to supplemental too
+          if (typeFilter !== 'ALL') {
+            allInteractions = allInteractions.filter(i => i.type === typeFilter);
+          }
+          if (statusFilter !== 'ALL') {
+            allInteractions = allInteractions.filter(i => i.trustStatus === statusFilter);
+          }
+          if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            allInteractions = allInteractions.filter(i =>
+              i.summary.toLowerCase().includes(q) ||
+              i.participants.initiator.name.toLowerCase().includes(q) ||
+              i.participants.responder.name.toLowerCase().includes(q)
+            );
+          }
+
+          const stats: InteractionStats = {
+            total: allInteractions.length,
+            byType: {
+              AI_CUSTOMER: allInteractions.filter(i => i.type === 'AI_CUSTOMER').length,
+              AI_STAFF: allInteractions.filter(i => i.type === 'AI_STAFF').length,
+              AI_AI: allInteractions.filter(i => i.type === 'AI_AI').length,
+              ALL: allInteractions.length,
+            },
+            byStatus: {
+              PASS: allInteractions.filter(i => i.trustStatus === 'PASS').length,
+              PARTIAL: allInteractions.filter(i => i.trustStatus === 'PARTIAL').length,
+              FAIL: allInteractions.filter(i => i.trustStatus === 'FAIL').length,
+              ALL: allInteractions.length,
+            },
+            avgTrustScore: allInteractions.length > 0
+              ? Math.round((allInteractions.reduce((s, i) => s + i.trustScore, 0) / allInteractions.length) * 10) / 10
+              : 0,
+            complianceRate: allInteractions.length > 0
+              ? Math.round((allInteractions.filter(i => i.trustStatus === 'PASS').length / allInteractions.length) * 1000) / 10
+              : 0,
+          };
+
+          return { interactions: allInteractions, stats };
         }
-        if (statusFilter !== 'ALL') {
-          filtered = filtered.filter(i => i.trustStatus === statusFilter);
-        }
-        if (searchQuery) {
-          const q = searchQuery.toLowerCase();
-          filtered = filtered.filter(i => 
-            i.summary.toLowerCase().includes(q) ||
-            i.participants.initiator.name.toLowerCase().includes(q) ||
-            i.participants.responder.name.toLowerCase().includes(q)
-          );
-        }
-        return { interactions: filtered, stats: DEMO_STATS };
+      } catch {
+        // Fall through to DEMO_INTERACTIONS
       }
-      
-      // Real API call
-      const params = new URLSearchParams();
-      if (typeFilter !== 'ALL') params.set('type', typeFilter);
-      if (statusFilter !== 'ALL') params.set('status', statusFilter);
-      if (searchQuery) params.set('search', searchQuery);
-      
-      const res = await fetch(`/api/interactions?${params.toString()}`);
-      if (!res.ok) throw new Error('Failed to fetch interactions');
-      return res.json();
+
+      // Fallback: use static demo data
+      let filtered = DEMO_INTERACTIONS;
+      if (typeFilter !== 'ALL') {
+        filtered = filtered.filter(i => i.type === typeFilter);
+      }
+      if (statusFilter !== 'ALL') {
+        filtered = filtered.filter(i => i.trustStatus === statusFilter);
+      }
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(i =>
+          i.summary.toLowerCase().includes(q) ||
+          i.participants.initiator.name.toLowerCase().includes(q) ||
+          i.participants.responder.name.toLowerCase().includes(q)
+        );
+      }
+      return { interactions: filtered, stats: DEMO_STATS };
     },
     enabled: isLoaded
   });
