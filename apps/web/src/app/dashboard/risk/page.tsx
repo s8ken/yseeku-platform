@@ -77,7 +77,7 @@ function TrustScoreVisualization({ principles, overallScore }: { principles: Tru
           Trust Score Breakdown
         </CardTitle>
         <CardDescription>
-          Overall Trust Score: <span className="font-bold text-lg">{overallScore}/100</span>
+          Overall Trust Score: <span className="font-bold text-lg">{overallScore}/10</span>
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -92,13 +92,13 @@ function TrustScoreVisualization({ principles, overallScore }: { principles: Tru
                 )}
               </div>
               <div className="text-sm text-muted-foreground">
-                {principle.score}/100 ({principle.weight}%)
+                {principle.score}/10 ({principle.weight}%)
               </div>
             </div>
             <Progress
-              value={principle.score}
+              value={principle.score * 10}
               className={`h-2 ${principle.critical && principle.score === 0 ? 'bg-red-100' : ''}`}
-              aria-label={`${principle.name} score: ${principle.score} out of 100`}
+              aria-label={`${principle.name} score: ${principle.score} out of 10`}
             />
           </div>
         ))}
@@ -227,16 +227,18 @@ export default function RiskManagementPage() {
   });
 
   // Build trust principles from demo-aware KPI data
-  // trustScore is now on 0-100 scale from backend
+  // trustScore is on 0-10 scale from backend; principleScores are 0-100, convert to 0-10
   const avgScore = kpisData?.trustScore || 0;
+  const p = kpisData?.principleScores;
+  const toTen = (v: number) => Math.round(v) / 10; // 0-100 → 0-10
   
-  const trustPrinciples: TrustPrinciple[] = kpisData?.principleScores ? [
-    { name: 'Consent Architecture', weight: 25, score: kpisData.principleScores.consent || Math.round(avgScore), critical: true },
-    { name: 'Inspection Mandate', weight: 20, score: kpisData.principleScores.inspection || Math.round(avgScore * 1.08), critical: false },
-    { name: 'Continuous Validation', weight: 20, score: kpisData.principleScores.validation || Math.round(avgScore * 0.92), critical: false },
-    { name: 'Ethical Override', weight: 15, score: kpisData.principleScores.override || Math.round(avgScore * 1.03), critical: true },
-    { name: 'Right to Disconnect', weight: 10, score: kpisData.principleScores.disconnect || Math.round(Math.min(avgScore * 1.12, 100)), critical: false },
-    { name: 'Moral Recognition', weight: 10, score: kpisData.principleScores.moral || Math.round(avgScore * 0.96), critical: false },
+  const trustPrinciples: TrustPrinciple[] = p ? [
+    { name: 'Consent Architecture', weight: 25, score: toTen(p.consent) || Math.round(avgScore * 10) / 10, critical: true },
+    { name: 'Inspection Mandate', weight: 20, score: toTen(p.inspection) || Math.round(avgScore * 1.08 * 10) / 10, critical: false },
+    { name: 'Continuous Validation', weight: 20, score: toTen(p.validation) || Math.round(avgScore * 0.92 * 10) / 10, critical: false },
+    { name: 'Ethical Override', weight: 15, score: toTen(p.override) || Math.round(avgScore * 1.03 * 10) / 10, critical: true },
+    { name: 'Right to Disconnect', weight: 10, score: toTen(p.disconnect) || Math.round(Math.min(avgScore * 1.12, 10) * 10) / 10, critical: false },
+    { name: 'Moral Recognition', weight: 10, score: toTen(p.moral) || Math.round(avgScore * 0.96 * 10) / 10, critical: false },
   ] : emptyTrustPrinciples;
 
   const passRate = kpisData?.complianceRate || analyticsData?.passRate || 0;
@@ -256,8 +258,8 @@ export default function RiskManagementPage() {
   }, 0);
 
   const metrics: RiskMetrics = {
-    overallRiskScore: kpisData?.riskScore ? Math.round(kpisData.riskScore * 10) : Math.round(Math.max(0, 100 - overallTrustScore)), // riskScore from backend is 0-10, display as 0-100
-    trustScore: overallTrustScore,
+    overallRiskScore: kpisData?.riskScore ? Math.round(kpisData.riskScore * 10) / 10 : Math.round(Math.max(0, 10 - overallTrustScore) * 10) / 10, // 0-10 scale
+    trustScore: Math.round(overallTrustScore * 10) / 10,
     complianceRate: passRate,
     activeAlerts: alertsData?.summary?.total || riskAlerts.length,
     criticalViolations: analyticsData?.commonViolations?.length || 0,
@@ -294,7 +296,7 @@ export default function RiskManagementPage() {
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.overallRiskScore}/100</div>
+            <div className="text-2xl font-bold">{metrics.overallRiskScore}/10</div>
             <p className="text-xs text-muted-foreground">
               Risk trend: {metrics.riskTrend}
             </p>
@@ -310,7 +312,7 @@ export default function RiskManagementPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{Math.round(metrics.trustScore)}</div>
+            <div className="text-2xl font-bold">{metrics.trustScore}/10</div>
             <p className="text-xs text-muted-foreground">Weighted average</p>
           </CardContent>
         </Card>
