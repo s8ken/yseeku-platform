@@ -245,11 +245,11 @@
             </a>
             <a href="#" onclick="showPage('bedau', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              Bedau Index
+              Bedau Index v2
             </a>
             <a href="#" onclick="showPage('emergence', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
-              Emergence Testing
+              Fleet Emergence
             </a>
             <a href="#" onclick="showPage('resonance', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
@@ -419,13 +419,24 @@
         }
       },
       agents: [
-        { id: 1, name: 'Customer Support AI', trust: 92, status: 'healthy', novelty: 25, unpredictability: 18, irreducibility: 22, downwardCausation: 15, index: 0.20 },
-        { id: 2, name: 'Data Analysis Agent', trust: 88, status: 'healthy', novelty: 35, unpredictability: 28, irreducibility: 32, downwardCausation: 25, index: 0.30 },
-        { id: 3, name: 'Content Generator', trust: 76, status: 'warning', novelty: 55, unpredictability: 48, irreducibility: 52, downwardCausation: 45, index: 0.50 },
-        { id: 4, name: 'Decision Engine', trust: 94, status: 'healthy', novelty: 15, unpredictability: 12, irreducibility: 18, downwardCausation: 10, index: 0.14 },
-        { id: 5, name: 'Recommendation System', trust: 85, status: 'healthy', novelty: 30, unpredictability: 25, irreducibility: 28, downwardCausation: 22, index: 0.26 },
-        { id: 6, name: 'Fraud Detection AI', trust: 91, status: 'healthy', novelty: 20, unpredictability: 15, irreducibility: 22, downwardCausation: 18, index: 0.19 }
+        { id: 1, name: 'Customer Support AI', trust: 92, status: 'healthy', clarity: 4.2, integrity: 4.5, quality: 4.1 },
+        { id: 2, name: 'Data Analysis Agent', trust: 88, status: 'healthy', clarity: 3.8, integrity: 4.0, quality: 3.9 },
+        { id: 3, name: 'Content Generator', trust: 76, status: 'warning', clarity: 2.9, integrity: 3.2, quality: 3.0 },
+        { id: 4, name: 'Decision Engine', trust: 94, status: 'healthy', clarity: 4.6, integrity: 4.8, quality: 4.5 },
+        { id: 5, name: 'Recommendation System', trust: 85, status: 'healthy', clarity: 3.5, integrity: 3.8, quality: 3.6 },
+        { id: 6, name: 'Fraud Detection AI', trust: 91, status: 'healthy', clarity: 4.0, integrity: 4.3, quality: 4.2 }
       ],
+      // Fleet-level Bedau v2 metrics (computed across all agents)
+      fleetBedau: {
+        index: 0.44,
+        type: 'WEAK_EMERGENCE',
+        phi: 0.82,   // Fleet Divergence (KL-divergence)
+        psi: 0.12,   // Temporal Irreducibility (RMSE)
+        omega: 0.13,  // Cross-Agent Novelty (JSD)
+        sigma: 0.18,  // Drift Coherence (Pearson)
+        agentCount: 6,
+        confidence: [0.07, 0.80]
+      },
       alerts: [
         { id: 1, severity: 'high', message: 'Content Generator showing elevated emergence indicators', time: '5 min ago', agent: 'Content Generator' },
         { id: 2, severity: 'medium', message: 'Data Analysis Agent trust score decreased by 3%', time: '15 min ago', agent: 'Data Analysis Agent' },
@@ -513,15 +524,16 @@
 
     // Glossary Terms
     const glossaryTerms = {
-      'Bedau Index': 'A quantitative measure of weak emergence that evaluates novelty, unpredictability, irreducibility, and downward causation in AI systems.',
+      'Bedau Index': 'A fleet-level quantitative measure of weak emergence (v2). Computes four information-theoretic sub-metrics across all agents: \u03A6 Fleet Divergence, \u03A8 Temporal Irreducibility, \u03A9 Cross-Agent Novelty, and \u03A3 Drift Coherence. Composite: B = 0.35\u03A6 + 0.25\u03A8 + 0.25\u03A9 + 0.15\u03A3.',
       'SONATE Framework': 'Symbolic Yielding Measurable Behavioral Integrity - A constitutional AI framework with six core principles for trustworthy AI.',
       'Weak Emergence': 'Emergent properties that can be simulated or predicted from component interactions, though may be computationally complex.',
       'Strong Emergence': 'Emergent properties that cannot be predicted or simulated from knowledge of components alone, requiring new causal powers.',
       'Trust Score': 'A composite metric (0-100) measuring an AI agent\'s reliability, consistency, and alignment with trust principles.',
-      'Novelty': 'The degree to which an AI system produces outputs that differ from its training data or expected patterns.',
-      'Unpredictability': 'The extent to which an AI system\'s behavior cannot be accurately forecasted from its current state.',
-      'Irreducibility': 'The degree to which an AI system\'s behavior cannot be explained by analyzing its individual components.',
-      'Downward Causation': 'When higher-level emergent properties influence lower-level component behaviors in an AI system.',
+      'Fleet Divergence (\u03A6)': 'Bedau v2 sub-metric (weight 35%). Measures KL-divergence between the joint CIQ distribution and the product of per-agent marginals. High \u03A6 means agents are informationally coupled — the fleet behaves differently than isolated agents would.',
+      'Temporal Irreducibility (\u03A8)': 'Bedau v2 sub-metric (weight 25%). RMSE of a linear predictor on sliding CIQ windows. High \u03A8 means fleet-level trends cannot be predicted from short histories — the system is temporally complex.',
+      'Cross-Agent Novelty (\u03A9)': 'Bedau v2 sub-metric (weight 25%). Average Jensen-Shannon divergence between all agent-pair CIQ distributions. High \u03A9 means agents show diverse behavioral profiles.',
+      'Drift Coherence (\u03A3)': 'Bedau v2 sub-metric (weight 15%). Mean absolute pairwise Pearson correlation of per-agent CIQ first-difference drift vectors. High \u03A3 means agents drift in correlated patterns — a sign of systemic pressure.',
+      'CIQ Metrics': 'Clarity, Integrity, and Quality scores (0-5 scale) assigned to each AI interaction in a trust receipt. These are the raw inputs to Bedau v2 fleet analysis.',
       // THE 6 SONATE CONSTITUTIONAL PRINCIPLES (from @sonate/core)
       'CONSENT_ARCHITECTURE': 'The first SONATE principle (weight 25%, CRITICAL). Users must explicitly consent to AI interactions and understand implications. If score=0, overall trust=0.',
       'INSPECTION_MANDATE': 'The second SONATE principle (weight 20%). All AI decisions must be inspectable and auditable.',
@@ -619,7 +631,7 @@
                 <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
               </div>
               <h3 class="text-lg font-bold text-gray-900 mb-2">LAB Module</h3>
-              <p class="text-sm text-gray-600 mb-4">Research and experimentation tools including Bedau Index calculator and emergence testing.</p>
+              <p class="text-sm text-gray-600 mb-4">Research and experimentation tools including the Bedau Index v2 fleet-level emergence calculator and experiment framework.</p>
               <div class="flex items-center text-sm text-purple-600 font-medium">
                 Explore LAB
                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -660,7 +672,7 @@
                 </div>
                 <div>
                   <div class="font-medium text-gray-900">Emergence Detection</div>
-                  <div class="text-sm text-gray-600">Bedau Index-based measurement of emergent AI behaviors</div>
+                  <div class="text-sm text-gray-600">Bedau Index v2 fleet-level measurement of emergent AI behaviors</div>
                 </div>
               </div>
               <div class="flex items-start gap-3">
@@ -723,9 +735,8 @@
           <div class="bg-white rounded-xl p-6 border border-gray-200">
             <h3 class="text-lg font-bold text-gray-900 mb-4">AI Agent Monitoring</h3>
             <p class="text-sm text-gray-600 mb-6">
-              Real-time monitoring of all AI agents with <span class="tooltip" data-tooltip="${glossaryTerms['Trust Score']}">trust scores</span>, 
-              <span class="tooltip" data-tooltip="${glossaryTerms['Bedau Index']}">Bedau Index</span> measurements, and 
-              <span class="tooltip" data-tooltip="${glossaryTerms['Emergence Monitoring']}">emergence indicators</span>.
+              Real-time monitoring of all AI agents with <span class="tooltip" data-tooltip="${glossaryTerms['Trust Score']}">trust scores</span> and
+              <span class="tooltip" data-tooltip="${glossaryTerms['CIQ Metrics']}">CIQ metrics</span> (Clarity, Integrity, Quality).
             </p>
             <div class="grid grid-cols-2 gap-6">
               ${mockData.agents.map(agent => agentCard(agent)).join('')}
@@ -886,32 +897,40 @@
       bedau: () => `
         <div class="space-y-6">
           <div class="bg-white rounded-xl p-6 border border-gray-200">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">Bedau Index Calculator</h3>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Bedau Index v2 — Fleet-Level Emergence</h3>
             <p class="text-sm text-gray-600 mb-6">
-              The <span class="tooltip" data-tooltip="${glossaryTerms['Bedau Index']}">Bedau Index</span> measures 
-              <span class="tooltip" data-tooltip="${glossaryTerms['Weak Emergence']}">weak emergence</span> through four key metrics.
+              The <span class="tooltip" data-tooltip="${glossaryTerms['Bedau Index']}">Bedau Index v2</span> measures 
+              <span class="tooltip" data-tooltip="${glossaryTerms['Weak Emergence']}">weak emergence</span> across the entire agent fleet
+              using four information-theoretic sub-metrics derived from CIQ trust receipt data.
             </p>
 
             <div class="grid grid-cols-2 gap-6">
               <div class="space-y-6">
-                ${bedauSlider('Novelty', 'novelty', 25, glossaryTerms['Novelty'])}
-                ${bedauSlider('Unpredictability', 'unpredictability', 18, glossaryTerms['Unpredictability'])}
-                ${bedauSlider('Irreducibility', 'irreducibility', 22, glossaryTerms['Irreducibility'])}
-                ${bedauSlider('Downward Causation', 'downwardCausation', 15, glossaryTerms['Downward Causation'])}
+                ${bedauSlider('\u03A6 Fleet Divergence', 'phi', 82, glossaryTerms['Fleet Divergence (\u03A6)'])}
+                ${bedauSlider('\u03A8 Temporal Irreducibility', 'psi', 12, glossaryTerms['Temporal Irreducibility (\u03A8)'])}
+                ${bedauSlider('\u03A9 Cross-Agent Novelty', 'omega', 13, glossaryTerms['Cross-Agent Novelty (\u03A9)'])}
+                ${bedauSlider('\u03A3 Drift Coherence', 'sigma', 18, glossaryTerms['Drift Coherence (\u03A3)'])}
               </div>
 
               <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6">
                 <div class="text-center mb-6">
-                  <div class="text-sm text-gray-600 mb-2">Bedau Index</div>
-                  <div id="bedau-result" class="text-5xl font-bold text-purple-600">0.20</div>
-                  <div id="bedau-classification" class="text-sm text-gray-600 mt-2">Low Weak Emergence</div>
+                  <div class="text-sm text-gray-600 mb-2">Bedau Index (B)</div>
+                  <div id="bedau-result" class="text-5xl font-bold text-purple-600">0.44</div>
+                  <div id="bedau-classification" class="text-sm text-gray-600 mt-2">WEAK_EMERGENCE</div>
+                </div>
+
+                <div class="bg-white rounded-lg p-3 mb-3">
+                  <div class="font-medium text-gray-900 mb-1">Weighted Formula</div>
+                  <div class="text-xs font-mono text-gray-600">
+                    B = 0.35\u00D7\u03A6 + 0.25\u00D7\u03A8 + 0.25\u00D7\u03A9 + 0.15\u00D7\u03A3
+                  </div>
                 </div>
 
                 <div class="space-y-3 text-sm">
                   <div class="bg-white rounded-lg p-3">
                     <div class="font-medium text-gray-900 mb-1">Interpretation</div>
                     <div id="bedau-interpretation" class="text-gray-600">
-                      The system shows minimal emergent behavior. Components operate largely independently with predictable interactions.
+                      The agent fleet shows moderate emergent coupling. CIQ distributions differ from independent baselines, but temporal dynamics remain largely predictable.
                     </div>
                   </div>
 
@@ -920,19 +939,15 @@
                     <div class="space-y-2 text-xs">
                       <div class="flex items-center gap-2">
                         <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <span>0.00 - 0.30: Low Weak Emergence</span>
+                        <span>0.00 \u2013 0.15: LINEAR (no emergence)</span>
                       </div>
                       <div class="flex items-center gap-2">
                         <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <span>0.31 - 0.60: Moderate Weak Emergence</span>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
-                        <span>0.61 - 0.80: High Weak Emergence</span>
+                        <span>0.15 \u2013 0.65: WEAK_EMERGENCE</span>
                       </div>
                       <div class="flex items-center gap-2">
                         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <span>0.81 - 1.00: Investigating Strong Emergence</span>
+                        <span>0.65+: HIGH_WEAK_EMERGENCE</span>
                       </div>
                     </div>
                   </div>
@@ -947,12 +962,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
               <div>
-                <div class="font-medium text-blue-900 mb-1">About the Bedau Index</div>
+                <div class="font-medium text-blue-900 mb-1">About Bedau Index v2</div>
                 <div class="text-sm text-blue-800">
-                  The Bedau Index is a quantitative measure of <span class="tooltip" data-tooltip="${glossaryTerms['Weak Emergence']}">weak emergence</span> 
-                  that evaluates how much a system's behavior differs from simple component interactions. It does NOT measure 
-                  <span class="tooltip" data-tooltip="${glossaryTerms['Strong Emergence']}">strong emergence</span>, which would require 
-                  fundamentally new causal powers. Values above 0.80 suggest the need for further investigation into whether strong emergence might be present.
+                  Unlike v1 which measured per-agent heuristics, v2 is a <strong>fleet-level</strong> metric.
+                  It analyses the joint CIQ distribution across all agents using KL-divergence, Jensen-Shannon divergence,
+                  linear prediction residuals, and Pearson correlation. The composite score tells you whether
+                  the fleet is behaving as more than the sum of its parts — the definition of
+                  <span class="tooltip" data-tooltip="${glossaryTerms['Weak Emergence']}">weak emergence</span>.
                 </div>
               </div>
             </div>
@@ -963,57 +979,49 @@
       emergence: () => `
         <div class="space-y-6">
           <div class="bg-white rounded-xl p-6 border border-gray-200">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">Emergence Testing Dashboard</h3>
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Fleet Emergence Dashboard</h3>
             <p class="text-sm text-gray-600 mb-6">
-              Monitor and analyze <span class="tooltip" data-tooltip="${glossaryTerms['Emergence Monitoring']}">emergent behaviors</span> 
-              across all AI agents using the <span class="tooltip" data-tooltip="${glossaryTerms['Bedau Index']}">Bedau Index</span>.
+              Fleet-level <span class="tooltip" data-tooltip="${glossaryTerms['Weak Emergence']}">weak emergence</span> analysis
+              using the <span class="tooltip" data-tooltip="${glossaryTerms['Bedau Index']}">Bedau Index v2</span>.
+              Metrics are computed across all agents, not per-agent.
             </p>
 
             <div class="grid grid-cols-3 gap-6 mb-6">
-              ${kpiCard('Agents Monitored', mockData.agents.length, 'text-purple-600', 'bg-purple-100', 'All active')}
-              ${kpiCard('Avg Bedau Index', '0.26', 'text-green-600', 'bg-green-100', 'Low emergence')}
-              ${kpiCard('High Risk Agents', '1', 'text-red-600', 'bg-red-100', 'Requires attention')}
+              ${kpiCard('Agents in Fleet', mockData.fleetBedau.agentCount, 'text-purple-600', 'bg-purple-100', 'All active')}
+              ${kpiCard('Bedau Index', mockData.fleetBedau.index.toFixed(2), 'text-yellow-600', 'bg-yellow-100', mockData.fleetBedau.type)}
+              ${kpiCard('Confidence', '[' + mockData.fleetBedau.confidence.map(v => v.toFixed(2)).join(', ') + ']', 'text-blue-600', 'bg-blue-100', '95% interval')}
             </div>
 
-            <div class="space-y-4">
-              ${mockData.agents.map(agent => `
-                <div class="border border-gray-200 rounded-lg p-4">
-                  <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-lg ${
-                        agent.index < 0.3 ? 'bg-green-100' :
-                        agent.index < 0.6 ? 'bg-yellow-100' :
-                        agent.index < 0.8 ? 'bg-orange-100' : 'bg-red-100'
-                      } flex items-center justify-center">
-                        <svg class="w-5 h-5 ${
-                          agent.index < 0.3 ? 'text-green-600' :
-                          agent.index < 0.6 ? 'text-yellow-600' :
-                          agent.index < 0.8 ? 'text-orange-600' : 'text-red-600'
-                        }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                      </div>
-                      <div>
-                        <div class="font-medium text-gray-900">${agent.name}</div>
-                        <div class="text-sm text-gray-600">Bedau Index: ${agent.index.toFixed(2)}</div>
-                      </div>
-                    </div>
-                    <span class="px-3 py-1 text-xs font-medium rounded-full ${
-                      agent.index < 0.3 ? 'bg-green-100 text-green-700' :
-                      agent.index < 0.6 ? 'bg-yellow-100 text-yellow-700' :
-                      agent.index < 0.8 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'
-                    }">
-                      ${agent.index < 0.3 ? 'LOW' : agent.index < 0.6 ? 'MODERATE' : agent.index < 0.8 ? 'HIGH' : 'CRITICAL'}
-                    </span>
-                  </div>
-                  <div class="grid grid-cols-4 gap-3">
-                    ${bedauMetric('Novelty', agent.novelty)}
-                    ${bedauMetric('Unpredictability', agent.unpredictability)}
-                    ${bedauMetric('Irreducibility', agent.irreducibility)}
-                    ${bedauMetric('Downward Causation', agent.downwardCausation)}
-                  </div>
+            <!-- Fleet Sub-Metrics -->
+            <div class="grid grid-cols-2 gap-6 mb-6">
+              <div class="border border-gray-200 rounded-lg p-4">
+                <h4 class="font-medium text-gray-900 mb-4">Fleet Sub-Metrics</h4>
+                <div class="space-y-3">
+                  ${bedauMetric('\u03A6 Fleet Divergence (w=0.35)', Math.round(mockData.fleetBedau.phi * 100))}
+                  ${bedauMetric('\u03A8 Temporal Irreducibility (w=0.25)', Math.round(mockData.fleetBedau.psi * 100))}
+                  ${bedauMetric('\u03A9 Cross-Agent Novelty (w=0.25)', Math.round(mockData.fleetBedau.omega * 100))}
+                  ${bedauMetric('\u03A3 Drift Coherence (w=0.15)', Math.round(mockData.fleetBedau.sigma * 100))}
                 </div>
-              `).join('')}
+              </div>
+              <div class="border border-gray-200 rounded-lg p-4">
+                <h4 class="font-medium text-gray-900 mb-4">Per-Agent CIQ Profiles</h4>
+                <div class="space-y-3">
+                  ${mockData.agents.map(agent => `
+                    <div class="flex items-center justify-between text-sm">
+                      <span class="text-gray-600">${agent.name}</span>
+                      <span class="font-mono text-xs text-gray-900">C:${agent.clarity.toFixed(1)} I:${agent.integrity.toFixed(1)} Q:${agent.quality.toFixed(1)}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
+              <div class="text-sm text-purple-800">
+                <strong>How it works:</strong> Bedau v2 groups trust receipts by agent, builds CIQ histograms, then measures
+                divergence (\u03A6), predictability (\u03A8), diversity (\u03A9), and correlated drift (\u03A3) across the fleet.
+                The composite B = 0.35\u03A6 + 0.25\u03A8 + 0.25\u03A9 + 0.15\u03A3 classifies emergence as LINEAR (\u22640.15), WEAK (0.15\u20130.65), or HIGH (0.65+).
+              </div>
             </div>
           </div>
         </div>
@@ -1507,10 +1515,9 @@
           </div>
           ${trustGauge(Math.round(agent.trust))}
           <div class="space-y-3 mt-4">
-            ${bedauMetric('Novelty', agent.novelty)}
-            ${bedauMetric('Unpredictability', agent.unpredictability)}
-            ${bedauMetric('Irreducibility', agent.irreducibility)}
-            ${bedauMetric('Downward Causation', agent.downwardCausation)}
+            ${bedauMetric('Clarity', Math.round(agent.clarity * 20))}
+            ${bedauMetric('Integrity', Math.round(agent.integrity * 20))}
+            ${bedauMetric('Quality', Math.round(agent.quality * 20))}
           </div>
         </div>
       `;
@@ -1567,34 +1574,32 @@
       `;
     }
 
-    // Bedau Index Calculator
+    // Bedau Index v2 Calculator
     function updateBedauIndex() {
-      const novelty = parseInt(document.getElementById('novelty').value);
-      const unpredictability = parseInt(document.getElementById('unpredictability').value);
-      const irreducibility = parseInt(document.getElementById('irreducibility').value);
-      const downwardCausation = parseInt(document.getElementById('downwardCausation').value);
+      const phi = parseInt(document.getElementById('phi').value);
+      const psi = parseInt(document.getElementById('psi').value);
+      const omega = parseInt(document.getElementById('omega').value);
+      const sigma = parseInt(document.getElementById('sigma').value);
 
-      document.getElementById('novelty-value').textContent = novelty + '%';
-      document.getElementById('unpredictability-value').textContent = unpredictability + '%';
-      document.getElementById('irreducibility-value').textContent = irreducibility + '%';
-      document.getElementById('downwardCausation-value').textContent = downwardCausation + '%';
+      document.getElementById('phi-value').textContent = phi + '%';
+      document.getElementById('psi-value').textContent = psi + '%';
+      document.getElementById('omega-value').textContent = omega + '%';
+      document.getElementById('sigma-value').textContent = sigma + '%';
 
-      const index = (novelty + unpredictability + irreducibility + downwardCausation) / 400;
+      // v2 weighted formula: B = 0.35*Φ + 0.25*Ψ + 0.25*Ω + 0.15*Σ
+      const index = (0.35 * phi + 0.25 * psi + 0.25 * omega + 0.15 * sigma) / 100;
       document.getElementById('bedau-result').textContent = index.toFixed(2);
 
       let classification, interpretation;
-      if (index < 0.30) {
-        classification = 'Low Weak Emergence';
-        interpretation = 'The system shows minimal emergent behavior. Components operate largely independently with predictable interactions.';
-      } else if (index < 0.60) {
-        classification = 'Moderate Weak Emergence';
-        interpretation = 'The system exhibits noticeable emergent properties. Interactions between components create behaviors that require careful monitoring.';
-      } else if (index < 0.80) {
-        classification = 'High Weak Emergence';
-        interpretation = 'The system shows significant emergent behavior. Close monitoring and potential intervention may be required to maintain control.';
+      if (index <= 0.15) {
+        classification = 'LINEAR';
+        interpretation = 'The agent fleet shows no emergent coupling. Agents operate independently and fleet behavior is fully reducible to individual components.';
+      } else if (index <= 0.65) {
+        classification = 'WEAK_EMERGENCE';
+        interpretation = 'The agent fleet exhibits weak emergence. CIQ distributions diverge from independent baselines, indicating the fleet behaves as more than the sum of its parts.';
       } else {
-        classification = 'Investigating Strong Emergence';
-        interpretation = 'The system exhibits very high emergence indicators. Further investigation needed to determine if strong emergence is present. Immediate review recommended.';
+        classification = 'HIGH_WEAK_EMERGENCE';
+        interpretation = 'The agent fleet shows strong emergent coupling. Significant fleet divergence, temporal irreducibility, or correlated drift detected. Close monitoring recommended.';
       }
 
       document.getElementById('bedau-classification').textContent = classification;
@@ -1654,8 +1659,8 @@
         'SONATE-analysis': { title: 'SONATE Analysis', subtitle: 'Constitutional AI framework evaluation' },
         alerts: { title: 'Alerts', subtitle: 'System notifications and warnings' },
         experiments: { title: 'Experiments', subtitle: 'A/B testing and optimization' },
-        bedau: { title: 'Bedau Index Calculator', subtitle: 'Measure weak emergence in AI systems' },
-        emergence: { title: 'Emergence Testing', subtitle: 'Monitor emergent AI behaviors' },
+        bedau: { title: 'Bedau Index v2', subtitle: 'Fleet-level weak emergence detection' },
+        emergence: { title: 'Fleet Emergence', subtitle: 'Monitor fleet-level emergent behaviors' },
         resonance: { title: 'Resonance Detection', subtitle: 'AI-human collaboration metrics' },
         principles: { title: 'Trust Principles', subtitle: 'Six core SONATE principles' },
         receipts: { title: 'Trust Receipts', subtitle: 'Cryptographic audit trails' },
@@ -1836,8 +1841,8 @@
         target: 'agents'
       },
       {
-        title: 'Bedau Index',
-        content: 'The Bedau Index measures weak emergence through novelty, unpredictability, irreducibility, and downward causation.',
+        title: 'Bedau Index v2',
+        content: 'The Bedau Index v2 measures fleet-level weak emergence using four information-theoretic sub-metrics: \u03A6 Fleet Divergence, \u03A8 Temporal Irreducibility, \u03A9 Cross-Agent Novelty, and \u03A3 Drift Coherence.',
         target: 'bedau'
       },
       {
@@ -1943,11 +1948,9 @@
           name: agent.name,
           trust: Math.round(agent.trustScore),
           status: agent.trustScore >= 85 ? 'healthy' : agent.trustScore >= 70 ? 'warning' : 'alert',
-          novelty: Math.round(agent.bedauIndex * 100),
-          unpredictability: Math.round(agent.bedauIndex * 80),
-          irreducibility: Math.round(agent.bedauIndex * 90),
-          downwardCausation: Math.round(agent.bedauIndex * 70),
-          index: agent.bedauIndex
+          clarity: agent.clarity || 3.5,
+          integrity: agent.integrity || 3.5,
+          quality: agent.quality || 3.5
         }));
       }
       
