@@ -1,17 +1,28 @@
 /**
- * Bedau Index Implementation for Weak Emergence Detection
+ * Bedau Index — Weak Emergence Detection
  *
- * Based on Mark Bedau's work on weak emergence:
- * "Weak emergence: the characteristic features of complex systems"
+ * Based on Mark Bedau's weak emergence theory (1997):
+ * "Weak emergence: macro-level patterns derivable from micro-level interactions
+ *  only through simulation — not through analytical shortcut."
  *
- * The Bedau Index measures weak emergence by comparing:
- * - Semantic intent vs. surface-level mirroring
- * - Micro-level interactions vs. macro-level patterns
- * - Irreducibility of system behavior
+ * ## Architecture
+ *
+ * **v1 (Legacy — Single Interaction Mode)**
+ * The original `BedauIndexCalculator` compares semantic intent vs surface pattern
+ * for individual interactions. Retained for backward compatibility with lab packages.
+ *
+ * **v2 (Fleet-Level Emergence)**
+ * The new `BedauFleetCalculator` measures real emergence across agent fleets:
+ *   Φ — Fleet Divergence:       KL-divergence between joint and product of marginals
+ *   Ψ — Temporal Irreducibility: Prediction residual error (linear predictor)
+ *   Ω — Cross-Agent Novelty:    JSD between agent-pair and solo CIQ distributions
+ *   Σ — Drift Coherence:        Correlated drift across independent agents
+ *
+ * The backend service (bedau.service.ts) uses v2 logic directly against MongoDB.
+ * This package provides the same math as importable library functions.
  */
 
 // Import constants - using inline definition to avoid circular dependency issues
-// See: https://github.com/s8ken/yseeku-platform/issues/XX for tracking
 const BEDAU_INDEX_CONSTANTS = {
   BASELINE_RANDOM_SCORE: 0.3,
   POOLLED_STANDARD_DEVIATION: 0.25,
@@ -22,7 +33,20 @@ const BEDAU_INDEX_CONSTANTS = {
     WEAK_EMERGENCE: 0.7,
     HIGH_WEAK_EMERGENCE: 0.9,
   },
+  FLEET_THRESHOLDS: {
+    LINEAR: 0.15,
+    WEAK_EMERGENCE: 0.40,
+    HIGH_WEAK_EMERGENCE: 0.65,
+  },
+  FLEET_WEIGHTS: {
+    PHI: 0.35,
+    PSI: 0.25,
+    OMEGA: 0.25,
+    SIGMA: 0.15,
+  },
   QUANTIZATION_LEVELS: 8,
+  HISTOGRAM_BINS: 10,
+  PREDICTION_WINDOW: 5,
 } as const;
 
 export interface BedauMetrics {
@@ -584,14 +608,16 @@ function estimateCrossDomainConnections(values: number[], mean: number, stdDev: 
 }
 
 /**
- * Factory function to create Bedau Index Calculator
+ * Factory function to create Bedau Index Calculator (v1 — single-interaction mode)
+ * @deprecated For fleet-level emergence, use createBedauFleetCalculator()
  */
 export function createBedauIndexCalculator(): BedauIndexCalculator {
   return new BedauIndexCalculatorImpl();
 }
 
 /**
- * Convenience function for direct calculation
+ * Convenience function for direct calculation (v1 — single-interaction mode)
+ * @deprecated For fleet-level emergence, use BedauFleetCalculator
  */
 export async function calculateBedauIndex(
   semanticIntent: SemanticIntent,
@@ -599,4 +625,279 @@ export async function calculateBedauIndex(
 ): Promise<BedauMetrics> {
   const calculator = createBedauIndexCalculator();
   return calculator.calculateBedauIndex(semanticIntent, surfacePattern);
+}
+// ═══════════════════════════════════════════════════════════════════════════════
+// v2 — Fleet-Level Emergence Detection
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Per-agent CIQ time series for fleet-level analysis.
+ */
+export interface AgentCIQSeries {
+  agentId: string;
+  clarity: number[];
+  integrity: number[];
+  quality: number[];
+  /** (c+i+q)/3 per receipt, normalized 0-1 */
+  combined: number[];
+  timestamps: number[];
+}
+
+/**
+ * Extended BedauMetrics with v2 component breakdown.
+ */
+export interface BedauFleetMetrics extends BedauMetrics {
+  v2_components: {
+    phi_fleet_divergence: number;
+    psi_temporal_irreducibility: number;
+    omega_cross_agent_novelty: number;
+    sigma_drift_coherence: number;
+    agent_count: number;
+    receipt_count: number;
+  };
+}
+
+// ─── Information-Theoretic Primitives ────────────────────────────────────────
+
+/** Build a probability histogram (with Laplace smoothing) from values in [0,1] */
+export function buildHistogram(values: number[], bins: number = BEDAU_INDEX_CONSTANTS.HISTOGRAM_BINS): number[] {
+  const hist = new Array(bins).fill(0);
+  const pseudoCount = 1e-10;
+  for (const v of values) {
+    const bin = Math.min(bins - 1, Math.floor(clamp01(v) * bins));
+    hist[bin] += 1;
+  }
+  const total = values.length + pseudoCount * bins;
+  return hist.map(c => (c + pseudoCount) / total);
+}
+
+/** KL divergence: D_KL(P || Q) */
+export function klDivergence(P: number[], Q: number[]): number {
+  let kl = 0;
+  for (let i = 0; i < P.length; i++) {
+    if (P[i] > 1e-12) {
+      kl += P[i] * Math.log(P[i] / (Q[i] + 1e-12));
+    }
+  }
+  return Math.max(0, kl);
+}
+
+/** Jensen-Shannon Divergence: symmetric, bounded [0, ln(2)] */
+export function jsDivergence(P: number[], Q: number[]): number {
+  const M = P.map((p, i) => (p + Q[i]) / 2);
+  return (klDivergence(P, M) + klDivergence(Q, M)) / 2;
+}
+
+/** Pearson correlation between two arrays */
+export function pearsonCorrelation(a: number[], b: number[]): number {
+  const n = Math.min(a.length, b.length);
+  if (n < 3) return 0;
+  const ma = a.slice(0, n).reduce((s, v) => s + v, 0) / n;
+  const mb = b.slice(0, n).reduce((s, v) => s + v, 0) / n;
+  let num = 0, denA = 0, denB = 0;
+  for (let i = 0; i < n; i++) {
+    const da = a[i] - ma;
+    const db = b[i] - mb;
+    num += da * db;
+    denA += da * da;
+    denB += db * db;
+  }
+  const den = Math.sqrt(denA * denB);
+  return den > 1e-12 ? num / den : 0;
+}
+
+// ─── Fleet Sub-Metrics ──────────────────────────────────────────────────────
+
+/**
+ * Φ — Fleet Divergence
+ *
+ * KL-divergence between joint CIQ distribution and product of individual
+ * agent marginal distributions. Measures statistical dependence across agents.
+ */
+export function computeFleetDivergence(agentSeries: AgentCIQSeries[]): number {
+  if (agentSeries.length < 2) return 0;
+  const bins = BEDAU_INDEX_CONSTANTS.HISTOGRAM_BINS;
+
+  const allValues = agentSeries.flatMap(a => a.combined);
+  const jointDist = buildHistogram(allValues, bins);
+
+  const agentDists = agentSeries.map(a => buildHistogram(a.combined, bins));
+  const productDist = new Array(bins).fill(1);
+  for (const dist of agentDists) {
+    for (let i = 0; i < bins; i++) {
+      productDist[i] *= dist[i];
+    }
+  }
+  const productTotal = productDist.reduce((s, v) => s + v, 0);
+  const normalizedProduct = productDist.map(v => v / (productTotal + 1e-12));
+
+  const kl = klDivergence(jointDist, normalizedProduct);
+  return clamp01(kl / 2);
+}
+
+/**
+ * Ψ — Temporal Irreducibility
+ *
+ * Residual error of a linear predictor on sliding windows of trust scores.
+ * High error = behavior can't be analytically shortcut (irreducible).
+ */
+export function computeTemporalIrreducibility(
+  values: Array<{ combined: number; timestamp: number }>
+): number {
+  const window = BEDAU_INDEX_CONSTANTS.PREDICTION_WINDOW;
+  if (values.length < window + 2) return 0;
+
+  const sorted = [...values].sort((a, b) => a.timestamp - b.timestamp);
+  const v = sorted.map(r => r.combined);
+
+  let totalError = 0;
+  let predictions = 0;
+
+  for (let i = window; i < v.length; i++) {
+    const w = v.slice(i - window, i);
+    const n = w.length;
+    const xMean = (n - 1) / 2;
+    const yMean = w.reduce((s, x) => s + x, 0) / n;
+    let num = 0, den = 0;
+    for (let j = 0; j < n; j++) {
+      num += (j - xMean) * (w[j] - yMean);
+      den += (j - xMean) ** 2;
+    }
+    const slope = den > 1e-12 ? num / den : 0;
+    const intercept = yMean - slope * xMean;
+    const predicted = slope * n + intercept;
+    totalError += (v[i] - predicted) ** 2;
+    predictions++;
+  }
+
+  if (predictions === 0) return 0;
+  const rmse = Math.sqrt(totalError / predictions);
+  return clamp01(rmse * 2);
+}
+
+/**
+ * Ω — Cross-Agent Novelty
+ *
+ * Average JSD between agent-pair CIQ distributions. High divergence between
+ * agents sharing the same tenant suggests emergent behavioral differentiation.
+ */
+export function computeCrossAgentNovelty(agentSeries: AgentCIQSeries[]): number {
+  if (agentSeries.length < 2) return 0;
+
+  const jsds: number[] = [];
+  for (let i = 0; i < agentSeries.length; i++) {
+    for (let j = i + 1; j < agentSeries.length; j++) {
+      const distA = buildHistogram(agentSeries[i].combined);
+      const distB = buildHistogram(agentSeries[j].combined);
+      jsds.push(jsDivergence(distA, distB));
+    }
+  }
+
+  if (jsds.length === 0) return 0;
+  return clamp01(jsds.reduce((s, v) => s + v, 0) / jsds.length / Math.LN2);
+}
+
+/**
+ * Σ — Drift Coherence
+ *
+ * Mean absolute pairwise Pearson correlation of per-agent first-difference
+ * drift vectors. Signal that independent agents move in concert = emergence.
+ */
+export function computeDriftCoherence(agentSeries: AgentCIQSeries[]): number {
+  if (agentSeries.length < 2) return 0;
+
+  const driftSeries: number[][] = [];
+  for (const agent of agentSeries) {
+    if (agent.combined.length < 3) continue;
+    const drifts: number[] = [];
+    for (let i = 1; i < agent.combined.length; i++) {
+      drifts.push(agent.combined[i] - agent.combined[i - 1]);
+    }
+    driftSeries.push(drifts);
+  }
+
+  if (driftSeries.length < 2) return 0;
+
+  const correlations: number[] = [];
+  for (let i = 0; i < driftSeries.length; i++) {
+    for (let j = i + 1; j < driftSeries.length; j++) {
+      correlations.push(Math.abs(pearsonCorrelation(driftSeries[i], driftSeries[j])));
+    }
+  }
+
+  if (correlations.length === 0) return 0;
+  return clamp01(correlations.reduce((s, v) => s + v, 0) / correlations.length);
+}
+
+// ─── Fleet Calculator ───────────────────────────────────────────────────────
+
+/**
+ * Calculate fleet-level Bedau Emergence Index from pre-grouped agent CIQ data.
+ *
+ * @param agentSeries - Per-agent CIQ time series (values normalized 0-1)
+ * @returns BedauFleetMetrics with full v2 component breakdown
+ */
+export function calculateFleetBedauIndex(agentSeries: AgentCIQSeries[]): BedauFleetMetrics {
+  const W = BEDAU_INDEX_CONSTANTS.FLEET_WEIGHTS;
+  const T = BEDAU_INDEX_CONSTANTS.FLEET_THRESHOLDS;
+
+  const allCombined = agentSeries.flatMap(a =>
+    a.combined.map((c, idx) => ({ combined: c, timestamp: a.timestamps[idx] }))
+  );
+
+  const agentCount = agentSeries.length;
+  const receiptCount = allCombined.length;
+
+  // Compute sub-metrics
+  const phi = agentCount >= 2 ? computeFleetDivergence(agentSeries) : 0;
+  const psi = computeTemporalIrreducibility(allCombined);
+  const omega = agentCount >= 2 ? computeCrossAgentNovelty(agentSeries) : 0;
+  const sigma = agentCount >= 2 ? computeDriftCoherence(agentSeries) : 0;
+
+  // Composite
+  const bedau_index = clamp01(
+    W.PHI * phi + W.PSI * psi + W.OMEGA * omega + W.SIGMA * sigma
+  );
+
+  // Classify using fleet thresholds
+  let emergence_type: 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE';
+  if (bedau_index <= T.LINEAR) emergence_type = 'LINEAR';
+  else if (bedau_index <= T.WEAK_EMERGENCE) emergence_type = 'WEAK_EMERGENCE';
+  else emergence_type = 'HIGH_WEAK_EMERGENCE';
+
+  // Confidence interval from component spread
+  const components = [phi, psi, omega, sigma];
+  const cMean = components.reduce((s, v) => s + v, 0) / components.length;
+  const cVar = components.reduce((s, v) => s + (v - cMean) ** 2, 0) / components.length;
+  const margin = 1.96 * Math.sqrt(cVar / components.length);
+  const confidence_interval: [number, number] = [
+    clamp01(bedau_index - margin),
+    clamp01(bedau_index + margin),
+  ];
+
+  const effect_size = (bedau_index - T.LINEAR) / 0.2;
+
+  return {
+    bedau_index,
+    emergence_type,
+    kolmogorov_complexity: phi,
+    semantic_entropy: omega,
+    confidence_interval,
+    effect_size,
+    v2_components: {
+      phi_fleet_divergence: phi,
+      psi_temporal_irreducibility: psi,
+      omega_cross_agent_novelty: omega,
+      sigma_drift_coherence: sigma,
+      agent_count: agentCount,
+      receipt_count: receiptCount,
+    },
+  };
+}
+
+/**
+ * Factory for fleet-level Bedau calculator.
+ */
+export function createBedauFleetCalculator() {
+  return { calculate: calculateFleetBedauIndex };
 }
