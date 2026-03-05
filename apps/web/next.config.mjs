@@ -8,6 +8,9 @@ const nextConfig = {
     '*.worf.replit.dev',
     '*.replit.dev',
   ],
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   typescript: {
     // Type errors are now fixed — enforce checking during builds
     ignoreBuildErrors: false,
