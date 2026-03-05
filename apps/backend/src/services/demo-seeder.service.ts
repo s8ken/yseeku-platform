@@ -258,7 +258,7 @@ async function seedConversations(userId: string, agentIds: string[]): Promise<vo
 /**
  * Create demo trust receipts — distributed across agents for fleet-level emergence
  */
-async function seedTrustReceipts(force = false): Promise<number> {
+async function seedTrustReceipts(force = false, agentIds: string[] = []): Promise<number> {
   if (force) {
     await TrustReceiptModel.deleteMany({ tenant_id: DEMO_TENANT_ID });
   }
@@ -273,18 +273,22 @@ async function seedTrustReceipts(force = false): Promise<number> {
   // Agent behavioral profiles — distinct CIQ signatures per agent
   // This creates genuine inter-agent divergence for Bedau v2 fleet analysis
   const agentProfiles = [
-    { id: 'agent-nova',     clarityBase: 4.2, integrityBase: 3.8, qualityBase: 4.5, drift: 0.02  },
-    { id: 'agent-sentinel', clarityBase: 4.8, integrityBase: 4.7, qualityBase: 4.0, drift: -0.01 },
-    { id: 'agent-echo',     clarityBase: 3.6, integrityBase: 4.3, qualityBase: 4.2, drift: 0.015 },
-    { id: 'agent-prism',    clarityBase: 4.5, integrityBase: 4.1, qualityBase: 4.6, drift: 0.005 },
-    { id: 'agent-atlas',    clarityBase: 4.0, integrityBase: 4.4, qualityBase: 3.9, drift: -0.008 },
+    { clarityBase: 4.2, integrityBase: 3.8, qualityBase: 4.5, drift: 0.02  },
+    { clarityBase: 4.8, integrityBase: 4.7, qualityBase: 4.0, drift: -0.01 },
+    { clarityBase: 3.6, integrityBase: 4.3, qualityBase: 4.2, drift: 0.015 },
+    { clarityBase: 4.5, integrityBase: 4.1, qualityBase: 4.6, drift: 0.005 },
+    { clarityBase: 4.0, integrityBase: 4.4, qualityBase: 3.9, drift: -0.008 },
   ];
 
-  // Generate 100 receipts across 5 agents over 24 hours
+  // Generate 100 receipts across agents over 24 hours
   const totalReceipts = 100;
+  const agentCount = Math.min(agentIds.length, agentProfiles.length) || agentProfiles.length;
+
   for (let i = 0; i < totalReceipts; i++) {
-    const profile = agentProfiles[i % agentProfiles.length];
-    const timeOffset = i * (24 * 60 * 60 * 1000 / totalReceipts); // Spread across 24h
+    const agentIdx = i % agentCount;
+    const profile = agentProfiles[agentIdx];
+    const agentId = agentIds[agentIdx]; // Real ObjectId or undefined
+    const timeOffset = i * (24 * 60 * 60 * 1000 / totalReceipts);
     const timestamp = Date.now() - (24 * 60 * 60 * 1000) + timeOffset;
 
     // Each agent drifts over time (correlated drift = emergence signal for Σ)
@@ -299,7 +303,7 @@ async function seedTrustReceipts(force = false): Promise<number> {
     const payload = JSON.stringify({
       session_id: sessionId,
       timestamp,
-      agent_id: profile.id,
+      agent_id: agentId,
       ciq: { clarity, integrity, quality },
       previous_hash: previousHash,
     });
@@ -312,7 +316,7 @@ async function seedTrustReceipts(force = false): Promise<number> {
       version: '2.0.0',
       timestamp,
       mode: 'constitutional',
-      agent_id: profile.id,
+      ...(agentId ? { agent_id: agentId } : {}),
       ciq_metrics: {
         clarity: Math.round(clarity * 100) / 100,
         integrity: Math.round(integrity * 100) / 100,
@@ -328,7 +332,7 @@ async function seedTrustReceipts(force = false): Promise<number> {
   }
 
   await TrustReceiptModel.insertMany(receipts);
-  logger.info('Demo trust receipts seeded', { count: receipts.length, agents: agentProfiles.length });
+  logger.info('Demo trust receipts seeded', { count: receipts.length, agents: agentCount });
   return receipts.length;
 }
 
@@ -788,7 +792,7 @@ export async function seedDemoTenant(force = false): Promise<SeedResult> {
     const userId = await seedUser();
     const agentIds = await seedAgents(userId);
     await seedConversations(userId, agentIds);
-    const receiptCount = await seedTrustReceipts(force);
+    const receiptCount = await seedTrustReceipts(force, agentIds);
     await seedAlerts();
     await seedExperiments();
     await seedBrainCycles();
