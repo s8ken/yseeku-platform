@@ -207,9 +207,7 @@ export default function TrustAnalyticsPage() {
         <MetricCard
           title="Total Interactions"
           value={analytics.totalInteractions}
-          trend={analytics.recentTrends.length >= 2 ?
-            (analytics.recentTrends[analytics.recentTrends.length - 1].count -
-             analytics.recentTrends[0].count) : 0}
+          trend={0}
           icon={<MessageSquare className="h-4 w-4" />}
           color="blue"
         />
