@@ -452,9 +452,9 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
         {
           role: 'assistant',
           content: canned.content,
-          evaluation: { ...canned.evaluation, timestamp: Date.now(), trustScore: { ...canned.evaluation!.trustScore, timestamp: Date.now() } },
+          evaluation: { ...canned.evaluation!, timestamp: Date.now(), trustScore: { ...canned.evaluation!.trustScore, timestamp: Date.now() } },
           timestamp: Date.now(),
-        },
+        } as ChatMessageProps,
       ]);
       abortControllerRef.current = null;
       setIsLoading(false);
