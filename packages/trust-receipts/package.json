@@ -7,11 +7,12 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "clean": "rm -rf dist",
+    "clean": "node -e \"const fs=require('fs'); try{fs.rmSync('dist',{recursive:true,force:true})}catch(e){}\"",
     "test": "node --test dist/tests/*.test.js",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
+    "yseeku",
     "ai-trust",
     "trust-receipt",
     "ed25519",
@@ -25,7 +26,7 @@
     "llm",
     "ai-compliance"
   ],
-  "author": "SONATE",
+  "author": "YSEEKU",
   "license": "MIT",
   "repository": {
     "type": "git",

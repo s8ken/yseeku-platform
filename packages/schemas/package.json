@@ -4,20 +4,27 @@
   "description": "Shared schema definitions for SONATE platform (JSON Schema + TypeScript)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest --passWithNoTests",
     "lint": "eslint src",
-    "clean": "rm -rf dist"
+    "clean": "node -e \"const fs=require('fs'); try{fs.rmSync('dist',{recursive:true,force:true})}catch(e){}\"",
   },
   "keywords": [
+    "yseeku",
     "sonate",
     "trust-receipt",
     "json-schema",
     "ai-governance",
     "typescript"
   ],
-  "author": "SONATE",
+  "author": "YSEEKU",
   "license": "MIT",
   "repository": {
     "type": "git",

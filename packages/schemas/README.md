@@ -1,5 +1,8 @@
 # @yseeku/schemas
 
+[![npm version](https://img.shields.io/npm/v/@yseeku/schemas.svg)](https://www.npmjs.com/package/@yseeku/schemas)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Shared schema definitions for SONATE Trust Receipts — JSON Schema validation + TypeScript types.
 
 ## Install

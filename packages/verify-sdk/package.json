@@ -22,6 +22,7 @@
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
   },
   "keywords": [
+    "yseeku",
     "sonate",
     "trust",
     "verification",
@@ -29,7 +30,7 @@
     "receipts",
     "ai-safety"
   ],
-  "author": "SONATE",
+  "author": "YSEEKU",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -46,7 +47,7 @@
     "vitest": "^4.0.0"
   },
   "dependencies": {
-    "@noble/ed25519": "^2.0.0"
+    "@noble/ed25519": "^3.0.0"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -24,13 +24,14 @@
     "test:python": "python3 packages/core/python/test_canonicalize.py"
   },
   "keywords": [
+    "yseeku",
     "sonate",
     "trust-protocol",
     "constitutional-ai",
     "ed25519",
     "ai-governance"
   ],
-  "author": "SONATE",
+  "author": "YSEEKU",
   "license": "MIT",
   "repository": {
     "type": "git",

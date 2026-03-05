@@ -31,6 +31,9 @@
     "clean": "turbo run clean && rm -rf node_modules",
     "e2e:smoke": "node scripts/e2e-smoke.mjs",
 
+    "seed": "npm run seed --workspace=backend",
+    "seed:fresh": "npm run seed:fresh --workspace=backend",
+    "typecheck": "turbo run typecheck",
     "demo:interactive": "npm run dev --workspace @sonate/new-demo",
     "version:check": "node scripts/version-sync.js",
     "version:update": "node scripts/version-sync.js",

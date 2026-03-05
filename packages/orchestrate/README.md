@@ -1,4 +1,7 @@
-# @sonate/orchestrate
+# @yseeku/trust-protocol
+
+[![npm version](https://img.shields.io/npm/v/@yseeku/trust-protocol.svg)](https://www.npmjs.com/package/@yseeku/trust-protocol)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Production agent management and orchestration for the SONATE platform.
 
@@ -6,36 +9,17 @@ Production agent management and orchestration for the SONATE platform.
 
 SONATE Orchestrate provides enterprise-grade infrastructure for managing AI agents in production. Features W3C DID/VC for identity, workflow orchestration, and real-time tactical command & control.
 
-## HARD BOUNDARY
-
-**SONATE Orchestrate = Production Infrastructure Only**
-
-- ✅ Agent registry with DID/VC (W3C standards)
-- ✅ Multi-agent workflow orchestration
-- ✅ Tactical Command dashboard (real-time monitoring)
-- ✅ RBAC, API keys, audit logging
-- ✅ Kubernetes/Docker deployment
-- ❌ NO experiments (use `@sonate/lab`)
-- ❌ NO research workflows (use `@sonate/lab`)
-
 ## Key Features
 
-### W3C DID/VC Compliance
-Cryptographic proof of agent identities and capabilities.
+- **W3C DID/VC Compliance** — Cryptographic proof of agent identities and capabilities
+- **Workflow Orchestration** — Sequential and parallel execution of multi-agent workflows
+- **Tactical Command** — Real-time dashboard with agent status, alerts, and trust scores
+- **Enterprise Security** — RBAC, audit trails, API key management, rate limiting
 
-### Workflow Orchestration
-Sequential and parallel execution of multi-agent workflows.
-
-### Tactical Command
-Real-time dashboard with agent status, alerts, and trust scores.
-
-### Enterprise Security
-RBAC, audit trails, API key management, rate limiting.
-
-## Installation
+## Install
 
 ```bash
-npm install @sonate/orchestrate
+npm install @yseeku/trust-protocol
 ```
 
 ## Usage
@@ -43,7 +27,7 @@ npm install @sonate/orchestrate
 ### Register Agents
 
 ```typescript
-import { AgentOrchestrator } from '@sonate/orchestrate';
+import { AgentOrchestrator } from '@yseeku/trust-protocol';
 
 const orchestrator = new AgentOrchestrator();
 
@@ -138,7 +122,7 @@ console.log(agent.status); // 'suspended'
 ### Verify Agent Credentials
 
 ```typescript
-import { DIDVCManager } from '@sonate/orchestrate';
+import { DIDVCManager } from '@yseeku/trust-protocol';
 
 const didManager = new DIDVCManager();
 
@@ -184,8 +168,8 @@ Audit trails, trust scoring, and RBAC for regulated industries.
 ### Feed Trust Scores from Detect
 
 ```typescript
-import { SonateFrameworkDetector } from '@sonate/detect';
-import { AgentOrchestrator } from '@sonate/orchestrate';
+import { SonateFrameworkDetector } from '@yseeku/core';
+import { AgentOrchestrator } from '@yseeku/trust-protocol';
 
 const detector = new SonateFrameworkDetector();
 const orchestrator = new AgentOrchestrator();
@@ -266,11 +250,13 @@ spec:
 - **Latency**: < 50ms per workflow step
 - **Scalability**: Horizontal (Kubernetes pods)
 
+## Related Packages
+
+- [`@yseeku/core`](https://www.npmjs.com/package/@yseeku/core) — Core trust protocol implementation
+- [`@yseeku/trust-receipts`](https://www.npmjs.com/package/@yseeku/trust-receipts) — Cryptographically signed interaction records
+- [`@yseeku/schemas`](https://www.npmjs.com/package/@yseeku/schemas) — JSON Schema + TypeScript types
+- [`@yseeku/verify-sdk`](https://www.npmjs.com/package/@yseeku/verify-sdk) — Client-side receipt verification
+
 ## License
 
 MIT
-### Boundary Summary
-
-- Allowed: Agent registry, DID/VC, workflows, tactical command, RBAC, audit, API keys
-- Not Allowed: Experiments, research-only workflows
-- Import Example: `import { AgentOrchestrator } from '@sonate/orchestrate'`

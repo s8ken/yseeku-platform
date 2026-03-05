@@ -1,5 +1,8 @@
 # @yseeku/core
 
+[![npm version](https://img.shields.io/npm/v/@yseeku/core.svg)](https://www.npmjs.com/package/@yseeku/core)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Core trust protocol implementation for the SONATE platform.
 
 ## Overview
@@ -134,24 +137,19 @@ This implementation follows the specifications at:
 
 - `TRUST_PRINCIPLES`: The 6 principles with weights and criticality
 
-## License
+## Related Packages
 
-MIT
-### Boundary Summary
-
-- Allowed: Protocol logic (6-principle trust algorithm, trust receipts, hashing, signatures, CIQ metrics)
-- Not Allowed: UI components, production monitoring logic, orchestration workflows, experiments
-- Import Example: `import { TrustProtocol, hashChain } from '@yseeku/core'`
-
-All SONATE trust scores MUST use `TrustProtocol` with 0–10 inputs and weights from `TRUST_PRINCIPLES`.
+- [`@yseeku/trust-receipts`](https://www.npmjs.com/package/@yseeku/trust-receipts) — Generate signed receipts in your own applications
+- [`@yseeku/verify-sdk`](https://www.npmjs.com/package/@yseeku/verify-sdk) — Client-side receipt verification (browser + Node.js)
+- [`@yseeku/schemas`](https://www.npmjs.com/package/@yseeku/schemas) — JSON Schema + TypeScript types
+- [`@yseeku/trust-protocol`](https://www.npmjs.com/package/@yseeku/trust-protocol) — Production agent orchestration
 
 ## Testing
 
-- Core tests use a custom runner with coverage enforcement:
-  - Run: `npm run test` from `packages/core`
-  - Builds TypeScript and executes `dist/tests/run-tests.js` under `c8` with thresholds:
-    - Lines ≥ 90%, Statements ≥ 90%, Functions ≥ 80%, Branches ≥ 80%
-- Focused Jest tests can be run for specific suites:
-  - Crypto (Ed25519 via Node crypto):  
-    `npx jest --config jest.config.js --runTestsByPath src/__tests__/crypto.spec.ts`
-- Coverage configuration is defined in `packages/core/package.json` and targets the custom runner execution paths to ensure deterministic, fast coverage checks across core modules (errors, validators, signatures, performance, trust protocol, trust receipts, resonance metrics, and enhanced trust scoring).
+- Run: `npm run test` from `packages/core`
+- Builds TypeScript and executes `dist/tests/run-tests.js` under `c8` with coverage thresholds
+- Focused Jest tests: `npx jest --config jest.config.js --runTestsByPath src/__tests__/crypto.spec.ts`
+
+## License
+
+MIT

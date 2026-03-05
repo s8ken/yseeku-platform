@@ -4,6 +4,12 @@
   "description": "Production agent management and orchestration for SONATE platform",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -12,15 +18,26 @@
     "test:coverage": "jest --coverage"
   },
   "keywords": [
+    "yseeku",
     "sonate",
     "orchestration",
     "agents",
     "did",
     "vc",
-    "kubernetes"
+    "kubernetes",
+    "ai-governance"
   ],
   "author": "YSEEKU",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/s8ken/yseeku-platform.git",
+    "directory": "packages/orchestrate"
+  },
+  "bugs": {
+    "url": "https://github.com/s8ken/yseeku-platform/issues"
+  },
+  "homepage": "https://github.com/s8ken/yseeku-platform/tree/main/packages/orchestrate#readme",
   "dependencies": {
     "@aws-sdk/client-kms": "^3.985.0",
     "@digitalbazaar/did-method-key": "^5.0.0",
@@ -46,5 +63,15 @@
     "jest": "^29.0.0",
     "ts-jest": "^29.0.0",
     "typescript": "^5.9.3"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
