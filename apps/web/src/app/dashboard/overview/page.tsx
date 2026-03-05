@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from 'sonner';
 import {
   Shield,
   TrendingUp,
@@ -10,13 +14,18 @@ import {
   Activity,
   AlertTriangle,
   FileX,
-  RefreshCw
+  RefreshCw,
+  CheckCircle2,
+  Search,
+  Zap,
+  ExternalLink
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { ConstitutionalPrinciples } from '@/components/ConstitutionalPrinciples';
-import { agentsApi } from '@/lib/api';
+import { agentsApi, api } from '@/lib/api';
 import { useDashboardKPIs, useTrustAnalytics } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
+import { useLiveMetrics } from '@/lib/hooks/useLiveMetrics';
 
 interface AgentTrustData {
   id: string;
@@ -111,6 +120,136 @@ function EmptyState() {
   );
 }
 
+function ProtocolVerificationTool() {
+  const [receiptHash, setReceiptHash] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [result, setResult] = useState<{ verified: boolean; score?: number } | null>(null);
+
+  const handleVerify = async () => {
+    if (!receiptHash.trim()) {
+      toast.error('Hash Required', { description: 'Please enter a receipt hash.' });
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      const json = await api.getTrustReceiptByHash(receiptHash);
+      const record = json?.data;
+      if (record) {
+        setResult({ verified: !!record.verified, score: record.trustScore });
+        toast.success('Receipt Verified', { description: 'Cryptographic proof confirmed.' });
+      } else {
+        setResult({ verified: false });
+        toast.error('Verification Failed', { description: 'Receipt not found in ledger.' });
+      }
+    } catch (error) {
+      setResult({ verified: false });
+      toast.error('Error', { description: 'Failed to connect to verification node.' });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <Shield className="h-4 w-4 text-[var(--detect-primary)]" />
+          Protocol Verification
+        </CardTitle>
+        <CardDescription className="text-xs">Validate SONATE trust receipts</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex gap-2">
+          <Input 
+            placeholder="Paste receipt hash..." 
+            className="text-xs h-8"
+            value={receiptHash}
+            onChange={(e) => setReceiptHash(e.target.value)}
+          />
+          <Button 
+            size="sm" 
+            className="h-8 px-3 text-xs" 
+            onClick={handleVerify}
+            disabled={isVerifying}
+          >
+            {isVerifying ? <RefreshCw className="h-3 w-3 animate-spin" /> : 'Verify'}
+          </Button>
+        </div>
+        {result && (
+          <div className={`p-2 rounded-md text-xs flex items-center justify-between ${result.verified ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20' : 'bg-red-50 text-red-700 dark:bg-red-900/20'}`}>
+            <div className="flex items-center gap-2">
+              {result.verified ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+              <span>{result.verified ? 'Valid Receipt' : 'Invalid/Not Found'}</span>
+            </div>
+            {result.verified && result.score && (
+              <span className="font-bold">Score: {result.score}</span>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function LiveReceiptStream() {
+  const { metrics, connected } = useLiveMetrics();
+  
+  const getTrustColor = (score: number) => {
+    if (score >= 80) return 'text-emerald-500';
+    if (score >= 60) return 'text-amber-500';
+    return 'text-red-500';
+  };
+
+  return (
+    <Card className="h-full">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between">
+        <div className="space-y-1">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <Activity className="h-4 w-4 text-emerald-500" />
+            Live Proof of Trust
+          </CardTitle>
+          <CardDescription className="text-xs">Real-time SONATE receipt stream</CardDescription>
+        </div>
+        <div className={`flex items-center gap-1.5 text-[10px] font-medium px-2 py-0.5 rounded-full ${connected ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30' : 'bg-muted text-muted-foreground'}`}>
+          <div className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground'}`} />
+          {connected ? 'LIVE' : 'OFFLINE'}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[140px] pr-4">
+          <div className="space-y-3">
+            {metrics.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+                <Zap className="h-5 w-5 mb-2 opacity-20" />
+                <p className="text-[10px]">Waiting for receipts...</p>
+              </div>
+            ) : (
+              metrics.slice(0, 10).map((m, i) => (
+                <div key={i} className="flex items-center justify-between border-b border-muted pb-2 last:border-0 last:pb-0">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-medium">{m.source}</span>
+                    <span className="text-[10px] text-muted-foreground">{new Date(m.timestamp).toLocaleTimeString()}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-xs font-bold ${getTrustColor(m.trustScore)}`}>
+                      {Math.round(m.trustScore)}
+                    </span>
+                    <div className="flex gap-1 justify-end">
+                      {m.securityFlags.length > 0 && <AlertTriangle className="h-2 w-2 text-red-500" />}
+                      <Shield className="h-2 w-2 text-[var(--detect-primary)]" />
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function TrustScoresPage() {
   const [agents, setAgents] = useState<AgentTrustData[]>([]);
   const queryClient = useQueryClient();
@@ -195,12 +334,12 @@ export default function TrustScoresPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            Trust Scores
-            <InfoTooltip term="Trust Score" />
+            Enterprise Dashboard Overview
+            <Shield className="h-5 w-5 text-[var(--detect-primary)]" />
           </h1>
           <p className="text-muted-foreground flex items-center gap-2">
-            <span className="live-indicator">Live</span>
-            Agent trust monitoring from your conversations
+            <span className="live-indicator">SONATE</span>
+            Live governance and trust protocol monitoring
           </p>
         </div>
         <button 
@@ -208,16 +347,16 @@ export default function TrustScoresPage() {
           className="px-3 py-1.5 text-xs rounded-md bg-muted hover:bg-muted/80 flex items-center gap-2"
         >
           <RefreshCw className="h-3 w-3" />
-          Refresh
+          Refresh Registry
         </button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-l-4 border-l-[var(--detect-primary)]">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Shield className="h-4 w-4 text-[var(--detect-primary)]" />
-              Average Trust
+              Average Trust Score
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -235,37 +374,27 @@ export default function TrustScoresPage() {
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Healthy Agents</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-emerald-500">{healthyCount}/{agents.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">Score above 75</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Interactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{totalInteractions.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground mt-1">Last 24 hours</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Protocol Compliance</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{passRate}%</div>
-            <p className="text-xs text-muted-foreground mt-1">PASS rate</p>
+            <p className="text-xs text-muted-foreground mt-1">SONATE pass rate</p>
           </CardContent>
         </Card>
+        
+        <div className="md:col-span-2 lg:col-span-2">
+          <ProtocolVerificationTool />
+        </div>
       </div>
 
-      {/* Constitutional Principles Section */}
-      <ConstitutionalPrinciples compact={true} />
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ConstitutionalPrinciples compact={true} />
+        </div>
+        <div>
+          <LiveReceiptStream />
+        </div>
+      </div>
 
       {!isLoading && agents.length === 0 ? (
         <EmptyState />
