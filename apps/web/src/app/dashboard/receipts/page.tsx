@@ -335,8 +335,8 @@ export default function TrustReceiptsPage() {
     const ciqClarity  = ciq?.clarity  ?? 0;
     const ciqIntegrity = ciq?.integrity ?? 0;
     const ciqQuality  = ciq?.quality  ?? 0;
-    // If values are ≤1 they're on the 0-1 scale; multiply by 10 for 0-10
-    const scale = (v: number) => v <= 1 ? Math.round(v * 100) / 10 : Math.round(v * 10) / 10;
+    // Convert CIQ to 0-10 display: 0-1 scale → ×10, 1-5 scale → ×2, already 0-10 → keep
+    const scale = (v: number) => v <= 1 ? Math.round(v * 100) / 10 : v <= 5 ? Math.round(v * 20) / 10 : Math.round(v * 10) / 10;
     const clarity10 = scale(ciqClarity);
     const integrity10 = scale(ciqIntegrity);
     const quality10 = scale(ciqQuality);

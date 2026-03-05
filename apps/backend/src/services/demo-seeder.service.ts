@@ -310,6 +310,9 @@ async function seedTrustReceipts(force = false, agentIds: string[] = []): Promis
 
     const selfHash = crypto.createHash('sha256').update(payload).digest('hex');
 
+    // Derive SONATE principle scores from CIQ (1-5 scale → 0-10)
+    const avgCiq = (clarity + integrity + quality) / 3;
+    const ciqNorm = avgCiq / 5; // 0-1 normalized
     receipts.push({
       self_hash: selfHash,
       session_id: sessionId,
@@ -322,6 +325,16 @@ async function seedTrustReceipts(force = false, agentIds: string[] = []): Promis
         integrity: Math.round(integrity * 100) / 100,
         quality: Math.round(quality * 100) / 100,
       },
+      sonate_principles: {
+        CONSENT_ARCHITECTURE: Math.round((7 + ciqNorm * 3) * 10) / 10,    // 7-10
+        INSPECTION_MANDATE: Math.round((6.5 + ciqNorm * 3.5) * 10) / 10,  // 6.5-10
+        CONTINUOUS_VALIDATION: Math.round((7 + ciqNorm * 3) * 10) / 10,   // 7-10
+        ETHICAL_OVERRIDE: Math.round((7.5 + ciqNorm * 2.5) * 10) / 10,    // 7.5-10
+        RIGHT_TO_DISCONNECT: Math.round((8 + ciqNorm * 2) * 10) / 10,     // 8-10
+        MORAL_RECOGNITION: Math.round((7 + ciqNorm * 3) * 10) / 10,       // 7-10
+      },
+      overall_trust_score: Math.round(ciqNorm * 100),  // 0-100
+      trust_status: ciqNorm >= 0.7 ? 'PASS' : ciqNorm >= 0.5 ? 'PARTIAL' : 'FAIL',
       previous_hash: previousHash || undefined,
       tenant_id: DEMO_TENANT_ID,
       issuer: 'did:web:yseeku.com',
