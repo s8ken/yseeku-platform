@@ -6,6 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { AlertsService } from '../../services/alerts.service';
 import { demoSeederService } from '../../services/demo-seeder.service';
+import { bedauService } from '../../services/bedau.service';
 import { Agent } from '../../models/agent.model';
 import { Conversation } from '../../models/conversation.model';
 import { TrustReceiptModel } from '../../models/trust-receipt.model';
@@ -68,13 +69,14 @@ router.get('/live-metrics', async (req: Request, res: Response): Promise<void> =
     await demoSeederService.seed();
 
     // Query real data from demo tenant
-    const [receipts, alerts, agents] = await Promise.all([
+    const [receipts, alerts, agents, bedauMetrics] = await Promise.all([
       TrustReceiptModel.find({ tenant_id: DEMO_TENANT_ID })
         .sort({ timestamp: -1 })
         .limit(50)
         .lean(),
       AlertModel.find({ tenant_id: DEMO_TENANT_ID, status: 'active' }).lean(),
       Agent.countDocuments({}),
+      bedauService.getMetrics(DEMO_TENANT_ID),
     ]);
 
     // Calculate metrics from demo receipts
@@ -122,8 +124,11 @@ router.get('/live-metrics', async (req: Request, res: Response): Promise<void> =
         status: 'normal' as const,
       },
       emergence: {
-        level: 0.15,
-        active: false,
+        level: bedauMetrics.bedau_index,
+        type: bedauMetrics.emergence_type,
+        active: bedauMetrics.emergence_type !== 'LINEAR',
+        confidence: bedauMetrics.confidence_interval,
+        v2_components: bedauMetrics.v2_components,
       },
       system: {
         activeAgents: agents,
