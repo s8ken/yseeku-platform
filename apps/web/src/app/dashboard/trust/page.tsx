@@ -207,14 +207,18 @@ export default function TrustAnalyticsPage() {
         <MetricCard
           title="Total Interactions"
           value={analytics.totalInteractions}
-          trend={Math.round(analytics.totalInteractions * 0.3)} // Mock trend
+          trend={analytics.recentTrends.length >= 2 ?
+            (analytics.recentTrends[analytics.recentTrends.length - 1].count -
+             analytics.recentTrends[0].count) : 0}
           icon={<MessageSquare className="h-4 w-4" />}
           color="blue"
         />
         <MetricCard
           title="Violations"
           value={analytics.commonViolations.reduce((sum, v) => sum + v.count, 0)}
-          trend={-3} // Mock trend (negative is good)
+          trend={analytics.recentTrends.length >= 2 ?
+            -(analytics.recentTrends[analytics.recentTrends.length - 1].passRate -
+              analytics.recentTrends[0].passRate) : 0}
           icon={<AlertTriangle className="h-4 w-4" />}
           color="amber"
         />

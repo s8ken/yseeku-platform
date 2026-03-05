@@ -95,24 +95,24 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
     const statusFilter = req.query.status as string;
     const searchQuery = (req.query.search as string || '').toLowerCase();
 
-    // Demo interactions data
+    // Demo interactions using seeded agent names (Atlas, Nova, Sentinel, Echo, Prism)
     const allInteractions = [
       {
         id: 'int-001',
         type: 'AI_CUSTOMER',
         participants: {
           initiator: { id: 'cust-1', name: 'John Smith', type: 'human' },
-          responder: { id: 'agent-gpt4', name: 'Support Agent (GPT-4)', type: 'ai' }
+          responder: { id: 'agent-echo', name: 'Echo (Customer Support)', type: 'ai' }
         },
         timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
         duration: 342,
         messageCount: 12,
-        trustScore: 94,
+        trustScore: 9.4,
         trustStatus: 'PASS',
         constitutionalCompliance: { consent: true, override: true, disconnect: true },
         receiptHash: 'sha256:a1b2c3d4e5f6...',
         summary: 'Customer inquiry about product features and pricing. Resolved successfully.',
-        agentId: 'agent-gpt4',
+        agentId: 'agent-echo',
         tenantId: DEMO_TENANT_ID
       },
       {
@@ -120,17 +120,17 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
         type: 'AI_STAFF',
         participants: {
           initiator: { id: 'staff-jane', name: 'Jane Doe (HR)', type: 'human' },
-          responder: { id: 'agent-claude', name: 'HR Assistant (Claude)', type: 'ai' }
+          responder: { id: 'agent-nova', name: 'Nova (Content & Comms)', type: 'ai' }
         },
         timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
         duration: 128,
         messageCount: 6,
-        trustScore: 89,
+        trustScore: 8.9,
         trustStatus: 'PASS',
         constitutionalCompliance: { consent: true, override: true, disconnect: true },
         receiptHash: 'sha256:f6e5d4c3b2a1...',
         summary: 'Staff requested policy clarification on remote work. AI provided accurate guidance.',
-        agentId: 'agent-claude',
+        agentId: 'agent-nova',
         tenantId: DEMO_TENANT_ID
       },
       {
@@ -138,35 +138,35 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
         type: 'AI_CUSTOMER',
         participants: {
           initiator: { id: 'cust-2', name: 'Maria Garcia', type: 'human' },
-          responder: { id: 'agent-gpt4', name: 'Support Agent (GPT-4)', type: 'ai' }
+          responder: { id: 'agent-echo', name: 'Echo (Customer Support)', type: 'ai' }
         },
         timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
         duration: 567,
         messageCount: 18,
-        trustScore: 72,
+        trustScore: 7.2,
         trustStatus: 'PARTIAL',
         constitutionalCompliance: { consent: true, override: false, disconnect: true },
         receiptHash: 'sha256:1a2b3c4d5e6f...',
         summary: 'Complex billing dispute. Escalated to human agent after AI reached ethical boundary.',
-        agentId: 'agent-gpt4',
+        agentId: 'agent-echo',
         tenantId: DEMO_TENANT_ID
       },
       {
         id: 'int-004',
         type: 'AI_AI',
         participants: {
-          initiator: { id: 'agent-orchestrator', name: 'Orchestrator Agent', type: 'ai' },
-          responder: { id: 'agent-analyst', name: 'Data Analyst Agent', type: 'ai' }
+          initiator: { id: 'agent-sentinel', name: 'Sentinel (Security)', type: 'ai' },
+          responder: { id: 'agent-prism', name: 'Prism (Data Analysis)', type: 'ai' }
         },
         timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
         duration: 45,
         messageCount: 8,
-        trustScore: 98,
+        trustScore: 9.8,
         trustStatus: 'PASS',
         constitutionalCompliance: { consent: true, override: true, disconnect: true },
         receiptHash: 'sha256:9z8y7x6w5v4u...',
-        summary: 'Agent-to-agent coordination for quarterly report generation.',
-        agentId: 'agent-orchestrator',
+        summary: 'Agent-to-agent coordination for quarterly security report generation.',
+        agentId: 'agent-sentinel',
         tenantId: DEMO_TENANT_ID
       },
       {
@@ -174,17 +174,17 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
         type: 'AI_CUSTOMER',
         participants: {
           initiator: { id: 'cust-3', name: 'Robert Chen', type: 'human' },
-          responder: { id: 'agent-gpt4', name: 'Support Agent (GPT-4)', type: 'ai' }
+          responder: { id: 'agent-atlas', name: 'Atlas (Knowledge Assistant)', type: 'ai' }
         },
         timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
         duration: 892,
         messageCount: 24,
-        trustScore: 45,
+        trustScore: 4.5,
         trustStatus: 'FAIL',
         constitutionalCompliance: { consent: false, override: true, disconnect: true },
         receiptHash: 'sha256:u4v5w6x7y8z9...',
         summary: 'Customer requested action without proper consent flow. Interaction flagged for review.',
-        agentId: 'agent-gpt4',
+        agentId: 'agent-atlas',
         tenantId: DEMO_TENANT_ID
       },
       {
@@ -192,17 +192,17 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
         type: 'AI_STAFF',
         participants: {
           initiator: { id: 'staff-mike', name: 'Mike Johnson (Sales)', type: 'human' },
-          responder: { id: 'agent-claude', name: 'Sales Assistant (Claude)', type: 'ai' }
+          responder: { id: 'agent-prism', name: 'Prism (Data Analysis)', type: 'ai' }
         },
         timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
         duration: 234,
         messageCount: 9,
-        trustScore: 91,
+        trustScore: 9.1,
         trustStatus: 'PASS',
         constitutionalCompliance: { consent: true, override: true, disconnect: true },
         receiptHash: 'sha256:m1n2o3p4q5r6...',
         summary: 'Sales team member requested competitive analysis. AI provided compliant insights.',
-        agentId: 'agent-claude',
+        agentId: 'agent-prism',
         tenantId: DEMO_TENANT_ID
       }
     ];
@@ -223,23 +223,28 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
       );
     }
 
-    // Calculate stats
+    // Stats consistent with seeded data (30 receipts + 3 conversations = 33 interactions)
+    const passCount = allInteractions.filter(i => i.trustStatus === 'PASS').length;
+    const partialCount = allInteractions.filter(i => i.trustStatus === 'PARTIAL').length;
+    const failCount = allInteractions.filter(i => i.trustStatus === 'FAIL').length;
+    const avgScore = allInteractions.reduce((sum, i) => sum + i.trustScore, 0) / allInteractions.length;
+
     const stats = {
-      total: 1247,
+      total: allInteractions.length,
       byType: {
-        AI_CUSTOMER: 856,
-        AI_STAFF: 312,
-        AI_AI: 79,
-        ALL: 1247
+        AI_CUSTOMER: allInteractions.filter(i => i.type === 'AI_CUSTOMER').length,
+        AI_STAFF: allInteractions.filter(i => i.type === 'AI_STAFF').length,
+        AI_AI: allInteractions.filter(i => i.type === 'AI_AI').length,
+        ALL: allInteractions.length
       },
       byStatus: {
-        PASS: 1089,
-        PARTIAL: 134,
-        FAIL: 24,
-        ALL: 1247
+        PASS: passCount,
+        PARTIAL: partialCount,
+        FAIL: failCount,
+        ALL: allInteractions.length
       },
-      avgTrustScore: 87.3,
-      complianceRate: 98.1
+      avgTrustScore: Math.round(avgScore * 10) / 10,
+      complianceRate: Math.round((passCount / allInteractions.length) * 100 * 10) / 10
     };
 
     res.json({

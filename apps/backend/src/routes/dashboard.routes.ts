@@ -392,7 +392,7 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
       trustScore: calculateTrend(currentMetrics.trustScore, previousMetrics.trustScore),
       interactions: calculateTrend(currentMetrics.totalMessages, previousMetrics.totalMessages),
       compliance: calculateTrend(currentMetrics.complianceRate, previousMetrics.complianceRate),
-      risk: { change: 2.3, direction: 'down' }, // Risk going down is good
+      risk: calculateTrend(previousMetrics.trustScore > 0 ? (100 - previousMetrics.trustScore) / 10 : 0, currentMetrics.trustScore > 0 ? (100 - currentMetrics.trustScore) / 10 : 0),
     };
 
     // Calculate alerts based on trust metrics (lower trust = more alerts)

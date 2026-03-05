@@ -109,32 +109,30 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
       : 4.2;
 
     // Calculate overall trust score (0-10 scale)
-    const trustScore = ((avgClarity + avgIntegrity + avgQuality) / 3) * 2;
+    const trustScore = Math.round(((avgClarity + avgIntegrity + avgQuality) / 3) * 2 * 10) / 10;
 
-    // Demo values with slight randomization for dynamic feel
-    // Base values are stable, variation is minimal (±0.3 for score, ±20 for interactions)
-    const demoTrustScore = Math.round((8.6 + Math.random() * 0.4) * 10) / 10; // 8.6-9.0
-    const demoInteractions = 1490 + Math.floor(Math.random() * 30); // 1490-1520
+    // Calculate principle scores derived from real CIQ data (0-100 scale)
+    const principleScores = {
+      consent: Math.round(Math.min(100, avgIntegrity * 20)),
+      inspection: Math.round(Math.min(100, avgClarity * 20)),
+      validation: Math.round(Math.min(100, avgQuality * 20)),
+      override: Math.round(Math.min(100, avgIntegrity * 21)),
+      disconnect: Math.round(Math.min(100, 85 + (avgQuality - 4) * 3)),
+      moral: Math.round(Math.min(100, (avgIntegrity + avgQuality) * 10)),
+    };
 
     const kpiData = {
       tenant: DEMO_TENANT_ID,
       timestamp: new Date().toISOString(),
-      trustScore: demoTrustScore,
-      principleScores: {
-        consent: 90 + Math.floor(Math.random() * 5), // 90-94
-        inspection: 86 + Math.floor(Math.random() * 5), // 86-90
-        validation: 83 + Math.floor(Math.random() * 5), // 83-87
-        override: 88 + Math.floor(Math.random() * 5), // 88-92
-        disconnect: 86 + Math.floor(Math.random() * 5), // 86-90
-        moral: 85 + Math.floor(Math.random() * 5), // 85-89
-      },
-      totalInteractions: demoInteractions,
+      trustScore,
+      principleScores,
+      totalInteractions: conversations + receipts.length,
       activeAgents: agents,
       complianceRate: Math.round((trustScore / 10) * 100 * 10) / 10,
       riskScore: Math.max(0, Math.round((10 - trustScore) * 2)),
       alertsCount: alertSummary.active,
       experimentsRunning: experiments,
-      orchestratorsActive: 3,
+      orchestratorsActive: 0,
       // v2.0.1: Only 3 validated dimensions (removed realityIndex and canvasParity)
       sonateDimensions: {
         trustProtocol: trustScore >= 7 ? 'PASS' : trustScore >= 5 ? 'PARTIAL' : 'FAIL',

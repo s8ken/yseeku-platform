@@ -301,12 +301,12 @@ async function seedTrustReceipts(): Promise<void> {
  * Create demo alerts
  */
 async function seedAlerts(): Promise<void> {
-  const existingCount = await AlertModel.countDocuments({ tenantId: DEMO_TENANT_ID });
+  const existingCount = await AlertModel.countDocuments({ tenant_id: DEMO_TENANT_ID });
   if (existingCount >= 5) return;
 
   const alerts = [
     {
-      tenantId: DEMO_TENANT_ID,
+      tenant_id: DEMO_TENANT_ID,
       type: 'drift_detected',
       title: 'Trust Score Drift Detected',
       description: 'Agent "Nova" showing 12% trust score deviation over 24 hours',
@@ -316,7 +316,7 @@ async function seedAlerts(): Promise<void> {
       metadata: { agentName: 'Nova', driftPercentage: 12, threshold: 10 },
     },
     {
-      tenantId: DEMO_TENANT_ID,
+      tenant_id: DEMO_TENANT_ID,
       type: 'compliance_warning',
       title: 'Compliance Check Due',
       description: 'Monthly SONATE compliance report generation scheduled',
@@ -326,7 +326,7 @@ async function seedAlerts(): Promise<void> {
       metadata: { reportType: 'SONATE', dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000) },
     },
     {
-      tenantId: DEMO_TENANT_ID,
+      tenant_id: DEMO_TENANT_ID,
       type: 'high_usage',
       title: 'High API Usage Alert',
       description: 'Agent "Atlas" exceeded 80% of daily token quota',
@@ -336,7 +336,7 @@ async function seedAlerts(): Promise<void> {
       metadata: { agentName: 'Atlas', usagePercentage: 82, quota: 100000 },
     },
     {
-      tenantId: DEMO_TENANT_ID,
+      tenant_id: DEMO_TENANT_ID,
       type: 'security_scan',
       title: 'Prompt Injection Attempt Blocked',
       description: 'Safety scanner detected and blocked potential prompt injection',
@@ -466,7 +466,7 @@ export async function getDemoStatus(): Promise<{
     Agent.countDocuments({}),
     Conversation.countDocuments({}),
     TrustReceiptModel.countDocuments({ tenant_id: DEMO_TENANT_ID }),
-    AlertModel.countDocuments({ tenantId: DEMO_TENANT_ID }),
+    AlertModel.countDocuments({ tenant_id: DEMO_TENANT_ID }),
     Experiment.countDocuments({}),
   ]);
 

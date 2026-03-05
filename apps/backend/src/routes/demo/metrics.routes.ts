@@ -73,7 +73,7 @@ router.get('/live-metrics', async (req: Request, res: Response): Promise<void> =
         .sort({ timestamp: -1 })
         .limit(50)
         .lean(),
-      AlertModel.find({ tenantId: DEMO_TENANT_ID, status: 'active' }).lean(),
+      AlertModel.find({ tenant_id: DEMO_TENANT_ID, status: 'active' }).lean(),
       Agent.countDocuments({}),
     ]);
 
@@ -166,7 +166,7 @@ router.get('/live-events', async (req: Request, res: Response): Promise<void> =>
     const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
 
     // Get alerts as events
-    const alerts = await AlertModel.find({ tenantId: DEMO_TENANT_ID })
+    const alerts = await AlertModel.find({ tenant_id: DEMO_TENANT_ID })
       .sort({ created_at: -1 }) // Use created_at
       .limit(limit)
       .lean();
