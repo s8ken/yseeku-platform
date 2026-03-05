@@ -243,7 +243,7 @@ export default function RiskManagementPage() {
     { name: 'Continuous Validation', weight: 20, score: toTen(p.validation) || avgScoreTen, critical: false },
     { name: 'Ethical Override', weight: 15, score: toTen(p.override) || avgScoreTen, critical: true },
     { name: 'Right to Disconnect', weight: 10, score: toTen(p.disconnect) || avgScoreTen, critical: false },
-    { name: 'Moral Recognition', weight: 10, score: toTen(p.moral) || avgScoreTen, critical: false },
+    { name: 'Moral Recognition', weight: 10, score: toTen(p.recognition) || avgScoreTen, critical: false },
   ] : emptyTrustPrinciples;
 
   const passRate = kpisData?.complianceRate || analyticsData?.passRate || 0;

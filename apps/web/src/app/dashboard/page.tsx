@@ -191,7 +191,7 @@ export default function DashboardPage() {
   const hasNoData = !kpis || kpis.totalInteractions === 0;
   const hasNoAlerts = !alerts || alerts.alerts.length === 0;
 
-  const trustScoreStatus = (kpis?.trustScore ?? 0) >= 80 ? 'success' : (kpis?.trustScore ?? 0) >= 60 ? 'warning' : 'error';
+  const trustScoreStatus = (kpis?.trustScore ?? 0) >= 8 ? 'success' : (kpis?.trustScore ?? 0) >= 6 ? 'warning' : 'error';
   const alertsStatus = (alerts?.summary?.total ?? 0) > 5 ? 'warning' : (alerts?.summary?.total ?? 0) > 0 ? 'neutral' : 'success';
 
   const handleStartChat = () => {
@@ -241,7 +241,7 @@ export default function DashboardPage() {
       {/* Human-Readable Summary - only show if we have data */}
       {kpis && !hasNoData && (
         <HumanReadableSummary 
-          trustScore={Math.round(kpis.trustScore)}
+          trustScore={Math.round(kpis.trustScore * 10) / 10}
           bedauIndex={displayKpis.bedau?.index ?? 0}
           activeAgents={kpis.activeAgents}
           interactionsCount={kpis.totalInteractions}
@@ -275,8 +275,8 @@ export default function DashboardPage() {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <KPICard
                   title="Trust Score"
-                  value={Math.round(kpis.trustScore)}
-                  unit="/100"
+                  value={Math.round(kpis.trustScore * 10) / 10}
+                  unit="/10"
                   icon={Shield}
                   trend={kpis.trends?.trustScore}
                   tooltipTerm="Trust Score"

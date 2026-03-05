@@ -37,7 +37,7 @@ export function HumanReadableSummary({
     SafetyIcon = AlertTriangle;
     safetyDesc = `${alertsCount} alerts require review. Policy compliance checks pending.`;
   }
-  if (trustScore < 80) {
+  if (trustScore < 8) {
     safetyStatus = 'Degraded';
     safetyColor = 'text-red-500';
     SafetyIcon = AlertTriangle;
@@ -83,7 +83,7 @@ export function HumanReadableSummary({
             </p>
             {showScience && (
               <div className="mt-4 pt-4 border-t text-xs font-mono text-muted-foreground">
-                Trust Score: {trustScore}/100 <br/>
+                Trust Score: {trustScore}/10 <br/>
                 Alerts: {alertsCount} <br/>
                 Policy Pass: {String(policyStatus)}
               </div>
