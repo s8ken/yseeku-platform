@@ -301,43 +301,43 @@ async function seedTrustReceipts(): Promise<void> {
  * Create demo alerts
  */
 async function seedAlerts(): Promise<void> {
-  const existingCount = await AlertModel.countDocuments({ tenant_id: DEMO_TENANT_ID });
-  if (existingCount >= 5) return;
+  // Clean up any old alerts (including ones with wrong tenantId field from prior seeds)
+  await AlertModel.deleteMany({ $or: [{ tenant_id: DEMO_TENANT_ID }, { tenantId: DEMO_TENANT_ID }] });
 
   const alerts = [
     {
       tenant_id: DEMO_TENANT_ID,
-      type: 'drift_detected',
+      type: 'trust_violation',
       title: 'Trust Score Drift Detected',
       description: 'Agent "Nova" showing 12% trust score deviation over 24 hours',
-      severity: 'warning',
+      severity: 'medium',
       status: 'active',
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
       metadata: { agentName: 'Nova', driftPercentage: 12, threshold: 10 },
     },
     {
       tenant_id: DEMO_TENANT_ID,
-      type: 'compliance_warning',
-      title: 'Compliance Check Due',
-      description: 'Monthly SONATE compliance report generation scheduled',
-      severity: 'info',
+      type: 'policy_breach',
+      title: 'Policy Compliance Issue',
+      description: 'Monthly SONATE compliance report flagged policy deviation',
+      severity: 'low',
       status: 'active',
       timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
       metadata: { reportType: 'SONATE', dueDate: new Date(Date.now() + 48 * 60 * 60 * 1000) },
     },
     {
       tenant_id: DEMO_TENANT_ID,
-      type: 'high_usage',
-      title: 'High API Usage Alert',
-      description: 'Agent "Atlas" exceeded 80% of daily token quota',
-      severity: 'warning',
+      type: 'emergence_detected',
+      title: 'Emergence Signal Detected',
+      description: 'Agent "Atlas" exhibiting unexpected behavioral clustering',
+      severity: 'high',
       status: 'acknowledged',
       timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000),
-      metadata: { agentName: 'Atlas', usagePercentage: 82, quota: 100000 },
+      metadata: { agentName: 'Atlas', signalStrength: 0.82, pattern: 'behavioral_clustering' },
     },
     {
       tenant_id: DEMO_TENANT_ID,
-      type: 'security_scan',
+      type: 'consent_withdrawal',
       title: 'Prompt Injection Attempt Blocked',
       description: 'Safety scanner detected and blocked potential prompt injection',
       severity: 'critical',
