@@ -258,9 +258,13 @@ async function seedConversations(userId: string, agentIds: string[]): Promise<vo
 /**
  * Create demo trust receipts — distributed across agents for fleet-level emergence
  */
-async function seedTrustReceipts(): Promise<void> {
+async function seedTrustReceipts(force = false): Promise<number> {
+  if (force) {
+    await TrustReceiptModel.deleteMany({ tenant_id: DEMO_TENANT_ID });
+  }
+
   const existingCount = await TrustReceiptModel.countDocuments({ tenant_id: DEMO_TENANT_ID });
-  if (existingCount >= 20) return;
+  if (existingCount >= 20) return existingCount;
 
   const receipts = [];
   const sessionId = `demo-session-${Date.now()}`;
@@ -325,6 +329,7 @@ async function seedTrustReceipts(): Promise<void> {
 
   await TrustReceiptModel.insertMany(receipts);
   logger.info('Demo trust receipts seeded', { count: receipts.length, agents: agentProfiles.length });
+  return receipts.length;
 }
 
 /**
@@ -783,7 +788,7 @@ export async function seedDemoTenant(force = false): Promise<SeedResult> {
     const userId = await seedUser();
     const agentIds = await seedAgents(userId);
     await seedConversations(userId, agentIds);
-    await seedTrustReceipts();
+    const receiptCount = await seedTrustReceipts(force);
     await seedAlerts();
     await seedExperiments();
     await seedBrainCycles();
@@ -797,7 +802,7 @@ export async function seedDemoTenant(force = false): Promise<SeedResult> {
         users: 1,
         agents: agentIds.length,
         conversations: 3,
-        receipts: 30,
+        receipts: receiptCount,
         alerts: 4,
         experiments: 2,
         brainCycles: 4,
