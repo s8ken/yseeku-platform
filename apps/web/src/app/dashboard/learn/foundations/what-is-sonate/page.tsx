@@ -214,7 +214,7 @@ const lessonSteps: LessonStep[] = [
             title="AI Safety Researchers"
             persona="Dr. Chen, AI Safety Lab"
             challenge="Studying emergent behaviors in large language models"
-            solution="Uses the Bedau Index to detect and measure emergence, runs controlled experiments in the Lab module"
+            solution="Uses the FBI² to detect and measure emergence, runs controlled experiments in the Lab module"
             icon="🔬"
           />
           

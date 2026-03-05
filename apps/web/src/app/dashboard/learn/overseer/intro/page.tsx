@@ -45,7 +45,7 @@ function OverseerBrainVisualization() {
       description: 'Gathering data from all sensors',
       icon: Eye,
       color: 'purple',
-      details: 'Collecting trust scores, agent health, active alerts, Bedau index, and system metrics'
+      details: 'Collecting trust scores, agent health, active alerts, FBI\u00b2, and system metrics'
     },
     analyze: {
       title: 'ANALYZE',
@@ -281,7 +281,7 @@ function SensorDataDemo() {
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <Brain className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Bedau Index</span>
+            <span className="text-sm text-muted-foreground">FBI\u00b2</span>
           </div>
           <div className={cn(
             'text-3xl font-bold',

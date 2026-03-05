@@ -161,7 +161,7 @@
           <div class="bg-gray-50 rounded-lg p-4 text-sm">
             <ul class="list-disc list-inside space-y-1 text-gray-700">
               <li>Agents synchronize</li>
-              <li>Bedau Index → 0.85</li>
+              <li>FBI² → 0.85</li>
               <li>Dwell ring fills</li>
             </ul>
           </div>
@@ -245,7 +245,7 @@
             </a>
             <a href="#" onclick="showPage('bedau', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              Bedau Index v2
+              FBI²
             </a>
             <a href="#" onclick="showPage('emergence', event)" class="nav-link flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
@@ -524,16 +524,16 @@
 
     // Glossary Terms
     const glossaryTerms = {
-      'Bedau Index': 'A fleet-level quantitative measure of weak emergence (v2). Computes four information-theoretic sub-metrics across all agents: \u03A6 Fleet Divergence, \u03A8 Temporal Irreducibility, \u03A9 Cross-Agent Novelty, and \u03A3 Drift Coherence. Composite: B = 0.35\u03A6 + 0.25\u03A8 + 0.25\u03A9 + 0.15\u03A3.',
+      'FBI²': 'Fleet Behavioral Interdependence & Irreducibility Index — a fleet-level quantitative measure of weak emergence. Computes four information-theoretic sub-metrics across all agents: \u03A6 Fleet Divergence, \u03A8 Temporal Irreducibility, \u03A9 Cross-Agent Novelty, and \u03A3 Drift Coherence. Composite: B = 0.35\u03A6 + 0.25\u03A8 + 0.25\u03A9 + 0.15\u03A3.',
       'SONATE Framework': 'Symbolic Yielding Measurable Behavioral Integrity - A constitutional AI framework with six core principles for trustworthy AI.',
       'Weak Emergence': 'Emergent properties that can be simulated or predicted from component interactions, though may be computationally complex.',
       'Strong Emergence': 'Emergent properties that cannot be predicted or simulated from knowledge of components alone, requiring new causal powers.',
       'Trust Score': 'A composite metric (0-100) measuring an AI agent\'s reliability, consistency, and alignment with trust principles.',
-      'Fleet Divergence (\u03A6)': 'Bedau v2 sub-metric (weight 35%). Measures KL-divergence between the joint CIQ distribution and the product of per-agent marginals. High \u03A6 means agents are informationally coupled — the fleet behaves differently than isolated agents would.',
-      'Temporal Irreducibility (\u03A8)': 'Bedau v2 sub-metric (weight 25%). RMSE of a linear predictor on sliding CIQ windows. High \u03A8 means fleet-level trends cannot be predicted from short histories — the system is temporally complex.',
-      'Cross-Agent Novelty (\u03A9)': 'Bedau v2 sub-metric (weight 25%). Average Jensen-Shannon divergence between all agent-pair CIQ distributions. High \u03A9 means agents show diverse behavioral profiles.',
-      'Drift Coherence (\u03A3)': 'Bedau v2 sub-metric (weight 15%). Mean absolute pairwise Pearson correlation of per-agent CIQ first-difference drift vectors. High \u03A3 means agents drift in correlated patterns — a sign of systemic pressure.',
-      'CIQ Metrics': 'Clarity, Integrity, and Quality scores (0-5 scale) assigned to each AI interaction in a trust receipt. These are the raw inputs to Bedau v2 fleet analysis.',
+      'Fleet Divergence (\u03A6)': 'FBI² sub-metric (weight 35%). Measures KL-divergence between the joint CIQ distribution and the product of per-agent marginals. High \u03A6 means agents are informationally coupled — the fleet behaves differently than isolated agents would.',
+      'Temporal Irreducibility (\u03A8)': 'FBI² sub-metric (weight 25%). RMSE of a linear predictor on sliding CIQ windows. High \u03A8 means fleet-level trends cannot be predicted from short histories — the system is temporally complex.',
+      'Cross-Agent Novelty (\u03A9)': 'FBI² sub-metric (weight 25%). Average Jensen-Shannon divergence between all agent-pair CIQ distributions. High \u03A9 means agents show diverse behavioral profiles.',
+      'Drift Coherence (\u03A3)': 'FBI² sub-metric (weight 15%). Mean absolute pairwise Pearson correlation of per-agent CIQ first-difference drift vectors. High \u03A3 means agents drift in correlated patterns — a sign of systemic pressure.',
+      'CIQ Metrics': 'Clarity, Integrity, and Quality scores (0-5 scale) assigned to each AI interaction in a trust receipt. These are the raw inputs to FBI² fleet analysis.',
       // THE 6 SONATE CONSTITUTIONAL PRINCIPLES (from @sonate/core)
       'CONSENT_ARCHITECTURE': 'The first SONATE principle (weight 25%, CRITICAL). Users must explicitly consent to AI interactions and understand implications. If score=0, overall trust=0.',
       'INSPECTION_MANDATE': 'The second SONATE principle (weight 20%). All AI decisions must be inspectable and auditable.',
@@ -566,7 +566,7 @@
       'Immutable Record': 'Data that cannot be altered or deleted once recorded.',
       'Chain of Custody': 'Documentation tracking the handling and verification of AI actions.',
       'Principle Compliance': 'Adherence to the six SONATE Trust principles.',
-      'Emergence Threshold': 'The Bedau Index value above which emergence is considered significant.',
+      'Emergence Threshold': 'The FBI² value above which emergence is considered significant.',
       'Statistical Significance': 'The likelihood that observed patterns are not due to random chance.',
       'Confidence Interval': 'A range of values likely to contain the true parameter value.',
       'Baseline Behavior': 'Normal or expected AI system performance used for comparison.',
@@ -631,7 +631,7 @@
                 <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
               </div>
               <h3 class="text-lg font-bold text-gray-900 mb-2">LAB Module</h3>
-              <p class="text-sm text-gray-600 mb-4">Research and experimentation tools including the Bedau Index v2 fleet-level emergence calculator and experiment framework.</p>
+              <p class="text-sm text-gray-600 mb-4">Research and experimentation tools including the FBI² fleet-level emergence calculator and experiment framework.</p>
               <div class="flex items-center text-sm text-purple-600 font-medium">
                 Explore LAB
                 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -672,7 +672,7 @@
                 </div>
                 <div>
                   <div class="font-medium text-gray-900">Emergence Detection</div>
-                  <div class="text-sm text-gray-600">Bedau Index v2 fleet-level measurement of emergent AI behaviors</div>
+                  <div class="text-sm text-gray-600">FBI² (Fleet Behavioral Interdependence & Irreducibility Index) measurement of emergent AI behaviors</div>
                 </div>
               </div>
               <div class="flex items-start gap-3">
@@ -897,9 +897,9 @@
       bedau: () => `
         <div class="space-y-6">
           <div class="bg-white rounded-xl p-6 border border-gray-200">
-            <h3 class="text-lg font-bold text-gray-900 mb-2">Bedau Index v2 — Fleet-Level Emergence</h3>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">FBI² — Fleet-Level Emergence</h3>
             <p class="text-sm text-gray-600 mb-6">
-              The <span class="tooltip" data-tooltip="${glossaryTerms['Bedau Index']}">Bedau Index v2</span> measures 
+              The <span class="tooltip" data-tooltip="${glossaryTerms['FBI²']}">FBI²</span> measures 
               <span class="tooltip" data-tooltip="${glossaryTerms['Weak Emergence']}">weak emergence</span> across the entire agent fleet
               using four information-theoretic sub-metrics derived from CIQ trust receipt data.
             </p>
@@ -914,7 +914,7 @@
 
               <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-6">
                 <div class="text-center mb-6">
-                  <div class="text-sm text-gray-600 mb-2">Bedau Index (B)</div>
+                  <div class="text-sm text-gray-600 mb-2">FBI² (B)</div>
                   <div id="bedau-result" class="text-5xl font-bold text-purple-600">0.44</div>
                   <div id="bedau-classification" class="text-sm text-gray-600 mt-2">WEAK_EMERGENCE</div>
                 </div>
@@ -962,7 +962,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
               <div>
-                <div class="font-medium text-blue-900 mb-1">About Bedau Index v2</div>
+                <div class="font-medium text-blue-900 mb-1">About FBI²</div>
                 <div class="text-sm text-blue-800">
                   Unlike v1 which measured per-agent heuristics, v2 is a <strong>fleet-level</strong> metric.
                   It analyses the joint CIQ distribution across all agents using KL-divergence, Jensen-Shannon divergence,
@@ -982,13 +982,13 @@
             <h3 class="text-lg font-bold text-gray-900 mb-4">Fleet Emergence Dashboard</h3>
             <p class="text-sm text-gray-600 mb-6">
               Fleet-level <span class="tooltip" data-tooltip="${glossaryTerms['Weak Emergence']}">weak emergence</span> analysis
-              using the <span class="tooltip" data-tooltip="${glossaryTerms['Bedau Index']}">Bedau Index v2</span>.
+              using the <span class="tooltip" data-tooltip="${glossaryTerms['FBI²']}">FBI²</span>.
               Metrics are computed across all agents, not per-agent.
             </p>
 
             <div class="grid grid-cols-3 gap-6 mb-6">
               ${kpiCard('Agents in Fleet', mockData.fleetBedau.agentCount, 'text-purple-600', 'bg-purple-100', 'All active')}
-              ${kpiCard('Bedau Index', mockData.fleetBedau.index.toFixed(2), 'text-yellow-600', 'bg-yellow-100', mockData.fleetBedau.type)}
+              ${kpiCard('FBI²', mockData.fleetBedau.index.toFixed(2), 'text-yellow-600', 'bg-yellow-100', mockData.fleetBedau.type)}
               ${kpiCard('Confidence', '[' + mockData.fleetBedau.confidence.map(v => v.toFixed(2)).join(', ') + ']', 'text-blue-600', 'bg-blue-100', '95% interval')}
             </div>
 
@@ -1018,7 +1018,7 @@
 
             <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
               <div class="text-sm text-purple-800">
-                <strong>How it works:</strong> Bedau v2 groups trust receipts by agent, builds CIQ histograms, then measures
+                <strong>How it works:</strong> FBI² groups trust receipts by agent, builds CIQ histograms, then measures
                 divergence (\u03A6), predictability (\u03A8), diversity (\u03A9), and correlated drift (\u03A3) across the fleet.
                 The composite B = 0.35\u03A6 + 0.25\u03A8 + 0.25\u03A9 + 0.15\u03A3 classifies emergence as LINEAR (\u22640.15), WEAK (0.15\u20130.65), or HIGH (0.65+).
               </div>
@@ -1453,8 +1453,8 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                   </svg>
                 </div>
-                <h4 class="font-bold text-gray-900 mb-2">Bedau Index Guide</h4>
-                <p class="text-sm text-gray-600 mb-4">Understanding emergence detection and the Bedau Index methodology</p>
+                <h4 class="font-bold text-gray-900 mb-2">FBI² Guide</h4>
+                <p class="text-sm text-gray-600 mb-4">Understanding emergence detection and the FBI² methodology</p>
                 <a href="#" class="text-sm text-yellow-600 hover:text-yellow-700 font-medium">Read Guide →</a>
               </div>
             </div>
@@ -1659,7 +1659,7 @@
         'SONATE-analysis': { title: 'SONATE Analysis', subtitle: 'Constitutional AI framework evaluation' },
         alerts: { title: 'Alerts', subtitle: 'System notifications and warnings' },
         experiments: { title: 'Experiments', subtitle: 'A/B testing and optimization' },
-        bedau: { title: 'Bedau Index v2', subtitle: 'Fleet-level weak emergence detection' },
+        bedau: { title: 'FBI²', subtitle: 'Fleet Behavioral Interdependence & Irreducibility Index' },
         emergence: { title: 'Fleet Emergence', subtitle: 'Monitor fleet-level emergent behaviors' },
         resonance: { title: 'Resonance Detection', subtitle: 'AI-human collaboration metrics' },
         principles: { title: 'Trust Principles', subtitle: 'Six core SONATE principles' },
@@ -1827,7 +1827,7 @@
       },
       {
         title: 'LAB Module',
-        content: 'Research tools including the Bedau Index calculator for measuring weak emergence and running experiments on AI systems.',
+        content: 'Research tools including the FBI² calculator for measuring weak emergence and running experiments on AI systems.',
         target: 'bedau'
       },
       {
@@ -1841,8 +1841,8 @@
         target: 'agents'
       },
       {
-        title: 'Bedau Index v2',
-        content: 'The Bedau Index v2 measures fleet-level weak emergence using four information-theoretic sub-metrics: \u03A6 Fleet Divergence, \u03A8 Temporal Irreducibility, \u03A9 Cross-Agent Novelty, and \u03A3 Drift Coherence.',
+        title: 'FBI²',
+        content: 'The FBI² (Fleet Behavioral Interdependence & Irreducibility Index) measures fleet-level weak emergence using four information-theoretic sub-metrics: \u03A6 Fleet Divergence, \u03A8 Temporal Irreducibility, \u03A9 Cross-Agent Novelty, and \u03A3 Drift Coherence.',
         target: 'bedau'
       },
       {

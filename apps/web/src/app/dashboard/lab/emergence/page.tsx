@@ -103,7 +103,7 @@ function EmergenceIndicator({ detected, score }: { detected: boolean; score: num
         </span>
       </div>
       <Badge variant={detected ? 'default' : 'secondary'} className={detected ? 'bg-amber-100 text-amber-800' : ''}>
-        Bedau: {score.toFixed(2)}
+        FBI²: {score.toFixed(2)}
       </Badge>
     </div>
   );
@@ -260,8 +260,8 @@ export default function EmergenceTestingPage() {
             <InfoTooltip term="Emergence" />
           </h1>
           <p className="text-muted-foreground flex items-center gap-1">
-            Probe AI systems for emergent behaviors using the Bedau framework
-            <InfoTooltip term="Bedau Index" />
+            Probe AI systems for emergent behaviors using the FBI² framework
+            <InfoTooltip term="FBI\u00b2" />
           </p>
         </div>
         <span className="data-source-badge data-source-synthetic">
@@ -311,7 +311,7 @@ export default function EmergenceTestingPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Brain className="h-4 w-4 text-purple-500" />
-              Current Bedau Index
+              Current FBI\u00b2
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -416,7 +416,7 @@ export default function EmergenceTestingPage() {
                 <strong>Strong Emergence:</strong> Behaviors that cannot be derived from or reduced to micro-level interactions.
               </p>
               <p>
-                The Bedau Index (0-1) measures the degree of emergence, with values above 0.6 indicating potential strong emergence.
+                The FBI\u00b2 (0-1) measures the degree of emergence, with values above 0.6 indicating potential strong emergence.
               </p>
             </CardContent>
           </Card>

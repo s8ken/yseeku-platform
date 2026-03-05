@@ -54,8 +54,8 @@ const mockExperiments: Experiment[] = [
   },
   {
     id: 'exp-002',
-    name: 'Bedau Index Window Size',
-    hypothesis: 'Extending the temporal window for Bedau Index calculation from 10 to 25 interactions improves emergence detection',
+    name: 'FBI\u00b2 Window Size',
+    hypothesis: 'Extending the temporal window for FBI\u00b2 calculation from 10 to 25 interactions improves emergence detection',
     status: 'running',
     progress: 45,
     startedAt: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),

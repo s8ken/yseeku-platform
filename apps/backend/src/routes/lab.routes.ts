@@ -34,7 +34,7 @@ router.get('/bedau-metrics', protect, async (req: Request, res: Response): Promi
     });
     res.status(500).json({
       success: false,
-      message: 'Failed to calculate Bedau metrics',
+      message: 'Failed to calculate FBI\u00b2 metrics',
       error: getErrorMessage(error),
     });
   }

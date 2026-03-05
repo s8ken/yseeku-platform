@@ -109,13 +109,13 @@ const docSections: DocSection[] = [
   },
   {
     id: 'bedau',
-    title: 'Bedau Index & Emergence',
+    title: 'FBI\u00b2 & Emergence',
     icon: <Brain className="h-5 w-5" />,
     description: 'Framework for detecting emergent behaviors in AI systems',
     content: [
       {
-        term: 'Bedau Index',
-        definition: 'Composite metric (0-1) measuring the degree of emergent behavior in AI systems. Named after philosopher Mark Bedau who formalized emergence types.',
+        term: 'FBI\u00b2',
+        definition: 'Fleet Behavioral Interdependence & Irreducibility Index. Composite metric (0-1) measuring the degree of emergent behavior in multi-agent AI systems using four information-theoretic sub-metrics.',
         example: 'Index of 0.72 indicates significant emergent patterns worthy of investigation'
       },
       {

@@ -175,7 +175,7 @@ router.get('/experiments', async (req: Request, res: Response): Promise<void> =>
           },
           {
             _id: 'demo-exp-2',
-            name: 'Bedau Window Size Study',
+            name: 'FBI\u00b2 Window Size Study',
             description: 'Evaluating optimal temporal window for emergence detection',
             hypothesis: 'Larger window improves emergence detection',
             status: 'running',

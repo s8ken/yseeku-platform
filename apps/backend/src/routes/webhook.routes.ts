@@ -187,7 +187,7 @@ router.get('/meta/metrics', (_req: Request, res: Response) => {
       { id: 'trustScore', name: 'Trust Score', description: 'Overall trust score (0-1)', unit: 'score' },
       { id: 'driftScore', name: 'Drift Score', description: 'Behavioral drift magnitude (0-1)', unit: 'score' },
       { id: 'emergenceLevel', name: 'Emergence Level', description: 'Agent emergence metric (0-1)', unit: 'level' },
-      { id: 'bedauIndex', name: 'Bedau Index', description: 'Emergent behavior complexity (0-1)', unit: 'index' },
+      { id: 'bedauIndex', name: 'FBI\u00b2', description: 'Emergent behavior complexity (0-1)', unit: 'index' },
       { id: 'principleScore', name: 'Principle Score', description: 'SONATE compliance score (0-1)', unit: 'score' },
       { id: 'consentRate', name: 'Consent Rate', description: 'User consent percentage (0-100)', unit: 'percent' },
       { id: 'alertCount', name: 'Alert Count', description: 'Number of active alerts', unit: 'count' },
