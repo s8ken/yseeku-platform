@@ -46,6 +46,12 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
+  // Landing page renders full-screen without sidebar/header chrome
+  const isLandingPage = pathname === '/demo';
+  if (isLandingPage) {
+    return <>{children}</>;
+  }
+
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
