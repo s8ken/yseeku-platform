@@ -30,7 +30,6 @@
     "pre-push": "npm run build && npm run test",
     "clean": "turbo run clean && rm -rf node_modules",
     "e2e:smoke": "node scripts/e2e-smoke.mjs",
-
     "seed": "npm run seed --workspace=backend",
     "seed:fresh": "npm run seed:fresh --workspace=backend",
     "typecheck": "turbo run typecheck",
@@ -63,7 +62,6 @@
     "@types/react-dom": "18.3.1",
     "elliptic": "6.6.1",
     "glob": "^7.2.3",
-    "minimatch": "^3.1.2",
     "tar": ">=7.5.4",
     "ws": ">=7.5.10",
     "@ethersproject/providers": {
