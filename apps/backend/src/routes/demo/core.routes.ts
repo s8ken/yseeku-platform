@@ -108,8 +108,8 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
       ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 0), 0) / receipts.length
       : 4.2;
 
-    // Calculate overall trust score (0-10 scale)
-    const trustScore = Math.round(((avgClarity + avgIntegrity + avgQuality) / 3) * 2 * 10) / 10;
+    // Calculate overall trust score (0-100 scale, matching live backend)
+    const trustScore = Math.round(((avgClarity + avgIntegrity + avgQuality) / 3) * 20 * 10) / 10;
 
     // Calculate principle scores derived from real CIQ data (0-100 scale)
     const principleScores = {
@@ -128,16 +128,16 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
       principleScores,
       totalInteractions: conversations + receipts.length,
       activeAgents: agents,
-      complianceRate: Math.round((trustScore / 10) * 100 * 10) / 10,
-      riskScore: Math.max(0, Math.round((10 - trustScore) * 2)),
+      complianceRate: Math.round(trustScore * 10) / 10,
+      riskScore: Math.max(0, Math.round((100 - trustScore) / 5)),
       alertsCount: alertSummary.active,
       experimentsRunning: experiments,
       orchestratorsActive: 0,
       // v2.0.1: Only 3 validated dimensions (removed realityIndex and canvasParity)
       sonateDimensions: {
-        trustProtocol: trustScore >= 7 ? 'PASS' : trustScore >= 5 ? 'PARTIAL' : 'FAIL',
+        trustProtocol: trustScore >= 70 ? 'PASS' : trustScore >= 50 ? 'PARTIAL' : 'FAIL',
         ethicalAlignment: Math.round(avgIntegrity * 10) / 10,
-        resonanceQuality: trustScore >= 8.5 ? 'BREAKTHROUGH' : trustScore >= 7 ? 'ADVANCED' : 'STRONG',
+        resonanceQuality: trustScore >= 85 ? 'BREAKTHROUGH' : trustScore >= 70 ? 'ADVANCED' : 'STRONG',
         // Deprecated fields - kept for backward compatibility, always return 0
         realityIndex: 0,
         canvasParity: 0,
