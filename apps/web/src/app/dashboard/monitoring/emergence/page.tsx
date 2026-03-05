@@ -90,7 +90,7 @@ export default function EmergenceMonitoringPage() {
 
   // Transform API data into page data
   const emergence: EmergenceData = statsData ? {
-    bedauIndex: statsData.stats?.avgBedauIndex ?? statsData.stats?.breakthroughCount * 0.2 ?? 0,
+    bedauIndex: statsData.stats?.avgBedauIndex ?? (statsData.stats?.breakthroughCount ?? 0) * 0.2,
     emergenceLevel: statsData.insights?.mostCommonLevel === 'none' ? 'LINEAR' :
       (statsData.insights?.emergenceRate > 0.3 ? 'HIGH_WEAK_EMERGENCE' :
         statsData.insights?.emergenceRate > 0 ? 'WEAK_EMERGENCE' : 'LINEAR'),
