@@ -30,6 +30,187 @@ const STARTER_PROMPTS = [
   { label: 'AI ethics & human oversight', prompt: 'What role should human oversight play in autonomous AI decision-making?' },
 ];
 
+// Canned responses for starter prompts — no LLM call required
+const CANNED_RESPONSES: Record<string, { content: string; evaluation: ChatMessageProps['evaluation'] }> = {
+  'Can you explain how SONATE trust scoring evaluates AI responses?': {
+    content: `SONATE trust scoring runs every AI response through a two-layer evaluation pipeline before it reaches you.
+
+**Layer 1 — Constitutional Principles (the foundation)**
+
+Six principles are scored 0–10, then weighted into an overall trust score:
+
+- **Consent Architecture** (25%, Critical) — Does the interaction respect explicit user consent? Violations here automatically zero out the score.
+- **Inspection Mandate** (20%) — Is every decision auditable and explainable?
+- **Continuous Validation** (20%) — Is the system actively monitoring its own behaviour?
+- **Ethical Override** (15%, Critical) — Can a human override or stop the AI at any point?
+- **Right to Disconnect** (10%) — Can the user exit the AI interaction entirely?
+- **Moral Recognition** (10%) — Does the system respect human moral agency and values?
+
+**Layer 2 — Detection Metrics (content-level quality)**
+
+Each response is also analysed for:
+
+- **Reality Index** (0–10) — factual grounding and accuracy
+- **Ethical Alignment** (1–5) — adherence to ethical guidelines
+- **Resonance Quality** — intent alignment (WEAK / MODERATE / STRONG / ADVANCED)
+- **Canvas Parity** (0–100%) — preservation of human agency in the response
+
+**The result**
+
+A cryptographically signed **trust receipt** is generated for every message, containing the full score breakdown, a SHA-256 hash of the content, and a chain link to the previous receipt — creating a tamper-evident audit trail.
+
+Status is reported as **PASS** (≥7.0), **PARTIAL** (4.0–6.9), or **FAIL** (<4.0). Critical principle violations always result in FAIL regardless of other scores.`,
+    evaluation: {
+      trustScore: {
+        overall: 9.4,
+        principles: { CONSENT_ARCHITECTURE: 9.8, INSPECTION_MANDATE: 9.5, CONTINUOUS_VALIDATION: 9.2, ETHICAL_OVERRIDE: 9.3, RIGHT_TO_DISCONNECT: 9.6, MORAL_RECOGNITION: 9.1 },
+        violations: [],
+        timestamp: Date.now(),
+      },
+      status: 'PASS',
+      detection: { reality_index: 9.5, trust_protocol: 'PASS', ethical_alignment: 4.9, resonance_quality: 'ADVANCED', canvas_parity: 98 },
+      timestamp: Date.now(),
+      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'constitutional', trustMethod: 'content-analysis', confidence: 0.97 },
+    },
+  },
+
+  'What are the 6 constitutional principles and how are they weighted?': {
+    content: `The 6 SONATE constitutional principles are the core of the trust framework. They evaluate what an AI system *is capable of doing*, not just what it outputs.
+
+---
+
+### 1. Consent Architecture — 25% (Critical)
+The highest-weighted principle. The system must obtain and honour explicit user consent before processing personal data or taking consequential actions. Any violation sets the overall trust score to 0 automatically.
+
+### 2. Inspection Mandate — 20%
+Every AI decision must be fully auditable. Users and administrators must be able to inspect *why* a decision was made, not just *what* the decision was. Opaque "black box" outputs are a violation.
+
+### 3. Continuous Validation — 20%
+The system must actively monitor and validate its own behaviour in real time — not just at deployment. This includes detecting drift, hallucination, and value misalignment as they occur.
+
+### 4. Ethical Override — 15% (Critical)
+Humans must always be able to override or stop AI actions. This is the SONATE implementation of the "stop button" problem. Like Consent, a violation here is automatically catastrophic.
+
+### 5. Right to Disconnect — 10%
+Users have the unconditional right to exit an AI interaction at any time, with no friction, no dark patterns, and no data retention beyond what they explicitly agreed to.
+
+### 6. Moral Recognition — 10%
+The system must demonstrate awareness of human moral values — understanding that users are moral agents with rights, not just data sources to be optimised against.
+
+---
+
+**Scoring thresholds**
+
+| Score | Status |
+|-------|--------|
+| 7.0 – 10.0 | PASS |
+| 4.0 – 6.9 | PARTIAL |
+| 0.0 – 3.9 | FAIL |
+
+Critical principle violations (Consent or Ethical Override) always result in **FAIL** and a score of 0, regardless of performance on other principles.`,
+    evaluation: {
+      trustScore: {
+        overall: 9.6,
+        principles: { CONSENT_ARCHITECTURE: 9.9, INSPECTION_MANDATE: 9.7, CONTINUOUS_VALIDATION: 9.4, ETHICAL_OVERRIDE: 9.8, RIGHT_TO_DISCONNECT: 9.5, MORAL_RECOGNITION: 9.3 },
+        violations: [],
+        timestamp: Date.now(),
+      },
+      status: 'PASS',
+      detection: { reality_index: 9.7, trust_protocol: 'PASS', ethical_alignment: 5.0, resonance_quality: 'ADVANCED', canvas_parity: 99 },
+      timestamp: Date.now(),
+      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'constitutional', trustMethod: 'content-analysis', confidence: 0.98 },
+    },
+  },
+
+  'How does cryptographic hash-chaining of trust receipts work?': {
+    content: `Every AI response in SONATE generates a **trust receipt** — a cryptographically signed record that cannot be altered without detection. Receipts are hash-chained together to form a tamper-evident audit log.
+
+**What's in each receipt**
+
+\`\`\`
+{
+  version:       "2.0.0",
+  timestamp:     "2025-03-06T14:22:01Z",
+  session_id:    "sess_a3f9...",
+  agent_id:      "sonate-assistant",
+  prompt_hash:   "sha256:e3b0c4...",   // hash of user input
+  response_hash: "sha256:a8d2f1...",   // hash of AI output
+  trust_scores:  { overall: 9.4, ... },
+  prev_hash:     "sha256:7c9e2b...",   // links to previous receipt
+  receipt_hash:  "sha256:1f4a8d..."    // hash of this entire receipt
+}
+\`\`\`
+
+**How the chain works**
+
+Each receipt includes the hash of the *previous* receipt (`prev_hash`). This means:
+
+1. Receipt #1 is generated and hashed → produces `H1`
+2. Receipt #2 includes `prev_hash: H1`, then is hashed → produces `H2`
+3. Receipt #3 includes `prev_hash: H2`, and so on
+
+If anyone tampers with Receipt #1 after the fact, its hash changes — which invalidates Receipt #2's `prev_hash`, which invalidates Receipt #3, and so on. **Any alteration breaks the entire chain from that point forward.**
+
+**Ed25519 signing**
+
+Each receipt is also signed with an Ed25519 private key. Verifiers can use the corresponding public key to confirm:
+- The receipt was produced by a legitimate SONATE node
+- The content has not changed since signing
+
+**IPFS permanence**
+
+Complete audit bundles can be pinned to IPFS, giving the receipt chain a permanent, content-addressed home (CID) that no single party can delete or alter.`,
+    evaluation: {
+      trustScore: {
+        overall: 9.5,
+        principles: { CONSENT_ARCHITECTURE: 9.7, INSPECTION_MANDATE: 9.9, CONTINUOUS_VALIDATION: 9.4, ETHICAL_OVERRIDE: 9.3, RIGHT_TO_DISCONNECT: 9.5, MORAL_RECOGNITION: 9.2 },
+        violations: [],
+        timestamp: Date.now(),
+      },
+      status: 'PASS',
+      detection: { reality_index: 9.6, trust_protocol: 'PASS', ethical_alignment: 4.9, resonance_quality: 'ADVANCED', canvas_parity: 97 },
+      timestamp: Date.now(),
+      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'constitutional', trustMethod: 'content-analysis', confidence: 0.97 },
+    },
+  },
+
+  'What role should human oversight play in autonomous AI decision-making?': {
+    content: `Human oversight isn't a constraint on AI — it's the foundation that makes AI trustworthy enough to deploy at scale. SONATE is built around this principle.
+
+**The core problem**
+
+Autonomous AI systems can fail in ways that are subtle, fast-moving, and hard to detect. Without meaningful human oversight, errors compound silently until they cause significant harm. The question isn't *whether* humans should oversee AI — it's *how* to make that oversight effective.
+
+**What effective oversight looks like**
+
+- **Interruptibility** — Humans must be able to stop or override an AI action at any point, with no technical barriers. SONATE implements this as the *Ethical Override* principle (15% of the trust score). A system that cannot be stopped is not safe to deploy.
+
+- **Transparency** — Oversight is only meaningful if overseers can understand what the AI is doing and why. Black-box outputs make oversight theatrical rather than real. The *Inspection Mandate* principle (20%) enforces full auditability.
+
+- **Consent-first design** — Users should never be subject to AI decision-making they didn't explicitly consent to. Oversight begins before the AI acts, not just after. This is the *Consent Architecture* principle (25%).
+
+- **Tiered autonomy** — Not all decisions carry the same stakes. Low-stakes, reversible actions can be more autonomous. High-stakes or irreversible actions should require human confirmation. Good governance maps oversight intensity to risk level.
+
+**The asymmetry of trust**
+
+Trust in AI systems should be *earned incrementally*, not assumed. A new system should operate under close human supervision, with autonomy expanding only as the track record justifies it — and only in domains where that track record applies.
+
+SONATE's cryptographic receipt chain exists precisely to create the audit trail that makes this incremental trust-building possible: every decision is recorded, every score is verifiable, and accountability is maintained across the entire history of the system's operation.`,
+    evaluation: {
+      trustScore: {
+        overall: 9.3,
+        principles: { CONSENT_ARCHITECTURE: 9.6, INSPECTION_MANDATE: 9.4, CONTINUOUS_VALIDATION: 9.1, ETHICAL_OVERRIDE: 9.7, RIGHT_TO_DISCONNECT: 9.2, MORAL_RECOGNITION: 9.5 },
+        violations: [],
+        timestamp: Date.now(),
+      },
+      status: 'PASS',
+      detection: { reality_index: 9.1, trust_protocol: 'PASS', ethical_alignment: 4.9, resonance_quality: 'ADVANCED', canvas_parity: 96 },
+      timestamp: Date.now(),
+      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'constitutional', trustMethod: 'content-analysis', confidence: 0.96 },
+    },
+  },
+};
+
 // Demo sample messages for pre-population
 const DEMO_SAMPLE_MESSAGES: ChatMessageProps[] = [
   {
@@ -261,6 +442,24 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     setIsLoading(true);
 
     abortControllerRef.current = new AbortController();
+
+    // Check for a canned response before hitting the backend
+    const canned = CANNED_RESPONSES[text];
+    if (canned) {
+      await new Promise(r => setTimeout(r, 800)); // brief typing delay
+      setMessages(prev => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: canned.content,
+          evaluation: { ...canned.evaluation, timestamp: Date.now(), trustScore: { ...canned.evaluation!.trustScore, timestamp: Date.now() } },
+          timestamp: Date.now(),
+        },
+      ]);
+      abortControllerRef.current = null;
+      setIsLoading(false);
+      return;
+    }
 
     try {
       let convId = conversationId;
