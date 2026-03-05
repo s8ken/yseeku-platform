@@ -227,18 +227,22 @@ export default function RiskManagementPage() {
   });
 
   // Build trust principles from demo-aware KPI data
-  // trustScore is on 0-10 scale from backend; principleScores are 0-100, convert to 0-10
+  // trustScore is on 0-10 scale from backend; principleScores may be 0-100 or 0-10
   const avgScore = kpisData?.trustScore || 0;
   const p = kpisData?.principleScores;
-  const toTen = (v: number) => Math.round(v) / 10; // 0-100 → 0-10
+  // Normalize to 0-10: if value > 10 it's 0-100 scale, divide by 10
+  const toTen = (v: number) => {
+    if (v == null) return 0;
+    return v > 10 ? Math.round(v) / 10 : Math.round(v * 10) / 10;
+  };
   
   const trustPrinciples: TrustPrinciple[] = p ? [
     { name: 'Consent Architecture', weight: 25, score: toTen(p.consent) || Math.round(avgScore * 10) / 10, critical: true },
-    { name: 'Inspection Mandate', weight: 20, score: toTen(p.inspection) || Math.round(avgScore * 1.08 * 10) / 10, critical: false },
-    { name: 'Continuous Validation', weight: 20, score: toTen(p.validation) || Math.round(avgScore * 0.92 * 10) / 10, critical: false },
-    { name: 'Ethical Override', weight: 15, score: toTen(p.override) || Math.round(avgScore * 1.03 * 10) / 10, critical: true },
-    { name: 'Right to Disconnect', weight: 10, score: toTen(p.disconnect) || Math.round(Math.min(avgScore * 1.12, 10) * 10) / 10, critical: false },
-    { name: 'Moral Recognition', weight: 10, score: toTen(p.moral) || Math.round(avgScore * 0.96 * 10) / 10, critical: false },
+    { name: 'Inspection Mandate', weight: 20, score: toTen(p.inspection) || Math.round(avgScore * 10) / 10, critical: false },
+    { name: 'Continuous Validation', weight: 20, score: toTen(p.validation) || Math.round(avgScore * 10) / 10, critical: false },
+    { name: 'Ethical Override', weight: 15, score: toTen(p.override) || Math.round(avgScore * 10) / 10, critical: true },
+    { name: 'Right to Disconnect', weight: 10, score: toTen(p.disconnect) || Math.round(avgScore * 10) / 10, critical: false },
+    { name: 'Moral Recognition', weight: 10, score: toTen(p.moral) || Math.round(avgScore * 10) / 10, critical: false },
   ] : emptyTrustPrinciples;
 
   const passRate = kpisData?.complianceRate || analyticsData?.passRate || 0;

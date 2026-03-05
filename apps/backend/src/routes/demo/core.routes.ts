@@ -118,7 +118,7 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
       validation: Math.round(Math.min(100, avgQuality * 20)),
       override: Math.round(Math.min(100, avgIntegrity * 21)),
       disconnect: Math.round(Math.min(100, 85 + (avgQuality - 4) * 3)),
-      moral: Math.round(Math.min(100, (avgIntegrity + avgQuality) * 10)),
+      moral: Math.round(Math.min(100, ((avgIntegrity + avgQuality) / 2) * 20)),
     };
 
     const kpiData = {
