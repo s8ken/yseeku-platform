@@ -1,17 +1,15 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Switch } from '@/components/ui/switch';
 import { Providers } from '../providers';
 import {
   Home,
@@ -26,13 +24,9 @@ import {
   Activity,
   Fingerprint,
   Waves,
-  BarChart3,
   FlaskConical,
   Beaker,
-  TestTube2,
   Sparkles,
-  Users,
-  KeyRound,
   ClipboardList,
   Server,
   Bell,
@@ -61,6 +55,7 @@ import { DemoModeBanner } from '@/components/demo-mode-banner';
 import { DemoInitializer } from '@/components/demo-initializer';
 import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
 import { useDemo } from '@/hooks/use-demo';
+import { AppRole, getCurrentUserFromToken } from '@/lib/current-user';
 
 type ModuleType = 'detect' | 'lab' | 'orchestrate';
 
@@ -70,6 +65,14 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   roles: string[];
   module: ModuleType;
+}
+
+interface DashboardUser {
+  id: string;
+  name: string;
+  email: string;
+  role: AppRole;
+  tenantId: string;
 }
 
 interface ModuleSection {
@@ -136,29 +139,8 @@ const moduleSections: ModuleSection[] = [
   }
 ];
 
-// Essential navigation items for simplified view (8 core items)
-const ESSENTIAL_ITEMS = new Set([
-  '/dashboard',           // Main dashboard
-  '/dashboard/tactical-command',
-  '/dashboard/monitoring/live', // Live Monitor (Phase-Shift Velocity)
-  '/dashboard/chat',      // Trust Session
-  '/dashboard/agents',    // Agents
-  '/dashboard/interactions', // Interactions (enterprise tracking)
-  '/dashboard/receipts',  // Trust Receipts
-  '/dashboard/risk',      // Risk & Compliance
-  '/dashboard/overseer',  // Overseer Analytics
-  '/dashboard/alerts',    // Alerts
-  '/dashboard/lab/resonance', // Resonance Lab (Third Mind)
-  '/dashboard/lab/experiments', // Experiments
-  '/dashboard/lab/bedau', // Fleet Emergence (Bedau Index v2)
-  '/dashboard/reports',   // Compliance Reports
-  '/dashboard/settings',  // Settings
-]);
-
-const NAV_MODE_KEY = 'yseeku-nav-mode';
-
 // Demo user for showcase mode
-const demoUser = {
+const demoUser: DashboardUser = {
   id: 'demo-user',
   name: 'Demo User',
   email: 'demo@sonate.io',
@@ -167,11 +149,11 @@ const demoUser = {
 };
 
 // Default user for production mode (will be replaced by real auth)
-const defaultUser = {
+const defaultUser: DashboardUser = {
   id: '1',
   name: 'Platform User',
   email: 'user@sonate.io',
-  role: 'admin',
+  role: 'viewer',
   tenantId: 'default'
 };
 
@@ -180,11 +162,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [expandedModules, setExpandedModules] = useState<ModuleType[]>(['detect', 'lab', 'orchestrate']);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [liveUser, setLiveUser] = useState<DashboardUser>(defaultUser);
   const searchRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
   const startTutorial = useTutorialStore(state => state.startTutorial);
-  const { isDemo, isLoaded, toggleDemo, enableDemo, currentTenantId, DEMO_TENANT_ID, LIVE_TENANT_ID } = useDemo();
+  const { isDemo, toggleDemo, enableDemo } = useDemo();
 
   // All flattened nav items for search
   const allNavItems = useMemo(() => moduleSections.flatMap(s => s.items), []);
@@ -204,6 +187,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  useEffect(() => {
+    const tokenUser = getCurrentUserFromToken();
+    if (!tokenUser) {
+      setLiveUser(defaultUser);
+      return;
+    }
+
+    setLiveUser({
+      id: tokenUser.id || defaultUser.id,
+      name: tokenUser.username || tokenUser.email || defaultUser.name,
+      email: tokenUser.email || defaultUser.email,
+      role: tokenUser.role,
+      tenantId: tokenUser.tenant || defaultUser.tenantId,
+    });
+  }, [pathname]);
+
   // Fetch alerts for notifications
   const { data: alertsData } = useQuery({
     queryKey: ['alerts-notifications'],
@@ -214,7 +213,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const notifications = alertsData?.data?.alerts ?? [];
 
   // Determine user based on mode
-  const currentUser = isDemo ? demoUser : defaultUser;
+  const currentUser = isDemo ? demoUser : liveUser;
+
+  useEffect(() => {
+    if (currentUser.role === 'admin') {
+      setExpandedModules(['detect', 'lab', 'orchestrate']);
+      return;
+    }
+    if (currentUser.role === 'user') {
+      setExpandedModules(['detect', 'lab']);
+      return;
+    }
+    setExpandedModules(['detect']);
+  }, [currentUser.role]);
 
   // Initialize demo mode on first load if URL has ?demo=true
   useEffect(() => {
@@ -257,6 +268,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       case 'orchestrate': return 'module-header-orchestrate';
     }
   };
+
+  const roleStartRoute = (() => {
+    if (currentUser.role === 'admin') {
+      return { href: '/dashboard/overseer', label: 'System Brain', icon: Brain };
+    }
+    if (currentUser.role === 'user') {
+      return { href: '/dashboard/chat', label: 'Start Session', icon: Sparkles };
+    }
+    return { href: '/dashboard/verify', label: 'Verify Receipt', icon: ShieldCheck };
+  })();
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
@@ -361,6 +382,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </div>
   );
 
+  const RoleStartIcon = roleStartRoute.icon;
+
   return (
     <Providers>
       <TutorialTour />
@@ -426,6 +449,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 )}
               </div>
             </div>
+
+            <Link href={roleStartRoute.href}>
+              <Button variant="outline" size="sm" className="gap-2">
+                <RoleStartIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">{roleStartRoute.label}</span>
+              </Button>
+            </Link>
 
             <Link href="/dashboard/tactical-command">
               <Button variant="outline" size="sm" className="gap-2">
