@@ -338,22 +338,22 @@ export default function ApiGatewayPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <Link href="/dashboard/docs/protocol/sonate" className="flex flex-col p-3 border rounded-lg hover:border-purple-300 transition-colors group">
+              <Link href="/dashboard/receipts" className="flex flex-col p-3 border rounded-lg hover:border-purple-300 transition-colors group">
                 <Cpu className="h-5 w-5 mb-2 group-hover:text-purple-500" />
                 <span className="font-semibold text-sm">Receipt Spec</span>
                 <span className="text-xs text-muted-foreground">Hashing & Signing</span>
               </Link>
-              <Link href="/dashboard/docs/protocol/sonate" className="flex flex-col p-3 border rounded-lg hover:border-purple-300 transition-colors group">
+              <Link href="/dashboard/learn/foundations/what-is-sonate" className="flex flex-col p-3 border rounded-lg hover:border-purple-300 transition-colors group">
                 <Shield className="h-5 w-5 mb-2 group-hover:text-purple-500" />
                 <span className="font-semibold text-sm">SONATE Ethics</span>
                 <span className="text-xs text-muted-foreground">The 6 Principles</span>
               </Link>
-              <Link href="/dashboard/docs/protocol/sonate" className="flex flex-col p-3 border rounded-lg hover:border-purple-300 transition-colors group">
+              <Link href="/dashboard/glossary" className="flex flex-col p-3 border rounded-lg hover:border-purple-300 transition-colors group">
                 <Activity className="h-5 w-5 mb-2 group-hover:text-purple-500" />
                 <span className="font-semibold text-sm">Metric Defs</span>
                 <span className="text-xs text-muted-foreground">Integrity & Quality</span>
               </Link>
-              <Link href="/dashboard/docs/protocol/sonate" className="flex flex-col p-3 border rounded-lg hover:border-purple-300 transition-colors group">
+              <Link href="/dashboard/webhooks" className="flex flex-col p-3 border rounded-lg hover:border-purple-300 transition-colors group">
                 <Webhook className="h-5 w-5 mb-2 group-hover:text-purple-500" />
                 <span className="font-semibold text-sm">Webhooks</span>
                 <span className="text-xs text-muted-foreground">Real-time alerts</span>
@@ -365,7 +365,7 @@ export default function ApiGatewayPage() {
               </p>
             </div>
             <Button variant="outline" className="w-full" asChild>
-               <Link href="/dashboard/docs/protocol/sonate">
+               <Link href="/dashboard/docs">
                  Full Technical Documentation
                </Link>
             </Button>
