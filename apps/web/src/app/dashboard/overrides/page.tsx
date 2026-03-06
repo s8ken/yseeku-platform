@@ -227,12 +227,12 @@ export default function OverridesQueuePage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Status</label>
-              <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
+              <Select value={filters.status || 'all'} onValueChange={(value) => handleFilterChange('status', value === 'all' ? '' : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="approved">Approved</SelectItem>
                   <SelectItem value="executed">Executed</SelectItem>
@@ -244,12 +244,12 @@ export default function OverridesQueuePage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Action Type</label>
-              <Select value={filters.type} onValueChange={(value) => handleFilterChange('type', value)}>
+              <Select value={filters.type || 'all'} onValueChange={(value) => handleFilterChange('type', value === 'all' ? '' : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All types</SelectItem>
+                  <SelectItem value="all">All types</SelectItem>
                   <SelectItem value="alert">Alert</SelectItem>
                   <SelectItem value="adjust_threshold">Adjust Threshold</SelectItem>
                   <SelectItem value="ban_agent">Ban Agent</SelectItem>

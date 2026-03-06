@@ -85,18 +85,21 @@ export default function TrustAnalyticsPage() {
   }, []);
 
   // Build analytics from real report if available, otherwise use demo data
-  const analytics = realReport ? {
-    averageTrustScore: realReport.stats.trustProtocolRates.PASS * 10 / (realReport.stats.totalConversations || 1), // Rough approx
-    totalInteractions: realReport.stats.totalConversations,
-    passRate: (realReport.stats.trustProtocolRates.PASS / realReport.stats.totalConversations) * 100,
-    partialRate: (realReport.stats.trustProtocolRates.PARTIAL / realReport.stats.totalConversations) * 100,
-    failRate: (realReport.stats.trustProtocolRates.FAIL / realReport.stats.totalConversations) * 100,
+  const rates = realReport?.stats?.trustProtocolRates;
+  const totalConvos = realReport?.stats?.totalConversations || 1;
+  const convos = realReport?.conversations || [];
+  const analytics = (realReport && rates) ? {
+    averageTrustScore: (rates.PASS || 0) * 10 / totalConvos,
+    totalInteractions: realReport.stats.totalConversations || 0,
+    passRate: ((rates.PASS || 0) / totalConvos) * 100,
+    partialRate: ((rates.PARTIAL || 0) / totalConvos) * 100,
+    failRate: ((rates.FAIL || 0) / totalConvos) * 100,
     commonViolations: [], // Not in summary stats, would need deep dive
     recentTrends: [], // Static snapshot
     principleScores: {
-      reality: realReport.conversations.reduce((acc: number, c: any) => acc + c.fiveD.realityIndexAvg, 0) / realReport.stats.totalConversations,
-      ethical: realReport.conversations.reduce((acc: number, c: any) => acc + c.fiveD.ethicalAlignmentAvg, 0) / realReport.stats.totalConversations * 2, // Scale to 10
-      canvas: realReport.conversations.reduce((acc: number, c: any) => acc + c.fiveD.canvasParityAvg, 0) / realReport.stats.totalConversations / 10, // Scale to 10
+      reality: convos.reduce((acc: number, c: any) => acc + (c.fiveD?.realityIndexAvg || 0), 0) / totalConvos,
+      ethical: convos.reduce((acc: number, c: any) => acc + (c.fiveD?.ethicalAlignmentAvg || 0), 0) / totalConvos * 2,
+      canvas: convos.reduce((acc: number, c: any) => acc + (c.fiveD?.canvasParityAvg || 0), 0) / totalConvos / 10,
     }
   } : (analyticsData ? {
     averageTrustScore: analyticsData.averageTrustScore || 0,
