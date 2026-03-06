@@ -198,7 +198,7 @@ export default function DashboardPage() {
     queryFn: async () => {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (token) headers.Authorization = `Bearer ${token}`;
       
       const response = await fetch(`/api/dashboard/policy-status`, { headers });
       if (!response.ok) throw new Error('Failed to fetch policy status');

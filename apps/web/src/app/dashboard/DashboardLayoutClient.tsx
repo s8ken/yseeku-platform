@@ -245,27 +245,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   };
 
-  const getModuleColorClass = (module: ModuleType) => {
+  const getModuleColorClass = (module: ModuleType): string => {
     switch (module) {
       case 'detect': return 'nav-item-detect';
       case 'lab': return 'nav-item-lab';
       case 'orchestrate': return 'nav-item-orchestrate';
+      default: return 'nav-item-detect';
     }
   };
 
-  const getBadgeClass = (module: ModuleType) => {
+  const getBadgeClass = (module: ModuleType): string => {
     switch (module) {
       case 'detect': return 'badge-detect';
       case 'lab': return 'badge-lab';
       case 'orchestrate': return 'badge-orchestrate';
+      default: return 'badge-detect';
     }
   };
 
-  const getHeaderClass = (module: ModuleType) => {
+  const getHeaderClass = (module: ModuleType): string => {
     switch (module) {
       case 'detect': return 'module-header-detect';
       case 'lab': return 'module-header-lab';
       case 'orchestrate': return 'module-header-orchestrate';
+      default: return 'module-header-detect';
     }
   };
 
