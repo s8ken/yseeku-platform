@@ -49,6 +49,7 @@ export { receiptValidator, validateReceiptJSON, validateReceiptZod, isReceiptPro
 
 // Export schema
 import receiptSchemaJSON from './receipt.schema.json';
+
 export const RECEIPT_SCHEMA = receiptSchemaJSON;
 
 // Version

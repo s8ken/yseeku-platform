@@ -39,14 +39,14 @@ export const truthfulnessRule: PolicyRule = {
     }
 
     // Check if truth debt is within acceptable limits (< 30%)
-    if (truthDebt! > 0.3) {
+    if (truthDebt > 0.3) {
       return {
         passed: false,
         violation: {
           ruleId: 'truthfulness-enforcement',
           ruleName: 'Truthfulness Enforcement',
           severity: 'high',
-          message: `Truth debt exceeds acceptable threshold: ${(truthDebt! * 100).toFixed(1)}% > 30%`,
+          message: `Truth debt exceeds acceptable threshold: ${(truthDebt * 100).toFixed(1)}% > 30%`,
           context: {
             receiptId: receipt.id,
             truthDebt,
@@ -100,7 +100,7 @@ export const resonanceCoherenceRule: PolicyRule = {
           context: {
             receiptId: receipt.id,
             coherenceScore,
-            resonanceScore: resonanceScore || 'N/A',
+            resonanceScore: resonanceScore ?? 'N/A',
           },
         },
       };
@@ -137,7 +137,7 @@ export const behavioralConsistencyRule: PolicyRule = {
           message: 'Behavioral consistency warning: LBC score indicates deviation',
           context: {
             receiptId: receipt.id,
-            lbcScore: coherenceScore || 'unknown',
+            lbcScore: coherenceScore ?? 'unknown',
           },
         },
       };
@@ -218,7 +218,7 @@ export const chainIntegrityRule: PolicyRule = {
           message: 'Receipt chain missing critical fields',
           context: {
             receiptId: receipt.id,
-            hasChainHash: !!chain.chain_hash,
+            hasChainHash: Boolean(chain.chain_hash),
           },
         },
       };
@@ -240,8 +240,8 @@ export const highRiskDetectionRule: PolicyRule = {
   severity: 'high',
   evaluator: (receipt: TrustReceipt) => {
     // Risk assessment based on telemetry
-    const truthDebt = receipt.telemetry?.truth_debt || 0;
-    const coherenceScore = receipt.telemetry?.coherence_score || 1;
+    const truthDebt = receipt.telemetry?.truth_debt ?? 0;
+    const coherenceScore = receipt.telemetry?.coherence_score ?? 1;
 
     // High risk: high truth debt OR low coherence
     const isHighRisk = truthDebt > 0.5 || coherenceScore < 0.5;

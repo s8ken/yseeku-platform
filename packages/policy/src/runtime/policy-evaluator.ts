@@ -27,7 +27,7 @@ export class PolicyEvaluator {
 
     const startTime = performance.now();
     const evaluation = rule.evaluator(context.receipt);
-    const timeMs = performance.now() - startTime;
+    const _timeMs = performance.now() - startTime;
 
     if (evaluation.passed) {
       return { passed: true };
@@ -51,7 +51,7 @@ export class PolicyEvaluator {
     const startTime = performance.now();
     const violations: PolicyViolation[] = [];
     const warnings: PolicyWarning[] = [];
-    const principlesApplied: string[] = [];
+    const _principlesApplied: string[] = [];
 
     for (const rule of rules) {
       const result = this.evaluateRule(rule, context);

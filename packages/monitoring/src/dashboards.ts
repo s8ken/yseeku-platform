@@ -254,7 +254,7 @@ export function getAllDashboards(): DashboardConfig[] {
  */
 export function getDashboardById(id: string): DashboardConfig | null {
   const dashboards = getAllDashboards();
-  return dashboards.find((d) => d.id === id) || null;
+  return dashboards.find((d) => d.id === id) ?? null;
 }
 
 /**

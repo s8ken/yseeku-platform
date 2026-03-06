@@ -24,7 +24,7 @@ export class WebhookIntegration {
     if (!this.config.enabled) {return true;}
 
     try {
-      const response = await fetch(this.config.config.url, {
+      const response = await fetch(this.config.config.url as string, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ export class WebhookIntegration {
     if (!this.config.enabled) {return true;}
 
     try {
-      const response = await fetch(this.config.config.url, {
+      const response = await fetch(this.config.config.url as string, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -122,7 +122,7 @@ export class SlackIntegration {
     };
 
     try {
-      const response = await fetch(this.config.config.webhookUrl, {
+      const response = await fetch(this.config.config.webhookUrl as string, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -149,7 +149,7 @@ export class EmailIntegration {
     this.config = config;
   }
 
-  async sendAlert(alert: any): Promise<boolean> {
+  sendAlert(alert: any): boolean {
     if (!this.config.enabled) {return true;}
 
     // Note: In production, you would integrate with an email service like SendGrid, SES, etc.
@@ -192,7 +192,7 @@ export class DataDogIntegration {
   async sendMetrics(metrics: any): Promise<boolean> {
     if (!this.config.enabled) {return true;}
 
-    const series = Object.entries(metrics).map(([name, value]: [string, any]) => ({
+    const series = Object.entries(metrics as Record<string, unknown>).map(([name, value]) => ({
       metric: name,
       points: [[Date.now() / 1000, value]],
       tags: [`service:sonate`, `env:${this.config.config.env || 'production'}`],

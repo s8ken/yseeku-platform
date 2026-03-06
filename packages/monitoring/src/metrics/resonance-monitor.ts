@@ -7,7 +7,7 @@
  * Resonance = f(truthfulness, coherence, clarity, safety)
  */
 
-import type { TrustReceipt, Telemetry } from '@sonate/schemas';
+import type { TrustReceipt } from '@sonate/schemas';
 
 /**
  * Resonance Measurement
@@ -109,7 +109,7 @@ export class ResonanceMonitor {
     }
 
     // Check for policy violations
-    const hasViolations = receipt.policy_state?.violations?.length ?? 0 > 0;
+    const hasViolations = (receipt.policy_state?.violations?.length ?? 0) > 0;
     if (hasViolations) {
       safety -= 0.25;
     }
@@ -121,8 +121,8 @@ export class ResonanceMonitor {
    * Determine quality level from score
    */
   private getQualityLevel(score: number): 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH' {
-    if (score >= 0.85) return 'BREAKTHROUGH';
-    if (score >= 0.70) return 'ADVANCED';
+    if (score >= 0.85) { return 'BREAKTHROUGH'; }
+    if (score >= 0.70) { return 'ADVANCED'; }
     return 'STRONG';
   }
 
@@ -147,7 +147,7 @@ export class ResonanceMonitor {
    * Get aggregated metrics for agent
    */
   getAggregatedMetrics(agentDid: string, windowSize: number = 50): AggregatedResonance {
-    const history = this.measurements.get(agentDid) || [];
+    const history = this.measurements.get(agentDid) ?? [];
 
     if (history.length === 0) {
       return {
@@ -198,7 +198,7 @@ export class ResonanceMonitor {
    * Calculate trend (improving vs degrading)
    */
   private calculateTrend(window: ResonanceMeasure[]): number {
-    if (window.length < 2) return 0;
+    if (window.length < 2) { return 0; }
 
     // First vs last half average
     const midpoint = Math.floor(window.length / 2);
@@ -215,14 +215,14 @@ export class ResonanceMonitor {
    * Get measurement history for agent
    */
   getHistory(agentDid: string): ResonanceMeasure[] {
-    return this.measurements.get(agentDid) || [];
+    return this.measurements.get(agentDid) ?? [];
   }
 
   /**
    * Get recent measurements
    */
   getRecent(agentDid: string, count: number = 10): ResonanceMeasure[] {
-    const history = this.measurements.get(agentDid) || [];
+    const history = this.measurements.get(agentDid) ?? [];
     return history.slice(Math.max(0, history.length - count));
   }
 
@@ -243,7 +243,7 @@ export class ResonanceMonitor {
   /**
    * Get global statistics
    */
-  getGlobalStats() {
+  getGlobalStats(): { totalMeasurements: number; averageResonance: number; trackedAgents: number; distribution?: { strong: number; advanced: number; breakthrough: number } } {
     const allMeasurements = Array.from(this.measurements.values()).flat();
 
     if (allMeasurements.length === 0) {

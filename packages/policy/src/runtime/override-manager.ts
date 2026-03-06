@@ -5,7 +5,6 @@
  * Supports time-limited and permanent overrides
  */
 
-import type { TrustReceipt } from '@sonate/schemas';
 
 /**
  * Override Record
@@ -83,7 +82,7 @@ export class PolicyOverrideManager {
     // Validate request
     const validation = this.validateRequest(request);
     if (!validation.valid) {
-      return { error: validation.error || 'Invalid request' };
+      return { error: validation.error ?? 'Invalid request' };
     }
 
     const now = new Date();
@@ -153,9 +152,9 @@ export class PolicyOverrideManager {
    */
   useOverride(overrideId: string): boolean {
     const override = this.overrides.get(overrideId);
-    if (!override) return false;
+    if (!override) { return false; }
 
-    if (!this.isValid(override)) return false;
+    if (!this.isValid(override)) { return false; }
 
     override.usageCount++;
     override.lastUsedAt = new Date().toISOString();
@@ -170,7 +169,7 @@ export class PolicyOverrideManager {
    */
   revokeOverride(overrideId: string, revokedBy: string, reason: string): boolean {
     const override = this.overrides.get(overrideId);
-    if (!override) return false;
+    if (!override) { return false; }
 
     override.revokedBy = revokedBy;
     override.revokedAt = new Date().toISOString();
@@ -256,7 +255,7 @@ export class PolicyOverrideManager {
     let count = 0;
     const now = new Date();
 
-    for (const [id, override] of this.overrides.entries()) {
+    for (const [_id, override] of this.overrides.entries()) {
       if (override.expiresAt && new Date(override.expiresAt) < now && !override.revokedAt) {
         // Don't delete, just mark as expired for audit trail
         count++;

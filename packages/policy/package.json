@@ -6,8 +6,9 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lint": "eslint src",
+    "lint": "node --max-old-space-size=4096 ../../node_modules/eslint/bin/eslint.js src --ignore-pattern \"src/__tests__\"",
     "clean": "rm -rf dist"
   },
   "dependencies": {

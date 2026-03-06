@@ -3,8 +3,9 @@
  * Runtime validation using AJV (JSON Schema) and Zod
  */
 
-import Ajv, { JSONSchemaType } from 'ajv';
+import Ajv from 'ajv';
 import { z } from 'zod';
+
 import receiptSchema from './receipt.schema.json';
 import type { TrustReceipt, VerificationResult } from './receipt.types';
 
@@ -119,14 +120,14 @@ export function validateReceiptJSON(receipt: unknown): VerificationResult {
     const typedReceipt = receipt as unknown as TrustReceipt;
 
     // Step 2: Validate chain structure
-    if (!typedReceipt.chain || !typedReceipt.chain.previous_hash || !typedReceipt.chain.chain_hash) {
+    if (!typedReceipt.chain?.previous_hash || !typedReceipt.chain?.chain_hash) {
       errors.push('Invalid chain structure');
       return { valid: false, checks, errors, warnings };
     }
     checks.chain_valid = true;
 
     // Step 3: Verify signature structure (not crypto verification - that's separate)
-    if (!typedReceipt.signature || !typedReceipt.signature.value) {
+    if (!typedReceipt.signature?.value) {
       errors.push('Invalid signature structure');
       return { valid: false, checks, errors, warnings };
     }
@@ -155,7 +156,7 @@ export function validateReceiptJSON(receipt: unknown): VerificationResult {
 /**
  * Validate receipt using Zod (with better error messages)
  */
-export function validateReceiptZod(receipt: unknown) {
+export function validateReceiptZod(receipt: unknown): ReturnType<typeof ReceiptZodSchema.safeParse> {
   return ReceiptZodSchema.safeParse(receipt);
 }
 

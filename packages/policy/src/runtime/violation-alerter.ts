@@ -105,8 +105,8 @@ export class PolicyViolationDetector {
 
     // Check throttle
     const agentDid = receipt.agent_did;
-    const lastAlert = this.lastAlertTime.get(agentDid) || 0;
-    if (Date.now() - lastAlert < (this.config.throttleMs || 1000)) {
+    const lastAlert = this.lastAlertTime.get(agentDid) ?? 0;
+    if (Date.now() - lastAlert < (this.config.throttleMs ?? 1000)) {
       return null; // Throttled
     }
 
@@ -207,7 +207,7 @@ export class PolicyViolationDetector {
    */
   acknowledgeAlert(alertId: string, acknowledgedBy: string): boolean {
     const alert = this.alerts.get(alertId);
-    if (!alert) return false;
+    if (!alert) { return false; }
 
     alert.acknowledged = true;
     alert.acknowledgedBy = acknowledgedBy;
@@ -339,9 +339,9 @@ export class PolicyViolationDetector {
       a.timestamp,
       a.priority,
       a.violations.length,
-      a.violations[0]?.ruleId || 'N/A',
+      a.violations[0]?.ruleId ?? 'N/A',
       a.acknowledged ? 'Yes' : 'No',
-      a.acknowledgedBy || '',
+      a.acknowledgedBy ?? '',
     ]);
 
     return [

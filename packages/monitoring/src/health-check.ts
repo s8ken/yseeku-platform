@@ -270,8 +270,8 @@ export class HealthCheckSystem {
     }
 
     // Start new interval
-    const interval = setInterval(async () => {
-      await this.runCheck(checkId);
+    const interval = setInterval(() => {
+      void this.runCheck(checkId);
     }, check.interval);
 
     this.checkIntervals.set(checkId, interval);
@@ -695,7 +695,7 @@ export class HealthCheckSystem {
       .map(([checkId, _]) => checkId);
 
     // Collect recommendations
-    const recommendations = Object.values(checks).flatMap((result) => result.recommendations || []);
+    const recommendations = Object.values(checks).flatMap((result) => result.recommendations ?? []);
 
     const report: HealthReport = {
       overallStatus,

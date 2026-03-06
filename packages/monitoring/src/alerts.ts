@@ -163,7 +163,7 @@ export class AlertManager {
   /**
    * Evaluate all alert rules against current metrics
    */
-  async evaluateAlerts(metricsData: any[]): Promise<Alert[]> {
+  evaluateAlerts(metricsData: any[]): Alert[] {
     const newAlerts: Alert[] = [];
 
     for (const rule of this.rules.values()) {
@@ -195,7 +195,7 @@ export class AlertManager {
   /**
    * Acknowledge an alert
    */
-  acknowledgeAlert(alertId: string, userId: string): boolean {
+  acknowledgeAlert(alertId: string, _userId: string): boolean {
     const alert = this.activeAlerts.get(alertId);
     if (alert && !alert.acknowledged) {
       alert.acknowledged = true;

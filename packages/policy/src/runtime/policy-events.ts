@@ -6,6 +6,7 @@
 
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
+import { AlertPriority } from './violation-alerter';
 import type { ViolationAlert } from './violation-alerter';
 
 /**
@@ -177,10 +178,10 @@ export class PolicyEventsService {
     this.io.sockets.sockets.forEach((socket: Socket) => {
       const subscription = this.subscriptions.get(socket.id);
 
-      if (!subscription) return;
+      if (!subscription) { return; }
 
       // Check if client is subscribed to this event type
-      if (!subscription.eventTypes.has(fullEvent.type)) return;
+      if (!subscription.eventTypes.has(fullEvent.type)) { return; }
 
       // Check if client is subscribed to this agent
       if (fullEvent.agentDid && !subscription.agentDids.has(fullEvent.agentDid)) {
@@ -202,7 +203,7 @@ export class PolicyEventsService {
   emitViolationAlert(alert: ViolationAlert): void {
     this.emitEvent({
       type: PolicyEventType.VIOLATION_DETECTED,
-      severity: alert.priority === 'critical' ? 'critical' : alert.priority === 'high' ? 'warning' : 'info',
+      severity: alert.priority === AlertPriority.CRITICAL ? 'critical' : alert.priority === AlertPriority.HIGH ? 'warning' : 'info',
       agentDid: alert.agentDid,
       receiptId: alert.receiptId,
       data: {
@@ -295,7 +296,7 @@ export class PolicyEventsService {
    * Get event history
    */
   getEventHistory(limit?: number): PolicyEvent[] {
-    if (!limit) return [...this.eventHistory];
+    if (!limit) { return [...this.eventHistory]; }
     return this.eventHistory.slice(-limit);
   }
 

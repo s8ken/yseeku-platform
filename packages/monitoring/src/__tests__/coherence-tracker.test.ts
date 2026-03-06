@@ -195,7 +195,7 @@ describe('CoherenceTracker', () => {
       );
 
       const analysis = tracker.calculateLBC(agentDid);
-      const qualityAnomalies = analysis.anomalies.filter(a => a.type === 'quality_drop');
+      const _qualityAnomalies = analysis.anomalies.filter(a => a.type === 'quality_drop');
       // May not detect as quality_drop, but should have some anomaly
       expect(analysis.anomalies.length).toBeGreaterThanOrEqual(0);
     });

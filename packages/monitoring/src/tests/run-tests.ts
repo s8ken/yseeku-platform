@@ -8,18 +8,18 @@ function assert(condition: boolean, message: string) {
   }
 }
 
-async function testAlertManagerInitialization() {
+function testAlertManagerInitialization() {
   const alertManager = new AlertManager();
   assert(alertManager !== null, 'AlertManager should initialize successfully');
   assert(alertManager.getRules().length > 0, 'AlertManager should have default rules');
 }
 
-async function testIntegrationManagerInitialization() {
+function testIntegrationManagerInitialization() {
   const integrationManager = new IntegrationManager();
   assert(integrationManager !== null, 'IntegrationManager should initialize successfully');
 }
 
-async function testDashboardFunctions() {
+function testDashboardFunctions() {
   const dashboards = getAllDashboards();
   assert(dashboards.length > 0, 'Should have pre-configured dashboards');
 
@@ -28,7 +28,7 @@ async function testDashboardFunctions() {
   assert(executiveDashboard?.name === 'Executive Overview', 'Dashboard name should match');
 }
 
-async function testAlertRuleEvaluation() {
+function testAlertRuleEvaluation() {
   const alertManager = new AlertManager();
 
   const rules = alertManager.getRules();
@@ -68,7 +68,7 @@ async function testIntegrationManagerOperations() {
   }
 }
 
-async function testDashboardConfigGeneration() {
+function testDashboardConfigGeneration() {
   const dashboards = getAllDashboards();
   const executiveDashboard = dashboards[0];
 
@@ -103,4 +103,4 @@ async function main() {
   console.log(results.join('\n'));
 }
 
-main();
+void main();

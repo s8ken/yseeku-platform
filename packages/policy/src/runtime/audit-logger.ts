@@ -332,7 +332,7 @@ export class PolicyAuditLogger {
       results = results.filter(e => e.decision === options.decision);
     }
 
-    const limit = options.limit || 1000;
+    const limit = options.limit ?? 1000;
     return results.slice(-limit);
   }
 
@@ -460,7 +460,7 @@ export class PolicyAuditLogger {
   /**
    * Export as CSV
    */
-  exportAsCSV(options?: any): string {
+  exportAsCSV(options?: Parameters<typeof this.query>[0]): string {
     const entries = options ? this.query(options) : this.entries;
 
     const headers = [
@@ -488,7 +488,7 @@ export class PolicyAuditLogger {
       e.violations.high,
       e.violations.medium,
       e.violations.low,
-      e.reason || '',
+      e.reason ?? '',
     ]);
 
     return [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join(
@@ -499,7 +499,7 @@ export class PolicyAuditLogger {
   /**
    * Export as JSON
    */
-  exportAsJSON(options?: any): string {
+  exportAsJSON(options?: Parameters<typeof this.query>[0]): string {
     const entries = options ? this.query(options) : this.entries;
     return JSON.stringify(entries, null, 2);
   }

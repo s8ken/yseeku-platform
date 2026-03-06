@@ -37,8 +37,8 @@ export class PolicyEngine {
     this.evaluator = new PolicyEvaluator();
     this.detector = new ViolationDetector();
     this.config = {
-      enabledPrinciples: config.enabledPrinciples || [],
-      maxEvaluationTimeMs: config.maxEvaluationTimeMs || 50,
+      enabledPrinciples: config.enabledPrinciples ?? [],
+      maxEvaluationTimeMs: config.maxEvaluationTimeMs ?? 50,
       strictMode: config.strictMode ?? true,
     };
   }
@@ -48,11 +48,11 @@ export class PolicyEngine {
    * Returns detailed evaluation result with violations
    */
   evaluate(receipt: TrustReceipt, principleIds?: string[]): PolicyEvaluationResult {
-    const startTime = performance.now();
+    const _startTime = performance.now();
     const timestamp = Date.now();
 
     // Determine which principles to apply
-    const appliedPrinciples = principleIds || this.config.enabledPrinciples || [];
+    const appliedPrinciples = principleIds ?? this.config.enabledPrinciples ?? [];
 
     // Collect all rules for applied principles
     const rules: PolicyRule[] = [];

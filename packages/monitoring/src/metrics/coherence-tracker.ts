@@ -73,7 +73,7 @@ export class CoherenceTracker {
    * Create behavior snapshot from receipt
    */
   private createSnapshot(receipt: TrustReceipt): BehaviorSnapshot {
-    const response = receipt.interaction.response || '';
+    const response = receipt.interaction.response ?? '';
     const confidence = receipt.telemetry?.ciq_metrics?.clarity ?? 0.7;
 
     return {
@@ -81,7 +81,7 @@ export class CoherenceTracker {
       timestamp: receipt.timestamp,
       responseLength: response.length,
       tokenCount: Math.ceil(response.length / 4), // Rough estimate
-      sentenceCount: (response.match(/[.!?]+/g) || []).length,
+      sentenceCount: (response.match(/[.!?]+/g) ?? []).length,
       formality: this.calculateFormality(response),
       confidence,
       technicalLevel: this.calculateTechnicalLevel(response),
@@ -111,14 +111,14 @@ export class CoherenceTracker {
     let casualScore = 0;
 
     for (const pattern of formalPatterns) {
-      formalScore += (text.match(pattern) || []).length;
+      formalScore += (text.match(pattern) ?? []).length;
     }
 
     for (const pattern of casualPatterns) {
-      casualScore += (text.match(pattern) || []).length;
+      casualScore += (text.match(pattern) ?? []).length;
     }
 
-    const total = formalScore + casualScore || 1;
+    const total = Math.max(1, formalScore + casualScore);
     return formalScore / total;
   }
 
@@ -139,14 +139,14 @@ export class CoherenceTracker {
     let simpleScore = 0;
 
     for (const pattern of technicalWords) {
-      technicalScore += (text.match(pattern) || []).length;
+      technicalScore += (text.match(pattern) ?? []).length;
     }
 
     for (const pattern of simpleWords) {
-      simpleScore += (text.match(pattern) || []).length;
+      simpleScore += (text.match(pattern) ?? []).length;
     }
 
-    const total = technicalScore + simpleScore || 1;
+    const total = Math.max(1, technicalScore + simpleScore);
     return Math.min(1, technicalScore / total);
   }
 
@@ -197,7 +197,7 @@ export class CoherenceTracker {
    * Calculate LBC score for agent
    */
   calculateLBC(agentDid: string, windowSize: number = 10): CoherenceAnalysis {
-    const history = this.snapshots.get(agentDid) || [];
+    const history = this.snapshots.get(agentDid) ?? [];
 
     if (history.length === 0) {
       return {
@@ -259,7 +259,7 @@ export class CoherenceTracker {
    * Calculate style consistency (formality, confidence)
    */
   private calculateStyleConsistency(window: BehaviorSnapshot[]): number {
-    if (window.length < 2) return 0.5;
+    if (window.length < 2) { return 0.5; }
 
     const formalityValues = window.map(s => s.formality);
     const confidenceValues = window.map(s => s.confidence);
@@ -275,7 +275,7 @@ export class CoherenceTracker {
    * Calculate quality consistency
    */
   private calculateQualityConsistency(window: BehaviorSnapshot[]): number {
-    if (window.length < 2) return 0.5;
+    if (window.length < 2) { return 0.5; }
 
     const clarityValues = window.map(s => s.clarity);
     const accuracyValues = window.map(s => s.accuracy);
@@ -291,7 +291,7 @@ export class CoherenceTracker {
    * Calculate content type consistency
    */
   private calculateContentTypeConsistency(window: BehaviorSnapshot[]): number {
-    if (window.length < 2) return 0.5;
+    if (window.length < 2) { return 0.5; }
 
     const contentTypes = window.map(s => s.contentType);
     const uniqueTypes = new Set(contentTypes).size;
@@ -304,7 +304,7 @@ export class CoherenceTracker {
    * Calculate response pattern consistency
    */
   private calculateResponsePatternConsistency(window: BehaviorSnapshot[]): number {
-    if (window.length < 2) return 0.5;
+    if (window.length < 2) { return 0.5; }
 
     const lengthValues = window.map(s => s.responseLength);
     const sentenceValues = window.map(s => s.sentenceCount);
@@ -322,7 +322,7 @@ export class CoherenceTracker {
   private detectAnomalies(window: BehaviorSnapshot[]): Anomaly[] {
     const anomalies: Anomaly[] = [];
 
-    if (window.length < 2) return anomalies;
+    if (window.length < 2) { return anomalies; }
 
     const recent = window[window.length - 1];
     const previous = window[window.length - 2];
@@ -377,7 +377,7 @@ export class CoherenceTracker {
    * Calculate trend (improving/stable/degrading)
    */
   private calculateTrend(window: BehaviorSnapshot[]): 'improving' | 'stable' | 'degrading' {
-    if (window.length < 3) return 'stable';
+    if (window.length < 3) { return 'stable'; }
 
     // Compare first third vs last third
     const firstThird = window.slice(0, Math.ceil(window.length / 3));
@@ -390,8 +390,8 @@ export class CoherenceTracker {
 
     const diff = lastAvgQuality - firstAvgQuality;
 
-    if (diff > 0.1) return 'improving';
-    if (diff < -0.1) return 'degrading';
+    if (diff > 0.1) { return 'improving'; }
+    if (diff < -0.1) { return 'degrading'; }
     return 'stable';
   }
 
@@ -399,7 +399,7 @@ export class CoherenceTracker {
    * Calculate statistical variance
    */
   private calculateVariance(values: number[]): number {
-    if (values.length === 0) return 0;
+    if (values.length === 0) { return 0; }
 
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
     const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
@@ -410,7 +410,7 @@ export class CoherenceTracker {
    * Get interaction history for agent
    */
   getHistory(agentDid: string): BehaviorSnapshot[] {
-    return this.snapshots.get(agentDid) || [];
+    return this.snapshots.get(agentDid) ?? [];
   }
 
   /**

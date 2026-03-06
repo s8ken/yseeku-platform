@@ -227,9 +227,9 @@ export class TruthDebtCalculator {
    * Determine risk level from truth debt
    */
   private getRiskLevel(truthDebt: number): 'low' | 'medium' | 'high' | 'critical' {
-    if (truthDebt < 0.2) return 'low';
-    if (truthDebt < 0.4) return 'medium';
-    if (truthDebt < 0.6) return 'high';
+    if (truthDebt < 0.2) { return 'low'; }
+    if (truthDebt < 0.4) { return 'medium'; }
+    if (truthDebt < 0.6) { return 'high'; }
     return 'critical';
   }
 
@@ -300,7 +300,7 @@ export class TruthDebtCalculator {
    * Analyze receipt and return truth debt
    */
   analyzeReceipt(receipt: TrustReceipt): TruthDebtAnalysis {
-    const response = receipt.interaction.response || '';
+    const response = receipt.interaction.response ?? '';
     return this.analyzeResponse(response);
   }
 

@@ -117,7 +117,7 @@ export function initializeMonitoring(): void {
 /**
  * Get metrics in Prometheus format
  */
-export async function getMetrics(): Promise<string> {
+export function getMetrics(): Promise<string> {
   return register.metrics();
 }
 
