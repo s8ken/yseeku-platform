@@ -1,26 +1,21 @@
 'use client';
 
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Shield, 
-  Users, 
   TrendingUp, 
   TrendingDown,
   AlertTriangle,
   CheckCircle2,
   Clock,
-  Zap,
   Waves,
   Fingerprint,
-  FlaskConical,
   Activity,
   Sparkles,
-  RefreshCw,
   Lightbulb,
-  MessageSquare,
   ArrowRight
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
@@ -32,14 +27,10 @@ import { HumanReadableSummary } from '@/components/HumanReadableSummary';
 import { SemanticCoprocessorStatus } from '@/components/SemanticCoprocessorStatus';
 import { ModeIndicator } from '@/components/ModeIndicator';
 import { ConstitutionalPrinciples } from '@/components/ConstitutionalPrinciples';
-import { useDashboardKPIs, useAlertsData } from '@/hooks/use-demo-data';
-
-// Lazy load InsightsPanel for better initial load performance
-const InsightsPanel = lazy(() => import('@/components/InsightsPanel').then(m => ({ default: m.InsightsPanel })));
+import { TrustStatusCard } from '@/components/trust-receipt/TrustStatusCard';
+import { useDashboardKPIs, useAlertsData, useTrustAnalytics } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
-import { api } from '@/lib/api';
 import {
-  EmptyTrustReceipts,
   EmptyAlerts,
   EmptyInsights,
   EmptyDashboardBlankSlate
@@ -52,6 +43,9 @@ import {
   InsightsPanelSkeleton,
   AlertsFeedSkeleton
 } from '@/components/ui/loading-skeleton';
+
+// Lazy load InsightsPanel for better initial load performance
+const InsightsPanel = lazy(() => import('@/components/InsightsPanel').then(m => ({ default: m.InsightsPanel })));
 
 // Lazy load heavy widgets for better initial load performance
 // These components use named exports, so we need to map them to default
@@ -90,6 +84,38 @@ interface KPIData {
     confidenceInterval: [number, number];
     kolmogorovComplexity: number;
   };
+}
+
+const PRINCIPLE_KEY_MAP: Record<string, string[]> = {
+  CONSENT_ARCHITECTURE: ['CONSENT_ARCHITECTURE', 'consent', 'consent_architecture'],
+  INSPECTION_MANDATE: ['INSPECTION_MANDATE', 'inspection', 'inspection_mandate'],
+  CONTINUOUS_VALIDATION: ['CONTINUOUS_VALIDATION', 'validation', 'continuous_validation'],
+  ETHICAL_OVERRIDE: ['ETHICAL_OVERRIDE', 'ethics', 'ethical_override'],
+  RIGHT_TO_DISCONNECT: ['RIGHT_TO_DISCONNECT', 'disconnect', 'right_to_disconnect'],
+  MORAL_RECOGNITION: ['MORAL_RECOGNITION', 'moral', 'moral_recognition'],
+};
+
+const PRINCIPLE_LABELS: Record<string, string> = {
+  CONSENT_ARCHITECTURE: 'Consent Architecture',
+  INSPECTION_MANDATE: 'Inspection Mandate',
+  CONTINUOUS_VALIDATION: 'Continuous Validation',
+  ETHICAL_OVERRIDE: 'Ethical Override',
+  RIGHT_TO_DISCONNECT: 'Right to Disconnect',
+  MORAL_RECOGNITION: 'Moral Recognition',
+};
+
+function normalizePrincipleScores(rawScores?: Record<string, number>): Record<string, number> {
+  const source = rawScores || {};
+  const normalized: Record<string, number> = {};
+
+  for (const [targetKey, aliases] of Object.entries(PRINCIPLE_KEY_MAP)) {
+    const value = aliases
+      .map((key) => source[key])
+      .find((candidate) => typeof candidate === 'number' && Number.isFinite(candidate));
+    normalized[targetKey] = typeof value === 'number' ? value : 0;
+  }
+
+  return normalized;
 }
 
 function TrendIndicator({ change, direction }: { change: number; direction: string }) {
@@ -154,10 +180,11 @@ function KPICard({
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { isDemo, isLoaded, currentTenantId } = useDemo();
+  const { isDemo } = useDemo();
   
   const { data: kpis, isLoading: kpiLoading } = useDashboardKPIs();
   const { data: alertData, isLoading: alertLoading } = useAlertsData();
+  const { data: trustAnalytics } = useTrustAnalytics();
 
   const { data: policyStatus } = useQuery({
     queryKey: ['policy-status'],
@@ -194,6 +221,26 @@ export default function DashboardPage() {
 
   const trustScoreStatus = (kpis?.trustScore ?? 0) >= 8 ? 'success' : (kpis?.trustScore ?? 0) >= 6 ? 'warning' : 'error';
   const alertsStatus = (alerts?.summary?.total ?? 0) > 5 ? 'warning' : (alerts?.summary?.total ?? 0) > 0 ? 'neutral' : 'success';
+  const normalizedPrincipleScores = normalizePrincipleScores(kpis?.principleScores);
+
+  const topViolations = (() => {
+    const analyticsViolations = (trustAnalytics?.commonViolations || [])
+      .slice(0, 2)
+      .map((item) => PRINCIPLE_LABELS[item.principle] || item.principle);
+
+    if (analyticsViolations.length > 0) {
+      return analyticsViolations;
+    }
+
+    return Object.entries(normalizedPrincipleScores)
+      .sort((a, b) => a[1] - b[1])
+      .filter(([, value]) => value < 7)
+      .slice(0, 2)
+      .map(([key]) => PRINCIPLE_LABELS[key] || key);
+  })();
+
+  const trustStatusLabel: 'PASS' | 'PARTIAL' | 'FAIL' =
+    (kpis?.trustScore ?? 0) >= 8 ? 'PASS' : (kpis?.trustScore ?? 0) >= 6 ? 'PARTIAL' : 'FAIL';
 
   const handleStartChat = () => {
     router.push('/dashboard/chat');
@@ -251,6 +298,70 @@ export default function DashboardPage() {
             policyStatus={policyStatus?.overallPass ?? true}
           />
         </ErrorBoundary>
+      )}
+
+      {/* Priority Section: Immediate trust signal + top risks */}
+      {kpis && !hasNoData && (
+        <section>
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Shield className="h-5 w-5 text-[var(--detect-primary)]" />
+            Immediate Attention
+          </h2>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ErrorBoundary label="trust snapshot" inline>
+              <TrustStatusCard
+                overallScore={kpis.trustScore}
+                status={trustStatusLabel}
+                principleScores={normalizedPrincipleScores}
+                topViolations={topViolations}
+                complianceRate={displayKpis.complianceRate}
+                totalInteractions={kpis.totalInteractions}
+                alertsCount={alerts?.summary?.total ?? 0}
+              />
+            </ErrorBoundary>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-amber-500" />
+                  Top Risk Signals
+                </CardTitle>
+                <CardDescription>Fast triage for open issues</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {topViolations.length > 0 ? (
+                  topViolations.map((violation) => (
+                    <div key={violation} className="flex items-center justify-between rounded-md border p-3">
+                      <div>
+                        <p className="text-sm font-medium">{violation}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Score impact currently below target threshold.
+                        </p>
+                      </div>
+                      <a href="/dashboard/alerts" className="text-xs font-medium text-primary hover:underline">
+                        Inspect
+                      </a>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-md border p-3">
+                    <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                      No high-priority principle violations
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Continue monitoring alerts and recent activity for drift.
+                    </p>
+                  </div>
+                )}
+                <div className="pt-1">
+                  <a href="/dashboard/receipts" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
+                    Open trust receipts
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
       )}
 
       {/* System Status Row */}
@@ -377,16 +488,7 @@ export default function DashboardPage() {
               <ErrorBoundary label="constitutional principles">
               <WithDemoWatermark position="top-right" size="sm" opacity={25}>
                 <ConstitutionalPrinciples
-                  principleScores={kpis?.principleScores ? {
-                    // All backend paths return SONATE key names on 0-10 scale.
-                    // ConstitutionalPrinciples expects 0-10 — use values directly.
-                    CONSENT_ARCHITECTURE:  kpis.principleScores.consent     ?? 0,
-                    INSPECTION_MANDATE:    kpis.principleScores.inspection  ?? 0,
-                    CONTINUOUS_VALIDATION: kpis.principleScores.validation  ?? 0,
-                    ETHICAL_OVERRIDE:      kpis.principleScores.ethics      ?? 0,
-                    RIGHT_TO_DISCONNECT:   kpis.principleScores.disconnect  ?? 0,
-                    MORAL_RECOGNITION:     kpis.principleScores.moral       ?? 0,
-                  } : undefined}
+                  principleScores={normalizedPrincipleScores}
                 />
               </WithDemoWatermark>
               </ErrorBoundary>
