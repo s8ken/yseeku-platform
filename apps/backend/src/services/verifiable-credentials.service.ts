@@ -1,6 +1,6 @@
 /**
  * Verifiable Credentials Service
- * 
+ *
  * Wraps Trust Receipts in W3C Verifiable Credentials format for interoperability.
  * Supports:
  * - VC creation from trust receipts
@@ -18,7 +18,7 @@ import { getErrorMessage } from '../utils/error-utils';
 const VC_CONTEXT = [
   'https://www.w3.org/2018/credentials/v1',
   'https://w3id.org/security/suites/ed25519-2020/v1',
-  'https://yseeku.com/ns/trust/v1'
+  'https://yseeku.com/ns/trust/v1',
 ];
 
 // SONATE Trust Receipt credential type
@@ -124,7 +124,7 @@ class VerifiableCredentialsService {
     try {
       const credentialId = `urn:uuid:${crypto.randomUUID()}`;
       const issuanceDate = new Date().toISOString();
-      
+
       // Calculate expiration if specified
       let expirationDate: string | undefined;
       if (options?.expirationDays) {
@@ -161,7 +161,14 @@ class VerifiableCredentialsService {
         },
         evaluation: {
           passed: receipt.trust_protocol === 'PASS' || receipt.trust_score >= 70,
-          principlesEvaluated: ['CONSENT', 'INSPECTION', 'VALIDATION', 'OVERRIDE', 'DISCONNECT', 'MORAL'],
+          principlesEvaluated: [
+            'CONSENT',
+            'INSPECTION',
+            'VALIDATION',
+            'OVERRIDE',
+            'DISCONNECT',
+            'MORAL',
+          ],
         },
       };
 
@@ -196,9 +203,9 @@ class VerifiableCredentialsService {
       // Sign the credential
       const signedCredential = await this.signCredential(credential);
 
-      logger.info('Verifiable Credential created', { 
-        credentialId, 
-        receiptHash: receipt.self_hash 
+      logger.info('Verifiable Credential created', {
+        credentialId,
+        receiptHash: receipt.self_hash,
       });
 
       return signedCredential;
@@ -233,9 +240,9 @@ class VerifiableCredentialsService {
       // Sign the presentation
       const signedPresentation = await this.signPresentation(presentation, options);
 
-      logger.info('Verifiable Presentation created', { 
-        presentationId, 
-        credentialCount: credentials.length 
+      logger.info('Verifiable Presentation created', {
+        presentationId,
+        credentialCount: credentials.length,
       });
 
       return signedPresentation;
@@ -259,10 +266,9 @@ class VerifiableCredentialsService {
 
     try {
       // Check issuer
-      const issuerId = typeof credential.issuer === 'string' 
-        ? credential.issuer 
-        : credential.issuer.id;
-      
+      const issuerId =
+        typeof credential.issuer === 'string' ? credential.issuer : credential.issuer.id;
+
       if (issuerId === this.platformDID || issuerId.startsWith('did:web:yseeku')) {
         checks.issuer = true;
       } else {
@@ -346,15 +352,15 @@ class VerifiableCredentialsService {
       sub: credential.credentialSubject.id,
       vc: credential,
       iat: Math.floor(new Date(credential.issuanceDate).getTime() / 1000),
-      exp: credential.expirationDate 
-        ? Math.floor(new Date(credential.expirationDate).getTime() / 1000) 
+      exp: credential.expirationDate
+        ? Math.floor(new Date(credential.expirationDate).getTime() / 1000)
         : undefined,
     };
 
     const headerB64 = Buffer.from(JSON.stringify(header)).toString('base64url');
     const payloadB64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
     const message = `${headerB64}.${payloadB64}`;
-    
+
     const signature = await keysService.sign(message);
     const signatureB64 = Buffer.from(signature, 'hex').toString('base64url');
 
@@ -393,11 +399,14 @@ class VerifiableCredentialsService {
 
   private async signCredential(credential: VerifiableCredential): Promise<VerifiableCredential> {
     const created = new Date().toISOString();
-    
+
     // Create canonical form for signing (exclude proof)
     const { proof: _, ...credentialWithoutProof } = credential;
-    const canonical = JSON.stringify(credentialWithoutProof, Object.keys(credentialWithoutProof).sort());
-    
+    const canonical = JSON.stringify(
+      credentialWithoutProof,
+      Object.keys(credentialWithoutProof).sort()
+    );
+
     const signature = await keysService.sign(canonical);
     const publicKeyHex = await keysService.getPublicKeyHex();
 
@@ -418,10 +427,13 @@ class VerifiableCredentialsService {
     options?: { challenge?: string; domain?: string }
   ): Promise<VerifiablePresentation> {
     const created = new Date().toISOString();
-    
+
     const { proof: _, ...presentationWithoutProof } = presentation;
-    const canonical = JSON.stringify(presentationWithoutProof, Object.keys(presentationWithoutProof).sort());
-    
+    const canonical = JSON.stringify(
+      presentationWithoutProof,
+      Object.keys(presentationWithoutProof).sort()
+    );
+
     const signature = await keysService.sign(canonical);
 
     return {
@@ -443,8 +455,11 @@ class VerifiableCredentialsService {
 
     try {
       const { proof, ...credentialWithoutProof } = credential;
-      const canonical = JSON.stringify(credentialWithoutProof, Object.keys(credentialWithoutProof).sort());
-      
+      const canonical = JSON.stringify(
+        credentialWithoutProof,
+        Object.keys(credentialWithoutProof).sort()
+      );
+
       return await keysService.verify(canonical, proof.proofValue);
     } catch (error) {
       logger.error('Proof verification error', { error: getErrorMessage(error) });

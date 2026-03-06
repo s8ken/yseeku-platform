@@ -1,6 +1,6 @@
 /**
  * Prometheus Metrics Middleware
- * 
+ *
  * Collects application metrics for export
  * Compatible with Prometheus scraping
  */
@@ -10,7 +10,10 @@ import { Counter, Histogram, register } from 'prom-client';
 /**
  * Helper to safely create or retrieve a metric from the registry
  */
-function getOrCreate<T>(MetricClass: new (config: any) => T, config: { name: string;[key: string]: any }): T {
+function getOrCreate<T>(
+  MetricClass: new (config: any) => T,
+  config: { name: string; [key: string]: any }
+): T {
   try {
     return new MetricClass(config);
   } catch {
@@ -74,10 +77,7 @@ export function recordPolicyEvaluation(
 /**
  * Record an alert
  */
-export function recordAlert(
-  type: string,
-  severity: string
-): void {
+export function recordAlert(type: string, severity: string): void {
   alertsRaisedTotal.inc({ type, severity });
   metricsData.alertCount++;
 }
@@ -85,10 +85,7 @@ export function recordAlert(
 /**
  * Record a violation
  */
-export function recordViolation(
-  type: string,
-  severityScore: number
-): void {
+export function recordViolation(type: string, severityScore: number): void {
   violationsSeverity.observe({ type }, severityScore);
   metricsData.violationCount++;
 }

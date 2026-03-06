@@ -7,7 +7,11 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
   if (!redis) return null;
   const raw = await redis.get(key);
   if (!raw) return null;
-  try { return JSON.parse(raw) as T; } catch { return null; }
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
 }
 
 export async function cacheSet<T>(key: string, value: T, ttlSeconds = 300): Promise<void> {
@@ -29,4 +33,3 @@ export async function cacheDel(pattern: string): Promise<void> {
     await redis.del(pattern);
   }
 }
-

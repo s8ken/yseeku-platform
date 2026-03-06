@@ -1,6 +1,6 @@
 /**
  * Demo/Live Mode Integration Tests
- * 
+ *
  * Tests the tenant switching functionality between demo and live modes:
  * - Demo mode: Pre-seeded tenant with realistic data
  * - Live mode: Blank slate tenant that populates via Trust Session chat
@@ -119,12 +119,13 @@ describe('Demo/Live Mode Integration', () => {
       ];
       const mockLiveReceipts: any[] = [];
 
-      (TrustReceiptModel.find as jest.Mock)
-        .mockImplementation((query) => ({
-          lean: jest.fn().mockResolvedValue(
+      (TrustReceiptModel.find as jest.Mock).mockImplementation((query) => ({
+        lean: jest
+          .fn()
+          .mockResolvedValue(
             query.tenant_id === 'demo-tenant' ? mockDemoReceipts : mockLiveReceipts
           ),
-        }));
+      }));
 
       // Demo tenant should have receipts
       const demoResult = await TrustReceiptModel.find({ tenant_id: 'demo-tenant' }).lean();
@@ -142,12 +143,11 @@ describe('Demo/Live Mode Integration', () => {
       ];
       const mockLiveAlerts: any[] = [];
 
-      (AlertModel.find as jest.Mock)
-        .mockImplementation((query) => ({
-          lean: jest.fn().mockResolvedValue(
-            query.tenantId === 'demo-tenant' ? mockDemoAlerts : mockLiveAlerts
-          ),
-        }));
+      (AlertModel.find as jest.Mock).mockImplementation((query) => ({
+        lean: jest
+          .fn()
+          .mockResolvedValue(query.tenantId === 'demo-tenant' ? mockDemoAlerts : mockLiveAlerts),
+      }));
 
       // Demo tenant should have alerts
       const demoResult = await AlertModel.find({ tenantId: 'demo-tenant' }).lean();
@@ -180,7 +180,7 @@ describe('Demo/Live Mode Integration', () => {
 
     it('should calculate trust score as 0 when no receipts exist', () => {
       const receipts: any[] = [];
-      
+
       const calculateTrustScore = (receipts: any[]) => {
         if (receipts.length === 0) return 0;
         const total = receipts.reduce((sum, r) => {
@@ -312,8 +312,7 @@ describe('Demo/Live Mode Integration', () => {
       const DEMO_TENANT_ID = 'demo-tenant';
       const LIVE_TENANT_ID = 'live-tenant';
 
-      const getCurrentTenantId = (isDemo: boolean) => 
-        isDemo ? DEMO_TENANT_ID : LIVE_TENANT_ID;
+      const getCurrentTenantId = (isDemo: boolean) => (isDemo ? DEMO_TENANT_ID : LIVE_TENANT_ID);
 
       expect(getCurrentTenantId(true)).toBe('demo-tenant');
       expect(getCurrentTenantId(false)).toBe('live-tenant');

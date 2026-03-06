@@ -1,8 +1,8 @@
 /**
  * DID Resolver API Routes
- * 
+ *
  * HTTP endpoints for DID management and resolution
- * 
+ *
  * Endpoints:
  * - POST   /api/v1/dids/create               Create new DID
  * - GET    /api/v1/dids/:did                 Resolve DID
@@ -29,11 +29,13 @@ const didResolver = new DIDResolverService();
 const CreateDIDSchema = z.object({
   publicKey: z.string().min(1, 'Public key required'),
   keyType: z.enum(['Ed25519']).optional().default('Ed25519'),
-  metadata: z.object({
-    name: z.string().optional(),
-    description: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-  }).optional(),
+  metadata: z
+    .object({
+      name: z.string().optional(),
+      description: z.string().optional(),
+      tags: z.array(z.string()).optional(),
+    })
+    .optional(),
 });
 
 const RotateKeySchema = z.object({
@@ -85,44 +87,41 @@ router.post(
  * GET /api/v1/dids/:did
  * Resolve a DID to get current public key
  */
-router.get(
-  '/:did',
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const { did } = req.params;
+router.get('/:did', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { did } = req.params;
 
-      // Validate DID format
-      if (!isValidDID(did as string)) {
-        res.status(400).json({
-          success: false,
-          error: 'Invalid DID format',
-        });
-        return;
-      }
-
-      // Resolve DID
-      const resolved = didResolver.resolveDID(did as string);
-
-      if (!resolved) {
-        res.status(404).json({
-          success: false,
-          error: 'DID not found or inactive',
-        });
-        return;
-      }
-
-      res.json({
-        success: true,
-        data: resolved,
+    // Validate DID format
+    if (!isValidDID(did as string)) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid DID format',
       });
-    } catch (err) {
-      logger.error('DID resolution failed', {
-        error: err instanceof Error ? err.message : String(err),
-      });
-      next(err);
+      return;
     }
+
+    // Resolve DID
+    const resolved = didResolver.resolveDID(did as string);
+
+    if (!resolved) {
+      res.status(404).json({
+        success: false,
+        error: 'DID not found or inactive',
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: resolved,
+    });
+  } catch (err) {
+    logger.error('DID resolution failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
+    next(err);
   }
-);
+});
 
 /**
  * POST /api/v1/dids/:did/rotate-key

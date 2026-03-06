@@ -74,8 +74,18 @@ jest.mock('../services/trust.service', () => {
       evaluateMessage: jest.fn().mockResolvedValue({
         trustScore: { overall: 8, principles: {}, violations: [], timestamp: Date.now() },
         status: 'PASS',
-        detection: { reality_index: 8, trust_protocol: 'PASS', ethical_alignment: 4, resonance_quality: 'STRONG', canvas_parity: 85 },
-        receipt: { version: '1.0.0', ciq_metrics: { clarity: 0.5, integrity: 0.5, quality: 0.5 }, mode: 'constitutional' } as any,
+        detection: {
+          reality_index: 8,
+          trust_protocol: 'PASS',
+          ethical_alignment: 4,
+          resonance_quality: 'STRONG',
+          canvas_parity: 85,
+        },
+        receipt: {
+          version: '1.0.0',
+          ciq_metrics: { clarity: 0.5, integrity: 0.5, quality: 0.5 },
+          mode: 'constitutional',
+        } as any,
         receiptHash: 'hashX',
         timestamp: Date.now(),
       }),
@@ -137,7 +147,13 @@ describe('Trust Routes', () => {
   it('rejects invalid receipt in save route', async () => {
     const res = await request(app)
       .post('/api/trust/receipts')
-      .send({ self_hash: 'short', session_id: 's', timestamp: Date.now(), mode: 'constitutional', ciq_metrics: { clarity: 0.5, integrity: 0.5, quality: 0.5 } });
+      .send({
+        self_hash: 'short',
+        session_id: 's',
+        timestamp: Date.now(),
+        mode: 'constitutional',
+        ciq_metrics: { clarity: 0.5, integrity: 0.5, quality: 0.5 },
+      });
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
   });

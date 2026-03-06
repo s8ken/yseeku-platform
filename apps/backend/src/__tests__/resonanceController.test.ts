@@ -36,7 +36,7 @@ describe('Resonance Controller', () => {
 
     // Reset all mocks before each test
     jest.clearAllMocks();
-    
+
     // Reset the mock implementations to default behavior
     mockHealthCheck.mockResolvedValue(true);
     mockGenerateReceipt.mockResolvedValue({
@@ -190,7 +190,9 @@ describe('Resonance Controller', () => {
       });
 
       // Re-import controller to pick up new mock
-      const { analyzeInteraction: reImportedAnalyze } = require('../controllers/resonanceController');
+      const {
+        analyzeInteraction: reImportedAnalyze,
+      } = require('../controllers/resonanceController');
 
       mockRequest.body = {
         user_input: 'Test input',
@@ -218,7 +220,9 @@ describe('Resonance Controller', () => {
       });
 
       // Re-import controller to pick up new mock
-      const { analyzeInteraction: reImportedAnalyze } = require('../controllers/resonanceController');
+      const {
+        analyzeInteraction: reImportedAnalyze,
+      } = require('../controllers/resonanceController');
 
       mockRequest.body = {
         user_input: 'Test input',

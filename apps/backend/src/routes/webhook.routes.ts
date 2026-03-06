@@ -44,17 +44,21 @@ const createWebhookSchema = z.object({
   eventTypes: z.array(z.string()).optional(),
   severityFilter: z.array(z.enum(['critical', 'error', 'warning', 'info'])).optional(),
   secret: z.string().optional(),
-  rateLimiting: z.object({
-    enabled: z.boolean(),
-    maxPerMinute: z.number().min(1).max(1000).optional(),
-    maxPerHour: z.number().min(1).max(10000).optional(),
-  }).optional(),
-  retryConfig: z.object({
-    maxRetries: z.number().min(0).max(10).optional(),
-    initialDelayMs: z.number().min(100).optional(),
-    maxDelayMs: z.number().optional(),
-    timeoutMs: z.number().min(1000).max(60000).optional(),
-  }).optional(),
+  rateLimiting: z
+    .object({
+      enabled: z.boolean(),
+      maxPerMinute: z.number().min(1).max(1000).optional(),
+      maxPerHour: z.number().min(1).max(10000).optional(),
+    })
+    .optional(),
+  retryConfig: z
+    .object({
+      maxRetries: z.number().min(0).max(10).optional(),
+      initialDelayMs: z.number().min(100).optional(),
+      maxDelayMs: z.number().optional(),
+      timeoutMs: z.number().min(1000).max(60000).optional(),
+    })
+    .optional(),
   enabled: z.boolean().optional().default(true),
 });
 
@@ -65,10 +69,7 @@ const updateWebhookSchema = createWebhookSchema.partial();
 // Get tenant ID from authenticated user or default
 const getTenantId = (req: Request): string => {
   return (
-    (req as any).tenant ||
-    (req as any).user?.tenant_id ||
-    (req as any).user?.tenantId ||
-    'default'
+    (req as any).tenant || (req as any).user?.tenant_id || (req as any).user?.tenantId || 'default'
   );
 };
 
@@ -82,7 +83,7 @@ const validate = (schema: z.ZodSchema) => {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           error: 'Validation error',
-          details: error.issues.map(e => ({
+          details: error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),
@@ -104,9 +105,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const tenantId = getTenantId(req);
     const configs = await webhookService.listConfigs(tenantId);
-    
+
     res.json({
-      data: configs.map(config => ({
+      data: configs.map((config) => ({
         id: config._id,
         name: config.name,
         description: config.description,
@@ -133,19 +134,19 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const tenantId = getTenantId(req);
-      
+
       // Generate IDs for rules
       const rules = req.body.rules?.map((rule: any, index: number) => ({
         ...rule,
         id: rule.id || `rule-${Date.now()}-${index}`,
       }));
-      
+
       const config = await webhookService.createConfig({
         ...req.body,
         rules,
         tenantId,
       });
-      
+
       res.status(201).json({
         message: 'Webhook configuration created',
         data: config,
@@ -165,17 +166,41 @@ router.post(
 router.get('/meta/event-types', (_req: Request, res: Response) => {
   res.json({
     data: [
-      { id: 'trust_low', name: 'Trust Score Low', description: 'Trust score dropped below threshold' },
+      {
+        id: 'trust_low',
+        name: 'Trust Score Low',
+        description: 'Trust score dropped below threshold',
+      },
       { id: 'trust_critical', name: 'Trust Critical', description: 'Trust score critically low' },
       { id: 'drift_detected', name: 'Drift Detected', description: 'Behavioral drift detected' },
-      { id: 'drift_critical', name: 'Critical Drift', description: 'Critical drift threshold exceeded' },
-      { id: 'emergence_warning', name: 'Emergence Warning', description: 'Agent emergence detected' },
+      {
+        id: 'drift_critical',
+        name: 'Critical Drift',
+        description: 'Critical drift threshold exceeded',
+      },
+      {
+        id: 'emergence_warning',
+        name: 'Emergence Warning',
+        description: 'Agent emergence detected',
+      },
       { id: 'consent_revoked', name: 'Consent Revoked', description: 'User revoked consent' },
-      { id: 'ethical_override', name: 'Ethical Override', description: 'Ethical override triggered' },
-      { id: 'principle_violation', name: 'Principle Violation', description: 'SONATE principle violated' },
+      {
+        id: 'ethical_override',
+        name: 'Ethical Override',
+        description: 'Ethical override triggered',
+      },
+      {
+        id: 'principle_violation',
+        name: 'Principle Violation',
+        description: 'SONATE principle violated',
+      },
       { id: 'security_alert', name: 'Security Alert', description: 'Security issue detected' },
       { id: 'system_health', name: 'System Health', description: 'System health issue' },
-      { id: 'anomaly_detected', name: 'Anomaly Detected', description: 'Statistical anomaly in metrics' },
+      {
+        id: 'anomaly_detected',
+        name: 'Anomaly Detected',
+        description: 'Statistical anomaly in metrics',
+      },
     ],
   });
 });
@@ -187,14 +212,54 @@ router.get('/meta/event-types', (_req: Request, res: Response) => {
 router.get('/meta/metrics', (_req: Request, res: Response) => {
   res.json({
     data: [
-      { id: 'trustScore', name: 'Trust Score', description: 'Overall trust score (0-1)', unit: 'score' },
-      { id: 'driftScore', name: 'Drift Score', description: 'Behavioral drift magnitude (0-1)', unit: 'score' },
-      { id: 'emergenceLevel', name: 'Emergence Level', description: 'Agent emergence metric (0-1)', unit: 'level' },
-      { id: 'bedauIndex', name: 'FBI\u00b2', description: 'Emergent behavior complexity (0-1)', unit: 'index' },
-      { id: 'principleScore', name: 'Principle Score', description: 'SONATE compliance score (0-1)', unit: 'score' },
-      { id: 'consentRate', name: 'Consent Rate', description: 'User consent percentage (0-100)', unit: 'percent' },
-      { id: 'alertCount', name: 'Alert Count', description: 'Number of active alerts', unit: 'count' },
-      { id: 'errorRate', name: 'Error Rate', description: 'API error rate (0-100)', unit: 'percent' },
+      {
+        id: 'trustScore',
+        name: 'Trust Score',
+        description: 'Overall trust score (0-1)',
+        unit: 'score',
+      },
+      {
+        id: 'driftScore',
+        name: 'Drift Score',
+        description: 'Behavioral drift magnitude (0-1)',
+        unit: 'score',
+      },
+      {
+        id: 'emergenceLevel',
+        name: 'Emergence Level',
+        description: 'Agent emergence metric (0-1)',
+        unit: 'level',
+      },
+      {
+        id: 'bedauIndex',
+        name: 'FBI\u00b2',
+        description: 'Emergent behavior complexity (0-1)',
+        unit: 'index',
+      },
+      {
+        id: 'principleScore',
+        name: 'Principle Score',
+        description: 'SONATE compliance score (0-1)',
+        unit: 'score',
+      },
+      {
+        id: 'consentRate',
+        name: 'Consent Rate',
+        description: 'User consent percentage (0-100)',
+        unit: 'percent',
+      },
+      {
+        id: 'alertCount',
+        name: 'Alert Count',
+        description: 'Number of active alerts',
+        unit: 'count',
+      },
+      {
+        id: 'errorRate',
+        name: 'Error Rate',
+        description: 'API error rate (0-100)',
+        unit: 'percent',
+      },
       { id: 'latencyP95', name: 'Latency P95', description: '95th percentile latency', unit: 'ms' },
     ],
   });
@@ -208,18 +273,18 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = String(req.params.id);
     const config = await webhookService.getConfig(id);
-    
+
     if (!config) {
       res.status(404).json({ error: 'Webhook configuration not found' });
       return;
     }
-    
+
     // Check tenant access
     if (config.tenantId !== getTenantId(req)) {
       res.status(403).json({ error: 'Access denied' });
       return;
     }
-    
+
     res.json({ data: config });
   } catch (error) {
     next(error);
@@ -237,17 +302,17 @@ router.put(
     try {
       const id = String(req.params.id);
       const existing = await webhookService.getConfig(id);
-      
+
       if (!existing) {
         res.status(404).json({ error: 'Webhook configuration not found' });
         return;
       }
-      
+
       if (existing.tenantId !== getTenantId(req)) {
         res.status(403).json({ error: 'Access denied' });
         return;
       }
-      
+
       // Generate IDs for new rules
       if (req.body.rules) {
         req.body.rules = req.body.rules.map((rule: any, index: number) => ({
@@ -255,9 +320,9 @@ router.put(
           id: rule.id || `rule-${Date.now()}-${index}`,
         }));
       }
-      
+
       const config = await webhookService.updateConfig(id, req.body);
-      
+
       res.json({
         message: 'Webhook configuration updated',
         data: config,
@@ -276,19 +341,19 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
   try {
     const id = String(req.params.id);
     const existing = await webhookService.getConfig(id);
-    
+
     if (!existing) {
       res.status(404).json({ error: 'Webhook configuration not found' });
       return;
     }
-    
+
     if (existing.tenantId !== getTenantId(req)) {
       res.status(403).json({ error: 'Access denied' });
       return;
     }
-    
+
     await webhookService.deleteConfig(id);
-    
+
     res.json({ message: 'Webhook configuration deleted' });
   } catch (error) {
     next(error);
@@ -303,12 +368,12 @@ router.post('/:id/test', async (req: Request, res: Response, next: NextFunction)
   try {
     const id = String(req.params.id);
     const existing = await webhookService.getConfig(id);
-    
+
     if (!existing) {
       res.status(404).json({ error: 'Webhook configuration not found' });
       return;
     }
-    
+
     if (existing.tenantId !== getTenantId(req)) {
       res.status(403).json({ error: 'Access denied' });
       return;
@@ -320,9 +385,9 @@ router.post('/:id/test', async (req: Request, res: Response, next: NextFunction)
       res.status(400).json({ error: 'No valid channel configured for testing' });
       return;
     }
-    
+
     const result = await webhookService.testWebhook(id);
-    
+
     res.json({
       message: result.success ? 'Test webhook delivered successfully' : 'Test webhook failed',
       ...result,
@@ -340,21 +405,21 @@ router.post('/:id/toggle', async (req: Request, res: Response, next: NextFunctio
   try {
     const id = String(req.params.id);
     const existing = await webhookService.getConfig(id);
-    
+
     if (!existing) {
       res.status(404).json({ error: 'Webhook configuration not found' });
       return;
     }
-    
+
     if (existing.tenantId !== getTenantId(req)) {
       res.status(403).json({ error: 'Access denied' });
       return;
     }
-    
+
     const config = await webhookService.updateConfig(id, {
       enabled: !existing.enabled,
     });
-    
+
     res.json({
       message: `Webhook ${config?.enabled ? 'enabled' : 'disabled'}`,
       data: { enabled: config?.enabled },
@@ -372,22 +437,22 @@ router.get('/:id/deliveries', async (req: Request, res: Response, next: NextFunc
   try {
     const id = String(req.params.id);
     const existing = await webhookService.getConfig(id);
-    
+
     if (!existing) {
       res.status(404).json({ error: 'Webhook configuration not found' });
       return;
     }
-    
+
     if (existing.tenantId !== getTenantId(req)) {
       res.status(403).json({ error: 'Access denied' });
       return;
     }
-    
+
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const deliveries = await webhookService.getDeliveryHistory(id, limit);
-    
+
     res.json({
-      data: deliveries.map(d => ({
+      data: deliveries.map((d) => ({
         id: d._id,
         alertType: d.alertType,
         alertSeverity: d.alertSeverity,
@@ -415,20 +480,20 @@ router.get('/:id/stats', async (req: Request, res: Response, next: NextFunction)
   try {
     const id = String(req.params.id);
     const existing = await webhookService.getConfig(id);
-    
+
     if (!existing) {
       res.status(404).json({ error: 'Webhook configuration not found' });
       return;
     }
-    
+
     if (existing.tenantId !== getTenantId(req)) {
       res.status(403).json({ error: 'Access denied' });
       return;
     }
-    
+
     const hours = parseInt(req.query.hours as string) || 24;
     const stats = await webhookService.getDeliveryStats(id, hours);
-    
+
     res.json({
       data: {
         ...stats,

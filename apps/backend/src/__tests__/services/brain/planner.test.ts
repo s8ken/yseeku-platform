@@ -91,9 +91,9 @@ describe('Brain Planner', () => {
       };
 
       const actions = await planActions(context);
-      
+
       expect(actions.length).toBeGreaterThan(0);
-      const alertAction = actions.find(a => a.type === 'alert' && a.priority === 'critical');
+      const alertAction = actions.find((a) => a.type === 'alert' && a.priority === 'critical');
       expect(alertAction).toBeDefined();
       expect(alertAction?.confidence).toBeGreaterThan(0.9);
     });
@@ -115,8 +115,8 @@ describe('Brain Planner', () => {
       };
 
       const actions = await planActions(context);
-      
-      const alertAction = actions.find(a => a.type === 'alert' && a.priority === 'high');
+
+      const alertAction = actions.find((a) => a.type === 'alert' && a.priority === 'high');
       expect(alertAction).toBeDefined();
       expect(alertAction?.reason).toContain('Statistical anomaly');
     });
@@ -138,8 +138,8 @@ describe('Brain Planner', () => {
       };
 
       const actions = await planActions(context);
-      
-      const adjustAction = actions.find(a => a.type === 'adjust_threshold');
+
+      const adjustAction = actions.find((a) => a.type === 'adjust_threshold');
       expect(adjustAction).toBeDefined();
       expect(adjustAction?.priority).toBe('high');
     });
@@ -169,12 +169,12 @@ describe('Brain Planner', () => {
       };
 
       const actions = await planActions(context);
-      
+
       // Should fall back to alert instead of adjust_threshold
-      const adjustAction = actions.find(a => a.type === 'adjust_threshold');
+      const adjustAction = actions.find((a) => a.type === 'adjust_threshold');
       expect(adjustAction).toBeUndefined();
-      
-      const alertAction = actions.find(a => a.type === 'alert');
+
+      const alertAction = actions.find((a) => a.type === 'alert');
       expect(alertAction).toBeDefined();
     });
 
@@ -187,8 +187,8 @@ describe('Brain Planner', () => {
       };
 
       const actions = await planActions(context);
-      
-      const adjustAction = actions.find(a => a.type === 'adjust_threshold');
+
+      const adjustAction = actions.find((a) => a.type === 'adjust_threshold');
       expect(adjustAction).toBeDefined();
     });
 
@@ -203,8 +203,8 @@ describe('Brain Planner', () => {
       };
 
       const actions = await planActions(context);
-      
-      const alertAction = actions.find(a => a.target === 'escalation');
+
+      const alertAction = actions.find((a) => a.target === 'escalation');
       expect(alertAction).toBeDefined();
       expect(alertAction?.priority).toBe('high');
     });
@@ -226,8 +226,8 @@ describe('Brain Planner', () => {
       };
 
       const actions = await planActions(context);
-      
-      const predictiveAction = actions.find(a => a.target === 'predictive');
+
+      const predictiveAction = actions.find((a) => a.target === 'predictive');
       expect(predictiveAction).toBeDefined();
       expect(predictiveAction?.reason).toContain('predicted');
     });
@@ -250,7 +250,7 @@ describe('Brain Planner', () => {
       };
 
       const actions = await planActions(context);
-      
+
       // Check no duplicate type+target combinations
       const seen = new Set<string>();
       for (const action of actions) {
@@ -285,7 +285,7 @@ describe('Brain Planner', () => {
       };
 
       const actions = await planActions(context);
-      
+
       // First action should be critical priority
       if (actions.length > 1) {
         expect(actions[0].priority).toBe('critical');
@@ -305,10 +305,28 @@ describe('Brain Planner', () => {
             'high_ban_ratio',
           ],
           anomalies: [
-            { type: 'trust_critical', severity: 'high', value: 40, threshold: 50, description: 'a' },
-            { type: 'zscore_anomaly', severity: 'high', value: -3, threshold: -2, description: 'b' },
+            {
+              type: 'trust_critical',
+              severity: 'high',
+              value: 40,
+              threshold: 50,
+              description: 'a',
+            },
+            {
+              type: 'zscore_anomaly',
+              severity: 'high',
+              value: -3,
+              threshold: -2,
+              description: 'b',
+            },
             { type: 'emergence_high', severity: 'high', value: 1, threshold: 0, description: 'c' },
-            { type: 'rapid_decline', severity: 'medium', value: -2, threshold: -1, description: 'd' },
+            {
+              type: 'rapid_decline',
+              severity: 'medium',
+              value: -2,
+              threshold: -1,
+              description: 'd',
+            },
             { type: 'volatility', severity: 'medium', value: 20, threshold: 10, description: 'e' },
           ],
         }),
@@ -319,7 +337,7 @@ describe('Brain Planner', () => {
       };
 
       const actions = await planActions(context);
-      
+
       // Should be limited to 5 for immediate urgency
       expect(actions.length).toBeLessThanOrEqual(5);
     });
@@ -342,7 +360,7 @@ describe('Brain Planner', () => {
       };
 
       const actions = await planActions(context);
-      
+
       expect(actions.length).toBeLessThanOrEqual(3);
     });
 
@@ -371,8 +389,8 @@ describe('Brain Planner', () => {
       };
 
       const actions = await planActions(context);
-      
-      const reviewAction = actions.find(a => a.target === 'review');
+
+      const reviewAction = actions.find((a) => a.target === 'review');
       expect(reviewAction).toBeDefined();
       expect(reviewAction?.reason).toContain('reviewing agent bans');
     });
@@ -386,7 +404,7 @@ describe('Brain Planner', () => {
       };
 
       const actions = await planActions(context);
-      
+
       for (const action of actions) {
         expect(action.confidence).toBeGreaterThan(0);
         expect(action.confidence).toBeLessThanOrEqual(1);

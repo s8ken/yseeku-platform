@@ -1,6 +1,6 @@
 /**
  * Custom Policy Rules API Routes
- * 
+ *
  * CRUD endpoints for tenant-specific policy rules:
  * - Create, read, update, delete rules
  * - Evaluate interactions against rules
@@ -18,7 +18,16 @@ const router = Router();
 
 // Validation schemas
 const RuleConditionSchema = z.object({
-  type: z.enum(['contains', 'not_contains', 'regex', 'sentiment', 'length_min', 'length_max', 'keyword_density', 'custom_function']),
+  type: z.enum([
+    'contains',
+    'not_contains',
+    'regex',
+    'sentiment',
+    'length_min',
+    'length_max',
+    'keyword_density',
+    'custom_function',
+  ]),
   field: z.enum(['prompt', 'response', 'combined']),
   value: z.union([z.string(), z.number()]),
   caseSensitive: z.boolean().optional(),
@@ -48,36 +57,41 @@ const EvaluateSchema = z.object({
  * POST /api/policy-rules
  * Create a new custom policy rule
  */
-router.post('/', protect, requireRole(['admin', 'operator']), async (req: Request, res: Response) => {
-  try {
-    const validated = CreateRuleSchema.parse(req.body);
-    const tenantId = (req as any).userTenant || (req as any).tenant || 'default';
-    const userId = (req as any).user?.id || (req as any).user?.email || 'unknown';
+router.post(
+  '/',
+  protect,
+  requireRole(['admin', 'operator']),
+  async (req: Request, res: Response) => {
+    try {
+      const validated = CreateRuleSchema.parse(req.body);
+      const tenantId = (req as any).userTenant || (req as any).tenant || 'default';
+      const userId = (req as any).user?.id || (req as any).user?.email || 'unknown';
 
-    const rule = await customPolicyService.createRule(tenantId, validated, userId);
+      const rule = await customPolicyService.createRule(tenantId, validated, userId);
 
-    res.status(201).json({
-      success: true,
-      data: rule,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: error.issues,
+      res.status(201).json({
+        success: true,
+        data: rule,
+        timestamp: new Date().toISOString(),
       });
-      return;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({
+          success: false,
+          error: 'Validation failed',
+          details: error.issues,
+        });
+        return;
+      }
+      logger.error('Failed to create policy rule', { error: getErrorMessage(error) });
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create policy rule',
+        message: getErrorMessage(error),
+      });
     }
-    logger.error('Failed to create policy rule', { error: getErrorMessage(error) });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create policy rule',
-      message: getErrorMessage(error),
-    });
   }
-});
+);
 
 /**
  * GET /api/policy-rules
@@ -91,7 +105,7 @@ router.get('/', protect, async (req: Request, res: Response) => {
     const result = await customPolicyService.listRules(tenantId, {
       enabled: enabled !== undefined ? String(enabled) === 'true' : undefined,
       tags: tags ? String(tags).split(',') : undefined,
-      severity: severity ? String(severity) as any : undefined,
+      severity: severity ? (String(severity) as any) : undefined,
       limit: limit ? parseInt(String(limit)) : undefined,
       offset: offset ? parseInt(String(offset)) : undefined,
     });
@@ -154,45 +168,50 @@ router.get('/:ruleId', protect, async (req: Request, res: Response) => {
  * PUT /api/policy-rules/:ruleId
  * Update a rule
  */
-router.put('/:ruleId', protect, requireRole(['admin', 'operator']), async (req: Request, res: Response) => {
-  try {
-    const validated = UpdateRuleSchema.parse(req.body);
-    const tenantId = String((req as any).userTenant || (req as any).tenant || 'default');
-    const userId = String((req as any).user?.id || (req as any).user?.email || 'unknown');
-    const ruleId = String(req.params.ruleId);
+router.put(
+  '/:ruleId',
+  protect,
+  requireRole(['admin', 'operator']),
+  async (req: Request, res: Response) => {
+    try {
+      const validated = UpdateRuleSchema.parse(req.body);
+      const tenantId = String((req as any).userTenant || (req as any).tenant || 'default');
+      const userId = String((req as any).user?.id || (req as any).user?.email || 'unknown');
+      const ruleId = String(req.params.ruleId);
 
-    const rule = await customPolicyService.updateRule(tenantId, ruleId, validated, userId);
+      const rule = await customPolicyService.updateRule(tenantId, ruleId, validated, userId);
 
-    if (!rule) {
-      res.status(404).json({
-        success: false,
-        error: 'Rule not found',
+      if (!rule) {
+        res.status(404).json({
+          success: false,
+          error: 'Rule not found',
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: rule,
+        timestamp: new Date().toISOString(),
       });
-      return;
-    }
-
-    res.json({
-      success: true,
-      data: rule,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({
+          success: false,
+          error: 'Validation failed',
+          details: error.issues,
+        });
+        return;
+      }
+      logger.error('Failed to update policy rule', { error: getErrorMessage(error) });
+      res.status(500).json({
         success: false,
-        error: 'Validation failed',
-        details: error.issues,
+        error: 'Failed to update policy rule',
+        message: getErrorMessage(error),
       });
-      return;
     }
-    logger.error('Failed to update policy rule', { error: getErrorMessage(error) });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update policy rule',
-      message: getErrorMessage(error),
-    });
   }
-});
+);
 
 /**
  * DELETE /api/policy-rules/:ruleId
@@ -232,88 +251,98 @@ router.delete('/:ruleId', protect, requireRole(['admin']), async (req: Request, 
  * PATCH /api/policy-rules/:ruleId/toggle
  * Toggle rule enabled status
  */
-router.patch('/:ruleId/toggle', protect, requireRole(['admin', 'operator']), async (req: Request, res: Response) => {
-  try {
-    const tenantId = String((req as any).userTenant || (req as any).tenant || 'default');
-    const ruleId = String(req.params.ruleId);
-    const { enabled } = req.body;
+router.patch(
+  '/:ruleId/toggle',
+  protect,
+  requireRole(['admin', 'operator']),
+  async (req: Request, res: Response) => {
+    try {
+      const tenantId = String((req as any).userTenant || (req as any).tenant || 'default');
+      const ruleId = String(req.params.ruleId);
+      const { enabled } = req.body;
 
-    if (typeof enabled !== 'boolean') {
-      res.status(400).json({
-        success: false,
-        error: 'enabled must be a boolean',
+      if (typeof enabled !== 'boolean') {
+        res.status(400).json({
+          success: false,
+          error: 'enabled must be a boolean',
+        });
+        return;
+      }
+
+      const updated = await customPolicyService.toggleRule(tenantId, ruleId, enabled);
+
+      if (!updated) {
+        res.status(404).json({
+          success: false,
+          error: 'Rule not found',
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: `Rule ${enabled ? 'enabled' : 'disabled'}`,
+        timestamp: new Date().toISOString(),
       });
-      return;
-    }
-
-    const updated = await customPolicyService.toggleRule(tenantId, ruleId, enabled);
-
-    if (!updated) {
-      res.status(404).json({
+    } catch (error) {
+      logger.error('Failed to toggle policy rule', { error: getErrorMessage(error) });
+      res.status(500).json({
         success: false,
-        error: 'Rule not found',
+        error: 'Failed to toggle policy rule',
+        message: getErrorMessage(error),
       });
-      return;
     }
-
-    res.json({
-      success: true,
-      message: `Rule ${enabled ? 'enabled' : 'disabled'}`,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    logger.error('Failed to toggle policy rule', { error: getErrorMessage(error) });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to toggle policy rule',
-      message: getErrorMessage(error),
-    });
   }
-});
+);
 
 /**
  * POST /api/policy-rules/:ruleId/clone
  * Clone a rule
  */
-router.post('/:ruleId/clone', protect, requireRole(['admin', 'operator']), async (req: Request, res: Response) => {
-  try {
-    const tenantId = String((req as any).userTenant || (req as any).tenant || 'default');
-    const userId = String((req as any).user?.id || (req as any).user?.email || 'unknown');
-    const ruleId = String(req.params.ruleId);
-    const { name } = req.body;
+router.post(
+  '/:ruleId/clone',
+  protect,
+  requireRole(['admin', 'operator']),
+  async (req: Request, res: Response) => {
+    try {
+      const tenantId = String((req as any).userTenant || (req as any).tenant || 'default');
+      const userId = String((req as any).user?.id || (req as any).user?.email || 'unknown');
+      const ruleId = String(req.params.ruleId);
+      const { name } = req.body;
 
-    if (!name) {
-      res.status(400).json({
-        success: false,
-        error: 'name is required for cloning',
+      if (!name) {
+        res.status(400).json({
+          success: false,
+          error: 'name is required for cloning',
+        });
+        return;
+      }
+
+      const rule = await customPolicyService.cloneRule(tenantId, ruleId, name, userId);
+
+      if (!rule) {
+        res.status(404).json({
+          success: false,
+          error: 'Source rule not found',
+        });
+        return;
+      }
+
+      res.status(201).json({
+        success: true,
+        data: rule,
+        timestamp: new Date().toISOString(),
       });
-      return;
-    }
-
-    const rule = await customPolicyService.cloneRule(tenantId, ruleId, name, userId);
-
-    if (!rule) {
-      res.status(404).json({
+    } catch (error) {
+      logger.error('Failed to clone policy rule', { error: getErrorMessage(error) });
+      res.status(500).json({
         success: false,
-        error: 'Source rule not found',
+        error: 'Failed to clone policy rule',
+        message: getErrorMessage(error),
       });
-      return;
     }
-
-    res.status(201).json({
-      success: true,
-      data: rule,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    logger.error('Failed to clone policy rule', { error: getErrorMessage(error) });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to clone policy rule',
-      message: getErrorMessage(error),
-    });
   }
-});
+);
 
 /**
  * POST /api/policy-rules/evaluate
@@ -388,29 +417,34 @@ router.post('/import', protect, requireRole(['admin']), async (req: Request, res
  * GET /api/policy-rules/export
  * Export all rules as JSON
  */
-router.get('/export', protect, requireRole(['admin', 'operator']), async (req: Request, res: Response) => {
-  try {
-    const tenantId = (req as any).userTenant || (req as any).tenant || 'default';
+router.get(
+  '/export',
+  protect,
+  requireRole(['admin', 'operator']),
+  async (req: Request, res: Response) => {
+    try {
+      const tenantId = (req as any).userTenant || (req as any).tenant || 'default';
 
-    const rules = await customPolicyService.exportRules(tenantId);
+      const rules = await customPolicyService.exportRules(tenantId);
 
-    res.json({
-      success: true,
-      data: {
-        exportedAt: new Date().toISOString(),
-        tenantId,
-        ruleCount: rules.length,
-        rules,
-      },
-    });
-  } catch (error) {
-    logger.error('Failed to export policy rules', { error: getErrorMessage(error) });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to export policy rules',
-      message: getErrorMessage(error),
-    });
+      res.json({
+        success: true,
+        data: {
+          exportedAt: new Date().toISOString(),
+          tenantId,
+          ruleCount: rules.length,
+          rules,
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to export policy rules', { error: getErrorMessage(error) });
+      res.status(500).json({
+        success: false,
+        error: 'Failed to export policy rules',
+        message: getErrorMessage(error),
+      });
+    }
   }
-});
+);
 
 export default router;

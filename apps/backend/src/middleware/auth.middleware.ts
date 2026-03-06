@@ -71,7 +71,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
       securityLogger.debug('No token provided', { requestId });
       res.status(401).json({
         success: false,
-        message: 'Not authorized, no token provided'
+        message: 'Not authorized, no token provided',
       });
       return;
     }
@@ -80,14 +80,17 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     let payload: JwtPayload;
     try {
       payload = authService.verifyToken(token) as JwtPayload;
-      securityLogger.debug('Token verified', { requestId, username: payload.username || 'unknown' });
+      securityLogger.debug('Token verified', {
+        requestId,
+        username: payload.username || 'unknown',
+      });
     } catch (verifyError: unknown) {
       const errorMessage = verifyError instanceof Error ? verifyError.message : 'Unknown error';
       securityLogger.warn('Token verification failed', { requestId, error: errorMessage });
       res.status(401).json({
         success: false,
         message: 'Token verification failed',
-        code: 'INVALID_TOKEN'
+        code: 'INVALID_TOKEN',
       });
       return;
     }
@@ -99,7 +102,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
       securityLogger.warn('Invalid payload: missing userId', { requestId });
       res.status(401).json({
         success: false,
-        message: 'Invalid token payload: missing user identifier'
+        message: 'Invalid token payload: missing user identifier',
       });
       return;
     }
@@ -131,7 +134,12 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
       if (!user) {
         securityLogger.info('Creating shadow MongoDB user', { requestId, email, userId });
         // emit a lightweight audit log so provisioning is visible in security trails
-        securityLogger.info('audit.user.provision', { requestId, email, userId, source: 'auth.middleware' });
+        securityLogger.info('audit.user.provision', {
+          requestId,
+          email,
+          userId,
+          source: 'auth.middleware',
+        });
         try {
           user = await User.create({
             name: payload.username || payload.name || email.split('@')[0],
@@ -140,25 +148,34 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
             apiKeys: [],
           });
           securityLogger.info('Shadow user created', { requestId, mongoUserId: user._id });
-          securityLogger.info('audit.user.provisioned', { requestId, email, mongoUserId: user._id });
+          securityLogger.info('audit.user.provisioned', {
+            requestId,
+            email,
+            mongoUserId: user._id,
+          });
         } catch (createError: unknown) {
-          const createErrorMsg = createError instanceof Error ? createError.message : 'Unknown error';
-          securityLogger.error('Failed to create shadow user', { requestId, error: createErrorMsg });
+          const createErrorMsg =
+            createError instanceof Error ? createError.message : 'Unknown error';
+          securityLogger.error('Failed to create shadow user', {
+            requestId,
+            error: createErrorMsg,
+          });
           // Check if user was created by another concurrent request
           try {
             user = await User.findOne({ email }).select('-password');
           } catch (retryError: unknown) {
-            const retryErrorMsg = retryError instanceof Error ? retryError.message : 'Unknown error';
+            const retryErrorMsg =
+              retryError instanceof Error ? retryError.message : 'Unknown error';
             securityLogger.error('Retry find failed', { requestId, error: retryErrorMsg });
           }
 
           if (!user) {
-             // Return 500 here but with JSON
-             res.status(500).json({
-               success: false,
-               message: 'Failed to provision user account'
-             });
-             return;
+            // Return 500 here but with JSON
+            res.status(500).json({
+              success: false,
+              message: 'Failed to provision user account',
+            });
+            return;
           }
         }
       }
@@ -168,7 +185,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
       securityLogger.warn('User not found and could not be provisioned', { requestId });
       res.status(401).json({
         success: false,
-        message: 'User not found and could not be provisioned'
+        message: 'User not found and could not be provisioned',
       });
       return;
     }
@@ -176,11 +193,12 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     // Attach user to request
     req.user = user;
     req.userId = user._id.toString();
-    
+
     // Tenant resolution: X-Tenant-ID header takes precedence, then JWT payload, then default
     const headerTenantValue = req.headers['x-tenant-id'];
     const headerTenant = typeof headerTenantValue === 'string' ? headerTenantValue : undefined;
-    const userTenant = (user as any).tenant_id || payload.tenant || (payload as any).tenant_id || 'default';
+    const userTenant =
+      (user as any).tenant_id || payload.tenant || (payload as any).tenant_id || 'default';
     if (headerTenant && headerTenant !== userTenant && user.role !== 'admin') {
       res.status(403).json({
         success: false,
@@ -202,7 +220,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
       requestId,
       message: getErrorMessage(error),
       stack: err?.stack,
-      name: err?.name
+      name: err?.name,
     });
 
     // Ensure we always return JSON even for 500s
@@ -210,7 +228,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
       const payload: any = {
         success: false,
         message: 'Authentication middleware error',
-        requestId
+        requestId,
       };
       // only include stack trace in non-production to avoid leaking internals
       if (process.env.NODE_ENV !== 'production') {
@@ -228,7 +246,7 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
   if (!req.user) {
     res.status(401).json({
       success: false,
-      message: 'Not authenticated'
+      message: 'Not authenticated',
     });
     return;
   }
@@ -239,7 +257,7 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
   if (!isAdmin) {
     res.status(403).json({
       success: false,
-      message: 'Not authorized as admin'
+      message: 'Not authorized as admin',
     });
     return;
   }
@@ -256,7 +274,7 @@ export function requireRole(allowedRoles: string[]) {
     if (!req.user) {
       res.status(401).json({
         success: false,
-        message: 'Not authenticated'
+        message: 'Not authenticated',
       });
       return;
     }
@@ -267,7 +285,7 @@ export function requireRole(allowedRoles: string[]) {
     if (!allowedRoles.includes(userRole)) {
       res.status(403).json({
         success: false,
-        message: `Role '${userRole}' not authorized. Required: ${allowedRoles.join(' or ')}`
+        message: `Role '${userRole}' not authorized. Required: ${allowedRoles.join(' or ')}`,
       });
       return;
     }
@@ -296,7 +314,8 @@ export async function optionalAuth(req: Request, res: Response, next: NextFuncti
         req.userId = payload.userId;
         const headerTenantValue = req.headers['x-tenant-id'];
         const headerTenant = typeof headerTenantValue === 'string' ? headerTenantValue : undefined;
-        const userTenant = (user as any).tenant_id || payload.tenant || (payload as any).tenant_id || 'default';
+        const userTenant =
+          (user as any).tenant_id || payload.tenant || (payload as any).tenant_id || 'default';
         req.tenant = headerTenant && headerTenant === userTenant ? headerTenant : userTenant;
       }
     }
@@ -315,7 +334,7 @@ export function requireTenant(req: Request, res: Response, next: NextFunction): 
   if (!req.tenant) {
     res.status(400).json({
       success: false,
-      message: 'Tenant context required'
+      message: 'Tenant context required',
     });
     return;
   }

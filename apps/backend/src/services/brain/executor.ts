@@ -44,7 +44,7 @@ export async function executeActions(
       target: a.target,
       reason: a.reason,
       status,
-      executedAt: new Date()
+      executedAt: new Date(),
     });
     brainActionsTotal.inc({ type: a.type, status });
     results.push({ id: doc._id.toString(), status });
@@ -52,25 +52,38 @@ export async function executeActions(
     // Execute actions only in enforced mode
     if (mode === 'enforced') {
       // Kernel constraints & refusal logic
-      const startMs = Date.now()
-      const check = checkKernelConstraints(tenantId, mode, a)
+      const startMs = Date.now();
+      const check = checkKernelConstraints(tenantId, mode, a);
       if (!check.ok) {
-        doc.status = 'failed'
-        doc.result = { refused: true, rule: check.rule, reason: check.reason, details: check.details }
-        await doc.save()
-        await remember(tenantId, 'refusal:kernel', {
-          actionId: doc._id.toString(),
-          type: a.type,
-          target: a.target,
+        doc.status = 'failed';
+        doc.result = {
+          refused: true,
           rule: check.rule,
           reason: check.reason,
-          cycleId,
-          timestamp: new Date(),
-        }, ['refusal','kernel',a.type])
-        sonateRefusalsTotal.inc({ reason: String(check.rule || 'unknown'), tenant_id: tenantId })
-        sonateRefusalLatencySeconds.observe({ reason: String(check.rule || 'unknown'), tenant_id: tenantId }, (Date.now() - startMs) / 1000)
-        const correlationId = uuidv4()
-        sonateRefusalsTotal.inc({ reason: String(check.rule || 'unknown'), tenant_id: tenantId })
+          details: check.details,
+        };
+        await doc.save();
+        await remember(
+          tenantId,
+          'refusal:kernel',
+          {
+            actionId: doc._id.toString(),
+            type: a.type,
+            target: a.target,
+            rule: check.rule,
+            reason: check.reason,
+            cycleId,
+            timestamp: new Date(),
+          },
+          ['refusal', 'kernel', a.type]
+        );
+        sonateRefusalsTotal.inc({ reason: String(check.rule || 'unknown'), tenant_id: tenantId });
+        sonateRefusalLatencySeconds.observe(
+          { reason: String(check.rule || 'unknown'), tenant_id: tenantId },
+          (Date.now() - startMs) / 1000
+        );
+        const correlationId = uuidv4();
+        sonateRefusalsTotal.inc({ reason: String(check.rule || 'unknown'), tenant_id: tenantId });
         await logAudit({
           action: 'alert_suppress',
           resourceType: 'system',
@@ -79,8 +92,14 @@ export async function executeActions(
           tenantId,
           severity: 'warning',
           outcome: 'failure',
-          details: { refusedAction: a.type, target: a.target, rule: check.rule, reason: check.reason, correlationId }
-        })
+          details: {
+            refusedAction: a.type,
+            target: a.target,
+            rule: check.rule,
+            reason: check.reason,
+            correlationId,
+          },
+        });
         // Emit informational alert
         await AlertsService.createAlert({
           tenant_id: tenantId,
@@ -88,15 +107,15 @@ export async function executeActions(
           title: 'Overseer Refusal',
           description: `Refused ${a.type}: ${check.reason}`,
           severity: 'medium', // Changed from 'warning'
-          metadata: { target: a.target, rule: check.rule }
+          metadata: { target: a.target, rule: check.rule },
         });
         // Update results array
-        const idx = results.findIndex(r => r.id === doc._id.toString())
+        const idx = results.findIndex((r) => r.id === doc._id.toString());
         if (idx >= 0) {
-          results[idx].status = 'failed'
-          results[idx].result = { refused: true, rule: check.rule, reason: check.reason }
+          results[idx].status = 'failed';
+          results[idx].result = { refused: true, rule: check.rule, reason: check.reason };
         }
-        continue
+        continue;
       }
       try {
         switch (a.type) {
@@ -140,7 +159,7 @@ export async function executeActions(
           error: getErrorMessage(error),
         });
         // Update the result in our array
-        const idx = results.findIndex(r => r.id === doc._id.toString());
+        const idx = results.findIndex((r) => r.id === doc._id.toString());
         if (idx >= 0) {
           results[idx].status = 'failed';
           results[idx].result = { error: getErrorMessage(error) };
@@ -155,18 +174,14 @@ export async function executeActions(
 /**
  * Execute alert action
  */
-async function executeAlert(
-  tenantId: string,
-  action: PlannedAction,
-  doc: any
-): Promise<void> {
+async function executeAlert(tenantId: string, action: PlannedAction, doc: any): Promise<void> {
   await AlertsService.createAlert({
     tenant_id: tenantId,
     type: 'policy_breach', // Changed from 'system'
     title: action.reason || 'System Alert',
     description: `Overseer: ${action.reason || ''}`,
     severity: 'medium', // Changed from 'warning'
-    metadata: { target: action.target }
+    metadata: { target: action.target },
   });
   doc.result = { routed: true, channel: 'system' };
   await doc.save();
@@ -237,15 +252,20 @@ async function executeBanAgent(
   });
 
   // 5. Store in brain memory for feedback loop
-  await remember(tenantId, 'action:ban_agent', {
-    agentId: action.target,
-    agentName: agent.name,
-    reason: action.reason,
-    severity: action.severity || 'medium',
-    timestamp: new Date(),
-    cycleId,
-    sessionsCleared,
-  }, ['ban', 'agent', 'action', 'enforcement']);
+  await remember(
+    tenantId,
+    'action:ban_agent',
+    {
+      agentId: action.target,
+      agentName: agent.name,
+      reason: action.reason,
+      severity: action.severity || 'medium',
+      timestamp: new Date(),
+      cycleId,
+      sessionsCleared,
+    },
+    ['ban', 'agent', 'action', 'enforcement']
+  );
 
   // 6. Emit alert
   await AlertsService.createAlert({
@@ -253,7 +273,8 @@ async function executeBanAgent(
     type: 'policy_breach', // Changed from 'security'
     title: `Agent Banned: ${agent.name}`,
     description: `Agent ${agent.name} has been banned by System Brain. Reason: ${action.reason}`,
-    severity: action.severity === 'critical' ? 'critical' : action.severity === 'high' ? 'high' : 'medium', // Changed 'error' and 'warning'
+    severity:
+      action.severity === 'critical' ? 'critical' : action.severity === 'high' ? 'high' : 'medium', // Changed 'error' and 'warning'
     metadata: {
       agent_id: action.target, // Moved agent_id into metadata
       agentName: agent.name,
@@ -319,21 +340,28 @@ async function executeRestrictAgent(
   });
 
   // Store in memory
-  await remember(tenantId, 'action:restrict_agent', {
-    agentId: action.target,
-    agentName: agent.name,
-    reason: action.reason,
-    restrictions,
-    timestamp: new Date(),
-    cycleId,
-  }, ['restrict', 'agent', 'action', 'enforcement']);
+  await remember(
+    tenantId,
+    'action:restrict_agent',
+    {
+      agentId: action.target,
+      agentName: agent.name,
+      reason: action.reason,
+      restrictions,
+      timestamp: new Date(),
+      cycleId,
+    },
+    ['restrict', 'agent', 'action', 'enforcement']
+  );
 
   // Emit alert
   await AlertsService.createAlert({
     tenant_id: tenantId,
     type: 'policy_breach', // Changed from 'security'
     title: `Agent Restricted: ${agent.name}`,
-    description: `Agent ${agent.name} has been restricted. Features disabled: ${restrictions.join(', ')}`,
+    description: `Agent ${agent.name} has been restricted. Features disabled: ${restrictions.join(
+      ', '
+    )}`,
     severity: 'medium', // Changed from 'warning'
     metadata: {
       agent_id: action.target, // Moved agent_id into metadata
@@ -399,13 +427,18 @@ async function executeQuarantineAgent(
   });
 
   // Store in memory
-  await remember(tenantId, 'action:quarantine_agent', {
-    agentId: action.target,
-    agentName: agent.name,
-    reason: action.reason,
-    timestamp: new Date(),
-    cycleId,
-  }, ['quarantine', 'agent', 'action', 'enforcement']);
+  await remember(
+    tenantId,
+    'action:quarantine_agent',
+    {
+      agentId: action.target,
+      agentName: agent.name,
+      reason: action.reason,
+      timestamp: new Date(),
+      cycleId,
+    },
+    ['quarantine', 'agent', 'action', 'enforcement']
+  );
 
   // Emit alert
   await AlertsService.createAlert({
@@ -473,14 +506,19 @@ async function executeUnbanAgent(
   });
 
   // Store in memory
-  await remember(tenantId, 'action:unban_agent', {
-    agentId: action.target,
-    agentName: agent.name,
-    previousStatus,
-    reason: action.reason,
-    timestamp: new Date(),
-    cycleId,
-  }, ['unban', 'agent', 'action', 'enforcement']);
+  await remember(
+    tenantId,
+    'action:unban_agent',
+    {
+      agentId: action.target,
+      agentName: agent.name,
+      previousStatus,
+      reason: action.reason,
+      timestamp: new Date(),
+      cycleId,
+    },
+    ['unban', 'agent', 'action', 'enforcement']
+  );
 
   // Emit info alert
   await AlertsService.createAlert({

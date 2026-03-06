@@ -1,6 +1,6 @@
 /**
  * Key Rotation Service
- * 
+ *
  * Handles versioned Ed25519 key management with:
  * - Multiple key versions for backward compatibility
  * - Automatic rotation scheduling
@@ -18,15 +18,18 @@ let ed25519Promise: Promise<any> | null = null;
 
 async function loadEd25519(): Promise<any> {
   if (!ed25519Promise) {
-    ed25519Promise = (new Function('return import("@noble/ed25519")')() as Promise<any>).then((ed25519) => {
-      const sha512 = (message: Uint8Array) => new Uint8Array(crypto.createHash('sha512').update(message).digest());
-      if ((ed25519 as any).hashes) {
-        (ed25519 as any).hashes.sha512 = sha512;
-      } else {
-        (ed25519 as any).etc.sha512Sync = (...m: Uint8Array[]) => sha512(m[0]);
+    ed25519Promise = (new Function('return import("@noble/ed25519")')() as Promise<any>).then(
+      (ed25519) => {
+        const sha512 = (message: Uint8Array) =>
+          new Uint8Array(crypto.createHash('sha512').update(message).digest());
+        if ((ed25519 as any).hashes) {
+          (ed25519 as any).hashes.sha512 = sha512;
+        } else {
+          (ed25519 as any).etc.sha512Sync = (...m: Uint8Array[]) => sha512(m[0]);
+        }
+        return ed25519;
       }
-      return ed25519;
-    });
+    );
   }
   return ed25519Promise;
 }
@@ -79,7 +82,8 @@ class KeyRotationService {
 
   constructor(config?: Partial<KeyRotationConfig>) {
     this.config = { ...DEFAULT_CONFIG, ...config };
-    this.keysPath = process.env.KEY_ROTATION_PATH || path.join(process.cwd(), '.keys', 'key-versions.json');
+    this.keysPath =
+      process.env.KEY_ROTATION_PATH || path.join(process.cwd(), '.keys', 'key-versions.json');
   }
 
   async initialize(): Promise<void> {
@@ -106,15 +110,15 @@ class KeyRotationService {
       // Load from file
       if (fs.existsSync(this.keysPath)) {
         const data = JSON.parse(fs.readFileSync(this.keysPath, 'utf-8'));
-        
+
         for (const key of data.keys || []) {
           this.keys.set(key.version, key);
         }
         this.currentVersion = data.currentVersion;
-        
-        logger.info('Key rotation service loaded from file', { 
+
+        logger.info('Key rotation service loaded from file', {
           versions: Array.from(this.keys.keys()),
-          currentVersion: this.currentVersion 
+          currentVersion: this.currentVersion,
         });
       } else {
         // Generate initial key
@@ -127,7 +131,6 @@ class KeyRotationService {
       if (this.config.autoRotate) {
         await this.checkRotationNeeded();
       }
-
     } catch (error) {
       logger.error('Failed to initialize key rotation service', { error: getErrorMessage(error) });
       throw error;
@@ -139,26 +142,26 @@ class KeyRotationService {
    */
   async generateNewVersion(): Promise<KeyVersion> {
     const ed25519 = await loadEd25519();
-    
+
     // Generate new key pair
     const privateKey = new Uint8Array(crypto.randomBytes(32));
     const publicKey = await ed25519.getPublicKey(privateKey);
-    
+
     const privateKeyHex = Buffer.from(privateKey).toString('hex');
     const publicKeyHex = Buffer.from(publicKey).toString('hex');
-    
+
     // Determine version number
     const existingVersions = Array.from(this.keys.keys())
-      .filter(v => v.startsWith('v'))
-      .map(v => parseInt(v.slice(1)))
-      .filter(n => !isNaN(n));
+      .filter((v) => v.startsWith('v'))
+      .map((v) => parseInt(v.slice(1)))
+      .filter((n) => !isNaN(n));
     const nextVersion = existingVersions.length > 0 ? Math.max(...existingVersions) + 1 : 1;
     const version = `v${nextVersion}`;
-    
+
     const now = new Date();
     const expiresAt = new Date(now);
     expiresAt.setDate(expiresAt.getDate() + this.config.rotationIntervalDays);
-    
+
     const keyVersion: KeyVersion = {
       version,
       publicKey: publicKeyHex,
@@ -167,7 +170,7 @@ class KeyRotationService {
       expiresAt: expiresAt.toISOString(),
       status: 'active',
     };
-    
+
     // Mark old current version as rotating
     if (this.currentVersion && this.keys.has(this.currentVersion)) {
       const oldKey = this.keys.get(this.currentVersion)!;
@@ -175,19 +178,19 @@ class KeyRotationService {
       oldKey.rotatedAt = now.toISOString();
       this.keys.set(this.currentVersion, oldKey);
     }
-    
+
     this.keys.set(version, keyVersion);
     this.currentVersion = version;
-    
+
     await this.save();
     await this.cleanupOldKeys();
-    
-    logger.info('Generated new key version', { 
-      version, 
+
+    logger.info('Generated new key version', {
+      version,
       publicKey: publicKeyHex,
-      expiresAt: expiresAt.toISOString()
+      expiresAt: expiresAt.toISOString(),
     });
-    
+
     return keyVersion;
   }
 
@@ -204,25 +207,25 @@ class KeyRotationService {
    */
   async checkRotationNeeded(): Promise<boolean> {
     if (!this.currentVersion) return true;
-    
+
     const currentKey = this.keys.get(this.currentVersion);
     if (!currentKey) return true;
-    
+
     if (!currentKey.expiresAt) return false;
-    
+
     const expiresAt = new Date(currentKey.expiresAt);
     const now = new Date();
     const daysUntilExpiry = (expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-    
+
     // Rotate if within 7 days of expiration
     if (daysUntilExpiry <= 7) {
       logger.info('Key approaching expiration, rotation recommended', {
         version: this.currentVersion,
-        daysUntilExpiry: Math.round(daysUntilExpiry)
+        daysUntilExpiry: Math.round(daysUntilExpiry),
       });
       return true;
     }
-    
+
     return false;
   }
 
@@ -231,25 +234,23 @@ class KeyRotationService {
    */
   async sign(message: string | Buffer): Promise<SigningResult> {
     if (!this.initialized) await this.initialize();
-    
+
     if (!this.currentVersion) {
       throw new Error('No active signing key');
     }
-    
+
     const keyVersion = this.keys.get(this.currentVersion);
     if (!keyVersion || keyVersion.status === 'revoked') {
       throw new Error('Current key is not available for signing');
     }
-    
+
     const ed25519 = await loadEd25519();
     const privateKey = Buffer.from(keyVersion.privateKey, 'hex');
-    
-    const messageBytes = typeof message === 'string'
-      ? Buffer.from(message, 'utf-8')
-      : message;
-    
+
+    const messageBytes = typeof message === 'string' ? Buffer.from(message, 'utf-8') : message;
+
     const signature = await ed25519.sign(messageBytes, new Uint8Array(privateKey));
-    
+
     return {
       signature: Buffer.from(signature).toString('hex'),
       keyVersion: this.currentVersion,
@@ -261,42 +262,42 @@ class KeyRotationService {
    * Verify a signature, checking against the specified key version
    */
   async verify(
-    message: string | Buffer, 
-    signature: string, 
+    message: string | Buffer,
+    signature: string,
     keyVersion?: string
   ): Promise<VerificationResult> {
     if (!this.initialized) await this.initialize();
-    
+
     // If no version specified, try current first, then all active/rotating keys
-    const versionsToTry = keyVersion 
-      ? [keyVersion] 
-      : [this.currentVersion, ...Array.from(this.keys.keys())].filter((v): v is string => v !== null);
-    
+    const versionsToTry = keyVersion
+      ? [keyVersion]
+      : [this.currentVersion, ...Array.from(this.keys.keys())].filter(
+          (v): v is string => v !== null
+        );
+
     for (const version of versionsToTry) {
       const key = this.keys.get(version);
       if (!key) continue;
-      
+
       // Skip revoked keys
       if (key.status === 'revoked') {
         continue;
       }
-      
+
       // Warn if using deprecated key
       if (key.status === 'deprecated') {
         logger.warn('Verifying with deprecated key', { version });
       }
-      
+
       try {
         const ed25519 = await loadEd25519();
         const publicKey = Buffer.from(key.publicKey, 'hex');
-        
-        const messageBytes = typeof message === 'string'
-          ? Buffer.from(message, 'utf-8')
-          : message;
+
+        const messageBytes = typeof message === 'string' ? Buffer.from(message, 'utf-8') : message;
         const signatureBytes = Buffer.from(signature, 'hex');
-        
+
         const valid = await ed25519.verify(signatureBytes, messageBytes, new Uint8Array(publicKey));
-        
+
         if (valid) {
           return {
             valid: true,
@@ -308,7 +309,7 @@ class KeyRotationService {
         // Continue to next key
       }
     }
-    
+
     return {
       valid: false,
       keyVersion: keyVersion || 'unknown',
@@ -322,13 +323,13 @@ class KeyRotationService {
    */
   async getPublicKey(version?: string): Promise<string> {
     if (!this.initialized) await this.initialize();
-    
+
     const v = version || this.currentVersion;
     if (!v) throw new Error('No key version available');
-    
+
     const key = this.keys.get(v);
     if (!key) throw new Error(`Key version ${v} not found`);
-    
+
     return key.publicKey;
   }
 
@@ -343,7 +344,7 @@ class KeyRotationService {
    * List all key versions with their status
    */
   listVersions(): Array<Omit<KeyVersion, 'privateKey'>> {
-    return Array.from(this.keys.values()).map(key => ({
+    return Array.from(this.keys.values()).map((key) => ({
       version: key.version,
       publicKey: key.publicKey,
       createdAt: key.createdAt,
@@ -363,18 +364,18 @@ class KeyRotationService {
     if (!key) {
       throw new Error(`Key version ${version} not found`);
     }
-    
+
     if (version === this.currentVersion) {
       throw new Error('Cannot revoke current active key. Rotate first.');
     }
-    
+
     key.status = 'revoked';
     key.revokedAt = new Date().toISOString();
     key.revokedReason = reason;
     this.keys.set(version, key);
-    
+
     await this.save();
-    
+
     logger.info('Key version revoked', { version, reason });
   }
 
@@ -382,9 +383,10 @@ class KeyRotationService {
    * Cleanup old deprecated keys beyond max versions
    */
   private async cleanupOldKeys(): Promise<void> {
-    const sortedKeys = Array.from(this.keys.entries())
-      .sort((a, b) => new Date(b[1].createdAt).getTime() - new Date(a[1].createdAt).getTime());
-    
+    const sortedKeys = Array.from(this.keys.entries()).sort(
+      (a, b) => new Date(b[1].createdAt).getTime() - new Date(a[1].createdAt).getTime()
+    );
+
     let activeCount = 0;
     for (const [version, key] of sortedKeys) {
       if (key.status === 'active' || key.status === 'rotating') {
@@ -396,11 +398,11 @@ class KeyRotationService {
         }
       }
     }
-    
+
     // Remove very old deprecated keys (older than grace period)
     const gracePeriodMs = this.config.gracePeriodDays * 24 * 60 * 60 * 1000;
     const now = new Date().getTime();
-    
+
     for (const [version, key] of this.keys.entries()) {
       if (key.status === 'deprecated' && key.rotatedAt) {
         const rotatedAt = new Date(key.rotatedAt).getTime();
@@ -410,7 +412,7 @@ class KeyRotationService {
         }
       }
     }
-    
+
     await this.save();
   }
 
@@ -422,14 +424,14 @@ class KeyRotationService {
     if (!fs.existsSync(keysDir)) {
       fs.mkdirSync(keysDir, { recursive: true });
     }
-    
+
     const data = {
       currentVersion: this.currentVersion,
       keys: Array.from(this.keys.values()),
       config: this.config,
       updatedAt: new Date().toISOString(),
     };
-    
+
     fs.writeFileSync(this.keysPath, JSON.stringify(data, null, 2), { mode: 0o600 });
   }
 
@@ -444,12 +446,12 @@ class KeyRotationService {
     activeVersions: number;
   }> {
     if (!this.initialized) await this.initialize();
-    
+
     const currentKey = this.currentVersion ? this.keys.get(this.currentVersion) : null;
     const activeVersions = Array.from(this.keys.values()).filter(
-      k => k.status === 'active' || k.status === 'rotating'
+      (k) => k.status === 'active' || k.status === 'rotating'
     ).length;
-    
+
     return {
       currentVersion: this.currentVersion,
       rotationNeeded: await this.checkRotationNeeded(),

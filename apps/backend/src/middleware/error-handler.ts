@@ -1,6 +1,6 @@
 /**
  * Global Error Handler Middleware
- * 
+ *
  * Centralized error handling for all Express routes.
  * Provides consistent error responses and proper logging.
  */
@@ -201,7 +201,13 @@ export class AppError extends Error {
   details?: unknown;
   isOperational: boolean;
 
-  constructor(message: string, statusCode = 500, code = 'INTERNAL_ERROR', details?: unknown, isOperational = true) {
+  constructor(
+    message: string,
+    statusCode = 500,
+    code = 'INTERNAL_ERROR',
+    details?: unknown,
+    isOperational = true
+  ) {
     super(message);
     this.name = 'AppError';
     this.statusCode = statusCode;

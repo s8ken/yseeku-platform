@@ -8,7 +8,15 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
 export interface IApiKey {
-  provider: 'openai' | 'together' | 'anthropic' | 'gemini' | 'cohere' | 'perplexity' | 'v0' | 'custom';
+  provider:
+    | 'openai'
+    | 'together'
+    | 'anthropic'
+    | 'gemini'
+    | 'cohere'
+    | 'perplexity'
+    | 'v0'
+    | 'custom';
   key: string;
   name: string;
   isActive: boolean;
@@ -31,7 +39,7 @@ export interface IUser extends Document {
   consent: {
     hasConsentedToAI: boolean;
     consentTimestamp?: Date;
-    consentScope: string[];  // e.g., ['chat', 'analysis', 'recommendations']
+    consentScope: string[]; // e.g., ['chat', 'analysis', 'recommendations']
     canWithdrawAnytime: boolean;
   };
   // SSO fields
@@ -82,10 +90,7 @@ const UserSchema = new Schema<IUser>({
     type: String,
     required: [true, 'Email is required'],
     unique: true,
-    match: [
-      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-      'Please provide a valid email',
-    ],
+    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email'],
   },
   password: {
     type: String,
@@ -186,10 +191,7 @@ UserSchema.methods.getResetPasswordToken = function (): string {
   const resetToken = crypto.randomBytes(20).toString('hex');
 
   // Hash token and set to resetPasswordToken field
-  this.resetPasswordToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex');
+  this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
   // Set expire
   this.resetPasswordExpire = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes

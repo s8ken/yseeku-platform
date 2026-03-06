@@ -1,9 +1,9 @@
 /**
  * Consent & Escalation Configuration
- * 
+ *
  * Enterprise-customizable configuration for consent architecture and human escalation.
  * Default configuration is EU GDPR/AI Act compliant out of the box.
- * 
+ *
  * Enterprises can customize:
  * - Consent model (binary, graduated, hybrid)
  * - Escalation channels (human handoff, email, phone, callback)
@@ -22,33 +22,33 @@ export type ConsentModel = 'BINARY' | 'GRADUATED' | 'HYBRID';
 /**
  * Escalation channel types
  */
-export type EscalationChannel = 
-  | 'LIVE_HANDOFF'      // Real-time transfer to human operator
-  | 'CALLBACK_REQUEST'  // Request callback from human
-  | 'EMAIL_SUPPORT'     // Email escalation
-  | 'PHONE_SUPPORT'     // Phone number provided
-  | 'TICKET_SYSTEM'     // Create support ticket
-  | 'CHATBOT_EXIT';     // Simply exit AI, no human (not recommended)
+export type EscalationChannel =
+  | 'LIVE_HANDOFF' // Real-time transfer to human operator
+  | 'CALLBACK_REQUEST' // Request callback from human
+  | 'EMAIL_SUPPORT' // Email escalation
+  | 'PHONE_SUPPORT' // Phone number provided
+  | 'TICKET_SYSTEM' // Create support ticket
+  | 'CHATBOT_EXIT'; // Simply exit AI, no human (not recommended)
 
 /**
  * Data request handling modes
  */
 export type DataRequestMode =
-  | 'IMMEDIATE'         // Process immediately (automated)
-  | 'VERIFIED'          // Require identity verification first
-  | 'MANUAL_REVIEW'     // Route to human for processing
-  | 'EXTERNAL_SYSTEM';  // Forward to enterprise's existing data request system
+  | 'IMMEDIATE' // Process immediately (automated)
+  | 'VERIFIED' // Require identity verification first
+  | 'MANUAL_REVIEW' // Route to human for processing
+  | 'EXTERNAL_SYSTEM'; // Forward to enterprise's existing data request system
 
 /**
  * Consent scope categories
  */
 export interface ConsentScopes {
-  aiInteraction: boolean;        // Basic AI chat
-  dataStorage: boolean;          // Store conversation history
-  dataTraining: boolean;         // Use data for model training
-  personalization: boolean;      // Personalize responses based on history
-  analytics: boolean;            // Include in aggregate analytics
-  thirdPartySharing: boolean;    // Share with third parties
+  aiInteraction: boolean; // Basic AI chat
+  dataStorage: boolean; // Store conversation history
+  dataTraining: boolean; // Use data for model training
+  personalization: boolean; // Personalize responses based on history
+  analytics: boolean; // Include in aggregate analytics
+  thirdPartySharing: boolean; // Share with third parties
 }
 
 /**
@@ -57,30 +57,30 @@ export interface ConsentScopes {
 export interface EscalationChannelConfig {
   type: EscalationChannel;
   enabled: boolean;
-  priority: number;              // Lower = higher priority
-  
+  priority: number; // Lower = higher priority
+
   // Channel-specific config
-  endpoint?: string;             // API endpoint for handoff
-  email?: string;                // Support email
-  phone?: string;                // Support phone
-  queueId?: string;              // Queue/ticket system ID
-  
+  endpoint?: string; // API endpoint for handoff
+  email?: string; // Support email
+  phone?: string; // Support phone
+  queueId?: string; // Queue/ticket system ID
+
   // Availability
   availableHours?: {
-    start: string;               // "09:00"
-    end: string;                 // "17:00"
-    timezone: string;            // "Europe/London"
-    days: number[];              // [1,2,3,4,5] Mon-Fri
+    start: string; // "09:00"
+    end: string; // "17:00"
+    timezone: string; // "Europe/London"
+    days: number[]; // [1,2,3,4,5] Mon-Fri
   };
-  fallbackChannel?: EscalationChannel;  // If unavailable, use this
-  
+  fallbackChannel?: EscalationChannel; // If unavailable, use this
+
   // SLA
   expectedResponseTime?: string; // "2 minutes", "24 hours"
-  
+
   // UI
-  label: string;                 // "Connect to Human Agent"
-  description?: string;          // "Average wait time: 2 minutes"
-  icon?: string;                 // Icon name for UI
+  label: string; // "Connect to Human Agent"
+  description?: string; // "Average wait time: 2 minutes"
+  icon?: string; // Icon name for UI
 }
 
 /**
@@ -91,7 +91,7 @@ export interface DataRequestConfig {
     enabled: boolean;
     mode: DataRequestMode;
     format: 'JSON' | 'CSV' | 'PDF';
-    maxWaitTime: string;         // "24 hours"
+    maxWaitTime: string; // "24 hours"
     includeMetadata: boolean;
     verificationRequired: boolean;
   };
@@ -99,15 +99,15 @@ export interface DataRequestConfig {
     enabled: boolean;
     mode: DataRequestMode;
     confirmationRequired: boolean;
-    gracePeriod: string;         // "30 days" - time before permanent deletion
+    gracePeriod: string; // "30 days" - time before permanent deletion
     notifyOnCompletion: boolean;
   };
   restriction: {
-    enabled: boolean;            // Right to restrict processing
+    enabled: boolean; // Right to restrict processing
     mode: DataRequestMode;
   };
   portability: {
-    enabled: boolean;            // Right to data portability
+    enabled: boolean; // Right to data portability
     mode: DataRequestMode;
     supportedFormats: string[];
   };
@@ -119,29 +119,29 @@ export interface DataRequestConfig {
 export interface WithdrawalBehavior {
   // How to handle different withdrawal types
   humanEscalation: {
-    autoTransfer: boolean;       // Automatically transfer to human
-    confirmFirst: boolean;       // Ask "Are you sure?" first
-    preserveContext: boolean;    // Share conversation with human
+    autoTransfer: boolean; // Automatically transfer to human
+    confirmFirst: boolean; // Ask "Are you sure?" first
+    preserveContext: boolean; // Share conversation with human
   };
   explicitRevocation: {
-    immediateEffect: boolean;    // Stop AI immediately
+    immediateEffect: boolean; // Stop AI immediately
     requireConfirmation: boolean;
-    offerAlternatives: boolean;  // Show other options first
+    offerAlternatives: boolean; // Show other options first
   };
   dataRequest: {
-    autoAcknowledge: boolean;    // Immediately acknowledge request
+    autoAcknowledge: boolean; // Immediately acknowledge request
     requireVerification: boolean;
-    routeToSystem: boolean;      // Route to enterprise data system
+    routeToSystem: boolean; // Route to enterprise data system
   };
   optOut: {
-    sessionOnly: boolean;        // Opt out of current session only
-    accountWide: boolean;        // Opt out of all AI features
+    sessionOnly: boolean; // Opt out of current session only
+    accountWide: boolean; // Opt out of all AI features
     requireConfirmation: boolean;
   };
   frustrationExit: {
-    offerHuman: boolean;         // Proactively offer human
-    offerAlternatives: boolean;  // Show other options
-    allowSilentExit: boolean;    // Let user just leave
+    offerHuman: boolean; // Proactively offer human
+    offerAlternatives: boolean; // Show other options
+    allowSilentExit: boolean; // Let user just leave
   };
 }
 
@@ -151,28 +151,28 @@ export interface WithdrawalBehavior {
 export interface ConsentConfiguration {
   // Version for tracking config changes
   version: string;
-  
+
   // Consent model
   model: ConsentModel;
-  
+
   // Default scopes for new users
   defaultScopes: ConsentScopes;
-  
+
   // Required scopes (cannot use platform without these)
   requiredScopes: (keyof ConsentScopes)[];
-  
+
   // Consent expiry (requires re-consent)
-  consentExpiryDays: number | null;  // null = never expires
-  
+  consentExpiryDays: number | null; // null = never expires
+
   // Escalation channels (in priority order)
   escalationChannels: EscalationChannelConfig[];
-  
+
   // Data request handling
   dataRequests: DataRequestConfig;
-  
+
   // Withdrawal behavior
   withdrawalBehavior: WithdrawalBehavior;
-  
+
   // Compliance flags
   compliance: {
     gdprCompliant: boolean;
@@ -180,7 +180,7 @@ export interface ConsentConfiguration {
     ccpaCompliant: boolean;
     customRegulations?: string[];
   };
-  
+
   // UI customization
   ui: {
     consentBannerStyle: 'MINIMAL' | 'DETAILED' | 'LAYERED';
@@ -197,22 +197,22 @@ export interface ConsentConfiguration {
  */
 export const DEFAULT_EU_CONFIG: ConsentConfiguration = {
   version: '1.0.0',
-  
-  model: 'HYBRID',  // Binary for critical, graduated for optional
-  
+
+  model: 'HYBRID', // Binary for critical, graduated for optional
+
   defaultScopes: {
-    aiInteraction: false,      // Must explicitly consent
-    dataStorage: false,        // Must explicitly consent
-    dataTraining: false,       // Must explicitly consent
-    personalization: false,    // Must explicitly consent
-    analytics: false,          // Must explicitly consent
-    thirdPartySharing: false,  // Must explicitly consent
+    aiInteraction: false, // Must explicitly consent
+    dataStorage: false, // Must explicitly consent
+    dataTraining: false, // Must explicitly consent
+    personalization: false, // Must explicitly consent
+    analytics: false, // Must explicitly consent
+    thirdPartySharing: false, // Must explicitly consent
   },
-  
-  requiredScopes: ['aiInteraction'],  // Only AI interaction is required to use chat
-  
-  consentExpiryDays: 365,  // Re-consent annually
-  
+
+  requiredScopes: ['aiInteraction'], // Only AI interaction is required to use chat
+
+  consentExpiryDays: 365, // Re-consent annually
+
   escalationChannels: [
     {
       type: 'LIVE_HANDOFF',
@@ -226,7 +226,7 @@ export const DEFAULT_EU_CONFIG: ConsentConfiguration = {
         start: '09:00',
         end: '18:00',
         timezone: 'Europe/London',
-        days: [1, 2, 3, 4, 5],  // Mon-Fri
+        days: [1, 2, 3, 4, 5], // Mon-Fri
       },
       fallbackChannel: 'CALLBACK_REQUEST',
     },
@@ -235,7 +235,7 @@ export const DEFAULT_EU_CONFIG: ConsentConfiguration = {
       enabled: true,
       priority: 2,
       label: 'Request Callback',
-      description: 'We\'ll call you back within 24 hours',
+      description: "We'll call you back within 24 hours",
       icon: 'phone-callback',
       expectedResponseTime: '24 hours',
     },
@@ -250,13 +250,13 @@ export const DEFAULT_EU_CONFIG: ConsentConfiguration = {
       expectedResponseTime: '48 hours',
     },
   ],
-  
+
   dataRequests: {
     export: {
       enabled: true,
       mode: 'VERIFIED',
       format: 'JSON',
-      maxWaitTime: '30 days',  // GDPR allows up to 30 days
+      maxWaitTime: '30 days', // GDPR allows up to 30 days
       includeMetadata: true,
       verificationRequired: true,
     },
@@ -277,16 +277,16 @@ export const DEFAULT_EU_CONFIG: ConsentConfiguration = {
       supportedFormats: ['JSON', 'CSV'],
     },
   },
-  
+
   withdrawalBehavior: {
     humanEscalation: {
       autoTransfer: true,
-      confirmFirst: false,  // Don't add friction
+      confirmFirst: false, // Don't add friction
       preserveContext: true,
     },
     explicitRevocation: {
       immediateEffect: true,
-      requireConfirmation: true,  // Confirm they really want to revoke
+      requireConfirmation: true, // Confirm they really want to revoke
       offerAlternatives: true,
     },
     dataRequest: {
@@ -305,15 +305,15 @@ export const DEFAULT_EU_CONFIG: ConsentConfiguration = {
       allowSilentExit: true,
     },
   },
-  
+
   compliance: {
     gdprCompliant: true,
     aiActCompliant: true,
-    ccpaCompliant: true,  // Also CCPA compliant
+    ccpaCompliant: true, // Also CCPA compliant
   },
-  
+
   ui: {
-    consentBannerStyle: 'LAYERED',  // GDPR best practice
+    consentBannerStyle: 'LAYERED', // GDPR best practice
     showDataUsageExplanations: true,
     showWithdrawalOptions: true,
     escalationButtonLabel: 'Speak to a Human',
@@ -328,19 +328,19 @@ export const DEFAULT_EU_CONFIG: ConsentConfiguration = {
 export const STREAMLINED_CONFIG: ConsentConfiguration = {
   ...DEFAULT_EU_CONFIG,
   version: '1.0.0-streamlined',
-  
+
   model: 'GRADUATED',
-  
+
   ui: {
     ...DEFAULT_EU_CONFIG.ui,
     consentBannerStyle: 'MINIMAL',
   },
-  
+
   withdrawalBehavior: {
     ...DEFAULT_EU_CONFIG.withdrawalBehavior,
     explicitRevocation: {
       ...DEFAULT_EU_CONFIG.withdrawalBehavior.explicitRevocation,
-      requireConfirmation: false,  // No confirmation, respect immediately
+      requireConfirmation: false, // No confirmation, respect immediately
     },
   },
 };
@@ -351,26 +351,26 @@ export const STREAMLINED_CONFIG: ConsentConfiguration = {
 export const STRICT_CONFIG: ConsentConfiguration = {
   ...DEFAULT_EU_CONFIG,
   version: '1.0.0-strict',
-  
-  model: 'BINARY',  // Strict binary consent
-  
-  consentExpiryDays: 90,  // Re-consent quarterly
-  
-  requiredScopes: ['aiInteraction', 'dataStorage'],  // Both required
-  
+
+  model: 'BINARY', // Strict binary consent
+
+  consentExpiryDays: 90, // Re-consent quarterly
+
+  requiredScopes: ['aiInteraction', 'dataStorage'], // Both required
+
   dataRequests: {
     ...DEFAULT_EU_CONFIG.dataRequests,
     export: {
       ...DEFAULT_EU_CONFIG.dataRequests.export,
-      mode: 'MANUAL_REVIEW',  // Human reviews all data requests
+      mode: 'MANUAL_REVIEW', // Human reviews all data requests
     },
     deletion: {
       ...DEFAULT_EU_CONFIG.dataRequests.deletion,
       mode: 'MANUAL_REVIEW',
-      gracePeriod: '7 days',  // Shorter grace period
+      gracePeriod: '7 days', // Shorter grace period
     },
   },
-  
+
   compliance: {
     gdprCompliant: true,
     aiActCompliant: true,
@@ -385,26 +385,26 @@ export const STRICT_CONFIG: ConsentConfiguration = {
 export const US_CONFIG: ConsentConfiguration = {
   ...DEFAULT_EU_CONFIG,
   version: '1.0.0-us',
-  
+
   model: 'GRADUATED',
-  
-  consentExpiryDays: null,  // No expiry
-  
+
+  consentExpiryDays: null, // No expiry
+
   defaultScopes: {
-    aiInteraction: true,       // Opt-out model
+    aiInteraction: true, // Opt-out model
     dataStorage: true,
-    dataTraining: false,       // Still require opt-in
+    dataTraining: false, // Still require opt-in
     personalization: true,
     analytics: true,
-    thirdPartySharing: false,  // Still require opt-in
+    thirdPartySharing: false, // Still require opt-in
   },
-  
+
   compliance: {
-    gdprCompliant: false,  // Not fully GDPR compliant (opt-out model)
+    gdprCompliant: false, // Not fully GDPR compliant (opt-out model)
     aiActCompliant: true,
     ccpaCompliant: true,
   },
-  
+
   ui: {
     ...DEFAULT_EU_CONFIG.ui,
     consentBannerStyle: 'MINIMAL',
@@ -414,7 +414,9 @@ export const US_CONFIG: ConsentConfiguration = {
 /**
  * Get configuration by name
  */
-export function getConsentConfig(name: 'default' | 'streamlined' | 'strict' | 'us' = 'default'): ConsentConfiguration {
+export function getConsentConfig(
+  name: 'default' | 'streamlined' | 'strict' | 'us' = 'default'
+): ConsentConfiguration {
   switch (name) {
     case 'streamlined':
       return STREAMLINED_CONFIG;
@@ -430,54 +432,58 @@ export function getConsentConfig(name: 'default' | 'streamlined' | 'strict' | 'u
 /**
  * Validate a custom configuration for compliance
  */
-export function validateConsentConfig(config: ConsentConfiguration): { valid: boolean; warnings: string[]; errors: string[] } {
+export function validateConsentConfig(config: ConsentConfiguration): {
+  valid: boolean;
+  warnings: string[];
+  errors: string[];
+} {
   const warnings: string[] = [];
   const errors: string[] = [];
-  
+
   // GDPR checks
   if (config.compliance.gdprCompliant) {
     // Must have data export capability
     if (!config.dataRequests.export.enabled) {
       errors.push('GDPR requires data export capability (right to access)');
     }
-    
+
     // Must have deletion capability
     if (!config.dataRequests.deletion.enabled) {
       errors.push('GDPR requires data deletion capability (right to erasure)');
     }
-    
+
     // Must have at least one escalation channel
-    if (config.escalationChannels.filter(c => c.enabled).length === 0) {
+    if (config.escalationChannels.filter((c) => c.enabled).length === 0) {
       errors.push('GDPR requires human oversight capability');
     }
-    
+
     // Opt-in consent model recommended
     if (config.defaultScopes.dataStorage || config.defaultScopes.analytics) {
       warnings.push('GDPR recommends opt-in consent model (default scopes should be false)');
     }
-    
+
     // Consent expiry recommended
     if (config.consentExpiryDays === null) {
       warnings.push('GDPR recommends periodic re-consent (consentExpiryDays should be set)');
     }
   }
-  
+
   // AI Act checks
   if (config.compliance.aiActCompliant) {
     // Must have human escalation
     const hasHumanChannel = config.escalationChannels.some(
-      c => c.enabled && (c.type === 'LIVE_HANDOFF' || c.type === 'CALLBACK_REQUEST')
+      (c) => c.enabled && (c.type === 'LIVE_HANDOFF' || c.type === 'CALLBACK_REQUEST')
     );
     if (!hasHumanChannel) {
       errors.push('AI Act requires meaningful human oversight (live handoff or callback required)');
     }
-    
+
     // Must preserve context on escalation
     if (!config.withdrawalBehavior.humanEscalation.preserveContext) {
       warnings.push('AI Act recommends preserving context on human escalation for continuity');
     }
   }
-  
+
   return {
     valid: errors.length === 0,
     warnings,
@@ -503,11 +509,23 @@ export function mergeWithDefaults(
       portability: { ...base.dataRequests.portability, ...customConfig.dataRequests?.portability },
     },
     withdrawalBehavior: {
-      humanEscalation: { ...base.withdrawalBehavior.humanEscalation, ...customConfig.withdrawalBehavior?.humanEscalation },
-      explicitRevocation: { ...base.withdrawalBehavior.explicitRevocation, ...customConfig.withdrawalBehavior?.explicitRevocation },
-      dataRequest: { ...base.withdrawalBehavior.dataRequest, ...customConfig.withdrawalBehavior?.dataRequest },
+      humanEscalation: {
+        ...base.withdrawalBehavior.humanEscalation,
+        ...customConfig.withdrawalBehavior?.humanEscalation,
+      },
+      explicitRevocation: {
+        ...base.withdrawalBehavior.explicitRevocation,
+        ...customConfig.withdrawalBehavior?.explicitRevocation,
+      },
+      dataRequest: {
+        ...base.withdrawalBehavior.dataRequest,
+        ...customConfig.withdrawalBehavior?.dataRequest,
+      },
       optOut: { ...base.withdrawalBehavior.optOut, ...customConfig.withdrawalBehavior?.optOut },
-      frustrationExit: { ...base.withdrawalBehavior.frustrationExit, ...customConfig.withdrawalBehavior?.frustrationExit },
+      frustrationExit: {
+        ...base.withdrawalBehavior.frustrationExit,
+        ...customConfig.withdrawalBehavior?.frustrationExit,
+      },
     },
     compliance: { ...base.compliance, ...customConfig.compliance },
     ui: { ...base.ui, ...customConfig.ui },

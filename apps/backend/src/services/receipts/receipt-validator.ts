@@ -1,8 +1,8 @@
 /**
  * Receipt Validator Service
- * 
+ *
  * Responsible for validating and verifying trust receipts
- * 
+ *
  * Features:
  * - Schema validation (JSON Schema)
  * - Signature verification (Ed25519)
@@ -25,7 +25,7 @@ export interface DetailedVerificationResult extends VerificationResult {
 
 /**
  * ReceiptValidatorService
- * 
+ *
  * Validates receipts and verifies signatures
  */
 export class ReceiptValidatorService {
@@ -36,7 +36,9 @@ export class ReceiptValidatorService {
     try {
       return receiptValidator.validateJSON(receipt);
     } catch (err) {
-      logger.error('Schema validation error', { error: err instanceof Error ? err.message : String(err) });
+      logger.error('Schema validation error', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       return {
         valid: false,
         checks: {
@@ -53,20 +55,20 @@ export class ReceiptValidatorService {
 
   /**
    * Verify receipt signature (cryptographic proof)
-   * 
+   *
    * In production, this would:
    * - Retrieve agent's public key from DID resolver
    * - Verify the Ed25519 signature against canonical content
    * - Check signature timestamp
    */
-  async verifySignature(
-    receipt: TrustReceipt,
-    publicKey: string | Buffer
-  ): Promise<boolean> {
+  async verifySignature(receipt: TrustReceipt, publicKey: string | Buffer): Promise<boolean> {
     try {
       // Reconstruct the canonical content that was signed
       const { signature: sig, ...receiptWithoutSignature } = receipt;
-      const canonical = JSON.stringify(receiptWithoutSignature, Object.keys(receiptWithoutSignature).sort());
+      const canonical = JSON.stringify(
+        receiptWithoutSignature,
+        Object.keys(receiptWithoutSignature).sort()
+      );
 
       // Verify the signature
       const isValid = await verifySignature(canonical, sig.value, publicKey as Uint8Array);
@@ -89,7 +91,7 @@ export class ReceiptValidatorService {
 
   /**
    * Verify chain integrity (hash chain validation)
-   * 
+   *
    * Reconstructs the canonical content the same way the generator does:
    * 1. Remove `signature` from the receipt (generator signs before adding signature)
    * 2. Keep `id` in the receipt (generator includes id before signing)
@@ -107,14 +109,20 @@ export class ReceiptValidatorService {
       // Reconstruct the canonical content matching the generator's approach:
       // The generator canonicalizes the receipt WITHOUT signature but WITH id
       const { signature: _sig, ...receiptWithoutSignature } = receipt;
-      const canonical = JSON.stringify(receiptWithoutSignature, Object.keys(receiptWithoutSignature).sort());
+      const canonical = JSON.stringify(
+        receiptWithoutSignature,
+        Object.keys(receiptWithoutSignature).sort()
+      );
       const chainContent = canonical + receipt.chain.previous_hash;
       const expectedChainHash = createHash('sha256').update(chainContent).digest('hex');
 
       if (receipt.chain.chain_hash !== expectedChainHash) {
         // Try alternative canonicalization (without id) for backward compatibility
         const { signature: _sig2, id: _id, ...receiptWithoutIdOrSig } = receipt;
-        const altCanonical = JSON.stringify(receiptWithoutIdOrSig, Object.keys(receiptWithoutIdOrSig).sort());
+        const altCanonical = JSON.stringify(
+          receiptWithoutIdOrSig,
+          Object.keys(receiptWithoutIdOrSig).sort()
+        );
         const altChainContent = altCanonical + receipt.chain.previous_hash;
         const altExpectedChainHash = createHash('sha256').update(altChainContent).digest('hex');
 
@@ -162,7 +170,7 @@ export class ReceiptValidatorService {
 
   /**
    * Full receipt verification (comprehensive)
-   * 
+   *
    * Performs all checks:
    * 1. Schema validation
    * 2. Receipt ID verification
@@ -239,7 +247,9 @@ export class ReceiptValidatorService {
     } catch (err) {
       result.valid = false;
       result.errors.push(`Verification error: ${err instanceof Error ? err.message : String(err)}`);
-      logger.error('Receipt verification error', { error: err instanceof Error ? err.message : String(err) });
+      logger.error('Receipt verification error', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       return result;
     }
   }

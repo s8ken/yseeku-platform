@@ -1,6 +1,6 @@
 /**
  * Error Utilities
- * 
+ *
  * Type-safe utilities for error handling to eliminate `any` type usage.
  */
 
@@ -42,15 +42,15 @@ export function getErrorMessage(error: unknown): string {
   if (isError(error)) {
     return error.message;
   }
-  
+
   if (isErrorLike(error)) {
     return error.message;
   }
-  
+
   if (typeof error === 'string') {
     return error;
   }
-  
+
   return 'An unknown error occurred';
 }
 
@@ -74,23 +74,23 @@ export function normalizeError(error: unknown): NormalizedError {
       name: error.name,
       stack: error.stack,
     };
-    
+
     // Extract additional properties if present
-    const errorWithExtras = error as Error & { 
-      code?: string; 
+    const errorWithExtras = error as Error & {
+      code?: string;
       status?: number;
       statusCode?: number;
       details?: unknown;
     };
-    
+
     if (errorWithExtras.code) normalized.code = errorWithExtras.code;
     if (errorWithExtras.status) normalized.status = errorWithExtras.status;
     if (errorWithExtras.statusCode) normalized.status = errorWithExtras.statusCode;
     if (errorWithExtras.details) normalized.details = errorWithExtras.details;
-    
+
     return normalized;
   }
-  
+
   if (isErrorLike(error)) {
     return {
       message: error.message,
@@ -98,7 +98,7 @@ export function normalizeError(error: unknown): NormalizedError {
       details: error,
     };
   }
-  
+
   return {
     message: getErrorMessage(error),
     name: 'UnknownError',
@@ -108,7 +108,7 @@ export function normalizeError(error: unknown): NormalizedError {
 
 /**
  * Create a typed error handler for try-catch blocks
- * 
+ *
  * Usage:
  * ```typescript
  * try {

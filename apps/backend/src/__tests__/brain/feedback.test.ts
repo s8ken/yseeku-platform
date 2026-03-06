@@ -98,12 +98,14 @@ describe('Brain Feedback Service', () => {
 
       const result = await calculateEffectiveness(mockTenantId, 'ban_agent');
 
-      expect(result).toEqual(expect.objectContaining({
-        actionType: 'ban_agent',
-        successRate: 0.5, // Neutral default
-        avgImpact: 0,
-        sampleSize: 0,
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          actionType: 'ban_agent',
+          successRate: 0.5, // Neutral default
+          avgImpact: 0,
+          sampleSize: 0,
+        })
+      );
     });
 
     it('should calculate correct effectiveness from actions', async () => {
@@ -125,9 +127,7 @@ describe('Brain Feedback Service', () => {
     });
 
     it('should store effectiveness in memory', async () => {
-      const mockActions = [
-        { result: { outcome: { success: true, impact: 0.5 } } },
-      ];
+      const mockActions = [{ result: { outcome: { success: true, impact: 0.5 } } }];
       (BrainAction.find as jest.Mock).mockReturnValue({
         lean: jest.fn().mockResolvedValue(mockActions),
       });
@@ -178,7 +178,7 @@ describe('Brain Feedback Service', () => {
       const result = await getActionRecommendations(mockTenantId);
 
       // At least one action type should have increase recommendation
-      const alertRec = result.adjustments.find(a => a.actionType === 'alert');
+      const alertRec = result.adjustments.find((a) => a.actionType === 'alert');
       expect(alertRec?.recommendation).toBe('increase');
     });
 
@@ -194,7 +194,7 @@ describe('Brain Feedback Service', () => {
 
       const result = await getActionRecommendations(mockTenantId);
 
-      const alertRec = result.adjustments.find(a => a.actionType === 'alert');
+      const alertRec = result.adjustments.find((a) => a.actionType === 'alert');
       expect(alertRec?.recommendation).toBe('decrease');
     });
 
@@ -290,12 +290,7 @@ describe('Brain Feedback Service', () => {
       (BrainAction.findById as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        measureActionImpact(
-          mockTenantId,
-          'nonexistent',
-          preActionState,
-          postActionState
-        )
+        measureActionImpact(mockTenantId, 'nonexistent', preActionState, postActionState)
       ).rejects.toThrow('Action not found');
     });
 

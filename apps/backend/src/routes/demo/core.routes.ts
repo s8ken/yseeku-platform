@@ -1,7 +1,7 @@
 /**
  * Demo Core Routes
  * Initialization, status, and KPI endpoints for demo dashboard
- * 
+ *
  * v2.0.1 CHANGES:
  * - Removed realityIndex and canvasParity from sonateDimensions (calculators cut)
  * - Focused on 3 validated dimensions: trustProtocol, ethicalAlignment, resonanceQuality
@@ -31,8 +31,6 @@ router.post('/init', async (req: Request, res: Response): Promise<void> => {
 
     // Seed complete demo tenant with real data
     const seedResult = await demoSeederService.seed(force);
-
-
 
     logger.info('Demo mode initialized', seedResult);
 
@@ -73,7 +71,7 @@ router.get('/status', async (req: Request, res: Response): Promise<void> => {
  * @route   GET /api/demo/kpis
  * @desc    Get showcase KPI data for demo dashboard - queries REAL demo data
  * @access  Public (for demo purposes)
- * 
+ *
  * v2.0.1: Updated sonateDimensions to only include validated calculators
  */
 router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
@@ -98,15 +96,18 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
     };
 
     // Calculate real metrics from trust receipts
-    const avgClarity = receipts.length > 0
-      ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 0), 0) / receipts.length
-      : 4.5;
-    const avgIntegrity = receipts.length > 0
-      ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 0), 0) / receipts.length
-      : 4.3;
-    const avgQuality = receipts.length > 0
-      ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 0), 0) / receipts.length
-      : 4.2;
+    const avgClarity =
+      receipts.length > 0
+        ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 0), 0) / receipts.length
+        : 4.5;
+    const avgIntegrity =
+      receipts.length > 0
+        ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 0), 0) / receipts.length
+        : 4.3;
+    const avgQuality =
+      receipts.length > 0
+        ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 0), 0) / receipts.length
+        : 4.2;
 
     // Trust score on a 0-10 scale (frontend expects /10)
     const trustScoreRaw = (avgClarity + avgIntegrity + avgQuality) / 3;
@@ -119,7 +120,7 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
       validation: Math.round(Math.min(10, Math.max(0, avgQuality)) * 10) / 10,
       ethics: Math.round(Math.min(10, Math.max(0, avgIntegrity)) * 10) / 10,
       disconnect: Math.round(Math.min(10, Math.max(0, 8.5 + (avgQuality - 5) * 0.1)) * 10) / 10,
-      moral: Math.round(Math.min(10, Math.max(0, ((avgIntegrity + avgQuality) / 2))) * 10) / 10,
+      moral: Math.round(Math.min(10, Math.max(0, (avgIntegrity + avgQuality) / 2)) * 10) / 10,
     };
 
     const kpiData = {
@@ -138,7 +139,8 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
       sonateDimensions: {
         trustProtocol: trustScore >= 7 ? 'PASS' : trustScore >= 5 ? 'PARTIAL' : 'FAIL',
         ethicalAlignment: Math.round(avgIntegrity * 10) / 10,
-        resonanceQuality: trustScore >= 8.5 ? 'BREAKTHROUGH' : trustScore >= 7 ? 'ADVANCED' : 'STRONG',
+        resonanceQuality:
+          trustScore >= 8.5 ? 'BREAKTHROUGH' : trustScore >= 7 ? 'ADVANCED' : 'STRONG',
         // Deprecated fields - kept for backward compatibility, always return 0
         realityIndex: 0,
         canvasParity: 0,

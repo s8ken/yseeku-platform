@@ -4,7 +4,14 @@
  * Provides production-grade metrics collection for monitoring and alerting.
  */
 
-import { Registry, Counter, Histogram, Gauge, collectDefaultMetrics , register as globalRegister } from 'prom-client';
+import {
+  Registry,
+  Counter,
+  Histogram,
+  Gauge,
+  collectDefaultMetrics,
+  register as globalRegister,
+} from 'prom-client';
 
 // Use global registry to avoid duplicate registration during Next.js SSG
 export const register = globalRegister;

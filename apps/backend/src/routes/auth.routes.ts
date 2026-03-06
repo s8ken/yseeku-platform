@@ -7,7 +7,11 @@
 import { Router, Request, Response } from 'express';
 import { authService, protect } from '../middleware/auth.middleware';
 import { validateBody } from '../middleware/validation.middleware';
-import { loginRateLimiter, registerRateLimiter, passwordResetRateLimiter } from '../middleware/auth-rate-limit';
+import {
+  loginRateLimiter,
+  registerRateLimiter,
+  passwordResetRateLimiter,
+} from '../middleware/auth-rate-limit';
 import { LoginSchema, RegisterSchema } from '../schemas/validation.schemas';
 import { User, IUser } from '../models/user.model';
 import { logSuccess, logFailure } from '../utils/audit-logger';
@@ -28,12 +32,12 @@ router.get('/debug', protect, (req: Request, res: Response) => {
       id: req.user?._id,
       email: req.user?.email,
       name: req.user?.name,
-      apiKeysCount: req.user?.apiKeys?.length
+      apiKeysCount: req.user?.apiKeys?.length,
     },
     token: {
       // Don't log full token for security, just presence
-      present: true
-    }
+      present: true,
+    },
   });
 });
 
@@ -42,62 +46,67 @@ router.get('/debug', protect, (req: Request, res: Response) => {
  * @desc    Register new user
  * @access  Public
  */
-router.post('/register', registerRateLimiter, validateBody(RegisterSchema), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { name, email, password } = req.body;
+router.post(
+  '/register',
+  registerRateLimiter,
+  validateBody(RegisterSchema),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { name, email, password } = req.body;
 
-    // Check if user exists
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      res.status(400).json({
-        success: false,
-        message: 'User already exists with this email'
+      // Check if user exists
+      const userExists = await User.findOne({ email });
+      if (userExists) {
+        res.status(400).json({
+          success: false,
+          message: 'User already exists with this email',
+        });
+        return;
+      }
+
+      // Create user (password will be hashed by the model's pre-save hook)
+      const user = await User.create({
+        name,
+        email,
+        password,
       });
-      return;
-    }
 
-    // Create user (password will be hashed by the model's pre-save hook)
-    const user = await User.create({
-      name,
-      email,
-      password,
-    });
+      // Generate tokens using SecureAuthService
+      if (!process.env.JWT_SECRET) {
+        logger.warn('⚠️  JWT_SECRET is missing during registration token generation');
+      }
+      const tokens = authService.generateTokens({
+        id: user._id.toString(),
+        username: user.name,
+        email: user.email,
+        roles: ['user'],
+        tenant: 'default',
+      });
 
-    // Generate tokens using SecureAuthService
-    if (!process.env.JWT_SECRET) {
-      logger.warn('⚠️  JWT_SECRET is missing during registration token generation');
-    }
-    const tokens = authService.generateTokens({
-      id: user._id.toString(),
-      username: user.name,
-      email: user.email,
-      roles: ['user'],
-      tenant: 'default',
-    });
-
-    res.status(201).json({
-      success: true,
-      message: 'User registered successfully',
-      data: {
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          createdAt: user.createdAt,
+      res.status(201).json({
+        success: true,
+        message: 'User registered successfully',
+        data: {
+          user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            createdAt: user.createdAt,
+          },
+          tokens,
         },
-        tokens,
-      },
-    });
-  } catch (error: unknown) {
-    const message = getErrorMessage(error);
-    logger.error('Registration error', { error: message });
-    res.status(500).json({
-      success: false,
-      message: 'Registration failed',
-      error: message,
-    });
+      });
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
+      logger.error('Registration error', { error: message });
+      res.status(500).json({
+        success: false,
+        message: 'Registration failed',
+        error: message,
+      });
+    }
   }
-});
+);
 
 /**
  * @route   POST /api/auth/login
@@ -112,8 +121,10 @@ router.post('/register', registerRateLimiter, validateBody(RegisterSchema), asyn
 router.post('/guest', async (req: Request, res: Response): Promise<void> => {
   try {
     const requestedTenantIdValue = req.query.tenantId || req.query.tenant;
-    const requestedTenantId = typeof requestedTenantIdValue === 'string' ? requestedTenantIdValue : undefined;
-    const demoAllowed = process.env.ENABLE_DEMO_MODE === 'true' || process.env.NODE_ENV !== 'production';
+    const requestedTenantId =
+      typeof requestedTenantIdValue === 'string' ? requestedTenantIdValue : undefined;
+    const demoAllowed =
+      process.env.ENABLE_DEMO_MODE === 'true' || process.env.NODE_ENV !== 'production';
     const tenantId = demoAllowed && requestedTenantId === 'demo-tenant' ? 'demo-tenant' : 'default';
 
     const guestId = `guest_${Math.random().toString(36).substring(2, 10)}`;
@@ -161,91 +172,86 @@ router.post('/guest', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-router.post('/login', loginRateLimiter, validateBody(LoginSchema), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { email, password, username } = req.body;
+router.post(
+  '/login',
+  loginRateLimiter,
+  validateBody(LoginSchema),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email, password, username } = req.body;
 
-    // Support both email and username login
-    const loginIdentifier = email || username;
+      // Support both email and username login
+      const loginIdentifier = email || username;
 
-    // Find user (need to explicitly select password field)
-    const user = await User.findOne({
-      $or: [
-        { email: loginIdentifier },
-        { name: loginIdentifier }
-      ]
-    }).select('+password');
+      // Find user (need to explicitly select password field)
+      const user = await User.findOne({
+        $or: [{ email: loginIdentifier }, { name: loginIdentifier }],
+      }).select('+password');
 
-    if (!user) {
-      res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          message: 'Invalid credentials',
+        });
+        return;
+      }
+
+      // Verify password using User model method
+      const isPasswordValid = await user.matchPassword(password);
+
+      if (!isPasswordValid) {
+        // Log failed login attempt
+        await logFailure(req, 'login', 'user', user._id.toString(), 'Invalid password', 'warning');
+        res.status(401).json({
+          success: false,
+          message: 'Invalid credentials',
+        });
+        return;
+      }
+
+      // Generate tokens using SecureAuthService
+      if (!process.env.JWT_SECRET) {
+        logger.warn('⚠️  JWT_SECRET is missing during login token generation');
+      }
+      const tokens = authService.generateTokens({
+        id: user._id.toString(),
+        username: user.name,
+        email: user.email,
+        roles: ['user'],
+        tenant: 'default',
       });
-      return;
-    }
 
-    // Verify password using User model method
-    const isPasswordValid = await user.matchPassword(password);
-
-    if (!isPasswordValid) {
-      // Log failed login attempt
-      await logFailure(
-        req,
-        'login',
-        'user',
-        user._id.toString(),
-        'Invalid password',
-        'warning'
-      );
-      res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
+      // Log successful login
+      await logSuccess(req, 'login', 'user', user._id.toString(), {
+        email: user.email,
+        loginMethod: 'password',
       });
-      return;
-    }
 
-    // Generate tokens using SecureAuthService
-    if (!process.env.JWT_SECRET) {
-      logger.warn('⚠️  JWT_SECRET is missing during login token generation');
-    }
-    const tokens = authService.generateTokens({
-      id: user._id.toString(),
-      username: user.name,
-      email: user.email,
-      roles: ['user'],
-      tenant: 'default',
-    });
-
-    // Log successful login
-    await logSuccess(req, 'login', 'user', user._id.toString(), {
-      email: user.email,
-      loginMethod: 'password',
-    });
-
-    res.json({
-      success: true,
-      message: 'Login successful',
-      data: {
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
+      res.json({
+        success: true,
+        message: 'Login successful',
+        data: {
+          user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+          },
+          tokens,
         },
-        tokens,
-      },
-      // Legacy support: also return token at root level
-      token: tokens.accessToken,
-    });
-  } catch (error: unknown) {
-    const message = getErrorMessage(error);
-    logger.error('Login error', { error: message });
-    res.status(500).json({
-      success: false,
-      message: 'Login failed',
-      error: message,
-    });
+        // Legacy support: also return token at root level
+        token: tokens.accessToken,
+      });
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
+      logger.error('Login error', { error: message });
+      res.status(500).json({
+        success: false,
+        message: 'Login failed',
+        error: message,
+      });
+    }
   }
-});
+);
 
 /**
  * @route   POST /api/auth/admin-reset
@@ -284,7 +290,11 @@ router.post('/admin-reset', async (req: Request, res: Response): Promise<void> =
       tenant: 'default',
     });
 
-    res.json({ success: true, message: 'Admin reset successful', data: { user: { id: user._id, email: user.email }, tokens } });
+    res.json({
+      success: true,
+      message: 'Admin reset successful',
+      data: { user: { id: user._id, email: user.email }, tokens },
+    });
   } catch (error: unknown) {
     const message = getErrorMessage(error);
     logger.error('Admin reset error', { error: message });
@@ -304,7 +314,7 @@ router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
     if (!refreshToken) {
       res.status(400).json({
         success: false,
-        message: 'Refresh token is required'
+        message: 'Refresh token is required',
       });
       return;
     }
@@ -340,7 +350,7 @@ router.get('/me', protect, async (req: Request, res: Response): Promise<void> =>
     if (!req.user) {
       res.status(401).json({
         success: false,
-        message: 'Not authenticated'
+        message: 'Not authenticated',
       });
       return;
     }
@@ -353,7 +363,7 @@ router.get('/me', protect, async (req: Request, res: Response): Promise<void> =>
           name: req.user.name,
           email: req.user.email,
           preferences: req.user.preferences,
-          apiKeys: req.user.apiKeys.map(key => ({
+          apiKeys: req.user.apiKeys.map((key) => ({
             provider: key.provider,
             name: key.name,
             isActive: key.isActive,
@@ -385,7 +395,7 @@ router.put('/profile', protect, async (req: Request, res: Response): Promise<voi
     if (!req.user) {
       res.status(401).json({
         success: false,
-        message: 'Not authenticated'
+        message: 'Not authenticated',
       });
       return;
     }
@@ -412,7 +422,7 @@ router.put('/profile', protect, async (req: Request, res: Response): Promise<voi
     if (!user) {
       res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
       return;
     }
@@ -517,7 +527,7 @@ router.post('/api-keys', protect, async (req: Request, res: Response): Promise<v
       success: true,
       message: `${provider} API key updated successfully`,
       data: {
-        apiKeys: user.apiKeys.map(k => ({
+        apiKeys: user.apiKeys.map((k) => ({
           provider: k.provider,
           name: k.name,
           isActive: k.isActive,
@@ -541,50 +551,54 @@ router.post('/api-keys', protect, async (req: Request, res: Response): Promise<v
  * @desc    Delete LLM provider API key
  * @access  Private
  */
-router.delete('/api-keys/:provider', protect, async (req: Request, res: Response): Promise<void> => {
-  try {
-    if (!req.user) {
-      res.status(401).json({ success: false, message: 'Not authenticated' });
-      return;
+router.delete(
+  '/api-keys/:provider',
+  protect,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ success: false, message: 'Not authenticated' });
+        return;
+      }
+
+      const user = await User.findById(req.user._id);
+      if (!user) {
+        res.status(404).json({ success: false, message: 'User not found' });
+        return;
+      }
+
+      const { provider } = req.params;
+      user.apiKeys = user.apiKeys.filter((k: any) => k.provider !== provider);
+      await user.save();
+
+      // Log API key deletion
+      await logSuccess(req, 'api_key_delete', 'api-key', `${user._id.toString()}-${provider}`, {
+        provider,
+      });
+
+      res.json({
+        success: true,
+        message: `${provider} API key removed successfully`,
+        data: {
+          apiKeys: user.apiKeys.map((k) => ({
+            provider: k.provider,
+            name: k.name,
+            isActive: k.isActive,
+            createdAt: k.createdAt,
+          })),
+        },
+      });
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
+      logger.error('Delete API key error', { error: message });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete API key',
+        error: message,
+      });
     }
-
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      res.status(404).json({ success: false, message: 'User not found' });
-      return;
-    }
-
-    const { provider } = req.params;
-    user.apiKeys = user.apiKeys.filter((k: any) => k.provider !== provider);
-    await user.save();
-
-    // Log API key deletion
-    await logSuccess(req, 'api_key_delete', 'api-key', `${user._id.toString()}-${provider}`, {
-      provider,
-    });
-
-    res.json({
-      success: true,
-      message: `${provider} API key removed successfully`,
-      data: {
-        apiKeys: user.apiKeys.map(k => ({
-          provider: k.provider,
-          name: k.name,
-          isActive: k.isActive,
-          createdAt: k.createdAt,
-        })),
-      },
-    });
-  } catch (error: unknown) {
-    const message = getErrorMessage(error);
-    logger.error('Delete API key error', { error: message });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete API key',
-      error: message,
-    });
   }
-});
+);
 
 /**
  * @route   GET /api/auth/consent
@@ -624,11 +638,11 @@ router.get('/consent', protect, async (req: Request, res: Response): Promise<voi
 router.put('/consent', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { hasConsentedToAI, consentScope } = req.body;
-    
+
     if (typeof hasConsentedToAI !== 'boolean') {
-      res.status(400).json({ 
-        success: false, 
-        message: 'hasConsentedToAI must be a boolean' 
+      res.status(400).json({
+        success: false,
+        message: 'hasConsentedToAI must be a boolean',
       });
       return;
     }
@@ -649,8 +663,8 @@ router.put('/consent', protect, async (req: Request, res: Response): Promise<voi
 
     await user.save();
 
-    logger.info('User consent updated', { 
-      userId: req.userId, 
+    logger.info('User consent updated', {
+      userId: req.userId,
       hasConsentedToAI,
       consentScope: user.consent.consentScope,
     });

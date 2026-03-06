@@ -1,4 +1,3 @@
-
 import { logger } from './logger';
 
 export interface RobustFetchOptions extends RequestInit {
@@ -54,7 +53,7 @@ export async function robustFetch<T = any>(
           if (response.status === 204) {
             return { ok: true, status: response.status, data: null };
           }
-          
+
           const text = await response.text();
           let data: T | null = null;
           try {
@@ -63,15 +62,15 @@ export async function robustFetch<T = any>(
             // If not JSON, return raw text if T is string, else null or error
             data = text as unknown as T;
           }
-          
+
           return { ok: true, status: response.status, data };
         } catch (parseError) {
           logger.warn(`Failed to parse response from ${url}`, { error: parseError });
-          return { 
-            ok: false, 
-            status: response.status, 
-            data: null, 
-            error: 'Response parsing failed' 
+          return {
+            ok: false,
+            status: response.status,
+            data: null,
+            error: 'Response parsing failed',
           };
         }
       }
@@ -79,16 +78,15 @@ export async function robustFetch<T = any>(
       // Check if we should retry
       if (!retryOnStatuses.includes(response.status)) {
         // Fatal error, don't retry
-        return { 
-          ok: false, 
-          status: response.status, 
-          data: null, 
-          error: `HTTP Error ${response.status}` 
+        return {
+          ok: false,
+          status: response.status,
+          data: null,
+          error: `HTTP Error ${response.status}`,
         };
       }
-      
-      throw new Error(`HTTP ${response.status}`);
 
+      throw new Error(`HTTP ${response.status}`);
     } catch (error: any) {
       lastError = error;
       const isAbort = error.name === 'AbortError';
@@ -108,7 +106,7 @@ export async function robustFetch<T = any>(
       await new Promise((resolve) => setTimeout(resolve, delay));
       attempt++;
     } finally {
-        clearTimeout(id);
+      clearTimeout(id);
     }
   }
 

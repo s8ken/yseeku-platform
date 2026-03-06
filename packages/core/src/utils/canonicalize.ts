@@ -49,7 +49,9 @@ function sortObjectKeys(obj: any): any {
       .sort()
       .forEach((k) => {
         const v = obj[k];
-        if (v === null || v === undefined) {return;} // omit nulls/undefined
+        if (v === null || v === undefined) {
+          return;
+        } // omit nulls/undefined
         sorted[k] = sortObjectKeys(v);
       });
     return sorted;

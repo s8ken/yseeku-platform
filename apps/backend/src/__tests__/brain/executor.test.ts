@@ -149,12 +149,14 @@ describe('Brain Executor Service', () => {
       (AlertsService.createAlert as jest.Mock).mockResolvedValue({ id: 'alert-1' });
       (memory.remember as jest.Mock).mockResolvedValue({});
 
-      const actions: PlannedAction[] = [{
-        type: 'ban_agent',
-        target: 'agent-123',
-        reason: 'Malicious behavior detected',
-        severity: 'high',
-      }];
+      const actions: PlannedAction[] = [
+        {
+          type: 'ban_agent',
+          target: 'agent-123',
+          reason: 'Malicious behavior detected',
+          severity: 'high',
+        },
+      ];
 
       const results = await executeActions(mockTenantId, mockCycleId, actions, 'enforced');
 
@@ -212,11 +214,13 @@ describe('Brain Executor Service', () => {
     it('should handle agent not found error', async () => {
       (Agent.findById as jest.Mock).mockResolvedValue(null);
 
-      const actions: PlannedAction[] = [{
-        type: 'ban_agent',
-        target: 'nonexistent-agent',
-        reason: 'Test',
-      }];
+      const actions: PlannedAction[] = [
+        {
+          type: 'ban_agent',
+          target: 'nonexistent-agent',
+          reason: 'Test',
+        },
+      ];
 
       const results = await executeActions(mockTenantId, mockCycleId, actions, 'enforced');
 
@@ -235,12 +239,14 @@ describe('Brain Executor Service', () => {
       (Conversation.updateMany as jest.Mock).mockResolvedValue({ modifiedCount: 0 });
       (memory.remember as jest.Mock).mockResolvedValue({});
 
-      const actions: PlannedAction[] = [{
-        type: 'ban_agent',
-        target: 'agent-123',
-        reason: 'Test ban',
-        // No severity specified
-      }];
+      const actions: PlannedAction[] = [
+        {
+          type: 'ban_agent',
+          target: 'agent-123',
+          reason: 'Test ban',
+          // No severity specified
+        },
+      ];
 
       await executeActions(mockTenantId, mockCycleId, actions, 'enforced');
 
@@ -264,12 +270,14 @@ describe('Brain Executor Service', () => {
       (Agent.findById as jest.Mock).mockResolvedValue(mockAgent);
       (memory.remember as jest.Mock).mockResolvedValue({});
 
-      const actions: PlannedAction[] = [{
-        type: 'restrict_agent',
-        target: 'agent-123',
-        reason: 'Rate limit exceeded',
-        restrictions: ['api_access', 'new_conversations'],
-      }];
+      const actions: PlannedAction[] = [
+        {
+          type: 'restrict_agent',
+          target: 'agent-123',
+          reason: 'Rate limit exceeded',
+          restrictions: ['api_access', 'new_conversations'],
+        },
+      ];
 
       const results = await executeActions(mockTenantId, mockCycleId, actions, 'enforced');
 
@@ -283,7 +291,7 @@ describe('Brain Executor Service', () => {
         expect.objectContaining({
           title: expect.stringContaining('Agent Restricted'),
           tenant_id: mockTenantId,
-        }),
+        })
       );
     });
   });
@@ -300,11 +308,13 @@ describe('Brain Executor Service', () => {
       (Conversation.updateMany as jest.Mock).mockResolvedValue({ modifiedCount: 3 });
       (memory.remember as jest.Mock).mockResolvedValue({});
 
-      const actions: PlannedAction[] = [{
-        type: 'quarantine_agent',
-        target: 'agent-123',
-        reason: 'Suspicious activity detected',
-      }];
+      const actions: PlannedAction[] = [
+        {
+          type: 'quarantine_agent',
+          target: 'agent-123',
+          reason: 'Suspicious activity detected',
+        },
+      ];
 
       const results = await executeActions(mockTenantId, mockCycleId, actions, 'enforced');
 
@@ -326,11 +336,13 @@ describe('Brain Executor Service', () => {
       (Agent.findById as jest.Mock).mockResolvedValue(mockAgent);
       (memory.remember as jest.Mock).mockResolvedValue({});
 
-      const actions: PlannedAction[] = [{
-        type: 'unban_agent',
-        target: 'agent-123',
-        reason: 'Agent behavior improved',
-      }];
+      const actions: PlannedAction[] = [
+        {
+          type: 'unban_agent',
+          target: 'agent-123',
+          reason: 'Agent behavior improved',
+        },
+      ];
 
       const results = await executeActions(mockTenantId, mockCycleId, actions, 'enforced');
 
@@ -341,7 +353,7 @@ describe('Brain Executor Service', () => {
         expect.objectContaining({
           title: expect.stringContaining('Agent Restored'),
           tenant_id: mockTenantId,
-        }),
+        })
       );
     });
   });
@@ -350,11 +362,13 @@ describe('Brain Executor Service', () => {
     it('should catch errors and mark action as failed', async () => {
       (Agent.findById as jest.Mock).mockRejectedValue(new Error('Database error'));
 
-      const actions: PlannedAction[] = [{
-        type: 'ban_agent',
-        target: 'agent-123',
-        reason: 'Test',
-      }];
+      const actions: PlannedAction[] = [
+        {
+          type: 'ban_agent',
+          target: 'agent-123',
+          reason: 'Test',
+        },
+      ];
 
       const results = await executeActions(mockTenantId, mockCycleId, actions, 'enforced');
 

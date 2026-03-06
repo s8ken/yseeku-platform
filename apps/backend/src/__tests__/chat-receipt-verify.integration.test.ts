@@ -39,7 +39,13 @@ const mockUser = {
   _id: 'test-user-id',
   email: 'test@yseeku.com',
   apiKeys: [
-    { provider: 'anthropic', key: 'sk-ant-test-key-12345678901234567890', isActive: true, name: 'Test Key', createdAt: new Date() },
+    {
+      provider: 'anthropic',
+      key: 'sk-ant-test-key-12345678901234567890',
+      isActive: true,
+      name: 'Test Key',
+      createdAt: new Date(),
+    },
   ],
   consent: { hasConsentedToAI: true, consentTimestamp: new Date(), consentScope: ['chat'] },
 };
@@ -105,8 +111,12 @@ jest.mock('../services/llm.service', () => ({
 
 // Mock keys service for signature verification
 const mockKeyPair = crypto.generateKeyPairSync('ed25519');
-const mockPublicKeyRaw = mockKeyPair.publicKey.export({ type: 'spki', format: 'der' }).subarray(-32);
-const mockPrivateKeyRaw = mockKeyPair.privateKey.export({ type: 'pkcs8', format: 'der' }).subarray(-32);
+const mockPublicKeyRaw = mockKeyPair.publicKey
+  .export({ type: 'spki', format: 'der' })
+  .subarray(-32);
+const mockPrivateKeyRaw = mockKeyPair.privateKey
+  .export({ type: 'pkcs8', format: 'der' })
+  .subarray(-32);
 
 jest.mock('../services/keys.service', () => ({
   keysService: {

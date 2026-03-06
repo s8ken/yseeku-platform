@@ -9,14 +9,14 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ITransmissionLog extends Document {
-  source: string;        // e.g. 'user', 'ai-agent', 'overseer', 'webhook'
-  destination: string;   // e.g. 'llm-provider', 'trust-kernel', 'external-webhook'
-  dataType: string;      // e.g. 'chat-message', 'trust-receipt', 'alert'
+  source: string; // e.g. 'user', 'ai-agent', 'overseer', 'webhook'
+  destination: string; // e.g. 'llm-provider', 'trust-kernel', 'external-webhook'
+  dataType: string; // e.g. 'chat-message', 'trust-receipt', 'alert'
   tenantId: string;
   sessionId?: string;
   agentId?: string;
   userId?: string;
-  payloadHash?: string;  // SHA-256 of payload — content is NOT stored for privacy
+  payloadHash?: string; // SHA-256 of payload — content is NOT stored for privacy
   sizeBytes?: number;
   direction: 'inbound' | 'outbound' | 'internal';
   status: 'success' | 'failure' | 'partial';

@@ -10,8 +10,7 @@ import rateLimit from 'express-rate-limit';
  * Production defaults are intentionally strict. Development stays permissive.
  */
 const loginMaxAttempts = Number(
-  process.env.AUTH_LOGIN_RATE_LIMIT_MAX ||
-  (process.env.NODE_ENV === 'production' ? '20' : '200')
+  process.env.AUTH_LOGIN_RATE_LIMIT_MAX || (process.env.NODE_ENV === 'production' ? '20' : '200')
 );
 
 export const loginRateLimiter = rateLimit({

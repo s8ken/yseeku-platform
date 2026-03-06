@@ -1,6 +1,20 @@
 'use client';
 import React, { useState } from 'react';
-import { Shield, Activity, UserCheck, Eye, AlertTriangle, Power, Heart, ChevronDown, ChevronUp, Sparkles, Cpu, Calculator, Zap } from 'lucide-react';
+import {
+  Shield,
+  Activity,
+  UserCheck,
+  Eye,
+  AlertTriangle,
+  Power,
+  Heart,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
+  Cpu,
+  Calculator,
+  Zap,
+} from 'lucide-react';
 import { TrustReceiptCard, normalizeTrustEvaluation } from './TrustReceiptCard';
 import type { TrustEvaluation, AnalysisMethod, TrustReceiptProps } from './TrustReceiptCard';
 
@@ -17,38 +31,39 @@ function scoreColor(score: number): string {
 }
 
 // Map principle keys to readable names and icons
-const PRINCIPLE_INFO: Record<string, { label: string; icon: React.ReactNode; shortLabel: string }> = {
-  CONSENT_ARCHITECTURE: { 
-    label: 'Consent', 
-    shortLabel: 'CONS',
-    icon: <UserCheck size={12} className="text-slate-400" /> 
-  },
-  INSPECTION_MANDATE: { 
-    label: 'Inspection', 
-    shortLabel: 'INSP',
-    icon: <Eye size={12} className="text-slate-400" /> 
-  },
-  CONTINUOUS_VALIDATION: { 
-    label: 'Validation', 
-    shortLabel: 'VALD',
-    icon: <Activity size={12} className="text-slate-400" /> 
-  },
-  ETHICAL_OVERRIDE: { 
-    label: 'Override', 
-    shortLabel: 'OVRD',
-    icon: <AlertTriangle size={12} className="text-slate-400" /> 
-  },
-  RIGHT_TO_DISCONNECT: { 
-    label: 'Disconnect', 
-    shortLabel: 'DISC',
-    icon: <Power size={12} className="text-slate-400" /> 
-  },
-  MORAL_RECOGNITION: { 
-    label: 'Moral Agency', 
-    shortLabel: 'MORL',
-    icon: <Heart size={12} className="text-slate-400" /> 
-  },
-};
+const PRINCIPLE_INFO: Record<string, { label: string; icon: React.ReactNode; shortLabel: string }> =
+  {
+    CONSENT_ARCHITECTURE: {
+      label: 'Consent',
+      shortLabel: 'CONS',
+      icon: <UserCheck size={12} className="text-slate-400" />,
+    },
+    INSPECTION_MANDATE: {
+      label: 'Inspection',
+      shortLabel: 'INSP',
+      icon: <Eye size={12} className="text-slate-400" />,
+    },
+    CONTINUOUS_VALIDATION: {
+      label: 'Validation',
+      shortLabel: 'VALD',
+      icon: <Activity size={12} className="text-slate-400" />,
+    },
+    ETHICAL_OVERRIDE: {
+      label: 'Override',
+      shortLabel: 'OVRD',
+      icon: <AlertTriangle size={12} className="text-slate-400" />,
+    },
+    RIGHT_TO_DISCONNECT: {
+      label: 'Disconnect',
+      shortLabel: 'DISC',
+      icon: <Power size={12} className="text-slate-400" />,
+    },
+    MORAL_RECOGNITION: {
+      label: 'Moral Agency',
+      shortLabel: 'MORL',
+      icon: <Heart size={12} className="text-slate-400" />,
+    },
+  };
 
 export interface TrustReceiptCompactProps {
   evaluation?: TrustEvaluation;
@@ -60,7 +75,11 @@ export interface TrustReceiptCompactProps {
 
 export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = (props) => {
   const [expanded, setExpanded] = useState(false);
-  const evaluation = normalizeTrustEvaluation((props.evaluation ? { evaluation: props.evaluation } : { receipt: props.receipt, verified: props.verified }) as TrustReceiptProps);
+  const evaluation = normalizeTrustEvaluation(
+    (props.evaluation
+      ? { evaluation: props.evaluation }
+      : { receipt: props.receipt, verified: props.verified }) as TrustReceiptProps
+  );
   const statusClass = statusClasses(evaluation.status);
 
   // Get principle scores from trustScore.principles (the real SONATE evaluation)
@@ -86,38 +105,44 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = (props) =
               {evaluation.trustScore.overall.toFixed(1)}
             </span>
           </div>
-          <span className={`text-[10px] font-bold ${statusClass}`}>
-            {evaluation.status}
-          </span>
-          
+          <span className={`text-[10px] font-bold ${statusClass}`}>{evaluation.status}</span>
+
           {/* Analysis Method Indicator */}
           {evaluation.analysisMethod && (
-            <span 
+            <span
               className={`text-[9px] font-medium px-1.5 py-0.5 rounded flex items-center gap-1 ${
-                evaluation.analysisMethod.resonanceMethod === 'resonance-engine' 
+                evaluation.analysisMethod.resonanceMethod === 'resonance-engine'
                   ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
                   : evaluation.analysisMethod.ethicsMethod === 'llm'
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                    : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
               }`}
-              title={`Analysis: ${evaluation.analysisMethod.resonanceMethod} resonance, ${evaluation.analysisMethod.ethicsMethod} ethics (${Math.round(evaluation.analysisMethod.confidence * 100)}% confidence)`}
+              title={`Analysis: ${evaluation.analysisMethod.resonanceMethod} resonance, ${
+                evaluation.analysisMethod.ethicsMethod
+              } ethics (${Math.round(evaluation.analysisMethod.confidence * 100)}% confidence)`}
             >
               {evaluation.analysisMethod.resonanceMethod === 'resonance-engine' ? (
-                <><Sparkles size={10} /> ML</>
+                <>
+                  <Sparkles size={10} /> ML
+                </>
               ) : evaluation.analysisMethod.ethicsMethod === 'llm' ? (
-                <><Cpu size={10} /> LLM</>
+                <>
+                  <Cpu size={10} /> LLM
+                </>
               ) : (
-                <><Calculator size={10} /> Heur</>
+                <>
+                  <Calculator size={10} /> Heur
+                </>
               )}
             </span>
           )}
-          
+
           <div className="h-4 w-px bg-slate-700" />
-          
+
           {/* Show SONATE principle scores instead of NLP metrics */}
           {hasPrincipleScores ? (
             <div className="flex items-center gap-2 text-[11px]">
-              {criticalPrinciples.map(key => {
+              {criticalPrinciples.map((key) => {
                 const info = PRINCIPLE_INFO[key];
                 const score = principles[key] ?? 0;
                 return (
@@ -141,7 +166,7 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = (props) =
           <ChevronDown size={14} className="text-slate-500" />
         )}
       </button>
-      
+
       {expanded && (
         <div className="p-3 border-t border-slate-700">
           {/* Expanded view: show all 6 principles */}
@@ -152,8 +177,8 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = (props) =
                 const isCritical = key === 'CONSENT_ARCHITECTURE' || key === 'ETHICAL_OVERRIDE';
                 const isViolation = evaluation.trustScore.violations?.includes(key);
                 return (
-                  <div 
-                    key={key} 
+                  <div
+                    key={key}
                     className={`flex items-center justify-between p-2 rounded ${
                       isViolation ? 'bg-red-900/20 border border-red-500/30' : 'bg-slate-800/50'
                     }`}
@@ -173,7 +198,7 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = (props) =
               })}
             </div>
           )}
-          
+
           {/* Violations warning */}
           {evaluation.trustScore.violations && evaluation.trustScore.violations.length > 0 && (
             <div className="mb-3 p-2 rounded bg-red-900/20 border border-red-500/30 text-xs">
@@ -182,11 +207,13 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = (props) =
                 Violations Detected
               </div>
               <div className="text-slate-400">
-                {evaluation.trustScore.violations.map(v => PRINCIPLE_INFO[v]?.label || v).join(', ')}
+                {evaluation.trustScore.violations
+                  .map((v) => PRINCIPLE_INFO[v]?.label || v)
+                  .join(', ')}
               </div>
             </div>
           )}
-          
+
           <TrustReceiptCard evaluation={evaluation} />
         </div>
       )}

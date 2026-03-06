@@ -15,11 +15,7 @@ router.get('/verify/:id', async (req: Request, res: Response) => {
 
     // Try to find by ID first, then by self_hash or session_id
     const receipt = await TrustReceiptModel.findOne({
-      $or: [
-        { _id: id },
-        { self_hash: id },
-        { session_id: id }
-      ]
+      $or: [{ _id: id }, { self_hash: id }, { session_id: id }],
     });
 
     if (!receipt) {
@@ -27,7 +23,7 @@ router.get('/verify/:id', async (req: Request, res: Response) => {
         success: false,
         valid: false,
         error: 'Receipt not found',
-        message: 'The specified receipt ID or hash was not found in the system'
+        message: 'The specified receipt ID or hash was not found in the system',
       });
     }
 
@@ -37,10 +33,10 @@ router.get('/verify/:id', async (req: Request, res: Response) => {
       hashValid: !!receipt.self_hash,
       chainValid: !!receipt.previous_hash,
       timestampValid: !!receipt.timestamp,
-      notTampered: true
+      notTampered: true,
     };
 
-    const isValid = Object.values(verification).every(v => v);
+    const isValid = Object.values(verification).every((v) => v);
 
     res.json({
       success: true,
@@ -58,9 +54,9 @@ router.get('/verify/:id', async (req: Request, res: Response) => {
         issuer: receipt.issuer,
         subject: receipt.subject,
         proof: receipt.proof,
-        createdAt: (receipt as any).createdAt || new Date(receipt.timestamp)
+        createdAt: (receipt as any).createdAt || new Date(receipt.timestamp),
       },
-      verification
+      verification,
     });
   } catch (error) {
     logger.error('Failed to verify proof', { error: getErrorMessage(error) });
@@ -68,7 +64,7 @@ router.get('/verify/:id', async (req: Request, res: Response) => {
       success: false,
       valid: false,
       error: 'Verification failed',
-      message: getErrorMessage(error)
+      message: getErrorMessage(error),
     });
   }
 });
@@ -86,7 +82,7 @@ router.post('/verify', async (req: Request, res: Response) => {
         success: false,
         valid: false,
         error: 'Invalid receipt',
-        message: 'Receipt data must include an id or self_hash'
+        message: 'Receipt data must include an id or self_hash',
       });
     }
 
@@ -94,8 +90,8 @@ router.post('/verify', async (req: Request, res: Response) => {
     const existingReceipt = await TrustReceiptModel.findOne({
       $or: [
         { self_hash: receiptData.self_hash || receiptData.id },
-        { session_id: receiptData.session_id }
-      ].filter(Boolean)
+        { session_id: receiptData.session_id },
+      ].filter(Boolean),
     });
 
     const verification = {
@@ -103,10 +99,10 @@ router.post('/verify', async (req: Request, res: Response) => {
       hashValid: !!receiptData.self_hash,
       chainValid: !!receiptData.previous_hash,
       timestampValid: !!receiptData.timestamp,
-      notTampered: !!existingReceipt
+      notTampered: !!existingReceipt,
     };
 
-    const isValid = Object.values(verification).every(v => v);
+    const isValid = Object.values(verification).every((v) => v);
 
     res.json({
       success: true,
@@ -122,12 +118,14 @@ router.post('/verify', async (req: Request, res: Response) => {
         previousHash: receiptData.previous_hash,
         ciqMetrics: receiptData.ciq_metrics,
         issuer: receiptData.issuer,
-        subject: receiptData.subject
+        subject: receiptData.subject,
       },
       verification,
-      ...(existingReceipt ? {} : {
-        errors: ['Receipt not found in database - may be from external source']
-      })
+      ...(existingReceipt
+        ? {}
+        : {
+            errors: ['Receipt not found in database - may be from external source'],
+          }),
     });
   } catch (error) {
     logger.error('Failed to verify proof', { error: getErrorMessage(error) });
@@ -135,7 +133,7 @@ router.post('/verify', async (req: Request, res: Response) => {
       success: false,
       valid: false,
       error: 'Verification failed',
-      message: getErrorMessage(error)
+      message: getErrorMessage(error),
     });
   }
 });

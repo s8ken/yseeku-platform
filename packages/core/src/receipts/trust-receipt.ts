@@ -43,7 +43,7 @@ let isInitialized = false;
 /**
  * Pre-load the Ed25519 crypto library for better performance.
  * Call this during application startup to avoid cold-start delays.
- * 
+ *
  * @example
  * import { initCrypto } from '@sonate/core';
  * await initCrypto(); // Call once at app startup
@@ -65,7 +65,6 @@ export async function initCrypto(): Promise<void> {
 export function isCryptoReady(): boolean {
   return isInitialized;
 }
-
 
 export interface SonateTrustReceipt {
   id: string; // SHA-256 Hash of the interaction
@@ -284,18 +283,18 @@ export class TrustReceipt {
 
   /**
    * Deserialize from JSON
-   * 
+   *
    * CRITICAL: Preserves the original self_hash from the serialized data to maintain
    * hash-chain integrity. This allows receipts to be restored from storage/transmission
    * without recalculation, which would break chain verification.
-   * 
+   *
    * Behavior:
    * - If data.self_hash is present: uses it (preserves chain)
    * - If data.self_hash is missing: recalculates (fallback for new receipts)
-   * 
+   *
    * Future: Optional skipHashCalculation flag can be added if constructor needs
    * to support raw instantiation without auto-hash-calculation.
-   * 
+   *
    * @param data Serialized receipt JSON
    * @returns TrustReceipt instance with preserved or calculated self_hash
    */

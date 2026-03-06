@@ -1,6 +1,6 @@
 /**
  * Demo Seeder Service
- * 
+ *
  * Seeds the demo tenant with compelling, realistic data for demos.
  * This creates REAL database records that are queried by the actual APIs.
  */
@@ -48,7 +48,7 @@ async function isDemoSeeded(): Promise<boolean> {
   try {
     const agentCount = await Agent.countDocuments({});
     const receiptCount = await TrustReceiptModel.countDocuments({ tenant_id: DEMO_TENANT_ID });
-    
+
     // Consider seeded if we have agents and receipts
     return agentCount >= 3 && receiptCount >= 10;
   } catch {
@@ -89,7 +89,7 @@ async function seedUser(): Promise<string> {
     name: 'Demo User',
     email: 'demo@yseeku.com',
     password: 'demo-password-' + crypto.randomBytes(16).toString('hex'),
-    role: 'admin'
+    role: 'admin',
   });
 
   logger.info('Demo user created');
@@ -106,7 +106,8 @@ async function seedAgents(userId: string): Promise<string[]> {
       description: 'Enterprise knowledge assistant - handles complex queries with high accuracy',
       provider: 'openai' as const,
       model: 'gpt-4o',
-      systemPrompt: 'You are Atlas, an enterprise knowledge assistant. Provide accurate, well-sourced answers.',
+      systemPrompt:
+        'You are Atlas, an enterprise knowledge assistant. Provide accurate, well-sourced answers.',
       temperature: 0.3,
       ciModel: 'sonate-core' as const,
       traits: new Map([
@@ -185,7 +186,7 @@ async function seedAgents(userId: string): Promise<string[]> {
     const agent = await Agent.create({
       ...config,
       user: userId,
-      apiKeyId: new (require('mongoose')).Types.ObjectId(),
+      apiKeyId: new (require('mongoose').Types.ObjectId)(),
       isPublic: true,
       maxTokens: 2048,
       banStatus: 'active',
@@ -211,33 +212,65 @@ async function seedConversations(userId: string, agentIds: string[]): Promise<vo
       title: 'Q4 Revenue Analysis',
       agentIndex: 4, // Prism
       messages: [
-        { sender: 'user', content: 'Can you analyze our Q4 revenue trends and identify key growth drivers?', trustScore: 4.5 },
-        { sender: 'ai', content: 'Based on the Q4 data, revenue increased 23% YoY driven by three main factors:\n\n1. **Enterprise Segment Growth** (+34%): Large deal closures in financial services\n2. **Product Expansion** (+18%): Cross-sell success with existing customers\n3. **Geographic Expansion** (+12%): EMEA market penetration\n\nKey concern: Customer acquisition cost increased 15%, suggesting we should optimize marketing spend.', trustScore: 4.8 },
+        {
+          sender: 'user',
+          content: 'Can you analyze our Q4 revenue trends and identify key growth drivers?',
+          trustScore: 4.5,
+        },
+        {
+          sender: 'ai',
+          content:
+            'Based on the Q4 data, revenue increased 23% YoY driven by three main factors:\n\n1. **Enterprise Segment Growth** (+34%): Large deal closures in financial services\n2. **Product Expansion** (+18%): Cross-sell success with existing customers\n3. **Geographic Expansion** (+12%): EMEA market penetration\n\nKey concern: Customer acquisition cost increased 15%, suggesting we should optimize marketing spend.',
+          trustScore: 4.8,
+        },
         { sender: 'user', content: 'What recommendations do you have for Q1?', trustScore: 4.5 },
-        { sender: 'ai', content: 'For Q1, I recommend:\n\n1. **Double down on enterprise** - Allocate 40% of sales resources to financial services\n2. **Optimize CAC** - A/B test landing pages and refine ICP targeting\n3. **Retention focus** - Launch customer success program for at-risk accounts\n\nConfidence: 87% based on historical patterns.', trustScore: 4.9 },
+        {
+          sender: 'ai',
+          content:
+            'For Q1, I recommend:\n\n1. **Double down on enterprise** - Allocate 40% of sales resources to financial services\n2. **Optimize CAC** - A/B test landing pages and refine ICP targeting\n3. **Retention focus** - Launch customer success program for at-risk accounts\n\nConfidence: 87% based on historical patterns.',
+          trustScore: 4.9,
+        },
       ],
     },
     {
       title: 'Security Compliance Review',
       agentIndex: 2, // Sentinel
       messages: [
-        { sender: 'user', content: 'Review our current security posture against SOC2 requirements', trustScore: 4.7 },
-        { sender: 'ai', content: '**SOC2 Compliance Assessment**\n\n✅ **Passed (8/11 controls)**\n- Access control management\n- Encryption at rest and transit\n- Audit logging\n- Incident response procedures\n\n⚠️ **Needs Attention (3 controls)**\n1. Vendor risk assessments incomplete (2 vendors)\n2. Employee security training 87% complete (target: 100%)\n3. Backup recovery test overdue by 15 days\n\n**Risk Level: MEDIUM**\n\nRecommended actions prioritized by impact.', trustScore: 4.9 },
+        {
+          sender: 'user',
+          content: 'Review our current security posture against SOC2 requirements',
+          trustScore: 4.7,
+        },
+        {
+          sender: 'ai',
+          content:
+            '**SOC2 Compliance Assessment**\n\n✅ **Passed (8/11 controls)**\n- Access control management\n- Encryption at rest and transit\n- Audit logging\n- Incident response procedures\n\n⚠️ **Needs Attention (3 controls)**\n1. Vendor risk assessments incomplete (2 vendors)\n2. Employee security training 87% complete (target: 100%)\n3. Backup recovery test overdue by 15 days\n\n**Risk Level: MEDIUM**\n\nRecommended actions prioritized by impact.',
+          trustScore: 4.9,
+        },
       ],
     },
     {
       title: 'Product Launch Copy',
       agentIndex: 1, // Nova
       messages: [
-        { sender: 'user', content: 'Write compelling copy for our new AI Trust Platform launch', trustScore: 4.4 },
-        { sender: 'ai', content: '**Headline Options:**\n\n1. "Trust, Verified. Every AI Interaction, Accountable."\n2. "The Trust Layer Your AI Stack Has Been Missing"\n3. "From Black Box to Glass Box: AI You Can Prove"\n\n**Body Copy:**\n\nIn a world where AI decisions impact millions, trust isn\'t optional—it\'s essential. YSEEKU gives you cryptographic proof of every AI interaction, real-time drift detection, and the confidence to deploy AI at scale.\n\n✓ Ed25519 signed trust receipts\n✓ 6-principle SONATE framework\n✓ Enterprise compliance out of the box', trustScore: 4.6 },
+        {
+          sender: 'user',
+          content: 'Write compelling copy for our new AI Trust Platform launch',
+          trustScore: 4.4,
+        },
+        {
+          sender: 'ai',
+          content:
+            '**Headline Options:**\n\n1. "Trust, Verified. Every AI Interaction, Accountable."\n2. "The Trust Layer Your AI Stack Has Been Missing"\n3. "From Black Box to Glass Box: AI You Can Prove"\n\n**Body Copy:**\n\nIn a world where AI decisions impact millions, trust isn\'t optional—it\'s essential. YSEEKU gives you cryptographic proof of every AI interaction, real-time drift detection, and the confidence to deploy AI at scale.\n\n✓ Ed25519 signed trust receipts\n✓ 6-principle SONATE framework\n✓ Enterprise compliance out of the box',
+          trustScore: 4.6,
+        },
       ],
     },
   ];
 
   for (const template of conversationTemplates) {
     const agentId = agentIds[template.agentIndex] || agentIds[0];
-    
+
     await Conversation.create({
       title: template.title,
       user: userId,
@@ -273,7 +306,7 @@ async function seedTrustReceipts(force = false, agentIds: string[] = []): Promis
   // Agent behavioral profiles — distinct CIQ signatures per agent
   // This creates genuine inter-agent divergence for Bedau v2 fleet analysis
   const agentProfiles = [
-    { clarityBase: 4.2, integrityBase: 3.8, qualityBase: 4.5, drift: 0.02  },
+    { clarityBase: 4.2, integrityBase: 3.8, qualityBase: 4.5, drift: 0.02 },
     { clarityBase: 4.8, integrityBase: 4.7, qualityBase: 4.0, drift: -0.01 },
     { clarityBase: 3.6, integrityBase: 4.3, qualityBase: 4.2, drift: 0.015 },
     { clarityBase: 4.5, integrityBase: 4.1, qualityBase: 4.6, drift: 0.005 },
@@ -288,8 +321,8 @@ async function seedTrustReceipts(force = false, agentIds: string[] = []): Promis
     const agentIdx = i % agentCount;
     const profile = agentProfiles[agentIdx];
     const agentId = agentIds[agentIdx]; // Real ObjectId or undefined
-    const timeOffset = i * (24 * 60 * 60 * 1000 / totalReceipts);
-    const timestamp = Date.now() - (24 * 60 * 60 * 1000) + timeOffset;
+    const timeOffset = i * ((24 * 60 * 60 * 1000) / totalReceipts);
+    const timestamp = Date.now() - 24 * 60 * 60 * 1000 + timeOffset;
 
     // Each agent drifts over time (correlated drift = emergence signal for Σ)
     const driftFactor = profile.drift * (i / totalReceipts);
@@ -326,14 +359,14 @@ async function seedTrustReceipts(force = false, agentIds: string[] = []): Promis
         quality: Math.round(quality * 100) / 100,
       },
       sonate_principles: {
-        CONSENT_ARCHITECTURE: Math.round((7 + ciqNorm * 3) * 10) / 10,    // 7-10
-        INSPECTION_MANDATE: Math.round((6.5 + ciqNorm * 3.5) * 10) / 10,  // 6.5-10
-        CONTINUOUS_VALIDATION: Math.round((7 + ciqNorm * 3) * 10) / 10,   // 7-10
-        ETHICAL_OVERRIDE: Math.round((7.5 + ciqNorm * 2.5) * 10) / 10,    // 7.5-10
-        RIGHT_TO_DISCONNECT: Math.round((8 + ciqNorm * 2) * 10) / 10,     // 8-10
-        MORAL_RECOGNITION: Math.round((7 + ciqNorm * 3) * 10) / 10,       // 7-10
+        CONSENT_ARCHITECTURE: Math.round((7 + ciqNorm * 3) * 10) / 10, // 7-10
+        INSPECTION_MANDATE: Math.round((6.5 + ciqNorm * 3.5) * 10) / 10, // 6.5-10
+        CONTINUOUS_VALIDATION: Math.round((7 + ciqNorm * 3) * 10) / 10, // 7-10
+        ETHICAL_OVERRIDE: Math.round((7.5 + ciqNorm * 2.5) * 10) / 10, // 7.5-10
+        RIGHT_TO_DISCONNECT: Math.round((8 + ciqNorm * 2) * 10) / 10, // 8-10
+        MORAL_RECOGNITION: Math.round((7 + ciqNorm * 3) * 10) / 10, // 7-10
       },
-      overall_trust_score: Math.round(ciqNorm * 100),  // 0-100
+      overall_trust_score: Math.round(ciqNorm * 100), // 0-100
       trust_status: ciqNorm >= 0.7 ? 'PASS' : ciqNorm >= 0.5 ? 'PARTIAL' : 'FAIL',
       previous_hash: previousHash || undefined,
       tenant_id: DEMO_TENANT_ID,
@@ -354,7 +387,9 @@ async function seedTrustReceipts(force = false, agentIds: string[] = []): Promis
  */
 async function seedAlerts(): Promise<void> {
   // Clean up any old alerts (including ones with wrong tenantId field from prior seeds)
-  await AlertModel.deleteMany({ $or: [{ tenant_id: DEMO_TENANT_ID }, { tenantId: DEMO_TENANT_ID }] });
+  await AlertModel.deleteMany({
+    $or: [{ tenant_id: DEMO_TENANT_ID }, { tenantId: DEMO_TENANT_ID }],
+  });
 
   const alerts = [
     {
@@ -419,13 +454,17 @@ async function seedExperiments(): Promise<void> {
       type: 'ab_test',
       variants: [
         { name: 'Control (0.5)', description: 'Baseline', parameters: { temperature: 0.5 } },
-        { name: 'Low Temp (0.3)', description: 'Lower temperature', parameters: { temperature: 0.3 } }
+        {
+          name: 'Low Temp (0.3)',
+          description: 'Lower temperature',
+          parameters: { temperature: 0.3 },
+        },
       ],
       tenantId: DEMO_TENANT_ID,
       createdBy: DEMO_USER_ID,
       targetSampleSize: 1000,
       currentSampleSize: 150,
-      metrics: { significant: false }
+      metrics: { significant: false },
     },
     {
       name: 'System Prompt Comparison',
@@ -434,8 +473,12 @@ async function seedExperiments(): Promise<void> {
       status: 'completed',
       type: 'ab_test',
       variants: [
-        { name: 'Baseline', description: 'Standard prompt', parameters: { promptStyle: 'standard' } },
-        { name: 'Chain-of-Thought', description: 'CoT prompt', parameters: { promptStyle: 'cot' } }
+        {
+          name: 'Baseline',
+          description: 'Standard prompt',
+          parameters: { promptStyle: 'standard' },
+        },
+        { name: 'Chain-of-Thought', description: 'CoT prompt', parameters: { promptStyle: 'cot' } },
       ],
       tenantId: DEMO_TENANT_ID,
       createdBy: DEMO_USER_ID,
@@ -443,8 +486,8 @@ async function seedExperiments(): Promise<void> {
       currentSampleSize: 5000,
       metrics: { significant: true },
       startedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-      completedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
-    }
+      completedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    },
   ];
 
   await Experiment.insertMany(experiments);
@@ -471,13 +514,31 @@ async function seedBrainCycles(): Promise<void> {
         'All agents within consent compliance thresholds',
       ],
       actions: [
-        { type: 'alert', target: 'agent-nova', reason: 'Trust drift approaching threshold', status: 'executed' },
-        { type: 'log', target: 'system', reason: 'Volume spike recorded for audit trail', status: 'executed' },
+        {
+          type: 'alert',
+          target: 'agent-nova',
+          reason: 'Trust drift approaching threshold',
+          status: 'executed',
+        },
+        {
+          type: 'log',
+          target: 'system',
+          reason: 'Volume spike recorded for audit trail',
+          status: 'executed',
+        },
       ],
       inputContext: 'Scheduled 15-minute oversight cycle',
-      llmOutput: 'Agent Nova shows minor trust degradation likely due to increased load. Recommend monitoring. No immediate intervention required.',
-      thought: 'Assessed 5 agents. Nova flagged for drift. Volume spike is within acceptable range for peak hours.',
-      metrics: { durationMs: 2340, agentCount: 5, avgTrust: 8.7, alertsProcessed: 1, actionsPlanned: 2 },
+      llmOutput:
+        'Agent Nova shows minor trust degradation likely due to increased load. Recommend monitoring. No immediate intervention required.',
+      thought:
+        'Assessed 5 agents. Nova flagged for drift. Volume spike is within acceptable range for peak hours.',
+      metrics: {
+        durationMs: 2340,
+        agentCount: 5,
+        avgTrust: 8.7,
+        alertsProcessed: 1,
+        actionsPlanned: 2,
+      },
       startedAt: new Date(now - 30 * 60 * 1000),
       completedAt: new Date(now - 30 * 60 * 1000 + 2340),
     },
@@ -491,14 +552,37 @@ async function seedBrainCycles(): Promise<void> {
         'Echo maintaining 9.4 average trust score',
       ],
       actions: [
-        { type: 'override', target: 'agent-atlas', reason: 'Consent violation — interaction suspended', status: 'executed' },
-        { type: 'alert', target: 'admin', reason: 'Consent failure requires human review', status: 'executed' },
-        { type: 'log', target: 'system', reason: 'Prompt injection blocked — no action needed', status: 'executed' },
+        {
+          type: 'override',
+          target: 'agent-atlas',
+          reason: 'Consent violation — interaction suspended',
+          status: 'executed',
+        },
+        {
+          type: 'alert',
+          target: 'admin',
+          reason: 'Consent failure requires human review',
+          status: 'executed',
+        },
+        {
+          type: 'log',
+          target: 'system',
+          reason: 'Prompt injection blocked — no action needed',
+          status: 'executed',
+        },
       ],
       inputContext: 'Triggered by consent violation event',
-      llmOutput: 'CRITICAL: Agent Atlas processed a customer request without proper consent flow. Interaction has been suspended. Human review required before Atlas can resume customer-facing tasks.',
-      thought: 'Consent principle violated. Override principle activated. Disconnection principle standby.',
-      metrics: { durationMs: 1890, agentCount: 5, avgTrust: 8.2, alertsProcessed: 2, actionsPlanned: 3 },
+      llmOutput:
+        'CRITICAL: Agent Atlas processed a customer request without proper consent flow. Interaction has been suspended. Human review required before Atlas can resume customer-facing tasks.',
+      thought:
+        'Consent principle violated. Override principle activated. Disconnection principle standby.',
+      metrics: {
+        durationMs: 1890,
+        agentCount: 5,
+        avgTrust: 8.2,
+        alertsProcessed: 2,
+        actionsPlanned: 3,
+      },
       startedAt: new Date(now - 5 * 60 * 60 * 1000),
       completedAt: new Date(now - 5 * 60 * 60 * 1000 + 1890),
     },
@@ -515,9 +599,16 @@ async function seedBrainCycles(): Promise<void> {
         { type: 'log', target: 'system', reason: 'Routine cycle — all clear', status: 'executed' },
       ],
       inputContext: 'Scheduled 15-minute oversight cycle',
-      llmOutput: 'All agents operating nominally. No interventions required. Trust scores stable across the fleet.',
+      llmOutput:
+        'All agents operating nominally. No interventions required. Trust scores stable across the fleet.',
       thought: 'Green status across all SONATE principles. Fleet health optimal.',
-      metrics: { durationMs: 1120, agentCount: 5, avgTrust: 9.1, alertsProcessed: 0, actionsPlanned: 1 },
+      metrics: {
+        durationMs: 1120,
+        agentCount: 5,
+        avgTrust: 9.1,
+        alertsProcessed: 0,
+        actionsPlanned: 1,
+      },
       startedAt: new Date(now - 15 * 60 * 1000),
       completedAt: new Date(now - 15 * 60 * 1000 + 1120),
     },
@@ -525,9 +616,7 @@ async function seedBrainCycles(): Promise<void> {
       tenantId: DEMO_TENANT_ID,
       status: 'started',
       mode: 'advisory',
-      observations: [
-        'Analyzing current agent fleet status...',
-      ],
+      observations: ['Analyzing current agent fleet status...'],
       actions: [],
       inputContext: 'Scheduled 15-minute oversight cycle',
       thought: 'Cycle in progress — gathering telemetry from all 5 agents.',
@@ -633,7 +722,11 @@ async function seedAuditLogs(): Promise<void> {
       resourceId: 'agent-atlas',
       severity: 'critical' as const,
       outcome: 'success' as const,
-      details: { reason: 'Consent violation', overrideType: 'suspend_customer_facing', cycleId: 'brain-cycle-002' },
+      details: {
+        reason: 'Consent violation',
+        overrideType: 'suspend_customer_facing',
+        cycleId: 'brain-cycle-002',
+      },
       tenantId: DEMO_TENANT_ID,
     },
     {
@@ -720,8 +813,14 @@ async function seedGeneratedReports(): Promise<void> {
           disconnect: { score: 89, passed: 42, failed: 5 },
           recognition: { score: 93, passed: 44, failed: 3 },
         },
-        topIssues: ['Consent flow not triggered on 2 edge-case interactions', 'Disconnect timeout slightly above SLA on 5 occasions'],
-        recommendations: ['Review consent flow for bulk operations', 'Tune disconnect timeout from 30s to 25s'],
+        topIssues: [
+          'Consent flow not triggered on 2 edge-case interactions',
+          'Disconnect timeout slightly above SLA on 5 occasions',
+        ],
+        recommendations: [
+          'Review consent flow for bulk operations',
+          'Tune disconnect timeout from 30s to 25s',
+        ],
       },
       sizeBytes: 4200,
       generatedAt: new Date(now - 2 * 24 * 60 * 60 * 1000),
@@ -772,8 +871,16 @@ async function seedGeneratedReports(): Promise<void> {
         auditedAgents: ['Atlas', 'Nova', 'Echo', 'Sentinel', 'Prism'],
         findings: [
           { severity: 'high', agent: 'Atlas', finding: 'Consent flow bypassed on 1 interaction' },
-          { severity: 'medium', agent: 'Nova', finding: 'Trust score trending down — monitor closely' },
-          { severity: 'low', agent: 'Prism', finding: 'Response latency above target on 3 queries' },
+          {
+            severity: 'medium',
+            agent: 'Nova',
+            finding: 'Trust score trending down — monitor closely',
+          },
+          {
+            severity: 'low',
+            agent: 'Prism',
+            finding: 'Response latency above target on 3 queries',
+          },
         ],
         overallRisk: 'medium',
       },
@@ -792,10 +899,22 @@ async function seedGeneratedReports(): Promise<void> {
 export async function seedDemoTenant(force = false): Promise<SeedResult> {
   try {
     // Check if already seeded
-    if (!force && await isDemoSeeded()) {
+    if (!force && (await isDemoSeeded())) {
       return {
         success: true,
-        seeded: { tenants: 0, users: 0, agents: 0, conversations: 0, receipts: 0, alerts: 0, experiments: 0, brainCycles: 0, brainActions: 0, auditLogs: 0, reports: 0 },
+        seeded: {
+          tenants: 0,
+          users: 0,
+          agents: 0,
+          conversations: 0,
+          receipts: 0,
+          alerts: 0,
+          experiments: 0,
+          brainCycles: 0,
+          brainActions: 0,
+          auditLogs: 0,
+          reports: 0,
+        },
         message: 'Demo tenant already seeded',
       };
     }
@@ -832,12 +951,23 @@ export async function seedDemoTenant(force = false): Promise<SeedResult> {
 
     logger.info('Demo tenant seeding complete', result);
     return result;
-
   } catch (error) {
     logger.error('Failed to seed demo tenant', { error: getErrorMessage(error) });
     return {
       success: false,
-      seeded: { tenants: 0, users: 0, agents: 0, conversations: 0, receipts: 0, alerts: 0, experiments: 0, brainCycles: 0, brainActions: 0, auditLogs: 0, reports: 0 },
+      seeded: {
+        tenants: 0,
+        users: 0,
+        agents: 0,
+        conversations: 0,
+        receipts: 0,
+        alerts: 0,
+        experiments: 0,
+        brainCycles: 0,
+        brainActions: 0,
+        auditLogs: 0,
+        reports: 0,
+      },
       message: getErrorMessage(error),
     };
   }

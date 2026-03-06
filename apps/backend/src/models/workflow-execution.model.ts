@@ -27,25 +27,36 @@ export interface IWorkflowExecution extends Document {
 const WorkflowTaskResultSchema = new Schema({
   stepId: { type: String, required: true },
   agentId: { type: Schema.Types.ObjectId, ref: 'Agent' },
-  status: { type: String, enum: ['pending', 'running', 'completed', 'failed', 'skipped'], default: 'pending' },
+  status: {
+    type: String,
+    enum: ['pending', 'running', 'completed', 'failed', 'skipped'],
+    default: 'pending',
+  },
   input: { type: Schema.Types.Mixed },
   output: { type: Schema.Types.Mixed },
   error: { type: String },
   startTime: { type: Date },
   endTime: { type: Date },
-  trustScore: { type: Number }
+  trustScore: { type: Number },
 });
 
 const WorkflowExecutionSchema = new Schema<IWorkflowExecution>({
   workflowId: { type: Schema.Types.ObjectId, ref: 'Workflow', required: true },
   tenantId: { type: String, required: true, index: true },
-  status: { type: String, enum: ['running', 'completed', 'failed', 'cancelled'], default: 'running' },
+  status: {
+    type: String,
+    enum: ['running', 'completed', 'failed', 'cancelled'],
+    default: 'running',
+  },
   input: { type: Schema.Types.Mixed },
   results: [WorkflowTaskResultSchema],
   currentStepId: { type: String },
   startTime: { type: Date, default: Date.now },
   endTime: { type: Date },
-  error: { type: String }
+  error: { type: String },
 });
 
-export const WorkflowExecution = mongoose.model<IWorkflowExecution>('WorkflowExecution', WorkflowExecutionSchema);
+export const WorkflowExecution = mongoose.model<IWorkflowExecution>(
+  'WorkflowExecution',
+  WorkflowExecutionSchema
+);

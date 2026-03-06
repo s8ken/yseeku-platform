@@ -1,6 +1,6 @@
 /**
  * Policies Routes
- * 
+ *
  * Lists available policies and their rules via @sonate/policy
  */
 
@@ -15,7 +15,7 @@ const router = Router();
  * List all registered SONATE policy principles
  */
 router.get('/', protect, (_req: Request, res: Response): void => {
-  const principles = sonatePrinciples.map(p => ({
+  const principles = sonatePrinciples.map((p) => ({
     id: p.id,
     name: p.name,
     description: p.description,
@@ -45,11 +45,23 @@ router.get('/:principleId/rules', protect, (req: Request, res: Response): void =
   }
 
   // Rules are stored as IDs in principles; return the IDs with metadata from sonateRules
-  const ruleDetails = principle.rules.map(ruleId => {
-    const rule = sonateRules.find(r => r.id === ruleId);
+  const ruleDetails = principle.rules.map((ruleId) => {
+    const rule = sonateRules.find((r) => r.id === ruleId);
     return rule
-      ? { id: rule.id, name: rule.name, description: rule.description, severity: rule.severity, enabled: rule.enabled }
-      : { id: ruleId, name: ruleId, description: 'Unknown rule', severity: 'medium', enabled: true };
+      ? {
+          id: rule.id,
+          name: rule.name,
+          description: rule.description,
+          severity: rule.severity,
+          enabled: rule.enabled,
+        }
+      : {
+          id: ruleId,
+          name: ruleId,
+          description: 'Unknown rule',
+          severity: 'medium',
+          enabled: true,
+        };
   });
 
   res.json({

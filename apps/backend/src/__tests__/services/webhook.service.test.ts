@@ -81,7 +81,7 @@ function buildRule(overrides: {
   cooldownMinutes?: number;
   conditions?: Array<{ metric: string; operator: Operator; threshold: number }>;
 }): AlertRule {
-  const conditions: AlertCondition[] = (overrides.conditions || []).map(c => ({
+  const conditions: AlertCondition[] = (overrides.conditions || []).map((c) => ({
     field: c.metric,
     operator: c.operator,
     value: c.threshold,
@@ -108,9 +108,7 @@ describe('WebhookService', () => {
         buildRule({
           id: 'rule-1',
           name: 'High Trust Alert',
-          conditions: [
-            { metric: 'trustScore', operator: 'lt', threshold: 0.5 },
-          ],
+          conditions: [{ metric: 'trustScore', operator: 'lt', threshold: 0.5 }],
           severity: 'critical',
         }),
       ];
@@ -128,9 +126,7 @@ describe('WebhookService', () => {
         buildRule({
           id: 'rule-1',
           name: 'High Trust Alert',
-          conditions: [
-            { metric: 'trustScore', operator: 'lt', threshold: 0.5 },
-          ],
+          conditions: [{ metric: 'trustScore', operator: 'lt', threshold: 0.5 }],
           severity: 'critical',
         }),
       ];
@@ -147,9 +143,7 @@ describe('WebhookService', () => {
         buildRule({
           id: 'rule-1',
           name: 'Disabled Rule',
-          conditions: [
-            { metric: 'trustScore', operator: 'lt', threshold: 0.5 },
-          ],
+          conditions: [{ metric: 'trustScore', operator: 'lt', threshold: 0.5 }],
           enabled: false,
         }),
       ];
@@ -188,7 +182,12 @@ describe('WebhookService', () => {
     });
 
     it('should support all operators', () => {
-      const testCases: Array<{ operator: Operator; threshold: number; value: number; expected: boolean }> = [
+      const testCases: Array<{
+        operator: Operator;
+        threshold: number;
+        value: number;
+        expected: boolean;
+      }> = [
         { operator: 'gt', threshold: 0.5, value: 0.6, expected: true },
         { operator: 'gt', threshold: 0.5, value: 0.5, expected: false },
         { operator: 'gte', threshold: 0.5, value: 0.5, expected: true },
@@ -206,9 +205,7 @@ describe('WebhookService', () => {
           buildRule({
             id: 'rule-test',
             name: 'Test Rule',
-            conditions: [
-              { metric: 'score', operator: tc.operator, threshold: tc.threshold },
-            ],
+            conditions: [{ metric: 'score', operator: tc.operator, threshold: tc.threshold }],
           }),
         ];
 
@@ -297,14 +294,16 @@ describe('WebhookService', () => {
 
   describe('getDeliveryStats', () => {
     it('should aggregate delivery statistics', async () => {
-      const mockStats = [{
-        _id: null,
-        total: 100,
-        success: 95,
-        failed: 3,
-        retrying: 2,
-        avgResponseTime: 150,
-      }];
+      const mockStats = [
+        {
+          _id: null,
+          total: 100,
+          success: 95,
+          failed: 3,
+          retrying: 2,
+          avgResponseTime: 150,
+        },
+      ];
 
       (WebhookDeliveryModel.aggregate as any).mockResolvedValue(mockStats);
 

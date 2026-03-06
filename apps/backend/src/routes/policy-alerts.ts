@@ -1,6 +1,6 @@
 /**
  * Policy Alert WebSocket Service
- * 
+ *
  * Real-time policy violation alerts via Socket.IO using @sonate/policy
  */
 

@@ -1,6 +1,6 @@
 /**
  * Phase-Shift Velocity API Routes
- * 
+ *
  * Exposes phase-shift velocity metrics for conversations.
  * Phase-shift velocity measures behavioral drift using vector math:
  * velocity = √(ΔResonance² + ΔCanvas²) ÷ ΔTime
@@ -71,7 +71,7 @@ router.get('/conversation/:conversationId', protect, async (req: Request, res: R
 
     // Extract phase-shift data from the last AI message
     const aiMessages = conversation.messages.filter((m: IMessage) => m.sender === 'ai');
-    
+
     if (aiMessages.length === 0) {
       return res.json({
         success: true,
@@ -120,99 +120,103 @@ router.get('/conversation/:conversationId', protect, async (req: Request, res: R
  * GET /api/phase-shift/conversation/:conversationId/history
  * Get phase-shift velocity history for a conversation
  */
-router.get('/conversation/:conversationId/history', protect, async (req: Request, res: Response) => {
-  try {
-    const conversationId = req.params.conversationId as string;
-    const userId = req.userId;
+router.get(
+  '/conversation/:conversationId/history',
+  protect,
+  async (req: Request, res: Response) => {
+    try {
+      const conversationId = req.params.conversationId as string;
+      const userId = req.userId;
 
-    // Fetch conversation
-    const conversation = await Conversation.findOne({
-      _id: conversationId,
-      user: userId,
-    });
-
-    if (!conversation) {
-      return res.status(404).json({
-        success: false,
-        error: 'Conversation not found',
+      // Fetch conversation
+      const conversation = await Conversation.findOne({
+        _id: conversationId,
+        user: userId,
       });
-    }
 
-    // Extract phase-shift data from all AI messages
-    const aiMessages = conversation.messages.filter((m: IMessage) => m.sender === 'ai');
-    
-    if (aiMessages.length === 0) {
-      return res.json({
-        success: true,
-        data: {
-          conversationId,
-          history: [],
-          summary: {
-            avgVelocity: 0,
-            maxVelocity: 0,
-            alertCount: { yellow: 0, red: 0 },
-            totalTurns: 0,
-          },
-        },
-      });
-    }
-
-    const history: PhaseShiftHistory['history'] = [];
-    let yellowCount = 0;
-    let redCount = 0;
-    let totalVelocity = 0;
-    let maxVelocity = 0;
-
-    aiMessages.forEach((message: IMessage, index: number) => {
-      const phaseShiftData = message.metadata?.trustEvaluation?.phaseShift;
-      
-      if (phaseShiftData) {
-        const velocity = phaseShiftData.velocity || 0;
-        const alertLevel = phaseShiftData.alertLevel || 'none';
-
-        history.push({
-          turnNumber: index + 1,
-          timestamp: message.timestamp?.getTime() || Date.now(),
-          velocity,
-          alertLevel,
-          deltaResonance: phaseShiftData.deltaResonance || 0,
-          deltaCanvas: phaseShiftData.deltaCanvas || 0,
+      if (!conversation) {
+        return res.status(404).json({
+          success: false,
+          error: 'Conversation not found',
         });
-
-        totalVelocity += velocity;
-        maxVelocity = Math.max(maxVelocity, velocity);
-
-        if (alertLevel === 'yellow') yellowCount++;
-        if (alertLevel === 'red') redCount++;
       }
-    });
 
-    const result: PhaseShiftHistory = {
-      conversationId,
-      history,
-      summary: {
-        avgVelocity: history.length > 0 ? totalVelocity / history.length : 0,
-        maxVelocity,
-        alertCount: {
-          yellow: yellowCount,
-          red: redCount,
+      // Extract phase-shift data from all AI messages
+      const aiMessages = conversation.messages.filter((m: IMessage) => m.sender === 'ai');
+
+      if (aiMessages.length === 0) {
+        return res.json({
+          success: true,
+          data: {
+            conversationId,
+            history: [],
+            summary: {
+              avgVelocity: 0,
+              maxVelocity: 0,
+              alertCount: { yellow: 0, red: 0 },
+              totalTurns: 0,
+            },
+          },
+        });
+      }
+
+      const history: PhaseShiftHistory['history'] = [];
+      let yellowCount = 0;
+      let redCount = 0;
+      let totalVelocity = 0;
+      let maxVelocity = 0;
+
+      aiMessages.forEach((message: IMessage, index: number) => {
+        const phaseShiftData = message.metadata?.trustEvaluation?.phaseShift;
+
+        if (phaseShiftData) {
+          const velocity = phaseShiftData.velocity || 0;
+          const alertLevel = phaseShiftData.alertLevel || 'none';
+
+          history.push({
+            turnNumber: index + 1,
+            timestamp: message.timestamp?.getTime() || Date.now(),
+            velocity,
+            alertLevel,
+            deltaResonance: phaseShiftData.deltaResonance || 0,
+            deltaCanvas: phaseShiftData.deltaCanvas || 0,
+          });
+
+          totalVelocity += velocity;
+          maxVelocity = Math.max(maxVelocity, velocity);
+
+          if (alertLevel === 'yellow') yellowCount++;
+          if (alertLevel === 'red') redCount++;
+        }
+      });
+
+      const result: PhaseShiftHistory = {
+        conversationId,
+        history,
+        summary: {
+          avgVelocity: history.length > 0 ? totalVelocity / history.length : 0,
+          maxVelocity,
+          alertCount: {
+            yellow: yellowCount,
+            red: redCount,
+          },
+          totalTurns: aiMessages.length,
         },
-        totalTurns: aiMessages.length,
-      },
-    };
+      };
 
-    res.json({
-      success: true,
-      data: result,
-    });
-  } catch (error) {
-    logger.error('Error fetching phase-shift history:', error);
-    res.status(500).json({
-      success: false,
-      error: getErrorMessage(error),
-    });
+      res.json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      logger.error('Error fetching phase-shift history:', error);
+      res.status(500).json({
+        success: false,
+        error: getErrorMessage(error),
+      });
+    }
   }
-});
+);
 
 /**
  * GET /api/phase-shift/tenant/summary
@@ -240,7 +244,7 @@ router.get('/tenant/summary', protect, async (req: Request, res: Response) => {
 
       aiMessages.forEach((message: IMessage) => {
         const phaseShiftData = message.metadata?.trustEvaluation?.phaseShift;
-        
+
         if (phaseShiftData) {
           const velocity = phaseShiftData.velocity || 0;
           const alertLevel = phaseShiftData.alertLevel || 'none';

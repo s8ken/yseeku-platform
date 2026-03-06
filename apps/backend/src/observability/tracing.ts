@@ -16,11 +16,14 @@ const noopTracer = {
 
 export const tracer = noopTracer;
 
-export async function withSpan<T>(_name: string, fn: () => Promise<T>, ..._args: unknown[]): Promise<T> {
+export async function withSpan<T>(
+  _name: string,
+  fn: () => Promise<T>,
+  ..._args: unknown[]
+): Promise<T> {
   return fn();
 }
 
 export function annotateActiveSpan(_attrs: Record<string, unknown>) {
   // No-op
 }
-

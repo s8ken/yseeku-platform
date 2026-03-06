@@ -4,7 +4,9 @@ import logger from '../utils/logger';
 
 // Initialize client (pointing to the Python Sidecar)
 // In production, use process.env.RESONANCE_ENGINE_URL
-const resonanceClient = new ResonanceClient(process.env.RESONANCE_ENGINE_URL || 'http://localhost:8000');
+const resonanceClient = new ResonanceClient(
+  process.env.RESONANCE_ENGINE_URL || 'http://localhost:8000'
+);
 
 export const analyzeInteraction = async (req: Request, res: Response) => {
   try {
@@ -28,7 +30,7 @@ export const analyzeInteraction = async (req: Request, res: Response) => {
     const receipt = await resonanceClient.generateReceipt({
       user_input,
       ai_response,
-      history: history || []
+      history: history || [],
     });
 
     // 4. (Future) Database Persistence
@@ -37,7 +39,6 @@ export const analyzeInteraction = async (req: Request, res: Response) => {
     // 5. Return the Trust Receipt to the Frontend
     logger.info(`✅ Receipt Minted: ${receipt.sonate_dimensions.trust_protocol}`);
     return res.json(receipt);
-
   } catch (error) {
     logger.error('❌ Interaction Analysis Failed:', error);
     return res.status(500).json({ error: 'Internal Trust Protocol Error' });

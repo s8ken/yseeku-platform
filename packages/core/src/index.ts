@@ -18,7 +18,7 @@ export {
   PrincipleEvaluator,
   createDefaultContext,
   type EvaluationContext,
-  type PrincipleEvaluationResult
+  type PrincipleEvaluationResult,
 } from './principles/principle-evaluator';
 
 // === CONFIGURATION LAYER ===
@@ -135,4 +135,3 @@ export * from './constants/algorithmic';
 
 // Detection Logic (Migrated from @sonate/detect to break circular deps)
 export * from './detection';
-

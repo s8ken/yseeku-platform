@@ -24,7 +24,7 @@ router.get('/metrics', protect, async (req: Request, res: Response): Promise<voi
     const now = new Date();
     const oneHourAgo = new Date(now.getTime() - 3600000);
     const oneDayAgo = new Date(now.getTime() - 24 * 3600000);
-    
+
     // Fetch real-time data
     const [
       activeAgents,
@@ -40,22 +40,22 @@ router.get('/metrics', protect, async (req: Request, res: Response): Promise<voi
         .lean(),
       AlertsService.getAlerts('default', { status: 'active', limit: 100 }), // Use AlertsService.getAlerts
     ]);
-    
+
     const { alerts: activeAlerts } = alertsResult; // Destructure alerts from alertsResult
-    
+
     // Calculate trust metrics from recent conversations
     let totalTrust = 0;
     let messageCount = 0;
-    
+
     for (const conv of recentConversations) {
       for (const msg of conv.messages) {
         totalTrust += (msg.trustScore || 5) * 2; // Convert 0-5 to 0-10
         messageCount++;
       }
     }
-    
+
     const avgTrust = messageCount > 0 ? totalTrust / messageCount : 8.5;
-    
+
     // Calculate alert summary
     const summaryStats = await AlertsService.getAlertStats(userTenant); // Use AlertsService.getAlertStats
     const alertSummary = {
@@ -64,7 +64,7 @@ router.get('/metrics', protect, async (req: Request, res: Response): Promise<voi
       warning: summaryStats.byType['policy_breach'] || 0, // Example mapping, adjust as needed
       info: summaryStats.byType['emergence_detected'] || 0, // Example mapping, adjust as needed
     };
-    
+
     res.json({
       success: true,
       data: {
@@ -96,9 +96,9 @@ router.get('/history', protect, async (req: Request, res: Response): Promise<voi
   try {
     const hours = Math.min(parseInt(req.query.hours as string) || 24, 168); // Max 7 days
     const resolution = (req.query.resolution as string) === 'minute' ? 'minute' : 'hour';
-    
+
     const history = await getHistoricalMetrics(hours, resolution);
-    
+
     res.json({
       success: true,
       data: {
@@ -122,10 +122,10 @@ router.get('/events', protect, async (req: Request, res: Response): Promise<void
     const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
     const oneDayAgo = new Date(Date.now() - 24 * 3600000);
     const tenantId = String(req.tenant || 'default');
-    
+
     // Get recent alerts as events
     const { alerts } = await AlertsService.getAlerts(tenantId, { limit }); // Use AlertsService.getAlerts
-    
+
     // Get recent conversation activity
     const conversations = await Conversation.find({
       lastActivity: { $gte: oneDayAgo },
@@ -135,7 +135,7 @@ router.get('/events', protect, async (req: Request, res: Response): Promise<void
       .sort({ lastActivity: -1 })
       .limit(limit)
       .lean();
-    
+
     // Build event list
     const events: Array<{
       id: string;
@@ -146,7 +146,7 @@ router.get('/events', protect, async (req: Request, res: Response): Promise<void
       agentName?: string;
       trustScore?: number;
     }> = [];
-    
+
     // Add alerts as events
     for (const alert of alerts) {
       events.push({
@@ -157,7 +157,7 @@ router.get('/events', protect, async (req: Request, res: Response): Promise<void
         severity: alert.severity,
       });
     }
-    
+
     // Add recent messages as events
     for (const conv of conversations) {
       const recentMsgs = conv.messages.slice(-3);
@@ -175,10 +175,10 @@ router.get('/events', protect, async (req: Request, res: Response): Promise<void
         }
       }
     }
-    
+
     // Sort by timestamp
     events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    
+
     res.json({
       success: true,
       data: events.slice(0, limit),
@@ -197,14 +197,14 @@ router.get('/agents', protect, async (req: Request, res: Response): Promise<void
   try {
     const userTenant = req.userTenant || 'default';
     const oneHourAgo = new Date(Date.now() - 3600000);
-    
+
     const agents = await Agent.find()
       .select('name status model systemPrompt lastActive metadata')
       .sort({ lastActive: -1 })
       .limit(20)
       .lean();
-    
-    const agentStatus = agents.map(agent => ({
+
+    const agentStatus = agents.map((agent) => ({
       id: agent._id.toString(),
       name: agent.name,
       status: agent.lastActive && agent.lastActive >= oneHourAgo ? 'active' : 'idle',
@@ -212,7 +212,7 @@ router.get('/agents', protect, async (req: Request, res: Response): Promise<void
       lastActive: agent.lastActive?.toISOString(),
       trustScore: agent.metadata?.trustScore || 8.5,
     }));
-    
+
     res.json({
       success: true,
       data: agentStatus,
@@ -230,15 +230,15 @@ router.get('/agents', protect, async (req: Request, res: Response): Promise<void
 router.get('/health', async (req: Request, res: Response): Promise<void> => {
   try {
     const startTime = Date.now();
-    
+
     // Check database connectivity
     const dbStart = Date.now();
     await Agent.findOne().select('_id').lean();
     const dbLatency = Date.now() - dbStart;
-    
+
     const uptime = process.uptime();
     const memoryUsage = process.memoryUsage();
-    
+
     res.json({
       success: true,
       data: {
@@ -277,7 +277,7 @@ const LIVE_TENANT_ID = 'live-tenant';
 router.post('/init', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
-    
+
     if (!userId) {
       res.status(401).json({
         success: false,
@@ -287,13 +287,16 @@ router.post('/init', protect, async (req: Request, res: Response): Promise<void>
     }
 
     // Check if a default agent already exists for this user
-    let defaultAgent = await Agent.findOne({ 
+    let defaultAgent = await Agent.findOne({
       user: userId,
       name: 'SONATE Assistant',
     });
 
     if (defaultAgent) {
-      logger.info('Live tenant already initialized for user', { userId, agentId: defaultAgent._id });
+      logger.info('Live tenant already initialized for user', {
+        userId,
+        agentId: defaultAgent._id,
+      });
       res.json({
         success: true,
         message: 'Live tenant already initialized',
@@ -313,7 +316,8 @@ router.post('/init', protect, async (req: Request, res: Response): Promise<void>
     // Create default SONATE agent for live tenant
     defaultAgent = await Agent.create({
       name: 'SONATE Assistant',
-      description: 'Your AI assistant with built-in ethical oversight and transparency. Uses Anthropic Claude for thoughtful, harmless responses.',
+      description:
+        'Your AI assistant with built-in ethical oversight and transparency. Uses Anthropic Claude for thoughtful, harmless responses.',
       user: userId,
       provider: 'anthropic',
       model: 'claude-sonnet-4-20250514',
@@ -353,8 +357,8 @@ You are part of the SONATE platform which provides AI trust and transparency inf
       },
     });
 
-    logger.info('Live tenant initialized with default agent', { 
-      userId, 
+    logger.info('Live tenant initialized with default agent', {
+      userId,
       agentId: defaultAgent._id,
       agentName: defaultAgent.name,
     });
@@ -390,9 +394,9 @@ You are part of the SONATE platform which provides AI trust and transparency inf
 router.get('/status', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
-    
+
     // Check for default agent
-    const defaultAgent = await Agent.findOne({ 
+    const defaultAgent = await Agent.findOne({
       user: userId,
       name: 'SONATE Assistant',
     });
@@ -405,13 +409,15 @@ router.get('/status', protect, async (req: Request, res: Response): Promise<void
       data: {
         tenantId: LIVE_TENANT_ID,
         initialized: !!defaultAgent,
-        agent: defaultAgent ? {
-          id: defaultAgent._id,
-          name: defaultAgent.name,
-          provider: defaultAgent.provider,
-          model: defaultAgent.model,
-          lastActive: defaultAgent.lastActive,
-        } : null,
+        agent: defaultAgent
+          ? {
+              id: defaultAgent._id,
+              name: defaultAgent.name,
+              provider: defaultAgent.provider,
+              model: defaultAgent.model,
+              lastActive: defaultAgent.lastActive,
+            }
+          : null,
         services: {
           anthropic: hasAnthropicKey,
         },
@@ -432,8 +438,8 @@ router.get('/status', protect, async (req: Request, res: Response): Promise<void
 router.get('/agent', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
-    
-    let agent = await Agent.findOne({ 
+
+    let agent = await Agent.findOne({
       user: userId,
       name: 'SONATE Assistant',
     });
@@ -446,7 +452,8 @@ router.get('/agent', protect, async (req: Request, res: Response): Promise<void>
         user: userId,
         provider: 'anthropic',
         model: 'claude-sonnet-4-20250514',
-        systemPrompt: 'You are SONATE Assistant, an AI with built-in ethical oversight. Be helpful, harmless, and honest.',
+        systemPrompt:
+          'You are SONATE Assistant, an AI with built-in ethical oversight. Be helpful, harmless, and honest.',
         temperature: 0.7,
         maxTokens: 4096,
         isPublic: false,
@@ -458,7 +465,7 @@ router.get('/agent', protect, async (req: Request, res: Response): Promise<void>
           isDefaultAgent: true,
         },
       });
-      
+
       logger.info('Auto-created default agent for user', { userId, agentId: agent._id });
     }
 

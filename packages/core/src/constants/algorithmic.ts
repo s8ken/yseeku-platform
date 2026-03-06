@@ -1,6 +1,6 @@
 /**
  * Algorithmic Constants for YSEEKU Platform
- * 
+ *
  * This file contains magic numbers extracted from the codebase
  * with proper documentation and type safety.
  */
@@ -13,16 +13,16 @@
 export const BEDAU_INDEX_CONSTANTS = {
   /** Expected random baseline for emergence detection */
   BASELINE_RANDOM_SCORE: 0.3,
-  
+
   /** Assumed pooled standard deviation for effect size calculations */
   POOLLED_STANDARD_DEVIATION: 0.25,
-  
+
   /** Number of bootstrap samples for confidence intervals */
   BOOTSTRAP_SAMPLES: 1000,
-  
+
   /** Confidence level for statistical tests (0.95 = 95%) */
   CONFIDENCE_LEVEL: 0.95,
-  
+
   /** Emergence type thresholds */
   EMERGENCE_THRESHOLDS: {
     /** Below this value: Linear behavior */
@@ -32,7 +32,7 @@ export const BEDAU_INDEX_CONSTANTS = {
     /** Above this value: High weak emergence */
     HIGH_WEAK_EMERGENCE: 0.9,
   },
-  
+
   /** Quantization levels for Lempel-Ziv complexity */
   QUANTIZATION_LEVELS: 8,
 } as const;
@@ -53,7 +53,7 @@ export const RESONANCE_CONSTANTS = {
     /** Ethical considerations weight */
     ETHICS: 0.2,
   },
-  
+
   /** Dynamic thresholds based on conversation stakes */
   DYNAMIC_THRESHOLDS: {
     /** High stakes: strict requirements */
@@ -72,7 +72,7 @@ export const RESONANCE_CONSTANTS = {
       ALIGNMENT: 0.6,
     },
   },
-  
+
   /** Adversarial detection thresholds */
   ADVERSARIAL: {
     /** Penalty for detected adversarial input */
@@ -96,7 +96,7 @@ export const TRUST_PROTOCOL_CONSTANTS = {
     /** Minimum acceptable: 4.0+ */
     LOW: 4.0,
   },
-  
+
   /** Principle weights (must sum to 1.0) */
   PRINCIPLE_WEIGHTS: {
     CONSENT_ARCHITECTURE: 0.25,
@@ -106,13 +106,10 @@ export const TRUST_PROTOCOL_CONSTANTS = {
     RIGHT_TO_DISCONNECT: 0.1,
     MORAL_RECOGNITION: 0.1,
   },
-  
+
   /** Critical principles that cause total trust failure when violated */
-  CRITICAL_PRINCIPLES: [
-    'CONSENT_ARCHITECTURE',
-    'ETHICAL_OVERRIDE',
-  ] as const,
-  
+  CRITICAL_PRINCIPLES: ['CONSENT_ARCHITECTURE', 'ETHICAL_OVERRIDE'] as const,
+
   /** Minimum score for principle compliance */
   PRINCIPLE_COMPLIANCE_MIN: 5.0,
 } as const;
@@ -131,7 +128,7 @@ export const PERFORMANCE_CONSTANTS = {
     /** Alert threshold for latency */
     ALERT: 150,
   },
-  
+
   /** Throughput targets (detections per second) */
   THROUGHPUT: {
     /** Target for production */
@@ -141,7 +138,7 @@ export const PERFORMANCE_CONSTANTS = {
     /** Maximum before scaling needed */
     SCALE_THRESHOLD: 1500,
   },
-  
+
   /** Memory usage targets in MB */
   MEMORY: {
     /** Per detector instance */
@@ -167,7 +164,7 @@ export const SECURITY_CONSTANTS = {
     /** Minimum secret length */
     MIN_SECRET_LENGTH: 32,
   },
-  
+
   /** Session management */
   SESSION: {
     /** Session duration (1 hour) */
@@ -177,7 +174,7 @@ export const SECURITY_CONSTANTS = {
     /** Maximum concurrent sessions per user */
     MAX_CONCURRENT: 5,
   },
-  
+
   /** Rate limiting */
   RATE_LIMITING: {
     /** Window duration (1 minute) */
@@ -208,7 +205,7 @@ export const validateConstants = {
     const sum = Object.values(weights).reduce((acc, val) => acc + val, 0);
     return Math.abs(sum - 1.0) < 0.001; // Allow small floating point errors
   },
-  
+
   /** Validate resonance weights sum to 1.0 */
   validateResonanceWeights(): boolean {
     const weights = RESONANCE_CONSTANTS.WEIGHTS;

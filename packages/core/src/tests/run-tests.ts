@@ -507,7 +507,9 @@ async function testMemoryAndCPUUsage() {
   assert(mem.rss > 0 && mem.heapUsed > 0, 'Memory usage should be non-zero');
   // Burn a little CPU
   let acc = 0;
-  for (let i = 0; i < 5000; i++) {acc += Math.sqrt(i);}
+  for (let i = 0; i < 5000; i++) {
+    acc += Math.sqrt(i);
+  }
   const cpu = getCPUUsage();
   assert(cpu.user >= 0 && cpu.system >= 0, 'CPU usage should be non-negative');
 }

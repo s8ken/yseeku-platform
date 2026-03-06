@@ -1,6 +1,6 @@
 /**
  * Policy API Routes
- * 
+ *
  * Core policy engine evaluation endpoints using @sonate/policy
  * Evaluates trust receipts against SONATE constitutional principles
  */
@@ -66,36 +66,41 @@ router.post('/evaluate', protect, async (req: Request, res: Response): Promise<v
  * POST /api/policy/evaluate/batch
  * Evaluate multiple receipts in batch
  */
-router.post('/evaluate/batch', protect, requireRole(['admin', 'operator']), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { receipts, principleIds } = req.body;
+router.post(
+  '/evaluate/batch',
+  protect,
+  requireRole(['admin', 'operator']),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { receipts, principleIds } = req.body;
 
-    if (!Array.isArray(receipts) || receipts.length === 0) {
-      res.status(400).json({ success: false, error: 'receipts must be a non-empty array' });
-      return;
+      if (!Array.isArray(receipts) || receipts.length === 0) {
+        res.status(400).json({ success: false, error: 'receipts must be a non-empty array' });
+        return;
+      }
+
+      if (receipts.length > 100) {
+        res.status(400).json({ success: false, error: 'Batch limit is 100 receipts' });
+        return;
+      }
+
+      const result = engine.evaluateBatch(receipts, principleIds);
+
+      res.json({
+        success: true,
+        data: {
+          total: result.total,
+          passed: result.passed,
+          failed: result.failed,
+          evaluationTimeMs: result.evaluationTimeMs,
+        },
+      });
+    } catch (error) {
+      logger.error('Batch policy evaluation failed', { error: getErrorMessage(error) });
+      res.status(500).json({ success: false, error: 'Batch evaluation failed' });
     }
-
-    if (receipts.length > 100) {
-      res.status(400).json({ success: false, error: 'Batch limit is 100 receipts' });
-      return;
-    }
-
-    const result = engine.evaluateBatch(receipts, principleIds);
-
-    res.json({
-      success: true,
-      data: {
-        total: result.total,
-        passed: result.passed,
-        failed: result.failed,
-        evaluationTimeMs: result.evaluationTimeMs,
-      },
-    });
-  } catch (error) {
-    logger.error('Batch policy evaluation failed', { error: getErrorMessage(error) });
-    res.status(500).json({ success: false, error: 'Batch evaluation failed' });
   }
-});
+);
 
 /**
  * GET /api/policy/principles
@@ -103,10 +108,12 @@ router.post('/evaluate/batch', protect, requireRole(['admin', 'operator']), asyn
  */
 router.get('/principles', protect, (_req: Request, res: Response): void => {
   const principleIds = getAllPrincipleIds();
-  const principles = principleIds.map(id => {
-    const p = sonatePrinciples.find(sp => sp.id === id);
-    return p ? { id: p.id, name: p.name, description: p.description, rules: p.rules } : null;
-  }).filter(Boolean);
+  const principles = principleIds
+    .map((id) => {
+      const p = sonatePrinciples.find((sp) => sp.id === id);
+      return p ? { id: p.id, name: p.name, description: p.description, rules: p.rules } : null;
+    })
+    .filter(Boolean);
 
   res.json({ success: true, data: principles });
 });

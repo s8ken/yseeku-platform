@@ -7,7 +7,8 @@ import mongoose from 'mongoose';
 import { recordDbQuery } from '../observability/metrics';
 import logger from '../utils/logger';
 
-const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/yseeku-platform';
+const MONGODB_URI =
+  process.env.MONGODB_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/yseeku-platform';
 const MAX_RETRIES = 5;
 const RETRY_INTERVAL = 5000; // 5 seconds
 
@@ -16,10 +17,10 @@ let retryCount = 0;
 export async function connectDatabase(): Promise<void> {
   try {
     await mongoose.connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 30000,  // Increased from 5s to 30s for Railway network latency
+      serverSelectionTimeoutMS: 30000, // Increased from 5s to 30s for Railway network latency
       socketTimeoutMS: 45000,
-      connectTimeoutMS: 30000,  // Added connection timeout
-      maxPoolSize: 10,  // Connection pool settings
+      connectTimeoutMS: 30000, // Added connection timeout
+      maxPoolSize: 10, // Connection pool settings
       minPoolSize: 2,
     });
 
@@ -54,13 +55,13 @@ export async function connectDatabase(): Promise<void> {
     logger.error('MongoDB connection failed', {
       attempt: retryCount + 1,
       maxRetries: MAX_RETRIES,
-      error: error.message
+      error: error.message,
     });
 
     if (retryCount < MAX_RETRIES) {
       retryCount++;
       logger.info('Retrying MongoDB connection', { retryIn: `${RETRY_INTERVAL / 1000}s` });
-      await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+      await new Promise((resolve) => setTimeout(resolve, RETRY_INTERVAL));
       return connectDatabase(); // Retry
     } else {
       logger.error('Max connection retries reached. Server will continue without database.');

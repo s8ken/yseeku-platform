@@ -1,6 +1,6 @@
 /**
  * Security Headers Middleware
- * 
+ *
  * Adds comprehensive security headers beyond what Helmet provides.
  * Implements CSP, permissions policy, and other security best practices.
  */
@@ -30,14 +30,14 @@ const CSP_DIRECTIVES = {
  * Controls browser features available to the page
  */
 const PERMISSIONS_POLICY = {
-  'accelerometer': [],
-  'camera': [],
-  'geolocation': [],
-  'gyroscope': [],
-  'magnetometer': [],
-  'microphone': [],
-  'payment': [],
-  'usb': [],
+  accelerometer: [],
+  camera: [],
+  geolocation: [],
+  gyroscope: [],
+  magnetometer: [],
+  microphone: [],
+  payment: [],
+  usb: [],
   'interest-cohort': [], // Disable FLoC
 };
 
@@ -72,37 +72,37 @@ function buildPermissionsPolicy(policies: Record<string, string[]>): string {
 export function securityHeaders(req: Request, res: Response, next: NextFunction): void {
   // Content Security Policy
   res.setHeader('Content-Security-Policy', buildCSP(CSP_DIRECTIVES));
-  
+
   // Permissions Policy (formerly Feature-Policy)
   res.setHeader('Permissions-Policy', buildPermissionsPolicy(PERMISSIONS_POLICY));
-  
+
   // Prevent MIME type sniffing
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  
+
   // Prevent clickjacking
   res.setHeader('X-Frame-Options', 'DENY');
-  
+
   // XSS Protection (legacy, but still useful for older browsers)
   res.setHeader('X-XSS-Protection', '1; mode=block');
-  
+
   // Referrer Policy
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  
+
   // Cross-Origin policies
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
   res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-  
+
   // Cache control for sensitive endpoints
   if (req.path.includes('/api/auth') || req.path.includes('/api/secrets')) {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
   }
-  
+
   // Remove server identification
   res.removeHeader('X-Powered-By');
-  
+
   next();
 }
 
@@ -113,13 +113,13 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
 export function apiSecurityHeaders(req: Request, res: Response, next: NextFunction): void {
   // Prevent caching of API responses by default
   res.setHeader('Cache-Control', 'no-store');
-  
+
   // Prevent MIME sniffing
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  
+
   // Remove server identification
   res.removeHeader('X-Powered-By');
-  
+
   next();
 }
 

@@ -52,10 +52,7 @@ export interface ActionRecommendation {
 /**
  * Record the outcome of an executed action
  */
-export async function recordActionOutcome(
-  tenantId: string,
-  outcome: ActionOutcome
-): Promise<void> {
+export async function recordActionOutcome(tenantId: string, outcome: ActionOutcome): Promise<void> {
   // Update the action with outcome data
   await BrainAction.findByIdAndUpdate(outcome.actionId, {
     $set: {
@@ -76,15 +73,20 @@ export async function recordActionOutcome(
   }
 
   // Store outcome in memory for learning
-  await remember(tenantId, 'feedback:action_outcome', {
-    actionId: outcome.actionId,
-    actionType: action.type,
-    target: action.target,
-    success: outcome.success,
-    impact: outcome.impact,
-    metrics: outcome.metrics,
-    timestamp: outcome.timestamp,
-  }, ['feedback', 'outcome', action.type]);
+  await remember(
+    tenantId,
+    'feedback:action_outcome',
+    {
+      actionId: outcome.actionId,
+      actionType: action.type,
+      target: action.target,
+      success: outcome.success,
+      impact: outcome.impact,
+      metrics: outcome.metrics,
+      timestamp: outcome.timestamp,
+    },
+    ['feedback', 'outcome', action.type]
+  );
 
   logger.info('Action outcome recorded', {
     actionId: outcome.actionId,
@@ -106,13 +108,13 @@ export async function calculateEffectiveness(
   windowStart.setDate(windowStart.getDate() - windowDays);
 
   // Get actions with outcomes in the time window
-  const actions = await BrainAction.find({
+  const actions = (await BrainAction.find({
     tenantId,
     type: actionType,
     status: 'executed',
     'result.outcome': { $exists: true },
     executedAt: { $gte: windowStart },
-  }).lean() as any[];
+  }).lean()) as any[];
 
   if (actions.length === 0) {
     return {
@@ -136,7 +138,11 @@ export async function calculateEffectiveness(
   };
 
   // Store calculated effectiveness in memory for future reference
-  await remember(tenantId, `effectiveness:${actionType}`, score, ['effectiveness', 'score', actionType]);
+  await remember(tenantId, `effectiveness:${actionType}`, score, [
+    'effectiveness',
+    'score',
+    actionType,
+  ]);
 
   return score;
 }
@@ -147,7 +153,14 @@ export async function calculateEffectiveness(
 export async function getActionRecommendations(
   tenantId: string
 ): Promise<{ adjustments: ActionRecommendation[] }> {
-  const actionTypes = ['alert', 'adjust_threshold', 'ban_agent', 'restrict_agent', 'quarantine_agent', 'unban_agent'];
+  const actionTypes = [
+    'alert',
+    'adjust_threshold',
+    'ban_agent',
+    'restrict_agent',
+    'quarantine_agent',
+    'unban_agent',
+  ];
   const adjustments: ActionRecommendation[] = [];
 
   for (const actionType of actionTypes) {
@@ -184,14 +197,18 @@ export async function getActionRecommendations(
         actionType,
         recommendation: 'increase',
         confidence,
-        reason: `High effectiveness (${(compositeScore * 100).toFixed(1)}% composite score, ${(effectiveness.successRate * 100).toFixed(0)}% success rate)`,
+        reason: `High effectiveness (${(compositeScore * 100).toFixed(1)}% composite score, ${(
+          effectiveness.successRate * 100
+        ).toFixed(0)}% success rate)`,
       });
     } else if (compositeScore < 0.3) {
       adjustments.push({
         actionType,
         recommendation: 'decrease',
         confidence,
-        reason: `Low effectiveness (${(compositeScore * 100).toFixed(1)}% composite score, ${(effectiveness.avgImpact * 100).toFixed(0)}% avg impact)`,
+        reason: `Low effectiveness (${(compositeScore * 100).toFixed(1)}% composite score, ${(
+          effectiveness.avgImpact * 100
+        ).toFixed(0)}% avg impact)`,
       });
     } else {
       adjustments.push({
@@ -204,10 +221,15 @@ export async function getActionRecommendations(
   }
 
   // Store recommendations in memory
-  await remember(tenantId, 'feedback:recommendations', {
-    adjustments,
-    generatedAt: new Date(),
-  }, ['feedback', 'recommendations']);
+  await remember(
+    tenantId,
+    'feedback:recommendations',
+    {
+      adjustments,
+      generatedAt: new Date(),
+    },
+    ['feedback', 'recommendations']
+  );
 
   return { adjustments };
 }
@@ -229,8 +251,15 @@ export async function measureActionImpact(
   const trustDelta = postActionState.avgTrust - preActionState.avgTrust;
 
   // Check if emergence improved (went from higher to lower or to LINEAR)
-  const emergenceImproved = isEmergenceImproved(preActionState.emergenceLevel, postActionState.emergenceLevel);
-  const emergenceDelta = emergenceImproved ? 1 : (postActionState.emergenceLevel === preActionState.emergenceLevel ? 0 : -1);
+  const emergenceImproved = isEmergenceImproved(
+    preActionState.emergenceLevel,
+    postActionState.emergenceLevel
+  );
+  const emergenceDelta = emergenceImproved
+    ? 1
+    : postActionState.emergenceLevel === preActionState.emergenceLevel
+    ? 0
+    : -1;
 
   // Calculate impact based on action type
   let impact = 0;
@@ -295,9 +324,9 @@ export async function measureActionImpact(
  */
 function isEmergenceImproved(before: string, after: string): boolean {
   const levels: Record<string, number> = {
-    'LINEAR': 0,
-    'WEAK_EMERGENCE': 1,
-    'HIGH_WEAK_EMERGENCE': 2,
+    LINEAR: 0,
+    WEAK_EMERGENCE: 1,
+    HIGH_WEAK_EMERGENCE: 2,
   };
 
   const beforeLevel = levels[before] ?? 1;
@@ -309,12 +338,9 @@ function isEmergenceImproved(before: string, after: string): boolean {
 /**
  * Get recent action outcomes for analysis
  */
-export async function getRecentOutcomes(
-  tenantId: string,
-  limit: number = 50
-): Promise<any[]> {
+export async function getRecentOutcomes(tenantId: string, limit: number = 50): Promise<any[]> {
   const memories = await recallMany(tenantId, 'feedback:action_outcome', limit);
-  return memories.map(m => m.payload);
+  return memories.map((m) => m.payload);
 }
 
 /**
@@ -342,13 +368,15 @@ export async function analyzeEffectivenessTrends(
   const windowStart = new Date();
   windowStart.setDate(windowStart.getDate() - windowDays);
 
-  const actions = await BrainAction.find({
+  const actions = (await BrainAction.find({
     tenantId,
     type: actionType,
     status: 'executed',
     'result.outcome': { $exists: true },
     executedAt: { $gte: windowStart },
-  }).sort({ executedAt: 1 }).lean() as any[];
+  })
+    .sort({ executedAt: 1 })
+    .lean()) as any[];
 
   if (actions.length < 10) {
     return { trend: 'stable', dataPoints: [] };

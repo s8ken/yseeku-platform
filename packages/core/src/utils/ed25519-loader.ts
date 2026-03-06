@@ -50,7 +50,10 @@ export async function generateEd25519KeyPair(): Promise<{
 /**
  * Sign a message with Ed25519
  */
-export async function signEd25519(message: Uint8Array, privateKey: Uint8Array): Promise<Uint8Array> {
+export async function signEd25519(
+  message: Uint8Array,
+  privateKey: Uint8Array
+): Promise<Uint8Array> {
   const ed25519 = await loadEd25519();
   return ed25519.sign(message, privateKey);
 }

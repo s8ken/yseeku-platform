@@ -1,6 +1,6 @@
 /**
  * Policy Audit Logger
- * 
+ *
  * Re-exports the audit logger from @sonate/policy for backward compatibility
  */
 

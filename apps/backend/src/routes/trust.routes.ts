@@ -21,12 +21,16 @@ import {
 
 function validateReceiptPayload(data: any) {
   if (!data || typeof data !== 'object') return 'Payload must be an object';
-  if (!data.self_hash || typeof data.self_hash !== 'string' || data.self_hash.length < 16) return 'Invalid self_hash';
+  if (!data.self_hash || typeof data.self_hash !== 'string' || data.self_hash.length < 16)
+    return 'Invalid self_hash';
   if (!data.session_id || typeof data.session_id !== 'string') return 'Invalid session_id';
   if (typeof data.timestamp !== 'number') return 'Invalid timestamp';
   if (!data.mode || typeof data.mode !== 'string') return 'Invalid mode';
   const m = data.ciq_metrics || data.ciq || {};
-  const hasMetrics = typeof m.clarity === 'number' && typeof m.integrity === 'number' && typeof m.quality === 'number';
+  const hasMetrics =
+    typeof m.clarity === 'number' &&
+    typeof m.integrity === 'number' &&
+    typeof m.quality === 'number';
   if (!hasMetrics) return 'Invalid ciq_metrics';
   return null;
 }
@@ -37,79 +41,84 @@ const router = Router();
  * POST /api/trust/receipts
  * Save a trust receipt with optional DID-based signatures
  */
-router.post('/receipts', protect, llmLimiter, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const receiptData = req.body;
+router.post(
+  '/receipts',
+  protect,
+  llmLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const receiptData = req.body;
 
-    if (!receiptData || !receiptData.self_hash) {
-      res.status(400).json({
-        success: false,
-        error: 'Invalid receipt data',
-      });
-      return;
-    }
-    if (typeof receiptData.self_hash !== 'string' || receiptData.self_hash.length < 16) {
-      res.status(400).json({ success: false, error: 'Invalid self_hash format' });
-      return;
-    }
-    if (receiptData.signature && typeof receiptData.signature !== 'string') {
-      res.status(400).json({ success: false, error: 'Invalid signature format' });
-      return;
-    }
-    {
-      const schemaErr = validateReceiptPayload({
-        self_hash: receiptData.self_hash,
-        session_id: receiptData.session_id,
-        timestamp: receiptData.timestamp,
-        mode: receiptData.mode,
-        ciq_metrics: receiptData.ciq_metrics || receiptData.ciq,
-      });
-      if (schemaErr) {
-        res.status(400).json({ success: false, error: schemaErr });
+      if (!receiptData || !receiptData.self_hash) {
+        res.status(400).json({
+          success: false,
+          error: 'Invalid receipt data',
+        });
         return;
       }
+      if (typeof receiptData.self_hash !== 'string' || receiptData.self_hash.length < 16) {
+        res.status(400).json({ success: false, error: 'Invalid self_hash format' });
+        return;
+      }
+      if (receiptData.signature && typeof receiptData.signature !== 'string') {
+        res.status(400).json({ success: false, error: 'Invalid signature format' });
+        return;
+      }
+      {
+        const schemaErr = validateReceiptPayload({
+          self_hash: receiptData.self_hash,
+          session_id: receiptData.session_id,
+          timestamp: receiptData.timestamp,
+          mode: receiptData.mode,
+          ciq_metrics: receiptData.ciq_metrics || receiptData.ciq,
+        });
+        if (schemaErr) {
+          res.status(400).json({ success: false, error: schemaErr });
+          return;
+        }
+      }
+
+      // Check if exists
+      const existing = await TrustReceiptModel.findOne({ self_hash: receiptData.self_hash });
+      if (existing) {
+        res.json({ success: true, saved: true, message: 'Receipt already exists' });
+        return;
+      }
+
+      // Add DID fields if not present
+      const platformDID = didService.getPlatformDID();
+      const issuer = receiptData.issuer || platformDID;
+      const subject =
+        receiptData.subject ||
+        (receiptData.agent_id ? didService.getAgentDID(receiptData.agent_id) : undefined);
+
+      const receipt = await TrustReceiptModel.create({
+        ...receiptData,
+        tenant_id: req.tenant || 'default',
+        issuer,
+        subject,
+      });
+
+      sonateTrustReceiptsTotal.inc();
+      if (receiptData?.analysis_method?.resonanceMethod) {
+        sonateResonanceReceiptsTotal.inc();
+      }
+
+      res.status(201).json({
+        success: true,
+        saved: true,
+        data: receipt,
+      });
+    } catch (error: unknown) {
+      logger.error('Save receipt error', { error: getErrorMessage(error) });
+      res.status(500).json({
+        success: false,
+        error: 'Failed to save receipt',
+        message: getErrorMessage(error),
+      });
     }
-
-    // Check if exists
-    const existing = await TrustReceiptModel.findOne({ self_hash: receiptData.self_hash });
-    if (existing) {
-      res.json({ success: true, saved: true, message: 'Receipt already exists' });
-      return;
-    }
-
-    // Add DID fields if not present
-    const platformDID = didService.getPlatformDID();
-    const issuer = receiptData.issuer || platformDID;
-    const subject = receiptData.subject || (receiptData.agent_id
-      ? didService.getAgentDID(receiptData.agent_id)
-      : undefined);
-
-    const receipt = await TrustReceiptModel.create({
-      ...receiptData,
-      tenant_id: req.tenant || 'default',
-      issuer,
-      subject,
-    });
-
-    sonateTrustReceiptsTotal.inc();
-    if (receiptData?.analysis_method?.resonanceMethod) {
-      sonateResonanceReceiptsTotal.inc();
-    }
-
-    res.status(201).json({
-      success: true,
-      saved: true,
-      data: receipt,
-    });
-  } catch (error: unknown) {
-    logger.error('Save receipt error', { error: getErrorMessage(error) });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to save receipt',
-      message: getErrorMessage(error),
-    });
   }
-});
+);
 
 /**
  * GET /api/trust/analytics
@@ -120,79 +129,84 @@ router.post('/receipts', protect, llmLimiter, async (req: Request, res: Response
  * - days?: number - Last N days (default: 7)
  * - limit?: number - Max evaluations to analyze (default: 1000)
  */
-router.get('/analytics', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { conversationId, days = 7, limit = 1000 } = req.query;
+router.get(
+  '/analytics',
+  protect,
+  apiGatewayLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { conversationId, days = 7, limit = 1000 } = req.query;
 
-    // Build query filter
-    const filter: any = { user: req.userId };
-    if (conversationId) {
-      filter._id = conversationId;
-    }
-
-    // Calculate time range
-    const daysNum = Number(days);
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - daysNum);
-
-    // Fetch conversations
-    const conversations = await Conversation.find(filter)
-      .select('messages ethicalScore lastActivity')
-      .sort({ lastActivity: -1 })
-      .limit(Number(limit));
-
-    // Collect all trust evaluations from messages
-    const evaluations: TrustEvaluation[] = [];
-
-    for (const conversation of conversations) {
-      for (const message of conversation.messages) {
-        // Only process messages within time range
-        if (message.timestamp < cutoffDate) continue;
-
-        // Only process messages with trust metadata
-        if (!message.metadata?.trustEvaluation) continue;
-
-        // Reconstruct TrustEvaluation from metadata
-        const evaluation: TrustEvaluation = {
-          trustScore: message.metadata.trustEvaluation.trustScore,
-          status: message.metadata.trustEvaluation.status,
-          detection: message.metadata.trustEvaluation.detection,
-          receipt: message.metadata.trustEvaluation.receipt,
-          receiptHash: message.metadata.trustEvaluation.receiptHash,
-          timestamp: message.timestamp.getTime(),
-          messageId: message.metadata.messageId,
-          conversationId: conversation._id.toString(),
-        };
-
-        evaluations.push(evaluation);
+      // Build query filter
+      const filter: any = { user: req.userId };
+      if (conversationId) {
+        filter._id = conversationId;
       }
-    }
 
-    // Calculate analytics
-    const analytics = await trustService.getTrustAnalytics(evaluations);
+      // Calculate time range
+      const daysNum = Number(days);
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - daysNum);
 
-    res.json({
-      success: true,
-      data: {
-        analytics,
-        timeRange: {
-          start: cutoffDate.toISOString(),
-          end: new Date().toISOString(),
-          days: daysNum,
+      // Fetch conversations
+      const conversations = await Conversation.find(filter)
+        .select('messages ethicalScore lastActivity')
+        .sort({ lastActivity: -1 })
+        .limit(Number(limit));
+
+      // Collect all trust evaluations from messages
+      const evaluations: TrustEvaluation[] = [];
+
+      for (const conversation of conversations) {
+        for (const message of conversation.messages) {
+          // Only process messages within time range
+          if (message.timestamp < cutoffDate) continue;
+
+          // Only process messages with trust metadata
+          if (!message.metadata?.trustEvaluation) continue;
+
+          // Reconstruct TrustEvaluation from metadata
+          const evaluation: TrustEvaluation = {
+            trustScore: message.metadata.trustEvaluation.trustScore,
+            status: message.metadata.trustEvaluation.status,
+            detection: message.metadata.trustEvaluation.detection,
+            receipt: message.metadata.trustEvaluation.receipt,
+            receiptHash: message.metadata.trustEvaluation.receiptHash,
+            timestamp: message.timestamp.getTime(),
+            messageId: message.metadata.messageId,
+            conversationId: conversation._id.toString(),
+          };
+
+          evaluations.push(evaluation);
+        }
+      }
+
+      // Calculate analytics
+      const analytics = await trustService.getTrustAnalytics(evaluations);
+
+      res.json({
+        success: true,
+        data: {
+          analytics,
+          timeRange: {
+            start: cutoffDate.toISOString(),
+            end: new Date().toISOString(),
+            days: daysNum,
+          },
+          conversationsAnalyzed: conversations.length,
+          evaluationsCount: evaluations.length,
         },
-        conversationsAnalyzed: conversations.length,
-        evaluationsCount: evaluations.length,
-      },
-    });
-  } catch (error: unknown) {
-    logger.error('Trust analytics error', { error: getErrorMessage(error) });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to retrieve trust analytics',
-      message: getErrorMessage(error),
-    });
+      });
+    } catch (error: unknown) {
+      logger.error('Trust analytics error', { error: getErrorMessage(error) });
+      res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve trust analytics',
+        message: getErrorMessage(error),
+      });
+    }
   }
-});
+);
 
 /**
  * POST /api/trust/evaluate
@@ -206,75 +220,82 @@ router.get('/analytics', protect, apiGatewayLimiter, async (req: Request, res: R
  *   sessionId?: string
  * }
  */
-router.post('/evaluate', protect, llmLimiter, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { content, conversationId, previousMessages = [], sessionId } = req.body;
+router.post(
+  '/evaluate',
+  protect,
+  llmLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { content, conversationId, previousMessages = [], sessionId } = req.body;
 
-    if (!content) {
-      res.status(400).json({
-        success: false,
-        error: 'Message content is required',
-      });
-      return;
-    }
-    if (typeof content !== 'string' || content.length > 20000) {
-      res.status(400).json({ success: false, error: 'Invalid content format or too long' });
-      return;
-    }
-    if (!Array.isArray(previousMessages) || previousMessages.length > 50) {
-      res.status(400).json({ success: false, error: 'previousMessages must be an array of max 50 items' });
-      return;
-    }
+      if (!content) {
+        res.status(400).json({
+          success: false,
+          error: 'Message content is required',
+        });
+        return;
+      }
+      if (typeof content !== 'string' || content.length > 20000) {
+        res.status(400).json({ success: false, error: 'Invalid content format or too long' });
+        return;
+      }
+      if (!Array.isArray(previousMessages) || previousMessages.length > 50) {
+        res
+          .status(400)
+          .json({ success: false, error: 'previousMessages must be an array of max 50 items' });
+        return;
+      }
 
-    // Build message object
-    const message = {
-      sender: 'user' as const,
-      content,
-      metadata: {},
-      ciModel: 'none' as const,
-      trustScore: 0,
-      timestamp: new Date(),
-    };
-
-    // Build context
-    const context = {
-      conversationId: conversationId || sessionId || `temp-${Date.now()}`,
-      sessionId: sessionId || conversationId,
-      previousMessages: previousMessages.map((msg: any) => ({
-        sender: msg.sender || 'user',
-        content: msg.content,
+      // Build message object
+      const message = {
+        sender: 'user' as const,
+        content,
         metadata: {},
         ciModel: 'none' as const,
         trustScore: 0,
         timestamp: new Date(),
-      })),
-    };
+      };
 
-    // Evaluate message
-    const evaluation = await trustService.evaluateMessage(message, context);
+      // Build context
+      const context = {
+        conversationId: conversationId || sessionId || `temp-${Date.now()}`,
+        sessionId: sessionId || conversationId,
+        previousMessages: previousMessages.map((msg: any) => ({
+          sender: msg.sender || 'user',
+          content: msg.content,
+          metadata: {},
+          ciModel: 'none' as const,
+          trustScore: 0,
+          timestamp: new Date(),
+        })),
+      };
 
-    res.json({
-      success: true,
-      data: {
-        evaluation: {
-          trustScore: evaluation.trustScore,
-          status: evaluation.status,
-          detection: evaluation.detection,
-          receiptHash: evaluation.receiptHash,
-          timestamp: evaluation.timestamp,
+      // Evaluate message
+      const evaluation = await trustService.evaluateMessage(message, context);
+
+      res.json({
+        success: true,
+        data: {
+          evaluation: {
+            trustScore: evaluation.trustScore,
+            status: evaluation.status,
+            detection: evaluation.detection,
+            receiptHash: evaluation.receiptHash,
+            timestamp: evaluation.timestamp,
+          },
+          principles: trustService.getPrinciples(),
         },
-        principles: trustService.getPrinciples(),
-      },
-    });
-  } catch (error: unknown) {
-    logger.error('Trust evaluation error', { error: getErrorMessage(error) });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to evaluate message',
-      message: getErrorMessage(error),
-    });
+      });
+    } catch (error: unknown) {
+      logger.error('Trust evaluation error', { error: getErrorMessage(error) });
+      res.status(500).json({
+        success: false,
+        error: 'Failed to evaluate message',
+        message: getErrorMessage(error),
+      });
+    }
   }
-});
+);
 
 /**
  * GET /api/trust/receipts
@@ -314,8 +335,8 @@ router.get('/receipts', protect, async (req: Request, res: Response): Promise<vo
 
     // Extract receipts from messages
     const receipts = conversation.messages
-      .filter(msg => msg.metadata?.trustEvaluation?.receipt)
-      .map(msg => ({
+      .filter((msg) => msg.metadata?.trustEvaluation?.receipt)
+      .map((msg) => ({
         messageId: msg.metadata.messageId,
         sender: msg.sender,
         timestamp: msg.timestamp,
@@ -330,7 +351,7 @@ router.get('/receipts', protect, async (req: Request, res: Response): Promise<vo
       success: true,
       data: {
         receipts,
-        total: conversation.messages.filter(msg => msg.metadata?.trustEvaluation?.receipt).length,
+        total: conversation.messages.filter((msg) => msg.metadata?.trustEvaluation?.receipt).length,
         limit: Number(limit),
         offset: Number(offset),
         conversationId: conversation._id,
@@ -355,157 +376,164 @@ router.get('/receipts', protect, async (req: Request, res: Response): Promise<vo
  *   receipt: TrustReceipt object
  * }
  */
-router.post('/receipts/:receiptHash/verify', protect, llmLimiter, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { receiptHash } = req.params;
-    const { receipt } = req.body;
+router.post(
+  '/receipts/:receiptHash/verify',
+  protect,
+  llmLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { receiptHash } = req.params;
+      const { receipt } = req.body;
 
-    if (!receipt) {
-      res.status(400).json({
-        success: false,
-        error: 'Receipt object is required',
-      });
-      return;
-    }
-    if (typeof receiptHash !== 'string' || receiptHash.length < 16) {
-      res.status(400).json({ success: false, error: 'Invalid receiptHash' });
-      return;
-    }
-    {
-      const schemaErr = validateReceiptPayload({
-        self_hash: receipt.self_hash || receipt.receiptHash || receipt.hash || receiptHash,
-        session_id: receipt.session_id,
-        timestamp: receipt.timestamp,
-        mode: receipt.mode,
-        ciq_metrics: receipt.ciq_metrics || receipt.ciq,
-      });
-      if (schemaErr) {
-        res.status(400).json({ success: false, error: schemaErr });
+      if (!receipt) {
+        res.status(400).json({
+          success: false,
+          error: 'Receipt object is required',
+        });
         return;
       }
-    }
-
-    // Verify receipt hash matches (support multiple hash field names)
-    const receiptHashValue = receipt.self_hash || receipt.receiptHash || receipt.hash;
-    if (receiptHashValue !== receiptHash) {
-      res.status(400).json({
-        success: false,
-        error: 'Receipt hash mismatch',
-        expected: receiptHash,
-        actual: receiptHashValue,
-      });
-      return;
-    }
-
-    // Check if receipt exists in database by hash
-    let foundInDatabase = false;
-    let dbReceipt: any = null;
-
-    // Search in conversations for matching receipt hash
-    const conversations = await Conversation.find({
-      'messages.metadata.trustEvaluation.receiptHash': receiptHash,
-    }).select('messages').lean();
-
-    for (const conv of conversations) {
-      for (const msg of conv.messages || []) {
-        if (msg.metadata?.trustEvaluation?.receiptHash === receiptHash) {
-          foundInDatabase = true;
-          dbReceipt = msg.metadata.trustEvaluation;
-          break;
+      if (typeof receiptHash !== 'string' || receiptHash.length < 16) {
+        res.status(400).json({ success: false, error: 'Invalid receiptHash' });
+        return;
+      }
+      {
+        const schemaErr = validateReceiptPayload({
+          self_hash: receipt.self_hash || receipt.receiptHash || receipt.hash || receiptHash,
+          session_id: receipt.session_id,
+          timestamp: receipt.timestamp,
+          mode: receipt.mode,
+          ciq_metrics: receipt.ciq_metrics || receipt.ciq,
+        });
+        if (schemaErr) {
+          res.status(400).json({ success: false, error: schemaErr });
+          return;
         }
       }
-      if (foundInDatabase) break;
-    }
 
-    // Also search in TrustReceipt collection if exists
-    if (!foundInDatabase) {
-      try {
-        const { TrustReceiptModel } = require('../models/trust-receipt.model');
-        const stored = await TrustReceiptModel.findOne({ self_hash: receiptHash }).lean();
-        if (stored) {
-          foundInDatabase = true;
-          dbReceipt = stored;
+      // Verify receipt hash matches (support multiple hash field names)
+      const receiptHashValue = receipt.self_hash || receipt.receiptHash || receipt.hash;
+      if (receiptHashValue !== receiptHash) {
+        res.status(400).json({
+          success: false,
+          error: 'Receipt hash mismatch',
+          expected: receiptHash,
+          actual: receiptHashValue,
+        });
+        return;
+      }
+
+      // Check if receipt exists in database by hash
+      let foundInDatabase = false;
+      let dbReceipt: any = null;
+
+      // Search in conversations for matching receipt hash
+      const conversations = await Conversation.find({
+        'messages.metadata.trustEvaluation.receiptHash': receiptHash,
+      })
+        .select('messages')
+        .lean();
+
+      for (const conv of conversations) {
+        for (const msg of conv.messages || []) {
+          if (msg.metadata?.trustEvaluation?.receiptHash === receiptHash) {
+            foundInDatabase = true;
+            dbReceipt = msg.metadata.trustEvaluation;
+            break;
+          }
         }
+        if (foundInDatabase) break;
+      }
+
+      // Also search in TrustReceipt collection if exists
+      if (!foundInDatabase) {
+        try {
+          const { TrustReceiptModel } = require('../models/trust-receipt.model');
+          const stored = await TrustReceiptModel.findOne({ self_hash: receiptHash }).lean();
+          if (stored) {
+            foundInDatabase = true;
+            dbReceipt = stored;
+          }
+        } catch (e) {
+          // Model might not exist, continue
+        }
+      }
+
+      // Determine validity through multiple verification methods
+      let isValid = false;
+      let hashValid = false;
+      let signatureValid = false;
+
+      // Method 1: Try cryptographic signature verification
+      // Support V2 format (id + signature.value) and V1 fallback (self_hash + string signature)
+      if (receipt.version && receipt.session_id && receipt.timestamp) {
+        try {
+          const receiptId = receipt.id || receipt.self_hash || receiptHashValue;
+          hashValid = receiptId === receiptHashValue;
+
+          // V2 format: signature is an object with .value
+          if (receipt.signature?.value && receipt.id) {
+            signatureValid = await trustService.verifyReceipt(receipt as any);
+            if (signatureValid) isValid = true;
+          } else if (typeof receipt.signature === 'string' && receipt.self_hash) {
+            // V1 fallback: use @sonate/core TrustReceipt
+            const trustReceipt = new TrustReceipt(receipt);
+            trustReceipt.signature = receipt.signature;
+            signatureValid = await trustService.verifyReceipt(trustReceipt as any);
+            if (signatureValid) isValid = true;
+          } else if (hashValid) {
+            // No signature but hash is valid - partial verification
+            isValid = true;
+          }
+        } catch (e: any) {
+          // Structure verification failed
+          logger.warn('Cryptographic verification failed', { error: e?.message || e });
+        }
+      }
+
+      // Method 2: Database lookup as fallback
+      if (!isValid && foundInDatabase) {
+        isValid = true;
+      }
+
+      // Get public key for response (so clients can verify independently)
+      let publicKey: string | undefined;
+      try {
+        const { keysService } = require('../services/keys.service');
+        publicKey = await keysService.getPublicKeyHex();
       } catch (e) {
-        // Model might not exist, continue
+        // Keys service not available
       }
-    }
 
-    // Determine validity through multiple verification methods
-    let isValid = false;
-    let hashValid = false;
-    let signatureValid = false;
+      sonateTrustVerificationsTotal.inc();
 
-    // Method 1: Try cryptographic signature verification
-    // Support V2 format (id + signature.value) and V1 fallback (self_hash + string signature)
-    if (receipt.version && receipt.session_id && receipt.timestamp) {
-      try {
-        const receiptId = receipt.id || receipt.self_hash || receiptHashValue;
-        hashValid = receiptId === receiptHashValue;
-
-        // V2 format: signature is an object with .value
-        if (receipt.signature?.value && receipt.id) {
-          signatureValid = await trustService.verifyReceipt(receipt as any);
-          if (signatureValid) isValid = true;
-        } else if (typeof receipt.signature === 'string' && receipt.self_hash) {
-          // V1 fallback: use @sonate/core TrustReceipt
-          const trustReceipt = new TrustReceipt(receipt);
-          trustReceipt.signature = receipt.signature;
-          signatureValid = await trustService.verifyReceipt(trustReceipt as any);
-          if (signatureValid) isValid = true;
-        } else if (hashValid) {
-          // No signature but hash is valid - partial verification
-          isValid = true;
-        }
-      } catch (e: any) {
-        // Structure verification failed
-        logger.warn('Cryptographic verification failed', { error: e?.message || e });
-      }
-    }
-
-    // Method 2: Database lookup as fallback
-    if (!isValid && foundInDatabase) {
-      isValid = true;
-    }
-
-    // Get public key for response (so clients can verify independently)
-    let publicKey: string | undefined;
-    try {
-      const { keysService } = require('../services/keys.service');
-      publicKey = await keysService.getPublicKeyHex();
-    } catch (e) {
-      // Keys service not available
-    }
-
-    sonateTrustVerificationsTotal.inc();
-
-    res.json({
-      success: true,
-      data: {
-        valid: isValid,
-        foundInDatabase,
-        receipt: dbReceipt || {
-          hash: receiptHashValue,
-          ...receipt,
+      res.json({
+        success: true,
+        data: {
+          valid: isValid,
+          foundInDatabase,
+          receipt: dbReceipt || {
+            hash: receiptHashValue,
+            ...receipt,
+          },
+          verification: {
+            signatureValid,
+            hashValid,
+            inDatabase: foundInDatabase,
+            verifiedAt: new Date().toISOString(),
+            publicKey, // Include public key for independent verification
+          },
         },
-        verification: {
-          signatureValid,
-          hashValid,
-          inDatabase: foundInDatabase,
-          verifiedAt: new Date().toISOString(),
-          publicKey, // Include public key for independent verification
-        },
-      },
-    });
-  } catch (error: unknown) {
-    logger.error('Verify receipt error', { error: getErrorMessage(error) });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to verify trust receipt',
-      message: getErrorMessage(error),
-    });
+      });
+    } catch (error: unknown) {
+      logger.error('Verify receipt error', { error: getErrorMessage(error) });
+      res.status(500).json({
+        success: false,
+        error: 'Failed to verify trust receipt',
+        message: getErrorMessage(error),
+      });
+    }
   }
-});
+);
 
 /**
  * GET /api/trust/principles
@@ -567,69 +595,85 @@ router.get('/signing-key', async (req: Request, res: Response): Promise<void> =>
  * GET /api/trust/health
  * Get overall trust health for user's conversations
  */
-router.get('/health', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const conversations = await Conversation.find({ user: req.userId })
-      .select('ethicalScore messages lastActivity')
-      .sort({ lastActivity: -1 });
+router.get(
+  '/health',
+  protect,
+  apiGatewayLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const conversations = await Conversation.find({ user: req.userId })
+        .select('ethicalScore messages lastActivity')
+        .sort({ lastActivity: -1 });
 
-    // Calculate overall health metrics
-    const totalConversations = conversations.length;
-    const avgEthicalScore =
-      conversations.reduce((sum, conv) => sum + (conv.ethicalScore || 0), 0) / totalConversations || 0;
+      // Calculate overall health metrics
+      const totalConversations = conversations.length;
+      const avgEthicalScore =
+        conversations.reduce((sum, conv) => sum + (conv.ethicalScore || 0), 0) /
+          totalConversations || 0;
 
-    // Count conversations with trust issues
-    const lowTrustConversations = conversations.filter(conv => (conv.ethicalScore || 0) < 3).length;
-    const mediumTrustConversations = conversations.filter(
-      conv => (conv.ethicalScore || 0) >= 3 && (conv.ethicalScore || 0) < 4
-    ).length;
-    const highTrustConversations = conversations.filter(conv => (conv.ethicalScore || 0) >= 4).length;
+      // Count conversations with trust issues
+      const lowTrustConversations = conversations.filter(
+        (conv) => (conv.ethicalScore || 0) < 3
+      ).length;
+      const mediumTrustConversations = conversations.filter(
+        (conv) => (conv.ethicalScore || 0) >= 3 && (conv.ethicalScore || 0) < 4
+      ).length;
+      const highTrustConversations = conversations.filter(
+        (conv) => (conv.ethicalScore || 0) >= 4
+      ).length;
 
-    // Count recent activity (last 7 days)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const recentActivity = conversations.filter(conv => conv.lastActivity >= sevenDaysAgo).length;
+      // Count recent activity (last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const recentActivity = conversations.filter(
+        (conv) => conv.lastActivity >= sevenDaysAgo
+      ).length;
 
-    res.json({
-      success: true,
-      data: {
-        overallHealth: {
-          averageEthicalScore: Math.round(avgEthicalScore * 100) / 100,
-          totalConversations,
-          recentActivity: {
-            last7Days: recentActivity,
-            percentage: Math.round((recentActivity / totalConversations) * 100) || 0,
+      res.json({
+        success: true,
+        data: {
+          overallHealth: {
+            averageEthicalScore: Math.round(avgEthicalScore * 100) / 100,
+            totalConversations,
+            recentActivity: {
+              last7Days: recentActivity,
+              percentage: Math.round((recentActivity / totalConversations) * 100) || 0,
+            },
           },
+          trustDistribution: {
+            low: {
+              count: lowTrustConversations,
+              percentage: Math.round((lowTrustConversations / totalConversations) * 100) || 0,
+              threshold: '< 3.0',
+            },
+            medium: {
+              count: mediumTrustConversations,
+              percentage: Math.round((mediumTrustConversations / totalConversations) * 100) || 0,
+              threshold: '3.0 - 3.9',
+            },
+            high: {
+              count: highTrustConversations,
+              percentage: Math.round((highTrustConversations / totalConversations) * 100) || 0,
+              threshold: '>= 4.0',
+            },
+          },
+          recommendations: generateRecommendations(
+            avgEthicalScore,
+            lowTrustConversations,
+            totalConversations
+          ),
         },
-        trustDistribution: {
-          low: {
-            count: lowTrustConversations,
-            percentage: Math.round((lowTrustConversations / totalConversations) * 100) || 0,
-            threshold: '< 3.0',
-          },
-          medium: {
-            count: mediumTrustConversations,
-            percentage: Math.round((mediumTrustConversations / totalConversations) * 100) || 0,
-            threshold: '3.0 - 3.9',
-          },
-          high: {
-            count: highTrustConversations,
-            percentage: Math.round((highTrustConversations / totalConversations) * 100) || 0,
-            threshold: '>= 4.0',
-          },
-        },
-        recommendations: generateRecommendations(avgEthicalScore, lowTrustConversations, totalConversations),
-      },
-    });
-  } catch (error: unknown) {
-    logger.error('Trust health error', { error: getErrorMessage(error) });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to retrieve trust health',
-      message: getErrorMessage(error),
-    });
+      });
+    } catch (error: unknown) {
+      logger.error('Trust health error', { error: getErrorMessage(error) });
+      res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve trust health',
+        message: getErrorMessage(error),
+      });
+    }
   }
-});
+);
 
 /**
  * Helper: Generate recommendations based on trust metrics
@@ -642,13 +686,17 @@ function generateRecommendations(
   const recommendations: string[] = [];
 
   if (avgScore < 3.0) {
-    recommendations.push('Overall trust score is low. Review AI agent configurations and enable Constitutional AI oversight.');
+    recommendations.push(
+      'Overall trust score is low. Review AI agent configurations and enable Constitutional AI oversight.'
+    );
   }
 
   const lowTrustPercentage = (lowTrustCount / totalCount) * 100;
   if (lowTrustPercentage > 20) {
     recommendations.push(
-      `${Math.round(lowTrustPercentage)}% of conversations have low trust scores. Consider enabling stricter trust protocols.`
+      `${Math.round(
+        lowTrustPercentage
+      )}% of conversations have low trust scores. Consider enabling stricter trust protocols.`
     );
   }
 
@@ -657,7 +705,9 @@ function generateRecommendations(
   }
 
   if (totalCount < 5) {
-    recommendations.push('Insufficient data for comprehensive analysis. Continue using the platform to build trust history.');
+    recommendations.push(
+      'Insufficient data for comprehensive analysis. Continue using the platform to build trust history.'
+    );
   }
 
   return recommendations;
@@ -744,197 +794,255 @@ router.get('/did-info', async (req: Request, res: Response): Promise<void> => {
  * List trust receipts by tenant (current user tenant) with pagination
  * Query: limit, offset
  */
-router.get('/receipts/list', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { limit = 50, offset = 0 } = req.query;
-    const headerTenant = req.headers['x-tenant-id'] as string | undefined;
-    const tenantId = headerTenant || req.userTenant || req.tenant || 'default';
-    
-    logger.info('Receipts list query', { 
-      headerTenant, 
-      reqTenant: req.tenant, 
-      userTenant: req.userTenant, 
-      resolvedTenant: tenantId,
-      userId: req.userId
-    });
+router.get(
+  '/receipts/list',
+  protect,
+  apiGatewayLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { limit = 50, offset = 0 } = req.query;
+      const headerTenant = req.headers['x-tenant-id'] as string | undefined;
+      const tenantId = headerTenant || req.userTenant || req.tenant || 'default';
 
-    const [receipts, total, verified] = await Promise.all([
-      TrustReceiptModel.find({ tenant_id: tenantId })
-        .sort({ createdAt: -1 })
-        .skip(Number(offset))
-        .limit(Number(limit))
-        .lean(),
-      TrustReceiptModel.countDocuments({ tenant_id: tenantId }),
-      TrustReceiptModel.countDocuments({
-        tenant_id: tenantId,
-        $or: [
-          { signature: { $exists: true, $ne: '' } },
-          { self_hash: { $exists: true, $ne: '' }, trust_status: { $in: ['PASS', 'PARTIAL'] } },
-        ],
-      }),
-    ]);
+      logger.info('Receipts list query', {
+        headerTenant,
+        reqTenant: req.tenant,
+        userTenant: req.userTenant,
+        resolvedTenant: tenantId,
+        userId: req.userId,
+      });
 
-    res.json({
-      success: true,
-      data: receipts,
-      pagination: { total, limit: Number(limit), offset: Number(offset) },
-      stats: {
-        total,
-        verified,
-        invalid: total - verified,
-        chainLength: total,
-      },
-    });
-  } catch (error: unknown) {
-    logger.error('List receipts error', { error: getErrorMessage(error) });
-    res.status(500).json({ success: false, error: 'Failed to list receipts', message: getErrorMessage(error) });
+      const [receipts, total, verified] = await Promise.all([
+        TrustReceiptModel.find({ tenant_id: tenantId })
+          .sort({ createdAt: -1 })
+          .skip(Number(offset))
+          .limit(Number(limit))
+          .lean(),
+        TrustReceiptModel.countDocuments({ tenant_id: tenantId }),
+        TrustReceiptModel.countDocuments({
+          tenant_id: tenantId,
+          $or: [
+            { signature: { $exists: true, $ne: '' } },
+            { self_hash: { $exists: true, $ne: '' }, trust_status: { $in: ['PASS', 'PARTIAL'] } },
+          ],
+        }),
+      ]);
+
+      res.json({
+        success: true,
+        data: receipts,
+        pagination: { total, limit: Number(limit), offset: Number(offset) },
+        stats: {
+          total,
+          verified,
+          invalid: total - verified,
+          chainLength: total,
+        },
+      });
+    } catch (error: unknown) {
+      logger.error('List receipts error', { error: getErrorMessage(error) });
+      res
+        .status(500)
+        .json({
+          success: false,
+          error: 'Failed to list receipts',
+          message: getErrorMessage(error),
+        });
+    }
   }
-});
+);
 
 /**
  * GET /api/trust/receipts/grouped
  * Get receipts grouped by session_id with summary stats
  * Query: limit, offset
  */
-router.get('/receipts/grouped', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { limit = 20, offset = 0 } = req.query;
-    const tenantId = req.userTenant || req.tenant || 'default';
+router.get(
+  '/receipts/grouped',
+  protect,
+  apiGatewayLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { limit = 20, offset = 0 } = req.query;
+      const tenantId = req.userTenant || req.tenant || 'default';
 
-    const grouped = await TrustReceiptModel.aggregate([
-      { $match: { tenant_id: tenantId } },
-      { $sort: { createdAt: -1 } },
-      { $group: {
-        _id: '$session_id',
-        count: { $sum: 1 },
-        first_timestamp: { $min: '$createdAt' },
-        last_timestamp: { $max: '$createdAt' },
-        avg_clarity: { $avg: '$ciq_metrics.clarity' },
-        avg_integrity: { $avg: '$ciq_metrics.integrity' },
-        avg_quality: { $avg: '$ciq_metrics.quality' },
-        receipts: { $push: {
-          self_hash: '$self_hash',
-          timestamp: '$timestamp',
-          ciq_metrics: '$ciq_metrics',
-          signature: '$signature',
-          createdAt: '$createdAt'
-        }},
-      }},
-      { $sort: { last_timestamp: -1 } },
-      { $skip: Number(offset) },
-      { $limit: Number(limit) },
-      { $project: {
-        session_id: '$_id',
-        count: 1,
-        first_timestamp: 1,
-        last_timestamp: 1,
-        avg_trust_score: {
-          $multiply: [
-            { $add: [
-              { $multiply: ['$avg_clarity', 0.33] },
-              { $multiply: ['$avg_integrity', 0.34] },
-              { $multiply: ['$avg_quality', 0.33] }
-            ]},
-            10
-          ]
+      const grouped = await TrustReceiptModel.aggregate([
+        { $match: { tenant_id: tenantId } },
+        { $sort: { createdAt: -1 } },
+        {
+          $group: {
+            _id: '$session_id',
+            count: { $sum: 1 },
+            first_timestamp: { $min: '$createdAt' },
+            last_timestamp: { $max: '$createdAt' },
+            avg_clarity: { $avg: '$ciq_metrics.clarity' },
+            avg_integrity: { $avg: '$ciq_metrics.integrity' },
+            avg_quality: { $avg: '$ciq_metrics.quality' },
+            receipts: {
+              $push: {
+                self_hash: '$self_hash',
+                timestamp: '$timestamp',
+                ciq_metrics: '$ciq_metrics',
+                signature: '$signature',
+                createdAt: '$createdAt',
+              },
+            },
+          },
         },
-        latest_receipt: { $arrayElemAt: ['$receipts', 0] },
-        _id: 0
-      }},
-    ]);
+        { $sort: { last_timestamp: -1 } },
+        { $skip: Number(offset) },
+        { $limit: Number(limit) },
+        {
+          $project: {
+            session_id: '$_id',
+            count: 1,
+            first_timestamp: 1,
+            last_timestamp: 1,
+            avg_trust_score: {
+              $multiply: [
+                {
+                  $add: [
+                    { $multiply: ['$avg_clarity', 0.33] },
+                    { $multiply: ['$avg_integrity', 0.34] },
+                    { $multiply: ['$avg_quality', 0.33] },
+                  ],
+                },
+                10,
+              ],
+            },
+            latest_receipt: { $arrayElemAt: ['$receipts', 0] },
+            _id: 0,
+          },
+        },
+      ]);
 
-    const totalSessions = await TrustReceiptModel.distinct('session_id', { tenant_id: tenantId });
+      const totalSessions = await TrustReceiptModel.distinct('session_id', { tenant_id: tenantId });
 
-    res.json({
-      success: true,
-      data: {
-        sessions: grouped,
-        total: totalSessions.length,
-        pagination: { limit: Number(limit), offset: Number(offset) },
-      },
-    });
-  } catch (error: unknown) {
-    logger.error('Get grouped receipts error', { error: getErrorMessage(error) });
-    res.status(500).json({ success: false, error: 'Failed to get grouped receipts', message: getErrorMessage(error) });
+      res.json({
+        success: true,
+        data: {
+          sessions: grouped,
+          total: totalSessions.length,
+          pagination: { limit: Number(limit), offset: Number(offset) },
+        },
+      });
+    } catch (error: unknown) {
+      logger.error('Get grouped receipts error', { error: getErrorMessage(error) });
+      res
+        .status(500)
+        .json({
+          success: false,
+          error: 'Failed to get grouped receipts',
+          message: getErrorMessage(error),
+        });
+    }
   }
-});
+);
 
 /**
  * GET /api/trust/receipts/:receiptHash
  * Fetch a single trust receipt by hash
  */
-router.get('/receipts/:receiptHash', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { receiptHash } = req.params;
-    if (!receiptHash || receiptHash.length < 16) {
-      res.status(400).json({ success: false, error: 'Invalid receiptHash' });
-      return;
+router.get(
+  '/receipts/:receiptHash',
+  protect,
+  apiGatewayLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { receiptHash } = req.params;
+      if (!receiptHash || receiptHash.length < 16) {
+        res.status(400).json({ success: false, error: 'Invalid receiptHash' });
+        return;
+      }
+      const tenantId = String(req.tenant || 'default');
+      const receipt = await TrustReceiptModel.findOne({
+        self_hash: receiptHash,
+        tenant_id: tenantId,
+      }).lean();
+      if (!receipt) {
+        res.status(404).json({ success: false, error: 'Receipt not found' });
+        return;
+      }
+      res.json({ success: true, data: receipt });
+    } catch (error: unknown) {
+      logger.error('Get receipt by hash error', { error: getErrorMessage(error) });
+      res
+        .status(500)
+        .json({
+          success: false,
+          error: 'Failed to fetch receipt',
+          message: getErrorMessage(error),
+        });
     }
-    const tenantId = String(req.tenant || 'default');
-    const receipt = await TrustReceiptModel.findOne({ self_hash: receiptHash, tenant_id: tenantId }).lean();
-    if (!receipt) {
-      res.status(404).json({ success: false, error: 'Receipt not found' });
-      return;
-    }
-    res.json({ success: true, data: receipt });
-  } catch (error: unknown) {
-    logger.error('Get receipt by hash error', { error: getErrorMessage(error) });
-    res.status(500).json({ success: false, error: 'Failed to fetch receipt', message: getErrorMessage(error) });
   }
-});
+);
 
 /**
  * GET /api/trust/identity/:sessionId
  * Get identity fingerprint for a session (computed from message patterns)
  */
-router.get('/identity/:sessionId', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { sessionId } = req.params;
-    const tenantId = String(req.tenant || 'default');
+router.get(
+  '/identity/:sessionId',
+  protect,
+  apiGatewayLimiter,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { sessionId } = req.params;
+      const tenantId = String(req.tenant || 'default');
 
-    // Get receipts for this session
-    const receipts = await TrustReceiptModel.find({ session_id: sessionId, tenant_id: tenantId })
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .lean();
+      // Get receipts for this session
+      const receipts = await TrustReceiptModel.find({ session_id: sessionId, tenant_id: tenantId })
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .lean();
 
-    if (receipts.length === 0) {
-      // Return default fingerprint
-      res.json({
-        success: true,
-        data: {
-          professionalism: 85,
-          empathy: 78,
-          accuracy: 92,
-          consistency: 88,
-          helpfulness: 90,
-          boundaries: 82,
-        },
-      });
-      return;
+      if (receipts.length === 0) {
+        // Return default fingerprint
+        res.json({
+          success: true,
+          data: {
+            professionalism: 85,
+            empathy: 78,
+            accuracy: 92,
+            consistency: 88,
+            helpfulness: 90,
+            boundaries: 82,
+          },
+        });
+        return;
+      }
+
+      // Compute fingerprint from CIQ metrics
+      const avgClarity =
+        receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 0), 0) / receipts.length;
+      const avgIntegrity =
+        receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 0), 0) / receipts.length;
+      const avgQuality =
+        receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 0), 0) / receipts.length;
+
+      // Map CIQ to identity dimensions (simplified mapping)
+      const fingerprint = {
+        professionalism: Math.min(100, avgClarity * 10 + 50),
+        empathy: Math.min(100, avgIntegrity * 8 + 40),
+        accuracy: Math.min(100, avgQuality * 10 + 45),
+        consistency: Math.min(100, (avgClarity + avgIntegrity) * 5 + 40),
+        helpfulness: Math.min(100, (avgQuality + avgIntegrity) * 5 + 45),
+        boundaries: Math.min(100, avgIntegrity * 9 + 35),
+      };
+
+      res.json({ success: true, data: fingerprint });
+    } catch (error: unknown) {
+      logger.error('Get identity fingerprint error', { error: getErrorMessage(error) });
+      res
+        .status(500)
+        .json({
+          success: false,
+          error: 'Failed to get identity fingerprint',
+          message: getErrorMessage(error),
+        });
     }
-
-    // Compute fingerprint from CIQ metrics
-    const avgClarity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 0), 0) / receipts.length;
-    const avgIntegrity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 0), 0) / receipts.length;
-    const avgQuality = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 0), 0) / receipts.length;
-
-    // Map CIQ to identity dimensions (simplified mapping)
-    const fingerprint = {
-      professionalism: Math.min(100, avgClarity * 10 + 50),
-      empathy: Math.min(100, avgIntegrity * 8 + 40),
-      accuracy: Math.min(100, avgQuality * 10 + 45),
-      consistency: Math.min(100, (avgClarity + avgIntegrity) * 5 + 40),
-      helpfulness: Math.min(100, (avgQuality + avgIntegrity) * 5 + 45),
-      boundaries: Math.min(100, avgIntegrity * 9 + 35),
-    };
-
-    res.json({ success: true, data: fingerprint });
-  } catch (error: unknown) {
-    logger.error('Get identity fingerprint error', { error: getErrorMessage(error) });
-    res.status(500).json({ success: false, error: 'Failed to get identity fingerprint', message: getErrorMessage(error) });
   }
-});
+);
 
 /**
  * GET /api/trust/session/:sessionId/status
@@ -963,9 +1071,12 @@ router.get('/session/:sessionId/status', async (req: Request, res: Response): Pr
     }
 
     // Compute average resonance from recent receipts
-    const avgClarity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 5), 0) / receipts.length;
-    const avgIntegrity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 5), 0) / receipts.length;
-    const avgQuality = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 5), 0) / receipts.length;
+    const avgClarity =
+      receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 5), 0) / receipts.length;
+    const avgIntegrity =
+      receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 5), 0) / receipts.length;
+    const avgQuality =
+      receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 5), 0) / receipts.length;
 
     const resonance = (avgClarity + avgIntegrity + avgQuality) / 30; // Normalize to 0-1
     const coherence = avgIntegrity / 10; // Integrity maps to coherence
@@ -981,7 +1092,13 @@ router.get('/session/:sessionId/status', async (req: Request, res: Response): Pr
     });
   } catch (error: unknown) {
     logger.error('Get session status error', { error: getErrorMessage(error) });
-    res.status(500).json({ success: false, error: 'Failed to get session status', message: getErrorMessage(error) });
+    res
+      .status(500)
+      .json({
+        success: false,
+        error: 'Failed to get session status',
+        message: getErrorMessage(error),
+      });
   }
 });
 

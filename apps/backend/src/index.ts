@@ -106,14 +106,16 @@ app.use(helmet());
 app.use(securityHeaders);
 
 // CORS configuration
-const corsOrigin = process.env.CORS_ORIGIN 
-  ? process.env.CORS_ORIGIN.split(',') 
+const corsOrigin = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',')
   : 'http://localhost:5000';
 
-app.use(cors({
-  origin: corsOrigin,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: corsOrigin,
+    credentials: true,
+  })
+);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -151,7 +153,7 @@ app.get('/', (req, res) => {
     version: APP_VERSION,
     documentation: '/api/docs',
     health: '/api/health',
-    metrics: '/api/metrics'
+    metrics: '/api/metrics',
   });
 });
 
@@ -170,7 +172,7 @@ app.get('/health', (req, res) => {
       total: parseInt(process.env.FLY_VM_MEMORY_MB ?? process.env.MEMORY_LIMIT_MB ?? '512'),
     },
   };
-  
+
   // Always return 200 status code for health checks
   res.status(200).json(health);
 });
@@ -266,7 +268,7 @@ async function startServer() {
 
   try {
     await initCrypto(); // Pre-load crypto
-    
+
     // Initialize trust signing keys early to avoid timeout on first message
     // This ensures Ed25519 key loading and generation happens at startup
     try {
@@ -283,7 +285,7 @@ async function startServer() {
       });
       // Continue anyway - messages can still be sent, just without trust receipts
     }
-    
+
     // Connect to database (non-blocking for health checks)
     await connectDatabase();
     logger.info('Database connected successfully', {
@@ -294,12 +296,16 @@ async function startServer() {
     // Restore receipt chain state from the most recent persisted receipt so
     // new receipts link correctly across server restarts and deploys.
     try {
-      const latestReceipt = await TrustReceiptModel
-        .findOne({ chain_hash: { $exists: true, $ne: null } })
+      const latestReceipt = await TrustReceiptModel.findOne({
+        chain_hash: { $exists: true, $ne: null },
+      })
         .sort({ chain_length: -1 })
         .lean();
       if (latestReceipt?.chain_hash && latestReceipt?.chain_length != null) {
-        getReceiptGenerator().restoreChainState(latestReceipt.chain_hash, latestReceipt.chain_length);
+        getReceiptGenerator().restoreChainState(
+          latestReceipt.chain_hash,
+          latestReceipt.chain_length
+        );
       } else {
         logger.info('Receipt chain state: no persisted chain found, starting from genesis');
       }
@@ -314,13 +320,21 @@ async function startServer() {
       try {
         let existingAdmin = await User.findOne({ email: adminEmail });
         if (!existingAdmin) {
-          existingAdmin = await User.create({ name: 'Admin', email: adminEmail, password: adminPassword, role: 'admin' });
+          existingAdmin = await User.create({
+            name: 'Admin',
+            email: adminEmail,
+            password: adminPassword,
+            role: 'admin',
+          });
           logger.info('Admin user provisioned', { email: adminEmail });
         } else {
           logger.info('Admin user exists', { email: adminEmail });
         }
 
-        const existingAnthropicAgent = await Agent.findOne({ user: existingAdmin._id, provider: 'anthropic' });
+        const existingAnthropicAgent = await Agent.findOne({
+          user: existingAdmin._id,
+          provider: 'anthropic',
+        });
         if (!existingAnthropicAgent) {
           await Agent.create({
             name: 'Nova - Creative Writer',
@@ -329,7 +343,8 @@ async function startServer() {
             provider: 'anthropic',
             model: 'claude-sonnet-4-20250514',
             apiKeyId: new Types.ObjectId(),
-            systemPrompt: 'You are Nova, a helpful assistant. Be concise, accurate, and ethically aligned.',
+            systemPrompt:
+              'You are Nova, a helpful assistant. Be concise, accurate, and ethically aligned.',
             temperature: 0.7,
             maxTokens: 2000,
             isPublic: true,
@@ -363,7 +378,8 @@ async function startServer() {
             provider: 'anthropic',
             model: 'claude-sonnet-4-20250514',
             apiKeyId: new Types.ObjectId(),
-            systemPrompt: 'You are Nova, a helpful assistant. Be concise, accurate, and ethically aligned.',
+            systemPrompt:
+              'You are Nova, a helpful assistant. Be concise, accurate, and ethically aligned.',
             temperature: 0.7,
             maxTokens: 2000,
             isPublic: true,

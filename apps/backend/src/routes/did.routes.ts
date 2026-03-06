@@ -38,17 +38,16 @@ router.get('/did.json', async (req: Request, res: Response) => {
 
     logger.info('Platform DID Document resolved', {
       did: didDocument.id,
-      ip: req.ip
+      ip: req.ip,
     });
 
     return res.json(didDocument);
-
   } catch (error: unknown) {
     logger.error('Failed to generate platform DID Document', { error: getErrorMessage(error) });
     return res.status(500).json({
       success: false,
       error: 'Failed to generate DID Document',
-      message: getErrorMessage(error)
+      message: getErrorMessage(error),
     });
   }
 });
@@ -71,7 +70,7 @@ router.get('/did/agents/:agentId/did.json', async (req: Request, res: Response) 
       return res.status(404).json({
         success: false,
         error: 'Agent not found',
-        message: `No agent found with ID: ${agentId}`
+        message: `No agent found with ID: ${agentId}`,
       });
     }
 
@@ -100,20 +99,19 @@ router.get('/did/agents/:agentId/did.json', async (req: Request, res: Response) 
       did: didDocument.id,
       agentId,
       agentName: agent.name,
-      ip: req.ip
+      ip: req.ip,
     });
 
     return res.json(didDocument);
-
   } catch (error: unknown) {
     logger.error('Failed to generate agent DID Document', {
       agentId: req.params.agentId,
-      error: getErrorMessage(error)
+      error: getErrorMessage(error),
     });
     return res.status(500).json({
       success: false,
       error: 'Failed to generate DID Document',
-      message: getErrorMessage(error)
+      message: getErrorMessage(error),
     });
   }
 });
@@ -136,7 +134,7 @@ router.get('/did-configuration.json', async (req: Request, res: Response) => {
     const credential = {
       '@context': [
         'https://www.w3.org/2018/credentials/v1',
-        'https://identity.foundation/.well-known/did-configuration/v1'
+        'https://identity.foundation/.well-known/did-configuration/v1',
       ],
       issuer: platformDID,
       issuanceDate: new Date().toISOString(),
@@ -144,8 +142,8 @@ router.get('/did-configuration.json', async (req: Request, res: Response) => {
       type: ['VerifiableCredential', 'DomainLinkageCredential'],
       credentialSubject: {
         id: platformDID,
-        origin: `https://${didService.PLATFORM_DOMAIN}`
-      }
+        origin: `https://${didService.PLATFORM_DOMAIN}`,
+      },
     };
 
     // Sign the credential
@@ -154,25 +152,24 @@ router.get('/did-configuration.json', async (req: Request, res: Response) => {
 
     const signedCredential = {
       ...credential,
-      proof
+      proof,
     };
 
     const configuration = {
       '@context': 'https://identity.foundation/.well-known/did-configuration/v1',
-      linked_dids: [signedCredential]
+      linked_dids: [signedCredential],
     };
 
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
 
     return res.json(configuration);
-
   } catch (error: unknown) {
     logger.error('Failed to generate DID configuration', { error: getErrorMessage(error) });
     return res.status(500).json({
       success: false,
       error: 'Failed to generate DID configuration',
-      message: getErrorMessage(error)
+      message: getErrorMessage(error),
     });
   }
 });
@@ -197,7 +194,7 @@ router.get('/resolve/:did', async (req: Request, res: Response) => {
       return res.status(404).json({
         success: false,
         error: 'DID not found',
-        message: `Could not resolve DID: ${decodedDID}`
+        message: `Could not resolve DID: ${decodedDID}`,
       });
     }
 
@@ -211,24 +208,23 @@ router.get('/resolve/:did', async (req: Request, res: Response) => {
         didDocument,
         didResolutionMetadata: {
           contentType: 'application/did+ld+json',
-          retrieved: new Date().toISOString()
+          retrieved: new Date().toISOString(),
         },
         didDocumentMetadata: {
           created: didDocument.created,
-          updated: didDocument.updated
-        }
-      }
+          updated: didDocument.updated,
+        },
+      },
     });
-
   } catch (error: unknown) {
     logger.error('DID resolution failed', {
       did: req.params.did,
-      error: getErrorMessage(error)
+      error: getErrorMessage(error),
     });
     return res.status(500).json({
       success: false,
       error: 'DID resolution failed',
-      message: getErrorMessage(error)
+      message: getErrorMessage(error),
     });
   }
 });
@@ -251,7 +247,7 @@ router.get('/info', async (req: Request, res: Response) => {
           name: 'YSEEKU DID Resolver',
           version: '1.0.0',
           supportedMethods: ['did:web'],
-          domain: didService.PLATFORM_DOMAIN
+          domain: didService.PLATFORM_DOMAIN,
         },
         platform: {
           did: platformDID,
@@ -260,23 +256,22 @@ router.get('/info', async (req: Request, res: Response) => {
             didDocument: `/.well-known/did.json`,
             agentDID: `/.well-known/did/agents/{agentId}/did.json`,
             didConfiguration: `/.well-known/did-configuration.json`,
-            resolve: `/api/did/resolve/{did}`
-          }
+            resolve: `/api/did/resolve/{did}`,
+          },
         },
         specification: {
           didCore: 'https://www.w3.org/TR/did-core/',
           didWeb: 'https://w3c-ccg.github.io/did-method-web/',
-          ed25519Signature2020: 'https://w3c.github.io/vc-di-eddsa/'
-        }
-      }
+          ed25519Signature2020: 'https://w3c.github.io/vc-di-eddsa/',
+        },
+      },
     });
-
   } catch (error: unknown) {
     logger.error('Failed to get DID info', { error: getErrorMessage(error) });
     return res.status(500).json({
       success: false,
       error: 'Failed to get DID info',
-      message: getErrorMessage(error)
+      message: getErrorMessage(error),
     });
   }
 });

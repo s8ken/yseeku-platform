@@ -1,6 +1,6 @@
 /**
  * Input Validation & Sanitization Middleware
- * 
+ *
  * Provides comprehensive input validation and sanitization for API requests.
  * Protects against common injection attacks and malformed input.
  */
@@ -16,30 +16,33 @@ export const schemas = {
   // UUID/ObjectId validation
   objectId: z.string().regex(/^[a-f\d]{24}$/i, 'Invalid ObjectId format'),
   uuid: z.string().uuid('Invalid UUID format'),
-  
+
   // String sanitization
-  safeString: z.string()
+  safeString: z
+    .string()
     .max(10000, 'String too long')
-    .transform(s => s.trim())
-    .transform(s => s.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')) // Remove script tags
-    .transform(s => s.replace(/javascript:/gi, '')), // Remove javascript: protocol
-  
+    .transform((s) => s.trim())
+    .transform((s) => s.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')) // Remove script tags
+    .transform((s) => s.replace(/javascript:/gi, '')), // Remove javascript: protocol
+
   // Email validation
   email: z.string().email('Invalid email format').max(255),
-  
+
   // Password validation
-  password: z.string()
+  password: z
+    .string()
     .min(8, 'Password must be at least 8 characters')
     .max(128, 'Password too long')
     .regex(/[A-Z]/, { message: 'Password must contain uppercase letter' })
     .regex(/[a-z]/, { message: 'Password must contain lowercase letter' })
     .regex(/[0-9]/, { message: 'Password must contain number' }),
-  
+
   // Tenant ID validation
-  tenantId: z.string()
+  tenantId: z
+    .string()
     .max(100)
     .regex(/^[a-zA-Z0-9-_]+$/, 'Invalid tenant ID format'),
-  
+
   // Pagination
   pagination: z.object({
     page: z.coerce.number().int().min(1).default(1),
@@ -47,16 +50,21 @@ export const schemas = {
     sort: z.string().optional(),
     order: z.enum(['asc', 'desc']).optional().default('desc'),
   }),
-  
+
   // Message content
-  messageContent: z.string()
+  messageContent: z
+    .string()
     .min(1, 'Message cannot be empty')
     .max(32000, 'Message too long')
-    .transform(s => s.trim()),
-  
+    .transform((s) => s.trim()),
+
   // Agent configuration
   agentConfig: z.object({
-    name: z.string().min(1).max(100).transform(s => s.trim()),
+    name: z
+      .string()
+      .min(1)
+      .max(100)
+      .transform((s) => s.trim()),
     description: z.string().max(1000).optional(),
     provider: z.enum(['openai', 'anthropic', 'google', 'local']),
     model: z.string().min(1).max(100),
@@ -64,7 +72,7 @@ export const schemas = {
     temperature: z.number().min(0).max(2).optional().default(0.7),
     maxTokens: z.number().int().min(1).max(128000).optional().default(4096),
   }),
-  
+
   // Trust evaluation request
   trustEvaluation: z.object({
     content: z.string().min(1).max(32000),
@@ -72,13 +80,17 @@ export const schemas = {
     agentId: z.string().optional(),
     context: z.record(z.string(), z.unknown()).optional(),
   }),
-  
+
   // Conversation creation
   conversationCreate: z.object({
-    title: z.string().min(1).max(200).transform(s => s.trim()),
+    title: z
+      .string()
+      .min(1)
+      .max(200)
+      .transform((s) => s.trim()),
     agentId: z.string().optional(),
   }),
-  
+
   // Webhook configuration
   webhookConfig: z.object({
     url: z.string().url('Invalid webhook URL'),
@@ -191,25 +203,27 @@ export function validateParams<T>(schema: ZodSchema<T>) {
  */
 export function sanitizeString(input: string): string {
   if (typeof input !== 'string') return '';
-  
-  return input
-    .trim()
-    // Remove null bytes
-    .replace(/\0/g, '')
-    // Remove script tags
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    // Remove event handlers
-    .replace(/on\w+\s*=/gi, '')
-    // Remove javascript: protocol
-    .replace(/javascript:/gi, '')
-    // Remove data: protocol (except for images)
-    .replace(/data:(?!image\/)/gi, '')
-    // Escape HTML entities
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
+
+  return (
+    input
+      .trim()
+      // Remove null bytes
+      .replace(/\0/g, '')
+      // Remove script tags
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      // Remove event handlers
+      .replace(/on\w+\s*=/gi, '')
+      // Remove javascript: protocol
+      .replace(/javascript:/gi, '')
+      // Remove data: protocol (except for images)
+      .replace(/data:(?!image\/)/gi, '')
+      // Escape HTML entities
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+  );
 }
 
 /**
@@ -217,15 +231,17 @@ export function sanitizeString(input: string): string {
  */
 export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
   const sanitized: Record<string, unknown> = {};
-  
+
   for (const [key, value] of Object.entries(obj)) {
     if (typeof value === 'string') {
       sanitized[key] = sanitizeString(value);
     } else if (Array.isArray(value)) {
-      sanitized[key] = value.map(item => 
-        typeof item === 'string' ? sanitizeString(item) :
-        typeof item === 'object' && item !== null ? sanitizeObject(item as Record<string, unknown>) :
-        item
+      sanitized[key] = value.map((item) =>
+        typeof item === 'string'
+          ? sanitizeString(item)
+          : typeof item === 'object' && item !== null
+          ? sanitizeObject(item as Record<string, unknown>)
+          : item
       );
     } else if (typeof value === 'object' && value !== null) {
       sanitized[key] = sanitizeObject(value as Record<string, unknown>);
@@ -233,7 +249,7 @@ export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
       sanitized[key] = value;
     }
   }
-  
+
   return sanitized as T;
 }
 
@@ -250,12 +266,12 @@ export function globalSanitization(req: Request, res: Response, next: NextFuncti
       req.body = sanitizeObject(req.body);
     }
   }
-  
+
   // Sanitize query parameters
   if (req.query && typeof req.query === 'object') {
     req.query = sanitizeObject(req.query as Record<string, unknown>) as any;
   }
-  
+
   next();
 }
 
@@ -269,8 +285,8 @@ export function detectSQLInjection(input: string): boolean {
     /(\bOR\b|\bAND\b)\s+\d+\s*=\s*\d+/i,
     /'\s*(OR|AND)\s+'[^']*'\s*=\s*'[^']*'/i,
   ];
-  
-  return sqlPatterns.some(pattern => pattern.test(input));
+
+  return sqlPatterns.some((pattern) => pattern.test(input));
 }
 
 /**
@@ -283,8 +299,8 @@ export function detectNoSQLInjection(input: string): boolean {
     /\$regex/i,
     /\$exists/i,
   ];
-  
-  return nosqlPatterns.some(pattern => pattern.test(input));
+
+  return nosqlPatterns.some((pattern) => pattern.test(input));
 }
 
 /**
@@ -315,11 +331,11 @@ export function injectionDetection(req: Request, res: Response, next: NextFuncti
       }
     }
   };
-  
+
   if (req.body) checkValue(req.body, 'body');
   if (req.query) checkValue(req.query, 'query');
   if (req.params) checkValue(req.params, 'params');
-  
+
   next();
 }
 

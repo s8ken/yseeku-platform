@@ -62,9 +62,7 @@ describe('Brain Memory Service', () => {
 
       await remember(mockTenantId, 'test-kind', { value: 42 }, ['tag1'], { expiresAt, acl });
 
-      expect(BrainMemory.create).toHaveBeenCalledWith(
-        expect.objectContaining({ expiresAt, acl })
-      );
+      expect(BrainMemory.create).toHaveBeenCalledWith(expect.objectContaining({ expiresAt, acl }));
     });
 
     it('should use empty array as default for tags', async () => {
@@ -72,9 +70,7 @@ describe('Brain Memory Service', () => {
 
       await remember(mockTenantId, 'test-kind', { data: 'test' });
 
-      expect(BrainMemory.create).toHaveBeenCalledWith(
-        expect.objectContaining({ tags: [] })
-      );
+      expect(BrainMemory.create).toHaveBeenCalledWith(expect.objectContaining({ tags: [] }));
     });
   });
 
@@ -109,7 +105,10 @@ describe('Brain Memory Service', () => {
 
   describe('recallMany()', () => {
     it('should return multiple memories with default limit', async () => {
-      const mockMemories = [{ kind: 'test', payload: { n: 1 } }, { kind: 'test', payload: { n: 2 } }];
+      const mockMemories = [
+        { kind: 'test', payload: { n: 1 } },
+        { kind: 'test', payload: { n: 2 } },
+      ];
       const mockQuery = {
         sort: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
@@ -196,7 +195,10 @@ describe('Brain Memory Service', () => {
 
       const result = await forget(mockTenantId, 'test-kind');
 
-      expect(BrainMemory.findOne).toHaveBeenCalledWith({ tenantId: mockTenantId, kind: 'test-kind' });
+      expect(BrainMemory.findOne).toHaveBeenCalledWith({
+        tenantId: mockTenantId,
+        kind: 'test-kind',
+      });
       expect(BrainMemory.deleteOne).toHaveBeenCalledWith({ _id: 'mem-1' });
       expect(result).toEqual({ deletedCount: 1 });
     });

@@ -376,7 +376,9 @@ export class EnhancedAuditSystem {
    */
   getLatestEvent(): SignedAuditEvent | undefined {
     const events = Array.from(this.events.values());
-    if (events.length === 0) {return undefined;}
+    if (events.length === 0) {
+      return undefined;
+    }
 
     return events.reduce((latest, current) =>
       current.timestamp > latest.timestamp ? current : latest
@@ -401,15 +403,31 @@ export class EnhancedAuditSystem {
 
     return events
       .filter((event) => {
-        if (filters.category && event.category !== filters.category) {return false;}
-        if (filters.level && event.level !== filters.level) {return false;}
-        if (filters.actorId && event.actor.id !== filters.actorId) {return false;}
-        if (filters.resourceType && event.resource.type !== filters.resourceType) {return false;}
-        if (filters.result && event.result !== filters.result) {return false;}
-        if (filters.tenant && event.actor.tenant !== filters.tenant) {return false;}
+        if (filters.category && event.category !== filters.category) {
+          return false;
+        }
+        if (filters.level && event.level !== filters.level) {
+          return false;
+        }
+        if (filters.actorId && event.actor.id !== filters.actorId) {
+          return false;
+        }
+        if (filters.resourceType && event.resource.type !== filters.resourceType) {
+          return false;
+        }
+        if (filters.result && event.result !== filters.result) {
+          return false;
+        }
+        if (filters.tenant && event.actor.tenant !== filters.tenant) {
+          return false;
+        }
         if (filters.timeRange) {
-          if (event.timestamp < filters.timeRange.start || event.timestamp > filters.timeRange.end)
-            {return false;}
+          if (
+            event.timestamp < filters.timeRange.start ||
+            event.timestamp > filters.timeRange.end
+          ) {
+            return false;
+          }
         }
         return true;
       })

@@ -126,8 +126,12 @@ export class EnhancedSecurityError extends Error {
    * Determine alert level for this error
    */
   protected determineAlertLevel(): 'info' | 'warning' | 'critical' {
-    if (this.context.severity === 'critical') {return 'critical';}
-    if (this.context.severity === 'high') {return 'warning';}
+    if (this.context.severity === 'critical') {
+      return 'critical';
+    }
+    if (this.context.severity === 'high') {
+      return 'warning';
+    }
     return 'info';
   }
 

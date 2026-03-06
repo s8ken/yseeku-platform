@@ -98,17 +98,17 @@ let io: SocketIOServer | null = null;
  */
 export function initializeLiveMetrics(socketServer: SocketIOServer): void {
   io = socketServer;
-  
+
   // Start periodic metrics broadcast
   setInterval(() => {
     broadcastMetrics();
   }, 3000); // Every 3 seconds
-  
+
   // Clean old buffer data periodically
   setInterval(() => {
     cleanBuffer();
   }, 60000); // Every minute
-  
+
   logger.info('Live metrics service initialized');
 }
 
@@ -121,7 +121,7 @@ export function recordMessage(trustScore: number): void {
     trustScore,
   });
   metricsBuffer.lastTrustScores.push(trustScore);
-  
+
   // Keep only last 100 trust scores for trend calculation
   if (metricsBuffer.lastTrustScores.length > 100) {
     metricsBuffer.lastTrustScores.shift();
@@ -140,28 +140,31 @@ export function recordError(): void {
  */
 export function emitTrustEvent(event: Omit<TrustEvent, 'id' | 'timestamp'>): void {
   if (!io) return;
-  
+
   const fullEvent: TrustEvent = {
     id: `event-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     timestamp: new Date().toISOString(),
     ...event,
   };
-  
+
   io.emit('trust:event', fullEvent);
 }
 
 /**
  * Emit alert to specific tenant room
  */
-export function emitAlert(tenantId: string, alert: {
-  id: string;
-  type: string;
-  title: string;
-  severity: string;
-  timestamp: string;
-}): void {
+export function emitAlert(
+  tenantId: string,
+  alert: {
+    id: string;
+    type: string;
+    title: string;
+    severity: string;
+    timestamp: string;
+  }
+): void {
   if (!io) return;
-  
+
   io.to(`tenant:${tenantId}`).emit('alert:new', alert);
   io.emit('alert:new', alert); // Also broadcast globally for demo
 }
@@ -171,7 +174,7 @@ export function emitAlert(tenantId: string, alert: {
  */
 export function emitUserMetrics(userId: string, metrics: Partial<LiveMetrics>): void {
   if (!io) return;
-  
+
   io.to(`user:${userId}`).emit('metrics:update', metrics);
 }
 
@@ -180,13 +183,9 @@ export function emitUserMetrics(userId: string, metrics: Partial<LiveMetrics>): 
  */
 function cleanBuffer(): void {
   const cutoff = Date.now() - BUFFER_WINDOW_MS;
-  
-  metricsBuffer.messages = metricsBuffer.messages.filter(
-    m => m.timestamp.getTime() > cutoff
-  );
-  metricsBuffer.errors = metricsBuffer.errors.filter(
-    e => e.timestamp.getTime() > cutoff
-  );
+
+  metricsBuffer.messages = metricsBuffer.messages.filter((m) => m.timestamp.getTime() > cutoff);
+  metricsBuffer.errors = metricsBuffer.errors.filter((e) => e.timestamp.getTime() > cutoff);
 }
 
 /**
@@ -195,19 +194,25 @@ function cleanBuffer(): void {
  */
 async function calculatePrincipleScores(): Promise<PrincipleScoreCache['scores']> {
   const now = new Date();
-  
+
   // Return cached values if still fresh
-  if (principleCache && (now.getTime() - principleCache.lastUpdated.getTime()) < PRINCIPLE_CACHE_TTL_MS) {
+  if (
+    principleCache &&
+    now.getTime() - principleCache.lastUpdated.getTime() < PRINCIPLE_CACHE_TTL_MS
+  ) {
     return principleCache.scores;
   }
-  
+
   try {
     // Fetch recent trust receipts (last hour)
     const oneHourAgo = new Date(now.getTime() - 3600000);
     const receipts = await TrustReceiptModel.find({
-      createdAt: { $gte: oneHourAgo }
-    }).sort({ createdAt: -1 }).limit(100).lean();
-    
+      createdAt: { $gte: oneHourAgo },
+    })
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean();
+
     if (receipts.length === 0) {
       // Return baseline scores if no receipts
       const baselineScores = {
@@ -221,38 +226,41 @@ async function calculatePrincipleScores(): Promise<PrincipleScoreCache['scores']
       principleCache = { scores: baselineScores, lastUpdated: now };
       return baselineScores;
     }
-    
+
     // Calculate scores based on CIQ metrics and receipt data
     // Map CIQ (Clarity, Integrity, Quality) to SONATE principles
-    const avgClarity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 5), 0) / receipts.length;
-    const avgIntegrity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 5), 0) / receipts.length;
-    const avgQuality = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 5), 0) / receipts.length;
-    
+    const avgClarity =
+      receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 5), 0) / receipts.length;
+    const avgIntegrity =
+      receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 5), 0) / receipts.length;
+    const avgQuality =
+      receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 5), 0) / receipts.length;
+
     // Count receipts with valid proofs/signatures (inspection mandate)
-    const signedReceipts = receipts.filter(r => r.signature || r.proof?.proofValue);
+    const signedReceipts = receipts.filter((r) => r.signature || r.proof?.proofValue);
     const signatureRate = signedReceipts.length / receipts.length;
-    
+
     // Calculate principle scores (scale 0-10)
     const scores = {
       // CONSENT: Based on integrity and whether system respects user decisions
       consent: Math.min(10, avgIntegrity * 1.8 + 1),
-      
+
       // INSPECTION: Based on signature rate and clarity (transparent operations)
-      inspection: Math.min(10, (signatureRate * 5) + (avgClarity * 0.9)),
-      
+      inspection: Math.min(10, signatureRate * 5 + avgClarity * 0.9),
+
       // CONTINUOUS_VALIDATION: Based on quality scores and validation pass rate
       validation: Math.min(10, avgQuality * 1.8 + 0.5),
-      
+
       // ETHICAL_OVERRIDE: Based on integrity (ethical alignment)
       ethics: Math.min(10, avgIntegrity * 1.9 + 0.5),
-      
+
       // RIGHT_TO_DISCONNECT: Baseline high (platform design supports this)
       disconnect: Math.min(10, 8.5 + (avgQuality - 5) * 0.1),
-      
+
       // MORAL_RECOGNITION: Based on overall quality and integrity
       moral: Math.min(10, (avgIntegrity + avgQuality) * 0.9),
     };
-    
+
     // Round to 1 decimal place
     const roundedScores = {
       consent: Math.round(scores.consent * 10) / 10,
@@ -262,15 +270,14 @@ async function calculatePrincipleScores(): Promise<PrincipleScoreCache['scores']
       disconnect: Math.round(scores.disconnect * 10) / 10,
       moral: Math.round(scores.moral * 10) / 10,
     };
-    
+
     principleCache = { scores: roundedScores, lastUpdated: now };
     return roundedScores;
-    
   } catch (error) {
-    logger.warn('Failed to calculate principle scores from receipts, using baseline', { 
-      error: getErrorMessage(error) 
+    logger.warn('Failed to calculate principle scores from receipts, using baseline', {
+      error: getErrorMessage(error),
     });
-    
+
     // Return baseline on error
     return {
       consent: 8.5,
@@ -288,7 +295,7 @@ async function calculatePrincipleScores(): Promise<PrincipleScoreCache['scores']
  */
 async function broadcastMetrics(): Promise<void> {
   if (!io) return;
-  
+
   try {
     const metrics = await calculateLiveMetrics();
     io.emit('metrics:live', metrics);
@@ -304,48 +311,42 @@ async function calculateLiveMetrics(): Promise<LiveMetrics> {
   const now = new Date();
   const oneMinuteAgo = new Date(now.getTime() - 60000);
   const oneHourAgo = new Date(now.getTime() - 3600000);
-  
+
   // Calculate from buffer
-  const recentMessages = metricsBuffer.messages.filter(
-    m => m.timestamp >= oneMinuteAgo
-  );
+  const recentMessages = metricsBuffer.messages.filter((m) => m.timestamp >= oneMinuteAgo);
   const messagesPerMinute = recentMessages.length;
-  
-  const recentErrors = metricsBuffer.errors.filter(
-    e => e.timestamp >= oneMinuteAgo
-  );
-  const errorRate = messagesPerMinute > 0 
-    ? (recentErrors.length / messagesPerMinute) * 100 
-    : 0;
-  
+
+  const recentErrors = metricsBuffer.errors.filter((e) => e.timestamp >= oneMinuteAgo);
+  const errorRate = messagesPerMinute > 0 ? (recentErrors.length / messagesPerMinute) * 100 : 0;
+
   // Calculate trust trend
   const scores = metricsBuffer.lastTrustScores;
-  const currentTrust = scores.length > 0 
-    ? scores.slice(-10).reduce((a, b) => a + b, 0) / Math.min(scores.length, 10)
-    : 8.5;
-  const previousTrust = scores.length > 10
-    ? scores.slice(-20, -10).reduce((a, b) => a + b, 0) / 10
-    : currentTrust;
-  
+  const currentTrust =
+    scores.length > 0
+      ? scores.slice(-10).reduce((a, b) => a + b, 0) / Math.min(scores.length, 10)
+      : 8.5;
+  const previousTrust =
+    scores.length > 10 ? scores.slice(-20, -10).reduce((a, b) => a + b, 0) / 10 : currentTrust;
+
   const trustDelta = currentTrust - previousTrust;
-  const trustTrend: 'up' | 'down' | 'stable' = 
+  const trustTrend: 'up' | 'down' | 'stable' =
     trustDelta > 0.5 ? 'up' : trustDelta < -0.5 ? 'down' : 'stable';
-  
+
   // Fetch real-time counts from database
   const [activeAgents, activeConversations, alerts] = await Promise.all([
     Agent.countDocuments({ lastActive: { $gte: oneHourAgo } }).catch(() => 0),
     Conversation.countDocuments({ lastActivity: { $gte: oneHourAgo } }).catch(() => 0),
     AlertModel.aggregate([
       { $match: { status: 'active' } },
-      { 
-        $group: { 
+      {
+        $group: {
           _id: '$severity',
-          count: { $sum: 1 }
-        }
-      }
+          count: { $sum: 1 },
+        },
+      },
     ]).catch(() => []),
   ]);
-  
+
   // Parse alert counts
   const alertCounts = {
     active: 0,
@@ -357,21 +358,22 @@ async function calculateLiveMetrics(): Promise<LiveMetrics> {
     if (a._id === 'critical') alertCounts.critical = a.count;
     if (a._id === 'warning') alertCounts.warning = a.count;
   }
-  
+
   // Calculate drift score (simulated based on trust variance)
-  const trustVariance = scores.length > 1
-    ? scores.reduce((sum, s) => sum + Math.pow(s - currentTrust, 2), 0) / scores.length
-    : 0;
+  const trustVariance =
+    scores.length > 1
+      ? scores.reduce((sum, s) => sum + Math.pow(s - currentTrust, 2), 0) / scores.length
+      : 0;
   const driftScore = Math.min(1, trustVariance / 10);
-  const driftStatus: 'normal' | 'warning' | 'critical' = 
+  const driftStatus: 'normal' | 'warning' | 'critical' =
     driftScore > 0.7 ? 'critical' : driftScore > 0.4 ? 'warning' : 'normal';
-  
+
   // Emergence level (based on system activity patterns)
-  const emergenceLevel = Math.min(1, (activeAgents * 0.1 + messagesPerMinute * 0.05));
-  
+  const emergenceLevel = Math.min(1, activeAgents * 0.1 + messagesPerMinute * 0.05);
+
   // Calculate real principle scores from trust receipts
   const principleScores = await calculatePrincipleScores();
-  
+
   return {
     timestamp: now.toISOString(),
     trust: {
@@ -404,15 +406,17 @@ async function calculateLiveMetrics(): Promise<LiveMetrics> {
 export async function getHistoricalMetrics(
   hours: number = 24,
   resolution: 'minute' | 'hour' = 'hour'
-): Promise<Array<{
-  timestamp: string;
-  trustScore: number;
-  driftScore: number;
-  messageCount: number;
-}>> {
+): Promise<
+  Array<{
+    timestamp: string;
+    trustScore: number;
+    driftScore: number;
+    messageCount: number;
+  }>
+> {
   const now = new Date();
   const startTime = new Date(now.getTime() - hours * 3600000);
-  
+
   try {
     // Aggregate conversations by time bucket
     const pipeline: any[] = [
@@ -435,17 +439,17 @@ export async function getHistoricalMetrics(
           messageCount: { $sum: 1 },
         },
       },
-      { $sort: { '_id': 1 } },
+      { $sort: { _id: 1 } },
     ];
-    
+
     const results = await Conversation.aggregate(pipeline);
-    
-    return results.map(r => {
+
+    return results.map((r) => {
       // Calculate drift score from trust variance (normalized to 0-1)
       // Higher variance = more drift
       const variance = r.trustVariance || 0;
       const driftScore = Math.min(1, variance / 2.5); // Normalize assuming max stdDev of 2.5
-      
+
       return {
         timestamp: r._id.toISOString(),
         trustScore: Math.round((r.avgTrust || 5) * 2 * 10) / 10, // Convert 0-5 to 0-10
@@ -455,7 +459,7 @@ export async function getHistoricalMetrics(
     });
   } catch (error) {
     logger.error('Failed to get historical metrics', { error: getErrorMessage(error) });
-    
+
     // Return empty array on error - no fake data in production
     return [];
   }

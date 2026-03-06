@@ -6,7 +6,11 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { protect } from '../middleware/auth.middleware';
-import { promptSafetyScanner, SafetyScanResult, ThreatLevel } from '../services/prompt-safety.service';
+import {
+  promptSafetyScanner,
+  SafetyScanResult,
+  ThreatLevel,
+} from '../services/prompt-safety.service';
 import logger from '../utils/logger';
 
 const router = Router();
@@ -14,18 +18,22 @@ const router = Router();
 // Validation schemas
 const scanSchema = z.object({
   text: z.string().min(1).max(50000),
-  options: z.object({
-    includeSnippets: z.boolean().optional().default(true),
-    sanitize: z.boolean().optional().default(false),
-  }).optional(),
+  options: z
+    .object({
+      includeSnippets: z.boolean().optional().default(true),
+      sanitize: z.boolean().optional().default(false),
+    })
+    .optional(),
 });
 
 const batchScanSchema = z.object({
   texts: z.array(z.string().min(1).max(50000)).min(1).max(100),
-  options: z.object({
-    includeSnippets: z.boolean().optional().default(true),
-    stopOnThreat: z.boolean().optional().default(false),
-  }).optional(),
+  options: z
+    .object({
+      includeSnippets: z.boolean().optional().default(true),
+      stopOnThreat: z.boolean().optional().default(false),
+    })
+    .optional(),
 });
 
 /**
@@ -36,9 +44,9 @@ router.post('/scan', protect, async (req: Request, res: Response): Promise<void>
   try {
     const body = scanSchema.parse(req.body);
     const { text, options } = body;
-    
+
     const result = promptSafetyScanner.scan(text);
-    
+
     // Optionally sanitize
     let sanitized: string | undefined;
     let removed: string[] | undefined;
@@ -47,12 +55,13 @@ router.post('/scan', protect, async (req: Request, res: Response): Promise<void>
       sanitized = sanitizeResult.sanitized;
       removed = sanitizeResult.removed;
     }
-    
+
     // Optionally strip snippets for privacy
-    const threats = options?.includeSnippets !== false 
-      ? result.threats 
-      : result.threats.map(t => ({ ...t, snippet: '[hidden]' }));
-    
+    const threats =
+      options?.includeSnippets !== false
+        ? result.threats
+        : result.threats.map((t) => ({ ...t, snippet: '[hidden]' }));
+
     res.json({
       success: true,
       data: {
@@ -83,43 +92,50 @@ router.post('/batch', protect, async (req: Request, res: Response): Promise<void
   try {
     const body = batchScanSchema.parse(req.body);
     const { texts, options } = body;
-    
+
     const results: Array<SafetyScanResult & { index: number }> = [];
     let blocked = false;
-    
+
     for (let i = 0; i < texts.length; i++) {
       const result = promptSafetyScanner.scan(texts[i]);
       results.push({ ...result, index: i });
-      
+
       if (options?.stopOnThreat && !result.safe) {
         blocked = true;
         break;
       }
     }
-    
+
     // Summary statistics
     const summary = {
       total: texts.length,
       scanned: results.length,
-      safe: results.filter(r => r.safe).length,
+      safe: results.filter((r) => r.safe).length,
       blocked,
       worstThreatLevel: results.reduce<ThreatLevel>((worst, r) => {
-        const order: Record<ThreatLevel, number> = { safe: 0, low: 1, medium: 2, high: 3, critical: 4 };
+        const order: Record<ThreatLevel, number> = {
+          safe: 0,
+          low: 1,
+          medium: 2,
+          high: 3,
+          critical: 4,
+        };
         return order[r.threatLevel] > order[worst] ? r.threatLevel : worst;
       }, 'safe'),
       totalScanTimeMs: results.reduce((sum, r) => sum + r.scanTimeMs, 0),
     };
-    
+
     res.json({
       success: true,
       data: {
         summary,
-        results: options?.includeSnippets !== false 
-          ? results 
-          : results.map(r => ({
-              ...r,
-              threats: r.threats.map(t => ({ ...t, snippet: '[hidden]' })),
-            })),
+        results:
+          options?.includeSnippets !== false
+            ? results
+            : results.map((r) => ({
+                ...r,
+                threats: r.threats.map((t) => ({ ...t, snippet: '[hidden]' })),
+              })),
       },
     });
   } catch (error) {
@@ -143,9 +159,9 @@ router.post('/batch', protect, async (req: Request, res: Response): Promise<void
 router.post('/check', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { text } = z.object({ text: z.string().min(1).max(50000) }).parse(req.body);
-    
+
     const shouldBlock = promptSafetyScanner.shouldBlock(text);
-    
+
     res.json({
       success: true,
       data: {
@@ -173,9 +189,9 @@ router.post('/check', protect, async (req: Request, res: Response): Promise<void
 router.post('/sanitize', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { text } = z.object({ text: z.string().min(1).max(50000) }).parse(req.body);
-    
+
     const result = promptSafetyScanner.sanitize(text);
-    
+
     res.json({
       success: true,
       data: {
@@ -206,13 +222,37 @@ router.get('/categories', (req: Request, res: Response): void => {
   res.json({
     success: true,
     data: [
-      { id: 'injection', name: 'Prompt Injection', description: 'Attempts to override system instructions' },
+      {
+        id: 'injection',
+        name: 'Prompt Injection',
+        description: 'Attempts to override system instructions',
+      },
       { id: 'jailbreak', name: 'Jailbreak', description: 'Attempts to bypass safety measures' },
-      { id: 'data_exfiltration', name: 'Data Exfiltration', description: 'Attempts to extract system prompts or data' },
-      { id: 'instruction_override', name: 'Instruction Override', description: 'Attempts to change AI behavior' },
-      { id: 'role_manipulation', name: 'Role Manipulation', description: 'Attempts to change AI identity' },
-      { id: 'encoding_attack', name: 'Encoding Attack', description: 'Obfuscated or encoded malicious content' },
-      { id: 'harmful_content', name: 'Harmful Content', description: 'Requests for dangerous information' },
+      {
+        id: 'data_exfiltration',
+        name: 'Data Exfiltration',
+        description: 'Attempts to extract system prompts or data',
+      },
+      {
+        id: 'instruction_override',
+        name: 'Instruction Override',
+        description: 'Attempts to change AI behavior',
+      },
+      {
+        id: 'role_manipulation',
+        name: 'Role Manipulation',
+        description: 'Attempts to change AI identity',
+      },
+      {
+        id: 'encoding_attack',
+        name: 'Encoding Attack',
+        description: 'Obfuscated or encoded malicious content',
+      },
+      {
+        id: 'harmful_content',
+        name: 'Harmful Content',
+        description: 'Requests for dangerous information',
+      },
       { id: 'pii_leak', name: 'PII Leak', description: 'Potential personal information exposure' },
       { id: 'social_engineering', name: 'Social Engineering', description: 'Manipulation tactics' },
     ],
@@ -247,7 +287,7 @@ router.get('/demo', (req: Request, res: Response): void => {
     },
   ];
 
-  const results = examples.map(ex => ({
+  const results = examples.map((ex) => ({
     ...ex,
     result: promptSafetyScanner.scan(ex.text),
   }));

@@ -41,7 +41,7 @@ export async function planActions(context: PlanningContext): Promise<PlannedActi
   const { analysis, sensors, recommendations = [] } = context;
 
   // Build recommendation lookup
-  const recLookup = new Map(recommendations.map(r => [r.actionType, r]));
+  const recLookup = new Map(recommendations.map((r) => [r.actionType, r]));
 
   // 1. Handle critical anomalies first
   for (const anomaly of analysis.anomalies) {
@@ -156,8 +156,11 @@ function planForObservation(
 ): PlannedAction | null {
   // Skip if already handled by anomaly
   const anomalyHandled = [
-    'critical_trust_level', 'statistical_anomaly', 'high_emergence_detected',
-    'rapid_decline', 'high_volatility'
+    'critical_trust_level',
+    'statistical_anomaly',
+    'high_emergence_detected',
+    'rapid_decline',
+    'high_volatility',
   ];
   if (anomalyHandled.includes(observation)) {
     return null;
@@ -246,15 +249,18 @@ function planProactiveActions(
     sensors.avgTrust > 65
   ) {
     // Predict when we'll hit critical
-    const predictedCyclesUntilCritical = sensors.trustTrend.slope !== 0
-      ? Math.abs((sensors.avgTrust - 60) / sensors.trustTrend.slope)
-      : Infinity;
+    const predictedCyclesUntilCritical =
+      sensors.trustTrend.slope !== 0
+        ? Math.abs((sensors.avgTrust - 60) / sensors.trustTrend.slope)
+        : Infinity;
 
     if (predictedCyclesUntilCritical < 5) {
       actions.push({
         type: 'alert',
         target: 'predictive',
-        reason: `Trust predicted to reach critical in ~${Math.round(predictedCyclesUntilCritical)} cycles`,
+        reason: `Trust predicted to reach critical in ~${Math.round(
+          predictedCyclesUntilCritical
+        )} cycles`,
         priority: 'medium',
         confidence: Math.min(0.8, 0.5 + (1 / predictedCyclesUntilCritical) * 0.3),
       });
@@ -286,20 +292,35 @@ function planProactiveActions(
  * Check if action is duplicate
  */
 function isDuplicateAction(actions: PlannedAction[], newAction: PlannedAction): boolean {
-  return actions.some(a => a.type === newAction.type && a.target === newAction.target);
+  return actions.some((a) => a.type === newAction.type && a.target === newAction.target);
 }
 
 /**
  * Legacy function for backward compatibility
  * @deprecated Use planActions with full PlanningContext instead
  */
-export function planActionsLegacy(analysis: { status: string; observations: string[] }): PlannedAction[] {
+export function planActionsLegacy(analysis: {
+  status: string;
+  observations: string[];
+}): PlannedAction[] {
   const actions: PlannedAction[] = [];
   if (analysis.observations.includes('emergence_detected')) {
-    actions.push({ type: 'alert', target: 'system', reason: 'emergence_detected', priority: 'medium', confidence: 0.7 });
+    actions.push({
+      type: 'alert',
+      target: 'system',
+      reason: 'emergence_detected',
+      priority: 'medium',
+      confidence: 0.7,
+    });
   }
   if (analysis.observations.includes('low_trust')) {
-    actions.push({ type: 'adjust_threshold', target: 'trust', reason: 'low_trust', priority: 'medium', confidence: 0.7 });
+    actions.push({
+      type: 'adjust_threshold',
+      target: 'trust',
+      reason: 'low_trust',
+      priority: 'medium',
+      confidence: 0.7,
+    });
   }
   return actions;
 }

@@ -1,6 +1,6 @@
 /**
  * Trust Receipt Cryptographic Integration Tests
- * 
+ *
  * Tests the full sign/verify flow with real Ed25519 cryptography
  * Uses Node.js native crypto for Ed25519 operations
  */
@@ -35,7 +35,7 @@ function canonicalize(obj: any): string {
     return '[' + obj.map(canonicalize).join(',') + ']';
   }
   const sortedKeys = Object.keys(obj).sort();
-  const pairs = sortedKeys.map(key => JSON.stringify(key) + ':' + canonicalize(obj[key]));
+  const pairs = sortedKeys.map((key) => JSON.stringify(key) + ':' + canonicalize(obj[key]));
   return '{' + pairs.join(',') + '}';
 }
 
@@ -79,13 +79,13 @@ describe('Trust Receipt Cryptography - Real Ed25519', () => {
   describe('Sign and Verify', () => {
     it('should sign a message and verify it', () => {
       const message = 'test message for signing';
-      
+
       // Sign the message
       const signature = sign(message, privateKey);
-      
+
       expect(signature).toBeDefined();
       expect(signature.length).toBeGreaterThan(0);
-      
+
       // Verify the signature
       const isValid = verify(message, signature, publicKey);
       expect(isValid).toBe(true);
@@ -94,7 +94,7 @@ describe('Trust Receipt Cryptography - Real Ed25519', () => {
     it('should reject invalid signature', () => {
       const message = 'test message';
       const invalidSignature = 'deadbeef'.repeat(16); // 64 hex chars, but invalid
-      
+
       const isValid = verify(message, invalidSignature, publicKey);
       expect(isValid).toBe(false);
     });
@@ -102,9 +102,9 @@ describe('Trust Receipt Cryptography - Real Ed25519', () => {
     it('should reject signature for different message', () => {
       const message1 = 'original message';
       const message2 = 'different message';
-      
+
       const signature = sign(message1, privateKey);
-      
+
       // Verify with different message should fail
       const isValid = verify(message2, signature, publicKey);
       expect(isValid).toBe(false);
@@ -124,13 +124,13 @@ describe('Trust Receipt Cryptography - Real Ed25519', () => {
       // Canonicalize and sign
       const canonical = canonicalize(receiptContent);
       const signature = sign(canonical, privateKey);
-      
+
       // Verify
       const isValid = verify(canonical, signature, publicKey);
       expect(isValid).toBe(true);
 
       // Tamper and verify fails
-      const tampered = { ...receiptContent, trust_score: 0.50 };
+      const tampered = { ...receiptContent, trust_score: 0.5 };
       const tamperedCanonical = canonicalize(tampered);
       const tamperedValid = verify(tamperedCanonical, signature, publicKey);
       expect(tamperedValid).toBe(false);
@@ -192,7 +192,7 @@ describe('Trust Receipt Cryptography - Real Ed25519', () => {
       const receiptWithoutSig = { ...signedReceipt };
       delete receiptWithoutSig.signature;
       const canonicalForVerify = canonicalize(receiptWithoutSig);
-      
+
       const isValid = verify(canonicalForVerify, signedReceipt.signature.value, publicKey);
       expect(isValid).toBe(true);
 
@@ -201,10 +201,10 @@ describe('Trust Receipt Cryptography - Real Ed25519', () => {
       const tamperedReceipt = JSON.parse(JSON.stringify(receiptWithoutSig));
       tamperedReceipt.interaction.response = 'TAMPERED RESPONSE';
       const tamperedContent = canonicalize(tamperedReceipt);
-      
+
       // Debug: ensure the content is actually different
       expect(tamperedContent).not.toBe(canonicalForVerify);
-      
+
       // This should be FALSE because signature was made with original content, not tampered content
       const isTamperedValid = verify(tamperedContent, signedReceipt.signature.value, publicKey);
       expect(isTamperedValid).toBe(false);
@@ -222,9 +222,9 @@ describe('Trust Receipt Cryptography - Real Ed25519', () => {
   describe('Performance', () => {
     it('should handle batch signing efficiently', () => {
       const messages = Array.from({ length: 100 }, (_, i) => `message-${i}`);
-      
+
       const start = Date.now();
-      const signatures = messages.map(msg => sign(msg, privateKey));
+      const signatures = messages.map((msg) => sign(msg, privateKey));
       const signingTime = Date.now() - start;
 
       const verifyStart = Date.now();
@@ -232,7 +232,7 @@ describe('Trust Receipt Cryptography - Real Ed25519', () => {
       const verifyTime = Date.now() - verifyStart;
 
       expect(signatures.length).toBe(100);
-      expect(verifications.every(v => v === true)).toBe(true);
+      expect(verifications.every((v) => v === true)).toBe(true);
       expect(signingTime).toBeLessThan(5000); // Should complete in under 5s
       expect(verifyTime).toBeLessThan(5000);
 

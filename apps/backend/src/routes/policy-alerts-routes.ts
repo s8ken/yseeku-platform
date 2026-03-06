@@ -1,6 +1,6 @@
 /**
  * Policy Alerts Routes
- * 
+ *
  * CRUD endpoints for policy violation alerts using @sonate/policy
  */
 
@@ -8,11 +8,7 @@ import { Router, Request, Response } from 'express';
 import { protect, requireRole } from '../middleware/auth.middleware';
 import { getErrorMessage } from '../utils/error-utils';
 import logger from '../utils/logger';
-import {
-  createViolationDetector,
-  AlertChannel,
-  type ViolationAlert,
-} from '@sonate/policy';
+import { createViolationDetector, AlertChannel, type ViolationAlert } from '@sonate/policy';
 
 // Shared violation detector instance
 const violationDetector = createViolationDetector({
@@ -44,19 +40,27 @@ router.get('/', protect, (_req: Request, res: Response): void => {
  * POST /api/policy-alerts/:id/acknowledge
  * Acknowledge an alert
  */
-router.post('/:id/acknowledge', protect, requireRole(['admin', 'operator']), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const id = req.params.id as string;
-    const userId = (req as any).userId || 'unknown';
+router.post(
+  '/:id/acknowledge',
+  protect,
+  requireRole(['admin', 'operator']),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const id = req.params.id as string;
+      const userId = (req as any).userId || 'unknown';
 
-    violationDetector.acknowledgeAlert(id, userId);
+      violationDetector.acknowledgeAlert(id, userId);
 
-    res.json({ success: true, message: 'Alert acknowledged' });
-  } catch (error) {
-    logger.error('Alert acknowledgement failed', { error: getErrorMessage(error), alertId: req.params.id });
-    res.status(500).json({ success: false, error: 'Failed to acknowledge alert' });
+      res.json({ success: true, message: 'Alert acknowledged' });
+    } catch (error) {
+      logger.error('Alert acknowledgement failed', {
+        error: getErrorMessage(error),
+        alertId: req.params.id,
+      });
+      res.status(500).json({ success: false, error: 'Failed to acknowledge alert' });
+    }
   }
-});
+);
 
 export { violationDetector };
 export default router;

@@ -14,7 +14,6 @@ import { EnhancedAuditSystem } from './audit-enhanced';
 import { AuthenticationError, SecurityError } from './errors';
 import { SignedTrustReceipt } from './trust-receipt-enhanced';
 
-
 export interface TrustProtocolResult {
   status: 'PASS' | 'PARTIAL' | 'FAIL';
   score: number;
@@ -80,9 +79,13 @@ export class EnhancedTrustProtocolValidator {
       const totalChecks = Object.keys(checks).length;
 
       let status: 'PASS' | 'PARTIAL' | 'FAIL';
-      if (passedChecks === totalChecks) {status = 'PASS';}
-      else if (passedChecks >= Math.ceil(totalChecks * 0.6)) {status = 'PARTIAL';}
-      else {status = 'FAIL';}
+      if (passedChecks === totalChecks) {
+        status = 'PASS';
+      } else if (passedChecks >= Math.ceil(totalChecks * 0.6)) {
+        status = 'PARTIAL';
+      } else {
+        status = 'FAIL';
+      }
 
       const score = passedChecks / totalChecks;
       const issues = this.collectIssues(checks, interaction);
@@ -387,7 +390,9 @@ export class EnhancedTrustProtocolValidator {
     context?: { userId?: string; sessionId?: string; tenant?: string; ipAddress?: string },
     duration?: number
   ): Promise<void> {
-    if (!this.auditSystem) {return;}
+    if (!this.auditSystem) {
+      return;
+    }
 
     await this.auditSystem.logEvent({
       type: 'TRUST_PROTOCOL_VALIDATION',
@@ -414,7 +419,9 @@ export class EnhancedTrustProtocolValidator {
     result: TrustProtocolResult,
     context?: { userId?: string; sessionId?: string; tenant?: string; ipAddress?: string }
   ): Promise<void> {
-    if (!this.auditSystem) {return;}
+    if (!this.auditSystem) {
+      return;
+    }
 
     await this.auditSystem.logEvent({
       type: 'TRUST_PROTOCOL_FAILURE_ESCALATED',

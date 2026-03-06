@@ -11,7 +11,11 @@ import {
   WebhookChannelConfig,
   WebhookChannelType,
 } from '../models/webhook-config.model';
-import { WebhookDeliveryModel, IWebhookDelivery, DeliveryStatus } from '../models/webhook-delivery.model';
+import {
+  WebhookDeliveryModel,
+  IWebhookDelivery,
+  DeliveryStatus,
+} from '../models/webhook-delivery.model';
 import { AlertModel, IAlert } from '../models/alert.model';
 import { logger } from '../utils/logger';
 import { robustFetch } from '@sonate/core';
@@ -75,30 +79,30 @@ class WebhookService {
         type: channel,
         url: config.url,
         method: 'POST',
-        headers: config.headers
+        headers: config.headers,
       };
     }
     return channel;
   }
-  
+
   /**
    * Process an alert and deliver to matching webhook configs
    */
   async processAlert(alert: IAlert, metrics?: MetricSnapshot): Promise<void> {
     try {
       const configs = await this.getActiveConfigs(alert.tenant_id || 'default');
-      
+
       for (const config of configs) {
         await this.evaluateAndDeliver(config, alert, metrics);
       }
     } catch (error) {
-      logger.error('Failed to process alert for webhooks', { 
-        alertId: alert._id, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+      logger.error('Failed to process alert for webhooks', {
+        alertId: alert._id,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
-  
+
   /**
    * Get all active webhook configs for a tenant
    */
@@ -108,7 +112,7 @@ class WebhookService {
       enabled: true,
     }).exec();
   }
-  
+
   /**
    * Evaluate alert against config rules and deliver if matched
    */
@@ -118,25 +122,25 @@ class WebhookService {
     metrics?: MetricSnapshot
   ): Promise<void> {
     // Check rate limiting
-    if (!await this.checkRateLimit(config)) {
+    if (!(await this.checkRateLimit(config))) {
       logger.debug('Rate limited, skipping webhook', { configId: config._id });
       return;
     }
-    
+
     // Check severity filter
     if (config.severityFilter && config.severityFilter.length > 0) {
       if (!config.severityFilter.includes(alert.severity as any)) {
         return;
       }
     }
-    
+
     // Check event type filter
     if (config.eventTypes && config.eventTypes.length > 0) {
       if (!config.eventTypes.includes(alert.type)) {
         return;
       }
     }
-    
+
     // Evaluate rules (if any)
     let matchedRule: AlertRule | undefined;
     if (config.rules && config.rules.length > 0) {
@@ -145,7 +149,7 @@ class WebhookService {
         return; // No rule matched
       }
     }
-    
+
     // Deliver to all channels
     if (config.channels) {
       for (const channel of config.channels) {
@@ -153,60 +157,66 @@ class WebhookService {
       }
     }
   }
-  
+
   /**
    * Evaluate alert rules against current metrics
    */
-  evaluateRules(
-    rules: AlertRule[],
-    metrics: MetricSnapshot,
-    alert: IAlert
-  ): AlertRule | undefined {
+  evaluateRules(rules: AlertRule[], metrics: MetricSnapshot, alert: IAlert): AlertRule | undefined {
     for (const rule of rules) {
       if (!rule.enabled) continue;
-      
+
       // Check if alert severity matches rule severity
       if (rule.severity && rule.severity !== alert.severity) continue;
-      
+
       // Evaluate all conditions (handle both conditions array and single condition)
       const conditions = rule.conditions || (rule.condition ? [rule.condition] : []);
       if (conditions.length === 0) continue;
-      
-      const conditionsMet = conditions.every(condition => 
+
+      const conditionsMet = conditions.every((condition) =>
         this.evaluateCondition(condition, metrics)
       );
-      
+
       if (conditionsMet) {
         return rule;
       }
     }
-    
+
     return undefined;
   }
-  
+
   /**
    * Evaluate a single condition
    */
   private evaluateCondition(condition: AlertRuleCondition, metrics: MetricSnapshot): boolean {
     const value = metrics[condition.field];
     if (value === undefined) return false;
-    
+
     // Use threshold if available, otherwise use value from condition
-    const threshold = condition.threshold ?? (typeof condition.value === 'number' ? condition.value : 0);
-    
+    const threshold =
+      condition.threshold ?? (typeof condition.value === 'number' ? condition.value : 0);
+
     switch (condition.operator) {
-      case 'gt': return value > threshold;
-      case 'gte': return value >= threshold;
-      case 'lt': return value < threshold;
-      case 'lte': return value <= threshold;
-      case 'eq': return value === threshold;
-      case 'ne': return value !== threshold;
-      case 'contains': return String(value).includes(String(condition.value));
-      case 'in': return Array.isArray(condition.value) && condition.value.includes(String(value));
-      default: return false;
+      case 'gt':
+        return value > threshold;
+      case 'gte':
+        return value >= threshold;
+      case 'lt':
+        return value < threshold;
+      case 'lte':
+        return value <= threshold;
+      case 'eq':
+        return value === threshold;
+      case 'ne':
+        return value !== threshold;
+      case 'contains':
+        return String(value).includes(String(condition.value));
+      case 'in':
+        return Array.isArray(condition.value) && condition.value.includes(String(value));
+      default:
+        return false;
     }
   }
-  
+
   /**
    * Check rate limiting for a config
    */
@@ -215,8 +225,11 @@ class WebhookService {
     if (!rateLimiting || !(rateLimiting as { enabled?: boolean }).enabled) {
       return true;
     }
-    const { maxPerMinute = 60, maxPerHour = 1000 } = rateLimiting as { maxPerMinute?: number; maxPerHour?: number };
-    
+    const { maxPerMinute = 60, maxPerHour = 1000 } = rateLimiting as {
+      maxPerMinute?: number;
+      maxPerHour?: number;
+    };
+
     // Check minute limit
     const minuteAgo = new Date(Date.now() - 60000);
     const minuteCount = await WebhookDeliveryModel.countDocuments({
@@ -224,7 +237,7 @@ class WebhookService {
       createdAt: { $gte: minuteAgo },
     });
     if (minuteCount >= maxPerMinute) return false;
-    
+
     // Check hour limit
     const hourAgo = new Date(Date.now() - 3600000);
     const hourCount = await WebhookDeliveryModel.countDocuments({
@@ -232,10 +245,10 @@ class WebhookService {
       createdAt: { $gte: hourAgo },
     });
     if (hourCount >= maxPerHour) return false;
-    
+
     return true;
   }
-  
+
   /**
    * Deliver alert to a specific channel
    */
@@ -267,11 +280,11 @@ class WebhookService {
       attempt: 1,
       maxAttempts: config.retryConfig?.maxRetries ?? 3,
     });
-    
+
     // Attempt delivery
     await this.attemptDelivery(delivery, config);
   }
-  
+
   /**
    * Build standard webhook payload
    */
@@ -308,7 +321,7 @@ class WebhookService {
       }),
     };
   }
-  
+
   /**
    * Format payload for specific channel types
    */
@@ -318,53 +331,59 @@ class WebhookService {
   ): Record<string, unknown> {
     const alert = payload.alert;
     const severityEmoji = this.getSeverityEmoji(alert.severity);
-    
+
     switch (channel.type) {
       case 'slack':
         return {
           text: `${severityEmoji} *${alert.title}*`,
-          attachments: [{
-            color: this.getSeverityColor(alert.severity),
-            fields: [
-              { title: 'Severity', value: alert.severity, short: true },
-              { title: 'Type', value: alert.type, short: true },
-              { title: 'Description', value: alert.description, short: false },
-            ],
-            footer: `Yseeku Alert | ${payload.timestamp}`,
-          }],
+          attachments: [
+            {
+              color: this.getSeverityColor(alert.severity),
+              fields: [
+                { title: 'Severity', value: alert.severity, short: true },
+                { title: 'Type', value: alert.type, short: true },
+                { title: 'Description', value: alert.description, short: false },
+              ],
+              footer: `Yseeku Alert | ${payload.timestamp}`,
+            },
+          ],
         };
-        
+
       case 'discord':
         return {
-          embeds: [{
-            title: `${severityEmoji} ${alert.title}`,
-            description: alert.description,
-            color: parseInt(this.getSeverityColor(alert.severity).replace('#', ''), 16),
-            fields: [
-              { name: 'Severity', value: alert.severity, inline: true },
-              { name: 'Type', value: alert.type, inline: true },
-            ],
-            timestamp: payload.timestamp,
-            footer: { text: 'Yseeku Platform' },
-          }],
+          embeds: [
+            {
+              title: `${severityEmoji} ${alert.title}`,
+              description: alert.description,
+              color: parseInt(this.getSeverityColor(alert.severity).replace('#', ''), 16),
+              fields: [
+                { name: 'Severity', value: alert.severity, inline: true },
+                { name: 'Type', value: alert.type, inline: true },
+              ],
+              timestamp: payload.timestamp,
+              footer: { text: 'Yseeku Platform' },
+            },
+          ],
         };
-        
+
       case 'teams':
         return {
           '@type': 'MessageCard',
           '@context': 'http://schema.org/extensions',
           themeColor: this.getSeverityColor(alert.severity).replace('#', ''),
           summary: alert.title,
-          sections: [{
-            activityTitle: `${severityEmoji} ${alert.title}`,
-            facts: [
-              { name: 'Severity', value: alert.severity },
-              { name: 'Type', value: alert.type },
-              { name: 'Description', value: alert.description },
-            ],
-          }],
+          sections: [
+            {
+              activityTitle: `${severityEmoji} ${alert.title}`,
+              facts: [
+                { name: 'Severity', value: alert.severity },
+                { name: 'Type', value: alert.type },
+                { name: 'Description', value: alert.description },
+              ],
+            },
+          ],
         };
-        
+
       case 'pagerduty':
         return {
           routing_key: channel.headers?.['routing-key'] || '',
@@ -381,7 +400,7 @@ class WebhookService {
             },
           },
         };
-        
+
       case 'email':
         // Email would be handled by a separate email service
         return {
@@ -389,13 +408,13 @@ class WebhookService {
           subject: `[${alert.severity.toUpperCase()}] ${alert.title}`,
           html: this.buildEmailHtml(payload),
         };
-        
+
       case 'webhook':
       default:
         return payload as unknown as Record<string, unknown>;
     }
   }
-  
+
   /**
    * Build request headers
    */
@@ -409,7 +428,7 @@ class WebhookService {
       'User-Agent': 'Yseeku-Webhook/1.0',
       ...(channel.headers || {}),
     };
-    
+
     // Add signature if secret configured
     if (config.secret) {
       const body = JSON.stringify(payload);
@@ -417,10 +436,10 @@ class WebhookService {
       headers['X-Yseeku-Signature'] = signature;
       headers['X-Yseeku-Timestamp'] = Date.now().toString();
     }
-    
+
     return headers;
   }
-  
+
   /**
    * Sign payload with HMAC-SHA256
    */
@@ -429,13 +448,13 @@ class WebhookService {
     hmac.update(body);
     return `sha256=${hmac.digest('hex')}`;
   }
-  
+
   /**
    * Attempt to deliver a webhook
    */
   async attemptDelivery(delivery: IWebhookDelivery, config: IWebhookConfig): Promise<boolean> {
     const startTime = Date.now();
-    
+
     try {
       const { ok, status, data, error } = await robustFetch(delivery.url, {
         method: delivery.method,
@@ -444,13 +463,13 @@ class WebhookService {
         timeout: config.retryConfig?.timeoutMs ?? 30000,
         retries: 2, // 2 retries within this attempt
       });
-      
+
       const responseTime = Date.now() - startTime;
       // robustFetch handles JSON parsing, but for webhooks we might want raw text or whatever
       // robustFetch returns data as parsed JSON or text if not JSON.
       // But we need to store string in responseBody.
       const responseBody = typeof data === 'string' ? data : JSON.stringify(data);
-      
+
       if (ok) {
         // Success!
         await WebhookDeliveryModel.findByIdAndUpdate(delivery._id, {
@@ -460,13 +479,13 @@ class WebhookService {
           responseTime,
           deliveredAt: new Date(),
         });
-        
+
         logger.info('Webhook delivered successfully', {
           deliveryId: delivery._id,
           url: delivery.url,
           responseTime,
         });
-        
+
         return true;
       } else {
         throw new Error(error || `HTTP ${status}`);
@@ -474,18 +493,18 @@ class WebhookService {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       const responseTime = Date.now() - startTime;
-      
+
       logger.warn('Webhook delivery failed', {
         deliveryId: delivery._id,
         attempt: delivery.attempt,
         error: errorMessage,
       });
-      
+
       // Schedule retry or mark as failed
       if (delivery.attempt < delivery.maxAttempts) {
         const retryDelay = this.retryDelays[delivery.attempt - 1] || 300000;
         const nextRetryAt = new Date(Date.now() + retryDelay);
-        
+
         await WebhookDeliveryModel.findByIdAndUpdate(delivery._id, {
           status: 'retrying',
           attempt: delivery.attempt + 1,
@@ -493,7 +512,7 @@ class WebhookService {
           responseTime,
           error: errorMessage,
         });
-        
+
         // Schedule retry (in production, use a job queue)
         setTimeout(() => this.processRetry(delivery._id!.toString()), retryDelay);
       } else {
@@ -502,33 +521,33 @@ class WebhookService {
           responseTime,
           error: errorMessage,
         });
-        
+
         logger.error('Webhook delivery permanently failed', {
           deliveryId: delivery._id,
           attempts: delivery.attempt,
         });
       }
-      
+
       return false;
     }
   }
-  
+
   /**
    * Process a retry from the queue
    */
   async processRetry(deliveryId: string): Promise<void> {
     const delivery = await WebhookDeliveryModel.findById(deliveryId);
     if (!delivery || delivery.status !== 'retrying') return;
-    
+
     const config = await WebhookConfigModel.findById(delivery.webhookConfigId);
     if (!config || !config.enabled) {
       await WebhookDeliveryModel.findByIdAndUpdate(deliveryId, { status: 'failed' });
       return;
     }
-    
+
     await this.attemptDelivery(delivery, config);
   }
-  
+
   /**
    * Process pending retries (called by scheduler)
    */
@@ -538,18 +557,18 @@ class WebhookService {
       status: 'retrying',
       nextRetryAt: { $lte: now },
     }).limit(100);
-    
+
     let processed = 0;
     for (const delivery of pending) {
       await this.processRetry(delivery._id!.toString());
       processed++;
     }
-    
+
     return processed;
   }
-  
+
   // ==================== CRUD Operations ====================
-  
+
   /**
    * Create a new webhook configuration
    */
@@ -558,7 +577,7 @@ class WebhookService {
     logger.info('Webhook config created', { configId: config._id, name: config.name });
     return config;
   }
-  
+
   /**
    * Update a webhook configuration
    */
@@ -573,7 +592,7 @@ class WebhookService {
     }
     return config;
   }
-  
+
   /**
    * Delete a webhook configuration
    */
@@ -585,38 +604,37 @@ class WebhookService {
     }
     return false;
   }
-  
+
   /**
    * Get webhook config by ID
    */
   async getConfig(id: string): Promise<IWebhookConfig | null> {
     return WebhookConfigModel.findById(id);
   }
-  
+
   /**
    * List webhook configs for tenant
    */
   async listConfigs(tenantId: string): Promise<IWebhookConfig[]> {
     return WebhookConfigModel.find({ tenantId }).sort({ createdAt: -1 });
   }
-  
+
   /**
    * Get delivery history for a config
    */
-  async getDeliveryHistory(
-    configId: string,
-    limit = 50
-  ): Promise<IWebhookDelivery[]> {
-    return WebhookDeliveryModel
-      .find({ webhookConfigId: configId })
+  async getDeliveryHistory(configId: string, limit = 50): Promise<IWebhookDelivery[]> {
+    return WebhookDeliveryModel.find({ webhookConfigId: configId })
       .sort({ createdAt: -1 })
       .limit(limit);
   }
-  
+
   /**
    * Get delivery stats for a config
    */
-  async getDeliveryStats(configId: string, hours = 24): Promise<{
+  async getDeliveryStats(
+    configId: string,
+    hours = 24
+  ): Promise<{
     total: number;
     success: number;
     failed: number;
@@ -624,7 +642,7 @@ class WebhookService {
     avgResponseTime: number;
   }> {
     const since = new Date(Date.now() - hours * 3600000);
-    
+
     const [stats] = await WebhookDeliveryModel.aggregate([
       {
         $match: {
@@ -649,16 +667,18 @@ class WebhookService {
         },
       },
     ]);
-    
-    return stats || {
-      total: 0,
-      success: 0,
-      failed: 0,
-      retrying: 0,
-      avgResponseTime: 0,
-    };
+
+    return (
+      stats || {
+        total: 0,
+        success: 0,
+        failed: 0,
+        retrying: 0,
+        avgResponseTime: 0,
+      }
+    );
   }
-  
+
   /**
    * Test a webhook configuration
    */
@@ -671,7 +691,7 @@ class WebhookService {
     if (!config || !config.channels || config.channels.length === 0) {
       return { success: false, responseTime: 0, error: 'Config not found or no channels' };
     }
-    
+
     const testPayload: WebhookPayload = {
       event: 'test',
       timestamp: new Date().toISOString(),
@@ -688,7 +708,7 @@ class WebhookService {
         tenant_id: config.tenantId, // Changed from tenantId
       },
     };
-    
+
     const channel = config.channels[0];
     const normalizedChannel = this.normalizeChannel(channel, config);
     const formattedPayload = this.formatForChannel(normalizedChannel, testPayload);
@@ -699,7 +719,7 @@ class WebhookService {
     // Get channel URL from normalized channel
     const channelUrl = normalizedChannel.url || config.url;
     const channelMethod = normalizedChannel.method || 'POST';
-    
+
     try {
       const response = await fetch(channelUrl, {
         method: channelMethod,
@@ -707,9 +727,9 @@ class WebhookService {
         body: JSON.stringify(formattedPayload),
         signal: AbortSignal.timeout(10000),
       });
-      
+
       const responseTime = Date.now() - startTime;
-      
+
       if (response.ok) {
         return { success: true, responseTime };
       } else {
@@ -765,7 +785,9 @@ class WebhookService {
     const alert = payload.alert;
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: ${this.getSeverityColor(alert.severity)}; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+        <div style="background: ${this.getSeverityColor(
+          alert.severity
+        )}; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
           <h2 style="margin: 0;">${this.getSeverityEmoji(alert.severity)} ${alert.title}</h2>
         </div>
         <div style="background: #f5f5f5; padding: 20px; border-radius: 0 0 8px 8px;">

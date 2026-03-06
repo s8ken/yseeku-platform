@@ -69,8 +69,7 @@ router.get('/metrics', async (req: Request, res: Response): Promise<void> => {
       ]);
       sonateActiveAgents.set(activeAgents);
       sonateActiveWorkflows.set(activeWorkflows);
-    } catch (_e) {
-    }
+    } catch (_e) {}
     const output = await getMetrics();
     res.set('Content-Type', 'text/plain; version=0.0.4');
     res.send(output);
@@ -120,7 +119,9 @@ router.get('/health', async (req: Request, res: Response): Promise<void> => {
     // grows on demand, making heapUsed/heapTotal always look near 100%).
     const memUsage = process.memoryUsage();
     const usedMemMB = Math.round(memUsage.rss / 1024 / 1024);
-    const totalMemMB = parseInt(process.env.FLY_VM_MEMORY_MB ?? process.env.MEMORY_LIMIT_MB ?? '512');
+    const totalMemMB = parseInt(
+      process.env.FLY_VM_MEMORY_MB ?? process.env.MEMORY_LIMIT_MB ?? '512'
+    );
     const memPercentage = Math.round((usedMemMB / totalMemMB) * 100);
 
     let memStatus: 'ok' | 'warning' | 'critical' = 'ok';
@@ -213,8 +214,10 @@ router.get('/health/ready', async (req: Request, res: Response): Promise<void> =
 
     // Check memory (fail if critically low)
     const memUsage = process.memoryUsage();
-    const memLimitMB = parseInt(process.env.FLY_VM_MEMORY_MB ?? process.env.MEMORY_LIMIT_MB ?? '512');
-    const memPercentage = Math.round((memUsage.rss / 1024 / 1024) / memLimitMB * 100);
+    const memLimitMB = parseInt(
+      process.env.FLY_VM_MEMORY_MB ?? process.env.MEMORY_LIMIT_MB ?? '512'
+    );
+    const memPercentage = Math.round((memUsage.rss / 1024 / 1024 / memLimitMB) * 100);
     if (memPercentage > 95) {
       isReady = false;
     }
@@ -253,12 +256,14 @@ router.get('/observability/test-trace', async (req: Request, res: Response): Pro
   try {
     const span = tracer.startSpan('sanity_trace');
     span.addEvent('sanity_trace_start');
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
     span.addEvent('sanity_trace_end');
     span.end();
     res.json({ success: true, message: 'Trace emitted (no-op mode)' });
   } catch (error: unknown) {
-    res.status(500).json({ success: false, message: 'Failed to emit trace', error: getErrorMessage(error) });
+    res
+      .status(500)
+      .json({ success: false, message: 'Failed to emit trace', error: getErrorMessage(error) });
   }
 });
 

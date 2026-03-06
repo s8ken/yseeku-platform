@@ -45,12 +45,14 @@ router.get('/stats', async (req: Request, res: Response): Promise<void> => {
 
     // Calculate percentages
     const llmPercentage = totalCount > 0 ? Math.round((llmCount / totalCount) * 100) : 0;
-    const heuristicPercentage = totalCount > 0 ? Math.round((heuristicCount / totalCount) * 100) : 0;
+    const heuristicPercentage =
+      totalCount > 0 ? Math.round((heuristicCount / totalCount) * 100) : 0;
     const hybridPercentage = totalCount > 0 ? Math.round((hybridCount / totalCount) * 100) : 0;
 
     // Get average confidence
     const llmAvgConfidence = stats.find((s: any) => s._id === 'llm')?.avgConfidence || 0;
-    const heuristicAvgConfidence = stats.find((s: any) => s._id === 'heuristic')?.avgConfidence || 0;
+    const heuristicAvgConfidence =
+      stats.find((s: any) => s._id === 'heuristic')?.avgConfidence || 0;
     const hybridAvgConfidence = stats.find((s: any) => s._id === 'hybrid')?.avgConfidence || 0;
 
     res.json({

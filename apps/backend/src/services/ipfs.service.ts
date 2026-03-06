@@ -55,9 +55,9 @@ export interface AuditBundle {
 }
 
 export interface PinResult {
-  cid: string;              // IPFS Content Identifier (e.g. "bafyb...")
-  gatewayUrl: string;       // Public IPFS gateway URL
-  pinataUrl: string;        // Pinata-hosted gateway URL
+  cid: string; // IPFS Content Identifier (e.g. "bafyb...")
+  gatewayUrl: string; // Public IPFS gateway URL
+  pinataUrl: string; // Pinata-hosted gateway URL
   bundleName: string;
   pinnedAt: string;
   sizeBytes: number;
@@ -69,7 +69,7 @@ export class IpfsService {
     if (!jwt) {
       throw new Error(
         'PINATA_JWT environment variable is not set. ' +
-        'Create a free Pinata account at https://pinata.cloud and add your JWT to .env'
+          'Create a free Pinata account at https://pinata.cloud and add your JWT to .env'
       );
     }
     return jwt;
@@ -129,8 +129,8 @@ export class IpfsService {
         createdAt: (conversation as any).createdAt?.toISOString() ?? '',
         lastActivity: (conversation as any).lastActivity?.toISOString() ?? '',
         messageCount: (conversation as any).messages?.length ?? 0,
-        agentIds: ((conversation as any).agents ?? []).map((a: any) =>
-          a._id?.toString() ?? a.toString()
+        agentIds: ((conversation as any).agents ?? []).map(
+          (a: any) => a._id?.toString() ?? a.toString()
         ),
       },
       trustSummary,
@@ -185,7 +185,7 @@ export class IpfsService {
         },
       },
       pinataOptions: {
-        cidVersion: 1,  // CIDv1 produces the shorter "bafy..." format
+        cidVersion: 1, // CIDv1 produces the shorter "bafy..." format
       },
     };
 
@@ -203,7 +203,7 @@ export class IpfsService {
       throw new Error(`Pinata API error ${response.status}: ${errorText}`);
     }
 
-    const pinataResult = await response.json() as {
+    const pinataResult = (await response.json()) as {
       IpfsHash: string;
       PinSize: number;
       Timestamp: string;
@@ -263,7 +263,7 @@ export class IpfsService {
     }
 
     const ciqScores = receipts
-      .map(r => {
+      .map((r) => {
         const m = r.ciq_metrics;
         if (!m) return null;
         return (m.clarity + m.integrity + m.quality) / 3;
@@ -275,8 +275,10 @@ export class IpfsService {
         ? Math.round((ciqScores.reduce((a, b) => a + b, 0) / ciqScores.length) * 100) / 100
         : 0;
 
-    const passCount = receipts.filter(r => r.mode === 'constitutional' || r.mode === 'pass').length;
-    const failCount = receipts.filter(r => r.mode === 'fail' || r.mode === 'blocked').length;
+    const passCount = receipts.filter(
+      (r) => r.mode === 'constitutional' || r.mode === 'pass'
+    ).length;
+    const failCount = receipts.filter((r) => r.mode === 'fail' || r.mode === 'blocked').length;
     const partialCount = receipts.length - passCount - failCount;
 
     return {

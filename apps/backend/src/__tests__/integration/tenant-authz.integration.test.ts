@@ -67,7 +67,7 @@ function mintToken(userId: string, email: string): string {
 
 // ── Fake MongoDB ObjectId-shaped string ─────────────────────────────────────
 const VIEWER_OID = 'a'.repeat(24);
-const ADMIN_OID  = 'b'.repeat(24);
+const ADMIN_OID = 'b'.repeat(24);
 
 function buildApp() {
   const app = express();
@@ -89,10 +89,7 @@ describe('Tenant authz — real middleware, DB-sourced role', () => {
     const token = mintToken(VIEWER_OID, 'v@test.com');
     mockFindById.mockResolvedValue({ _id: VIEWER_OID, role: 'viewer', email: 'v@test.com' });
 
-    await request(app)
-      .get('/api/tenants')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(403);
+    await request(app).get('/api/tenants').set('Authorization', `Bearer ${token}`).expect(403);
   });
 
   // ── Admin token → 200 ──────────────────────────────────────────────────
@@ -100,10 +97,7 @@ describe('Tenant authz — real middleware, DB-sourced role', () => {
     const token = mintToken(ADMIN_OID, 'a@test.com');
     mockFindById.mockResolvedValue({ _id: ADMIN_OID, role: 'admin', email: 'a@test.com' });
 
-    await request(app)
-      .get('/api/tenants')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200);
+    await request(app).get('/api/tenants').set('Authorization', `Bearer ${token}`).expect(200);
   });
 
   // ── JWT role bypass attempt → 403 ──────────────────────────────────────
@@ -114,40 +108,33 @@ describe('Tenant authz — real middleware, DB-sourced role', () => {
     const token = mintToken(VIEWER_OID, 'v@test.com');
     mockFindById.mockResolvedValue({ _id: VIEWER_OID, role: 'viewer', email: 'v@test.com' });
 
-    await request(app)
-      .get('/api/tenants')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(403);
+    await request(app).get('/api/tenants').set('Authorization', `Bearer ${token}`).expect(403);
   });
 
   // ── No token → 401 ─────────────────────────────────────────────────────
   it('returns 401 when no token is provided', async () => {
-    await request(app)
-      .get('/api/tenants')
-      .expect(401);
+    await request(app).get('/api/tenants').expect(401);
   });
 
   // ── Tampered / invalid token → 401 ─────────────────────────────────────
   it('returns 401 for a tampered token', async () => {
     const token = mintToken(ADMIN_OID, 'a@test.com') + 'tampered';
 
-    await request(app)
-      .get('/api/tenants')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(401);
+    await request(app).get('/api/tenants').set('Authorization', `Bearer ${token}`).expect(401);
   });
 
   // ── All four protected methods blocked for viewer ──────────────────────
   it.each([
-    ['GET',  '/api/tenants',     undefined],
-    ['GET',  '/api/tenants/tid', undefined],
-    ['POST', '/api/tenants',     { name: 'X' }],
-    ['PUT',  '/api/tenants/tid', { name: 'Y' }],
+    ['GET', '/api/tenants', undefined],
+    ['GET', '/api/tenants/tid', undefined],
+    ['POST', '/api/tenants', { name: 'X' }],
+    ['PUT', '/api/tenants/tid', { name: 'Y' }],
   ])('%s %s returns 403 for a viewer', async (method, path, body) => {
     const token = mintToken(VIEWER_OID, 'v@test.com');
     mockFindById.mockResolvedValue({ _id: VIEWER_OID, role: 'viewer', email: 'v@test.com' });
 
-    const req = request(app)[method.toLowerCase() as 'get' | 'post' | 'put'](path)
+    const req = request(app)
+      [method.toLowerCase() as 'get' | 'post' | 'put'](path)
       .set('Authorization', `Bearer ${token}`);
 
     if (body) req.send(body);

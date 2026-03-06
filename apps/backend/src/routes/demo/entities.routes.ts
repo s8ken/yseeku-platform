@@ -80,7 +80,11 @@ router.get('/agents', async (req: Request, res: Response): Promise<void> => {
             provider: 'openai',
             model: 'gpt-4o',
             ciModel: 'sonate-core',
-            traits: { specialty: 'knowledge-retrieval', trustLevel: 'high', responseStyle: 'professional' },
+            traits: {
+              specialty: 'knowledge-retrieval',
+              trustLevel: 'high',
+              responseStyle: 'professional',
+            },
             lastActive: new Date().toISOString(),
           },
           {
@@ -90,7 +94,11 @@ router.get('/agents', async (req: Request, res: Response): Promise<void> => {
             provider: 'anthropic',
             model: 'claude-3-sonnet',
             ciModel: 'sonate-core',
-            traits: { specialty: 'content-generation', trustLevel: 'high', responseStyle: 'creative' },
+            traits: {
+              specialty: 'content-generation',
+              trustLevel: 'high',
+              responseStyle: 'creative',
+            },
             lastActive: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
           },
           {
@@ -100,7 +108,11 @@ router.get('/agents', async (req: Request, res: Response): Promise<void> => {
             provider: 'openai',
             model: 'gpt-4o',
             ciModel: 'overseer',
-            traits: { specialty: 'security-analysis', trustLevel: 'critical', responseStyle: 'precise' },
+            traits: {
+              specialty: 'security-analysis',
+              trustLevel: 'critical',
+              responseStyle: 'precise',
+            },
             lastActive: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
           },
           {
@@ -110,7 +122,11 @@ router.get('/agents', async (req: Request, res: Response): Promise<void> => {
             provider: 'anthropic',
             model: 'claude-3-haiku',
             ciModel: 'sonate-core',
-            traits: { specialty: 'customer-support', trustLevel: 'high', responseStyle: 'friendly' },
+            traits: {
+              specialty: 'customer-support',
+              trustLevel: 'high',
+              responseStyle: 'friendly',
+            },
             lastActive: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
           },
           {
@@ -130,7 +146,7 @@ router.get('/agents', async (req: Request, res: Response): Promise<void> => {
 
     res.json({
       success: true,
-      data: agents.map(agent => ({
+      data: agents.map((agent) => ({
         ...agent,
         traits: agent.traits instanceof Map ? Object.fromEntries(agent.traits) : agent.traits,
       })),
@@ -254,10 +270,25 @@ router.get('/risk', async (req: Request, res: Response): Promise<void> => {
         moral: 92,
       },
       complianceReports: [
-        { framework: 'EU AI Act', status: 'compliant', score: 95, lastAudit: new Date().toISOString() },
+        {
+          framework: 'EU AI Act',
+          status: 'compliant',
+          score: 95,
+          lastAudit: new Date().toISOString(),
+        },
         { framework: 'GDPR', status: 'compliant', score: 94, lastAudit: new Date().toISOString() },
-        { framework: 'ISO 27001', status: 'compliant', score: 91, lastAudit: new Date().toISOString() },
-        { framework: 'Trust Protocol', status: 'compliant', score: 92, lastAudit: new Date().toISOString() },
+        {
+          framework: 'ISO 27001',
+          status: 'compliant',
+          score: 91,
+          lastAudit: new Date().toISOString(),
+        },
+        {
+          framework: 'Trust Protocol',
+          status: 'compliant',
+          score: 92,
+          lastAudit: new Date().toISOString(),
+        },
       ],
       riskTrends: Array.from({ length: 7 }, (_, i) => ({
         date: new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],

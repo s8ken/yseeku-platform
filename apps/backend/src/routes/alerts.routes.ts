@@ -30,8 +30,8 @@ router.get('/management', protect, async (req: Request, res: Response): Promise<
 
     // Get all alerts for filtering
     let { alerts, total } = await AlertsService.getAlerts(tenantId, {
-      status: status && status !== 'all' ? status as AlertStatus : undefined,
-      severity: severity && severity !== 'all' ? severity as AlertSeverity : undefined,
+      status: status && status !== 'all' ? (status as AlertStatus) : undefined,
+      severity: severity && severity !== 'all' ? (severity as AlertSeverity) : undefined,
       limit: limit ? Number(limit) : 100,
       offset: offset ? Number(offset) : 0,
     });
@@ -157,7 +157,6 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
   }
 });
 
-
 /**
  * @route   GET /api/dashboard/alerts
  * @desc    Get alerts summary for dashboard
@@ -242,7 +241,9 @@ router.post('/', protect, async (req: Request, res: Response): Promise<void> => 
       error,
       stack: getErrorStack(error),
     });
-    res.status(500).json({ success: false, message: 'Failed to create alert', error: getErrorMessage(error) });
+    res
+      .status(500)
+      .json({ success: false, message: 'Failed to create alert', error: getErrorMessage(error) });
   }
 });
 
@@ -258,7 +259,7 @@ router.get('/:id', protect, async (req: Request, res: Response): Promise<void> =
 
     const { alerts } = await AlertsService.getAlerts(tenantId, { limit: 1000 }); // Fetch a reasonable number of alerts
 
-    const alert = alerts.find(a => a._id.toString() === id);
+    const alert = alerts.find((a) => a._id.toString() === id);
 
     if (!alert) {
       res.status(404).json({
@@ -284,7 +285,5 @@ router.get('/:id', protect, async (req: Request, res: Response): Promise<void> =
     });
   }
 });
-
-
 
 export default router;

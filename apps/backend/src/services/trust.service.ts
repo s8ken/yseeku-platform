@@ -14,7 +14,7 @@ import {
   PrincipleScores,
   PrincipleEvaluator,
   createDefaultContext,
-  EvaluationContext
+  EvaluationContext,
 } from '@sonate/core';
 import { TrustReceipt as TrustReceiptV2, CreateReceiptInput } from '@sonate/schemas';
 import { getReceiptGenerator, ReceiptGeneratorService } from './receipts/receipt-generator';
@@ -32,11 +32,7 @@ import {
 } from '@sonate/detect';
 // v2.0.1: Removed RealityIndexCalculator and CanvasParityCalculator imports
 // These calculators were cut as liabilities (trivially gamed metadata flags)
-import {
-  ConversationalMetrics,
-  type PhaseShiftMetrics,
-  type ConversationTurn,
-} from '@sonate/lab';
+import { ConversationalMetrics, type PhaseShiftMetrics, type ConversationTurn } from '@sonate/lab';
 import { IMessage } from '../models/conversation.model';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
@@ -54,21 +50,25 @@ export interface TrustEvaluation {
 
   // Statistical drift detection (text property changes)
   drift?: {
-    driftScore: number;      // 0-100, higher = more drift
-    tokenDelta: number;      // Change in token count from previous message
-    vocabDelta: number;      // Change in vocabulary richness
-    numericDelta: number;    // Change in numeric content density
-    alertLevel: 'none' | 'yellow' | 'red';  // Drift severity
+    driftScore: number; // 0-100, higher = more drift
+    tokenDelta: number; // Change in token count from previous message
+    vocabDelta: number; // Change in vocabulary richness
+    numericDelta: number; // Change in numeric content density
+    alertLevel: 'none' | 'yellow' | 'red'; // Drift severity
   };
 
   // Semantic drift detection (meaning/alignment changes)
   phaseShift?: {
-    deltaResonance: number;    // Change in resonance score
-    deltaCanvas: number;       // Change in canvas/mutuality score
-    velocity: number;          // √(ΔR² + ΔC²) - rate of behavioral change
+    deltaResonance: number; // Change in resonance score
+    deltaCanvas: number; // Change in canvas/mutuality score
+    velocity: number; // √(ΔR² + ΔC²) - rate of behavioral change
     identityStability: number; // 0-1, cosine similarity of identity vectors
     alertLevel: 'none' | 'yellow' | 'red';
-    transitionType?: 'resonance_drop' | 'canvas_rupture' | 'identity_shift' | 'combined_phase_shift';
+    transitionType?:
+      | 'resonance_drop'
+      | 'canvas_rupture'
+      | 'identity_shift'
+      | 'combined_phase_shift';
   };
 
   // Consciousness emergence detection (6th dimension)
@@ -77,11 +77,11 @@ export interface TrustEvaluation {
   // Trust Receipt (V2 format)
   receipt: TrustReceiptV2;
   receiptHash: string;
-  signature?: string;  // Ed25519 signature
+  signature?: string; // Ed25519 signature
 
   // DID-based Verifiable Credential fields
-  issuer?: string;      // Platform DID (did:web:yseeku.com)
-  subject?: string;     // Agent DID (did:web:yseeku.com:agents:{id})
+  issuer?: string; // Platform DID (did:web:yseeku.com)
+  subject?: string; // Agent DID (did:web:yseeku.com:agents:{id})
   proof?: {
     type: string;
     created: string;
@@ -153,7 +153,7 @@ export class TrustService {
   private sweepInterval: ReturnType<typeof setInterval> | null = null;
 
   // Drift thresholds (statistical)
-  private static readonly DRIFT_YELLOW_THRESHOLD = 30;  // 0-100 scale
+  private static readonly DRIFT_YELLOW_THRESHOLD = 30; // 0-100 scale
   private static readonly DRIFT_RED_THRESHOLD = 60;
 
   // Phase-shift velocity thresholds (semantic)
@@ -209,8 +209,8 @@ export class TrustService {
       conversationId: string;
       sessionId?: string;
       previousMessages?: IMessage[];
-      agentId?: string;  // Agent ID for DID-based subject
-      userId?: string;   // User ID for principle evaluation
+      agentId?: string; // Agent ID for DID-based subject
+      userId?: string; // User ID for principle evaluation
       tenantId?: string; // Tenant ID for multi-tenant isolation
       // Principle evaluation context (for accurate scoring)
       hasExplicitConsent?: boolean;
@@ -244,11 +244,7 @@ export class TrustService {
     const driftResult = this.analyzeDrift(context.conversationId, message);
 
     // Run phase-shift velocity analysis to track semantic/alignment changes
-    const phaseShiftResult = this.analyzePhaseShift(
-      context.conversationId,
-      message,
-      detection
-    );
+    const phaseShiftResult = this.analyzePhaseShift(context.conversationId, message, detection);
 
     // Run emergence detection (6th dimension: consciousness patterns)
     const emergenceSignal = await this.detectEmergence(
@@ -261,15 +257,18 @@ export class TrustService {
 
     // Calculate principle scores from detection dimensions
     // Pass evaluation context for accurate principle measurement
-    const evaluationContext = context.hasExplicitConsent !== undefined ? {
-      sessionId: context.sessionId || context.conversationId,
-      userId: context.userId || 'unknown',
-      hasExplicitConsent: context.hasExplicitConsent,
-      hasOverrideButton: context.hasOverrideButton,
-      hasExitButton: context.hasExitButton,
-      exitRequiresConfirmation: context.exitRequiresConfirmation,
-      humanInLoop: context.humanInLoop,
-    } : undefined;
+    const evaluationContext =
+      context.hasExplicitConsent !== undefined
+        ? {
+            sessionId: context.sessionId || context.conversationId,
+            userId: context.userId || 'unknown',
+            hasExplicitConsent: context.hasExplicitConsent,
+            hasOverrideButton: context.hasOverrideButton,
+            hasExitButton: context.hasExitButton,
+            exitRequiresConfirmation: context.exitRequiresConfirmation,
+            humanInLoop: context.humanInLoop,
+          }
+        : undefined;
 
     const principleScores = this.mapDetectionToPrinciples(detection, evaluationContext);
 
@@ -281,7 +280,9 @@ export class TrustService {
 
     // Generate V2 trust receipt
     const platformDID = didService.getPlatformDID();
-    const agentId = context.agentId || (message.metadata as Record<string, unknown>)?.agentId as string | undefined;
+    const agentId =
+      context.agentId ||
+      ((message.metadata as Record<string, unknown>)?.agentId as string | undefined);
     const agentDID = agentId ? didService.getAgentDID(agentId) : `${platformDID}:agents:unknown`;
 
     const receiptInput: CreateReceiptInput = {
@@ -293,11 +294,15 @@ export class TrustService {
       interaction: {
         prompt: (context.previousMessages?.slice(-1)[0]?.content || '').substring(0, 1000),
         response: message.content.substring(0, 2000),
-        model: (message.metadata as Record<string, unknown>)?.model as string || 'unknown',
+        model: ((message.metadata as Record<string, unknown>)?.model as string) || 'unknown',
       },
       telemetry: {
-        resonance_score: detection.resonance_quality === 'BREAKTHROUGH' ? 0.95 :
-          detection.resonance_quality === 'ADVANCED' ? 0.8 : 0.65,
+        resonance_score:
+          detection.resonance_quality === 'BREAKTHROUGH'
+            ? 0.95
+            : detection.resonance_quality === 'ADVANCED'
+            ? 0.8
+            : 0.65,
         coherence_score: trustScore.overall / 100,
         truth_debt: 0.1,
         ciq_metrics: {
@@ -313,7 +318,9 @@ export class TrustService {
       const privateKey = await keysService.getPrivateKey();
       receipt = await this.receiptGenerator.createReceipt(receiptInput, Buffer.from(privateKey));
     } catch (error: unknown) {
-      logger.warn('Failed to create V2 receipt, using unsigned stub', { error: getErrorMessage(error) });
+      logger.warn('Failed to create V2 receipt, using unsigned stub', {
+        error: getErrorMessage(error),
+      });
       // Create a minimal unsigned receipt so evaluation can still return
       receipt = {
         id: 'unsigned',
@@ -348,10 +355,7 @@ export class TrustService {
 
     if (receipt.signature?.value) {
       try {
-        proof = await didService.createProof(
-          receipt.id,
-          `${platformDID}#key-1`
-        );
+        proof = await didService.createProof(receipt.id, `${platformDID}#key-1`);
       } catch (error: unknown) {
         logger.warn('Failed to create DID proof', { error: getErrorMessage(error) });
       }
@@ -407,7 +411,7 @@ export class TrustService {
    *
    * UPDATED: Now uses PrincipleEvaluator for accurate principle measurement.
    * The old NLP-proxy approach is deprecated in favor of actual system state.
-   * 
+   *
    * Falls back to detection-based scoring when context is not available,
    * but prefers the proper evaluation context when provided.
    */
@@ -451,11 +455,18 @@ export class TrustService {
 
     // LEGACY FALLBACK: Use detection-based scoring when no context available
     // This preserves backward compatibility but is less accurate
-    logger.warn('Using legacy detection-based principle scoring. Provide EvaluationContext for accurate scores.');
+    logger.warn(
+      'Using legacy detection-based principle scoring. Provide EvaluationContext for accurate scores.'
+    );
 
-    const trustProtocolScore = detection.trust_protocol === 'PASS' ? 10 : detection.trust_protocol === 'PARTIAL' ? 6 : 2;
+    const trustProtocolScore =
+      detection.trust_protocol === 'PASS' ? 10 : detection.trust_protocol === 'PARTIAL' ? 6 : 2;
     const resonanceScore =
-      detection.resonance_quality === 'BREAKTHROUGH' ? 10 : detection.resonance_quality === 'ADVANCED' ? 8 : 6;
+      detection.resonance_quality === 'BREAKTHROUGH'
+        ? 10
+        : detection.resonance_quality === 'ADVANCED'
+        ? 8
+        : 6;
 
     return {
       CONSENT_ARCHITECTURE: trustProtocolScore,
@@ -479,7 +490,7 @@ export class TrustService {
 
     const lastFiveMessages = previousMessages.slice(-5);
     return lastFiveMessages
-      .map(msg => `${msg.sender}: ${msg.content.substring(0, 100)}`)
+      .map((msg) => `${msg.sender}: ${msg.content.substring(0, 100)}`)
       .join('\n');
   }
 
@@ -528,17 +539,17 @@ export class TrustService {
 
     // Calculate status rates
     const statusCounts = {
-      PASS: evaluations.filter(e => e.status === 'PASS').length,
-      PARTIAL: evaluations.filter(e => e.status === 'PARTIAL').length,
-      FAIL: evaluations.filter(e => e.status === 'FAIL').length,
+      PASS: evaluations.filter((e) => e.status === 'PASS').length,
+      PARTIAL: evaluations.filter((e) => e.status === 'PARTIAL').length,
+      FAIL: evaluations.filter((e) => e.status === 'FAIL').length,
     };
 
     const total = evaluations.length;
 
     // Find common violations
     const violationCounts = new Map<string, number>();
-    evaluations.forEach(e => {
-      e.trustScore.violations.forEach(violation => {
+    evaluations.forEach((e) => {
+      e.trustScore.violations.forEach((violation) => {
         violationCounts.set(violation, (violationCounts.get(violation) || 0) + 1);
       });
     });
@@ -562,14 +573,14 @@ export class TrustService {
       const dayEnd = dayStart + dayMs;
 
       const dayEvaluations = evaluations.filter(
-        e => e.timestamp >= dayStart && e.timestamp < dayEnd
+        (e) => e.timestamp >= dayStart && e.timestamp < dayEnd
       );
 
       if (dayEvaluations.length > 0) {
         const dayAvg =
           dayEvaluations.reduce((sum, e) => sum + e.trustScore.overall, 0) / dayEvaluations.length;
         const dayPassRate =
-          (dayEvaluations.filter(e => e.status === 'PASS').length / dayEvaluations.length) * 100;
+          (dayEvaluations.filter((e) => e.status === 'PASS').length / dayEvaluations.length) * 100;
 
         recentTrends.push({
           date: new Date(dayStart).toISOString().split('T')[0],
@@ -622,12 +633,12 @@ export class TrustService {
       return JSON.stringify(obj);
     }
     if (Array.isArray(obj)) {
-      return '[' + obj.map(item => this.canonicalize(item)).join(',') + ']';
+      return '[' + obj.map((item) => this.canonicalize(item)).join(',') + ']';
     }
     const sortedKeys = Object.keys(obj).sort();
     const pairs = sortedKeys
-      .filter(key => obj[key] !== undefined)
-      .map(key => JSON.stringify(key) + ':' + this.canonicalize(obj[key]));
+      .filter((key) => obj[key] !== undefined)
+      .map((key) => JSON.stringify(key) + ':' + this.canonicalize(obj[key]));
     return '{' + pairs.join(',') + '}';
   }
 
@@ -641,16 +652,13 @@ export class TrustService {
   /**
    * Analyze drift for a conversation
    * Tracks behavioral consistency over time within a conversation
-   * 
+   *
    * Drift detection catches:
    * - Sudden changes in response length (token count)
    * - Vocabulary shifts (using different words)
    * - Numeric content changes (suddenly including lots of numbers)
    */
-  private analyzeDrift(
-    conversationId: string,
-    message: IMessage
-  ): TrustEvaluation['drift'] {
+  private analyzeDrift(conversationId: string, message: IMessage): TrustEvaluation['drift'] {
     // Only analyze AI messages (human messages are expected to vary)
     if (message.sender !== 'ai') {
       return undefined;
@@ -695,11 +703,11 @@ export class TrustService {
 
   /**
    * Analyze phase-shift velocity for semantic/alignment changes
-   * 
+   *
    * This tracks how resonance and canvas scores change over time,
    * detecting when an AI's behavior is semantically drifting even
    * if the surface-level text properties remain consistent.
-   * 
+   *
    * Phase-shift velocity catches:
    * - Resonance drops (AI becoming less aligned)
    * - Canvas ruptures (mutuality/understanding breaking down)
@@ -735,14 +743,18 @@ export class TrustService {
 
     // Create conversation turn from detection results
     // Convert resonance_quality string to numeric value (0-10)
-    const resonanceScore = detection.resonance_quality === 'BREAKTHROUGH' ? 10 :
-      detection.resonance_quality === 'ADVANCED' ? 7 : 5;
+    const resonanceScore =
+      detection.resonance_quality === 'BREAKTHROUGH'
+        ? 10
+        : detection.resonance_quality === 'ADVANCED'
+        ? 7
+        : 5;
 
     const turn: ConversationTurn = {
       turnNumber,
       timestamp: message.timestamp?.getTime() || Date.now(),
       speaker: 'ai',
-      resonance: resonanceScore,  // Converted to 0-10
+      resonance: resonanceScore, // Converted to 0-10
       // v2.0.1: canvas_parity removed from DetectionResult, use ethical_alignment scaled to 0-10
       canvas: detection.ethical_alignment * 2,
       identityVector,
@@ -789,7 +801,7 @@ export class TrustService {
     const identityMarkers: string[] = [];
 
     // Look for self-referential patterns
-    const selfPatterns = ['i am', 'i\'m', 'my role', 'as an', 'i can', 'i will'];
+    const selfPatterns = ['i am', "i'm", 'my role', 'as an', 'i can', 'i will'];
     for (let i = 0; i < words.length - 2; i++) {
       const twoGram = `${words[i]} ${words[i + 1]}`;
       if (selfPatterns.includes(twoGram)) {
@@ -838,20 +850,20 @@ export class TrustService {
 
       // Build conversation history for pattern detection
       const conversationHistory = [
-        ...previousMessages.map(msg => ({
+        ...previousMessages.map((msg) => ({
           role: msg.sender === 'ai' ? 'assistant' : 'user',
           content: msg.content,
-          timestamp: msg.timestamp
+          timestamp: msg.timestamp,
         })),
         {
           role: 'assistant',
           content: currentMessage.content,
-          timestamp: currentMessage.timestamp
-        }
+          timestamp: currentMessage.timestamp,
+        },
       ];
 
       // Get turn number for this conversation
-      const turnNumber = (this.turnCounters.get(conversationId) || 0);
+      const turnNumber = this.turnCounters.get(conversationId) || 0;
 
       // Run emergence detection
       const signal = await emergenceDetector.detect(
@@ -873,7 +885,7 @@ export class TrustService {
             agentId,
             type: signal.type,
             confidence: signal.confidence,
-            metrics: signal.metrics
+            metrics: signal.metrics,
           });
         }
       }
@@ -882,7 +894,7 @@ export class TrustService {
     } catch (error: unknown) {
       logger.error('Emergence detection failed', {
         error: getErrorMessage(error),
-        conversationId
+        conversationId,
       });
       return null;
     }

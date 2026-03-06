@@ -9,7 +9,7 @@ import {
   validateQuery,
   validateParams,
   validateRequest,
-  ValidationError
+  ValidationError,
 } from '../../middleware/validation.middleware';
 
 // Mock logger
@@ -24,13 +24,14 @@ jest.mock('../../utils/logger', () => ({
 }));
 
 // Mock Request, Response, and NextFunction
-const mockRequest = (data: { body?: unknown; query?: unknown; params?: unknown } = {}) => ({
-  body: data.body || {},
-  query: data.query || {},
-  params: data.params || {},
-  path: '/test',
-  method: 'POST',
-}) as Request;
+const mockRequest = (data: { body?: unknown; query?: unknown; params?: unknown } = {}) =>
+  ({
+    body: data.body || {},
+    query: data.query || {},
+    params: data.params || {},
+    path: '/test',
+    method: 'POST',
+  } as Request);
 
 const mockResponse = () => {
   const res: Partial<Response> = {

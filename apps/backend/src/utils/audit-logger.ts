@@ -147,7 +147,7 @@ export async function logAudit(params: AuditLogParams): Promise<void> {
  */
 export function extractRequestMetadata(
   req: Request & {
-    sessionId?: string
+    sessionId?: string;
   }
 ): {
   ipAddress?: string;
@@ -157,7 +157,7 @@ export function extractRequestMetadata(
   return {
     ipAddress: (req.headers['x-forwarded-for'] as string) || req.ip || req.socket.remoteAddress,
     userAgent: req.headers['user-agent'],
-    sessionId: req.sessionId || req.headers['x-session-id'] as string,
+    sessionId: req.sessionId || (req.headers['x-session-id'] as string),
   };
 }
 
@@ -166,10 +166,10 @@ export function extractRequestMetadata(
  */
 export async function logAuditFromRequest(
   req: Request & {
-    userId?: string
-    userEmail?: string
-    userTenant?: string
-    correlationId?: string
+    userId?: string;
+    userEmail?: string;
+    userTenant?: string;
+    correlationId?: string;
   },
   action: AuditAction,
   resourceType: ResourceType,
@@ -185,7 +185,10 @@ export async function logAuditFromRequest(
   const userEmail = req.userEmail;
   const tenantId = req.userTenant || 'default';
   const { ipAddress, userAgent, sessionId } = extractRequestMetadata(req);
-  const mergedDetails = { ...(options?.details || {}), correlationId: req.correlationId } as Record<string, any>;
+  const mergedDetails = { ...(options?.details || {}), correlationId: req.correlationId } as Record<
+    string,
+    any
+  >;
 
   await logAudit({
     action,
@@ -209,9 +212,9 @@ export async function logAuditFromRequest(
  */
 export async function logSuccess(
   req: Request & {
-    userId?: string
-    userEmail?: string
-    userTenant?: string
+    userId?: string;
+    userEmail?: string;
+    userTenant?: string;
   },
   action: AuditAction,
   resourceType: ResourceType,
@@ -230,9 +233,9 @@ export async function logSuccess(
  */
 export async function logFailure(
   req: Request & {
-    userId?: string
-    userEmail?: string
-    userTenant?: string
+    userId?: string;
+    userEmail?: string;
+    userTenant?: string;
   },
   action: AuditAction,
   resourceType: ResourceType,
@@ -258,9 +261,9 @@ export async function logFailure(
  */
 export async function logWarning(
   req: Request & {
-    userId?: string
-    userEmail?: string
-    userTenant?: string
+    userId?: string;
+    userEmail?: string;
+    userTenant?: string;
   },
   action: AuditAction,
   resourceType: ResourceType,
@@ -283,9 +286,9 @@ export async function logWarning(
  */
 export async function logSecurityEvent(
   req: Request & {
-    userId?: string
-    userEmail?: string
-    userTenant?: string
+    userId?: string;
+    userEmail?: string;
+    userTenant?: string;
   },
   action: AuditAction,
   resourceType: ResourceType,

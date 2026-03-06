@@ -1,8 +1,8 @@
 /**
  * Receipts API Routes
- * 
+ *
  * HTTP endpoints for receipt generation, verification, and export
- * 
+ *
  * Endpoints:
  * - POST   /api/v1/receipts/generate    Generate new receipt
  * - GET    /api/v1/receipts/:id         Fetch receipt by ID
@@ -61,23 +61,29 @@ const CreateReceiptSchema = z.object({
     temperature: z.number().min(0).max(2).optional(),
     max_tokens: z.number().int().positive().optional(),
   }),
-  telemetry: z.object({
-    resonance_score: z.number().min(0).max(1).optional(),
-    resonance_quality: z.enum(['STRONG', 'ADVANCED', 'BREAKTHROUGH']).optional(),
-    bedau_index: z.number().min(0).max(1).optional(),
-    coherence_score: z.number().min(0).max(1).optional(),
-    truth_debt: z.number().min(0).max(1).optional(),
-    volatility: z.number().min(0).max(1).optional(),
-  }).optional(),
-  policy_state: z.object({
-    constraints_applied: z.array(z.string()).optional(),
-    consent_verified: z.boolean().optional(),
-    override_available: z.boolean().optional(),
-  }).optional(),
-  metadata: z.object({
-    tags: z.array(z.string()).optional(),
-    context: z.record(z.string(), z.any()).optional(),
-  }).optional(),
+  telemetry: z
+    .object({
+      resonance_score: z.number().min(0).max(1).optional(),
+      resonance_quality: z.enum(['STRONG', 'ADVANCED', 'BREAKTHROUGH']).optional(),
+      bedau_index: z.number().min(0).max(1).optional(),
+      coherence_score: z.number().min(0).max(1).optional(),
+      truth_debt: z.number().min(0).max(1).optional(),
+      volatility: z.number().min(0).max(1).optional(),
+    })
+    .optional(),
+  policy_state: z
+    .object({
+      constraints_applied: z.array(z.string()).optional(),
+      consent_verified: z.boolean().optional(),
+      override_available: z.boolean().optional(),
+    })
+    .optional(),
+  metadata: z
+    .object({
+      tags: z.array(z.string()).optional(),
+      context: z.record(z.string(), z.any()).optional(),
+    })
+    .optional(),
 });
 
 const VerifyReceiptSchema = z.object({
@@ -88,22 +94,26 @@ const VerifyReceiptSchema = z.object({
 
 const ExportReceiptsSchema = z.object({
   format: z.enum(['json', 'jsonl', 'csv', 'splunk', 'datadog', 'elastic']),
-  filter: z.object({
-    sessionId: z.string().optional(),
-    agentDid: z.string().optional(),
-    humanDid: z.string().optional(),
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
-    minResonanceScore: z.number().min(0).max(1).optional(),
-    maxTruthDebt: z.number().min(0).max(1).optional(),
-    policyViolationsOnly: z.boolean().optional(),
-    consentVerifiedOnly: z.boolean().optional(),
-    tags: z.array(z.string()).optional(),
-  }).optional(),
-  pagination: z.object({
-    limit: z.number().int().positive().optional(),
-    offset: z.number().int().min(0).optional(),
-  }).optional(),
+  filter: z
+    .object({
+      sessionId: z.string().optional(),
+      agentDid: z.string().optional(),
+      humanDid: z.string().optional(),
+      startTime: z.string().optional(),
+      endTime: z.string().optional(),
+      minResonanceScore: z.number().min(0).max(1).optional(),
+      maxTruthDebt: z.number().min(0).max(1).optional(),
+      policyViolationsOnly: z.boolean().optional(),
+      consentVerifiedOnly: z.boolean().optional(),
+      tags: z.array(z.string()).optional(),
+    })
+    .optional(),
+  pagination: z
+    .object({
+      limit: z.number().int().positive().optional(),
+      offset: z.number().int().min(0).optional(),
+    })
+    .optional(),
 });
 
 /**
@@ -266,9 +276,7 @@ router.post(
         .lean();
 
       // Map DB documents to TrustReceipt format for export
-      const receipts: TrustReceipt[] = dbReceipts.map((doc: any) =>
-        doc._receipt_data || doc
-      );
+      const receipts: TrustReceipt[] = dbReceipts.map((doc: any) => doc._receipt_data || doc);
 
       // Export in requested format
       const exported = exporter.export(
@@ -282,7 +290,9 @@ router.post(
       res.setHeader('Content-Type', exporter.getMimeType(format as ExportFormat));
       res.setHeader(
         'Content-Disposition',
-        `attachment; filename="receipts-export-${Date.now()}.${exporter.getFileExtension(format as ExportFormat)}"`
+        `attachment; filename="receipts-export-${Date.now()}.${exporter.getFileExtension(
+          format as ExportFormat
+        )}"`
       );
 
       res.send(exported);
@@ -305,14 +315,7 @@ router.get(
   protect,
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const {
-        sessionId,
-        agentDid,
-        startTime,
-        endTime,
-        limit = 50,
-        offset = 0,
-      } = req.query;
+      const { sessionId, agentDid, startTime, endTime, limit = 50, offset = 0 } = req.query;
 
       // Build MongoDB query with filters
       const query: Record<string, any> = {};

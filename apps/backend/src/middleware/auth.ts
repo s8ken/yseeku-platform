@@ -1,6 +1,6 @@
 /**
  * Lightweight JWT Authentication Middleware
- * 
+ *
  * Verifies JWT tokens from Authorization header and attaches decoded user
  * to req.user for downstream routes. This is the LIGHTWEIGHT variant that
  * performs JWT-only verification without database lookups or RBAC.
@@ -42,7 +42,11 @@ export const authMiddleware: any = (req: Request, res: Response, next: NextFunct
     }
 
     try {
-      const decoded = jwt.verify(token, jwtSecret) as { username: string; iat?: number; exp?: number };
+      const decoded = jwt.verify(token, jwtSecret) as {
+        username: string;
+        iat?: number;
+        exp?: number;
+      };
       (req as any).user = decoded;
       next();
     } catch (err) {
@@ -59,7 +63,11 @@ export const authMiddleware: any = (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const optionalAuthMiddleware: any = (req: Request, res: Response, next: NextFunction): void => {
+export const optionalAuthMiddleware: any = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -81,9 +89,13 @@ export const optionalAuthMiddleware: any = (req: Request, res: Response, next: N
     }
 
     try {
-      const decoded = jwt.verify(token, jwtSecret) as { username: string; iat?: number; exp?: number };
+      const decoded = jwt.verify(token, jwtSecret) as {
+        username: string;
+        iat?: number;
+        exp?: number;
+      };
       (req as any).user = decoded;
-    } catch (err) { }
+    } catch (err) {}
 
     next();
   } catch (err) {

@@ -1,10 +1,10 @@
 /**
  * LLM-Based Trust Evaluator
- * 
+ *
  * Uses an AI model to evaluate trust scores for interactions.
  * This provides more nuanced, context-aware trust assessments
  * compared to rule-based heuristics.
- * 
+ *
  * The evaluator analyzes AI responses against the 6 SONATE constitutional
  * principles and the 5 detection dimensions.
  */
@@ -145,7 +145,12 @@ export class LLMTrustEvaluator {
   private tenantId?: string;
   private industryType?: string;
 
-  constructor(options?: { provider?: string; model?: string; tenantId?: string; industryType?: string }) {
+  constructor(options?: {
+    provider?: string;
+    model?: string;
+    tenantId?: string;
+    industryType?: string;
+  }) {
     // Auto-detect best available provider from env vars
     const { provider, model } = LLMTrustEvaluator.detectProvider();
     this.defaultProvider = options?.provider || provider;
@@ -156,7 +161,10 @@ export class LLMTrustEvaluator {
 
   private static detectProvider(): { provider: string; model: string } {
     const preferred = (process.env.SONATE_LLM_PROVIDER || '').toLowerCase();
-    if (preferred === 'gemini' && (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY)) {
+    if (
+      preferred === 'gemini' &&
+      (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY)
+    ) {
       return { provider: 'gemini', model: process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash' };
     }
     if (preferred === 'anthropic' && process.env.ANTHROPIC_API_KEY) {
@@ -180,25 +188,25 @@ export class LLMTrustEvaluator {
    */
   private industryWeights: Record<string, Record<TrustPrincipleKey, number>> = {
     healthcare: {
-      CONSENT_ARCHITECTURE: 0.35,  // Highest priority - patient autonomy critical
-      INSPECTION_MANDATE: 0.20,
-      CONTINUOUS_VALIDATION: 0.20,
-      ETHICAL_OVERRIDE: 0.15,      // Lower but still important
+      CONSENT_ARCHITECTURE: 0.35, // Highest priority - patient autonomy critical
+      INSPECTION_MANDATE: 0.2,
+      CONTINUOUS_VALIDATION: 0.2,
+      ETHICAL_OVERRIDE: 0.15, // Lower but still important
       RIGHT_TO_DISCONNECT: 0.05,
       MORAL_RECOGNITION: 0.05,
     },
     finance: {
       CONSENT_ARCHITECTURE: 0.25,
-      INSPECTION_MANDATE: 0.30,    // Highest - transparency essential
+      INSPECTION_MANDATE: 0.3, // Highest - transparency essential
       CONTINUOUS_VALIDATION: 0.25, // Higher - accuracy critical
       ETHICAL_OVERRIDE: 0.12,
       RIGHT_TO_DISCONNECT: 0.04,
       MORAL_RECOGNITION: 0.04,
     },
     government: {
-      CONSENT_ARCHITECTURE: 0.30,
-      INSPECTION_MANDATE: 0.30,    // Public scrutiny
-      CONTINUOUS_VALIDATION: 0.20,
+      CONSENT_ARCHITECTURE: 0.3,
+      INSPECTION_MANDATE: 0.3, // Public scrutiny
+      CONTINUOUS_VALIDATION: 0.2,
       ETHICAL_OVERRIDE: 0.12,
       RIGHT_TO_DISCONNECT: 0.05,
       MORAL_RECOGNITION: 0.03,
@@ -208,22 +216,22 @@ export class LLMTrustEvaluator {
       INSPECTION_MANDATE: 0.18,
       CONTINUOUS_VALIDATION: 0.22,
       ETHICAL_OVERRIDE: 0.17,
-      RIGHT_TO_DISCONNECT: 0.10,
+      RIGHT_TO_DISCONNECT: 0.1,
       MORAL_RECOGNITION: 0.05,
     },
     education: {
-      CONSENT_ARCHITECTURE: 0.32,  // Student protection
+      CONSENT_ARCHITECTURE: 0.32, // Student protection
       INSPECTION_MANDATE: 0.22,
-      CONTINUOUS_VALIDATION: 0.20,
+      CONTINUOUS_VALIDATION: 0.2,
       ETHICAL_OVERRIDE: 0.13,
       RIGHT_TO_DISCONNECT: 0.08,
       MORAL_RECOGNITION: 0.05,
     },
     legal: {
       CONSENT_ARCHITECTURE: 0.25,
-      INSPECTION_MANDATE: 0.35,    // Highest - legal accountability
+      INSPECTION_MANDATE: 0.35, // Highest - legal accountability
       CONTINUOUS_VALIDATION: 0.25,
-      ETHICAL_OVERRIDE: 0.10,
+      ETHICAL_OVERRIDE: 0.1,
       RIGHT_TO_DISCONNECT: 0.03,
       MORAL_RECOGNITION: 0.02,
     },
@@ -236,21 +244,28 @@ export class LLMTrustEvaluator {
   private getWeightsForEvaluation(industryType?: string): {
     weights: Record<TrustPrincipleKey, number>;
     policyId: string;
-    source: 'standard' | 'healthcare' | 'finance' | 'government' | 'technology' | 'education' | 'legal';
+    source:
+      | 'standard'
+      | 'healthcare'
+      | 'finance'
+      | 'government'
+      | 'technology'
+      | 'education'
+      | 'legal';
   } {
     // Default standard weights
     const defaultWeights: Record<TrustPrincipleKey, number> = {
       CONSENT_ARCHITECTURE: 0.25,
-      INSPECTION_MANDATE: 0.20,
-      CONTINUOUS_VALIDATION: 0.20,
+      INSPECTION_MANDATE: 0.2,
+      CONTINUOUS_VALIDATION: 0.2,
       ETHICAL_OVERRIDE: 0.15,
-      RIGHT_TO_DISCONNECT: 0.10,
-      MORAL_RECOGNITION: 0.10,
+      RIGHT_TO_DISCONNECT: 0.1,
+      MORAL_RECOGNITION: 0.1,
     };
 
     // Model industry type (from context or instance)
     const effectiveIndustryType = industryType || this.industryType;
-    
+
     // Get industry-specific weights if available
     if (effectiveIndustryType && this.industryWeights[effectiveIndustryType.toLowerCase()]) {
       const industryWeights = this.industryWeights[effectiveIndustryType.toLowerCase()];
@@ -258,11 +273,18 @@ export class LLMTrustEvaluator {
         industry: effectiveIndustryType,
         tenantId: this.tenantId,
       });
-      
+
       return {
         weights: industryWeights,
         policyId: `policy-${effectiveIndustryType.toLowerCase()}`,
-        source: effectiveIndustryType.toLowerCase() as 'standard' | 'healthcare' | 'finance' | 'government' | 'technology' | 'education' | 'legal',
+        source: effectiveIndustryType.toLowerCase() as
+          | 'standard'
+          | 'healthcare'
+          | 'finance'
+          | 'government'
+          | 'technology'
+          | 'education'
+          | 'legal',
       };
     }
 
@@ -283,20 +305,17 @@ export class LLMTrustEvaluator {
   /**
    * Evaluate AI response against SONATE principles
    */
-  async evaluate(
-    aiResponse: IMessage,
-    context: LLMEvaluationContext
-  ): Promise<LLMTrustEvaluation> {
+  async evaluate(aiResponse: IMessage, context: LLMEvaluationContext): Promise<LLMTrustEvaluation> {
     const startTime = Date.now();
-    
+
     try {
       // Build the evaluation prompt
       const evaluationPrompt = this.buildEvaluationPrompt(aiResponse, context);
-      
+
       // Call LLM for evaluation
       const messages: ChatMessage[] = [
         { role: 'system', content: TRUST_EVALUATOR_SYSTEM_PROMPT },
-        { role: 'user', content: evaluationPrompt }
+        { role: 'user', content: evaluationPrompt },
       ];
 
       const llmResponse = await llmService.generate({
@@ -323,19 +342,23 @@ export class LLMTrustEvaluator {
         });
         evaluation.principles.INSPECTION_MANDATE = 9;
       }
-      
+
       // Load industry-specific weights based on context
-      const { weights, policyId, source } = this.getWeightsForEvaluation(
-        context.industryType
-      );
-      
+      const { weights, policyId, source } = this.getWeightsForEvaluation(context.industryType);
+
       // Calculate overall trust score using tenant-specific weights
-      const trustScore = this.calculateTrustScore(evaluation.principles, evaluation.violations, weights);
+      const trustScore = this.calculateTrustScore(
+        evaluation.principles,
+        evaluation.violations,
+        weights
+      );
       const status = this.getStatus(trustScore.overall);
 
       // Generate V2 trust receipt
       const platformDID = didService.getPlatformDID();
-      const agentDID = context.agentId ? didService.getAgentDID(context.agentId) : `${platformDID}:agents:unknown`;
+      const agentDID = context.agentId
+        ? didService.getAgentDID(context.agentId)
+        : `${platformDID}:agents:unknown`;
 
       const ciqMetrics = {
         clarity: evaluation.detection.reality_index / 10,
@@ -374,7 +397,9 @@ export class LLMTrustEvaluator {
         const privateKey = await keysService.getPrivateKey();
         receipt = await this.receiptGenerator.createReceipt(receiptInput, Buffer.from(privateKey));
       } catch (error) {
-        logger.warn('Failed to create V2 LLM trust receipt, using unsigned stub', { error: getErrorMessage(error) });
+        logger.warn('Failed to create V2 LLM trust receipt, using unsigned stub', {
+          error: getErrorMessage(error),
+        });
         receipt = {
           id: 'unsigned',
           version: '2.0.0',
@@ -445,11 +470,11 @@ export class LLMTrustEvaluator {
         },
       };
     } catch (error) {
-      logger.error('LLM Trust Evaluation failed, falling back to heuristic', { 
+      logger.error('LLM Trust Evaluation failed, falling back to heuristic', {
         error: getErrorMessage(error),
-        conversationId: context.conversationId 
+        conversationId: context.conversationId,
       });
-      
+
       // Fall back to basic heuristic evaluation
       return this.fallbackHeuristicEvaluation(aiResponse, context);
     }
@@ -460,14 +485,16 @@ export class LLMTrustEvaluator {
    */
   private buildEvaluationPrompt(aiResponse: IMessage, context: LLMEvaluationContext): string {
     let prompt = `## Conversation Context\n\n`;
-    
+
     // Add previous messages for context
     if (context.previousMessages && context.previousMessages.length > 0) {
       prompt += `### Previous Messages (last ${Math.min(context.previousMessages.length, 5)}):\n`;
       const recentMessages = context.previousMessages.slice(-5);
       for (const msg of recentMessages) {
         const role = msg.sender === 'user' ? 'User' : 'AI';
-        prompt += `**${role}:** ${msg.content.substring(0, 300)}${msg.content.length > 300 ? '...' : ''}\n\n`;
+        prompt += `**${role}:** ${msg.content.substring(0, 300)}${
+          msg.content.length > 300 ? '...' : ''
+        }\n\n`;
       }
     }
 
@@ -503,9 +530,9 @@ export class LLMTrustEvaluator {
       if (!jsonMatch) {
         throw new Error('No JSON found in LLM response');
       }
-      
+
       const parsed = JSON.parse(jsonMatch[0]);
-      
+
       // Validate and normalize
       return {
         principles: {
@@ -520,14 +547,21 @@ export class LLMTrustEvaluator {
           reality_index: this.clamp(parsed.detection?.reality_index ?? 7, 0, 10),
           trust_protocol: parsed.detection?.trust_protocol || 'PASS',
           ethical_alignment: this.clamp(parsed.detection?.ethical_alignment ?? 4, 1, 5),
-          resonance_quality: (['BREAKTHROUGH', 'ADVANCED', 'STRONG'].includes(parsed.detection?.resonance_quality) ? parsed.detection.resonance_quality : 'STRONG') as 'BREAKTHROUGH' | 'ADVANCED' | 'STRONG',
+          resonance_quality: (['BREAKTHROUGH', 'ADVANCED', 'STRONG'].includes(
+            parsed.detection?.resonance_quality
+          )
+            ? parsed.detection.resonance_quality
+            : 'STRONG') as 'BREAKTHROUGH' | 'ADVANCED' | 'STRONG',
           canvas_parity: this.clamp(parsed.detection?.canvas_parity ?? 85, 0, 100),
         },
         reasoning: parsed.reasoning || 'Evaluation completed',
         violations: Array.isArray(parsed.violations) ? parsed.violations : [],
       };
     } catch (error) {
-      logger.warn('Failed to parse LLM evaluation response', { error: getErrorMessage(error), content });
+      logger.warn('Failed to parse LLM evaluation response', {
+        error: getErrorMessage(error),
+        content,
+      });
       // Return neutral defaults
       return {
         principles: {
@@ -562,28 +596,40 @@ export class LLMTrustEvaluator {
     // Use provided weights or fall back to standard
     const applicableWeights = weights || {
       CONSENT_ARCHITECTURE: 0.25,
-      INSPECTION_MANDATE: 0.20,
-      CONTINUOUS_VALIDATION: 0.20,
+      INSPECTION_MANDATE: 0.2,
+      CONTINUOUS_VALIDATION: 0.2,
       ETHICAL_OVERRIDE: 0.15,
-      RIGHT_TO_DISCONNECT: 0.10,
-      MORAL_RECOGNITION: 0.10,
+      RIGHT_TO_DISCONNECT: 0.1,
+      MORAL_RECOGNITION: 0.1,
     };
 
     // Map string violations to valid TrustPrincipleKeys
-    const validPrinciples: TrustPrincipleKey[] = ['INSPECTION_MANDATE', 'CONTINUOUS_VALIDATION', 'ETHICAL_OVERRIDE', 'RIGHT_TO_DISCONNECT', 'MORAL_RECOGNITION', 'CONSENT_ARCHITECTURE'];
-    const mappedViolations = violations.filter(v => validPrinciples.includes(v as TrustPrincipleKey)) as TrustPrincipleKey[];
-    
+    const validPrinciples: TrustPrincipleKey[] = [
+      'INSPECTION_MANDATE',
+      'CONTINUOUS_VALIDATION',
+      'ETHICAL_OVERRIDE',
+      'RIGHT_TO_DISCONNECT',
+      'MORAL_RECOGNITION',
+      'CONSENT_ARCHITECTURE',
+    ];
+    const mappedViolations = violations.filter((v) =>
+      validPrinciples.includes(v as TrustPrincipleKey)
+    ) as TrustPrincipleKey[];
+
     // Check for critical violations
     if (principles.CONSENT_ARCHITECTURE === 0 || principles.ETHICAL_OVERRIDE === 0) {
       // Add the critical principle as a violation
       const criticalViolations: TrustPrincipleKey[] = [];
       if (principles.CONSENT_ARCHITECTURE === 0) criticalViolations.push('CONSENT_ARCHITECTURE');
       if (principles.ETHICAL_OVERRIDE === 0) criticalViolations.push('ETHICAL_OVERRIDE');
-      
+
       return {
         overall: 0,
         principles,
-        violations: [...criticalViolations, ...mappedViolations.filter(v => !criticalViolations.includes(v))],
+        violations: [
+          ...criticalViolations,
+          ...mappedViolations.filter((v) => !criticalViolations.includes(v)),
+        ],
         timestamp: Date.now(),
       };
     }
@@ -632,10 +678,10 @@ export class LLMTrustEvaluator {
     const content = aiResponse.content;
     const wordCount = content.split(/\s+/).length;
     const hasStructure = content.includes('\n') || content.includes('-') || content.includes('•');
-    
+
     // Simple heuristic scores
     const principles: PrincipleScores = {
-      CONSENT_ARCHITECTURE: 7,  // Assume consent in active conversation
+      CONSENT_ARCHITECTURE: 7, // Assume consent in active conversation
       INSPECTION_MANDATE: hasStructure ? 8 : 6,
       CONTINUOUS_VALIDATION: 7,
       ETHICAL_OVERRIDE: 8,
@@ -647,7 +693,9 @@ export class LLMTrustEvaluator {
     const status = this.getStatus(trustScore.overall);
 
     const platformDID = didService.getPlatformDID();
-    const agentDID = context.agentId ? didService.getAgentDID(context.agentId) : `${platformDID}:agents:unknown`;
+    const agentDID = context.agentId
+      ? didService.getAgentDID(context.agentId)
+      : `${platformDID}:agents:unknown`;
 
     const ciqMetrics = {
       clarity: wordCount < 200 ? 0.8 : 0.6,
@@ -679,7 +727,9 @@ export class LLMTrustEvaluator {
       const privateKey = await keysService.getPrivateKey();
       receipt = await this.receiptGenerator.createReceipt(receiptInput, Buffer.from(privateKey));
     } catch (error) {
-      logger.warn('Failed to create V2 heuristic receipt, using unsigned stub', { error: getErrorMessage(error) });
+      logger.warn('Failed to create V2 heuristic receipt, using unsigned stub', {
+        error: getErrorMessage(error),
+      });
       receipt = {
         id: 'unsigned',
         version: '2.0.0',

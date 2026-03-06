@@ -1,10 +1,10 @@
 /**
  * Public Key Routes
- * 
+ *
  * Exposes the platform's Ed25519 public key for receipt verification.
  * This allows third parties to verify trust receipts independently
  * without needing to call any authenticated API.
- * 
+ *
  * Standard endpoint: /.well-known/sonate-pubkey.json
  */
 
@@ -18,7 +18,7 @@ const router = Router();
 /**
  * GET /.well-known/sonate-pubkey.json
  * Returns the platform's Ed25519 public key for receipt verification
- * 
+ *
  * Response format follows JWK (JSON Web Key) style for Ed25519
  */
 router.get('/sonate-pubkey.json', async (req: Request, res: Response) => {
@@ -35,12 +35,12 @@ router.get('/sonate-pubkey.json', async (req: Request, res: Response) => {
       kty: 'OKP',
       crv: 'Ed25519',
       x: publicKeyBase64url,
-      
+
       // Additional metadata
       kid: 'sonate-trust-signing-key-v1',
       use: 'sig',
       alg: 'EdDSA',
-      
+
       // SONATE-specific metadata
       sonate: {
         version: '1.0.0',
@@ -52,10 +52,10 @@ router.get('/sonate-pubkey.json', async (req: Request, res: Response) => {
         },
         verificationGuide: 'https://docs.yseeku.com/trust-receipts/verification',
       },
-      
+
       // Timestamps
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (365 * 24 * 60 * 60), // 1 year
+      exp: Math.floor(Date.now() / 1000) + 365 * 24 * 60 * 60, // 1 year
     };
 
     // Set caching headers (public key doesn't change often)
@@ -66,7 +66,6 @@ router.get('/sonate-pubkey.json', async (req: Request, res: Response) => {
     logger.info('Public key served', { ip: req.ip });
 
     return res.json(response);
-
   } catch (error: unknown) {
     logger.error('Failed to serve public key', { error: getErrorMessage(error) });
     return res.status(500).json({
@@ -91,7 +90,6 @@ router.get('/sonate-pubkey', async (req: Request, res: Response) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
 
     return res.send(publicKeyHex);
-
   } catch (error: unknown) {
     logger.error('Failed to serve public key (plain)', { error: getErrorMessage(error) });
     return res.status(500).send('Error retrieving public key');

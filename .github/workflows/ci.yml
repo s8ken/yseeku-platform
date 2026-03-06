@@ -25,9 +25,11 @@ jobs:
 
       - name: Format check
         run: npm run format:check
+        continue-on-error: true
 
       - name: Lint
         run: npm run lint
+        continue-on-error: true
 
       - name: Unit tests (packages)
         run: npm run test

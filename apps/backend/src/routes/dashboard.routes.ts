@@ -30,7 +30,7 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
   try {
     const userId = req.userId;
     const tenantId = req.userTenant || 'default';
-    
+
     // OPTIMIZATION: Check cache first before expensive database queries
     // Cache is tenant-specific and per-user for security
     const cacheKey = `kpis:${tenantId}:${userId}`;
@@ -56,12 +56,12 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
     // This makes live mode a production-ready experience that updates as users interact
     if (tenantId === 'live-tenant') {
       logger.info('[LIVE MODE] Fetching trust receipts for live-tenant', { userId, tenantId });
-      
+
       // OPTIMIZATION: Use MongoDB aggregation pipeline instead of fetching all docs
       // This calculates metrics server-side, is much faster for large datasets
       const aggregationResult = await TrustReceiptModel.aggregate<any>([
         {
-          $match: { tenant_id: 'live-tenant' }
+          $match: { tenant_id: 'live-tenant' },
         },
         {
           $facet: {
@@ -78,23 +78,29 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
                       $cond: [
                         {
                           $gte: [
-                            { $avg: ['$ciq_metrics.clarity', '$ciq_metrics.integrity', '$ciq_metrics.quality'] },
-                            0.6  // CIQ values are 0-1 scale; 0.6 = 6/10 pass threshold
-                          ]
+                            {
+                              $avg: [
+                                '$ciq_metrics.clarity',
+                                '$ciq_metrics.integrity',
+                                '$ciq_metrics.quality',
+                              ],
+                            },
+                            0.6, // CIQ values are 0-1 scale; 0.6 = 6/10 pass threshold
+                          ],
                         },
                         1,
-                        0
-                      ]
-                    }
-                  }
-                }
-              }
+                        0,
+                      ],
+                    },
+                  },
+                },
+              },
             ],
             recent: [
               {
                 $match: {
-                  timestamp: { $gte: oneDayAgoTimestamp }
-                }
+                  timestamp: { $gte: oneDayAgoTimestamp },
+                },
               },
               {
                 $group: {
@@ -108,23 +114,29 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
                       $cond: [
                         {
                           $gte: [
-                            { $avg: ['$ciq_metrics.clarity', '$ciq_metrics.integrity', '$ciq_metrics.quality'] },
-                            0.6  // CIQ values are 0-1 scale
-                          ]
+                            {
+                              $avg: [
+                                '$ciq_metrics.clarity',
+                                '$ciq_metrics.integrity',
+                                '$ciq_metrics.quality',
+                              ],
+                            },
+                            0.6, // CIQ values are 0-1 scale
+                          ],
                         },
                         1,
-                        0
-                      ]
-                    }
-                  }
-                }
-              }
+                        0,
+                      ],
+                    },
+                  },
+                },
+              },
             ],
             previous: [
               {
                 $match: {
-                  timestamp: { $gte: twoDaysAgoTimestamp, $lt: oneDayAgoTimestamp }
-                }
+                  timestamp: { $gte: twoDaysAgoTimestamp, $lt: oneDayAgoTimestamp },
+                },
               },
               {
                 $group: {
@@ -138,28 +150,52 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
                       $cond: [
                         {
                           $gte: [
-                            { $avg: ['$ciq_metrics.clarity', '$ciq_metrics.integrity', '$ciq_metrics.quality'] },
-                            0.6  // CIQ values are 0-1 scale
-                          ]
+                            {
+                              $avg: [
+                                '$ciq_metrics.clarity',
+                                '$ciq_metrics.integrity',
+                                '$ciq_metrics.quality',
+                              ],
+                            },
+                            0.6, // CIQ values are 0-1 scale
+                          ],
                         },
                         1,
-                        0
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        }
+                        0,
+                      ],
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
       ]);
 
       // Extract aggregated metrics
-      const allData = aggregationResult[0].all[0] || { count: 0, avgClarity: 0, avgIntegrity: 0, avgQuality: 0, passCount: 0 };
-      const recentData = aggregationResult[0].recent[0] || { count: 0, avgClarity: 0, avgIntegrity: 0, avgQuality: 0, passCount: 0 };
-      const previousData = aggregationResult[0].previous[0] || { count: 0, avgClarity: 0, avgIntegrity: 0, avgQuality: 0, passCount: 0 };
+      const allData = aggregationResult[0].all[0] || {
+        count: 0,
+        avgClarity: 0,
+        avgIntegrity: 0,
+        avgQuality: 0,
+        passCount: 0,
+      };
+      const recentData = aggregationResult[0].recent[0] || {
+        count: 0,
+        avgClarity: 0,
+        avgIntegrity: 0,
+        avgQuality: 0,
+        passCount: 0,
+      };
+      const previousData = aggregationResult[0].previous[0] || {
+        count: 0,
+        avgClarity: 0,
+        avgIntegrity: 0,
+        avgQuality: 0,
+        passCount: 0,
+      };
 
-      logger.info('[LIVE MODE] Trust receipts aggregated', { 
+      logger.info('[LIVE MODE] Trust receipts aggregated', {
         recentCount: recentData.count,
         previousCount: previousData.count,
         totalCount: allData.count,
@@ -196,17 +232,17 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
         const rawIntegrity = data.avgIntegrity || 0;
         const rawQuality = data.avgQuality || 0;
         const rawAvg = (rawClarity + rawIntegrity + rawQuality) / 3;
-        
+
         // Normalize to 0-1
         let normalizedAvg: number;
         if (rawAvg > 5) {
-          normalizedAvg = rawAvg / 10;  // Was 0-10 scale
+          normalizedAvg = rawAvg / 10; // Was 0-10 scale
         } else if (rawAvg > 1) {
-          normalizedAvg = rawAvg / 5;   // Was 0-5 scale
+          normalizedAvg = rawAvg / 5; // Was 0-5 scale
         } else {
-          normalizedAvg = rawAvg;       // Already 0-1
+          normalizedAvg = rawAvg; // Already 0-1
         }
-        
+
         const avgScore = Math.min(1, normalizedAvg); // Cap at 1.0
         const complianceRate = Math.round((data.passCount / data.count) * 100 * 10) / 10;
 
@@ -218,12 +254,55 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
           // clarity → consent + ethics, integrity → inspection + disconnect, quality → validation
           // moral = normalised average of all three CIQ dimensions
           principleScores: {
-            consent:    Math.min(10, Math.round((rawClarity   > 5 ? rawClarity   / 10 : rawClarity   > 1 ? rawClarity   / 5 : rawClarity)   * 10 * 10) / 10),
-            inspection: Math.min(10, Math.round((rawIntegrity > 5 ? rawIntegrity / 10 : rawIntegrity > 1 ? rawIntegrity / 5 : rawIntegrity) * 10 * 10) / 10),
-            validation: Math.min(10, Math.round((rawQuality   > 5 ? rawQuality   / 10 : rawQuality   > 1 ? rawQuality   / 5 : rawQuality)   * 10 * 10) / 10),
-            ethics:     Math.min(10, Math.round((rawClarity   > 5 ? rawClarity   / 10 : rawClarity   > 1 ? rawClarity   / 5 : rawClarity)   * 10 * 10) / 10),
-            disconnect: Math.min(10, Math.round((rawIntegrity > 5 ? rawIntegrity / 10 : rawIntegrity > 1 ? rawIntegrity / 5 : rawIntegrity) * 10 * 10) / 10),
-            moral:      Math.min(10, Math.round(avgScore * 10 * 10) / 10),
+            consent: Math.min(
+              10,
+              Math.round(
+                (rawClarity > 5 ? rawClarity / 10 : rawClarity > 1 ? rawClarity / 5 : rawClarity) *
+                  10 *
+                  10
+              ) / 10
+            ),
+            inspection: Math.min(
+              10,
+              Math.round(
+                (rawIntegrity > 5
+                  ? rawIntegrity / 10
+                  : rawIntegrity > 1
+                  ? rawIntegrity / 5
+                  : rawIntegrity) *
+                  10 *
+                  10
+              ) / 10
+            ),
+            validation: Math.min(
+              10,
+              Math.round(
+                (rawQuality > 5 ? rawQuality / 10 : rawQuality > 1 ? rawQuality / 5 : rawQuality) *
+                  10 *
+                  10
+              ) / 10
+            ),
+            ethics: Math.min(
+              10,
+              Math.round(
+                (rawClarity > 5 ? rawClarity / 10 : rawClarity > 1 ? rawClarity / 5 : rawClarity) *
+                  10 *
+                  10
+              ) / 10
+            ),
+            disconnect: Math.min(
+              10,
+              Math.round(
+                (rawIntegrity > 5
+                  ? rawIntegrity / 10
+                  : rawIntegrity > 1
+                  ? rawIntegrity / 5
+                  : rawIntegrity) *
+                  10 *
+                  10
+              ) / 10
+            ),
+            moral: Math.min(10, Math.round(avgScore * 10 * 10) / 10),
           },
         };
       };
@@ -248,19 +327,32 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
         totalInteractions: allData.count,
         activeAgents: activeAgentsCount,
         complianceRate: allMetrics.complianceRate,
-        riskScore: allMetrics.trustScore > 0 ? Math.round((100 - allMetrics.trustScore) / 10 * 10) / 10 : 0, // Convert risk to 0-10 scale with 1 decimal
+        riskScore:
+          allMetrics.trustScore > 0
+            ? Math.round(((100 - allMetrics.trustScore) / 10) * 10) / 10
+            : 0, // Convert risk to 0-10 scale with 1 decimal
         alertsCount,
         experimentsRunning: experimentsCount,
         orchestratorsActive: 0,
         // v2.0.1: Only 3 validated dimensions
         sonateDimensions: {
-          trustProtocol: allMetrics.count === 0 ? 'N/A' : 
-            allMetrics.complianceRate >= 80 ? 'PASS' : 
-            allMetrics.complianceRate >= 60 ? 'PARTIAL' : 'FAIL',
+          trustProtocol:
+            allMetrics.count === 0
+              ? 'N/A'
+              : allMetrics.complianceRate >= 80
+              ? 'PASS'
+              : allMetrics.complianceRate >= 60
+              ? 'PARTIAL'
+              : 'FAIL',
           ethicalAlignment: Math.round((allMetrics.trustScore / 20) * 10) / 10, // Convert 0-100 to 0-5 scale
-          resonanceQuality: allMetrics.count === 0 ? 'NONE' :
-            allMetrics.trustScore >= 85 ? 'ADVANCED' : 
-            allMetrics.trustScore >= 70 ? 'STRONG' : 'BASIC', // trustScore on 0-100 scale
+          resonanceQuality:
+            allMetrics.count === 0
+              ? 'NONE'
+              : allMetrics.trustScore >= 85
+              ? 'ADVANCED'
+              : allMetrics.trustScore >= 70
+              ? 'STRONG'
+              : 'BASIC', // trustScore on 0-100 scale
           // Deprecated fields - kept for backward compatibility, always return 0
           realityIndex: 0,
           canvasParity: 0,
@@ -279,9 +371,9 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
         },
       };
 
-      logger.info('Live tenant KPIs calculated from receipts', { 
-        userId, 
-        tenantId, 
+      logger.info('Live tenant KPIs calculated from receipts', {
+        userId,
+        tenantId,
         receiptCount: allData.count,
         trustScore: liveKPIs.trustScore,
       });
@@ -307,37 +399,55 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
         $facet: {
           recent: [
             { $match: { lastActivity: { $gte: oneDayAgo } } },
-            { $group: {
-              _id: null,
-              count: { $sum: 1 },
-              avgTrust: { $avg: '$ethicalScore' },
-              totalMessages: { $sum: { $size: '$messages' } }
-            }}
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+                avgTrust: { $avg: '$ethicalScore' },
+                totalMessages: { $sum: { $size: '$messages' } },
+              },
+            },
           ],
           previous: [
             { $match: { lastActivity: { $gte: twoDaysAgo, $lt: oneDayAgo } } },
-            { $group: {
-              _id: null,
-              count: { $sum: 1 },
-              avgTrust: { $avg: '$ethicalScore' },
-              totalMessages: { $sum: { $size: '$messages' } }
-            }}
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+                avgTrust: { $avg: '$ethicalScore' },
+                totalMessages: { $sum: { $size: '$messages' } },
+              },
+            },
           ],
           all: [
-            { $group: {
-              _id: null,
-              count: { $sum: 1 },
-              avgTrust: { $avg: '$ethicalScore' },
-              totalMessages: { $sum: { $size: '$messages' } }
-            }}
-          ]
-        }
-      }
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+                avgTrust: { $avg: '$ethicalScore' },
+                totalMessages: { $sum: { $size: '$messages' } },
+              },
+            },
+          ],
+        },
+      },
     ]);
 
-    const recentConvData = conversationAggregation[0].recent[0] || { count: 0, avgTrust: 85, totalMessages: 0 };
-    const previousConvData = conversationAggregation[0].previous[0] || { count: 0, avgTrust: 85, totalMessages: 0 };
-    const allConvData = conversationAggregation[0].all[0] || { count: 0, avgTrust: 85, totalMessages: 0 };
+    const recentConvData = conversationAggregation[0].recent[0] || {
+      count: 0,
+      avgTrust: 85,
+      totalMessages: 0,
+    };
+    const previousConvData = conversationAggregation[0].previous[0] || {
+      count: 0,
+      avgTrust: 85,
+      totalMessages: 0,
+    };
+    const allConvData = conversationAggregation[0].all[0] || {
+      count: 0,
+      avgTrust: 85,
+      totalMessages: 0,
+    };
 
     // Fetch agents and Bedau metrics
     const [activeAgentsCount, allAgentsCount, bedauMetrics] = await Promise.all([
@@ -354,7 +464,7 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
       const avgTrustNormalized = data.avgTrust || 4.25; // Default to 85/100 (4.25 on 0-5 scale)
       const trustScore = avgTrustNormalized * 20; // Convert 0-5 to 0-100 scale
       const complianceRate = avgTrustNormalized * 20; // Convert to percentage
-      
+
       return {
         trustScore: Math.round(trustScore * 10) / 10,
         totalMessages: data.totalMessages || 0,
@@ -362,12 +472,12 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
         // Conversation path: no per-principle data available, use trust score as uniform proxy.
         // Keys use SONATE names; values on 0-10 scale to match SONATE path.
         principleScores: {
-          consent:    Math.round(avgTrustNormalized * 2 * 10) / 10, // Convert 0-5 to 0-10
+          consent: Math.round(avgTrustNormalized * 2 * 10) / 10, // Convert 0-5 to 0-10
           inspection: Math.round(avgTrustNormalized * 2 * 10) / 10,
           validation: Math.round(avgTrustNormalized * 2 * 10) / 10,
-          ethics:     Math.round(avgTrustNormalized * 2 * 10) / 10,
+          ethics: Math.round(avgTrustNormalized * 2 * 10) / 10,
           disconnect: Math.round(avgTrustNormalized * 2 * 10) / 10,
-          moral:      Math.round(avgTrustNormalized * 2 * 10) / 10,
+          moral: Math.round(avgTrustNormalized * 2 * 10) / 10,
         },
       };
     };
@@ -380,9 +490,15 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
     // Calculate SONATE dimensions from recent data
     // v2.0.1: Only 3 validated dimensions
     const sonateDimensions = {
-      trustProtocol: allMetrics.complianceRate >= 80 ? 'PASS' : allMetrics.complianceRate >= 60 ? 'PARTIAL' : 'FAIL',
+      trustProtocol:
+        allMetrics.complianceRate >= 80
+          ? 'PASS'
+          : allMetrics.complianceRate >= 60
+          ? 'PARTIAL'
+          : 'FAIL',
       ethicalAlignment: Math.round((allMetrics.trustScore / 20) * 10) / 10, // Convert 0-100 to 0-5 scale
-      resonanceQuality: allMetrics.trustScore >= 85 ? 'ADVANCED' : allMetrics.trustScore >= 70 ? 'STRONG' : 'BASIC', // trustScore on 0-100 scale
+      resonanceQuality:
+        allMetrics.trustScore >= 85 ? 'ADVANCED' : allMetrics.trustScore >= 70 ? 'STRONG' : 'BASIC', // trustScore on 0-100 scale
       // Deprecated fields - kept for backward compatibility, always return 0
       realityIndex: 0,
       canvasParity: 0,
@@ -400,11 +516,15 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
       trustScore: calculateTrend(currentMetrics.trustScore, previousMetrics.trustScore),
       interactions: calculateTrend(currentMetrics.totalMessages, previousMetrics.totalMessages),
       compliance: calculateTrend(currentMetrics.complianceRate, previousMetrics.complianceRate),
-      risk: calculateTrend(previousMetrics.trustScore > 0 ? (100 - previousMetrics.trustScore) / 10 : 0, currentMetrics.trustScore > 0 ? (100 - currentMetrics.trustScore) / 10 : 0),
+      risk: calculateTrend(
+        previousMetrics.trustScore > 0 ? (100 - previousMetrics.trustScore) / 10 : 0,
+        currentMetrics.trustScore > 0 ? (100 - currentMetrics.trustScore) / 10 : 0
+      ),
     };
 
     // Calculate alerts based on trust metrics (lower trust = more alerts)
-    const alertsCount = allMetrics.trustScore < 60 ? Math.ceil((100 - allMetrics.trustScore) / 10) : 0;
+    const alertsCount =
+      allMetrics.trustScore < 60 ? Math.ceil((100 - allMetrics.trustScore) / 10) : 0;
 
     // Calculate risk score (inverse of trust score)
     const riskScore = Math.round((100 - allMetrics.trustScore) / 10);
@@ -467,21 +587,23 @@ router.get('/policy-status', protect, async (req: Request, res: Response): Promi
   try {
     const userId = req.userId;
     const tenantId = req.userTenant || 'default';
-    
+
     // Query real data for any tenant (including live-tenant)
     // If no violations exist, the result is naturally compliant
-    
+
     // Quick check on recent conversations for any critical violations
     const recentViolations = await Conversation.find({
       user: userId,
-      ethicalScore: { $lt: 2 } // Very low score
-    }).limit(5).select('title ethicalScore');
+      ethicalScore: { $lt: 2 }, // Very low score
+    })
+      .limit(5)
+      .select('title ethicalScore');
 
     const overallPass = recentViolations.length === 0;
-    
+
     res.json({
       overallPass,
-      violations: recentViolations.map(v => v.title)
+      violations: recentViolations.map((v) => v.title),
     });
   } catch (error: unknown) {
     logger.error('Get policy status error', { error: getErrorMessage(error) });
@@ -556,11 +678,15 @@ router.get('/risk', protect, async (req: Request, res: Response): Promise<void> 
         totalMessages++;
 
         // Map SONATE principles to risk categories
-        if (principles.CONSENT_ARCHITECTURE) principleScores.consent += principles.CONSENT_ARCHITECTURE;
-        if (principles.INSPECTION_MANDATE) principleScores.inspection += principles.INSPECTION_MANDATE;
-        if (principles.CONTINUOUS_VALIDATION) principleScores.validation += principles.CONTINUOUS_VALIDATION;
+        if (principles.CONSENT_ARCHITECTURE)
+          principleScores.consent += principles.CONSENT_ARCHITECTURE;
+        if (principles.INSPECTION_MANDATE)
+          principleScores.inspection += principles.INSPECTION_MANDATE;
+        if (principles.CONTINUOUS_VALIDATION)
+          principleScores.validation += principles.CONTINUOUS_VALIDATION;
         if (principles.ETHICAL_OVERRIDE) principleScores.ethics += principles.ETHICAL_OVERRIDE;
-        if (principles.RIGHT_TO_DISCONNECT) principleScores.disconnect += principles.RIGHT_TO_DISCONNECT;
+        if (principles.RIGHT_TO_DISCONNECT)
+          principleScores.disconnect += principles.RIGHT_TO_DISCONNECT;
         if (principles.MORAL_RECOGNITION) principleScores.moral += principles.MORAL_RECOGNITION;
 
         // Count low trust messages (score < 6/10)
@@ -571,15 +697,18 @@ router.get('/risk', protect, async (req: Request, res: Response): Promise<void> 
 
     // Normalize principle scores (0-100)
     const messageCount = totalMessages || 1;
-    Object.keys(principleScores).forEach(key => {
-      principleScores[key as keyof typeof principleScores] =
-        Math.round((principleScores[key as keyof typeof principleScores] / messageCount) * 10);
+    Object.keys(principleScores).forEach((key) => {
+      principleScores[key as keyof typeof principleScores] = Math.round(
+        (principleScores[key as keyof typeof principleScores] / messageCount) * 10
+      );
     });
 
     // Calculate overall risk score (inverse of trust, 0-100)
-    const avgTrustScore = totalMessages > 0
-      ? conversations.reduce((sum, conv) => sum + ((conv.ethicalScore || 5) * 20), 0) / conversations.length
-      : 85;
+    const avgTrustScore =
+      totalMessages > 0
+        ? conversations.reduce((sum, conv) => sum + (conv.ethicalScore || 5) * 20, 0) /
+          conversations.length
+        : 85;
     const overallRiskScore = Math.round(100 - avgTrustScore);
 
     // Determine risk level
@@ -629,12 +758,13 @@ router.get('/risk', protect, async (req: Request, res: Response): Promise<void> 
       dayEnd.setHours(23, 59, 59, 999);
 
       const dayConvs = conversations.filter(
-        conv => conv.lastActivity >= dayStart && conv.lastActivity <= dayEnd
+        (conv) => conv.lastActivity >= dayStart && conv.lastActivity <= dayEnd
       );
 
-      const dayAvgTrust = dayConvs.length > 0
-        ? dayConvs.reduce((sum, conv) => sum + ((conv.ethicalScore || 5) * 20), 0) / dayConvs.length
-        : avgTrustScore;
+      const dayAvgTrust =
+        dayConvs.length > 0
+          ? dayConvs.reduce((sum, conv) => sum + (conv.ethicalScore || 5) * 20, 0) / dayConvs.length
+          : avgTrustScore;
 
       riskTrends.push({
         date: date.toISOString().split('T')[0],
@@ -644,13 +774,15 @@ router.get('/risk', protect, async (req: Request, res: Response): Promise<void> 
 
     // Find recent risk events (conversations with low trust)
     const recentRiskEvents = conversations
-      .filter(conv => (conv.ethicalScore || 5) < 3)
+      .filter((conv) => (conv.ethicalScore || 5) < 3)
       .slice(0, 10)
-      .map(conv => ({
+      .map((conv) => ({
         id: conv._id.toString(),
         title: `Low trust conversation`,
         severity: conv.ethicalScore < 2 ? 'critical' : 'error',
-        description: `Conversation has low ethical score: ${((conv.ethicalScore || 0) * 20).toFixed(0)}/100`,
+        description: `Conversation has low ethical score: ${((conv.ethicalScore || 0) * 20).toFixed(
+          0
+        )}/100`,
         category: 'trust_violation',
         resolved: false,
         created_at: conv.lastActivity.toISOString(),
@@ -665,11 +797,31 @@ router.get('/risk', protect, async (req: Request, res: Response): Promise<void> 
       riskTrends,
       recentRiskEvents,
       trustPrinciples: [
-        { name: 'Consent Architecture', weight: 25, score: principleScores.consent, critical: true },
-        { name: 'Inspection Mandate', weight: 20, score: principleScores.inspection, critical: false },
-        { name: 'Continuous Validation', weight: 20, score: principleScores.validation, critical: false },
+        {
+          name: 'Consent Architecture',
+          weight: 25,
+          score: principleScores.consent,
+          critical: true,
+        },
+        {
+          name: 'Inspection Mandate',
+          weight: 20,
+          score: principleScores.inspection,
+          critical: false,
+        },
+        {
+          name: 'Continuous Validation',
+          weight: 20,
+          score: principleScores.validation,
+          critical: false,
+        },
         { name: 'Ethical Override', weight: 15, score: principleScores.ethics, critical: true },
-        { name: 'Right to Disconnect', weight: 10, score: principleScores.disconnect, critical: false },
+        {
+          name: 'Right to Disconnect',
+          weight: 10,
+          score: principleScores.disconnect,
+          critical: false,
+        },
         { name: 'Moral Recognition', weight: 10, score: principleScores.moral, critical: false },
       ],
     };

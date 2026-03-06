@@ -1,6 +1,6 @@
 /**
  * Overseer WebSocket Events Integration Tests
- * 
+ *
  * Tests the System Brain (Overseer) event flow:
  * - Brain cycle events
  * - Action approval/override events
@@ -188,7 +188,7 @@ describe('Overseer Events Integration', () => {
       (BrainAction.findById as jest.Mock).mockResolvedValue(mockAction);
 
       const action = await BrainAction.findById('action-1');
-      
+
       expect(action).not.toBeNull();
       expect(action!.type).toBe('ban_agent');
       expect(action!.result!.overridden).toBe(true);
@@ -197,9 +197,8 @@ describe('Overseer Events Integration', () => {
 
     it('should require justification for critical actions', () => {
       const criticalActions = ['ban_agent', 'restrict_agent', 'quarantine_agent'];
-      
-      const requiresJustification = (actionType: string) => 
-        criticalActions.includes(actionType);
+
+      const requiresJustification = (actionType: string) => criticalActions.includes(actionType);
 
       expect(requiresJustification('ban_agent')).toBe(true);
       expect(requiresJustification('restrict_agent')).toBe(true);
@@ -235,9 +234,9 @@ describe('Overseer Events Integration', () => {
 
     it('should identify critical violations', () => {
       const criticalPrinciples = ['CONSENT_ARCHITECTURE', 'ETHICAL_OVERRIDE'];
-      
+
       const hasCriticalViolation = (violations: string[]) =>
-        violations.some(v => criticalPrinciples.includes(v));
+        violations.some((v) => criticalPrinciples.includes(v));
 
       expect(hasCriticalViolation(['CONSENT_ARCHITECTURE'])).toBe(true);
       expect(hasCriticalViolation(['INSPECTION_MANDATE'])).toBe(false);
@@ -247,9 +246,10 @@ describe('Overseer Events Integration', () => {
   describe('Overseer Status Calculation', () => {
     it('should return correct status structure', () => {
       const buildStatusResponse = (lastCycle: any, recentActionsCount: number) => {
-        const isActive = lastCycle &&
+        const isActive =
+          lastCycle &&
           lastCycle.completedAt &&
-          (Date.now() - new Date(lastCycle.completedAt).getTime()) < 60 * 60 * 1000;
+          Date.now() - new Date(lastCycle.completedAt).getTime() < 60 * 60 * 1000;
 
         return {
           status: isActive ? 'active' : 'idle',
@@ -268,7 +268,7 @@ describe('Overseer Events Integration', () => {
       };
 
       const status = buildStatusResponse(null, 0);
-      
+
       expect(status.status).toBe('idle');
       expect(status.mode).toBe('advisory');
       expect(status.metrics.agentCount).toBe(0);
@@ -288,9 +288,10 @@ describe('Overseer Events Integration', () => {
         },
       };
 
-      const isActive = recentCycle &&
+      const isActive =
+        recentCycle &&
         recentCycle.completedAt &&
-        (Date.now() - new Date(recentCycle.completedAt).getTime()) < 60 * 60 * 1000;
+        Date.now() - new Date(recentCycle.completedAt).getTime() < 60 * 60 * 1000;
 
       expect(isActive).toBe(true);
     });
@@ -302,14 +303,14 @@ describe('WebSocket Event Flow', () => {
     it('should join user to personal room', () => {
       const userId = 'user-123';
       const roomName = `user:${userId}`;
-      
+
       expect(roomName).toBe('user:user-123');
     });
 
     it('should join user to conversation room', () => {
       const conversationId = 'conv-456';
       const roomName = `conversation:${conversationId}`;
-      
+
       expect(roomName).toBe('conversation:conv-456');
     });
   });
@@ -349,8 +350,7 @@ describe('WebSocket Event Flow', () => {
 
   describe('Trust Events', () => {
     it('should emit trust:violation for low scores', () => {
-      const shouldEmitViolation = (status: string) => 
-        status === 'FAIL' || status === 'PARTIAL';
+      const shouldEmitViolation = (status: string) => status === 'FAIL' || status === 'PARTIAL';
 
       expect(shouldEmitViolation('FAIL')).toBe(true);
       expect(shouldEmitViolation('PARTIAL')).toBe(true);

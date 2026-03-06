@@ -21,25 +21,18 @@ const consoleFormat = printf(({ level, message, timestamp, ...metadata }) => {
 });
 
 // Determine log level based on environment
-const logLevel = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug');
+const logLevel =
+  process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug');
 
 // Create logger instance
 const logger = winston.createLogger({
   level: logLevel,
-  format: combine(
-    errors({ stack: true }),
-    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    json()
-  ),
+  format: combine(errors({ stack: true }), timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), json()),
   defaultMeta: { service: 'yseeku-platform' },
   transports: [
     // Console transport for all environments
     new winston.transports.Console({
-      format: combine(
-        colorize(),
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        consoleFormat
-      ),
+      format: combine(colorize(), timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), consoleFormat),
     }),
   ],
 });

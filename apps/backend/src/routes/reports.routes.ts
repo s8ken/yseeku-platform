@@ -6,7 +6,11 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { protect } from '../middleware/auth.middleware';
-import { complianceReportService, ReportType, ReportFormat } from '../services/compliance-report.service';
+import {
+  complianceReportService,
+  ReportType,
+  ReportFormat,
+} from '../services/compliance-report.service';
 import { GeneratedReport } from '../models/generated-report.model';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
@@ -15,7 +19,13 @@ const router = Router();
 
 // Validation schemas
 const generateReportSchema = z.object({
-  type: z.enum(['trust_summary', 'sonate_compliance', 'incident_report', 'agent_audit', 'full_audit']),
+  type: z.enum([
+    'trust_summary',
+    'sonate_compliance',
+    'incident_report',
+    'agent_audit',
+    'full_audit',
+  ]),
   format: z.enum(['json', 'html', 'csv']).optional().default('json'),
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
@@ -31,13 +41,13 @@ router.post('/generate', protect, async (req: Request, res: Response): Promise<v
   try {
     const body = generateReportSchema.parse(req.body);
     const tenantId = (req as any).tenant || 'default';
-    
+
     // Default to last 30 days if not specified
     const endDate = body.endDate ? new Date(body.endDate) : new Date();
-    const startDate = body.startDate 
-      ? new Date(body.startDate) 
+    const startDate = body.startDate
+      ? new Date(body.startDate)
       : new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
-    
+
     const report = await complianceReportService.generateReport({
       type: body.type as ReportType,
       format: body.format as ReportFormat,
@@ -52,9 +62,8 @@ router.post('/generate', protect, async (req: Request, res: Response): Promise<v
     if (body.format === 'json' && report && typeof report === 'object') {
       const reportPayload = report as any;
       const payloadStr = JSON.stringify(report);
-      const reportId = reportPayload?.meta?.reportId
-        || reportPayload?.reportId
-        || `${body.type}-${Date.now()}`;
+      const reportId =
+        reportPayload?.meta?.reportId || reportPayload?.reportId || `${body.type}-${Date.now()}`;
 
       // Extract a summary for the history list view
       const summary: Record<string, any> = {};
@@ -64,8 +73,7 @@ router.post('/generate', protect, async (req: Request, res: Response): Promise<v
         summary.avgTrustScore = reportPayload.summary.avgTrustScore;
       if (reportPayload?.summary?.complianceRate !== undefined)
         summary.complianceRate = reportPayload.summary.complianceRate;
-      if (reportPayload?.status !== undefined)
-        summary.status = reportPayload.status;
+      if (reportPayload?.status !== undefined) summary.status = reportPayload.status;
       if (reportPayload?.overallScore !== undefined)
         summary.avgTrustScore = reportPayload.overallScore;
 
@@ -166,7 +174,7 @@ router.get('/types', protect, (req: Request, res: Response): void => {
  */
 router.get('/presets', protect, (req: Request, res: Response): void => {
   const now = new Date();
-  
+
   res.json({
     success: true,
     data: [
@@ -217,14 +225,14 @@ router.get('/history', protect, async (req: Request, res: Response): Promise<voi
         .sort({ generatedAt: -1 })
         .skip(offset)
         .limit(limit)
-        .select('-payload')   // Exclude large payload from list view
+        .select('-payload') // Exclude large payload from list view
         .lean(),
       GeneratedReport.countDocuments(filter),
     ]);
 
     res.json({
       success: true,
-      data: reports.map(r => ({
+      data: reports.map((r) => ({
         reportId: r.reportId,
         type: r.type,
         format: r.format,
@@ -236,7 +244,7 @@ router.get('/history', protect, async (req: Request, res: Response): Promise<voi
         sizeBytes: r.sizeBytes,
         generatedAt: r.generatedAt,
       })),
-      meta: { total, limit, offset, hasMore: (offset + limit) < total },
+      meta: { total, limit, offset, hasMore: offset + limit < total },
     });
   } catch (error) {
     logger.error('Failed to fetch report history', { error: getErrorMessage(error) });
@@ -286,16 +294,22 @@ router.get('/schedule', protect, async (req: Request, res: Response): Promise<vo
 router.get('/demo/:type', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const type = req.params.type as ReportType;
-    const validTypes = ['trust_summary', 'sonate_compliance', 'incident_report', 'agent_audit', 'full_audit'];
-    
+    const validTypes = [
+      'trust_summary',
+      'sonate_compliance',
+      'incident_report',
+      'agent_audit',
+      'full_audit',
+    ];
+
     if (!validTypes.includes(type)) {
       res.status(400).json({ success: false, error: 'Invalid report type' });
       return;
     }
-    
+
     const endDate = new Date();
     const startDate = new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
-    
+
     const report = await complianceReportService.generateReport({
       type,
       format: 'json',
@@ -304,7 +318,7 @@ router.get('/demo/:type', protect, async (req: Request, res: Response): Promise<
       endDate,
       includeDetails: true,
     });
-    
+
     res.json({ success: true, data: report });
   } catch (error) {
     logger.error('Demo report generation failed', { error: getErrorMessage(error) });

@@ -69,4 +69,7 @@ PlatformApiKeySchema.pre('save', function () {
   this.updatedAt = new Date();
 });
 
-export const PlatformApiKey = mongoose.model<IPlatformApiKey>('PlatformApiKey', PlatformApiKeySchema);
+export const PlatformApiKey = mongoose.model<IPlatformApiKey>(
+  'PlatformApiKey',
+  PlatformApiKeySchema
+);

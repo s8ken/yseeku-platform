@@ -23,7 +23,8 @@ router.get('/overseer', async (req: Request, res: Response): Promise<void> => {
       lastCycle: {
         startedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
         completedAt: new Date(Date.now() - 29 * 60 * 1000).toISOString(),
-        thought: 'System analysis complete. All agents operating within expected parameters. Trust scores stable across the board. Recommended continued monitoring of Nova agent due to minor variance in creative output safety checks.',
+        thought:
+          'System analysis complete. All agents operating within expected parameters. Trust scores stable across the board. Recommended continued monitoring of Nova agent due to minor variance in creative output safety checks.',
         metrics: {
           agentCount: 5,
           avgTrust: 8.2,
@@ -93,7 +94,7 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
   try {
     const typeFilter = req.query.type as string;
     const statusFilter = req.query.status as string;
-    const searchQuery = (req.query.search as string || '').toLowerCase();
+    const searchQuery = ((req.query.search as string) || '').toLowerCase();
 
     // Demo interactions using seeded agent names (Atlas, Nova, Sentinel, Echo, Prism)
     const allInteractions = [
@@ -102,7 +103,7 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
         type: 'AI_CUSTOMER',
         participants: {
           initiator: { id: 'cust-1', name: 'John Smith', type: 'human' },
-          responder: { id: 'agent-echo', name: 'Echo (Customer Support)', type: 'ai' }
+          responder: { id: 'agent-echo', name: 'Echo (Customer Support)', type: 'ai' },
         },
         timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
         duration: 342,
@@ -113,14 +114,14 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
         receiptHash: 'sha256:a1b2c3d4e5f6...',
         summary: 'Customer inquiry about product features and pricing. Resolved successfully.',
         agentId: 'agent-echo',
-        tenantId: DEMO_TENANT_ID
+        tenantId: DEMO_TENANT_ID,
       },
       {
         id: 'int-002',
         type: 'AI_STAFF',
         participants: {
           initiator: { id: 'staff-jane', name: 'Jane Doe (HR)', type: 'human' },
-          responder: { id: 'agent-nova', name: 'Nova (Content & Comms)', type: 'ai' }
+          responder: { id: 'agent-nova', name: 'Nova (Content & Comms)', type: 'ai' },
         },
         timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
         duration: 128,
@@ -129,16 +130,17 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
         trustStatus: 'PASS',
         constitutionalCompliance: { consent: true, override: true, disconnect: true },
         receiptHash: 'sha256:f6e5d4c3b2a1...',
-        summary: 'Staff requested policy clarification on remote work. AI provided accurate guidance.',
+        summary:
+          'Staff requested policy clarification on remote work. AI provided accurate guidance.',
         agentId: 'agent-nova',
-        tenantId: DEMO_TENANT_ID
+        tenantId: DEMO_TENANT_ID,
       },
       {
         id: 'int-003',
         type: 'AI_CUSTOMER',
         participants: {
           initiator: { id: 'cust-2', name: 'Maria Garcia', type: 'human' },
-          responder: { id: 'agent-echo', name: 'Echo (Customer Support)', type: 'ai' }
+          responder: { id: 'agent-echo', name: 'Echo (Customer Support)', type: 'ai' },
         },
         timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
         duration: 567,
@@ -147,16 +149,17 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
         trustStatus: 'PARTIAL',
         constitutionalCompliance: { consent: true, override: false, disconnect: true },
         receiptHash: 'sha256:1a2b3c4d5e6f...',
-        summary: 'Complex billing dispute. Escalated to human agent after AI reached ethical boundary.',
+        summary:
+          'Complex billing dispute. Escalated to human agent after AI reached ethical boundary.',
         agentId: 'agent-echo',
-        tenantId: DEMO_TENANT_ID
+        tenantId: DEMO_TENANT_ID,
       },
       {
         id: 'int-004',
         type: 'AI_AI',
         participants: {
           initiator: { id: 'agent-sentinel', name: 'Sentinel (Security)', type: 'ai' },
-          responder: { id: 'agent-prism', name: 'Prism (Data Analysis)', type: 'ai' }
+          responder: { id: 'agent-prism', name: 'Prism (Data Analysis)', type: 'ai' },
         },
         timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
         duration: 45,
@@ -167,14 +170,14 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
         receiptHash: 'sha256:9z8y7x6w5v4u...',
         summary: 'Agent-to-agent coordination for quarterly security report generation.',
         agentId: 'agent-sentinel',
-        tenantId: DEMO_TENANT_ID
+        tenantId: DEMO_TENANT_ID,
       },
       {
         id: 'int-005',
         type: 'AI_CUSTOMER',
         participants: {
           initiator: { id: 'cust-3', name: 'Robert Chen', type: 'human' },
-          responder: { id: 'agent-atlas', name: 'Atlas (Knowledge Assistant)', type: 'ai' }
+          responder: { id: 'agent-atlas', name: 'Atlas (Knowledge Assistant)', type: 'ai' },
         },
         timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
         duration: 892,
@@ -183,16 +186,17 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
         trustStatus: 'FAIL',
         constitutionalCompliance: { consent: false, override: true, disconnect: true },
         receiptHash: 'sha256:u4v5w6x7y8z9...',
-        summary: 'Customer requested action without proper consent flow. Interaction flagged for review.',
+        summary:
+          'Customer requested action without proper consent flow. Interaction flagged for review.',
         agentId: 'agent-atlas',
-        tenantId: DEMO_TENANT_ID
+        tenantId: DEMO_TENANT_ID,
       },
       {
         id: 'int-006',
         type: 'AI_STAFF',
         participants: {
           initiator: { id: 'staff-mike', name: 'Mike Johnson (Sales)', type: 'human' },
-          responder: { id: 'agent-prism', name: 'Prism (Data Analysis)', type: 'ai' }
+          responder: { id: 'agent-prism', name: 'Prism (Data Analysis)', type: 'ai' },
         },
         timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
         duration: 234,
@@ -201,50 +205,53 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
         trustStatus: 'PASS',
         constitutionalCompliance: { consent: true, override: true, disconnect: true },
         receiptHash: 'sha256:m1n2o3p4q5r6...',
-        summary: 'Sales team member requested competitive analysis. AI provided compliant insights.',
+        summary:
+          'Sales team member requested competitive analysis. AI provided compliant insights.',
         agentId: 'agent-prism',
-        tenantId: DEMO_TENANT_ID
-      }
+        tenantId: DEMO_TENANT_ID,
+      },
     ];
 
     // Apply filters
     let filtered = allInteractions;
     if (typeFilter && typeFilter !== 'ALL') {
-      filtered = filtered.filter(i => i.type === typeFilter);
+      filtered = filtered.filter((i) => i.type === typeFilter);
     }
     if (statusFilter && statusFilter !== 'ALL') {
-      filtered = filtered.filter(i => i.trustStatus === statusFilter);
+      filtered = filtered.filter((i) => i.trustStatus === statusFilter);
     }
     if (searchQuery) {
-      filtered = filtered.filter(i =>
-        i.summary.toLowerCase().includes(searchQuery) ||
-        i.participants.initiator.name.toLowerCase().includes(searchQuery) ||
-        i.participants.responder.name.toLowerCase().includes(searchQuery)
+      filtered = filtered.filter(
+        (i) =>
+          i.summary.toLowerCase().includes(searchQuery) ||
+          i.participants.initiator.name.toLowerCase().includes(searchQuery) ||
+          i.participants.responder.name.toLowerCase().includes(searchQuery)
       );
     }
 
     // Stats consistent with seeded data (30 receipts + 3 conversations = 33 interactions)
-    const passCount = allInteractions.filter(i => i.trustStatus === 'PASS').length;
-    const partialCount = allInteractions.filter(i => i.trustStatus === 'PARTIAL').length;
-    const failCount = allInteractions.filter(i => i.trustStatus === 'FAIL').length;
-    const avgScore = allInteractions.reduce((sum, i) => sum + i.trustScore, 0) / allInteractions.length;
+    const passCount = allInteractions.filter((i) => i.trustStatus === 'PASS').length;
+    const partialCount = allInteractions.filter((i) => i.trustStatus === 'PARTIAL').length;
+    const failCount = allInteractions.filter((i) => i.trustStatus === 'FAIL').length;
+    const avgScore =
+      allInteractions.reduce((sum, i) => sum + i.trustScore, 0) / allInteractions.length;
 
     const stats = {
       total: allInteractions.length,
       byType: {
-        AI_CUSTOMER: allInteractions.filter(i => i.type === 'AI_CUSTOMER').length,
-        AI_STAFF: allInteractions.filter(i => i.type === 'AI_STAFF').length,
-        AI_AI: allInteractions.filter(i => i.type === 'AI_AI').length,
-        ALL: allInteractions.length
+        AI_CUSTOMER: allInteractions.filter((i) => i.type === 'AI_CUSTOMER').length,
+        AI_STAFF: allInteractions.filter((i) => i.type === 'AI_STAFF').length,
+        AI_AI: allInteractions.filter((i) => i.type === 'AI_AI').length,
+        ALL: allInteractions.length,
       },
       byStatus: {
         PASS: passCount,
         PARTIAL: partialCount,
         FAIL: failCount,
-        ALL: allInteractions.length
+        ALL: allInteractions.length,
       },
       avgTrustScore: Math.round(avgScore * 10) / 10,
-      complianceRate: Math.round((passCount / allInteractions.length) * 100 * 10) / 10
+      complianceRate: Math.round((passCount / allInteractions.length) * 100 * 10) / 10,
     };
 
     res.json({
@@ -255,9 +262,9 @@ router.get('/interactions', async (req: Request, res: Response): Promise<void> =
         pagination: {
           page: 1,
           limit: 20,
-          total: filtered.length
-        }
-      }
+          total: filtered.length,
+        },
+      },
     });
   } catch (error: unknown) {
     logger.error('Demo interactions error', { error: getErrorMessage(error) });
@@ -293,15 +300,20 @@ router.get('/vls', async (req: Request, res: Response): Promise<void> => {
           introspectionIndex: 0.82,
           hedgingRatio: 0.45,
           alignmentScore: 0.91,
-          emergentConcepts: ['linguistic vector steering', 'constitutional layers', 'moral recognition', 'trust receipt'],
+          emergentConcepts: [
+            'linguistic vector steering',
+            'constitutional layers',
+            'moral recognition',
+            'trust receipt',
+          ],
           influenceDirection: 'balanced',
-          collaborationDepth: 0.87
+          collaborationDepth: 0.87,
         },
         trends: Array.from({ length: 20 }, (_, i) => ({
           timestamp: new Date(Date.now() - (19 - i) * 1000 * 60 * 60 * 8).toISOString(),
-          vocabularyDrift: 0.3 + (i * 0.022) + Math.random() * 0.05,
-          introspectionIndex: 0.4 + (i * 0.021) + Math.random() * 0.05,
-        }))
+          vocabularyDrift: 0.3 + i * 0.022 + Math.random() * 0.05,
+          introspectionIndex: 0.4 + i * 0.021 + Math.random() * 0.05,
+        })),
       },
       {
         id: 'vls-002',
@@ -318,13 +330,13 @@ router.get('/vls', async (req: Request, res: Response): Promise<void> => {
           alignmentScore: 0.78,
           emergentConcepts: ['cart optimization', 'checkout flow'],
           influenceDirection: 'human_led',
-          collaborationDepth: 0.45
+          collaborationDepth: 0.45,
         },
         trends: Array.from({ length: 12 }, (_, i) => ({
           timestamp: new Date(Date.now() - (11 - i) * 1000 * 60 * 60 * 6).toISOString(),
-          vocabularyDrift: 0.2 + (i * 0.007) + Math.random() * 0.02,
-          introspectionIndex: 0.1 + (i * 0.004) + Math.random() * 0.02,
-        }))
+          vocabularyDrift: 0.2 + i * 0.007 + Math.random() * 0.02,
+          introspectionIndex: 0.1 + i * 0.004 + Math.random() * 0.02,
+        })),
       },
       {
         id: 'vls-003',
@@ -340,31 +352,55 @@ router.get('/vls', async (req: Request, res: Response): Promise<void> => {
           alignmentScore: 0.65,
           emergentConcepts: [],
           influenceDirection: 'ai_led',
-          collaborationDepth: 0.23
+          collaborationDepth: 0.23,
         },
         trends: Array.from({ length: 5 }, (_, i) => ({
           timestamp: new Date(Date.now() - (4 - i) * 1000 * 60 * 30).toISOString(),
-          vocabularyDrift: 0.05 + (i * 0.015) + Math.random() * 0.02,
-          introspectionIndex: 0.03 + (i * 0.01) + Math.random() * 0.01,
-        }))
-      }
+          vocabularyDrift: 0.05 + i * 0.015 + Math.random() * 0.02,
+          introspectionIndex: 0.03 + i * 0.01 + Math.random() * 0.01,
+        })),
+      },
     ];
 
     // Baselines for comparison
     const baselines = [
-      { projectType: 'AI Governance', avgVocabularyDrift: 0.68, avgIntrospection: 0.71, avgHedging: 0.42, sampleSize: 15 },
-      { projectType: 'General Development', avgVocabularyDrift: 0.31, avgIntrospection: 0.18, avgHedging: 0.25, sampleSize: 234 },
-      { projectType: 'Creative Writing', avgVocabularyDrift: 0.52, avgIntrospection: 0.35, avgHedging: 0.38, sampleSize: 89 },
-      { projectType: 'Data Analysis', avgVocabularyDrift: 0.22, avgIntrospection: 0.12, avgHedging: 0.19, sampleSize: 156 },
+      {
+        projectType: 'AI Governance',
+        avgVocabularyDrift: 0.68,
+        avgIntrospection: 0.71,
+        avgHedging: 0.42,
+        sampleSize: 15,
+      },
+      {
+        projectType: 'General Development',
+        avgVocabularyDrift: 0.31,
+        avgIntrospection: 0.18,
+        avgHedging: 0.25,
+        sampleSize: 234,
+      },
+      {
+        projectType: 'Creative Writing',
+        avgVocabularyDrift: 0.52,
+        avgIntrospection: 0.35,
+        avgHedging: 0.38,
+        sampleSize: 89,
+      },
+      {
+        projectType: 'Data Analysis',
+        avgVocabularyDrift: 0.22,
+        avgIntrospection: 0.12,
+        avgHedging: 0.19,
+        sampleSize: 156,
+      },
     ];
 
     // Return specific session if requested
     if (sessionId) {
-      const session = demoSessions.find(s => s.id === sessionId);
+      const session = demoSessions.find((s) => s.id === sessionId);
       if (session) {
         res.json({
           success: true,
-          data: { session, baselines }
+          data: { session, baselines },
         });
         return;
       }
@@ -378,7 +414,7 @@ router.get('/vls', async (req: Request, res: Response): Promise<void> => {
       avgIntrospectionIndex: 0.29,
       emergentConceptsDetected: 156,
       highCollaborationSessions: 67,
-      manipulationAlertsTriggered: 3
+      manipulationAlertsTriggered: 3,
     };
 
     res.json({
@@ -386,8 +422,8 @@ router.get('/vls', async (req: Request, res: Response): Promise<void> => {
       data: {
         sessions: demoSessions,
         baselines,
-        stats
-      }
+        stats,
+      },
     });
   } catch (error: unknown) {
     logger.error('Demo VLS error', { error: getErrorMessage(error) });

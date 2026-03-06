@@ -9,18 +9,18 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IGeneratedReport extends Document {
-  reportId: string;           // Unique identifier (also used as filename reference)
-  type: string;               // 'trust_summary' | 'sonate_compliance' | etc.
-  format: string;             // 'json' | 'html' | 'csv'
+  reportId: string; // Unique identifier (also used as filename reference)
+  type: string; // 'trust_summary' | 'sonate_compliance' | etc.
+  format: string; // 'json' | 'html' | 'csv'
   tenantId: string;
-  generatedBy?: string;       // userId of requestor (undefined = system/scheduled)
+  generatedBy?: string; // userId of requestor (undefined = system/scheduled)
   startDate: Date;
   endDate: Date;
   summary: {
     totalConversations?: number;
     avgTrustScore?: number;
     complianceRate?: number;
-    status?: string;          // e.g. 'compliant' | 'partial' | 'non-compliant'
+    status?: string; // e.g. 'compliant' | 'partial' | 'non-compliant'
   };
   // Full report payload stored as JSON for retrieval (HTML/CSV stored as string)
   payload: any;
@@ -58,10 +58,7 @@ GeneratedReportSchema.index({ tenantId: 1, generatedAt: -1 });
 GeneratedReportSchema.index({ tenantId: 1, type: 1, generatedAt: -1 });
 
 // TTL — auto-purge reports older than 1 year to manage storage
-GeneratedReportSchema.index(
-  { generatedAt: 1 },
-  { expireAfterSeconds: 60 * 60 * 24 * 365 }
-);
+GeneratedReportSchema.index({ generatedAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 365 });
 
 export const GeneratedReport = mongoose.model<IGeneratedReport>(
   'GeneratedReport',

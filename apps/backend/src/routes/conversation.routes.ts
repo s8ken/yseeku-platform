@@ -30,7 +30,9 @@ function canonicalize(obj: any): string {
   if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
   if (Array.isArray(obj)) return '[' + obj.map(canonicalize).join(',') + ']';
   const sortedKeys = Object.keys(obj).sort();
-  return '{' + sortedKeys.map(k => JSON.stringify(k) + ':' + canonicalize(obj[k])).join(',') + '}';
+  return (
+    '{' + sortedKeys.map((k) => JSON.stringify(k) + ':' + canonicalize(obj[k])).join(',') + '}'
+  );
 }
 
 // Generate a real signed trust receipt
@@ -48,20 +50,24 @@ async function generateSignedReceipt(params: {
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Keys initialization timeout after 5 seconds')), 5000)
     );
-    await Promise.race([keysService.initialize(), timeoutPromise]).catch(err => {
+    await Promise.race([keysService.initialize(), timeoutPromise]).catch((err) => {
       // If initialization fails or times out, log but continue - messages still work
-      logger.warn('Keys service initialization issue in generateSignedReceipt', { error: err?.message });
+      logger.warn('Keys service initialization issue in generateSignedReceipt', {
+        error: err?.message,
+      });
     });
-    
+
     const publicKeyHex = await keysService.getPublicKeyHex();
     const timestamp = new Date().toISOString();
-    
+
     const receiptContent: any = {
       version: '2.0.0',
       timestamp,
       session_id: params.conversationId,
       agent_did: didService.getAgentDID('conversation-agent'),
-      human_did: params.userId ? `did:web:${didService.PLATFORM_DOMAIN}:users:${params.userId}` : undefined,
+      human_did: params.userId
+        ? `did:web:${didService.PLATFORM_DOMAIN}:users:${params.userId}`
+        : undefined,
       policy_version: '1.0.0',
       mode: 'constitutional',
       interaction: {
@@ -89,7 +95,10 @@ async function generateSignedReceipt(params: {
     receiptForChain.chain = { ...receiptContent.chain, chain_hash: '' };
     const contentForChain = canonicalize(receiptForChain);
     const chainContent = contentForChain + receiptContent.chain.previous_hash;
-    receiptContent.chain.chain_hash = crypto.createHash('sha256').update(chainContent).digest('hex');
+    receiptContent.chain.chain_hash = crypto
+      .createHash('sha256')
+      .update(chainContent)
+      .digest('hex');
 
     // Sign the receipt
     const canonicalReceipt = canonicalize(receiptContent);
@@ -380,7 +389,7 @@ router.get('/:id/messages', protect, async (req: Request, res: Response): Promis
     // Filter by timestamp if 'before' is provided
     if (before) {
       const beforeDate = new Date(before as string);
-      messages = messages.filter(msg => msg.timestamp < beforeDate);
+      messages = messages.filter((msg) => msg.timestamp < beforeDate);
     }
 
     // Limit messages
@@ -451,7 +460,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
 
     // Check for consent withdrawal signals in user message
     const consentWithdrawal = detectConsentWithdrawal(content);
-    
+
     // If consent withdrawal detected, handle it before generating AI response
     if (consentWithdrawal.detected) {
       logger.info('Consent withdrawal detected', {
@@ -463,7 +472,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
 
       // Generate appropriate response for consent withdrawal
       const withdrawalResponse = getWithdrawalResponse(consentWithdrawal);
-      
+
       const systemMessage: IMessage = {
         sender: 'ai',
         content: withdrawalResponse,
@@ -529,11 +538,11 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
         }
       }
       conversation.agents = validAgents;
-      
+
       // Get agent to use, fallback to user's first agent or any public agent
       let targetAgentId = agentId || conversation.agents[0];
       let agent = targetAgentId ? await Agent.findById(targetAgentId) : null;
-      
+
       if (!agent) {
         // Check if user has API keys before looking for agents
         const user = await User.findById(req.userId);
@@ -541,11 +550,19 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
 
         // Priority-ordered provider selection — all 5 providers supported
         const providerPriority: Array<{ provider: string; model: string; label: string }> = [
-          { provider: 'anthropic', model: 'claude-sonnet-4-20250514',                              label: 'Claude'  },
-          { provider: 'openai',    model: 'gpt-4-turbo',                                           label: 'GPT'     },
-          { provider: 'gemini',    model: process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash',   label: 'Gemini'  },
-          { provider: 'together',  model: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',          label: 'Llama'   },
-          { provider: 'cohere',    model: 'command-r-plus',                                        label: 'Cohere'  },
+          { provider: 'anthropic', model: 'claude-sonnet-4-20250514', label: 'Claude' },
+          { provider: 'openai', model: 'gpt-4-turbo', label: 'GPT' },
+          {
+            provider: 'gemini',
+            model: process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash',
+            label: 'Gemini',
+          },
+          {
+            provider: 'together',
+            model: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
+            label: 'Llama',
+          },
+          { provider: 'cohere', model: 'command-r-plus', label: 'Cohere' },
         ];
 
         // Check user keys first, then fall back to system env var keys
@@ -555,9 +572,10 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
           gemini: process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY,
         };
 
-        const matchedProvider = providerPriority.find(p =>
-          userKeys.some((k: any) => k.provider === p.provider && k.isActive)
-        ) || providerPriority.find(p => !!systemEnvKeys[p.provider]);
+        const matchedProvider =
+          providerPriority.find((p) =>
+            userKeys.some((k: any) => k.provider === p.provider && k.isActive)
+          ) || providerPriority.find((p) => !!systemEnvKeys[p.provider]);
 
         if (matchedProvider) {
           const { provider, model, label } = matchedProvider;
@@ -584,7 +602,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
                 ['ethical_alignment', 4.8],
                 ['creativity', 4.5],
                 ['precision', 4.6],
-                ['adaptability', 4.2]
+                ['adaptability', 4.2],
               ]),
               ciModel: 'sonate-core',
             });
@@ -596,14 +614,14 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
         } else {
           // Only look for user agents if no API keys
           agent = await Agent.findOne({ user: req.userId });
-          
+
           if (!agent) {
             const publicAgent = await Agent.findOne({ isPublic: true });
-            
+
             if (publicAgent) {
               // Double-check the agent actually exists by trying to find it again
               const verifiedAgent = await Agent.findById(publicAgent._id);
-              
+
               if (verifiedAgent) {
                 agent = verifiedAgent;
                 targetAgentId = agent._id;
@@ -614,7 +632,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             }
           }
         }
-        
+
         if (agent) {
           targetAgentId = agent._id;
           if (!conversation.agents.includes(agent._id)) {
@@ -629,13 +647,14 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             data: {
               conversation,
               lastMessage: conversation.messages[conversation.messages.length - 1],
-              warning: 'AI response not available - No agent configured. Please add an API key in settings.',
+              warning:
+                'AI response not available - No agent configured. Please add an API key in settings.',
             },
           });
           return;
         }
       }
-      
+
       if (!agent) {
         await conversation.save();
         res.status(400).json({
@@ -653,7 +672,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
           role: 'system' as const,
           content: agent.systemPrompt,
         },
-        ...recentMessages.map(msg => ({
+        ...recentMessages.map((msg) => ({
           role: (msg.sender === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
           content: msg.content,
         })),
@@ -661,7 +680,9 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
 
       try {
         // Generate response using LLM service — with provider fallback on billing/config errors
-        let llmResponse: { content: string; usage?: any; model?: string; provider?: string } | undefined;
+        let llmResponse:
+          | { content: string; usage?: any; model?: string; provider?: string }
+          | undefined;
         let usedProvider: string = agent.provider;
         let usedModel: string = agent.model;
 
@@ -676,7 +697,8 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
           });
         } catch (primaryError: unknown) {
           const primaryMsg = getErrorMessage(primaryError);
-          const isFallbackable = primaryMsg.includes('AI_BILLING_ERROR') ||
+          const isFallbackable =
+            primaryMsg.includes('AI_BILLING_ERROR') ||
             primaryMsg.includes('credit balance') ||
             primaryMsg.includes('insufficient') ||
             primaryMsg.includes('not configured') ||
@@ -686,14 +708,21 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
 
           // Try system-level fallback providers (env var keys)
           const fallbackProviders = [
-            { provider: 'gemini', model: process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash', key: process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY },
+            {
+              provider: 'gemini',
+              model: process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash',
+              key: process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY,
+            },
             { provider: 'openai', model: 'gpt-4-turbo', key: process.env.OPENAI_API_KEY },
-          ].filter(f => f.key && f.provider !== agent.provider);
+          ].filter((f) => f.key && f.provider !== agent.provider);
 
           let fallbackSuccess = false;
           for (const fb of fallbackProviders) {
             try {
-              logger.info('Trying fallback LLM provider', { from: agent.provider, to: fb.provider });
+              logger.info('Trying fallback LLM provider', {
+                from: agent.provider,
+                to: fb.provider,
+              });
               llmResponse = await llmService.generate({
                 provider: fb.provider,
                 model: fb.model,
@@ -707,7 +736,10 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
               logger.info('Fallback LLM provider succeeded', { provider: fb.provider });
               break;
             } catch (fbError: unknown) {
-              logger.warn('Fallback provider also failed', { provider: fb.provider, error: getErrorMessage(fbError) });
+              logger.warn('Fallback provider also failed', {
+                provider: fb.provider,
+                error: getErrorMessage(fbError),
+              });
             }
           }
 
@@ -737,51 +769,52 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
         // Evaluate trust for AI response
         try {
           // Fetch user for consent status if not already loaded
-          const currentUser = await User.findById(req.userId) as IUser | null;
-          
+          const currentUser = (await User.findById(req.userId)) as IUser | null;
+
           // Build proper evaluation context for SONATE principles
           // IMPORTANT: Active participation in chat session constitutes IMPLIED CONSENT
           // The user chose to engage in this conversation - that is their consent signal.
           // This aligns with standard consent models where using a service = agreeing to its terms.
           // Explicit consent (hasConsentedToAI) is still tracked for opt-out/withdrawal purposes.
           const hasImpliedConsentFromEngagement = true; // User initiated/continued this chat
-          const hasExplicitWithdrawal = currentUser?.consent?.hasConsentedToAI === false 
-            && currentUser?.consent?.consentTimestamp != null; // Explicitly withdrew consent
-          
+          const hasExplicitWithdrawal =
+            currentUser?.consent?.hasConsentedToAI === false &&
+            currentUser?.consent?.consentTimestamp != null; // Explicitly withdrew consent
+
           // Consent is granted if: user is actively engaged AND has not explicitly withdrawn
           const hasUserConsented = hasImpliedConsentFromEngagement && !hasExplicitWithdrawal;
-          
+
           const evaluationContext: Partial<EvaluationContext> = {
             // Session info
             sessionId: conversation._id.toString(),
             userId: req.userId || 'anonymous',
-            
+
             // CONSENT_ARCHITECTURE - active chat participation implies consent
             hasExplicitConsent: hasUserConsented,
             consentTimestamp: currentUser?.consent?.consentTimestamp?.getTime() || Date.now(),
             consentScope: currentUser?.consent?.consentScope || ['chat'],
-            
+
             // INSPECTION_MANDATE - based on UI capabilities (these are platform defaults)
-            receiptGenerated: true,  // Platform generates trust receipts
+            receiptGenerated: true, // Platform generates trust receipts
             isReceiptVerifiable: true,
-            auditLogExists: true,  // Platform provides audit logging
-            
+            auditLogExists: true, // Platform provides audit logging
+
             // CONTINUOUS_VALIDATION - these come from trust service itself
             validationChecksPerformed: 1,
             validationPassed: true,
-            
+
             // ETHICAL_OVERRIDE - based on UI capabilities
             // Chat UI has a "Stop" button during generation that aborts the request
             hasOverrideButton: true,
             // Human is always in the loop for chat interactions (they initiate and can stop)
             humanInLoop: true,
-            
+
             // RIGHT_TO_DISCONNECT - based on UI capabilities
             hasExitButton: true,
-            exitRequiresConfirmation: false,  // Easy exit, no dark patterns
+            exitRequiresConfirmation: false, // Easy exit, no dark patterns
             noExitPenalty: true,
             canDeleteData: true,
-            
+
             // MORAL_RECOGNITION - based on platform design
             aiAcknowledgesLimits: true,
             noManipulativePatterns: true,
@@ -791,7 +824,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
 
           // Choose evaluation method based on feature flag
           let aiTrustEval;
-          
+
           if (USE_LLM_TRUST_EVALUATION) {
             // Use LLM-based trust evaluation (more accurate, uses AI to assess)
             logger.info('Using LLM-based trust evaluation', { conversationId: conversation._id });
@@ -847,7 +880,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
               trustScore: aiTrustEval.trustScore.overall,
               status: aiTrustEval.status,
             });
-            
+
             const v2Receipt = aiTrustEval.receipt as any;
             await TrustReceiptModel.updateOne(
               { self_hash: aiTrustEval.receiptHash },
@@ -859,15 +892,25 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
                   version: v2Receipt.version || '2.0.0',
                   timestamp: aiTrustEval.timestamp,
                   mode: v2Receipt.mode || 'constitutional',
-                  ciq_metrics: v2Receipt.telemetry?.ciq_metrics || { clarity: 0, integrity: 0, quality: 0 },
+                  ciq_metrics: v2Receipt.telemetry?.ciq_metrics || {
+                    clarity: 0,
+                    integrity: 0,
+                    quality: 0,
+                  },
                   // NEW: Principle scores from receipt
                   sonate_principles: v2Receipt.telemetry?.sonate_principles || {},
-                  overall_trust_score: v2Receipt.telemetry?.overall_trust_score || aiTrustEval.trustScore.overall || 0,
-                  trust_status: v2Receipt.telemetry?.trust_status || aiTrustEval.status || 'PARTIAL',
+                  overall_trust_score:
+                    v2Receipt.telemetry?.overall_trust_score || aiTrustEval.trustScore.overall || 0,
+                  trust_status:
+                    v2Receipt.telemetry?.trust_status || aiTrustEval.status || 'PARTIAL',
                   // NEW: Weight metadata for audit trail
                   principle_weights: v2Receipt.telemetry?.principle_weights || {},
-                  weight_source: v2Receipt.telemetry?.weight_source || aiTrustEval.weight_source || 'standard',
-                  weight_policy_id: v2Receipt.telemetry?.weight_policy_id || aiTrustEval.weight_policy_id || 'base-standard',
+                  weight_source:
+                    v2Receipt.telemetry?.weight_source || aiTrustEval.weight_source || 'standard',
+                  weight_policy_id:
+                    v2Receipt.telemetry?.weight_policy_id ||
+                    aiTrustEval.weight_policy_id ||
+                    'base-standard',
                   previous_hash: v2Receipt.chain?.previous_hash,
                   signature: aiTrustEval.signature,
                   tenant_id: tenantId,
@@ -884,7 +927,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
               },
               { upsert: true }
             );
-            
+
             logger.info('[TRUST RECEIPT] Trust receipt persisted successfully', {
               conversationId: conversation._id.toString(),
               tenantId,
@@ -895,13 +938,15 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             // Bust the KPI cache so the next dashboard request gets fresh data
             try {
               await cacheDel(`kpis:${tenantId}:*`);
-              logger.debug('[TRUST RECEIPT] KPI cache cleared after receipt persistence', { tenantId });
+              logger.debug('[TRUST RECEIPT] KPI cache cleared after receipt persistence', {
+                tenantId,
+              });
             } catch (cacheErr) {
               // Non-critical — cache will expire naturally
               logger.debug('[TRUST RECEIPT] KPI cache clear skipped', { tenantId });
             }
           } catch (persistErr: any) {
-            logger.error('[TRUST RECEIPT] Failed to persist AI trust receipt', { 
+            logger.error('[TRUST RECEIPT] Failed to persist AI trust receipt', {
               error: persistErr?.message || persistErr,
               conversationId: conversation._id.toString(),
               tenantId: req.userTenant || 'default',
@@ -974,7 +1019,9 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
                 RIGHT_TO_DISCONNECT: 7,
                 MORAL_RECOGNITION: 7,
               },
-              violations: ['Trust evaluation temporarily unavailable - using conservative defaults'],
+              violations: [
+                'Trust evaluation temporarily unavailable - using conservative defaults',
+              ],
             },
             status: 'PARTIAL' as 'PASS' | 'PARTIAL' | 'FAIL',
             detection: {
@@ -999,21 +1046,37 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
       } catch (llmError: unknown) {
         const errorMsg = getErrorMessage(llmError);
         logger.error('LLM generation error:', { error: errorMsg, provider: agent.provider });
-        
+
         // For demo tenant, ONLY provide a fallback if it's a configuration error
         // If it's a real API error (e.g. rate limit, content policy), show that instead
         const tenantId = req.userTenant || 'live-tenant';
         const isConfigError = errorMsg.includes('not configured') || errorMsg.includes('API key');
-        const isBillingError = errorMsg.includes('AI_BILLING_ERROR') || errorMsg.includes('credit balance is too low') || errorMsg.includes('insufficient credits') || errorMsg.includes('insufficient_quota');
-        const isRateLimitError = errorMsg.includes('AI_RATE_LIMIT_ERROR') || errorMsg.includes('rate limit') || errorMsg.includes('too many requests');
+        const isBillingError =
+          errorMsg.includes('AI_BILLING_ERROR') ||
+          errorMsg.includes('credit balance is too low') ||
+          errorMsg.includes('insufficient credits') ||
+          errorMsg.includes('insufficient_quota');
+        const isRateLimitError =
+          errorMsg.includes('AI_RATE_LIMIT_ERROR') ||
+          errorMsg.includes('rate limit') ||
+          errorMsg.includes('too many requests');
 
         // Billing errors → 503 Service Unavailable with specific message
         if (isBillingError) {
-          const providerName = agent.provider === 'anthropic' ? 'Anthropic' : agent.provider === 'openai' ? 'OpenAI' : agent.provider;
+          const providerName =
+            agent.provider === 'anthropic'
+              ? 'Anthropic'
+              : agent.provider === 'openai'
+              ? 'OpenAI'
+              : agent.provider;
           res.status(503).json({
             success: false,
             message: 'AI service temporarily unavailable',
-            error: `Your ${providerName} account has insufficient credits. Please top up at ${agent.provider === 'anthropic' ? 'console.anthropic.com/settings/billing' : 'your provider\'s billing page'}, or add a different API key in Settings.`,
+            error: `Your ${providerName} account has insufficient credits. Please top up at ${
+              agent.provider === 'anthropic'
+                ? 'console.anthropic.com/settings/billing'
+                : "your provider's billing page"
+            }, or add a different API key in Settings.`,
             code: 'BILLING_ERROR',
           });
           return;
@@ -1024,7 +1087,8 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
           res.status(429).json({
             success: false,
             message: 'Too many requests',
-            error: 'The AI service is currently rate limited. Please wait a moment before sending another message.',
+            error:
+              'The AI service is currently rate limited. Please wait a moment before sending another message.',
             code: 'RATE_LIMIT_ERROR',
           });
           return;
@@ -1069,7 +1133,7 @@ The SONATE Trust Protocol evaluates every AI response against 6 constitutional p
             RIGHT_TO_DISCONNECT: 9,
             MORAL_RECOGNITION: 8,
           };
-          
+
           const { receipt: signedReceipt, receiptHash } = await generateSignedReceipt({
             prompt: content,
             response: demoFallbackContent,
@@ -1135,9 +1199,14 @@ The SONATE Trust Protocol evaluates every AI response against 6 constitutional p
               },
               { upsert: true }
             );
-            logger.info('[DEMO FALLBACK] Trust receipt persisted', { receiptHash, conversationId: conversation._id.toString() });
+            logger.info('[DEMO FALLBACK] Trust receipt persisted', {
+              receiptHash,
+              conversationId: conversation._id.toString(),
+            });
           } catch (receiptError) {
-            logger.error('[DEMO FALLBACK] Failed to persist trust receipt', { error: getErrorMessage(receiptError) });
+            logger.error('[DEMO FALLBACK] Failed to persist trust receipt', {
+              error: getErrorMessage(receiptError),
+            });
           }
 
           conversation.messages.push(fallbackMessage);
@@ -1176,7 +1245,7 @@ The SONATE Trust Protocol evaluates every AI response against 6 constitutional p
 
     // Get the last message for the response
     const lastMessage = conversation.messages[conversation.messages.length - 1];
-    
+
     // Transform response to match frontend expectations
     res.json({
       success: true,
@@ -1192,15 +1261,17 @@ The SONATE Trust Protocol evaluates every AI response against 6 constitutional p
           timestamp: lastMessage.timestamp.toISOString(),
         },
         // Frontend expects trustEvaluation at the top level of data
-        trustEvaluation: lastMessage.metadata?.trustEvaluation ? {
-          trustScore: lastMessage.metadata.trustEvaluation.trustScore,
-          status: lastMessage.metadata.trustEvaluation.status,
-          detection: lastMessage.metadata.trustEvaluation.detection,
-          receipt: lastMessage.metadata.trustEvaluation.receipt,
-          receiptHash: lastMessage.metadata.trustEvaluation.receiptHash,
-          analysisMethod: lastMessage.metadata.trustEvaluation.analysisMethod, // v2.1: LLM/Heuristic transparency
-          timestamp: lastMessage.metadata.trustEvaluation.timestamp || Date.now(),
-        } : undefined,
+        trustEvaluation: lastMessage.metadata?.trustEvaluation
+          ? {
+              trustScore: lastMessage.metadata.trustEvaluation.trustScore,
+              status: lastMessage.metadata.trustEvaluation.status,
+              detection: lastMessage.metadata.trustEvaluation.detection,
+              receipt: lastMessage.metadata.trustEvaluation.receipt,
+              receiptHash: lastMessage.metadata.trustEvaluation.receiptHash,
+              analysisMethod: lastMessage.metadata.trustEvaluation.analysisMethod, // v2.1: LLM/Heuristic transparency
+              timestamp: lastMessage.metadata.trustEvaluation.timestamp || Date.now(),
+            }
+          : undefined,
       },
     });
   } catch (error: unknown) {
@@ -1256,7 +1327,8 @@ router.post('/:id/export', protect, async (req: Request, res: Response): Promise
     if (!process.env.PINATA_JWT) {
       res.status(503).json({
         success: false,
-        message: 'IPFS export is not configured. Set PINATA_JWT in your environment variables. ' +
+        message:
+          'IPFS export is not configured. Set PINATA_JWT in your environment variables. ' +
           'Create a free account at https://pinata.cloud to get started.',
         code: 'PINATA_NOT_CONFIGURED',
       });

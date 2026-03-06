@@ -35,18 +35,22 @@ export interface OverrideResult {
 }
 
 export const overrideService = {
-  async getOverrideQueue(tenantId: string, filters?: {
-    status?: string[];
-    type?: string[];
-    startDate?: Date;
-    endDate?: Date;
-    search?: string;
-  }, options?: { limit?: number; offset?: number }) {
+  async getOverrideQueue(
+    tenantId: string,
+    filters?: {
+      status?: string[];
+      type?: string[];
+      startDate?: Date;
+      endDate?: Date;
+      search?: string;
+    },
+    options?: { limit?: number; offset?: number }
+  ) {
     const limit = options?.limit || 50;
     const offset = options?.offset || 0;
 
     const match: any = { tenantId };
-    
+
     if (filters?.status?.length) {
       match.status = { $in: filters.status };
     }
@@ -62,20 +66,16 @@ export const overrideService = {
       match.$or = [
         { type: { $regex: filters.search, $options: 'i' } },
         { target: { $regex: filters.search, $options: 'i' } },
-        { reason: { $regex: filters.search, $options: 'i' } }
+        { reason: { $regex: filters.search, $options: 'i' } },
       ];
     }
 
     const [actions, total] = await Promise.all([
-      BrainAction.find(match)
-        .sort({ createdAt: -1 })
-        .skip(offset)
-        .limit(limit)
-        .lean(),
-      BrainAction.countDocuments(match)
+      BrainAction.find(match).sort({ createdAt: -1 }).skip(offset).limit(limit).lean(),
+      BrainAction.countDocuments(match),
     ]);
 
-    const queueItems: OverrideQueueItem[] = actions.map(action => ({
+    const queueItems: OverrideQueueItem[] = actions.map((action) => ({
       id: action._id.toString(),
       type: action.type,
       target: action.target,
@@ -84,24 +84,28 @@ export const overrideService = {
       createdAt: action.createdAt,
       requestedBy: action.approvedBy,
       severity: (action.result as any)?.severity,
-      canOverride: ['planned', 'approved', 'executed'].includes(action.status)
+      canOverride: ['planned', 'approved', 'executed'].includes(action.status),
     }));
 
     return { items: queueItems, total, limit, offset };
   },
 
-  async getOverrideHistory(tenantId: string, filters?: {
-    decision?: ('approve' | 'reject')[];
-    userId?: string;
-    startDate?: Date;
-    endDate?: Date;
-    emergency?: boolean;
-  }, options?: { limit?: number; offset?: number }) {
+  async getOverrideHistory(
+    tenantId: string,
+    filters?: {
+      decision?: ('approve' | 'reject')[];
+      userId?: string;
+      startDate?: Date;
+      endDate?: Date;
+      emergency?: boolean;
+    },
+    options?: { limit?: number; offset?: number }
+  ) {
     const limit = options?.limit || 50;
     const offset = options?.offset || 0;
 
     const match: any = { tenantId };
-    
+
     if (filters?.decision?.length) {
       match.decision = { $in: filters.decision };
     }
@@ -124,8 +128,8 @@ export const overrideService = {
           from: 'brain_actions',
           localField: 'actionId',
           foreignField: '_id',
-          as: 'action'
-        }
+          as: 'action',
+        },
       },
       { $unwind: '$action' },
       {
@@ -140,17 +144,17 @@ export const overrideService = {
           userId: 1,
           actionType: '$action.type',
           actionTarget: '$action.target',
-          actionStatus: '$action.status'
-        }
+          actionStatus: '$action.status',
+        },
       },
       { $sort: { createdAt: -1 } },
       { $skip: offset },
-      { $limit: limit }
+      { $limit: limit },
     ];
 
     const [history, total] = await Promise.all([
       OverrideDecision.aggregate(pipeline as any[]),
-      OverrideDecision.countDocuments(match)
+      OverrideDecision.countDocuments(match),
     ]);
 
     return { items: history, total, limit, offset };
@@ -213,12 +217,12 @@ export const overrideService = {
 
       // Update action status
       action.status = decision === 'approve' ? 'overridden' : 'failed';
-      action.result = { 
-        ...(action.result || {}), 
-        overridden: true, 
+      action.result = {
+        ...(action.result || {}),
+        overridden: true,
         overriddenBy: userId,
         overrideDecision: decision,
-        overrideReason: reason
+        overrideReason: reason,
       };
       await action.save();
 
@@ -230,7 +234,7 @@ export const overrideService = {
         reason,
         emergency,
         impact: details,
-        tenantId
+        tenantId,
       });
 
       // Log audit event
@@ -242,17 +246,16 @@ export const overrideService = {
         tenantId,
         severity: reverted ? 'warning' : 'info',
         outcome: reverted ? 'success' : 'partial',
-        details: { 
-          overrideOf: action.type, 
-          target: action.target, 
+        details: {
+          overrideOf: action.type,
+          target: action.target,
           reverted,
           decision,
-          emergency
-        }
+          emergency,
+        },
       });
 
       return { success: true, reverted, details };
-
     } catch (error: unknown) {
       // Log failure
       await logAudit({
@@ -263,11 +266,11 @@ export const overrideService = {
         tenantId,
         severity: 'error',
         outcome: 'failure',
-        details: { 
-          overrideOf: action.type, 
-          target: action.target, 
-          error: getErrorMessage(error) 
-        }
+        details: {
+          overrideOf: action.type,
+          target: action.target,
+          error: getErrorMessage(error),
+        },
       });
 
       throw error;
@@ -279,7 +282,7 @@ export const overrideService = {
       BrainAction.countDocuments({ tenantId, status: 'pending' }),
       OverrideDecision.countDocuments({ tenantId, decision: 'approve' }),
       OverrideDecision.countDocuments({ tenantId, decision: 'reject' }),
-      OverrideDecision.countDocuments({ tenantId })
+      OverrideDecision.countDocuments({ tenantId }),
     ]);
 
     return {
@@ -287,7 +290,7 @@ export const overrideService = {
       approved,
       rejected,
       total,
-      approvalRate: total > 0 ? Math.round((approved / total) * 100) : 0
+      approvalRate: total > 0 ? Math.round((approved / total) * 100) : 0,
     };
-  }
+  },
 };

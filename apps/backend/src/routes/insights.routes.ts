@@ -10,11 +10,11 @@ const router = Router();
  */
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const tenantId = req.headers['x-tenant-id'] as string || 'demo-tenant';
+    const tenantId = (req.headers['x-tenant-id'] as string) || 'demo-tenant';
     const limit = parseInt(req.query.limit as string) || 10;
-    
+
     const insights = await insightsGeneratorService.generateInsights(tenantId, limit);
-    
+
     res.json({
       success: true,
       data: insights,
@@ -36,10 +36,10 @@ router.get('/', async (req: Request, res: Response) => {
  */
 router.get('/summary', async (req: Request, res: Response) => {
   try {
-    const tenantId = req.headers['x-tenant-id'] as string || 'demo-tenant';
-    
+    const tenantId = (req.headers['x-tenant-id'] as string) || 'demo-tenant';
+
     const summary = await insightsGeneratorService.getInsightsSummary(tenantId);
-    
+
     res.json({
       success: true,
       data: summary,
@@ -62,20 +62,16 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
     const { status, action } = req.body;
-    
-    const insight = await insightsGeneratorService.updateInsightStatus(
-      id,
-      status,
-      action
-    );
-    
+
+    const insight = await insightsGeneratorService.updateInsightStatus(id, status, action);
+
     if (!insight) {
       return res.status(404).json({
         success: false,
         error: 'Insight not found',
       });
     }
-    
+
     res.json({
       success: true,
       data: insight,

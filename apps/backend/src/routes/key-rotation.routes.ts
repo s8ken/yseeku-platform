@@ -1,6 +1,6 @@
 /**
  * Key Rotation API Routes
- * 
+ *
  * Admin endpoints for managing signing key lifecycle:
  * - View key versions and status
  * - Trigger manual rotation
@@ -24,7 +24,7 @@ const router = Router();
 router.get('/status', protect, async (req: Request, res: Response) => {
   try {
     const status = await keyRotationService.getStatus();
-    
+
     res.json({
       success: true,
       data: status,
@@ -45,27 +45,32 @@ router.get('/status', protect, async (req: Request, res: Response) => {
  * List all key versions (without private keys)
  * Requires: admin role
  */
-router.get('/versions', protect, requireRole(['admin', 'operator']), async (req: Request, res: Response) => {
-  try {
-    const versions = keyRotationService.listVersions();
-    
-    res.json({
-      success: true,
-      data: {
-        currentVersion: keyRotationService.getCurrentVersion(),
-        versions,
-      },
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    logger.error('Failed to list key versions', { error: getErrorMessage(error) });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to list key versions',
-      message: getErrorMessage(error),
-    });
+router.get(
+  '/versions',
+  protect,
+  requireRole(['admin', 'operator']),
+  async (req: Request, res: Response) => {
+    try {
+      const versions = keyRotationService.listVersions();
+
+      res.json({
+        success: true,
+        data: {
+          currentVersion: keyRotationService.getCurrentVersion(),
+          versions,
+        },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      logger.error('Failed to list key versions', { error: getErrorMessage(error) });
+      res.status(500).json({
+        success: false,
+        error: 'Failed to list key versions',
+        message: getErrorMessage(error),
+      });
+    }
   }
-});
+);
 
 /**
  * GET /api/keys/public
@@ -76,7 +81,7 @@ router.get('/public', async (req: Request, res: Response) => {
   try {
     const publicKey = await keyRotationService.getPublicKey();
     const currentVersion = keyRotationService.getCurrentVersion();
-    
+
     res.json({
       success: true,
       data: {
@@ -106,7 +111,7 @@ router.get('/public/:version', async (req: Request, res: Response) => {
   try {
     const version = String(req.params.version);
     const publicKey = await keyRotationService.getPublicKey(version);
-    
+
     res.json({
       success: true,
       data: {
@@ -118,7 +123,10 @@ router.get('/public/:version', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error('Failed to get public key', { error: getErrorMessage(error), version: req.params.version });
+    logger.error('Failed to get public key', {
+      error: getErrorMessage(error),
+      version: req.params.version,
+    });
     res.status(404).json({
       success: false,
       error: 'Key not found',
@@ -135,14 +143,14 @@ router.get('/public/:version', async (req: Request, res: Response) => {
 router.post('/rotate', protect, requireRole(['admin']), async (req: Request, res: Response) => {
   try {
     const { reason } = req.body;
-    
-    logger.info('Manual key rotation triggered', { 
+
+    logger.info('Manual key rotation triggered', {
       triggeredBy: (req as any).user?.email || 'unknown',
-      reason: reason || 'manual rotation'
+      reason: reason || 'manual rotation',
     });
-    
+
     const newKey = await keyRotationService.rotate();
-    
+
     res.json({
       success: true,
       data: {
@@ -170,41 +178,49 @@ router.post('/rotate', protect, requireRole(['admin']), async (req: Request, res
  * Revoke a specific key version
  * Requires: admin role
  */
-router.post('/revoke/:version', protect, requireRole(['admin']), async (req: Request, res: Response) => {
-  try {
-    const version = String(req.params.version);
-    const { reason } = req.body;
-    
-    if (!reason) {
+router.post(
+  '/revoke/:version',
+  protect,
+  requireRole(['admin']),
+  async (req: Request, res: Response) => {
+    try {
+      const version = String(req.params.version);
+      const { reason } = req.body;
+
+      if (!reason) {
+        res.status(400).json({
+          success: false,
+          error: 'Reason required for key revocation',
+        });
+        return;
+      }
+
+      logger.warn('Key revocation requested', {
+        version,
+        reason: String(reason),
+        revokedBy: (req as any).user?.email || 'unknown',
+      });
+
+      await keyRotationService.revokeVersion(version, String(reason));
+
+      res.json({
+        success: true,
+        message: `Key version ${version} has been revoked`,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      logger.error('Key revocation failed', {
+        error: getErrorMessage(error),
+        version: req.params.version,
+      });
       res.status(400).json({
         success: false,
-        error: 'Reason required for key revocation',
+        error: 'Key revocation failed',
+        message: getErrorMessage(error),
       });
-      return;
     }
-    
-    logger.warn('Key revocation requested', {
-      version,
-      reason: String(reason),
-      revokedBy: (req as any).user?.email || 'unknown'
-    });
-    
-    await keyRotationService.revokeVersion(version, String(reason));
-    
-    res.json({
-      success: true,
-      message: `Key version ${version} has been revoked`,
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    logger.error('Key revocation failed', { error: getErrorMessage(error), version: req.params.version });
-    res.status(400).json({
-      success: false,
-      error: 'Key revocation failed',
-      message: getErrorMessage(error),
-    });
   }
-});
+);
 
 /**
  * POST /api/keys/verify
@@ -214,7 +230,7 @@ router.post('/revoke/:version', protect, requireRole(['admin']), async (req: Req
 router.post('/verify', async (req: Request, res: Response) => {
   try {
     const { message, signature, keyVersion } = req.body;
-    
+
     if (!message || !signature) {
       res.status(400).json({
         success: false,
@@ -222,13 +238,13 @@ router.post('/verify', async (req: Request, res: Response) => {
       });
       return;
     }
-    
+
     const result = await keyRotationService.verify(
-      String(message), 
-      String(signature), 
+      String(message),
+      String(signature),
       keyVersion ? String(keyVersion) : undefined
     );
-    
+
     res.json({
       success: true,
       data: result,

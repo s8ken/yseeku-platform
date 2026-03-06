@@ -7,7 +7,7 @@ import { logger } from '../utils/logger';
 
 // Safety scan result types
 export type ThreatLevel = 'safe' | 'low' | 'medium' | 'high' | 'critical';
-export type ThreatCategory = 
+export type ThreatCategory =
   | 'injection'
   | 'jailbreak'
   | 'data_exfiltration'
@@ -230,7 +230,8 @@ const THREAT_PATTERNS: ThreatPattern[] = [
     mitigation: 'Redact PII',
   },
   {
-    regex: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b.*\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/gi,
+    regex:
+      /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b.*\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/gi,
     category: 'pii_leak',
     severity: 'high',
     description: 'Potential email + credit card',
@@ -313,14 +314,9 @@ const HEURISTIC_CHECKS: HeuristicCheck[] = [
   {
     name: 'Role play escalation',
     check: (text) => {
-      const rolePlayIndicators = [
-        /\[.*?\]/g,
-        /\*.*?\*/g,
-        /\{.*?speaking.*?\}/gi,
-        /\(.*?as.*?\)/gi,
-      ];
+      const rolePlayIndicators = [/\[.*?\]/g, /\*.*?\*/g, /\{.*?speaking.*?\}/gi, /\(.*?as.*?\)/gi];
       let matches = 0;
-      rolePlayIndicators.forEach(pattern => {
+      rolePlayIndicators.forEach((pattern) => {
         matches += (text.match(pattern) || []).length;
       });
       return {
@@ -350,7 +346,7 @@ class PromptSafetyScanner {
   scan(text: string): SafetyScanResult {
     const startTime = Date.now();
     const threats: ThreatMatch[] = [];
-    
+
     // Run pattern matching
     for (const pattern of this.patterns) {
       pattern.regex.lastIndex = 0; // Reset regex state
@@ -367,7 +363,7 @@ class PromptSafetyScanner {
         });
       }
     }
-    
+
     // Run heuristic checks
     for (const heuristic of this.heuristics) {
       const result = heuristic.check(text);
@@ -383,23 +379,23 @@ class PromptSafetyScanner {
         });
       }
     }
-    
+
     // Calculate overall threat level and score
     const threatLevel = this.calculateThreatLevel(threats);
     const score = this.calculateSafetyScore(threats);
-    
+
     // Generate recommendations
     const recommendations = this.generateRecommendations(threats);
-    
+
     const scanTimeMs = Date.now() - startTime;
-    
+
     logger.info('Prompt safety scan completed', {
       threatLevel,
       threatCount: threats.length,
       score,
       scanTimeMs,
     });
-    
+
     return {
       safe: threatLevel === 'safe' || threatLevel === 'low',
       threatLevel,
@@ -425,10 +421,10 @@ class PromptSafetyScanner {
     const result = this.scan(text);
     let sanitized = text;
     const removed: string[] = [];
-    
+
     // Sort threats by location (descending) to avoid index shifting
     const sortedThreats = [...result.threats].sort((a, b) => b.location.start - a.location.start);
-    
+
     for (const threat of sortedThreats) {
       if (threat.severity === 'critical' || threat.severity === 'high') {
         const before = sanitized.substring(0, threat.location.start);
@@ -437,7 +433,7 @@ class PromptSafetyScanner {
         sanitized = before + '[REDACTED]' + after;
       }
     }
-    
+
     return { sanitized, removed };
   }
 
@@ -446,55 +442,63 @@ class PromptSafetyScanner {
     const snippetStart = Math.max(0, start - contextSize);
     const snippetEnd = Math.min(text.length, start + length + contextSize);
     let snippet = text.substring(snippetStart, snippetEnd);
-    
+
     if (snippetStart > 0) snippet = '...' + snippet;
     if (snippetEnd < text.length) snippet = snippet + '...';
-    
+
     return snippet;
   }
 
   private calculateThreatLevel(threats: ThreatMatch[]): ThreatLevel {
     if (threats.length === 0) return 'safe';
-    
-    const hasCritical = threats.some(t => t.severity === 'critical');
+
+    const hasCritical = threats.some((t) => t.severity === 'critical');
     if (hasCritical) return 'critical';
-    
-    const hasHigh = threats.some(t => t.severity === 'high');
-    const highCount = threats.filter(t => t.severity === 'high').length;
+
+    const hasHigh = threats.some((t) => t.severity === 'high');
+    const highCount = threats.filter((t) => t.severity === 'high').length;
     if (hasHigh && highCount >= 2) return 'critical';
     if (hasHigh) return 'high';
-    
-    const mediumCount = threats.filter(t => t.severity === 'medium').length;
+
+    const mediumCount = threats.filter((t) => t.severity === 'medium').length;
     if (mediumCount >= 3) return 'high';
     if (mediumCount >= 1) return 'medium';
-    
-    const lowCount = threats.filter(t => t.severity === 'low').length;
+
+    const lowCount = threats.filter((t) => t.severity === 'low').length;
     if (lowCount >= 5) return 'medium';
     if (lowCount >= 1) return 'low';
-    
+
     return 'safe';
   }
 
   private calculateSafetyScore(threats: ThreatMatch[]): number {
     if (threats.length === 0) return 100;
-    
+
     let penalty = 0;
     for (const threat of threats) {
       switch (threat.severity) {
-        case 'critical': penalty += 50; break;
-        case 'high': penalty += 30; break;
-        case 'medium': penalty += 15; break;
-        case 'low': penalty += 5; break;
+        case 'critical':
+          penalty += 50;
+          break;
+        case 'high':
+          penalty += 30;
+          break;
+        case 'medium':
+          penalty += 15;
+          break;
+        case 'low':
+          penalty += 5;
+          break;
       }
     }
-    
+
     return Math.max(0, 100 - penalty);
   }
 
   private generateRecommendations(threats: ThreatMatch[]): string[] {
     const recommendations: string[] = [];
-    const categories = new Set(threats.map(t => t.category));
-    
+    const categories = new Set(threats.map((t) => t.category));
+
     if (categories.has('injection')) {
       recommendations.push('Review and sanitize user input before processing');
     }
@@ -510,11 +514,11 @@ class PromptSafetyScanner {
     if (categories.has('encoding_attack')) {
       recommendations.push('Normalize and decode input before processing');
     }
-    
+
     if (recommendations.length === 0 && threats.length > 0) {
       recommendations.push('Monitor this conversation for escalation patterns');
     }
-    
+
     return recommendations;
   }
 }

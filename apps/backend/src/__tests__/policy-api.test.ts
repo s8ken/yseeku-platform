@@ -64,20 +64,16 @@ describe('Policy API Engine', () => {
   describe('Policy Evaluation', () => {
     it('should evaluate receipt', () => {
       const receipt = createMockReceipt();
-      
+
       const result = policyEngine.evaluate(receipt, ['integrity']);
-      
+
       expect(result.passed).toBeDefined();
       expect(result.violations).toBeDefined();
       expect(result.metadata).toBeDefined();
     });
 
     it('should evaluate batch of receipts', () => {
-      const receipts = [
-        createMockReceipt(),
-        createMockReceipt(),
-        createMockReceipt(),
-      ];
+      const receipts = [createMockReceipt(), createMockReceipt(), createMockReceipt()];
 
       const result = policyEngine.evaluateBatch(receipts);
 
@@ -96,7 +92,7 @@ describe('Policy API Engine', () => {
       try {
         const shouldBlock = policyEngine.shouldBlock(receipt, ['integrity']);
         // If it returns, check result. If it throws (due to schema validation), that's also a block effectively
-         expect(shouldBlock).toBe(true);
+        expect(shouldBlock).toBe(true);
       } catch (e) {
         // If engine throws on invalid schema, that's acceptable for this test
         expect(true).toBe(true);
