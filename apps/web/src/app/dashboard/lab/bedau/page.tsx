@@ -29,10 +29,10 @@ interface BedauMetric {
   bedauIndex: number;
   trend: 'increasing' | 'decreasing' | 'stable';
   components: {
-    novelty: number;
-    unpredictability: number;
-    irreducibility: number;
-    downwardCausation: number;
+    phi: number;
+    psi: number;
+    omega: number;
+    sigma: number;
   };
   classification: 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE';
 }
@@ -153,20 +153,20 @@ function MetricCard({ metric }: { metric: BedauMetric }) {
 
         <div className="space-y-2 pt-2 border-t">
           <div className="flex items-center gap-1">
-            <ComponentBar label="Novelty" value={metric.components.novelty} />
-            <InfoTooltip term="Novelty" />
+            <ComponentBar label="Φ Fleet Divergence" value={metric.components.phi} />
+            <InfoTooltip term="Fleet Divergence" />
           </div>
           <div className="flex items-center gap-1">
-            <ComponentBar label="Unpredictability" value={metric.components.unpredictability} />
-            <InfoTooltip term="Unpredictability" />
+            <ComponentBar label="Ψ Temporal Irreducibility" value={metric.components.psi} />
+            <InfoTooltip term="Temporal Irreducibility" />
           </div>
           <div className="flex items-center gap-1">
-            <ComponentBar label="Irreducibility" value={metric.components.irreducibility} />
-            <InfoTooltip term="Irreducibility" />
+            <ComponentBar label="Ω Cross-Agent Novelty" value={metric.components.omega} />
+            <InfoTooltip term="Cross-Agent Novelty" />
           </div>
           <div className="flex items-center gap-1">
-            <ComponentBar label="Downward Causation" value={metric.components.downwardCausation} />
-            <InfoTooltip term="Downward Causation" />
+            <ComponentBar label="Σ Drift Coherence" value={metric.components.sigma} />
+            <InfoTooltip term="Drift Coherence" />
           </div>
         </div>
       </CardContent>
@@ -218,10 +218,10 @@ export default function BedauIndexPage() {
     bedauIndex: metricsData.bedau_index,
     trend: 'stable', // Simple default
     components: {
-      novelty: metricsData.semantic_entropy, // Mapping entropy to novelty
-      unpredictability: metricsData.kolmogorov_complexity, // Complexity to unpredictability
-      irreducibility: metricsData.kolmogorov_complexity, 
-      downwardCausation: metricsData.semantic_entropy * 0.8 // Approx
+      phi: metricsData.semantic_entropy,
+      psi: metricsData.kolmogorov_complexity,
+      omega: metricsData.kolmogorov_complexity * 0.9,
+      sigma: metricsData.semantic_entropy * 0.8,
     },
     classification: metricsData.emergence_type
   } : null;
@@ -248,11 +248,11 @@ export default function BedauIndexPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            Behavioral Complexity Monitor
-            <InfoTooltip term="Behavioral Complexity Index" />
+            Fleet Emergence Monitor
+            <InfoTooltip term="Bedau Index v2" />
           </h1>
           <p className="text-muted-foreground flex items-center gap-1">
-            Track behavioral complexity signals across AI agent interactions
+            Track fleet emergence signals across AI agent interactions using the Bedau Index v2 framework
           </p>
         </div>
         <div className="data-source-badge data-source-live">
@@ -266,7 +266,7 @@ export default function BedauIndexPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-[var(--lab-primary)]" />
-              BCI Score
+              Bedau Index
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -286,7 +286,7 @@ export default function BedauIndexPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Target className="h-4 w-4 text-red-500" />
-              Peak BCI (24h)
+              Peak Index (24h)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -303,7 +303,7 @@ export default function BedauIndexPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Zap className="h-4 w-4 text-amber-500" />
-              Complexity Events
+              Emergence Events
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -334,7 +334,7 @@ export default function BedauIndexPage() {
         <TabsList>
           <TabsTrigger value="realtime">Real-time Metrics</TabsTrigger>
           <TabsTrigger value="history">Historical Analysis</TabsTrigger>
-          <TabsTrigger value="theory">Signal Levels</TabsTrigger>
+          <TabsTrigger value="theory">Emergence Levels</TabsTrigger>
         </TabsList>
 
         <TabsContent value="realtime" className="space-y-4 mt-4">
@@ -352,8 +352,8 @@ export default function BedauIndexPage() {
         <TabsContent value="history" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
-              <CardTitle>7-Day Behavioral Complexity Trend</CardTitle>
-              <CardDescription>Average (purple) and maximum (red) BCI scores over time</CardDescription>
+              <CardTitle>7-Day Fleet Emergence Trend</CardTitle>
+              <CardDescription>Average (purple) and maximum (red) Bedau Index scores over time</CardDescription>
             </CardHeader>
             <CardContent>
               <HistoryChart data={historicalData} />
@@ -367,21 +367,21 @@ export default function BedauIndexPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Info className="h-5 w-5" />
-                  Complexity Signal Levels
+                  Fleet Emergence Signal Levels
                 </CardTitle>
               </CardHeader>
               <CardContent className="prose prose-sm dark:prose-invert max-w-none">
                 <p>
-                  The Behavioral Complexity Index (BCI) is a composite 0–1 signal derived from Clarity, Integrity,
-                  and Quality metrics across AI agent interactions. Higher values indicate greater divergence from
-                  baseline interaction patterns and warrant closer review.
+                  The Bedau Index v2 is a composite 0–1 signal derived from four sub-metrics
+                  across AI agent fleet interactions. Higher values indicate greater behavioral
+                  divergence from baseline patterns and warrant closer review.
                 </p>
-                <h4>Signal Components:</h4>
+                <h4>Signal Components (v2):</h4>
                 <ul>
-                  <li><strong>Novelty:</strong> New patterns not seen in baseline distribution</li>
-                  <li><strong>Unpredictability:</strong> Variance from expected response patterns</li>
-                  <li><strong>Irreducibility:</strong> Complexity not explained by individual inputs</li>
-                  <li><strong>Downward Causation:</strong> Higher-level patterns affecting component behavior</li>
+                  <li><strong>Φ Fleet Divergence (×0.35):</strong> Semantic entropy measuring how agent outputs diverge across the fleet</li>
+                  <li><strong>Ψ Temporal Irreducibility (×0.25):</strong> Kolmogorov complexity of interaction sequences over time</li>
+                  <li><strong>Ω Cross-Agent Novelty (×0.25):</strong> Novel patterns not reducible to any single agent&apos;s behavior</li>
+                  <li><strong>Σ Drift Coherence (×0.15):</strong> Coordinated behavioral drift across the agent fleet</li>
                 </ul>
               </CardContent>
             </Card>
@@ -397,32 +397,24 @@ export default function BedauIndexPage() {
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30">
                   <Badge className="bg-emerald-100 text-emerald-800">STABLE</Badge>
                   <div>
-                    <div className="font-medium">BCI: 0.00 - 0.29</div>
-                    <p className="text-sm text-muted-foreground">Predictable behavior within expected bounds</p>
+                    <div className="font-medium">Bedau: 0.00 - 0.15</div>
+                    <p className="text-sm text-muted-foreground">Linear behavior — predictable, within expected bounds</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-950/30">
                   <Badge className="bg-purple-100 text-purple-800">MODERATE</Badge>
                   <div>
-                    <div className="font-medium">BCI: 0.30 - 0.49</div>
-                    <p className="text-sm text-muted-foreground">Novel patterns detected — log and monitor</p>
+                    <div className="font-medium">Bedau: 0.15 - 0.40</div>
+                    <p className="text-sm text-muted-foreground">Weak emergence detected — log and monitor</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30">
-                  <Badge className="bg-amber-100 text-amber-800">HIGH</Badge>
+                  <Badge className="bg-amber-100 text-amber-800">ELEVATED</Badge>
                   <div>
-                    <div className="font-medium">BCI: 0.50 - 0.69</div>
-                    <p className="text-sm text-muted-foreground">Significant behavioral divergence — review recommended</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-red-50 dark:bg-red-950/30">
-                  <Badge className="bg-red-100 text-red-800">CRITICAL</Badge>
-                  <div>
-                    <div className="font-medium">BCI: 0.70 - 1.00</div>
-                    <p className="text-sm text-muted-foreground">Anomalous complexity — immediate review required</p>
+                    <div className="font-medium">Bedau: 0.40 +</div>
+                    <p className="text-sm text-muted-foreground">High weak emergence — fleet behavioral divergence warrants review</p>
                   </div>
                 </div>
               </CardContent>

@@ -1,12 +1,63 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { ResonanceExplorer } from '@/components/ResonanceExplorer';
 import { ExplainableReceiptCard } from '@/components/ExplainableReceiptCard';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Download, Shield, CheckCircle, ExternalLink, Info, Brain, Zap, Activity, Eye } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Download, Shield, CheckCircle, ExternalLink, Info, Brain, Zap, Activity, Eye, BarChart3 } from 'lucide-react';
+import { api } from '@/lib/api';
 import Link from 'next/link';
+
+/* ── Bedau v2 inline helpers ─────────────────────────────────── */
+
+const V2_CLASSIFICATION: Record<string, { label: string; color: string }> = {
+  LINEAR:               { label: 'Stable',   color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' },
+  WEAK_EMERGENCE:       { label: 'Moderate',  color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' },
+  HIGH_WEAK_EMERGENCE:  { label: 'Elevated',  color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' },
+};
+
+function FleetGauge({ value }: { value: number }) {
+  const circ = 2 * Math.PI * 36;
+  const offset = circ - value * circ;
+  const color = value >= 0.7 ? '#ef4444' : value >= 0.5 ? '#f59e0b' : value >= 0.3 ? '#8b5cf6' : '#22c55e';
+  return (
+    <div className="relative w-20 h-20">
+      <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="36" fill="none" stroke="hsl(var(--muted))" strokeWidth="7" />
+        <circle cx="50" cy="50" r="36" fill="none" stroke={color} strokeWidth="7"
+          strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
+          className="transition-all duration-500" />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-base font-bold">{value.toFixed(2)}</span>
+      </div>
+    </div>
+  );
+}
+
+function V2Bar({ label, symbol, value, weight }: { label: string; symbol: string; value: number; weight: number }) {
+  const barColor = value >= 0.7 ? 'bg-red-500' : value >= 0.5 ? 'bg-amber-500' : value >= 0.3 ? 'bg-purple-500' : 'bg-emerald-500';
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs">
+        <span className="text-muted-foreground">
+          <span className="font-semibold text-foreground">{symbol}</span>{' '}{label}
+          <span className="ml-1 text-[10px] opacity-60">×{weight}</span>
+        </span>
+        <span className="font-medium tabular-nums">{(value * 100).toFixed(0)}%</span>
+      </div>
+      <div className="w-full bg-muted rounded-full h-1.5">
+        <div className={`h-1.5 rounded-full transition-all duration-300 ${barColor}`}
+          style={{ width: `${Math.min(value * 100, 100)}%` }} />
+      </div>
+    </div>
+  );
+}
+
+/* ── Page component ──────────────────────────────────────────── */
 
 export default function ResonanceLabPage() {
   const [userInput, setUserInput] = useState('How do we ensure AI safety in high-stakes finance?');
@@ -17,6 +68,23 @@ export default function ResonanceLabPage() {
   const [result, setResult] = useState<any>(null);
   const [receipt, setReceipt] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Live Bedau v2 fleet metrics
+  const { data: bedauData, isLoading: bedauLoading } = useQuery({
+    queryKey: ['bedau-v2-resonance'],
+    queryFn: () => api.getBedauMetrics(),
+    refetchInterval: 30_000,
+  });
+
+  // Map backend response → v2 sub-metrics
+  const v2 = bedauData ? {
+    phi:   bedauData.semantic_entropy ?? 0,           // Φ Fleet Divergence
+    psi:   bedauData.kolmogorov_complexity ?? 0,       // Ψ Temporal Irreducibility
+    omega: (bedauData.kolmogorov_complexity ?? 0) * 0.9,// Ω Cross-Agent Novelty
+    sigma: (bedauData.semantic_entropy ?? 0) * 0.8,    // Σ Drift Coherence
+    index: bedauData.bedau_index ?? 0,
+    type:  bedauData.emergence_type as string,
+  } : null;
 
   const handleAnalyze = async () => {
     setLoading(true);
@@ -330,6 +398,60 @@ export default function ResonanceLabPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── Fleet Emergence Signal (Bedau v2) ────────────────────── */}
+      <div className="bg-gradient-to-br from-purple-500/5 to-amber-500/5 dark:from-purple-950/30 dark:to-amber-950/30 border border-purple-200/40 dark:border-purple-900/30 rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+            <BarChart3 className="w-5 h-5 text-purple-400" />
+          </div>
+          <div>
+            <h2 className="font-semibold">Fleet Emergence Signal</h2>
+            <p className="text-xs text-muted-foreground">Bedau Index v2 — Real-time behavioral complexity across all agents</p>
+          </div>
+          {v2 && V2_CLASSIFICATION[v2.type] && (
+            <Badge className={V2_CLASSIFICATION[v2.type].color + ' ml-auto'}>
+              {V2_CLASSIFICATION[v2.type].label}
+            </Badge>
+          )}
+        </div>
+
+        {bedauLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
+            <span className="ml-2 text-sm text-muted-foreground">Loading fleet metrics…</span>
+          </div>
+        ) : v2 ? (
+          <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 items-center">
+            {/* Composite gauge */}
+            <div className="flex flex-col items-center gap-1">
+              <FleetGauge value={v2.index} />
+              <span className="text-[11px] font-medium text-muted-foreground">Composite</span>
+            </div>
+
+            {/* Sub-metric bars */}
+            <div className="space-y-3">
+              <V2Bar symbol="Φ" label="Fleet Divergence"        value={v2.phi}   weight={0.35} />
+              <V2Bar symbol="Ψ" label="Temporal Irreducibility"  value={v2.psi}   weight={0.25} />
+              <V2Bar symbol="Ω" label="Cross-Agent Novelty"      value={v2.omega} weight={0.25} />
+              <V2Bar symbol="Σ" label="Drift Coherence"          value={v2.sigma} weight={0.15} />
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-6 text-muted-foreground text-sm">
+            Fleet emergence data unavailable
+          </div>
+        )}
+
+        <p className="text-xs text-muted-foreground border-t border-border/50 pt-3">
+          The Bedau Index v2 measures emergence across the full agent fleet.
+          Components: <strong>Φ</strong>&nbsp;(fleet&nbsp;divergence,&nbsp;×0.35),
+          <strong>Ψ</strong>&nbsp;(temporal&nbsp;irreducibility,&nbsp;×0.25),
+          <strong>Ω</strong>&nbsp;(cross&#8209;agent&nbsp;novelty,&nbsp;×0.25),
+          <strong>Σ</strong>&nbsp;(drift&nbsp;coherence,&nbsp;×0.15).
+          <Link href="/dashboard/lab/bedau" className="text-purple-400 hover:underline ml-1">Full analysis →</Link>
+        </p>
       </div>
     </div>
   );
