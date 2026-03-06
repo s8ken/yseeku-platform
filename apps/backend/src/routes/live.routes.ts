@@ -250,8 +250,8 @@ router.get('/health', async (req: Request, res: Response): Promise<void> => {
           latency: dbLatency,
         },
         memory: {
-          heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024),
-          heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024),
+          used: Math.round(memoryUsage.rss / 1024 / 1024),
+          total: parseInt(process.env.MEMORY_LIMIT_MB ?? '512'),
           rss: Math.round(memoryUsage.rss / 1024 / 1024),
         },
         responseTime: Date.now() - startTime,

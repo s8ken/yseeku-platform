@@ -166,8 +166,8 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
     mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     memory: {
-      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+      used: Math.round(process.memoryUsage().rss / 1024 / 1024),
+      total: parseInt(process.env.MEMORY_LIMIT_MB ?? '512'),
     },
   };
   

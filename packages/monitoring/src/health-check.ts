@@ -575,7 +575,9 @@ export class HealthCheckSystem {
 
       const latency = Date.now() - startTime;
       const memoryUsage = process.memoryUsage();
-      const usedPercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
+      const rssMB = memoryUsage.rss / 1024 / 1024;
+      const limitMB = parseInt(process.env.MEMORY_LIMIT_MB ?? '512');
+      const usedPercent = (rssMB / limitMB) * 100;
 
       return {
         status: usedPercent < 80 ? 'healthy' : usedPercent < 90 ? 'degraded' : 'unhealthy',
@@ -584,8 +586,8 @@ export class HealthCheckSystem {
         message: `Memory usage: ${usedPercent.toFixed(1)}%`,
         details: {
           latency,
-          heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)}MB`,
-          heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)}MB`,
+          rss: `${rssMB.toFixed(2)}MB`,
+          limit: `${limitMB}MB`,
           usedPercent,
         },
         recommendations: usedPercent > 80 ? ['Monitor memory usage closely'] : [],

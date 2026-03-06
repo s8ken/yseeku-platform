@@ -115,10 +115,12 @@ router.get('/health', async (req: Request, res: Response): Promise<void> => {
       databaseError = getErrorMessage(err) || 'Database ping failed';
     }
 
-    // Get memory usage
+    // Get memory usage — use RSS vs configured limit so the gauge reflects
+    // actual process footprint, not V8 heap pages (heapTotal starts tiny and
+    // grows on demand, making heapUsed/heapTotal always look near 100%).
     const memUsage = process.memoryUsage();
-    const totalMemMB = Math.round(memUsage.heapTotal / 1024 / 1024);
-    const usedMemMB = Math.round(memUsage.heapUsed / 1024 / 1024);
+    const usedMemMB = Math.round(memUsage.rss / 1024 / 1024);
+    const totalMemMB = parseInt(process.env.MEMORY_LIMIT_MB ?? '512');
     const memPercentage = Math.round((usedMemMB / totalMemMB) * 100);
 
     let memStatus: 'ok' | 'warning' | 'critical' = 'ok';
@@ -211,7 +213,8 @@ router.get('/health/ready', async (req: Request, res: Response): Promise<void> =
 
     // Check memory (fail if critically low)
     const memUsage = process.memoryUsage();
-    const memPercentage = Math.round((memUsage.heapUsed / memUsage.heapTotal) * 100);
+    const memLimitMB = parseInt(process.env.MEMORY_LIMIT_MB ?? '512');
+    const memPercentage = Math.round((memUsage.rss / 1024 / 1024) / memLimitMB * 100);
     if (memPercentage > 95) {
       isReady = false;
     }
