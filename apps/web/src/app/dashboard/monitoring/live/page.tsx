@@ -64,7 +64,7 @@ interface LiveMetrics {
     consent: number;
     inspection: number;
     validation: number;
-    override: number;
+    ethics: number;
     disconnect: number;
     moral: number;
   };
@@ -362,9 +362,9 @@ export default function LiveDashboardPage() {
       consent: kpisData.principleScores?.consent || 8.5,
       inspection: kpisData.principleScores?.inspection || 8.7,
       validation: kpisData.principleScores?.validation || 8.3,
-      override: kpisData.principleScores?.override || 9.0,
+      ethics: kpisData.principleScores?.ethics || 9.0,
       disconnect: kpisData.principleScores?.disconnect || 8.8,
-      moral: kpisData.principleScores?.recognition || 8.6,
+      moral: kpisData.principleScores?.moral || 8.6,
     },
   } : null;
 
@@ -552,7 +552,7 @@ export default function LiveDashboardPage() {
                 <PrincipleBar name="Consent" score={displayMetrics.principles.consent} />
                 <PrincipleBar name="Inspection" score={displayMetrics.principles.inspection} />
                 <PrincipleBar name="Validation" score={displayMetrics.principles.validation} />
-                <PrincipleBar name="Ethical Override" score={displayMetrics.principles.override} />
+                <PrincipleBar name="Ethical Override" score={displayMetrics.principles.ethics} />
                 <PrincipleBar name="Disconnect" score={displayMetrics.principles.disconnect} />
                 <PrincipleBar name="Moral Recognition" score={displayMetrics.principles.moral} />
               </CardContent>

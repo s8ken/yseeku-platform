@@ -102,7 +102,7 @@ router.get('/live-metrics', async (req: Request, res: Response): Promise<void> =
       consent: Math.min(10, avgIntegrity * 2),
       inspection: Math.min(10, avgClarity * 2),
       validation: Math.min(10, avgQuality * 2),
-      override: Math.min(10, avgIntegrity * 2.1),
+      ethics: Math.min(10, avgIntegrity * 2.1),
       disconnect: Math.min(10, 8.5 + (avgQuality - 4) * 0.3),
       moral: Math.min(10, (avgIntegrity + avgQuality)),
     };

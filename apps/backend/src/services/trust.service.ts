@@ -331,8 +331,15 @@ export class TrustService {
       };
     }
 
-    // Persist receipt so chain tip survives restarts
-    await persistReceipt(receipt, 'default', {
+    // Persist receipt so chain tip survives restarts.
+    // tenantId should always be set by callers; log a warning if not so it surfaces in monitoring.
+    if (!context.tenantId) {
+      logger.warn('persistReceipt called without tenantId — falling back to "default"', {
+        receiptHash: receipt.self_hash,
+        sessionId: context.sessionId,
+      });
+    }
+    await persistReceipt(receipt, context.tenantId || 'default', {
       evaluated_by: 'heuristic',
     });
 
