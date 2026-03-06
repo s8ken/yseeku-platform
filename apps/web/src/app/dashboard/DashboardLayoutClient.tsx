@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -39,6 +39,7 @@ import {
   Bot,
   Play,
   Brain,
+  MoreHorizontal,
   
   MessageSquare,
   Compass,
@@ -162,6 +163,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [expandedModules, setExpandedModules] = useState<ModuleType[]>(['detect', 'lab', 'orchestrate']);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [activeSearchIndex, setActiveSearchIndex] = useState(-1);
   const [liveUser, setLiveUser] = useState<DashboardUser>(defaultUser);
   const searchRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -172,16 +174,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // All flattened nav items for search
   const allNavItems = useMemo(() => moduleSections.flatMap(s => s.items), []);
 
-  const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    const q = searchQuery.toLowerCase();
-    return allNavItems.filter(item => item.title.toLowerCase().includes(q));
-  }, [searchQuery, allNavItems]);
-
   // Close search on click outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+        setActiveSearchIndex(-1);
+      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -214,6 +213,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // Determine user based on mode
   const currentUser = isDemo ? demoUser : liveUser;
+  const roleNavItems = useMemo(
+    () => allNavItems.filter((item) => item.roles.includes(currentUser.role)),
+    [allNavItems, currentUser.role],
+  );
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    return roleNavItems.filter(item => item.title.toLowerCase().includes(q));
+  }, [searchQuery, roleNavItems]);
 
   useEffect(() => {
     if (currentUser.role === 'admin') {
@@ -226,6 +234,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
     setExpandedModules(['detect']);
   }, [currentUser.role]);
+
+  useEffect(() => {
+    if (searchResults.length === 0) {
+      setActiveSearchIndex(-1);
+      return;
+    }
+
+    if (activeSearchIndex >= searchResults.length) {
+      setActiveSearchIndex(0);
+    }
+  }, [activeSearchIndex, searchResults]);
 
   // Initialize demo mode on first load if URL has ?demo=true
   useEffect(() => {
@@ -282,6 +301,51 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return { href: '/dashboard/verify', label: 'Verify Receipt', icon: ShieldCheck };
   })();
 
+  const toggleOrganizationMode = (): void => {
+    toggleDemo();
+  };
+
+  const openSearchResult = (href: string): void => {
+    router.push(href);
+    setSearchQuery('');
+    setSearchOpen(false);
+    setActiveSearchIndex(-1);
+  };
+
+  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
+    if (!searchOpen || searchResults.length === 0) {
+      if (event.key === 'Escape') {
+        setSearchOpen(false);
+        setActiveSearchIndex(-1);
+      }
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setActiveSearchIndex((prev) => (prev + 1) % searchResults.length);
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setActiveSearchIndex((prev) => (prev <= 0 ? searchResults.length - 1 : prev - 1));
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      const selectedIndex = activeSearchIndex >= 0 ? activeSearchIndex : 0;
+      openSearchResult(searchResults[selectedIndex].href);
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      setSearchOpen(false);
+      setActiveSearchIndex(-1);
+    }
+  };
+
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center border-b px-4">
@@ -307,9 +371,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             return (
               <div key={section.id} className="module-section">
                 <button
+                  type="button"
                   onClick={() => toggleModule(section.id)}
-                  className={cn("module-header w-full", getHeaderClass(section.id))}
+                  className={cn(
+                    "module-header w-full min-h-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    getHeaderClass(section.id),
+                  )}
                   aria-expanded={isExpanded}
+                  aria-controls={`module-${section.id}`}
                 >
                   <ChevronRight className={cn("h-3 w-3 transition-transform", isExpanded && "rotate-90")} />
                   <span className="flex-1 text-left">{section.title}</span>
@@ -319,7 +388,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </button>
 
                 {isExpanded && (
-                  <div className="mt-1 ml-3 space-y-0.5">
+                  <div id={`module-${section.id}`} className="mt-1 ml-3 space-y-0.5">
                     {filteredItems.map((item) => {
                       const Icon = item.icon;
                       const isActive = pathname === item.href ||
@@ -331,8 +400,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           href={item.href}
                           id={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
                           className={cn(
-                            "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-all",
+                            "flex min-h-11 items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-all",
                             "text-muted-foreground hover:text-foreground",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                             getModuleColorClass(item.module),
                             isActive && "active"
                           )}
@@ -404,7 +474,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         <div className="flex flex-col">
-          <header className="flex h-16 items-center gap-4 border-b bg-card px-4 lg:px-6" role="banner">
+          <header className="flex h-16 items-center gap-2 sm:gap-4 border-b bg-card px-3 sm:px-4 lg:px-6" role="banner">
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="shrink-0 md:hidden" aria-label="Open navigation menu">
@@ -423,19 +493,49 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   type="search"
                   placeholder="Search pages..."
                   value={searchQuery}
-                  onChange={(e) => { setSearchQuery(e.target.value); setSearchOpen(true); }}
-                  onFocus={() => setSearchOpen(true)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSearchOpen(true);
+                    setActiveSearchIndex(0);
+                  }}
+                  onFocus={() => {
+                    setSearchOpen(true);
+                    if (searchResults.length > 0 && activeSearchIndex < 0) {
+                      setActiveSearchIndex(0);
+                    }
+                  }}
+                  onKeyDown={handleSearchKeyDown}
+                  role="combobox"
+                  aria-label="Search dashboard pages"
+                  aria-autocomplete="list"
+                  aria-controls="dashboard-search-results"
+                  aria-expanded={searchOpen && searchResults.length > 0}
+                  aria-activedescendant={activeSearchIndex >= 0 ? `dashboard-search-option-${activeSearchIndex}` : undefined}
                   className="w-full rounded-lg border bg-background px-10 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                 {searchOpen && searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-card shadow-lg z-50 max-h-64 overflow-y-auto">
-                    {searchResults.map((item) => {
+                  <div
+                    id="dashboard-search-results"
+                    role="listbox"
+                    className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-card shadow-lg z-50 max-h-64 overflow-y-auto"
+                  >
+                    {searchResults.map((item, index) => {
                       const Icon = item.icon;
                       return (
                         <button
+                          type="button"
+                          id={`dashboard-search-option-${index}`}
+                          role="option"
+                          aria-selected={activeSearchIndex === index}
                           key={item.href}
-                          className="flex items-center gap-3 w-full px-4 py-2.5 text-sm hover:bg-muted text-left"
-                          onClick={() => { router.push(item.href); setSearchQuery(''); setSearchOpen(false); }}
+                          className={cn(
+                            "flex items-center gap-3 w-full px-4 py-2.5 text-sm text-left",
+                            "hover:bg-muted",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            activeSearchIndex === index && "bg-muted"
+                          )}
+                          onMouseEnter={() => setActiveSearchIndex(index)}
+                          onClick={() => openSearchResult(item.href)}
                         >
                           <Icon className="h-4 w-4 text-muted-foreground" />
                           <span>{item.title}</span>
@@ -446,7 +546,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </div>
                 )}
                 {searchOpen && searchQuery.trim() && searchResults.length === 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-card shadow-lg z-50 p-4 text-sm text-muted-foreground text-center">
+                  <div role="status" aria-live="polite" className="absolute top-full left-0 right-0 mt-1 rounded-lg border bg-card shadow-lg z-50 p-4 text-sm text-muted-foreground text-center">
                     No pages found
                   </div>
                 )}
@@ -454,14 +554,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             <Link href={roleStartRoute.href}>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="outline" size="sm" className="gap-2" aria-label={roleStartRoute.label}>
                 <RoleStartIcon className="h-4 w-4" />
                 <span className="hidden sm:inline">{roleStartRoute.label}</span>
               </Button>
             </Link>
 
             <Link href="/dashboard/tactical-command">
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="outline" size="sm" className="hidden sm:inline-flex gap-2" aria-label="Open Tactical Command">
                 <Compass className="h-4 w-4" />
                 <span className="hidden sm:inline">Tactical Command</span>
               </Button>
@@ -472,9 +572,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               variant={isDemo ? "default" : "outline"}
               size="sm"
               className={cn(
-                "gap-2",
+                "hidden sm:inline-flex gap-2",
                 isDemo && "bg-amber-500 hover:bg-amber-600 text-white"
               )}
+              aria-label={isDemo ? 'Switch to live mode' : 'Switch to demo mode'}
               onClick={toggleDemo}
             >
               <Play className="h-4 w-4" />
@@ -483,7 +584,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button variant="outline" size="sm" className="hidden sm:inline-flex gap-2" aria-label="Switch organization">
                   <Building2 className="h-4 w-4" />
                   <span className="hidden sm:inline">
                     {isDemo ? 'Demo Organization' : 'Live Organization'}
@@ -494,7 +595,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <DropdownMenuContent align="end" className="w-48 dark:bg-slate-900">
                 <DropdownMenuItem
                   className={cn("cursor-pointer", isDemo && "bg-muted")}
-                  onClick={() => !isDemo && toggleDemo()}
+                  onClick={() => !isDemo && toggleOrganizationMode()}
                 >
                   <Building2 className="mr-2 h-4 w-4" />
                   Demo Organization
@@ -502,7 +603,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className={cn("cursor-pointer", !isDemo && "bg-muted")}
-                  onClick={() => isDemo && toggleDemo()}
+                  onClick={() => isDemo && toggleOrganizationMode()}
                 >
                   <Building2 className="mr-2 h-4 w-4" />
                   Live Organization
@@ -515,6 +616,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               href="https://yseeku.com"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Open yseeku.com in a new tab"
+              className="hidden sm:block"
             >
               <Button variant="outline" size="sm" className="gap-2">
                 <ExternalLink className="h-4 w-4" />
@@ -522,12 +625,45 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Button>
             </a>
 
-            <ConnectionStatus />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="sm:hidden" aria-label="Open quick actions">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 sm:hidden dark:bg-slate-900">
+                <Link href="/dashboard/tactical-command">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Compass className="mr-2 h-4 w-4" />
+                    Tactical Command
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuItem className="cursor-pointer" onClick={toggleDemo}>
+                  <Play className="mr-2 h-4 w-4" />
+                  {isDemo ? 'Switch to Live Mode' : 'Switch to Demo Mode'}
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={toggleOrganizationMode}>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  {isDemo ? 'Use Live Organization' : 'Use Demo Organization'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <a href="https://yseeku.com" target="_blank" rel="noopener noreferrer">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Visit yseeku.com
+                  </DropdownMenuItem>
+                </a>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="hidden md:block">
+              <ConnectionStatus />
+            </div>
             <ThemeToggle />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon" className="relative" aria-label="Open notifications">
                   <Bell className="h-5 w-5" />
                   {notifications.length > 0 && (
                     <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center">
@@ -567,7 +703,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
+                <Button variant="ghost" size="icon" className="rounded-full" aria-label="Open account menu">
                   <Avatar className="h-8 w-8">
                     <AvatarImage
                       src={currentUser.name ? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=0D8ABC&color=fff` : undefined}

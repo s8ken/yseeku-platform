@@ -1,7 +1,8 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { 
   Shield, 
   MessageSquare, 
@@ -47,6 +48,7 @@ const EmptyState = ({
       </p>
       {action && (
         <button
+          type="button"
           onClick={action.onClick}
           className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             action.variant === 'outline'
@@ -134,6 +136,7 @@ function getRoleOnboarding(role: DashboardRole) {
         'Verify tenant and role permissions',
       ],
       primaryLabel: 'Configure Governance',
+      storageKey: 'admin-baseline',
     };
   }
 
@@ -148,6 +151,7 @@ function getRoleOnboarding(role: DashboardRole) {
         'Open trust analytics for trends',
       ],
       primaryLabel: 'Verify First Receipt',
+      storageKey: 'viewer-verification',
     };
   }
 
@@ -155,12 +159,13 @@ function getRoleOnboarding(role: DashboardRole) {
     title: 'Start Your First Trust Session',
     description:
       'Create your first interaction to generate trust receipts, principle scores, and governance insights.',
-    checklist: [
-      'Start a trust session with an agent',
-      'Review the generated trust receipt',
-      'Check alerts and recommendations',
-    ],
-    primaryLabel: 'Start Trust Session',
+      checklist: [
+        'Start a trust session with an agent',
+        'Review the generated trust receipt',
+        'Check alerts and recommendations',
+      ],
+      primaryLabel: 'Start Trust Session',
+      storageKey: 'user-first-session',
   };
 }
 
@@ -178,8 +183,55 @@ export function EmptyDashboardBlankSlate({
   primaryActionLabel?: string;
 }) {
   const onboarding = getRoleOnboarding(role);
-  const primaryAction = onPrimaryAction || onStartChat;
-  const primaryLabel = primaryActionLabel || onboarding.primaryLabel;
+  const primaryAction = onPrimaryAction ?? onStartChat;
+  const primaryLabel = primaryActionLabel ?? onboarding.primaryLabel;
+  const checklistStorageKey = useMemo(
+    () => `yseeku-dashboard-onboarding-${onboarding.storageKey}`,
+    [onboarding.storageKey],
+  );
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      const persisted = window.localStorage.getItem(checklistStorageKey);
+      if (!persisted) {
+        setCompletedSteps([]);
+        return;
+      }
+
+      const parsed = JSON.parse(persisted) as unknown;
+      if (Array.isArray(parsed) && parsed.every((item) => typeof item === 'number')) {
+        setCompletedSteps(parsed);
+        return;
+      }
+      setCompletedSteps([]);
+    } catch {
+      setCompletedSteps([]);
+    }
+  }, [checklistStorageKey]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    window.localStorage.setItem(checklistStorageKey, JSON.stringify(completedSteps));
+  }, [checklistStorageKey, completedSteps]);
+
+  const toggleChecklistStep = (index: number): void => {
+    setCompletedSteps((current) => {
+      if (current.includes(index)) {
+        return current.filter((stepIndex) => stepIndex !== index);
+      }
+      return [...current, index];
+    });
+  };
+
+  const completedCount = completedSteps.length;
+  const completionPercent = Math.round((completedCount / onboarding.checklist.length) * 100);
 
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4">
@@ -189,19 +241,49 @@ export function EmptyDashboardBlankSlate({
         {onboarding.description}
       </p>
       <div className="w-full max-w-xl rounded-lg border p-4 mb-6 bg-muted/20">
-        <p className="text-sm font-semibold mb-3">{onboarding.title}</p>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <p className="text-sm font-semibold">{onboarding.title}</p>
+          <p className="text-xs text-muted-foreground">
+            {completedCount}/{onboarding.checklist.length} complete
+          </p>
+        </div>
+        <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-emerald-500 transition-[width] duration-300"
+            style={{ width: `${completionPercent}%` }}
+            aria-hidden="true"
+          />
+        </div>
         <ul className="space-y-2 text-sm text-muted-foreground">
-          {onboarding.checklist.map((item) => (
-            <li key={item} className="flex items-start gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
-              <span>{item}</span>
-            </li>
-          ))}
+          {onboarding.checklist.map((item, index) => {
+            const isComplete = completedSteps.includes(index);
+            return (
+              <li key={item}>
+                <button
+                  type="button"
+                  aria-pressed={isComplete}
+                  onClick={() => toggleChecklistStep(index)}
+                  className="flex w-full items-start gap-2 rounded-md p-1 text-left hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <CheckCircle2
+                    className={cn(
+                      "mt-0.5 h-4 w-4 shrink-0",
+                      isComplete ? "text-emerald-500" : "text-muted-foreground/60",
+                    )}
+                  />
+                  <span className={cn(isComplete && "text-muted-foreground line-through")}>
+                    {item}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </div>
       <div className="flex flex-col sm:flex-row gap-3">
         {primaryAction && (
           <button
+            type="button"
             onClick={primaryAction}
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors"
           >
@@ -211,6 +293,7 @@ export function EmptyDashboardBlankSlate({
         )}
         {onViewDemo && (
           <button
+            type="button"
             onClick={onViewDemo}
             className="inline-flex items-center gap-2 px-6 py-3 border border-border rounded-md font-medium hover:bg-muted transition-colors"
           >
