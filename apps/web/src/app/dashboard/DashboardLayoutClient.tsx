@@ -49,7 +49,8 @@ import {
   MessageSquare,
   Compass,
   GraduationCap,
-  Eye
+  Eye,
+  Terminal
 } from 'lucide-react';
 import { useTutorialStore } from '@/store/useTutorialStore';
 import { dashboardTutorialSteps } from '@/components/tutorial/steps';

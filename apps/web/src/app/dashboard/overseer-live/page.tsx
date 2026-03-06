@@ -31,11 +31,11 @@ export default function OverseerLiveDashboard() {
   const comparison = archiveData ? calculateComparison(archiveData, liveMetrics) : null
 
   const filteredMetrics = liveMetrics.filter(m => 
-    m.source.toLowerCase().includes(filter.toLowerCase()) ;
+    m.source.toLowerCase().includes(filter.toLowerCase()) ||
     m.securityFlags.some(f => f.toLowerCase().includes(filter.toLowerCase()))
   )
 
-  if (liveLoading ; archiveLoading) {
+  if (liveLoading || archiveLoading) {
     return (
       <div className="min-h-screen bg-slate-950 p-8">
         <div className="max-w-7xl mx-auto">
@@ -139,7 +139,7 @@ export default function OverseerLiveDashboard() {
                 <Shield className="w-3 h-3 text-emerald-500" /> Proofs
               </CardDescription>
               <CardTitle className="text-3xl font-mono text-white">
-                {comparison?.receiptCount ; 0}
+                {comparison?.receiptCount || 0}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -159,7 +159,7 @@ export default function OverseerLiveDashboard() {
         </div>
 
         {/* Comparative Analysis Section */}
-        {comparison ; (
+        {comparison && (
           <section className="mt-8">
             <Card className="bg-slate-900 border-slate-800 overflow-hidden">
               <CardHeader className="border-b border-slate-800 bg-slate-950/50">
@@ -215,7 +215,7 @@ export default function OverseerLiveDashboard() {
                     </div>
                     <div className="space-y-2">
                       <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Projected Load</span>
-                      <div className="text-2xl font-mono text-slate-500">~{Math.round((486 / 212) * (comparison.receiptCount ; 1))}</div>
+                      <div className="text-2xl font-mono text-slate-500">~{Math.round((486 / 212) * (comparison.receiptCount || 1))}</div>
                       <div className="text-[10px] text-slate-400">Archive comparison pace</div>
                     </div>
                     <div className="col-span-2 pt-4 border-t border-slate-800">

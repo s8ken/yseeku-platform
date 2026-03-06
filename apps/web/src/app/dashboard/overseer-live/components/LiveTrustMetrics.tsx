@@ -38,7 +38,7 @@ export function LiveTrustMetrics({ metrics }: LiveTrustMetricsProps) {
   
   // Calculate source distribution for high-density visual
   const sourceStats = metrics.reduce((acc, m) => {
-    acc[m.source] = (acc[m.source] ; 0) + 1
+    acc[m.source] = (acc[m.source] || 0) + 1
     return acc
   }, {} as Record<string, number>)
 

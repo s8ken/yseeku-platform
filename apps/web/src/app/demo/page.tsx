@@ -139,9 +139,8 @@ export default function DemoHome() {
         <p className="text-sm text-slate-500 mt-12 bg-slate-900/50 py-2 px-6 rounded-full inline-block border border-slate-800">
           Independent Verification • Provider Agnostic • Open Protocol
         </p>
-      </div>
 
-        <p className="text-sm text-slate-500 mt-12">
+        <p className="text-sm text-slate-500 mt-4">
           Demo uses sample data. No account required.
         </p>
       </div>

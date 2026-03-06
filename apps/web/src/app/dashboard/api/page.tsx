@@ -44,8 +44,10 @@ import {
   BookOpen,
   ExternalLink,
   Cpu,
-  Fingerprint
+  Fingerprint,
+  Webhook
 } from 'lucide-react';
+import Link from 'next/link';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';

@@ -42,6 +42,7 @@ interface ComplianceReport {
     failedChecks: number;
     warnings: number;
     riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    verifiableCount?: number;
   };
   content?: string;
 }
@@ -357,7 +358,17 @@ export default function ReportsPage() {
                   </div>
                 )}
               </TabsContent>
-Protocol Audit</h3>
+              <TabsContent value="view" className="mt-0">
+                {!viewingReport ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <Eye className="h-8 w-8 mb-2" />
+                    <p>Select a report to view details</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold">{viewingReport.type} SONATE Protocol Audit</h3>
                         <p className="text-sm text-muted-foreground">
                           Generated {format(new Date(viewingReport.generatedAt), 'MMMM d, yyyy HH:mm')}
                         </p>
@@ -368,13 +379,7 @@ Protocol Audit</h3>
                             <Shield className="h-4 w-4 mr-2" />
                             Verify Receipts
                           </a>
-                        </Button
-                        <h3 className="text-lg font-semibold">{viewingReport.type} Compliance Report</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Generated {format(new Date(viewingReport.generatedAt), 'MMMM d, yyyy HH:mm')}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
+                        </Button>
                         <Button variant="outline" size="sm" onClick={() => downloadReport(viewingReport.id, 'json')}>
                           <Download className="h-4 w-4 mr-2" />
                           JSON
@@ -401,15 +406,7 @@ Protocol Audit</h3>
                           <CardContent className="pt-4">
                             <div className="text-2xl font-bold text-center text-green-600">
                               {viewingReport.summary.passedChecks}
-                            < className="border-blue-200 bg-blue-50/10">
-                          <CardContent className="pt-4">
-                            <div className="text-2xl font-bold text-center text-blue-600">
-                              {(viewingReport.summary as any).verifiableCount}
                             </div>
-                            <div className="text-xs text-muted-foreground text-center">Verifiable Proofs</div>
-                          </CardContent>
-                        </Card>
-                        <Card/div>
                             <div className="text-xs text-muted-foreground text-center">Passed</div>
                           </CardContent>
                         </Card>
