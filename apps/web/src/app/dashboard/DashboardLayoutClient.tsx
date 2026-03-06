@@ -97,7 +97,14 @@ const moduleSections: ModuleSection[] = [
       { title: 'Verify Receipt', href: '/dashboard/verify', icon: ShieldCheck, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Risk & Compliance', href: '/dashboard/risk', icon: Waves, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Overseer', href: '/dashboard/overseer', icon: Eye, roles: ['admin', 'user', 'viewer'], module: 'detect' },
+      { title: 'Overseer Live', href: '/dashboard/overseer-live', icon: Activity, roles: ['admin', 'user'], module: 'detect' },
+      { title: 'Overseer Archive', href: '/dashboard/overseer-archive', icon: BarChart3, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Alerts', href: '/dashboard/alerts', icon: AlertTriangle, roles: ['admin', 'user'], module: 'detect' },
+      { title: 'Overrides', href: '/dashboard/overrides', icon: KeyRound, roles: ['admin', 'user'], module: 'detect' },
+      { title: 'Trust Analytics', href: '/dashboard/trust', icon: Shield, roles: ['admin', 'user'], module: 'detect' },
+      { title: 'Overview', href: '/dashboard/overview', icon: BarChart3, roles: ['admin', 'user', 'viewer'], module: 'detect' },
+      { title: 'System Monitor', href: '/dashboard/monitoring', icon: Server, roles: ['admin'], module: 'detect' },
+      { title: 'Emergence Monitor', href: '/dashboard/monitoring/emergence', icon: Waves, roles: ['admin', 'user'], module: 'detect' },
     ]
   },
   {
@@ -127,6 +134,11 @@ const moduleSections: ModuleSection[] = [
       { title: 'SONATE Constitution', href: '/dashboard/learn/foundations/what-is-sonate', icon: Shield, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
       { title: 'Protocol Access', href: '/dashboard/api', icon: Terminal, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'Dev Tools', href: '/dashboard/tools', icon: Settings, roles: ['admin', 'user'], module: 'orchestrate' },
+      { title: 'Workflows', href: '/dashboard/orchestrate', icon: Play, roles: ['admin'], module: 'orchestrate' },
+      { title: 'Webhooks', href: '/dashboard/webhooks', icon: Webhook, roles: ['admin'], module: 'orchestrate' },
+      { title: 'Tenants', href: '/dashboard/tenants', icon: Building2, roles: ['admin'], module: 'orchestrate' },
+      { title: 'Glossary', href: '/dashboard/glossary', icon: HelpCircle, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
+      { title: 'Trust Settings', href: '/dashboard/settings/trust', icon: Shield, roles: ['admin'], module: 'orchestrate' },
       { title: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['admin'], module: 'orchestrate' },
     ]
   }
