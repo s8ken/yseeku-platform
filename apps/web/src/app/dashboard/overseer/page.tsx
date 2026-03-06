@@ -10,19 +10,19 @@
 import { useState } from 'react'
 import { useArchiveReport } from '@/lib/hooks/useArchiveReport'
 import { useLiveMetrics } from '@/lib/hooks/useLiveMetrics'
+import OverseerLiveDashboard from '../overseer-live/page'
 import { calculateComparison } from '@/lib/services/overseer'
 import { TrustScoreDistribution } from '../overseer-archive/components/TrustScoreDistribution'
 import { VelocityTimeline } from '../overseer-archive/components/VelocityTimeline'
 import { ThemeCloud } from '../overseer-archive/components/ThemeCloud'
 import { SecurityFlagsDisplay } from '../overseer-archive/components/SecurityFlagsDisplay'
-import { LiveTrustMetrics } from '../overseer-live/components/LiveTrustMetrics'
-import { RecentReceiptsStream } from '../overseer-live/components/RecentReceiptsStream'
+// Live components are provided by the Overseer Live page
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
 type ActiveTab = 'archive' | 'live' | 'comparison'
 
 export default function OverseerHub() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('archive')
+  const [activeTab, setActiveTab] = useState<ActiveTab>('live')
   const { data: archiveData, loading: archiveLoading } = useArchiveReport()
   const { metrics: liveMetrics, connected, loading: liveLoading } = useLiveMetrics()
   
@@ -51,16 +51,6 @@ export default function OverseerHub() {
       <div className="border-b border-border">
         <div className="flex gap-8">
           <button
-            onClick={() => setActiveTab('archive')}
-            className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === 'archive'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Archive Analytics
-          </button>
-          <button
             onClick={() => setActiveTab('live')}
             className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'live'
@@ -69,6 +59,16 @@ export default function OverseerHub() {
             }`}
           >
             Live Metrics
+          </button>
+          <button
+            onClick={() => setActiveTab('archive')}
+            className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'archive'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Archive Analytics
           </button>
           <button
             onClick={() => setActiveTab('comparison')}
@@ -253,57 +253,7 @@ export default function OverseerHub() {
       {/* Live Tab */}
       {activeTab === 'live' && (
         <div className="space-y-6">
-          {/* Connection Status */}
-          {!connected && (
-            <Card className="bg-warning/10 border-warning">
-              <CardContent className="pt-6">
-                <p className="text-sm"><span className="font-semibold">⚠️ Socket connection offline:</span> Live updates unavailable. Showing demo metrics.</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Receipts Today</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{liveMetrics.length}</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Avg Trust</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">
-                  {liveMetrics.length > 0 
-                    ? Math.round(liveMetrics.reduce((sum, m) => sum + m.trustScore, 0) / liveMetrics.length)
-                    : '—'
-                  }/100
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">vs Archive</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className={`text-3xl font-bold ${comparison && comparison.improvement > 0 ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-                  {comparison ? `${comparison.improvement > 0 ? '+' : ''}${comparison.improvement.toFixed(1)}%` : '—'}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Live Components */}
-          {!liveLoading && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <LiveTrustMetrics metrics={liveMetrics} />
-                <RecentReceiptsStream metrics={liveMetrics} />
-              </div>
-            )}
+          <OverseerLiveDashboard />
         </div>
       )}
 
