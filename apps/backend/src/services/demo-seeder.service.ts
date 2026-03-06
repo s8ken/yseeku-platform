@@ -90,6 +90,7 @@ async function seedUser(): Promise<string> {
     email: 'demo@yseeku.com',
     password: 'demo-password-' + crypto.randomBytes(16).toString('hex'),
     role: 'admin',
+    tenant_id: DEMO_TENANT_ID,
   });
 
   logger.info('Demo user created');

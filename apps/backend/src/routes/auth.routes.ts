@@ -217,8 +217,8 @@ router.post(
         id: user._id.toString(),
         username: user.name,
         email: user.email,
-        roles: ['user'],
-        tenant: 'default',
+        roles: [user.role || 'user'],
+        tenant: (user as any).tenant_id || 'default',
       });
 
       // Log successful login
