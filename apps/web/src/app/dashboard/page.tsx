@@ -24,6 +24,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { OverseerWidget } from '@/components/overseer-widget';
 import { WithDemoWatermark } from '@/components/demo-watermark';
 import { DashboardPageSkeleton } from '@/components/dashboard-skeletons';
@@ -240,20 +241,26 @@ export default function DashboardPage() {
 
       {/* Human-Readable Summary - only show if we have data */}
       {kpis && !hasNoData && (
-        <HumanReadableSummary 
-          trustScore={Math.round(kpis.trustScore * 10) / 10}
-          bedauIndex={displayKpis.bedau?.index ?? 0}
-          activeAgents={kpis.activeAgents}
-          interactionsCount={kpis.totalInteractions}
-          alertsCount={alerts?.summary?.total ?? 0}
-          policyStatus={policyStatus?.overallPass ?? true}
-        />
+        <ErrorBoundary label="platform summary" inline>
+          <HumanReadableSummary
+            trustScore={Math.round(kpis.trustScore * 10) / 10}
+            bedauIndex={displayKpis.bedau?.index ?? 0}
+            activeAgents={kpis.activeAgents}
+            interactionsCount={kpis.totalInteractions}
+            alertsCount={alerts?.summary?.total ?? 0}
+            policyStatus={policyStatus?.overallPass ?? true}
+          />
+        </ErrorBoundary>
       )}
 
       {/* System Status Row */}
       <div className="grid gap-4 md:grid-cols-2">
-        <OverseerWidget />
-        <SemanticCoprocessorStatus />
+        <ErrorBoundary label="Overseer status" inline>
+          <OverseerWidget />
+        </ErrorBoundary>
+        <ErrorBoundary label="semantic coprocessor status" inline>
+          <SemanticCoprocessorStatus />
+        </ErrorBoundary>
       </div>
 
       {kpis && (
@@ -309,7 +316,7 @@ export default function DashboardPage() {
             )}
           </section>
 
-          {/* PANEL 2: Hidden Gems - NEW! */}
+          {/* PANEL 2: Behavioral Analysis */}
           <section>
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-purple-500" />
@@ -317,21 +324,27 @@ export default function DashboardPage() {
               <InfoTooltip term="Hidden Gems" />
             </h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <Suspense fallback={<PhaseShiftWidgetSkeleton />}>
-                <div className="lg:col-span-1">
-                  <PhaseShiftVelocityWidget compact={true} />
-                </div>
-              </Suspense>
-              <Suspense fallback={<EmergenceWidgetSkeleton />}>
-                <div className="lg:col-span-1">
-                  <LinguisticEmergenceWidget compact={true} />
-                </div>
-              </Suspense>
-              <Suspense fallback={<DriftWidgetSkeleton />}>
-                <div className="lg:col-span-1 md:col-span-2">
-                  <DriftDetectionWidget compact={true} />
-                </div>
-              </Suspense>
+              <ErrorBoundary label="phase-shift velocity" inline>
+                <Suspense fallback={<PhaseShiftWidgetSkeleton />}>
+                  <div className="lg:col-span-1">
+                    <PhaseShiftVelocityWidget compact={true} />
+                  </div>
+                </Suspense>
+              </ErrorBoundary>
+              <ErrorBoundary label="linguistic emergence" inline>
+                <Suspense fallback={<EmergenceWidgetSkeleton />}>
+                  <div className="lg:col-span-1">
+                    <LinguisticEmergenceWidget compact={true} />
+                  </div>
+                </Suspense>
+              </ErrorBoundary>
+              <ErrorBoundary label="drift detection" inline>
+                <Suspense fallback={<DriftWidgetSkeleton />}>
+                  <div className="lg:col-span-1 md:col-span-2">
+                    <DriftDetectionWidget compact={true} />
+                  </div>
+                </Suspense>
+              </ErrorBoundary>
             </div>
           </section>
 
@@ -345,9 +358,11 @@ export default function DashboardPage() {
             {hasNoData ? (
               <EmptyInsights onViewDocumentation={handleViewDocumentation} />
             ) : (
-              <Suspense fallback={<InsightsPanelSkeleton />}>
-                <InsightsPanel compact={true} limit={3} />
-              </Suspense>
+              <ErrorBoundary label="insights panel">
+                <Suspense fallback={<InsightsPanelSkeleton />}>
+                  <InsightsPanel compact={true} limit={3} />
+                </Suspense>
+              </ErrorBoundary>
             )}
           </section>
 
@@ -359,22 +374,22 @@ export default function DashboardPage() {
             </h2>
             <div className="grid gap-4 lg:grid-cols-2">
               {/* SONATE Principles - Real data from KPIs */}
+              <ErrorBoundary label="constitutional principles">
               <WithDemoWatermark position="top-right" size="sm" opacity={25}>
-                <ConstitutionalPrinciples 
+                <ConstitutionalPrinciples
                   principleScores={kpis?.principleScores ? {
-                    // CIQ path: { transparency, fairness, privacy, safety, accountability }
-                    // SONATE path: { consent, inspection, validation, ethics, disconnect, moral }
-                    CONSENT_ARCHITECTURE: (kpis.principleScores.transparency || 0) * 10,
-                    INSPECTION_MANDATE: (kpis.principleScores.fairness || 0) * 10,
-                    CONTINUOUS_VALIDATION: (kpis.principleScores.privacy || 0) * 10,
-                    ETHICAL_OVERRIDE: (kpis.principleScores.safety || 0) * 10,
-                    RIGHT_TO_DISCONNECT: (kpis.principleScores.accountability || 0) * 10,
-                    // moral is present on the SONATE path; falls back to safety (closest
-                    // semantic proxy in the CIQ path) to avoid duplicating accountability.
-                    MORAL_RECOGNITION: (kpis.principleScores.moral ?? kpis.principleScores.safety ?? 0) * 10,
+                    // All backend paths return SONATE key names on 0-10 scale.
+                    // ConstitutionalPrinciples expects 0-10 — use values directly.
+                    CONSENT_ARCHITECTURE:  kpis.principleScores.consent     ?? 0,
+                    INSPECTION_MANDATE:    kpis.principleScores.inspection  ?? 0,
+                    CONTINUOUS_VALIDATION: kpis.principleScores.validation  ?? 0,
+                    ETHICAL_OVERRIDE:      kpis.principleScores.ethics      ?? 0,
+                    RIGHT_TO_DISCONNECT:   kpis.principleScores.disconnect  ?? 0,
+                    MORAL_RECOGNITION:     kpis.principleScores.moral       ?? 0,
                   } : undefined}
                 />
               </WithDemoWatermark>
+              </ErrorBoundary>
 
               {/* Detection Metrics */}
               <WithDemoWatermark position="top-right" size="sm" opacity={25}>

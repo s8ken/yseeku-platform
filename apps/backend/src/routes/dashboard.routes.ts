@@ -180,11 +180,12 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
             count: 0,
             complianceRate: 0,
             principleScores: {
-              transparency: 0,
-              fairness: 0,
-              privacy: 0,
-              safety: 0,
-              accountability: 0,
+              consent: 0,
+              inspection: 0,
+              validation: 0,
+              ethics: 0,
+              disconnect: 0,
+              moral: 0,
             },
           };
         }
@@ -213,12 +214,16 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
           trustScore: Math.min(100, Math.round(avgScore * 100 * 10) / 10), // Convert 0-1 to 0-100 scale, capped
           count: data.count,
           complianceRate,
+          // CIQ values mapped to SONATE principle names (0-10 scale to match SONATE path).
+          // clarity → consent + ethics, integrity → inspection + disconnect, quality → validation
+          // moral = normalised average of all three CIQ dimensions
           principleScores: {
-            transparency: Math.min(100, Math.round(((rawClarity > 5 ? rawClarity / 10 : rawClarity > 1 ? rawClarity / 5 : rawClarity)) * 100 * 10) / 10),
-            fairness: Math.min(100, Math.round(((rawIntegrity > 5 ? rawIntegrity / 10 : rawIntegrity > 1 ? rawIntegrity / 5 : rawIntegrity)) * 100 * 10) / 10),
-            privacy: Math.min(100, Math.round(((rawQuality > 5 ? rawQuality / 10 : rawQuality > 1 ? rawQuality / 5 : rawQuality)) * 100 * 10) / 10),
-            safety: Math.min(100, Math.round(((rawIntegrity > 5 ? rawIntegrity / 10 : rawIntegrity > 1 ? rawIntegrity / 5 : rawIntegrity)) * 100 * 10) / 10),
-            accountability: Math.min(100, Math.round(((rawClarity > 5 ? rawClarity / 10 : rawClarity > 1 ? rawClarity / 5 : rawClarity)) * 100 * 10) / 10),
+            consent:    Math.min(10, Math.round((rawClarity   > 5 ? rawClarity   / 10 : rawClarity   > 1 ? rawClarity   / 5 : rawClarity)   * 10 * 10) / 10),
+            inspection: Math.min(10, Math.round((rawIntegrity > 5 ? rawIntegrity / 10 : rawIntegrity > 1 ? rawIntegrity / 5 : rawIntegrity) * 10 * 10) / 10),
+            validation: Math.min(10, Math.round((rawQuality   > 5 ? rawQuality   / 10 : rawQuality   > 1 ? rawQuality   / 5 : rawQuality)   * 10 * 10) / 10),
+            ethics:     Math.min(10, Math.round((rawClarity   > 5 ? rawClarity   / 10 : rawClarity   > 1 ? rawClarity   / 5 : rawClarity)   * 10 * 10) / 10),
+            disconnect: Math.min(10, Math.round((rawIntegrity > 5 ? rawIntegrity / 10 : rawIntegrity > 1 ? rawIntegrity / 5 : rawIntegrity) * 10 * 10) / 10),
+            moral:      Math.min(10, Math.round(avgScore * 10 * 10) / 10),
           },
         };
       };
@@ -354,12 +359,15 @@ router.get('/kpis', protect, async (req: Request, res: Response): Promise<void> 
         trustScore: Math.round(trustScore * 10) / 10,
         totalMessages: data.totalMessages || 0,
         complianceRate: Math.round(complianceRate * 10) / 10,
+        // Conversation path: no per-principle data available, use trust score as uniform proxy.
+        // Keys use SONATE names; values on 0-10 scale to match SONATE path.
         principleScores: {
-          transparency: Math.round(avgTrustNormalized * 20 * 10) / 10, // Convert 0-5 to 0-100
-          fairness: Math.round(avgTrustNormalized * 20 * 10) / 10,
-          privacy: Math.round(avgTrustNormalized * 20 * 10) / 10,
-          safety: Math.round(avgTrustNormalized * 20 * 10) / 10,
-          accountability: Math.round(avgTrustNormalized * 20 * 10) / 10,
+          consent:    Math.round(avgTrustNormalized * 2 * 10) / 10, // Convert 0-5 to 0-10
+          inspection: Math.round(avgTrustNormalized * 2 * 10) / 10,
+          validation: Math.round(avgTrustNormalized * 2 * 10) / 10,
+          ethics:     Math.round(avgTrustNormalized * 2 * 10) / 10,
+          disconnect: Math.round(avgTrustNormalized * 2 * 10) / 10,
+          moral:      Math.round(avgTrustNormalized * 2 * 10) / 10,
         },
       };
     };

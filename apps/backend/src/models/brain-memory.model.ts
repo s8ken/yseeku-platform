@@ -21,6 +21,8 @@ const BrainMemorySchema = new Schema<IBrainMemory>({
 }, { timestamps: false, collection: 'brain_memory' });
 
 BrainMemorySchema.index({ tenantId: 1, kind: 1, createdAt: -1 });
+// TTL: expire documents when expiresAt is reached (value set by caller; null = never expires)
+BrainMemorySchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0, sparse: true });
 
 export const BrainMemory = mongoose.model<IBrainMemory>('BrainMemory', BrainMemorySchema);
 

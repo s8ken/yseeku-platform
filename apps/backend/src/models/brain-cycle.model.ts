@@ -57,6 +57,8 @@ const BrainCycleSchema = new Schema<IBrainCycle>({
 }, { timestamps: false, collection: 'brain_cycles' });
 
 BrainCycleSchema.index({ tenantId: 1, startedAt: -1 });
+// TTL: auto-delete brain cycles older than 90 days to prevent unbounded collection growth
+BrainCycleSchema.index({ startedAt: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
 
 export const BrainCycle = mongoose.model<IBrainCycle>('BrainCycle', BrainCycleSchema);
 
