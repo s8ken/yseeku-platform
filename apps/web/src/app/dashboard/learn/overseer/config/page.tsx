@@ -57,8 +57,8 @@ Alert when score drops below (default: 80%)
 **Reality Index Minimum**
 Flag accuracy issues below (default: 85%)
 
-**FBI\u00b2 Maximum**
-Alert on emergence above (default: 0.5)
+**Bedau Index Maximum**
+Alert on emergence above (default: 0.40)
 
 **Response Time Maximum**
 Flag slow responses above (default: 2s)

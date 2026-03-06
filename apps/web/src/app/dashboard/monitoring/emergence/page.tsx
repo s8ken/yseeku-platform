@@ -42,7 +42,7 @@ interface EmergenceHistory {
   level: string;
 }
 
-const BCI_LEVEL_DISPLAY: Record<string, string> = {
+const LEVEL_DISPLAY: Record<string, string> = {
   LINEAR: 'Stable',
   WEAK_EMERGENCE: 'Moderate',
   HIGH_WEAK_EMERGENCE: 'Elevated',
@@ -157,7 +157,7 @@ export default function EmergenceMonitoringPage() {
             Emergence Detection
           </h1>
           <p className="text-muted-foreground mt-1">
-            Monitor behavioral complexity signals across AI agent interactions
+            Monitor fleet emergence signals across AI agent interactions
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -184,8 +184,8 @@ export default function EmergenceMonitoringPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Activity className="w-4 h-4 text-purple-600" />
-              BCI Score
-              <InfoTooltip term="Measures behavioral complexity across AI interactions" />
+              Bedau Index
+              <InfoTooltip term="Bedau Index v2" />
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -209,7 +209,7 @@ export default function EmergenceMonitoringPage() {
           </CardHeader>
           <CardContent>
             <Badge variant={getEmergenceLevelBadge(emergence.emergenceLevel) as "default" | "secondary" | "destructive" | "outline"} className="text-sm">
-              {BCI_LEVEL_DISPLAY[emergence.emergenceLevel] ?? emergence.emergenceLevel.replace(/_/g, ' ')}
+              {LEVEL_DISPLAY[emergence.emergenceLevel] ?? emergence.emergenceLevel.replace(/_/g, ' ')}
             </Badge>
             <p className="text-xs text-muted-foreground mt-2">
               {emergence.emergenceLevel === 'LINEAR' && 'Interaction patterns within expected bounds'}
@@ -261,7 +261,7 @@ export default function EmergenceMonitoringPage() {
               <Activity className="w-5 h-5" />
               Emergence History
             </CardTitle>
-            <CardDescription>Recent BCI measurements over time</CardDescription>
+            <CardDescription>Recent Bedau Index measurements over time</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -276,7 +276,7 @@ export default function EmergenceMonitoringPage() {
                   <div className="flex items-center gap-3">
                     <span className="font-mono font-medium">{point.bedauIndex.toFixed(2)}</span>
                     <Badge variant="outline" className="text-xs">
-                      {BCI_LEVEL_DISPLAY[point.level] ?? point.level.replace(/_/g, ' ')}
+                      {LEVEL_DISPLAY[point.level] ?? point.level.replace(/_/g, ' ')}
                     </Badge>
                   </div>
                 </div>
@@ -289,17 +289,18 @@ export default function EmergenceMonitoringPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Info className="w-5 h-5" />
-              Understanding Behavioral Complexity
+              Understanding Fleet Emergence
             </CardTitle>
-            <CardDescription>What the BCI measures</CardDescription>
+            <CardDescription>What the Bedau Index measures</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <h4 className="font-medium mb-2">Behavioral Complexity Index (BCI)</h4>
+              <h4 className="font-medium mb-2">Bedau Index v2</h4>
               <p className="text-sm text-muted-foreground">
-                The BCI is a composite 0–1 signal derived from Clarity, Integrity, and Quality metrics
-                across AI interactions. Higher values indicate greater divergence from baseline
-                interaction patterns and may warrant closer review.
+                The Bedau Index v2 is a composite 0–1 signal derived from four sub-metrics:
+                Φ Fleet Divergence (×0.35), Ψ Temporal Irreducibility (×0.25),
+                Ω Cross-Agent Novelty (×0.25), and Σ Drift Coherence (×0.15).
+                Higher values indicate greater fleet behavioral divergence.
               </p>
             </div>
 
@@ -307,27 +308,27 @@ export default function EmergenceMonitoringPage() {
               <div className="flex items-start gap-3">
                 <div className="w-4 h-4 rounded-full bg-green-500 mt-1" />
                 <div>
-                  <h5 className="font-medium">STABLE (0.0 - 0.3)</h5>
+                  <h5 className="font-medium">STABLE (0.00 – 0.15)</h5>
                   <p className="text-sm text-muted-foreground">
-                    Interaction patterns within expected bounds. No significant complexity detected.
+                    Linear behavior. Interaction patterns within expected bounds.
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-4 h-4 rounded-full bg-yellow-500 mt-1" />
                 <div>
-                  <h5 className="font-medium">MODERATE (0.3 - 0.7)</h5>
+                  <h5 className="font-medium">MODERATE (0.15 – 0.40)</h5>
                   <p className="text-sm text-muted-foreground">
-                    Novel interaction patterns detected. Log and monitor for further divergence.
+                    Weak emergence detected. Log and monitor for further divergence.
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-4 h-4 rounded-full bg-red-500 mt-1" />
                 <div>
-                  <h5 className="font-medium">ELEVATED (0.7 - 1.0)</h5>
+                  <h5 className="font-medium">ELEVATED (0.40+)</h5>
                   <p className="text-sm text-muted-foreground">
-                    Significant behavioral divergence. Interaction patterns require investigation.
+                    High weak emergence. Fleet behavioral divergence warrants investigation.
                   </p>
                 </div>
               </div>
@@ -347,9 +348,9 @@ export default function EmergenceMonitoringPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-yellow-800 dark:text-yellow-300">
-              The system is showing elevated behavioral complexity (BCI: {emergence.bedauIndex.toFixed(2)}).
+              The system is showing elevated fleet emergence (Bedau Index: {emergence.bedauIndex.toFixed(2)}).
               Interaction patterns are diverging from baseline. The Overseer is monitoring this situation.
-              No immediate action required unless the BCI exceeds 0.7.
+              No immediate action required unless the Bedau Index exceeds 0.40.
             </p>
             <div className="flex gap-2 mt-4">
               <Button variant="outline" size="sm">View Overseer Status</Button>

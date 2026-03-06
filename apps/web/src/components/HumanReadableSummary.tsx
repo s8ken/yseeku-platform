@@ -51,11 +51,11 @@ export function HumanReadableSummary({
   
   if (bedauIndex > 0.7) {
     mindsetStatus = 'High Complexity';
-    mindsetDesc = 'Agents are exhibiting elevated behavioral complexity.';
+    mindsetDesc = 'Agents are exhibiting elevated fleet emergence signals.';
     MindsetIcon = Sparkles;
   } else if (bedauIndex > 0.3) {
     mindsetStatus = 'Moderate Complexity';
-    mindsetDesc = 'Agents are showing moderate behavioral complexity patterns.';
+    mindsetDesc = 'Agents are showing moderate fleet emergence patterns.';
     MindsetIcon = Sparkles;
   }
 
@@ -101,7 +101,7 @@ export function HumanReadableSummary({
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1">
                   System Mindset
-                  <InfoTooltip term="Behavioral Complexity Index" />
+                  <InfoTooltip term="Bedau Index v2" />
                 </p>
                 <h3 className="text-2xl font-bold tracking-tight">{mindsetStatus}</h3>
               </div>
@@ -111,7 +111,7 @@ export function HumanReadableSummary({
             </p>
             {showScience && (
               <div className="mt-4 pt-4 border-t text-xs font-mono text-muted-foreground">
-                BCI Score: {bedauIndex.toFixed(3)} <br/>
+                Bedau Index: {bedauIndex.toFixed(3)} <br/>
                 Complexity Level: {bedauIndex > 0.7 ? 'ELEVATED' : bedauIndex > 0.3 ? 'MODERATE' : 'STABLE'}
               </div>
             )}

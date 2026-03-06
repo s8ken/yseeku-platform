@@ -195,16 +195,16 @@ const GLOSSARY: GlossaryTerm[] = [
 
   // Statistical Terms
   {
-    term: 'Behavioral Complexity Index (BCI)',
-    definition: 'A composite 0–1 signal measuring behavioral complexity across AI interactions, derived from Clarity, Integrity, and Quality metrics. Higher values indicate greater divergence from baseline interaction patterns.',
+    term: 'Bedau Index v2',
+    definition: 'A composite 0–1 signal measuring fleet emergence across AI interactions via four sub-metrics: Φ Fleet Divergence (×0.35), Ψ Temporal Irreducibility (×0.25), Ω Cross-Agent Novelty (×0.25), Σ Drift Coherence (×0.15). Higher values indicate greater behavioral divergence.',
     category: 'statistics',
-    relatedTerms: ['Emergence', 'Novelty'],
+    relatedTerms: ['Emergence', 'Fleet Divergence'],
   },
   {
     term: 'Emergence',
     definition: 'Patterns of collective AI behavior that diverge significantly from baseline interaction metrics.',
     category: 'statistics',
-    relatedTerms: ['Behavioral Complexity Index', 'Unpredictability'],
+    relatedTerms: ['Bedau Index v2', 'Fleet Divergence'],
   },
   {
     term: 'p-value',

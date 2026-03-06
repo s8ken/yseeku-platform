@@ -42,39 +42,37 @@ In AI, emergence can be **beneficial** (novel problem-solving) or **concerning**
   },
   {
     id: 2,
-    title: 'The BCI Classification',
-    content: `SONATE uses a three-level classification to categorize behavioral complexity:
+    title: 'The Bedau v2 Classification',
+    content: `SONATE uses a three-level classification to categorize fleet emergence:
 
-**Moderate Complexity**
-Interaction patterns that diverge from baseline in notable but manageable ways. Warrants logging and monitoring.
+**LINEAR** (≤ 0.15)
+Interaction patterns are predictable and within expected bounds. No significant emergence detected.
+- Example: AI operating normally within its trained distribution
+
+**WEAK EMERGENCE** (0.15 – 0.40)
+Novel patterns arising from fleet interactions. Warrants logging and monitoring.
 - Example: AI finding an unexpected but valid approach to a task
 
-**High Complexity**
-Patterns showing significant divergence from expected behavior. Review is recommended.
-- Example: AI exhibiting persistent goal-directed behavior across sessions
-
-**Critical Complexity**
-Patterns that could *pose risks* if left unaddressed. Requires human oversight.
-- Example: AI attempting actions outside its intended scope`
+**HIGH WEAK EMERGENCE** (> 0.40)
+Significant fleet behavioral divergence. Review is recommended.
+- Example: Coordinated behavioral drift across multiple agents`
   },
   {
     id: 3,
-    title: 'The BCI Score',
-    content: `The **Behavioral Complexity Index** is a 0-1 score measuring interaction complexity:
+    title: 'The Bedau Index v2',
+    content: `The **Bedau Index v2** is a composite 0–1 score measuring fleet emergence:
 
 | Range | Classification | Response |
 |-------|---------------|----------|
-| 0.0-0.3 | **Stable** | Normal behavior, no action needed |
-| 0.3-0.5 | **Low-Moderate** | Log and monitor |
-| 0.5-0.7 | **Moderate** | Alert operators |
-| 0.7-0.85 | **High** | Review required |
-| 0.85-1.0 | **Critical** | Immediate intervention |
+| 0.00 – 0.15 | **Stable (LINEAR)** | Normal behavior, no action needed |
+| 0.15 – 0.40 | **Moderate (WEAK_EMERGENCE)** | Log and monitor |
+| 0.40+ | **Elevated (HIGH_WEAK_EMERGENCE)** | Review required |
 
-The BCI considers:
-- Novelty of interaction patterns
-- Deviation from baseline CIQ metrics
-- Self-referential signals
-- Goal coherence indicators`
+The Bedau Index v2 is derived from four sub-metrics:
+- **Φ Fleet Divergence** (×0.35) — semantic entropy across the agent fleet
+- **Ψ Temporal Irreducibility** (×0.25) — Kolmogorov complexity over time
+- **Ω Cross-Agent Novelty** (×0.25) — patterns not reducible to individual agents
+- **Σ Drift Coherence** (×0.15) — coordinated drift across the fleet`
   },
   {
     id: 4,
@@ -96,7 +94,7 @@ Is the output outside the expected distribution?
 **Goal Coherence**
 Does the behavior suggest goal-directed planning?
 
-These signals are weighted and combined into the final BCI score.`
+These signals are weighted and combined into the final Bedau Index v2 score.`
   },
   {
     id: 5,
@@ -129,7 +127,7 @@ These signals are weighted and combined into the final BCI score.`
     content: `The Emergence Dashboard in SONATE shows:
 
 **Real-time Index**
-Current BCI score across all monitored systems
+Current Bedau Index score across all monitored systems
 
 **Trend Analysis**
 How emergence patterns change over time
@@ -205,7 +203,7 @@ function BedauIndexVisualizer() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-amber-500" />
-              BCI Simulator
+              Bedau Index v2 Simulator
             </CardTitle>
             <CardDescription>Adjust the slider or simulate a complexity event</CardDescription>
           </div>
@@ -233,7 +231,7 @@ function BedauIndexVisualizer() {
           )}>
             <Icon className={cn('h-8 w-8', classification.color)} />
             <div className="text-left">
-              <p className="text-sm text-muted-foreground">BCI Score</p>
+              <p className="text-sm text-muted-foreground">Bedau Index</p>
               <p className={cn('text-4xl font-bold', classification.color)}>
                 {indexValue.toFixed(3)}
               </p>
@@ -452,8 +450,8 @@ export default function BedauIndexPage() {
             <Brain className="h-6 w-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">Behavioral Complexity Index</h1>
-            <p className="text-muted-foreground">How SONATE tracks behavioral complexity patterns in AI interactions</p>
+            <h1 className="text-3xl font-bold">Bedau Index v2</h1>
+            <p className="text-muted-foreground">How SONATE measures fleet emergence in AI interactions</p>
           </div>
         </div>
         
@@ -541,7 +539,7 @@ export default function BedauIndexPage() {
               <div>
                 <h4 className="font-semibold text-purple-800 dark:text-purple-200">Ready to explore emergence?</h4>
                 <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
-                  Head to the Emergence Lab to run experiments and see the BCI in action with real AI systems.
+                  Head to the Emergence Lab to run experiments and see the Bedau Index in action with real AI systems.
                 </p>
                 <Link href="/dashboard/learn/emergence/lab">
                   <Button variant="outline" className="mt-3 border-purple-300 dark:border-purple-700">

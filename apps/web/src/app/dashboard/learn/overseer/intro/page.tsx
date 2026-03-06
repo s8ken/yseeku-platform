@@ -45,7 +45,7 @@ function OverseerBrainVisualization() {
       description: 'Gathering data from all sensors',
       icon: Eye,
       color: 'purple',
-      details: 'Collecting trust scores, agent health, active alerts, FBI\u00b2, and system metrics'
+      details: 'Collecting trust scores, agent health, active alerts, Bedau Index, and system metrics'
     },
     analyze: {
       title: 'ANALYZE',
@@ -220,7 +220,7 @@ function SensorDataDemo() {
     if (sensors.avgTrust >= 80 && sensors.activeAlerts === 0) {
       return { status: 'healthy', urgency: 'low', actions: [] };
     }
-    if (sensors.avgTrust < 50 || sensors.bedauIndex > 0.7) {
+    if (sensors.avgTrust < 50 || sensors.bedauIndex > 0.40) {
       return { 
         status: 'critical', 
         urgency: 'immediate', 
@@ -281,17 +281,17 @@ function SensorDataDemo() {
         <Card className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <Brain className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">FBI\u00b2</span>
+            <span className="text-sm text-muted-foreground">Bedau Index</span>
           </div>
           <div className={cn(
             'text-3xl font-bold',
-            sensors.bedauIndex < 0.3 ? 'text-green-600' :
-            sensors.bedauIndex < 0.6 ? 'text-amber-600' : 'text-red-600'
+            sensors.bedauIndex < 0.15 ? 'text-green-600' :
+            sensors.bedauIndex < 0.40 ? 'text-amber-600' : 'text-red-600'
           )}>
             {sensors.bedauIndex.toFixed(2)}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            {sensors.bedauIndex < 0.3 ? 'Linear' : sensors.bedauIndex < 0.6 ? 'Weak emergence' : 'High emergence'}
+            {sensors.bedauIndex < 0.15 ? 'Linear' : sensors.bedauIndex < 0.40 ? 'Weak emergence' : 'High emergence'}
           </div>
         </Card>
 

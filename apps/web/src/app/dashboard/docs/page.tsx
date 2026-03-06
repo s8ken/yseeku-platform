@@ -109,14 +109,14 @@ const docSections: DocSection[] = [
   },
   {
     id: 'bedau',
-    title: 'FBI\u00b2 & Emergence',
+    title: 'Bedau Index v2 & Emergence',
     icon: <Brain className="h-5 w-5" />,
     description: 'Framework for detecting emergent behaviors in AI systems',
     content: [
       {
-        term: 'FBI\u00b2',
-        definition: 'Fleet Behavioral Interdependence & Irreducibility Index. Composite metric (0-1) measuring the degree of emergent behavior in multi-agent AI systems using four information-theoretic sub-metrics.',
-        example: 'Index of 0.72 indicates significant emergent patterns worthy of investigation'
+        term: 'Bedau Index v2',
+        definition: 'Composite metric (0–1) measuring fleet-level emergence via four sub-metrics: Φ Fleet Divergence (×0.35), Ψ Temporal Irreducibility (×0.25), Ω Cross-Agent Novelty (×0.25), Σ Drift Coherence (×0.15).',
+        example: 'Index of 0.44 indicates high weak emergence worthy of investigation'
       },
       {
         term: 'Weak Emergence',

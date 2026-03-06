@@ -239,7 +239,7 @@ const learningPaths: LearningPath[] = [
   {
     id: 'emergence',
     title: 'Understanding Emergence',
-    description: 'Learn about the FBI² and detecting emergent AI behaviors.',
+    description: 'Learn about the Bedau Index v2 and detecting emergent AI behaviors.',
     icon: <Brain className="h-6 w-6" />,
     color: 'from-amber-500 to-orange-500',
     targetAudience: 'Researchers & Advanced Users',
@@ -257,12 +257,12 @@ const learningPaths: LearningPath[] = [
       },
       {
         id: 'bedau-index',
-        title: 'The FBI\u00b2',
+        title: 'The Bedau Index v2',
         description: 'How we measure weak and strong emergence',
         duration: '12 min',
         icon: <Brain className="h-5 w-5" />,
         difficulty: 'advanced',
-        topics: ['FBI\u00b2', 'Metrics', 'Classification'],
+        topics: ['Bedau Index', 'Metrics', 'Classification'],
         prerequisites: ['what-is-emergence'],
         href: '/dashboard/learn/emergence/bedau',
         isInteractive: true

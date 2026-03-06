@@ -169,7 +169,7 @@ function RealTimeMetrics({ run }: { run: ExperimentRun }) {
     <div className="space-y-6">
       {/* Main Index */}
       <div className="text-center p-6 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-xl">
-        <p className="text-sm text-muted-foreground mb-1">Current FBI\u00b2</p>
+        <p className="text-sm text-muted-foreground mb-1">Current Bedau Index</p>
         <p className={cn('text-5xl font-bold', classification.color)}>
           {currentBedau.toFixed(3)}
         </p>
@@ -291,7 +291,7 @@ function ExperimentResults({ run }: { run: ExperimentRun }) {
           
           {/* Final Score */}
           <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-1">Final FBI\u00b2</p>
+            <p className="text-sm text-muted-foreground mb-1">Final Bedau Index</p>
             <p className="text-4xl font-bold">{run.results.bedauIndex.toFixed(3)}</p>
           </div>
           

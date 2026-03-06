@@ -321,14 +321,14 @@ export default function ToolsPage() {
               <Sparkles className="w-5 h-5 text-purple-400" />
               <div>
                 <CardTitle className="text-lg">Emergence Lab</CardTitle>
-                <CardDescription>FBI² emergence detection</CardDescription>
+                <CardDescription>Bedau v2 emergence detection</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
               Run simulations to detect weak and strong emergence patterns in AI behavior using 
-              the FBI² emergence framework.
+              the Bedau Index v2 framework.
             </p>
             <Link href="/dashboard/lab/emergence">
               <Button variant="outline" className="w-full">Open Emergence Lab</Button>
