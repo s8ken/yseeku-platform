@@ -16,7 +16,8 @@ module.exports = {
     '^@noble/secp256k1$': '<rootDir>/src/__tests__/mocks/noble-secp256k1.mock.js',
     '^uuid$': '<rootDir>/src/__tests__/mocks/uuid.mock.js',
     '^hashi-vault-js$': '<rootDir>/src/__tests__/mocks/hashi-vault-js.mock.js',
-    '^@noble/hashes/sha3$': '<rootDir>/src/__tests__/mocks/noble-hashes-sha3.mock.js'
+    '^@noble/hashes/sha3$': '<rootDir>/src/__tests__/mocks/noble-hashes-sha3.mock.js',
+    '^@sonate/orchestrate$': '<rootDir>/src/__tests__/mocks/sonate-orchestrate.mock.js'
   },
   collectCoverageFrom: [
     'src/**/*.ts',
