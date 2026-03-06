@@ -5,12 +5,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { 
   Shield, 
   MessageSquare, 
-  AlertTriangle, 
   Lightbulb,
   Activity,
   ArrowRight,
   Sparkles,
-  TrendingUp
+  TrendingUp,
+  CheckCircle2
 } from 'lucide-react';
 
 export interface EmptyStateProps {
@@ -120,22 +120,92 @@ export function EmptyInsights({ onViewDocumentation }: { onViewDocumentation?: (
   );
 }
 
-export function EmptyDashboardBlankSlate({ onStartChat, onViewDemo }: { onStartChat?: () => void; onViewDemo?: () => void }) {
+type DashboardRole = 'admin' | 'user' | 'viewer';
+
+function getRoleOnboarding(role: DashboardRole) {
+  if (role === 'admin') {
+    return {
+      title: 'Set Your Governance Baseline',
+      description:
+        'Configure trust policy, alert thresholds, and tenant controls before onboarding your team.',
+      checklist: [
+        'Review trust policy and principle weighting',
+        'Configure alert routing and escalation',
+        'Verify tenant and role permissions',
+      ],
+      primaryLabel: 'Configure Governance',
+    };
+  }
+
+  if (role === 'viewer') {
+    return {
+      title: 'Start With Verification',
+      description:
+        'You can inspect trust posture and verify receipts without changing system configuration.',
+      checklist: [
+        'Verify a trust receipt signature',
+        'Review active alerts and risk signals',
+        'Open trust analytics for trends',
+      ],
+      primaryLabel: 'Verify First Receipt',
+    };
+  }
+
+  return {
+    title: 'Start Your First Trust Session',
+    description:
+      'Create your first interaction to generate trust receipts, principle scores, and governance insights.',
+    checklist: [
+      'Start a trust session with an agent',
+      'Review the generated trust receipt',
+      'Check alerts and recommendations',
+    ],
+    primaryLabel: 'Start Trust Session',
+  };
+}
+
+export function EmptyDashboardBlankSlate({
+  onStartChat,
+  onViewDemo,
+  onPrimaryAction,
+  role = 'user',
+  primaryActionLabel,
+}: {
+  onStartChat?: () => void;
+  onViewDemo?: () => void;
+  onPrimaryAction?: () => void;
+  role?: DashboardRole;
+  primaryActionLabel?: string;
+}) {
+  const onboarding = getRoleOnboarding(role);
+  const primaryAction = onPrimaryAction || onStartChat;
+  const primaryLabel = primaryActionLabel || onboarding.primaryLabel;
+
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4">
       <Activity className="h-16 w-16 text-muted-foreground mb-6" />
       <h2 className="text-2xl font-bold mb-4">Welcome to YSEEKU</h2>
       <p className="text-muted-foreground text-center mb-8 max-w-lg">
-        Your dashboard is ready. Start monitoring AI trust and governance in real-time. 
-        Trust receipts, alerts, and insights will appear here as you interact with your AI agents.
+        {onboarding.description}
       </p>
+      <div className="w-full max-w-xl rounded-lg border p-4 mb-6 bg-muted/20">
+        <p className="text-sm font-semibold mb-3">{onboarding.title}</p>
+        <ul className="space-y-2 text-sm text-muted-foreground">
+          {onboarding.checklist.map((item) => (
+            <li key={item} className="flex items-start gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
       <div className="flex flex-col sm:flex-row gap-3">
-        {onStartChat && (
+        {primaryAction && (
           <button
-            onClick={onStartChat}
+            onClick={primaryAction}
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors"
           >
-            Start Your First Conversation
+            {primaryLabel}
             <ArrowRight className="h-4 w-4" />
           </button>
         )}

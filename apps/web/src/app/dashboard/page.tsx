@@ -1,7 +1,8 @@
 'use client';
 
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -30,6 +31,7 @@ import { ConstitutionalPrinciples } from '@/components/ConstitutionalPrinciples'
 import { TrustStatusCard } from '@/components/trust-receipt/TrustStatusCard';
 import { useDashboardKPIs, useAlertsData, useTrustAnalytics } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
+import { AppRole, getCurrentUserRole } from '@/lib/current-user';
 import {
   EmptyAlerts,
   EmptyInsights,
@@ -181,6 +183,11 @@ function KPICard({
 export default function DashboardPage() {
   const router = useRouter();
   const { isDemo } = useDemo();
+  const [role, setRole] = useState<AppRole>('viewer');
+
+  useEffect(() => {
+    setRole(getCurrentUserRole());
+  }, []);
   
   const { data: kpis, isLoading: kpiLoading } = useDashboardKPIs();
   const { data: alertData, isLoading: alertLoading } = useAlertsData();
@@ -246,6 +253,25 @@ export default function DashboardPage() {
     router.push('/dashboard/chat');
   };
 
+  const handleRolePrimaryAction = () => {
+    if (role === 'admin') {
+      router.push('/dashboard/settings');
+      return;
+    }
+    if (role === 'viewer') {
+      router.push('/dashboard/verify');
+      return;
+    }
+    router.push('/dashboard/chat');
+  };
+
+  const rolePrimaryLabel =
+    role === 'admin'
+      ? 'Configure Governance'
+      : role === 'viewer'
+      ? 'Verify First Receipt'
+      : 'Start Trust Session';
+
   const handleViewDemo = () => {
     // Switch to demo mode
     router.push('/dashboard?demo=true');
@@ -283,6 +309,9 @@ export default function DashboardPage() {
         <EmptyDashboardBlankSlate 
           onStartChat={handleStartChat}
           onViewDemo={handleViewDemo}
+          onPrimaryAction={handleRolePrimaryAction}
+          primaryActionLabel={rolePrimaryLabel}
+          role={role}
         />
       )}
 
@@ -337,9 +366,9 @@ export default function DashboardPage() {
                           Score impact currently below target threshold.
                         </p>
                       </div>
-                      <a href="/dashboard/alerts" className="text-xs font-medium text-primary hover:underline">
+                      <Link href="/dashboard/alerts" className="text-xs font-medium text-primary hover:underline">
                         Inspect
-                      </a>
+                      </Link>
                     </div>
                   ))
                 ) : (
@@ -353,10 +382,10 @@ export default function DashboardPage() {
                   </div>
                 )}
                 <div className="pt-1">
-                  <a href="/dashboard/receipts" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
+                  <Link href="/dashboard/receipts" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
                     Open trust receipts
                     <ArrowRight className="h-4 w-4" />
-                  </a>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
@@ -562,9 +591,9 @@ export default function DashboardPage() {
                     </CardTitle>
                     <CardDescription>System notifications requiring attention</CardDescription>
                   </div>
-                  <a href="/dashboard/alerts" className="text-sm text-primary hover:underline">
+                  <Link href="/dashboard/alerts" className="text-sm text-primary hover:underline">
                     View all →
-                  </a>
+                  </Link>
                 </div>
               </CardHeader>
               <CardContent>
