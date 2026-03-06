@@ -35,6 +35,10 @@ jobs:
         run: npm run test
         continue-on-error: true
 
+      - name: Build workspace packages
+        run: npx turbo run build --filter=!backend --filter=!web
+        continue-on-error: true
+
       - name: Backend unit tests
         run: npm run test --workspace=backend
 
