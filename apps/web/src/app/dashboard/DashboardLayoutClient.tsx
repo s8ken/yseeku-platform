@@ -106,11 +106,11 @@ const moduleSections: ModuleSection[] = [
     badge: 'SANDBOX',
     items: [
       { title: 'Resonance Lab', href: '/dashboard/lab/resonance', icon: Waves, roles: ['admin', 'user'], module: 'lab' },
-      { title: 'Complexity Lab', href: '/dashboard/lab/emergence', icon: Sparkles, roles: ['admin', 'user'], module: 'lab' },
+      { title: 'Emergence Lab', href: '/dashboard/lab/emergence', icon: Sparkles, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Experiments', href: '/dashboard/lab/experiments', icon: FlaskConical, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Model Compare', href: '/dashboard/compare', icon: Beaker, roles: ['admin', 'user'], module: 'lab' },
       { title: 'Safety Scanner', href: '/dashboard/safety', icon: Shield, roles: ['admin', 'user'], module: 'lab' },
-      { title: 'Pattern Analysis', href: '/dashboard/lab/bedau', icon: Brain, roles: ['admin', 'user'], module: 'lab' },
+      { title: 'Fleet Emergence', href: '/dashboard/lab/bedau', icon: Brain, roles: ['admin', 'user'], module: 'lab' },
     ]
   },
   {
@@ -145,9 +145,9 @@ const ESSENTIAL_ITEMS = new Set([
   '/dashboard/overseer',  // Overseer Analytics
   '/dashboard/alerts',    // Alerts
   '/dashboard/lab/resonance', // Resonance Lab (Third Mind)
-  '/dashboard/lab/emergence', // Complexity Lab (behavioral complexity)
+  '/dashboard/lab/emergence', // Emergence Lab (Bedau v2 testing)
   '/dashboard/lab/experiments', // Experiments
-  '/dashboard/lab/bedau', // Pattern Analysis (Bedau Index)
+  '/dashboard/lab/bedau', // Fleet Emergence (Bedau Index v2)
   '/dashboard/reports',   // Compliance Reports
   '/dashboard/settings',  // Settings
 ]);
