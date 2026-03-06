@@ -7,11 +7,16 @@ import rateLimit from 'express-rate-limit';
 
 /**
  * Rate limiter for login endpoint
- * 200 attempts per 15 minutes per IP (high for development/testing)
+ * Production defaults are intentionally strict. Development stays permissive.
  */
+const loginMaxAttempts = Number(
+  process.env.AUTH_LOGIN_RATE_LIMIT_MAX ||
+  (process.env.NODE_ENV === 'production' ? '20' : '200')
+);
+
 export const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // 200 attempts per window (generous for development)
+  max: Number.isFinite(loginMaxAttempts) && loginMaxAttempts > 0 ? loginMaxAttempts : 20,
   message: {
     success: false,
     message: 'Too many login attempts from this IP. Please try again in 15 minutes.',

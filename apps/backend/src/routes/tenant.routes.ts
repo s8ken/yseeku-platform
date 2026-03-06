@@ -10,7 +10,7 @@ const router = Router();
  * GET /api/tenants
  * List all tenants (paginated)
  */
-router.get('/', protect, async (req: Request, res: Response) => {
+router.get('/', protect, requireAdmin, async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -46,7 +46,7 @@ router.get('/', protect, async (req: Request, res: Response) => {
  * GET /api/tenants/:id
  * Get a single tenant by ID
  */
-router.get('/:id', protect, async (req: Request, res: Response): Promise<void> => {
+router.get('/:id', protect, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const tenant = await Tenant.findById(req.params.id);
 
@@ -76,7 +76,7 @@ router.get('/:id', protect, async (req: Request, res: Response): Promise<void> =
  * POST /api/tenants
  * Create a new tenant
  */
-router.post('/', protect, async (req: Request, res: Response) => {
+router.post('/', protect, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { name, description } = req.body;
 
@@ -117,7 +117,7 @@ router.post('/', protect, async (req: Request, res: Response) => {
  * PUT /api/tenants/:id
  * Update a tenant
  */
-router.put('/:id', protect, async (req: Request, res: Response): Promise<void> => {
+router.put('/:id', protect, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, description, status, complianceStatus, trustScore } = req.body;
 

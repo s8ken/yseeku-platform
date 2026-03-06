@@ -39,9 +39,54 @@ export interface TrustEvaluation {
   principle_weights?: Record<string, number>; // Industry-specific principle weights
 }
 
-export interface TrustReceiptProps { 
-  evaluation: TrustEvaluation;
-} 
+export type TrustReceiptProps =
+  | { evaluation: TrustEvaluation }
+  | { receipt: any; verified?: boolean };
+
+export function normalizeTrustEvaluation(input: TrustReceiptProps): TrustEvaluation {
+  if ('evaluation' in input) {
+    return input.evaluation;
+  }
+
+  const receipt = input.receipt;
+  const now = Date.now();
+  const scores = receipt?.scores || {};
+  const clarity = typeof scores.clarity === 'number' ? scores.clarity : 0;
+  const integrity = typeof scores.integrity === 'number' ? scores.integrity : 0;
+  const quality = typeof scores.quality === 'number' ? scores.quality : 0;
+
+  const overall10 = Math.round(((clarity + integrity + quality) / 3) * 10 * 10) / 10;
+  const scale10 = (v: unknown) => (typeof v === 'number' ? Math.round(v * 10 * 10) / 10 : 0);
+
+  const principles: Record<string, number> = {
+    CONSENT_ARCHITECTURE: scale10(scores.consent_score),
+    INSPECTION_MANDATE: scale10(scores.inspection_score),
+    CONTINUOUS_VALIDATION: scale10(scores.validation_score),
+    ETHICAL_OVERRIDE: scale10(scores.override_score),
+    RIGHT_TO_DISCONNECT: scale10(scores.disconnect_score),
+    MORAL_RECOGNITION: scale10(scores.recognition_score),
+  };
+
+  const status: TrustEvaluation['status'] = input.verified === false ? 'FAIL' : 'PASS';
+
+  return {
+    trustScore: {
+      overall: isFinite(overall10) ? overall10 : 0,
+      principles,
+      violations: [],
+      timestamp: now,
+    },
+    status,
+    detection: {
+      trust_protocol: status,
+      ethical_alignment: Math.round((integrity * 5) * 10) / 10,
+      resonance_quality: status === 'PASS' ? 'STRONG' : 'UNKNOWN',
+    },
+    receipt,
+    receiptHash: receipt?.receipt_hash || receipt?.hash || receipt?.self_hash,
+    timestamp: now,
+  };
+}
 
 // --- Helper: Status Color Map --- 
 const getStatusColor = (status: string) => { 
@@ -93,11 +138,10 @@ const PRINCIPLE_INFO: Record<string, { name: string; weight: number; critical: b
   },
 };
 
-export const TrustReceiptCard: React.FC<TrustReceiptProps> = ({ 
-  evaluation
-}) => { 
+export const TrustReceiptCard: React.FC<TrustReceiptProps> = (props) => { 
   const [showLegacyMetrics, setShowLegacyMetrics] = useState(false);
   const [copied, setCopied] = useState(false);
+  const evaluation = normalizeTrustEvaluation(props);
   const { trustScore, status, detection, receipt, receiptHash, timestamp, analysisMethod, weight_source, weight_policy_id, principle_weights } = evaluation;
   
   const handleCopyReceipt = async () => {

@@ -33,14 +33,50 @@ export const DEFAULT_PRINCIPLE_WEIGHTS: PrincipleWeightConfig = {
   MORAL_RECOGNITION: 0.10,
 };
 
+const PRINCIPLE_WEIGHT_KEYS: Array<keyof PrincipleWeightConfig> = [
+  'CONSENT_ARCHITECTURE',
+  'INSPECTION_MANDATE',
+  'CONTINUOUS_VALIDATION',
+  'ETHICAL_OVERRIDE',
+  'RIGHT_TO_DISCONNECT',
+  'MORAL_RECOGNITION',
+];
+
+function validateWeights(candidate: unknown): candidate is PrincipleWeightConfig {
+  if (!candidate || typeof candidate !== 'object') {
+    return false;
+  }
+
+  const obj = candidate as Record<string, unknown>;
+  let sum = 0;
+
+  for (const key of PRINCIPLE_WEIGHT_KEYS) {
+    const value = obj[key];
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1) {
+      return false;
+    }
+    sum += value;
+  }
+
+  return Math.abs(sum - 1) < 0.0001;
+}
+
 // Load from environment or use defaults
 function loadWeights(): PrincipleWeightConfig {
   const envWeights = process.env.SONATE_PRINCIPLE_WEIGHTS;
   if (envWeights) {
     try {
       const parsed = JSON.parse(envWeights);
-      console.log('[PrincipleEvaluator] Using custom weights from environment');
-      return { ...DEFAULT_PRINCIPLE_WEIGHTS, ...parsed };
+      const merged = { ...DEFAULT_PRINCIPLE_WEIGHTS, ...parsed };
+      if (!validateWeights(merged)) {
+        console.warn(
+          '[PrincipleEvaluator] Invalid SONATE_PRINCIPLE_WEIGHTS. ' +
+          'Expected non-negative numeric weights [0,1] summing to 1. Using defaults.'
+        );
+        return DEFAULT_PRINCIPLE_WEIGHTS;
+      }
+      console.log('[PrincipleEvaluator] Using validated custom weights from environment');
+      return merged;
     } catch (e) {
       console.warn('[PrincipleEvaluator] Failed to parse SONATE_PRINCIPLE_WEIGHTS, using defaults');
     }

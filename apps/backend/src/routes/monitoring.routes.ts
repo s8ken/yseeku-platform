@@ -120,7 +120,7 @@ router.get('/health', async (req: Request, res: Response): Promise<void> => {
     // grows on demand, making heapUsed/heapTotal always look near 100%).
     const memUsage = process.memoryUsage();
     const usedMemMB = Math.round(memUsage.rss / 1024 / 1024);
-    const totalMemMB = parseInt(process.env.MEMORY_LIMIT_MB ?? '512');
+    const totalMemMB = parseInt(process.env.FLY_VM_MEMORY_MB ?? process.env.MEMORY_LIMIT_MB ?? '512');
     const memPercentage = Math.round((usedMemMB / totalMemMB) * 100);
 
     let memStatus: 'ok' | 'warning' | 'critical' = 'ok';
@@ -213,7 +213,7 @@ router.get('/health/ready', async (req: Request, res: Response): Promise<void> =
 
     // Check memory (fail if critically low)
     const memUsage = process.memoryUsage();
-    const memLimitMB = parseInt(process.env.MEMORY_LIMIT_MB ?? '512');
+    const memLimitMB = parseInt(process.env.FLY_VM_MEMORY_MB ?? process.env.MEMORY_LIMIT_MB ?? '512');
     const memPercentage = Math.round((memUsage.rss / 1024 / 1024) / memLimitMB * 100);
     if (memPercentage > 95) {
       isReady = false;

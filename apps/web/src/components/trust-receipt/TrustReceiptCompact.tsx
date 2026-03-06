@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import { Shield, Activity, UserCheck, Eye, AlertTriangle, Power, Heart, ChevronDown, ChevronUp, Sparkles, Cpu, Calculator, Zap } from 'lucide-react';
-import { TrustReceiptCard } from './TrustReceiptCard';
-import type { TrustEvaluation, AnalysisMethod } from './TrustReceiptCard';
+import { TrustReceiptCard, normalizeTrustEvaluation } from './TrustReceiptCard';
+import type { TrustEvaluation, AnalysisMethod, TrustReceiptProps } from './TrustReceiptCard';
 
 function statusClasses(status: string) {
   if (status === 'PASS') return 'text-emerald-400';
@@ -51,11 +51,16 @@ const PRINCIPLE_INFO: Record<string, { label: string; icon: React.ReactNode; sho
 };
 
 export interface TrustReceiptCompactProps {
-  evaluation: TrustEvaluation;
+  evaluation?: TrustEvaluation;
+  receipt?: any;
+  verified?: boolean;
+  variant?: string;
+  onExpand?: () => void;
 }
 
-export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = ({ evaluation }) => {
+export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = (props) => {
   const [expanded, setExpanded] = useState(false);
+  const evaluation = normalizeTrustEvaluation((props.evaluation ? { evaluation: props.evaluation } : { receipt: props.receipt, verified: props.verified }) as TrustReceiptProps);
   const statusClass = statusClasses(evaluation.status);
 
   // Get principle scores from trustScore.principles (the real SONATE evaluation)
@@ -69,7 +74,10 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = ({ evalua
     <div className="w-full rounded-lg border border-slate-700 bg-slate-900 text-slate-200">
       <button
         className="w-full px-3 py-2 flex items-center justify-between"
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => {
+          setExpanded(!expanded);
+          props.onExpand?.();
+        }}
       >
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">

@@ -86,7 +86,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
       securityLogger.warn('Token verification failed', { requestId, error: errorMessage });
       res.status(401).json({
         success: false,
-        message: `Token verification failed: ${errorMessage}`,
+        message: 'Token verification failed',
         code: 'INVALID_TOKEN'
       });
       return;
@@ -156,8 +156,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
              // Return 500 here but with JSON
              res.status(500).json({
                success: false,
-               message: 'Failed to provision user account',
-               details: createErrorMsg
+               message: 'Failed to provision user account'
              });
              return;
           }
@@ -181,7 +180,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     // Tenant resolution: X-Tenant-ID header takes precedence, then JWT payload, then default
     const headerTenantValue = req.headers['x-tenant-id'];
     const headerTenant = typeof headerTenantValue === 'string' ? headerTenantValue : undefined;
-    const userTenant = (user as any).tenant_id || payload.tenant || payload.tenant_id || 'default';
+    const userTenant = (user as any).tenant_id || payload.tenant || (payload as any).tenant_id || 'default';
     if (headerTenant && headerTenant !== userTenant && user.role !== 'admin') {
       res.status(403).json({
         success: false,
@@ -210,8 +209,7 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     if (!res.headersSent) {
       const payload: any = {
         success: false,
-        message: `Authentication middleware error: ${getErrorMessage(error)}`,
-        error: getErrorMessage(error),
+        message: 'Authentication middleware error',
         requestId
       };
       // only include stack trace in non-production to avoid leaking internals
@@ -298,7 +296,7 @@ export async function optionalAuth(req: Request, res: Response, next: NextFuncti
         req.userId = payload.userId;
         const headerTenantValue = req.headers['x-tenant-id'];
         const headerTenant = typeof headerTenantValue === 'string' ? headerTenantValue : undefined;
-        const userTenant = (user as any).tenant_id || payload.tenant || payload.tenant_id || 'default';
+        const userTenant = (user as any).tenant_id || payload.tenant || (payload as any).tenant_id || 'default';
         req.tenant = headerTenant && headerTenant === userTenant ? headerTenant : userTenant;
       }
     }

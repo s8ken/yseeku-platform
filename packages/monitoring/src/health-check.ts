@@ -576,7 +576,7 @@ export class HealthCheckSystem {
       const latency = Date.now() - startTime;
       const memoryUsage = process.memoryUsage();
       const rssMB = memoryUsage.rss / 1024 / 1024;
-      const limitMB = parseInt(process.env.MEMORY_LIMIT_MB ?? '512');
+      const limitMB = parseInt(process.env.FLY_VM_MEMORY_MB ?? process.env.MEMORY_LIMIT_MB ?? '512');
       const usedPercent = (rssMB / limitMB) * 100;
 
       return {

@@ -335,7 +335,7 @@ export class TrustService {
     // tenantId should always be set by callers; log a warning if not so it surfaces in monitoring.
     if (!context.tenantId) {
       logger.warn('persistReceipt called without tenantId — falling back to "default"', {
-        receiptHash: receipt.self_hash,
+        receiptHash: receipt.id,
         sessionId: context.sessionId,
       });
     }
