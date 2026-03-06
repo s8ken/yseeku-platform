@@ -124,6 +124,8 @@ const moduleSections: ModuleSection[] = [
       { title: 'Audit Trails', href: '/dashboard/audit', icon: FileText, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'Learn', href: '/dashboard/learn', icon: GraduationCap, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
       { title: 'Docs', href: '/dashboard/docs', icon: Book, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
+      { title: 'SONATE Constitution', href: '/dashboard/learn/foundations/what-is-sonate', icon: Shield, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
+      { title: 'Protocol Access', href: '/dashboard/api', icon: Terminal, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'Dev Tools', href: '/dashboard/tools', icon: Settings, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'Settings', href: '/dashboard/settings', icon: Settings, roles: ['admin'], module: 'orchestrate' },
     ]
@@ -549,8 +551,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <DropdownMenuSeparator />
                 <Link href="/dashboard/api">
                   <DropdownMenuItem className="cursor-pointer">
-                    <KeyRound className="mr-2 h-4 w-4" />
-                    API Keys
+                    <Terminal className="mr-2 h-4 w-4" />
+                    Developer Hub
                   </DropdownMenuItem>
                 </Link>
                 <Link href="/dashboard/settings">
