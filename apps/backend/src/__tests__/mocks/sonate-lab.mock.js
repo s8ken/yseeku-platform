@@ -2,8 +2,11 @@
 // where the package dist has not been built yet.
 class ConversationalMetrics {
   constructor() {}
-  analyze() { return {}; }
-  getMetrics() { return {}; }
+  recordTurn() { return { alertLevel: 'green', phaseShift: 0, metrics: {} }; }
+  getMetricsSummary() { return {}; }
+  getTransitionLog() { return []; }
+  clear() {}
+  exportAuditData() { return {}; }
 }
 
 module.exports = {
