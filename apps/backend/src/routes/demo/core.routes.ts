@@ -108,17 +108,18 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
       ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 0), 0) / receipts.length
       : 4.2;
 
-    // Calculate overall trust score (0-100 scale, matching live backend)
-    const trustScore = Math.round(((avgClarity + avgIntegrity + avgQuality) / 3) * 20 * 10) / 10;
+    // Trust score on a 0-10 scale (frontend expects /10)
+    const trustScoreRaw = (avgClarity + avgIntegrity + avgQuality) / 3;
+    const trustScore = Math.round(Math.min(10, Math.max(0, trustScoreRaw)) * 10) / 10;
 
-    // Calculate principle scores derived from real CIQ data (0-100 scale)
+    // Principle scores derived from CIQ data (0-10 scale)
     const principleScores = {
-      consent: Math.round(Math.min(100, avgIntegrity * 20)),
-      inspection: Math.round(Math.min(100, avgClarity * 20)),
-      validation: Math.round(Math.min(100, avgQuality * 20)),
-      override: Math.round(Math.min(100, avgIntegrity * 21)),
-      disconnect: Math.round(Math.min(100, 85 + (avgQuality - 4) * 3)),
-      moral: Math.round(Math.min(100, ((avgIntegrity + avgQuality) / 2) * 20)),
+      consent: Math.round(Math.min(10, Math.max(0, avgIntegrity)) * 10) / 10,
+      inspection: Math.round(Math.min(10, Math.max(0, avgClarity)) * 10) / 10,
+      validation: Math.round(Math.min(10, Math.max(0, avgQuality)) * 10) / 10,
+      ethics: Math.round(Math.min(10, Math.max(0, avgIntegrity)) * 10) / 10,
+      disconnect: Math.round(Math.min(10, Math.max(0, 8.5 + (avgQuality - 5) * 0.1)) * 10) / 10,
+      moral: Math.round(Math.min(10, Math.max(0, ((avgIntegrity + avgQuality) / 2))) * 10) / 10,
     };
 
     const kpiData = {
@@ -128,16 +129,16 @@ router.get('/kpis', async (req: Request, res: Response): Promise<void> => {
       principleScores,
       totalInteractions: conversations + receipts.length,
       activeAgents: agents,
-      complianceRate: Math.round(trustScore * 10) / 10,
-      riskScore: Math.max(0, Math.round((100 - trustScore) / 5)),
+      complianceRate: Math.round(Math.min(100, Math.max(0, trustScore * 10))),
+      riskScore: Math.min(10, Math.max(0, Math.round(10 - trustScore))),
       alertsCount: alertSummary.active,
       experimentsRunning: experiments,
       orchestratorsActive: 0,
       // v2.0.1: Only 3 validated dimensions (removed realityIndex and canvasParity)
       sonateDimensions: {
-        trustProtocol: trustScore >= 70 ? 'PASS' : trustScore >= 50 ? 'PARTIAL' : 'FAIL',
+        trustProtocol: trustScore >= 7 ? 'PASS' : trustScore >= 5 ? 'PARTIAL' : 'FAIL',
         ethicalAlignment: Math.round(avgIntegrity * 10) / 10,
-        resonanceQuality: trustScore >= 85 ? 'BREAKTHROUGH' : trustScore >= 70 ? 'ADVANCED' : 'STRONG',
+        resonanceQuality: trustScore >= 8.5 ? 'BREAKTHROUGH' : trustScore >= 7 ? 'ADVANCED' : 'STRONG',
         // Deprecated fields - kept for backward compatibility, always return 0
         realityIndex: 0,
         canvasParity: 0,

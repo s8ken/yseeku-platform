@@ -111,6 +111,11 @@ router.post('/register', registerRateLimiter, validateBody(RegisterSchema), asyn
  */
 router.post('/guest', async (req: Request, res: Response): Promise<void> => {
   try {
+    const requestedTenantIdValue = req.query.tenantId || req.query.tenant;
+    const requestedTenantId = typeof requestedTenantIdValue === 'string' ? requestedTenantIdValue : undefined;
+    const demoAllowed = process.env.ENABLE_DEMO_MODE === 'true' || process.env.NODE_ENV !== 'production';
+    const tenantId = demoAllowed && requestedTenantId === 'demo-tenant' ? 'demo-tenant' : 'default';
+
     const guestId = `guest_${Math.random().toString(36).substring(2, 10)}`;
     // Use .com to pass email regex validation (requires 2-3 char TLD)
     const email = `${guestId}@guest.yseeku.com`;
@@ -121,6 +126,7 @@ router.post('/guest', async (req: Request, res: Response): Promise<void> => {
       name: 'Guest User',
       email,
       password,
+      tenant_id: tenantId,
     });
 
     // Generate tokens
@@ -129,7 +135,7 @@ router.post('/guest', async (req: Request, res: Response): Promise<void> => {
       username: user.name,
       email: user.email,
       roles: ['guest'],
-      tenant: 'default',
+      tenant: tenantId,
     });
 
     res.status(201).json({

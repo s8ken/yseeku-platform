@@ -1,8 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { webhookService } from '../services/webhook.service';
-import { AlertSeverity, WebhookChannel } from '../models/webhook-config.model';
-import { logger } from '../utils/logger';
 
 /**
  * Webhook Configuration Routes
@@ -66,7 +64,12 @@ const updateWebhookSchema = createWebhookSchema.partial();
 
 // Get tenant ID from authenticated user or default
 const getTenantId = (req: Request): string => {
-  return (req as any).user?.tenantId || 'default';
+  return (
+    (req as any).tenant ||
+    (req as any).user?.tenant_id ||
+    (req as any).user?.tenantId ||
+    'default'
+  );
 };
 
 // Validation middleware

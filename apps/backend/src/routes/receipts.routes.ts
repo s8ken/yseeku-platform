@@ -37,10 +37,20 @@ const exporter = new ReceiptExporterService();
 /**
  * Zod schemas for request validation
  */
+const DidSchema = z.string().refine(
+  (value) => {
+    if (/^did:sonate:[a-zA-Z0-9]{40}$/.test(value)) return true;
+    if (/^did:web:[a-zA-Z0-9.:-]+$/.test(value)) return true;
+    if (/^did:key:z[1-9A-HJ-NP-Za-km-z]+$/.test(value)) return true;
+    return false;
+  },
+  { message: 'Invalid DID format' }
+);
+
 const CreateReceiptSchema = z.object({
   session_id: z.string().min(1),
-  agent_did: z.string().regex(/^did:sonate:[a-zA-Z0-9]{40}$/),
-  human_did: z.string().regex(/^did:sonate:[a-zA-Z0-9]{40}$/),
+  agent_did: DidSchema,
+  human_did: DidSchema,
   policy_version: z.string(),
   mode: z.enum(['constitutional', 'directive']),
   interaction: z.object({

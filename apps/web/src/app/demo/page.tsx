@@ -20,7 +20,7 @@ export default function DemoHome() {
 
     // Get guest session with cookie before redirecting
     try {
-      await fetch('/api/auth/guest', { method: 'POST' });
+      await fetch('/api/auth/guest?tenantId=demo-tenant', { method: 'POST' });
     } catch {
       // Guest session unavailable — proceed in demo mode without a server session
     }

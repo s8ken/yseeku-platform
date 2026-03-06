@@ -870,7 +870,8 @@ router.get('/receipts/:receiptHash', protect, apiGatewayLimiter, async (req: Req
       res.status(400).json({ success: false, error: 'Invalid receiptHash' });
       return;
     }
-    const receipt = await TrustReceiptModel.findOne({ self_hash: receiptHash }).lean();
+    const tenantId = String(req.tenant || 'default');
+    const receipt = await TrustReceiptModel.findOne({ self_hash: receiptHash, tenant_id: tenantId }).lean();
     if (!receipt) {
       res.status(404).json({ success: false, error: 'Receipt not found' });
       return;
@@ -889,9 +890,10 @@ router.get('/receipts/:receiptHash', protect, apiGatewayLimiter, async (req: Req
 router.get('/identity/:sessionId', protect, apiGatewayLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { sessionId } = req.params;
+    const tenantId = String(req.tenant || 'default');
 
     // Get receipts for this session
-    const receipts = await TrustReceiptModel.find({ session_id: sessionId })
+    const receipts = await TrustReceiptModel.find({ session_id: sessionId, tenant_id: tenantId })
       .sort({ createdAt: -1 })
       .limit(20)
       .lean();

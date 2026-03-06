@@ -21,10 +21,10 @@ const router = Router();
  */
 router.get('/tenants', async (req: Request, res: Response): Promise<void> => {
   try {
-    const tenants = await Tenant.find({}).limit(10).lean();
+    const tenant = await Tenant.findOne({ name: 'Demo Organization' }).lean();
 
     // If no tenants, return demo data
-    if (tenants.length === 0) {
+    if (!tenant) {
       res.json({
         success: true,
         data: [
@@ -44,7 +44,7 @@ router.get('/tenants', async (req: Request, res: Response): Promise<void> => {
 
     res.json({
       success: true,
-      data: tenants,
+      data: [tenant],
     });
   } catch (error: unknown) {
     logger.error('Demo tenants error', { error: getErrorMessage(error) });
@@ -63,7 +63,7 @@ router.get('/tenants', async (req: Request, res: Response): Promise<void> => {
  */
 router.get('/agents', async (req: Request, res: Response): Promise<void> => {
   try {
-    const agents = await Agent.find({})
+    const agents = await Agent.find({ tenantId: DEMO_TENANT_ID })
       .limit(10)
       .select('name description provider model traits lastActive isPublic ciModel')
       .lean();

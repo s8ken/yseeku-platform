@@ -69,6 +69,7 @@ import ssoRoutes from './routes/sso.routes';
 import verifiableCredentialsRoutes from './routes/verifiable-credentials.routes';
 import trustPortabilityRoutes from './routes/trust-portability.routes';
 import docsRoutes from './routes/docs.routes';
+import { protect } from './middleware/auth.middleware';
 import { initializeSocket } from './socket';
 import { liveMetricsService } from './services/live-metrics.service';
 import { User } from './models/user.model';
@@ -210,7 +211,7 @@ app.use('/api/gateway', apiGatewayRoutes); // API Gateway and Platform Keys
 app.use('/api/orchestrate', orchestrateRoutes); // Multi-Agent Orchestration
 app.use('/api/overseer', overseerRoutes); // System Brain / Overseer
 app.use('/api/overrides', overrideRoutes); // Override management
-app.use('/api/webhooks', webhookRoutes); // Webhook configuration and delivery
+app.use('/api/webhooks', protect, webhookRoutes); // Webhook configuration and delivery
 app.use('/api/live', liveRoutes); // Live dashboard metrics
 app.use('/api/safety', safetyRoutes); // Prompt safety scanning
 app.use('/api/reports', reportsRoutes); // Compliance reports

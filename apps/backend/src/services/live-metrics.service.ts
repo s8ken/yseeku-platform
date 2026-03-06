@@ -17,7 +17,7 @@ interface PrincipleScoreCache {
     consent: number;
     inspection: number;
     validation: number;
-    override: number;
+    ethics: number;
     disconnect: number;
     moral: number;
   };
@@ -58,7 +58,7 @@ export interface LiveMetrics {
     consent: number;
     inspection: number;
     validation: number;
-    override: number;
+    ethics: number;
     disconnect: number;
     moral: number;
   };
@@ -214,7 +214,7 @@ async function calculatePrincipleScores(): Promise<PrincipleScoreCache['scores']
         consent: 8.5,
         inspection: 8.7,
         validation: 8.3,
-        override: 9.0,
+        ethics: 9.0,
         disconnect: 8.8,
         moral: 8.6,
       };
@@ -244,7 +244,7 @@ async function calculatePrincipleScores(): Promise<PrincipleScoreCache['scores']
       validation: Math.min(10, avgQuality * 1.8 + 0.5),
       
       // ETHICAL_OVERRIDE: Based on integrity (ethical alignment)
-      override: Math.min(10, avgIntegrity * 1.9 + 0.5),
+      ethics: Math.min(10, avgIntegrity * 1.9 + 0.5),
       
       // RIGHT_TO_DISCONNECT: Baseline high (platform design supports this)
       disconnect: Math.min(10, 8.5 + (avgQuality - 5) * 0.1),
@@ -258,7 +258,7 @@ async function calculatePrincipleScores(): Promise<PrincipleScoreCache['scores']
       consent: Math.round(scores.consent * 10) / 10,
       inspection: Math.round(scores.inspection * 10) / 10,
       validation: Math.round(scores.validation * 10) / 10,
-      override: Math.round(scores.override * 10) / 10,
+      ethics: Math.round(scores.ethics * 10) / 10,
       disconnect: Math.round(scores.disconnect * 10) / 10,
       moral: Math.round(scores.moral * 10) / 10,
     };
@@ -276,7 +276,7 @@ async function calculatePrincipleScores(): Promise<PrincipleScoreCache['scores']
       consent: 8.5,
       inspection: 8.7,
       validation: 8.3,
-      override: 9.0,
+      ethics: 9.0,
       disconnect: 8.8,
       moral: 8.6,
     };

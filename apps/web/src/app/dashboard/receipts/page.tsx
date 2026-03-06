@@ -100,11 +100,20 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
   const [verificationResult, setVerificationResult] = useState<'success' | 'fail' | null>(null);
   const [formattedTime, setFormattedTime] = useState('');
 
+  const canVerify = !!(
+    receipt.receiptData?.signature ||
+    receipt.receiptData?.proof?.proofValue ||
+    receipt.proof?.proofValue
+  );
+
   useEffect(() => {
     setFormattedTime(new Date(receipt.timestamp).toLocaleString());
   }, [receipt.timestamp]);
 
   const verifyReceipt = async () => {
+    if (!canVerify) {
+      return;
+    }
     setIsVerifying(true);
     setVerificationResult(null);
     try {
@@ -168,10 +177,10 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
                 size="sm"
                 className="h-7 text-[10px] uppercase font-bold tracking-wider"
                 onClick={verifyReceipt}
-                disabled={isVerifying}
+                disabled={!canVerify || isVerifying}
               >
                 {isVerifying ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <ShieldCheck className="h-3 w-3 mr-1" />}
-                {verificationResult === 'success' ? 'Verified' : verificationResult === 'fail' ? 'Invalid' : 'Verify Proof'}
+                {!canVerify ? 'Unsigned' : verificationResult === 'success' ? 'Verified' : verificationResult === 'fail' ? 'Invalid' : 'Verify Proof'}
               </Button>
             </div>
           </div>

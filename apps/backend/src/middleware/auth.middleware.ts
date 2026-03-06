@@ -179,8 +179,18 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     req.userId = user._id.toString();
     
     // Tenant resolution: X-Tenant-ID header takes precedence, then JWT payload, then default
-    const headerTenant = req.headers['x-tenant-id'] as string | undefined;
-    req.tenant = headerTenant || payload.tenant || payload.tenant_id || 'default';
+    const headerTenantValue = req.headers['x-tenant-id'];
+    const headerTenant = typeof headerTenantValue === 'string' ? headerTenantValue : undefined;
+    const userTenant = (user as any).tenant_id || payload.tenant || payload.tenant_id || 'default';
+    if (headerTenant && headerTenant !== userTenant && user.role !== 'admin') {
+      res.status(403).json({
+        success: false,
+        message: 'Not authorized for requested tenant',
+      });
+      return;
+    }
+
+    req.tenant = headerTenant || userTenant;
     req.userTenant = req.tenant; // Alias for compatibility
     req.userEmail = user.email;
     req.sessionId = payload.session_id || payload.sessionId;
@@ -286,7 +296,10 @@ export async function optionalAuth(req: Request, res: Response, next: NextFuncti
       if (user) {
         req.user = user;
         req.userId = payload.userId;
-        req.tenant = payload.tenant;
+        const headerTenantValue = req.headers['x-tenant-id'];
+        const headerTenant = typeof headerTenantValue === 'string' ? headerTenantValue : undefined;
+        const userTenant = (user as any).tenant_id || payload.tenant || payload.tenant_id || 'default';
+        req.tenant = headerTenant && headerTenant === userTenant ? headerTenant : userTenant;
       }
     }
   } catch (error) {
