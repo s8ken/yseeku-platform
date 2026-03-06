@@ -7,7 +7,7 @@ import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { Button } from '@/components/ui/button';
 
 interface HumanReadableSummaryProps {
-  trustScore: number;
+  trustScore: number; // 0–10 scale (raw API value — NOT multiplied to 0–100)
   bedauIndex: number; // 0-1
   activeAgents: number;
   interactionsCount: number;
@@ -31,17 +31,16 @@ export function HumanReadableSummary({
   let SafetyIcon = ShieldCheck; // Uppercase for component usage
   let safetyDesc = 'All constitutional principles are being met.';
 
-  if (alertsCount > 0 || !policyStatus) {
-    safetyStatus = 'Attention Needed';
-    safetyColor = 'text-amber-500';
-    SafetyIcon = AlertTriangle;
-    safetyDesc = `${alertsCount} alerts require review. Policy compliance checks pending.`;
-  }
-  if (trustScore < 8) {
+  if (trustScore < 6) {
     safetyStatus = 'Degraded';
     safetyColor = 'text-red-500';
     SafetyIcon = AlertTriangle;
     safetyDesc = 'Trust score is below safety threshold. Intervention recommended.';
+  } else if (alertsCount > 0 || !policyStatus) {
+    safetyStatus = 'Attention Needed';
+    safetyColor = 'text-amber-500';
+    SafetyIcon = AlertTriangle;
+    safetyDesc = `${alertsCount} alerts require review. Policy compliance checks pending.`;
   }
 
   // 2. Mindset Narrative (Translating Bedau/Creativity)

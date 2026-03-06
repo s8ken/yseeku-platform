@@ -130,6 +130,9 @@ export function Login() {
                   required
                   className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-teal-500 focus:ring-teal-500"
                 />
+                <p className="text-xs text-slate-500">
+                  Your organisation's workspace identifier. Leave as <span className="font-mono text-slate-400">default</span> if you're unsure, or contact your admin.
+                </p>
               </div>
               <div className="space-y-2">
                 <label htmlFor="username" className="text-sm font-medium text-slate-300 flex items-center gap-2">

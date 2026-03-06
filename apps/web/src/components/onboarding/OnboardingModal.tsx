@@ -63,7 +63,7 @@ const platformFeatures: OnboardingStep[] = [
 
 export function OnboardingModal() {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const { enableDemo, isDemo } = useDemo();
   const startTutorial = useTutorialStore(state => state.startTutorial);
 
@@ -91,12 +91,15 @@ export function OnboardingModal() {
     setIsOpen(false);
   };
 
-  const handleStartTutorial = () => {
-    handleComplete(true);
-    // Small delay to ensure demo mode is enabled first
-    setTimeout(() => {
-      startTutorial(dashboardTutorialSteps);
-    }, 300);
+  const handleStartTutorial = async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(ONBOARDING_KEY, 'true');
+    }
+    if (!isDemo) {
+      await enableDemo();
+    }
+    setIsOpen(false);
+    startTutorial(dashboardTutorialSteps);
   };
 
   const handleSkip = () => {
@@ -257,8 +260,15 @@ export function OnboardingModal() {
               </button>
             </div>
 
-            {/* Page indicator */}
-            <div className="flex justify-center gap-1 pb-4">
+            {/* Page indicator + back */}
+            <div className="flex items-center justify-center gap-3 pb-4">
+              <button
+                onClick={() => setCurrentPage(0)}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                ← Back
+              </button>
+              <div className="flex gap-1">
               {[...Array(totalPages)].map((_, i) => (
                 <div
                   key={i}
@@ -268,6 +278,7 @@ export function OnboardingModal() {
                   )}
                 />
               ))}
+              </div>
             </div>
           </>
         )}

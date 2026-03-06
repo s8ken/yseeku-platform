@@ -33,6 +33,22 @@ export const dashboardTutorialSteps: TutorialStep[] = [
     path: '/dashboard/lab/experiments'
   },
   {
+    id: 'orchestrate-module',
+    title: 'Orchestrate — Enterprise Governance',
+    content: 'Orchestrate is your control room. Generate GDPR, SOC2, and ISO27001 compliance reports, browse immutable audit trails, and manage multi-tenant fleet access — all in one place.',
+    targetId: 'nav-compliance-reports',
+    position: 'right',
+    path: '/dashboard/reports'
+  },
+  {
+    id: 'system-brain',
+    title: 'System Brain — Autonomous Oversight',
+    content: 'The Overseer is an autonomous governance loop that monitors trust health across all your agents and can take action when thresholds are breached — in advisory or enforced mode.',
+    targetId: 'nav-system-brain',
+    position: 'right',
+    path: '/dashboard/brain'
+  },
+  {
     id: 'finish',
     title: 'You\'re all set!',
     content: 'Start exploring! You can restart this tour anytime from the "Platform Tutorial" button in the sidebar.',

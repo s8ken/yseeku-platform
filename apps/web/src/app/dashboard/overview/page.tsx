@@ -56,8 +56,10 @@ interface KPIResponse {
   };
 }
 
+// score: 0–100 (API trust score × 10 — see avgTrust calculation below)
+// Thresholds match HumanReadableSummary: green ≥ 80, amber ≥ 60, red < 60
 function TrustScoreGauge({ score }: { score: number }) {
-  const color = score >= 85 ? 'var(--detect-primary)' : score >= 70 ? '#f59e0b' : '#ef4444';
+  const color = score >= 80 ? 'var(--detect-primary)' : score >= 60 ? '#f59e0b' : '#ef4444';
   const circumference = 2 * Math.PI * 40;
   const strokeDashoffset = circumference - (score / 100) * circumference;
   
@@ -299,8 +301,10 @@ export default function TrustScoresPage() {
   }, [agentsData, kpisData]);
 
   // Extract metrics from the unified KPI data
-  const avgTrust = kpisData?.trustScore 
-    ? Math.round(kpisData.trustScore * 10) 
+  // API returns trustScore on a 0–10 scale; multiply by 10 to get 0–100 for TrustScoreGauge.
+  // HumanReadableSummary on dashboard/page.tsx uses the raw 0–10 value — keep these consistent.
+  const avgTrust = kpisData?.trustScore
+    ? Math.round(kpisData.trustScore * 10)
     : (agents.length > 0 ? Math.round(agents.reduce((sum, a) => sum + a.trustScore, 0) / agents.length) : 0);
   
   const healthyCount = agents.filter(a => a.status === 'healthy').length;

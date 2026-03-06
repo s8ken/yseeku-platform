@@ -17,19 +17,24 @@ export default function DemoHome() {
 
   const handleEnterDemo = async () => {
     setIsRedirecting(true);
-    
+
     // Get guest session with cookie before redirecting
     try {
       await fetch('/api/auth/guest', { method: 'POST' });
     } catch {
-      // Continue anyway - middleware will handle redirect if needed
+      // Guest session unavailable — proceed in demo mode without a server session
     }
-    
+
     // Enable demo mode and redirect
     if (typeof window !== 'undefined') {
       localStorage.setItem('yseeku-demo-mode', 'true');
     }
-    router.push('/dashboard?demo=true');
+
+    try {
+      router.push('/dashboard?demo=true');
+    } catch {
+      setIsRedirecting(false);
+    }
   };
 
   if (!mounted) {

@@ -294,7 +294,7 @@ export default function DashboardPage() {
                   title="Risk Level"
                   value={kpis.riskScore}
                   unit="/10"
-                  icon={AlertTriangle}
+                  icon={TrendingDown}
                   trend={kpis.trends?.risk}
                   status={kpis.riskScore > 5 ? 'error' : kpis.riskScore > 3 ? 'warning' : 'success'}
                 />
@@ -362,12 +362,16 @@ export default function DashboardPage() {
               <WithDemoWatermark position="top-right" size="sm" opacity={25}>
                 <ConstitutionalPrinciples 
                   principleScores={kpis?.principleScores ? {
+                    // CIQ path: { transparency, fairness, privacy, safety, accountability }
+                    // SONATE path: { consent, inspection, validation, ethics, disconnect, moral }
                     CONSENT_ARCHITECTURE: (kpis.principleScores.transparency || 0) * 10,
                     INSPECTION_MANDATE: (kpis.principleScores.fairness || 0) * 10,
                     CONTINUOUS_VALIDATION: (kpis.principleScores.privacy || 0) * 10,
                     ETHICAL_OVERRIDE: (kpis.principleScores.safety || 0) * 10,
                     RIGHT_TO_DISCONNECT: (kpis.principleScores.accountability || 0) * 10,
-                    MORAL_RECOGNITION: (kpis.principleScores.accountability || 0) * 10,
+                    // moral is present on the SONATE path; falls back to safety (closest
+                    // semantic proxy in the CIQ path) to avoid duplicating accountability.
+                    MORAL_RECOGNITION: (kpis.principleScores.moral ?? kpis.principleScores.safety ?? 0) * 10,
                   } : undefined}
                 />
               </WithDemoWatermark>

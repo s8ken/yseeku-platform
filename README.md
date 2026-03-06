@@ -226,8 +226,8 @@ The **Overseer** is an autonomous governance loop that monitors AI health and ta
 
 ### Prerequisites
 - Node.js 20+
-- MongoDB 6+
-- pnpm or npm
+- npm 10+ (this repo uses npm, not pnpm or yarn)
+- MongoDB 6+ (local, Docker, or Atlas)
 
 ### Installation
 
@@ -236,15 +236,25 @@ The **Overseer** is an autonomous governance loop that monitors AI health and ta
 git clone https://github.com/s8ken/yseeku-platform.git
 cd yseeku-platform
 
-# Install dependencies
+# Install dependencies (always run from repo root)
 npm install
 
 # Set up environment
 cp apps/backend/.env.example apps/backend/.env
-# Edit .env with your MongoDB URI and API keys
+# Edit apps/backend/.env — see Environment Variables below
 
 # Start development
 npm run dev
+```
+
+#### MongoDB via Docker (quickest option)
+
+```bash
+# Start only MongoDB
+docker compose up -d mongo
+
+# Or start the full stack (backend + frontend + MongoDB)
+docker compose up
 ```
 
 ### Running the Platform
@@ -262,22 +272,18 @@ npm run dev
 
 ### Environment Variables
 
-```bash
-# Required
-MONGODB_URI=mongodb://localhost:27017/sonate
-JWT_SECRET=your-secret-key
+Full documentation is in `apps/backend/.env.example`. Key variables:
 
-# Optional: LLM Providers
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_KEY=...
-AWS_REGION=us-east-1
-
-# Optional: Trust Receipts
-SONATE_PUBLIC_KEY=base64...
-SONATE_PRIVATE_KEY=base64...
-```
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MONGODB_URI` | Yes | MongoDB connection string |
+| `JWT_SECRET` | Yes | Auth token signing key — generate with `openssl rand -hex 64` |
+| `JWT_REFRESH_SECRET` | Yes | Refresh token signing key — generate separately |
+| `ANTHROPIC_API_KEY` | No | Enables LLM-based resonance scoring (replaces heuristic fallback) |
+| `OPENAI_API_KEY` | No | Enables semantic embedding similarity for drift detection |
+| `SONATE_PUBLIC_KEY` / `SONATE_PRIVATE_KEY` | No | Enables cryptographic Ed25519 receipt signing |
+| `PINATA_JWT` | No | Required for "Pin to IPFS" audit bundle feature |
+| `DETECT_EMBEDDINGS_PROVIDER` | No | Set to `openai` to use embedding-based drift detection |
 
 ---
 
