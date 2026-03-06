@@ -97,7 +97,6 @@ const moduleSections: ModuleSection[] = [
       { title: 'Verify Receipt', href: '/dashboard/verify', icon: ShieldCheck, roles: ['admin', 'user', 'viewer'], module: 'detect' },
       { title: 'Risk & Compliance', href: '/dashboard/risk', icon: Waves, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Overseer', href: '/dashboard/overseer', icon: Eye, roles: ['admin', 'user', 'viewer'], module: 'detect' },
-      { title: 'Overseer Live', href: '/dashboard/overseer-live', icon: Activity, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Alerts', href: '/dashboard/alerts', icon: AlertTriangle, roles: ['admin', 'user'], module: 'detect' },
       { title: 'Trust Analytics', href: '/dashboard/trust', icon: Shield, roles: ['admin', 'user'], module: 'detect' },
       { title: 'System Monitor', href: '/dashboard/monitoring', icon: Server, roles: ['admin'], module: 'detect' },
