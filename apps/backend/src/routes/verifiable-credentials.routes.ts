@@ -1,6 +1,6 @@
 /**
  * Verifiable Credentials API Routes
- * 
+ *
  * W3C Verifiable Credentials endpoints:
  * - Create VC from trust receipt
  * - Create Verifiable Presentation
@@ -36,10 +36,7 @@ router.post('/create', protect, async (req: Request, res: Response) => {
 
     // Find the receipt
     const receipt = await TrustReceiptModel.findOne({
-      $or: [
-        { _id: receiptId },
-        { self_hash: receiptId },
-      ],
+      $or: [{ _id: receiptId }, { self_hash: receiptId }],
       tenant_id: tenantId,
     }).lean();
 
@@ -274,21 +271,21 @@ router.get('/context', (req: Request, res: Response) => {
   res.json({
     '@context': {
       '@version': 1.1,
-      'sonate': 'https://yseeku.com/ns/trust#',
-      'TrustReceiptCredential': 'sonate:TrustReceiptCredential',
-      'trustScore': 'sonate:trustScore',
-      'ciqMetrics': 'sonate:ciqMetrics',
-      'clarity': 'sonate:clarity',
-      'integrity': 'sonate:integrity',
-      'quality': 'sonate:quality',
-      'sessionId': 'sonate:sessionId',
-      'agentId': 'sonate:agentId',
-      'chain': 'sonate:chain',
-      'selfHash': 'sonate:selfHash',
-      'previousHash': 'sonate:previousHash',
-      'chainHash': 'sonate:chainHash',
-      'evaluation': 'sonate:evaluation',
-      'principlesEvaluated': 'sonate:principlesEvaluated',
+      sonate: 'https://yseeku.com/ns/trust#',
+      TrustReceiptCredential: 'sonate:TrustReceiptCredential',
+      trustScore: 'sonate:trustScore',
+      ciqMetrics: 'sonate:ciqMetrics',
+      clarity: 'sonate:clarity',
+      integrity: 'sonate:integrity',
+      quality: 'sonate:quality',
+      sessionId: 'sonate:sessionId',
+      agentId: 'sonate:agentId',
+      chain: 'sonate:chain',
+      selfHash: 'sonate:selfHash',
+      previousHash: 'sonate:previousHash',
+      chainHash: 'sonate:chainHash',
+      evaluation: 'sonate:evaluation',
+      principlesEvaluated: 'sonate:principlesEvaluated',
     },
   });
 });
@@ -299,12 +296,12 @@ router.get('/context', (req: Request, res: Response) => {
  */
 router.get('/status/:listId', (req: Request, res: Response) => {
   const { listId } = req.params;
-  
+
   // In production, this would return the actual status list credential
   res.json({
     '@context': [
       'https://www.w3.org/2018/credentials/v1',
-      'https://w3id.org/vc/status-list/2021/v1'
+      'https://w3id.org/vc/status-list/2021/v1',
     ],
     id: `https://yseeku.com/credentials/status/${listId}`,
     type: ['VerifiableCredential', 'StatusList2021Credential'],
@@ -314,8 +311,8 @@ router.get('/status/:listId', (req: Request, res: Response) => {
       id: `https://yseeku.com/credentials/status/${listId}#list`,
       type: 'StatusList2021',
       statusPurpose: 'revocation',
-      encodedList: 'H4sIAAAAAAAAA-3BMQEAAADCoPVP...' // Compressed bitstring
-    }
+      encodedList: 'H4sIAAAAAAAAA-3BMQEAAADCoPVP...', // Compressed bitstring
+    },
   });
 });
 

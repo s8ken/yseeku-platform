@@ -1,6 +1,6 @@
 /**
  * Policy Override Manager
- * 
+ *
  * Re-exports the override manager from @sonate/policy for backward compatibility
  */
 

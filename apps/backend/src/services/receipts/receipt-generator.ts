@@ -1,8 +1,8 @@
 /**
  * Receipt Generator Service
- * 
+ *
  * Responsible for creating cryptographically signed Trust Receipts
- * 
+ *
  * Features:
  * - Generate receipt IDs (SHA-256 hashing)
  * - Sign receipts (Ed25519)
@@ -66,7 +66,7 @@ interface ReceiptGeneratorConfig {
 
 /**
  * ReceiptGeneratorService
- * 
+ *
  * Creates cryptographically signed, hash-chained trust receipts
  */
 export class ReceiptGeneratorService {
@@ -88,7 +88,7 @@ export class ReceiptGeneratorService {
    * Recursively canonicalize an object for deterministic JSON output.
    * Sorts keys at every level, filters undefined values.
    * Must match the canonicalize() in public-demo.routes.ts and verify-sdk.
-   * 
+   *
    * PHASE 2: SONATE Principle Inclusion
    * This function processes telemetry fields including:
    * - sonate_principles (0-10 scores per SONATE principle)
@@ -97,7 +97,7 @@ export class ReceiptGeneratorService {
    * - principle_weights (weight distribution applied)
    * - weight_source (policy: standard|healthcare|finance|etc)
    * - weight_policy_id (policy reference for audit trail)
-   * 
+   *
    * All principle and weight data is canonicalized for Ed25519 signature,
    * ensuring signature verification confirms data integrity.
    */
@@ -106,12 +106,12 @@ export class ReceiptGeneratorService {
       return JSON.stringify(obj);
     }
     if (Array.isArray(obj)) {
-      return '[' + obj.map(item => this.canonicalize(item)).join(',') + ']';
+      return '[' + obj.map((item) => this.canonicalize(item)).join(',') + ']';
     }
     const sortedKeys = Object.keys(obj).sort();
     const pairs = sortedKeys
-      .filter(key => obj[key] !== undefined)
-      .map(key => JSON.stringify(key) + ':' + this.canonicalize(obj[key]));
+      .filter((key) => obj[key] !== undefined)
+      .map((key) => JSON.stringify(key) + ':' + this.canonicalize(obj[key]));
     return '{' + pairs.join(',') + '}';
   }
 
@@ -143,7 +143,7 @@ export class ReceiptGeneratorService {
 
   /**
    * Sign receipt with agent's private key
-   * 
+   *
    * In production, this would:
    * - Retrieve private key from secure key store (HSM, AWS KMS, etc.)
    * - Use the appropriate key version
@@ -155,7 +155,7 @@ export class ReceiptGeneratorService {
   ): Promise<{ signature: string; timestamp: string }> {
     try {
       const timestamp = new Date().toISOString();
-      
+
       // Convert key to proper format — if string, assume hex-encoded
       let keyBuffer: Buffer;
       if (typeof agentPrivateKey === 'string') {
@@ -173,20 +173,22 @@ export class ReceiptGeneratorService {
 
       // Sign the canonical content
       const signature = await signPayload(content, keyBuffer);
-      
+
       return {
         signature,
         timestamp,
       };
     } catch (err) {
-      logger.error('Failed to sign receipt', { error: err instanceof Error ? err.message : String(err) });
+      logger.error('Failed to sign receipt', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       throw new Error('Receipt signing failed');
     }
   }
 
   /**
    * Create a new trust receipt
-   * 
+   *
    * @param input Receipt creation input
    * @param agentPrivateKey Agent's private key for signing
    * @returns Signed, hash-chained trust receipt
@@ -207,16 +209,24 @@ export class ReceiptGeneratorService {
         // Include raw content AND hashes
         interaction = {
           ...input.interaction,
-          prompt_hash: createHash('sha256').update(input.interaction.prompt || '').digest('hex'),
-          response_hash: createHash('sha256').update(input.interaction.response || '').digest('hex'),
+          prompt_hash: createHash('sha256')
+            .update(input.interaction.prompt || '')
+            .digest('hex'),
+          response_hash: createHash('sha256')
+            .update(input.interaction.response || '')
+            .digest('hex'),
         };
       } else {
         // Privacy-by-default: hashes only, no raw content
         const { prompt, response, ...rest } = input.interaction;
         interaction = {
           ...rest,
-          prompt_hash: createHash('sha256').update(prompt || '').digest('hex'),
-          response_hash: createHash('sha256').update(response || '').digest('hex'),
+          prompt_hash: createHash('sha256')
+            .update(prompt || '')
+            .digest('hex'),
+          response_hash: createHash('sha256')
+            .update(response || '')
+            .digest('hex'),
         };
       }
 
@@ -411,7 +421,9 @@ export class ReceiptGeneratorService {
  */
 let singletonInstance: ReceiptGeneratorService | null = null;
 
-export function getReceiptGenerator(config?: Partial<ReceiptGeneratorConfig>): ReceiptGeneratorService {
+export function getReceiptGenerator(
+  config?: Partial<ReceiptGeneratorConfig>
+): ReceiptGeneratorService {
   if (!singletonInstance) {
     singletonInstance = new ReceiptGeneratorService(config);
   }

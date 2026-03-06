@@ -85,101 +85,104 @@ const VariantSchema = new Schema({
   },
 });
 
-const ExperimentSchema = new Schema<IExperiment>({
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  description: {
-    type: String,
-    default: '',
-  },
-  hypothesis: {
-    type: String,
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: ['draft', 'running', 'paused', 'completed', 'archived'],
-    default: 'draft',
-    index: true,
-  },
-  type: {
-    type: String,
-    enum: ['ab_test', 'multivariate', 'sequential', 'bayesian'],
-    default: 'ab_test',
-  },
-  variants: {
-    type: [VariantSchema],
-    required: true,
-    validate: {
-      validator: function(v: IVariant[]) {
-        return v.length >= 2;
+const ExperimentSchema = new Schema<IExperiment>(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      default: '',
+    },
+    hypothesis: {
+      type: String,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ['draft', 'running', 'paused', 'completed', 'archived'],
+      default: 'draft',
+      index: true,
+    },
+    type: {
+      type: String,
+      enum: ['ab_test', 'multivariate', 'sequential', 'bayesian'],
+      default: 'ab_test',
+    },
+    variants: {
+      type: [VariantSchema],
+      required: true,
+      validate: {
+        validator: function (v: IVariant[]) {
+          return v.length >= 2;
+        },
+        message: 'Experiment must have at least 2 variants (control + treatment)',
       },
-      message: 'Experiment must have at least 2 variants (control + treatment)',
+    },
+    startedAt: {
+      type: Date,
+    },
+    completedAt: {
+      type: Date,
+    },
+    pausedAt: {
+      type: Date,
+    },
+    targetSampleSize: {
+      type: Number,
+      required: true,
+      min: 100,
+      default: 1000,
+    },
+    currentSampleSize: {
+      type: Number,
+      default: 0,
+    },
+    progress: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    metrics: {
+      pValue: { type: Number },
+      effectSize: { type: Number },
+      confidenceInterval: {
+        lower: { type: Number },
+        upper: { type: Number },
+      },
+      significant: { type: Boolean, default: false },
+      minimumDetectableEffect: { type: Number },
+    },
+    tenantId: {
+      type: String,
+      required: true,
+      index: true,
+    },
+    createdBy: {
+      type: String,
+      required: true,
+    },
+    tags: {
+      type: [String],
+      default: [],
+    },
+    notes: {
+      type: String,
+      default: '',
+    },
+    metadata: {
+      type: Schema.Types.Mixed,
+      default: {},
     },
   },
-  startedAt: {
-    type: Date,
-  },
-  completedAt: {
-    type: Date,
-  },
-  pausedAt: {
-    type: Date,
-  },
-  targetSampleSize: {
-    type: Number,
-    required: true,
-    min: 100,
-    default: 1000,
-  },
-  currentSampleSize: {
-    type: Number,
-    default: 0,
-  },
-  progress: {
-    type: Number,
-    default: 0,
-    min: 0,
-    max: 100,
-  },
-  metrics: {
-    pValue: { type: Number },
-    effectSize: { type: Number },
-    confidenceInterval: {
-      lower: { type: Number },
-      upper: { type: Number },
-    },
-    significant: { type: Boolean, default: false },
-    minimumDetectableEffect: { type: Number },
-  },
-  tenantId: {
-    type: String,
-    required: true,
-    index: true,
-  },
-  createdBy: {
-    type: String,
-    required: true,
-  },
-  tags: {
-    type: [String],
-    default: [],
-  },
-  notes: {
-    type: String,
-    default: '',
-  },
-  metadata: {
-    type: Schema.Types.Mixed,
-    default: {},
-  },
-}, {
-  timestamps: true,
-  collection: 'experiments',
-});
+  {
+    timestamps: true,
+    collection: 'experiments',
+  }
+);
 
 // Compound indexes for common queries
 ExperimentSchema.index({ tenantId: 1, status: 1, createdAt: -1 });
@@ -187,9 +190,12 @@ ExperimentSchema.index({ tenantId: 1, createdBy: 1, createdAt: -1 });
 ExperimentSchema.index({ tenantId: 1, tags: 1 });
 
 // Update progress when sample size changes
-ExperimentSchema.pre('save', function() {
+ExperimentSchema.pre('save', function () {
   if (this.targetSampleSize > 0) {
-    this.progress = Math.min(100, Math.round((this.currentSampleSize / this.targetSampleSize) * 100));
+    this.progress = Math.min(
+      100,
+      Math.round((this.currentSampleSize / this.targetSampleSize) * 100)
+    );
   }
 });
 

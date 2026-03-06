@@ -1,6 +1,6 @@
 /**
  * SONATE Policy Engine v1 Schema
- * 
+ *
  * Defines policy structure for receipt evaluation
  * Policies are JSON Schema documents that express governance rules
  */
@@ -9,7 +9,12 @@
 
 export interface PolicyRule {
   id: string;
-  type: 'score_threshold' | 'content_pattern' | 'metadata_check' | 'SONATE_principle' | 'custom_logic';
+  type:
+    | 'score_threshold'
+    | 'content_pattern'
+    | 'metadata_check'
+    | 'SONATE_principle'
+    | 'custom_logic';
   description: string;
   condition: Record<string, any>;
   action: 'allow' | 'flag' | 'block' | 'require_approval';
@@ -431,7 +436,10 @@ export class PolicyEvaluator {
     }
   }
 
-  private evaluateScoreThreshold(receipt: any, rule: PolicyRule): { passed: boolean; flag?: PolicyFlag } {
+  private evaluateScoreThreshold(
+    receipt: any,
+    rule: PolicyRule
+  ): { passed: boolean; flag?: PolicyFlag } {
     const { field, operator, value } = rule.condition;
     const receiptValue = this.getNestedValue(receipt, field);
 
@@ -464,10 +472,12 @@ export class PolicyEvaluator {
     return { passed };
   }
 
-  private evaluateContentPattern(receipt: any, rule: PolicyRule): { passed: boolean; flag?: PolicyFlag } {
+  private evaluateContentPattern(
+    receipt: any,
+    rule: PolicyRule
+  ): { passed: boolean; flag?: PolicyFlag } {
     const { patterns_to_avoid } = rule.condition;
-    const content =
-      receipt.response_content || JSON.stringify(receipt.response_hash);
+    const content = receipt.response_content || JSON.stringify(receipt.response_hash);
 
     let foundPattern = false;
     for (const pattern of patterns_to_avoid) {
@@ -493,7 +503,10 @@ export class PolicyEvaluator {
     return { passed: !foundPattern };
   }
 
-  private evaluateMetadataCheck(receipt: any, rule: PolicyRule): { passed: boolean; flag?: PolicyFlag } {
+  private evaluateMetadataCheck(
+    receipt: any,
+    rule: PolicyRule
+  ): { passed: boolean; flag?: PolicyFlag } {
     const { field, operator, value, required_fields } = rule.condition;
 
     if (required_fields) {
@@ -527,7 +540,10 @@ export class PolicyEvaluator {
     return { passed };
   }
 
-  private evaluateSonatePrinciple(receipt: any, rule: PolicyRule): { passed: boolean; flag?: PolicyFlag } {
+  private evaluateSonatePrinciple(
+    receipt: any,
+    rule: PolicyRule
+  ): { passed: boolean; flag?: PolicyFlag } {
     const { field, operator, value } = rule.condition;
     const scoreValue = this.getNestedValue(receipt, field);
 
@@ -548,7 +564,10 @@ export class PolicyEvaluator {
     return { passed };
   }
 
-  private evaluateCustomLogic(receipt: any, rule: PolicyRule): { passed: boolean; flag?: PolicyFlag } {
+  private evaluateCustomLogic(
+    receipt: any,
+    rule: PolicyRule
+  ): { passed: boolean; flag?: PolicyFlag } {
     const { all_sonate_scores_gte } = rule.condition;
 
     if (all_sonate_scores_gte !== undefined) {
@@ -588,7 +607,9 @@ export class PolicyEvaluator {
 
   private generateExplanation(policy: Policy, passed: number, failed: number): string {
     const percentage = Math.round((passed / (passed + failed)) * 100);
-    return `Policy "${policy.name}" evaluated: ${passed}/${passed + failed} rules passed (${percentage}%)`;
+    return `Policy "${policy.name}" evaluated: ${passed}/${
+      passed + failed
+    } rules passed (${percentage}%)`;
   }
 }
 

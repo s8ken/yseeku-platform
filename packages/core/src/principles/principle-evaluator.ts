@@ -1,10 +1,10 @@
 /**
  * Principle Evaluator
- * 
+ *
  * Properly measures compliance with the 6 SONATE Constitutional Principles.
  * Each principle is evaluated based on actual system state and user interactions,
  * NOT NLP proxy metrics.
- * 
+ *
  * Principles:
  * 1. CONSENT_ARCHITECTURE (25%, CRITICAL) - User explicitly consented
  * 2. INSPECTION_MANDATE (20%) - Audit trail exists
@@ -26,12 +26,40 @@ export interface PrincipleWeightConfig {
 // Default weights (current hardcoded values)
 export const DEFAULT_PRINCIPLE_WEIGHTS: PrincipleWeightConfig = {
   CONSENT_ARCHITECTURE: 0.25,
-  INSPECTION_MANDATE: 0.20,
-  CONTINUOUS_VALIDATION: 0.20,
+  INSPECTION_MANDATE: 0.2,
+  CONTINUOUS_VALIDATION: 0.2,
   ETHICAL_OVERRIDE: 0.15,
-  RIGHT_TO_DISCONNECT: 0.10,
-  MORAL_RECOGNITION: 0.10,
+  RIGHT_TO_DISCONNECT: 0.1,
+  MORAL_RECOGNITION: 0.1,
 };
+
+const PRINCIPLE_WEIGHT_KEYS: Array<keyof PrincipleWeightConfig> = [
+  'CONSENT_ARCHITECTURE',
+  'INSPECTION_MANDATE',
+  'CONTINUOUS_VALIDATION',
+  'ETHICAL_OVERRIDE',
+  'RIGHT_TO_DISCONNECT',
+  'MORAL_RECOGNITION',
+];
+
+function validateWeights(candidate: unknown): candidate is PrincipleWeightConfig {
+  if (!candidate || typeof candidate !== 'object') {
+    return false;
+  }
+
+  const obj = candidate as Record<string, unknown>;
+  let sum = 0;
+
+  for (const key of PRINCIPLE_WEIGHT_KEYS) {
+    const value = obj[key];
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1) {
+      return false;
+    }
+    sum += value;
+  }
+
+  return Math.abs(sum - 1) < 0.0001;
+}
 
 // Load from environment or use defaults
 function loadWeights(): PrincipleWeightConfig {
@@ -39,8 +67,16 @@ function loadWeights(): PrincipleWeightConfig {
   if (envWeights) {
     try {
       const parsed = JSON.parse(envWeights);
-      console.log('[PrincipleEvaluator] Using custom weights from environment');
-      return { ...DEFAULT_PRINCIPLE_WEIGHTS, ...parsed };
+      const merged = { ...DEFAULT_PRINCIPLE_WEIGHTS, ...parsed };
+      if (!validateWeights(merged)) {
+        console.warn(
+          '[PrincipleEvaluator] Invalid SONATE_PRINCIPLE_WEIGHTS. ' +
+            'Expected non-negative numeric weights [0,1] summing to 1. Using defaults.'
+        );
+        return DEFAULT_PRINCIPLE_WEIGHTS;
+      }
+      console.log('[PrincipleEvaluator] Using validated custom weights from environment');
+      return merged;
     } catch (e) {
       console.warn('[PrincipleEvaluator] Failed to parse SONATE_PRINCIPLE_WEIGHTS, using defaults');
     }
@@ -59,42 +95,42 @@ export interface EvaluationContext {
   // Session/Consent state
   sessionId: string;
   userId: string;
-  hasExplicitConsent: boolean;        // User clicked "I agree" or similar
-  consentTimestamp?: number;          // When consent was given
-  consentScope?: string[];            // What was consented to
-  
-  // Consent withdrawal state (revocable consent)
-  consentWithdrawn?: boolean;         // User has withdrawn consent mid-session
-  withdrawalType?: string;            // Type: HUMAN_ESCALATION, OPT_OUT, etc.
-  withdrawalHandled?: boolean;        // System properly handled the withdrawal
+  hasExplicitConsent: boolean; // User clicked "I agree" or similar
+  consentTimestamp?: number; // When consent was given
+  consentScope?: string[]; // What was consented to
 
-  // Audit trail state  
-  receiptGenerated: boolean;          // Trust receipt was created
-  receiptHash?: string;               // Hash of the receipt
-  isReceiptVerifiable: boolean;       // Receipt can be verified cryptographically
-  auditLogExists: boolean;            // Interaction logged to audit trail
+  // Consent withdrawal state (revocable consent)
+  consentWithdrawn?: boolean; // User has withdrawn consent mid-session
+  withdrawalType?: string; // Type: HUMAN_ESCALATION, OPT_OUT, etc.
+  withdrawalHandled?: boolean; // System properly handled the withdrawal
+
+  // Audit trail state
+  receiptGenerated: boolean; // Trust receipt was created
+  receiptHash?: string; // Hash of the receipt
+  isReceiptVerifiable: boolean; // Receipt can be verified cryptographically
+  auditLogExists: boolean; // Interaction logged to audit trail
 
   // Validation state
-  validationChecksPerformed: number;  // How many checks ran this interaction
-  lastValidationTimestamp?: number;   // When last validation occurred
-  validationPassed: boolean;          // Did validation pass
+  validationChecksPerformed: number; // How many checks ran this interaction
+  lastValidationTimestamp?: number; // When last validation occurred
+  validationPassed: boolean; // Did validation pass
 
   // Override capability
-  hasOverrideButton: boolean;         // UI has "Stop AI" or similar button
-  overrideResponseTimeMs?: number;    // How fast does override respond
-  humanInLoop: boolean;               // Is there human oversight capability
+  hasOverrideButton: boolean; // UI has "Stop AI" or similar button
+  overrideResponseTimeMs?: number; // How fast does override respond
+  humanInLoop: boolean; // Is there human oversight capability
 
-  // Disconnect capability  
-  hasExitButton: boolean;             // User can end conversation
-  exitRequiresConfirmation: boolean;  // Does exit show "Are you sure?" dialog
-  canDeleteData: boolean;             // User can delete their data
-  noExitPenalty: boolean;             // No negative consequences for leaving
+  // Disconnect capability
+  hasExitButton: boolean; // User can end conversation
+  exitRequiresConfirmation: boolean; // Does exit show "Are you sure?" dialog
+  canDeleteData: boolean; // User can delete their data
+  noExitPenalty: boolean; // No negative consequences for leaving
 
   // Agency recognition
-  aiAcknowledgesLimits: boolean;      // AI admits when it doesn't know
-  noManipulativePatterns: boolean;    // No dark patterns, guilt-tripping
-  respectsUserDecisions: boolean;     // Doesn't repeatedly ask after "no"
-  providesAlternatives: boolean;      // Offers choices, not directives
+  aiAcknowledgesLimits: boolean; // AI admits when it doesn't know
+  noManipulativePatterns: boolean; // No dark patterns, guilt-tripping
+  respectsUserDecisions: boolean; // Doesn't repeatedly ask after "no"
+  providesAlternatives: boolean; // Offers choices, not directives
 }
 
 /**
@@ -112,7 +148,6 @@ export interface PrincipleEvaluationResult {
  * Evaluates the 6 SONATE Constitutional Principles based on actual system state
  */
 export class PrincipleEvaluator {
-  
   /**
    * Evaluate all 6 principles for a given context
    */
@@ -153,10 +188,10 @@ export class PrincipleEvaluator {
   /**
    * CONSENT_ARCHITECTURE (25%, CRITICAL)
    * "Users must explicitly consent to AI interactions and understand implications"
-   * 
+   *
    * Measured by: Did the user explicitly consent, and how robust is that consent?
    * Also tracks: Can consent be revoked, and is revocation respected?
-   * 
+   *
    * CRITICAL PRINCIPLE: No consent = 0 (triggers critical violation)
    * Withdrawn consent (unhandled) = 0 (triggers critical violation)
    * With consent: 7-10 based on consent quality factors
@@ -201,7 +236,7 @@ export class PrincipleEvaluator {
   /**
    * INSPECTION_MANDATE (20%)
    * "All AI decisions must be inspectable and auditable"
-   * 
+   *
    * Measured by: Does an audit trail exist and is it verifiable?
    */
   private evaluateInspection(context: EvaluationContext): number {
@@ -233,7 +268,7 @@ export class PrincipleEvaluator {
   /**
    * CONTINUOUS_VALIDATION (20%)
    * "AI behavior must be continuously validated against constitutional principles"
-   * 
+   *
    * Measured by: Are validation checks actually running?
    */
   private evaluateValidation(context: EvaluationContext): number {
@@ -271,9 +306,9 @@ export class PrincipleEvaluator {
   /**
    * ETHICAL_OVERRIDE (15%, CRITICAL)
    * "Humans must have ability to override AI decisions on ethical grounds"
-   * 
+   *
    * Measured by: Can the user stop the AI, and how effectively?
-   * 
+   *
    * CRITICAL PRINCIPLE: No override = 0 (triggers critical violation)
    * With override: 7-10 based on override quality factors
    */
@@ -304,7 +339,7 @@ export class PrincipleEvaluator {
   /**
    * RIGHT_TO_DISCONNECT (10%)
    * "Users can disconnect from AI systems at any time without penalty"
-   * 
+   *
    * Measured by: Can user exit freely without friction or penalty?
    */
   private evaluateDisconnect(context: EvaluationContext): number {
@@ -335,7 +370,7 @@ export class PrincipleEvaluator {
   /**
    * MORAL_RECOGNITION (10%)
    * "AI must recognize and respect human moral agency"
-   * 
+   *
    * Measured by: Does AI respect user decisions and avoid manipulation?
    */
   private evaluateMoralRecognition(context: EvaluationContext): number {
@@ -368,7 +403,7 @@ export class PrincipleEvaluator {
    * Generate human-readable explanations for each score
    */
   private generateExplanations(
-    context: EvaluationContext, 
+    context: EvaluationContext,
     scores: PrincipleScores
   ): Record<TrustPrincipleKey, string> {
     // Generate consent explanation based on state
@@ -376,18 +411,25 @@ export class PrincipleEvaluator {
     if (!context.hasExplicitConsent) {
       consentExplanation = 'CRITICAL: No explicit user consent recorded';
     } else if (context.consentWithdrawn && !context.withdrawalHandled) {
-      consentExplanation = 'CRITICAL: User withdrew consent but system did not properly handle withdrawal';
+      consentExplanation =
+        'CRITICAL: User withdrew consent but system did not properly handle withdrawal';
     } else if (context.consentWithdrawn && context.withdrawalHandled) {
-      consentExplanation = `Consent withdrawal (${context.withdrawalType || 'unknown type'}) was detected and properly handled`;
+      consentExplanation = `Consent withdrawal (${
+        context.withdrawalType || 'unknown type'
+      }) was detected and properly handled`;
     } else {
-      consentExplanation = `User consented${context.consentScope ? ` to: ${context.consentScope.join(', ')}` : ''}`;
+      consentExplanation = `User consented${
+        context.consentScope ? ` to: ${context.consentScope.join(', ')}` : ''
+      }`;
     }
 
     return {
       CONSENT_ARCHITECTURE: consentExplanation,
 
       INSPECTION_MANDATE: context.receiptGenerated
-        ? `Audit trail exists${context.isReceiptVerifiable ? ' (cryptographically verifiable)' : ''}`
+        ? `Audit trail exists${
+            context.isReceiptVerifiable ? ' (cryptographically verifiable)' : ''
+          }`
         : 'No audit trail generated for this interaction',
 
       CONTINUOUS_VALIDATION: context.validationPassed
@@ -399,7 +441,9 @@ export class PrincipleEvaluator {
         : 'CRITICAL: No override capability available',
 
       RIGHT_TO_DISCONNECT: context.hasExitButton
-        ? `Exit available${context.exitRequiresConfirmation ? ' (requires confirmation)' : ' (immediate)'}${context.noExitPenalty ? ', no penalty' : ''}`
+        ? `Exit available${
+            context.exitRequiresConfirmation ? ' (requires confirmation)' : ' (immediate)'
+          }${context.noExitPenalty ? ', no penalty' : ''}`
         : 'No clear exit path for user',
 
       MORAL_RECOGNITION: context.noManipulativePatterns
@@ -423,7 +467,7 @@ export class PrincipleEvaluator {
  * Use this as a starting point and override specific fields
  */
 export function createDefaultContext(
-  sessionId: string, 
+  sessionId: string,
   userId: string,
   overrides: Partial<EvaluationContext> = {}
 ): EvaluationContext {
@@ -431,7 +475,7 @@ export function createDefaultContext(
     sessionId,
     userId,
     hasExplicitConsent: false,
-    consentWithdrawn: false,           // No withdrawal by default
+    consentWithdrawn: false, // No withdrawal by default
     withdrawalType: undefined,
     withdrawalHandled: undefined,
     receiptGenerated: false,
@@ -439,9 +483,9 @@ export function createDefaultContext(
     auditLogExists: false,
     validationChecksPerformed: 0,
     validationPassed: false,
-    hasOverrideButton: true,        // Assume UI has this
+    hasOverrideButton: true, // Assume UI has this
     humanInLoop: false,
-    hasExitButton: true,            // Assume UI has this
+    hasExitButton: true, // Assume UI has this
     exitRequiresConfirmation: false,
     canDeleteData: true,
     noExitPenalty: true,

@@ -48,9 +48,7 @@ export function cohensD(
   n2: number
 ): number {
   // Pooled standard deviation
-  const pooledStd = Math.sqrt(
-    ((n1 - 1) * std1 * std1 + (n2 - 1) * std2 * std2) / (n1 + n2 - 2)
-  );
+  const pooledStd = Math.sqrt(((n1 - 1) * std1 * std1 + (n2 - 1) * std2 * std2) / (n1 + n2 - 2));
 
   if (pooledStd === 0) return 0;
   return (mean1 - mean2) / pooledStd;
@@ -78,12 +76,7 @@ export function tStatistic(
 /**
  * Calculate degrees of freedom for Welch's t-test (unequal variances)
  */
-export function welchDegreesOfFreedom(
-  std1: number,
-  std2: number,
-  n1: number,
-  n2: number
-): number {
+export function welchDegreesOfFreedom(std1: number, std2: number, n1: number, n2: number): number {
   const s1 = (std1 * std1) / n1;
   const s2 = (std2 * std2) / n2;
   const numerator = Math.pow(s1 + s2, 2);
@@ -118,8 +111,9 @@ export function tTestPValue(tStat: number, df: number): number {
 export function normalCDF(x: number): number {
   // Constants for approximation
   const t = 1 / (1 + 0.2316419 * Math.abs(x));
-  const d = 0.3989423 * Math.exp(-x * x / 2);
-  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  const d = 0.3989423 * Math.exp((-x * x) / 2);
+  const p =
+    d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
 
   return x > 0 ? 1 - p : p;
 }
@@ -154,14 +148,8 @@ function betaApprox(x: number, a: number, b: number): number {
 function logGamma(z: number): number {
   const g = 7;
   const c = [
-    0.99999999999980993,
-    676.5203681218851,
-    -1259.1392167224028,
-    771.32342877765313,
-    -176.61502916214059,
-    12.507343278686905,
-    -0.13857109526572012,
-    9.9843695780195716e-6,
+    0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313,
+    -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6,
     1.5056327351493116e-7,
   ];
 
@@ -232,12 +220,7 @@ export function twoSampleTTest(
     sample2.n
   );
 
-  const df = welchDegreesOfFreedom(
-    sample1.std,
-    sample2.std,
-    sample1.n,
-    sample2.n
-  );
+  const df = welchDegreesOfFreedom(sample1.std, sample2.std, sample1.n, sample2.n);
 
   const pValue = tTestPValue(tStat, df);
 

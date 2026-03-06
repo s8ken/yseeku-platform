@@ -25,15 +25,15 @@ export interface ITrustReceipt extends Document {
   tenant_id?: string;
 
   // DID-related fields for W3C Verifiable Credentials
-  issuer?: string;        // Platform DID (did:web:yseeku.com)
-  subject?: string;       // Agent DID (did:web:yseeku.com:agents:{id})
-  agent_id?: string;      // Reference to the agent
+  issuer?: string; // Platform DID (did:web:yseeku.com)
+  subject?: string; // Agent DID (did:web:yseeku.com:agents:{id})
+  agent_id?: string; // Reference to the agent
   proof?: {
-    type: string;         // 'Ed25519Signature2020'
-    created: string;      // ISO timestamp
-    verificationMethod: string;  // did:web:yseeku.com#key-1
+    type: string; // 'Ed25519Signature2020'
+    created: string; // ISO timestamp
+    verificationMethod: string; // did:web:yseeku.com#key-1
     proofPurpose: string; // 'assertionMethod'
-    proofValue: string;   // Base64 encoded signature
+    proofValue: string; // Base64 encoded signature
   };
 
   // v2.2: SONATE principle scores and weight metadata (NEW)
@@ -45,7 +45,7 @@ export interface ITrustReceipt extends Document {
     RIGHT_TO_DISCONNECT?: number;
     MORAL_RECOGNITION?: number;
   };
-  overall_trust_score?: number;  // 0-100
+  overall_trust_score?: number; // 0-100
   trust_status?: 'PASS' | 'PARTIAL' | 'FAIL';
   principle_weights?: {
     CONSENT_ARCHITECTURE?: number;
@@ -55,8 +55,8 @@ export interface ITrustReceipt extends Document {
     RIGHT_TO_DISCONNECT?: number;
     MORAL_RECOGNITION?: number;
   };
-  weight_source?: string;  // 'standard'|'healthcare'|'finance'|etc
-  weight_policy_id?: string;  // Policy reference
+  weight_source?: string; // 'standard'|'healthcare'|'finance'|etc
+  weight_policy_id?: string; // Policy reference
 
   // v2.1: Analysis method transparency (LLM vs Heuristic detection)
   evaluated_by?: 'llm' | 'heuristic' | 'hybrid';

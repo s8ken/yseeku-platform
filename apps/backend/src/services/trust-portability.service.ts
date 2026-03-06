@@ -1,6 +1,6 @@
 /**
  * Trust Portability Service
- * 
+ *
  * Enables cross-platform trust data exchange:
  * - Export trust scores and receipts
  * - Import trust data from other platforms
@@ -93,7 +93,7 @@ class TrustPortabilityService {
 
   constructor() {
     this.platformDID = process.env.PLATFORM_DID || 'did:web:yseeku.com';
-    
+
     // Register trusted platforms for import
     this.initializeTrustedPlatforms();
   }
@@ -135,7 +135,7 @@ class TrustPortabilityService {
     try {
       // Build query based on subject type
       const query: any = { tenant_id: tenantId };
-      
+
       if (subjectType === 'agent') {
         query.agent_id = subjectId;
       } else if (subjectType === 'session') {
@@ -158,19 +158,18 @@ class TrustPortabilityService {
       }
 
       // Calculate summary statistics
-      const trustScores = receipts.map(r => 
-        this.calculateScore(r.ciq_metrics)
-      );
+      const trustScores = receipts.map((r) => this.calculateScore(r.ciq_metrics));
       const avgScore = trustScores.reduce((a, b) => a + b, 0) / trustScores.length;
-      
-      const avgClarity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 0), 0) / receipts.length;
-      const avgIntegrity = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 0), 0) / receipts.length;
-      const avgQuality = receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 0), 0) / receipts.length;
-      
+
+      const avgClarity =
+        receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 0), 0) / receipts.length;
+      const avgIntegrity =
+        receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 0), 0) / receipts.length;
+      const avgQuality =
+        receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 0), 0) / receipts.length;
+
       // Pass if score >= 70
-      const passCount = receipts.filter(r => 
-        this.calculateScore(r.ciq_metrics) >= 70
-      ).length;
+      const passCount = receipts.filter((r) => this.calculateScore(r.ciq_metrics) >= 70).length;
 
       const publicKey = await keysService.getPublicKeyHex();
 
@@ -205,7 +204,7 @@ class TrustPortabilityService {
 
       // Optionally include individual receipts
       if (options?.includeReceipts) {
-        exportData.receipts = receipts.map(r => ({
+        exportData.receipts = receipts.map((r) => ({
           hash: r.self_hash || '',
           timestamp: r.createdAt?.toISOString() || '',
           trustScore: this.calculateScore(r.ciq_metrics),
@@ -253,7 +252,7 @@ class TrustPortabilityService {
     try {
       // Check if source is trusted
       const trustedSource = this.trustedPlatforms.get(importData.source.platform);
-      
+
       let verified = false;
       if (trustedSource && importData.verification?.signature && importData.source.publicKey) {
         // Verify signature
@@ -279,9 +278,7 @@ class TrustPortabilityService {
         success: true,
         verified,
         aggregatedScore: importData.trustData.score,
-        message: verified 
-          ? 'Trust data imported and verified'
-          : 'Trust data imported (unverified)',
+        message: verified ? 'Trust data imported and verified' : 'Trust data imported (unverified)',
       };
     } catch (error) {
       logger.error('Failed to import trust data', { error: getErrorMessage(error) });
@@ -301,25 +298,20 @@ class TrustPortabilityService {
       let totalWeight = 0;
       let weightedSum = 0;
 
-      const sourcesWithWeights = sources.map(source => {
+      const sourcesWithWeights = sources.map((source) => {
         const trusted = this.trustedPlatforms.get(source.platform);
         const weight = trusted?.weight || 0.5; // Default weight for unknown platforms
-        
+
         totalWeight += weight;
         weightedSum += source.score * weight;
 
         return { ...source, weight };
       });
 
-      const aggregatedScore = totalWeight > 0 
-        ? Math.round(weightedSum / totalWeight) 
-        : 0;
+      const aggregatedScore = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
 
       // Calculate confidence based on number of sources and their weights
-      const confidence = Math.min(
-        1,
-        (sources.length * 0.2) + (totalWeight / sources.length * 0.5)
-      );
+      const confidence = Math.min(1, sources.length * 0.2 + (totalWeight / sources.length) * 0.5);
 
       return {
         subjectId,
@@ -347,7 +339,7 @@ class TrustPortabilityService {
     expiresAt: string;
   }> {
     const exportData = await this.exportTrust(subjectType, subjectId, tenantId);
-    
+
     // Create a compact badge token
     const badgeData = {
       s: subjectId, // subject
@@ -386,13 +378,13 @@ class TrustPortabilityService {
   }> {
     try {
       const [badgeString, signaturePrefix] = badge.split('.');
-      
+
       if (!badgeString || !signaturePrefix) {
         return { valid: false, expired: false };
       }
 
       const badgeData = JSON.parse(Buffer.from(badgeString, 'base64url').toString());
-      
+
       // Check expiration
       if (badgeData.exp < Date.now()) {
         return { valid: false, expired: true };

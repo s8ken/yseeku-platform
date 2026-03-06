@@ -1,15 +1,15 @@
 /**
  * PHASE 3: Database Migration Script
- * 
+ *
  * Adds new MongoDB fields for SONATE principle scores and weight metadata
  * to support Phase 1A & 1B (ReceiptGeneratorService updates)
- * 
+ *
  * Features:
  * - Idempotent (safe to run multiple times)
  * - Backward compatible (doesn't modify existing receipts)
  * - Creates indexes for efficient querying
  * - Logs detailed migration statistics
- * 
+ *
  * Run with: npm run migrate:phase-3
  * Or: NODE_ENV=production npm run migrate:phase-3
  */
@@ -29,7 +29,7 @@ interface MigrationStats {
 
 /**
  * Phase 3 Migration
- * 
+ *
  * Schema changes:
  * 1. Add sonate_principles object to receipts
  * 2. Add overall_trust_score field
@@ -57,7 +57,7 @@ export async function runPhase3Migration(connection: Connection): Promise<Migrat
 
     // Phase 3.1: Add indexes for efficient querying
     logger.info('[PHASE 3] Creating indexes for weight_source and weight_policy_id');
-    
+
     try {
       await TrustReceiptCollection.createIndex({ 'telemetry.weight_source': 1 });
       stats.indexesCreated++;
@@ -115,10 +115,12 @@ export async function runPhase3Migration(connection: Connection): Promise<Migrat
     try {
       // Get current validator from collection options
       const collectionInfo = await connection.db?.collection('trust_receipts');
-      
+
       // Note: MongoDB schema validation is typically set at collection creation
       // For production, ensure this is set in your initial schema setup
-      logger.info('[PHASE 3] Schema validation is handled by application layer via schema definitions');
+      logger.info(
+        '[PHASE 3] Schema validation is handled by application layer via schema definitions'
+      );
     } catch (error) {
       logger.warn('[PHASE 3] Could not verify schema validation', {
         error: error instanceof Error ? error.message : String(error),
@@ -165,7 +167,8 @@ export async function runPhase3Migration(connection: Connection): Promise<Migrat
           },
           'telemetry.weight_source': {
             type: 'string',
-            description: 'Policy identifier (standard|healthcare|finance|government|technology|education|legal)',
+            description:
+              'Policy identifier (standard|healthcare|finance|government|technology|education|legal)',
             added: 'phase-3',
             indexed: true,
           },
@@ -252,11 +255,11 @@ export async function verifyPhase3Migration(connection: Connection): Promise<boo
 
     // Check that indexes exist
     const indexes = await TrustReceiptCollection.getIndexes();
-    const hasWeightSourceIndex = Object.values(indexes).some((idx: any) =>
-      idx.key && idx.key['telemetry.weight_source'] === 1
+    const hasWeightSourceIndex = Object.values(indexes).some(
+      (idx: any) => idx.key && idx.key['telemetry.weight_source'] === 1
     );
-    const hasWeightPolicyIndex = Object.values(indexes).some((idx: any) =>
-      idx.key && idx.key['telemetry.weight_policy_id'] === 1
+    const hasWeightPolicyIndex = Object.values(indexes).some(
+      (idx: any) => idx.key && idx.key['telemetry.weight_policy_id'] === 1
     );
 
     if (!hasWeightSourceIndex) {
@@ -288,9 +291,7 @@ export async function verifyPhase3Migration(connection: Connection): Promise<boo
       'telemetry.weight_policy_id',
     ];
 
-    const hasAllFields = requiredFields.every((field) =>
-      metadata.fields && metadata.fields[field]
-    );
+    const hasAllFields = requiredFields.every((field) => metadata.fields && metadata.fields[field]);
 
     if (!hasAllFields) {
       logger.warn('[PHASE 3] Not all required field metadata was recorded');
@@ -334,7 +335,9 @@ export async function migratePhase3() {
     const verified = await verifyPhase3Migration(connection);
 
     if (!verified) {
-      logger.warn('[PHASE 3] Migration completed but verification failed - manual review recommended');
+      logger.warn(
+        '[PHASE 3] Migration completed but verification failed - manual review recommended'
+      );
       process.exit(1);
     }
 

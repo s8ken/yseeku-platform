@@ -2,13 +2,13 @@
  * Tests for error-utils.ts
  */
 
-import { 
-  getErrorMessage, 
-  getErrorStack, 
+import {
+  getErrorMessage,
+  getErrorStack,
   isError,
   isErrorLike,
   normalizeError,
-  handleError
+  handleError,
 } from '../../utils/error-utils';
 
 describe('getErrorMessage', () => {
@@ -80,7 +80,7 @@ describe('normalizeError', () => {
   it('should normalize Error to consistent structure', () => {
     const error = new Error('Test error');
     const normalized = normalizeError(error);
-    
+
     expect(normalized).toEqual({
       message: 'Test error',
       name: 'Error',
@@ -103,7 +103,7 @@ describe('normalizeError', () => {
       statusCode: 400,
     });
     const normalized = normalizeError(customError);
-    
+
     expect(normalized.code).toBe('CUSTOM_CODE');
     expect(normalized.status).toBe(400);
   });
@@ -122,7 +122,7 @@ describe('handleError', () => {
   it('should return normalized error', () => {
     const error = new Error('Test error');
     const result = handleError(error);
-    
+
     expect(result.message).toBe('Test error');
     expect(result.name).toBe('Error');
   });

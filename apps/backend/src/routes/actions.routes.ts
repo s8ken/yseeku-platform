@@ -11,14 +11,15 @@ const router = Router();
  */
 router.get('/recommendations', async (req: Request, res: Response) => {
   try {
-    const tenantId = (req.query.tenant as string) || req.headers['x-tenant-id'] as string || 'default';
-    
+    const tenantId =
+      (req.query.tenant as string) || (req.headers['x-tenant-id'] as string) || 'default';
+
     const recommendations = await getActionRecommendations(tenantId);
-    
+
     res.json({
       success: true,
       data: {
-        recommendations: recommendations.adjustments
+        recommendations: recommendations.adjustments,
       },
       tenantId,
     });
@@ -37,19 +38,27 @@ router.get('/recommendations', async (req: Request, res: Response) => {
  */
 router.get('/effectiveness', async (req: Request, res: Response) => {
   try {
-    const tenantId = (req.query.tenant as string) || req.headers['x-tenant-id'] as string || 'default';
+    const tenantId =
+      (req.query.tenant as string) || (req.headers['x-tenant-id'] as string) || 'default';
     const actionType = req.query.actionType as string;
-    
-    const actionTypes = actionType 
-      ? [actionType] 
-      : ['alert', 'adjust_threshold', 'ban_agent', 'restrict_agent', 'quarantine_agent', 'unban_agent'];
-    
+
+    const actionTypes = actionType
+      ? [actionType]
+      : [
+          'alert',
+          'adjust_threshold',
+          'ban_agent',
+          'restrict_agent',
+          'quarantine_agent',
+          'unban_agent',
+        ];
+
     const effectiveness: Record<string, any> = {};
-    
+
     for (const type of actionTypes) {
       effectiveness[type] = await calculateEffectiveness(tenantId, type);
     }
-    
+
     res.json({
       success: true,
       data: effectiveness,

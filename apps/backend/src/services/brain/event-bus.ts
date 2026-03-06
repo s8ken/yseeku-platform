@@ -1,9 +1,9 @@
 /**
  * Overseer Event Bus
- * 
+ *
  * Provides real-time event notifications to the System Brain/Overseer
  * when important events occur in the system.
- * 
+ *
  * This allows the Overseer to react to:
  * - Trust violations in chat
  * - Critical failures
@@ -18,14 +18,14 @@ import logger from '../../utils/logger';
 import { getErrorMessage } from '../../utils/error-utils';
 
 // Event types the Overseer listens to
-export type OverseerEventType = 
-  | 'trust:violation'       // Trust score FAIL or critical principle violation
-  | 'trust:partial'         // Trust score PARTIAL (warning level)
-  | 'trust:pass'            // Trust score PASS (for learning)
-  | 'emergence:detected'    // Emergence signal detected
-  | 'agent:anomaly'         // Agent behavior anomaly
-  | 'system:error'          // System-level error
-  | 'consent:withdrawal';   // User withdrew consent
+export type OverseerEventType =
+  | 'trust:violation' // Trust score FAIL or critical principle violation
+  | 'trust:partial' // Trust score PARTIAL (warning level)
+  | 'trust:pass' // Trust score PASS (for learning)
+  | 'emergence:detected' // Emergence signal detected
+  | 'agent:anomaly' // Agent behavior anomaly
+  | 'system:error' // System-level error
+  | 'consent:withdrawal'; // User withdrew consent
 
 export interface OverseerEvent {
   type: OverseerEventType;
@@ -55,7 +55,7 @@ const consecutiveFailures = new Map<string, number>();
 class OverseerEventBus extends EventEmitter {
   private isProcessing = false;
   private eventQueue: OverseerEvent[] = [];
-  
+
   constructor() {
     super();
     this.setupListeners();
@@ -67,7 +67,7 @@ class OverseerEventBus extends EventEmitter {
     this.on('trust:partial', this.handleTrustPartial.bind(this));
     this.on('emergence:detected', this.handleEmergence.bind(this));
     this.on('consent:withdrawal', this.handleConsentWithdrawal.bind(this));
-    
+
     logger.info('Overseer Event Bus initialized', { realtimeEnabled: OVERSEER_REALTIME_ENABLED });
   }
 
@@ -77,13 +77,16 @@ class OverseerEventBus extends EventEmitter {
   notify(event: OverseerEvent): void {
     if (!OVERSEER_REALTIME_ENABLED) {
       // If realtime is disabled, just log
-      logger.debug('Overseer event (realtime disabled)', { type: event.type, tenantId: event.tenantId });
+      logger.debug('Overseer event (realtime disabled)', {
+        type: event.type,
+        tenantId: event.tenantId,
+      });
       return;
     }
 
     // Emit the event
     this.emit(event.type, event);
-    
+
     // Log all events for audit
     logger.info('Overseer event', {
       type: event.type,
@@ -107,7 +110,8 @@ class OverseerEventBus extends EventEmitter {
       consecutiveFailures.set(convId, failures);
 
       // Determine severity
-      const isCritical = data.trustScore !== undefined && data.trustScore < TRUST_VIOLATION_THRESHOLD;
+      const isCritical =
+        data.trustScore !== undefined && data.trustScore < TRUST_VIOLATION_THRESHOLD;
       const isEscalated = failures >= CONSECUTIVE_FAILURES_THRESHOLD;
 
       // Create alert
@@ -115,10 +119,13 @@ class OverseerEventBus extends EventEmitter {
         tenant_id: tenantId,
         type: 'trust_violation', // Changed from 'trust'
         title: isCritical ? 'Critical Trust Violation' : 'Trust Violation Detected',
-        description: `Trust score ${data.trustScore} (${data.status}). Violations: ${data.violations?.join(', ') || 'none specified'}`,
+        description: `Trust score ${data.trustScore} (${data.status}). Violations: ${
+          data.violations?.join(', ') || 'none specified'
+        }`,
         severity: isCritical ? 'critical' : isEscalated ? 'high' : 'medium', // Changed from 'error' and 'warning'
         session_id: data.conversationId, // Map conversationId to session_id
-        metadata: { // Map details to metadata
+        metadata: {
+          // Map details to metadata
           agent_id: data.agentId, // Map agentId to agent_id
           message_id: data.messageId, // Map messageId to message_id
           trustScore: data.trustScore,
@@ -137,8 +144,10 @@ class OverseerEventBus extends EventEmitter {
         });
 
         // Run thinking cycle in background (don't block)
-        systemBrain.think(tenantId, 'advisory').catch(err => {
-          logger.error('Overseer think failed after trust violation', { error: getErrorMessage(err) });
+        systemBrain.think(tenantId, 'advisory').catch((err) => {
+          logger.error('Overseer think failed after trust violation', {
+            error: getErrorMessage(err),
+          });
         });
       }
     } catch (error) {
@@ -162,12 +171,14 @@ class OverseerEventBus extends EventEmitter {
         description: `Partial trust score: ${data.trustScore}. Some principles flagged.`,
         severity: 'medium', // Changed from 'warning'
         session_id: data.conversationId, // Map conversationId to session_id
-        metadata: { // Map details to metadata
+        metadata: {
+          // Map details to metadata
           agent_id: data.agentId, // Map agentId to agent_id
           trustScore: data.trustScore,
           violations: data.violations,
         },
-      });    } catch (error) {
+      });
+    } catch (error) {
       logger.error('Failed to handle trust partial event', { error: getErrorMessage(error) });
     }
   }
@@ -193,8 +204,10 @@ class OverseerEventBus extends EventEmitter {
         session_id: data.conversationId, // assuming conversationId is part of data
       });
       if (isCritical) {
-        systemBrain.think(tenantId, 'advisory').catch(err => {
-          logger.error('Overseer think failed after emergence detection', { error: getErrorMessage(err) });
+        systemBrain.think(tenantId, 'advisory').catch((err) => {
+          logger.error('Overseer think failed after emergence detection', {
+            error: getErrorMessage(err),
+          });
         });
       }
     } catch (error) {
@@ -217,7 +230,8 @@ class OverseerEventBus extends EventEmitter {
         description: `User initiated consent withdrawal: ${data.withdrawalType || 'unspecified'}`,
         severity: 'high', // Changed from 'error'
         session_id: data.conversationId, // Map conversationId to session_id
-        metadata: { // Map details to metadata
+        metadata: {
+          // Map details to metadata
           withdrawalType: data.withdrawalType,
           user_id: data.userId, // Map userId to user_id
         },

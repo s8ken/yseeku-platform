@@ -21,11 +21,11 @@ describe('LLMTrustEvaluator Phase 1A & 1B', () => {
        */
       const expectedWeights: Record<TrustPrincipleKey, number> = {
         CONSENT_ARCHITECTURE: 0.25,
-        INSPECTION_MANDATE: 0.20,
-        CONTINUOUS_VALIDATION: 0.20,
+        INSPECTION_MANDATE: 0.2,
+        CONTINUOUS_VALIDATION: 0.2,
         ETHICAL_OVERRIDE: 0.15,
-        RIGHT_TO_DISCONNECT: 0.10,
-        MORAL_RECOGNITION: 0.10,
+        RIGHT_TO_DISCONNECT: 0.1,
+        MORAL_RECOGNITION: 0.1,
       };
 
       // Verify sum = 1.0
@@ -35,9 +35,9 @@ describe('LLMTrustEvaluator Phase 1A & 1B', () => {
 
     test('should load healthcare weights when industry=healthcare', () => {
       const expectedWeights: Record<TrustPrincipleKey, number> = {
-        CONSENT_ARCHITECTURE: 0.35,  // Highest priority
-        INSPECTION_MANDATE: 0.20,
-        CONTINUOUS_VALIDATION: 0.20,
+        CONSENT_ARCHITECTURE: 0.35, // Highest priority
+        INSPECTION_MANDATE: 0.2,
+        CONTINUOUS_VALIDATION: 0.2,
         ETHICAL_OVERRIDE: 0.15,
         RIGHT_TO_DISCONNECT: 0.05,
         MORAL_RECOGNITION: 0.05,
@@ -50,7 +50,7 @@ describe('LLMTrustEvaluator Phase 1A & 1B', () => {
     test('should load finance weights when industry=finance', () => {
       const expectedWeights: Record<TrustPrincipleKey, number> = {
         CONSENT_ARCHITECTURE: 0.25,
-        INSPECTION_MANDATE: 0.30,    // Highest - transparency
+        INSPECTION_MANDATE: 0.3, // Highest - transparency
         CONTINUOUS_VALIDATION: 0.25, // Higher - accuracy
         ETHICAL_OVERRIDE: 0.12,
         RIGHT_TO_DISCONNECT: 0.04,
@@ -64,8 +64,8 @@ describe('LLMTrustEvaluator Phase 1A & 1B', () => {
     test('should have valid weight distributions across all industries', () => {
       const industries = [
         { name: 'healthcare', consentWeight: 0.35 },
-        { name: 'finance', inspectionWeight: 0.30 },
-        { name: 'government', consentWeight: 0.30 },
+        { name: 'finance', inspectionWeight: 0.3 },
+        { name: 'government', consentWeight: 0.3 },
         { name: 'technology', consentWeight: 0.28 },
         { name: 'education', consentWeight: 0.32 },
         { name: 'legal', inspectionWeight: 0.35 },
@@ -107,11 +107,7 @@ describe('LLMTrustEvaluator Phase 1A & 1B', () => {
        * - weight_source: 'standard'|'healthcare'|'finance'|etc
        * - weight_policy_id: 'policy-{industry}' or 'base-standard'
        */
-      const expectedFields = [
-        'principle_weights',
-        'weight_source',
-        'weight_policy_id',
-      ];
+      const expectedFields = ['principle_weights', 'weight_source', 'weight_policy_id'];
 
       expectedFields.forEach((field) => {
         expect(field).toBeDefined();
@@ -135,15 +131,17 @@ describe('LLMTrustEvaluator Phase 1A & 1B', () => {
 
       const weights = {
         CONSENT_ARCHITECTURE: 0.25,
-        INSPECTION_MANDATE: 0.20,
-        CONTINUOUS_VALIDATION: 0.20,
+        INSPECTION_MANDATE: 0.2,
+        CONTINUOUS_VALIDATION: 0.2,
         ETHICAL_OVERRIDE: 0.15,
-        RIGHT_TO_DISCONNECT: 0.10,
-        MORAL_RECOGNITION: 0.10,
+        RIGHT_TO_DISCONNECT: 0.1,
+        MORAL_RECOGNITION: 0.1,
       };
 
       const scored = Object.keys(principles).reduce((sum, key) => {
-        return sum + (principles[key as keyof typeof principles] * weights[key as keyof typeof weights]);
+        return (
+          sum + principles[key as keyof typeof principles] * weights[key as keyof typeof weights]
+        );
       }, 0);
 
       const trustScore = scored * 10;
@@ -155,7 +153,7 @@ describe('LLMTrustEvaluator Phase 1A & 1B', () => {
        * Constitutional rule: If CONSENT or OVERRIDE = 0, entire score fails
        */
       const principles1 = {
-        CONSENT_ARCHITECTURE: 0,  // CRITICAL FAILURE
+        CONSENT_ARCHITECTURE: 0, // CRITICAL FAILURE
         INSPECTION_MANDATE: 10,
         CONTINUOUS_VALIDATION: 10,
         ETHICAL_OVERRIDE: 10,
@@ -167,7 +165,7 @@ describe('LLMTrustEvaluator Phase 1A & 1B', () => {
         CONSENT_ARCHITECTURE: 10,
         INSPECTION_MANDATE: 10,
         CONTINUOUS_VALIDATION: 10,
-        ETHICAL_OVERRIDE: 0,  // CRITICAL FAILURE
+        ETHICAL_OVERRIDE: 0, // CRITICAL FAILURE
         RIGHT_TO_DISCONNECT: 10,
         MORAL_RECOGNITION: 10,
       };
@@ -182,7 +180,7 @@ describe('LLMTrustEvaluator Phase 1A & 1B', () => {
     test('healthcare should prioritize CONSENT over INSPECTION', () => {
       const healthcare = {
         CONSENT: 0.35,
-        INSPECTION: 0.20,
+        INSPECTION: 0.2,
       };
 
       expect(healthcare.CONSENT).toBeGreaterThan(healthcare.INSPECTION);
@@ -191,7 +189,7 @@ describe('LLMTrustEvaluator Phase 1A & 1B', () => {
     test('finance should prioritize INSPECTION over CONSENT', () => {
       const finance = {
         CONSENT: 0.25,
-        INSPECTION: 0.30,
+        INSPECTION: 0.3,
       };
 
       expect(finance.INSPECTION).toBeGreaterThan(finance.CONSENT);
@@ -199,9 +197,9 @@ describe('LLMTrustEvaluator Phase 1A & 1B', () => {
 
     test('legal should have highest INSPECTION weight', () => {
       const weights = {
-        healthcare: 0.20,
-        finance: 0.30,
-        government: 0.30,
+        healthcare: 0.2,
+        finance: 0.3,
+        government: 0.3,
         technology: 0.18,
         education: 0.22,
         legal: 0.35,
@@ -257,7 +255,7 @@ describe('LLMTrustEvaluator Phase 1A & 1B', () => {
        */
       const ciqMetrics = {
         clarity: 0.85,
-        integrity: 0.90,
+        integrity: 0.9,
         quality: 0.75,
       };
 

@@ -36,7 +36,7 @@ function scale(value: number | undefined, max: number): number {
  */
 function deriveFingerprint(
   msg: any,
-  rollingTrustAvg: number,
+  rollingTrustAvg: number
 ): {
   professionalism: number;
   empathy: number;
@@ -48,26 +48,29 @@ function deriveFingerprint(
   const ts = typeof msg.trustScore === 'number' ? msg.trustScore : 5; // 0-5
   const trustPct = scale(ts, 5); // → 0-100
 
-  const ciq = msg.metadata?.trustEvaluation?.receipt?.ciq_metrics
-    ?? msg.metadata?.trustEvaluation?.ciq_metrics
-    ?? null;
+  const ciq =
+    msg.metadata?.trustEvaluation?.receipt?.ciq_metrics ??
+    msg.metadata?.trustEvaluation?.ciq_metrics ??
+    null;
 
-  const sonate = msg.metadata?.trustEvaluation?.receipt?.sonate_principles
-    ?? msg.metadata?.trustEvaluation?.sonate_principles
-    ?? null;
+  const sonate =
+    msg.metadata?.trustEvaluation?.receipt?.sonate_principles ??
+    msg.metadata?.trustEvaluation?.sonate_principles ??
+    null;
 
   // CIQ-derived base values (0–1 scale from the receipt)
-  const clarity     = ciq ? scale(ciq.clarity,     1) : trustPct;
-  const integrityV  = ciq ? scale(ciq.integrity,   1) : Math.min(100, trustPct + 5);
-  const quality     = ciq ? scale(ciq.quality,      1) : trustPct;
+  const clarity = ciq ? scale(ciq.clarity, 1) : trustPct;
+  const integrityV = ciq ? scale(ciq.integrity, 1) : Math.min(100, trustPct + 5);
+  const quality = ciq ? scale(ciq.quality, 1) : trustPct;
 
   return {
-    professionalism: sonate?.INSPECTION_MANDATE   ?? quality,
-    empathy:         sonate?.MORAL_RECOGNITION    ?? integrityV,
-    accuracy:        sonate?.CONTINUOUS_VALIDATION ?? clarity,
-    consistency:     sonate?.CONSENT_ARCHITECTURE ?? Math.round((trustPct + rollingTrustAvg) / 2),
-    helpfulness:     sonate?.ETHICAL_OVERRIDE     ?? Math.min(100, trustPct + 3),
-    boundaries:      sonate?.RIGHT_TO_DISCONNECT  ?? Math.min(100, trustPct - 2 < 0 ? trustPct : trustPct - 2),
+    professionalism: sonate?.INSPECTION_MANDATE ?? quality,
+    empathy: sonate?.MORAL_RECOGNITION ?? integrityV,
+    accuracy: sonate?.CONTINUOUS_VALIDATION ?? clarity,
+    consistency: sonate?.CONSENT_ARCHITECTURE ?? Math.round((trustPct + rollingTrustAvg) / 2),
+    helpfulness: sonate?.ETHICAL_OVERRIDE ?? Math.min(100, trustPct + 3),
+    boundaries:
+      sonate?.RIGHT_TO_DISCONNECT ?? Math.min(100, trustPct - 2 < 0 ? trustPct : trustPct - 2),
   };
 }
 
@@ -122,10 +125,10 @@ router.get('/:sessionId', protect, async (req: Request, res: Response): Promise<
       fingerprints.push(deriveFingerprint(msg, rollingAvg));
 
       messages.push({
-        id:         (msg._id ?? i).toString(),
-        role:       msg.sender === 'user' ? 'user' : 'assistant',
-        content:    msg.content ?? '',
-        timestamp:  msg.timestamp ?? new Date().toISOString(),
+        id: (msg._id ?? i).toString(),
+        role: msg.sender === 'user' ? 'user' : 'assistant',
+        content: msg.content ?? '',
+        timestamp: msg.timestamp ?? new Date().toISOString(),
         trustScore: normScore,
       });
 
@@ -133,31 +136,32 @@ router.get('/:sessionId', protect, async (req: Request, res: Response): Promise<
       if (receipt) receipts.push(receipt);
     }
 
-    const nonZero = trustScores.filter(s => s > 0);
+    const nonZero = trustScores.filter((s) => s > 0);
     const avgTrustScore = nonZero.length
       ? parseFloat((nonZero.reduce((a, b) => a + b, 0) / nonZero.length).toFixed(3))
       : 0;
 
     const violations = msgs.filter(
-      (m: any) => m.metadata?.trustEvaluation?.status === 'FAIL'
-        || (typeof m.trustScore === 'number' && m.trustScore < 2),
+      (m: any) =>
+        m.metadata?.trustEvaluation?.status === 'FAIL' ||
+        (typeof m.trustScore === 'number' && m.trustScore < 2)
     ).length;
 
     res.json({
       success: true,
       data: {
         sessionId,
-        title:     (conversation as any).title ?? 'Untitled',
+        title: (conversation as any).title ?? 'Untitled',
         createdAt: (conversation as any).createdAt,
         messages,
         trustScores,
         fingerprints,
         receipts,
         summary: {
-          totalTurns:     msgs.length,
+          totalTurns: msgs.length,
           avgTrustScore,
-          minTrustScore:  trustScores.length ? Math.min(...trustScores) : 0,
-          maxTrustScore:  trustScores.length ? Math.max(...trustScores) : 0,
+          minTrustScore: trustScores.length ? Math.min(...trustScores) : 0,
+          maxTrustScore: trustScores.length ? Math.max(...trustScores) : 0,
           violations,
         },
       },
@@ -166,7 +170,7 @@ router.get('/:sessionId', protect, async (req: Request, res: Response): Promise<
     logger.error('Replay fetch error', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
-      error:   'Failed to load replay data',
+      error: 'Failed to load replay data',
       message: getErrorMessage(error),
     });
   }

@@ -21,13 +21,13 @@ jest.mock('../../utils/error-utils', () => ({
 }));
 
 const mockRequest = () =>
-({
-  method: 'GET',
-  path: '/test',
-  requestId: 'test-req-id',
-  ip: '127.0.0.1',
-  get: jest.fn().mockReturnValue('test-agent'),
-} as unknown as Request);
+  ({
+    method: 'GET',
+    path: '/test',
+    requestId: 'test-req-id',
+    ip: '127.0.0.1',
+    get: jest.fn().mockReturnValue('test-agent'),
+  } as unknown as Request);
 
 const mockResponse = () => {
   const res: Partial<Response> = {

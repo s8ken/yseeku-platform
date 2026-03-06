@@ -23,7 +23,7 @@ describe('Authentication Integration Tests', () => {
     // Connect to test database
     const mongoUri = process.env.TEST_MONGODB_URI || 'mongodb://localhost:27017/yseeku-test';
     await mongoose.connect(mongoUri);
-    
+
     // Import app after database connection
     const appModule = await import('../../index');
     app = appModule.default || appModule.app;
@@ -40,10 +40,7 @@ describe('Authentication Integration Tests', () => {
 
   describe('POST /api/auth/register', () => {
     it('should register a new user successfully', async () => {
-      const response = await request(app)
-        .post('/api/auth/register')
-        .send(TEST_USER)
-        .expect(201);
+      const response = await request(app).post('/api/auth/register').send(TEST_USER).expect(201);
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.user.email).toBe(TEST_USER.email);
@@ -56,10 +53,7 @@ describe('Authentication Integration Tests', () => {
       await User.create(TEST_USER);
 
       // Try to register again
-      const response = await request(app)
-        .post('/api/auth/register')
-        .send(TEST_USER)
-        .expect(400);
+      const response = await request(app).post('/api/auth/register').send(TEST_USER).expect(400);
 
       expect(response.body.success).toBe(false);
       expect(response.body.message).toContain('already exists');
@@ -78,9 +72,7 @@ describe('Authentication Integration Tests', () => {
   describe('POST /api/auth/login', () => {
     beforeEach(async () => {
       // Create a test user before each login test
-      await request(app)
-        .post('/api/auth/register')
-        .send(TEST_USER);
+      await request(app).post('/api/auth/register').send(TEST_USER);
     });
 
     it('should login with valid credentials', async () => {
@@ -140,9 +132,7 @@ describe('Authentication Integration Tests', () => {
 
     beforeEach(async () => {
       // Register and get token
-      const response = await request(app)
-        .post('/api/auth/register')
-        .send(TEST_USER);
+      const response = await request(app).post('/api/auth/register').send(TEST_USER);
 
       accessToken = response.body.data.tokens.accessToken;
     });
@@ -158,9 +148,7 @@ describe('Authentication Integration Tests', () => {
     });
 
     it('should not get profile without token', async () => {
-      const response = await request(app)
-        .get('/api/auth/me')
-        .expect(401);
+      const response = await request(app).get('/api/auth/me').expect(401);
 
       expect(response.body.success).toBe(false);
     });
@@ -179,9 +167,7 @@ describe('Authentication Integration Tests', () => {
     let refreshToken: string;
 
     beforeEach(async () => {
-      const response = await request(app)
-        .post('/api/auth/register')
-        .send(TEST_USER);
+      const response = await request(app).post('/api/auth/register').send(TEST_USER);
 
       refreshToken = response.body.data.tokens.refreshToken;
     });
@@ -210,9 +196,7 @@ describe('Authentication Integration Tests', () => {
     let accessToken: string;
 
     beforeEach(async () => {
-      const response = await request(app)
-        .post('/api/auth/register')
-        .send(TEST_USER);
+      const response = await request(app).post('/api/auth/register').send(TEST_USER);
 
       accessToken = response.body.data.tokens.accessToken;
     });

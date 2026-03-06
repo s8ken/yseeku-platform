@@ -13,7 +13,7 @@ function calculateMean(arr: number[]): number {
 
 function calculateStd(arr: number[], mean: number): number {
   if (arr.length < 2) return 0;
-  const squaredDiffs = arr.map(v => (v - mean) ** 2);
+  const squaredDiffs = arr.map((v) => (v - mean) ** 2);
   return Math.sqrt(squaredDiffs.reduce((s, v) => s + v, 0) / arr.length);
 }
 
@@ -25,7 +25,10 @@ function testAnalyzeTrend(scores: number[]): TrendData {
   const n = Math.min(scores.length, 20);
   const recentScores = scores.slice(0, n);
 
-  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+  let sumX = 0,
+    sumY = 0,
+    sumXY = 0,
+    sumX2 = 0;
   for (let i = 0; i < n; i++) {
     sumX += i;
     sumY += recentScores[i];
@@ -39,9 +42,8 @@ function testAnalyzeTrend(scores: number[]): TrendData {
   for (let i = 1; i < recentScores.length; i++) {
     diffs.push(Math.abs(recentScores[i] - recentScores[i - 1]));
   }
-  const volatility = diffs.length > 0
-    ? Math.sqrt(diffs.reduce((s, d) => s + d * d, 0) / diffs.length)
-    : 0;
+  const volatility =
+    diffs.length > 0 ? Math.sqrt(diffs.reduce((s, d) => s + d * d, 0) / diffs.length) : 0;
 
   const recent5 = recentScores.slice(0, 5);
   const prev5 = recentScores.slice(5, 10);

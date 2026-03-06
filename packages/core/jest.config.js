@@ -6,5 +6,8 @@ module.exports = {
     'ts-jest': {
       tsconfig: 'tsconfig.json'
     }
-  }
+  },
+  transformIgnorePatterns: [
+    'node_modules/(?!(@noble/ed25519|@noble/hashes)/)'
+  ],
 };

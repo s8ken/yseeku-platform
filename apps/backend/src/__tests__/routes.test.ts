@@ -33,10 +33,7 @@ describe('API Routes', () => {
     });
 
     it('should return 400 for empty body', async () => {
-      const response = await request(app)
-        .post('/api/trust/analyze')
-        .send({})
-        .expect(400);
+      const response = await request(app).post('/api/trust/analyze').send({}).expect(400);
 
       expect(response.body.error).toContain('Missing required fields');
     });
@@ -46,18 +43,16 @@ describe('API Routes', () => {
       const validRequest = {
         user_input: 'Hello, how are you?',
         ai_response: 'I am doing well, thank you!',
-        history: []
+        history: [],
       };
 
       // We expect this to potentially fail due to resonance client issues,
       // but it should be processed as a valid request structure
-      const response = await request(app)
-        .post('/api/trust/analyze')
-        .send(validRequest);
+      const response = await request(app).post('/api/trust/analyze').send(validRequest);
 
       // Either it succeeds or fails with a service error, but not validation error
       expect([200, 500, 503]).toContain(response.status);
-      
+
       if (response.status === 400) {
         fail('Should not return validation error for valid structure');
       }
@@ -66,12 +61,10 @@ describe('API Routes', () => {
     it('should handle optional history field', async () => {
       const validRequest = {
         user_input: 'Test input',
-        ai_response: 'Test response'
+        ai_response: 'Test response',
       };
 
-      const response = await request(app)
-        .post('/api/trust/analyze')
-        .send(validRequest);
+      const response = await request(app).post('/api/trust/analyze').send(validRequest);
 
       // Should not fail due to missing optional history
       expect([200, 500, 503]).toContain(response.status);
@@ -89,13 +82,11 @@ describe('API Routes', () => {
   describe('Route Security', () => {
     it('should handle large payloads', async () => {
       const largeInput = 'a'.repeat(10000); // 10KB string
-      
-      const response = await request(app)
-        .post('/api/trust/analyze')
-        .send({
-          user_input: largeInput,
-          ai_response: 'test response'
-        });
+
+      const response = await request(app).post('/api/trust/analyze').send({
+        user_input: largeInput,
+        ai_response: 'test response',
+      });
 
       // Should either process or fail gracefully, not crash
       expect([200, 400, 413, 500, 503]).toContain(response.status);
@@ -103,13 +94,11 @@ describe('API Routes', () => {
 
     it('should handle special characters in input', async () => {
       const specialChars = 'Test with émojis 🚀 and spéciâl çhâracters';
-      
-      const response = await request(app)
-        .post('/api/trust/analyze')
-        .send({
-          user_input: specialChars,
-          ai_response: specialChars
-        });
+
+      const response = await request(app).post('/api/trust/analyze').send({
+        user_input: specialChars,
+        ai_response: specialChars,
+      });
 
       expect([200, 500, 503]).toContain(response.status);
     });

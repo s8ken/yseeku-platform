@@ -95,18 +95,22 @@ const ConversationSchema = new Schema<IConversation>({
     required: true,
   },
   messages: [MessageSchema],
-  agents: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Agent',
-  }],
+  agents: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Agent',
+    },
+  ],
   isArchived: {
     type: Boolean,
     default: false,
   },
-  contextTags: [{
-    type: String,
-    trim: true,
-  }],
+  contextTags: [
+    {
+      type: String,
+      trim: true,
+    },
+  ],
   ciEnabled: {
     type: Boolean,
     default: false,
@@ -196,7 +200,10 @@ ConversationSchema.methods.calculateEthicalScore = async function (): Promise<IC
   }
 
   // Calculate average trust score from all messages
-  const trustScoreSum = this.messages.reduce((sum: number, msg: IMessage) => sum + (msg.trustScore || 5), 0);
+  const trustScoreSum = this.messages.reduce(
+    (sum: number, msg: IMessage) => sum + (msg.trustScore || 5),
+    0
+  );
 
   // Normalize to 0-5 scale
   this.ethicalScore = Math.min(5, Math.max(0, trustScoreSum / messageCount));

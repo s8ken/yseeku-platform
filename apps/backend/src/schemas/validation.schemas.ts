@@ -1,6 +1,6 @@
 /**
  * Common Validation Schemas
- * 
+ *
  * Reusable Zod schemas for request validation across routes.
  */
 

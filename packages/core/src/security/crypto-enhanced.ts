@@ -334,8 +334,7 @@ export const EnhancedCryptoUtils = {
       if (type === 'public') {
         return key.includes('BEGIN PUBLIC KEY') && key.includes('END PUBLIC KEY');
       }
-        return key.includes('BEGIN PRIVATE KEY') && key.includes('END PRIVATE KEY');
-
+      return key.includes('BEGIN PRIVATE KEY') && key.includes('END PRIVATE KEY');
     } catch {
       return false;
     }
@@ -353,14 +352,12 @@ export const EnhancedCryptoUtils = {
         .replace(/\s/g, '');
       return new Uint8Array(Buffer.from(keyContent, 'base64'));
     }
-      // Convert Uint8Array to PEM (simplified)
-      const keyContent = Buffer.from(key).toString('base64');
-      const isPrivate = keyContent.length > 100; // Simple heuristic
-      if (isPrivate) {
-        return `-----BEGIN PRIVATE KEY-----\n${keyContent}\n-----END PRIVATE KEY-----`;
-      }
-        return `-----BEGIN PUBLIC KEY-----\n${keyContent}\n-----END PUBLIC KEY-----`;
-
-
+    // Convert Uint8Array to PEM (simplified)
+    const keyContent = Buffer.from(key).toString('base64');
+    const isPrivate = keyContent.length > 100; // Simple heuristic
+    if (isPrivate) {
+      return `-----BEGIN PRIVATE KEY-----\n${keyContent}\n-----END PRIVATE KEY-----`;
+    }
+    return `-----BEGIN PUBLIC KEY-----\n${keyContent}\n-----END PUBLIC KEY-----`;
   },
 };

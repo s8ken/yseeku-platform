@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { multiModelComparisonService, ComparisonRequestSchema } from '../services/multi-model-comparison.service';
+import {
+  multiModelComparisonService,
+  ComparisonRequestSchema,
+} from '../services/multi-model-comparison.service';
 import { logger } from '../utils/logger';
 
 const router = Router();
@@ -12,30 +15,30 @@ const router = Router();
 router.post('/', async (req, res) => {
   try {
     const validated = ComparisonRequestSchema.parse(req.body);
-    
+
     logger.info('Starting multi-model comparison', { providers: validated.providers });
-    
+
     const result = await multiModelComparisonService.compare(validated);
-    
+
     res.json({
       success: true,
-      comparison: result
+      comparison: result,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         success: false,
         error: 'Validation failed',
-        details: error.issues
+        details: error.issues,
       });
     }
-    
+
     const err = error as Error;
     logger.error('Comparison failed', { error: err.message });
     res.status(500).json({
       success: false,
       error: 'Comparison failed',
-      message: err.message
+      message: err.message,
     });
   }
 });
@@ -46,10 +49,10 @@ router.post('/', async (req, res) => {
  */
 router.get('/providers/list', (req, res) => {
   const providers = multiModelComparisonService.getAvailableProviders();
-  
+
   res.json({
     success: true,
-    providers
+    providers,
   });
 });
 
@@ -59,19 +62,19 @@ router.get('/providers/list', (req, res) => {
  */
 router.get('/:id', (req, res) => {
   const { id } = req.params;
-  
+
   const comparison = multiModelComparisonService.getComparison(id);
-  
+
   if (!comparison) {
     return res.status(404).json({
       success: false,
-      error: 'Comparison not found'
+      error: 'Comparison not found',
     });
   }
-  
+
   res.json({
     success: true,
-    comparison
+    comparison,
   });
 });
 
@@ -81,13 +84,13 @@ router.get('/:id', (req, res) => {
  */
 router.get('/', (req, res) => {
   const limit = parseInt(req.query.limit as string) || 20;
-  
+
   const comparisons = multiModelComparisonService.listComparisons(limit);
-  
+
   res.json({
     success: true,
     comparisons,
-    count: comparisons.length
+    count: comparisons.length,
   });
 });
 

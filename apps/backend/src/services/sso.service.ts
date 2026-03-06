@@ -1,6 +1,6 @@
 /**
  * SSO Service - Generic OIDC Support
- * 
+ *
  * Handles Single Sign-On authentication via OpenID Connect:
  * - Discovery of OIDC configuration
  * - Token exchange and validation
@@ -98,7 +98,8 @@ class SSOService {
         issuer: process.env.OIDC_ISSUER,
         clientId: process.env.OIDC_CLIENT_ID,
         clientSecret: process.env.OIDC_CLIENT_SECRET || '',
-        redirectUri: process.env.OIDC_REDIRECT_URI || `${process.env.API_URL || ''}/api/sso/callback`,
+        redirectUri:
+          process.env.OIDC_REDIRECT_URI || `${process.env.API_URL || ''}/api/sso/callback`,
         scopes: (process.env.OIDC_SCOPES || 'openid profile email').split(' '),
         discoveryUrl: process.env.OIDC_DISCOVERY_URL,
       });
@@ -111,7 +112,8 @@ class SSOService {
         issuer: 'https://accounts.google.com',
         clientId: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-        redirectUri: process.env.GOOGLE_REDIRECT_URI || `${process.env.API_URL || ''}/api/sso/callback/google`,
+        redirectUri:
+          process.env.GOOGLE_REDIRECT_URI || `${process.env.API_URL || ''}/api/sso/callback/google`,
         scopes: ['openid', 'profile', 'email'],
         discoveryUrl: 'https://accounts.google.com/.well-known/openid-configuration',
       });
@@ -125,7 +127,9 @@ class SSOService {
         issuer: `https://login.microsoftonline.com/${tenant}/v2.0`,
         clientId: process.env.MICROSOFT_CLIENT_ID,
         clientSecret: process.env.MICROSOFT_CLIENT_SECRET || '',
-        redirectUri: process.env.MICROSOFT_REDIRECT_URI || `${process.env.API_URL || ''}/api/sso/callback/microsoft`,
+        redirectUri:
+          process.env.MICROSOFT_REDIRECT_URI ||
+          `${process.env.API_URL || ''}/api/sso/callback/microsoft`,
         scopes: ['openid', 'profile', 'email'],
         discoveryUrl: `https://login.microsoftonline.com/${tenant}/v2.0/.well-known/openid-configuration`,
       });
@@ -138,7 +142,8 @@ class SSOService {
         issuer: `https://${process.env.OKTA_DOMAIN}`,
         clientId: process.env.OKTA_CLIENT_ID,
         clientSecret: process.env.OKTA_CLIENT_SECRET || '',
-        redirectUri: process.env.OKTA_REDIRECT_URI || `${process.env.API_URL || ''}/api/sso/callback/okta`,
+        redirectUri:
+          process.env.OKTA_REDIRECT_URI || `${process.env.API_URL || ''}/api/sso/callback/okta`,
         scopes: ['openid', 'profile', 'email'],
         discoveryUrl: `https://${process.env.OKTA_DOMAIN}/.well-known/openid-configuration`,
       });
@@ -181,7 +186,7 @@ class SSOService {
       if (!response.ok) {
         throw new Error(`Discovery fetch failed: ${response.status}`);
       }
-      const data = await response.json() as OIDCDiscovery;
+      const data = (await response.json()) as OIDCDiscovery;
 
       // Cache for 1 hour
       this.discoveryCache.set(provider, {
@@ -201,10 +206,7 @@ class SSOService {
    */
   private generatePKCE(): { codeVerifier: string; codeChallenge: string } {
     const codeVerifier = crypto.randomBytes(32).toString('base64url');
-    const codeChallenge = crypto
-      .createHash('sha256')
-      .update(codeVerifier)
-      .digest('base64url');
+    const codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
     return { codeVerifier, codeChallenge };
   }
 
@@ -266,7 +268,7 @@ class SSOService {
   ): Promise<{ tokens: TokenResponse; user: UserProfile }> {
     // Extract return URL from state if present
     const [sessionState] = state.split(':');
-    
+
     const session = this.sessions.get(sessionState);
     if (!session) {
       throw new Error('Invalid or expired SSO session');
@@ -312,7 +314,7 @@ class SSOService {
       throw new Error('Token exchange failed');
     }
 
-    const tokens = await tokenResponse.json() as TokenResponse;
+    const tokens = (await tokenResponse.json()) as TokenResponse;
 
     // Validate ID token if present
     if (tokens.id_token) {
@@ -333,7 +335,7 @@ class SSOService {
       throw new Error('Failed to fetch user profile');
     }
 
-    const user = await userResponse.json() as UserProfile;
+    const user = (await userResponse.json()) as UserProfile;
 
     // Cleanup session
     this.sessions.delete(sessionState);
@@ -378,7 +380,11 @@ class SSOService {
   /**
    * Get logout URL
    */
-  async getLogoutUrl(provider: string, idToken?: string, postLogoutRedirectUri?: string): Promise<string | null> {
+  async getLogoutUrl(
+    provider: string,
+    idToken?: string,
+    postLogoutRedirectUri?: string
+  ): Promise<string | null> {
     const config = this.configs.get(provider);
     if (!config) return null;
 
@@ -419,7 +425,7 @@ class SSOService {
   cleanupSessions(): number {
     const now = new Date();
     let cleaned = 0;
-    
+
     for (const [state, session] of this.sessions.entries()) {
       if (session.expiresAt < now) {
         this.sessions.delete(state);

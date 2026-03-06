@@ -1,6 +1,6 @@
 /**
  * Drift Detection API Routes
- * 
+ *
  * Exposes drift detection metrics for conversations.
  * Drift detection measures text property changes over time:
  * - Token Delta: Change in message length
@@ -74,7 +74,7 @@ router.get('/conversation/:conversationId', protect, async (req: Request, res: R
 
     // Extract drift data from the last AI message
     const aiMessages = conversation.messages.filter((m: IMessage) => m.sender === 'ai');
-    
+
     if (aiMessages.length === 0) {
       return res.json({
         success: true,
@@ -84,7 +84,8 @@ router.get('/conversation/:conversationId', protect, async (req: Request, res: R
     }
 
     const lastAiMessage = aiMessages[aiMessages.length - 1];
-    const driftData = lastAiMessage.metadata?.trustEvaluation?.drift || lastAiMessage.metadata?.drift;
+    const driftData =
+      lastAiMessage.metadata?.trustEvaluation?.drift || lastAiMessage.metadata?.drift;
 
     if (!driftData) {
       return res.json({
@@ -139,109 +140,113 @@ router.get('/conversation/:conversationId', protect, async (req: Request, res: R
  * GET /api/drift/conversation/:conversationId/history
  * Get drift history for a conversation
  */
-router.get('/conversation/:conversationId/history', protect, async (req: Request, res: Response) => {
-  try {
-    const conversationId = req.params.conversationId as string;
-    const userId = req.userId;
+router.get(
+  '/conversation/:conversationId/history',
+  protect,
+  async (req: Request, res: Response) => {
+    try {
+      const conversationId = req.params.conversationId as string;
+      const userId = req.userId;
 
-    // Fetch conversation
-    const conversation = await Conversation.findOne({
-      _id: conversationId,
-      user: userId,
-    });
-
-    if (!conversation) {
-      return res.status(404).json({
-        success: false,
-        error: 'Conversation not found',
+      // Fetch conversation
+      const conversation = await Conversation.findOne({
+        _id: conversationId,
+        user: userId,
       });
-    }
 
-    // Extract drift data from all AI messages
-    const aiMessages = conversation.messages.filter((m: IMessage) => {
-      const drift = m.metadata?.trustEvaluation?.drift || m.metadata?.drift;
-      return m.sender === 'ai' && drift;
-    });
-    
-    if (aiMessages.length === 0) {
-      return res.json({
-        success: true,
-        data: {
-          conversationId,
-          history: [],
-          summary: {
-            avgDriftScore: 0,
-            maxDriftScore: 0,
-            alertCount: { yellow: 0, red: 0 },
-            totalTurns: 0,
-          },
-        },
-        message: 'No drift data available yet',
-      });
-    }
-
-    // Build history
-    const history = aiMessages.map((msg: IMessage, idx: number) => {
-      const driftData = msg.metadata?.trustEvaluation?.drift || msg.metadata?.drift;
-      const driftScore = driftData?.driftScore || 0;
-      let alertLevel: 'none' | 'yellow' | 'red' = 'none';
-      if (driftScore > 60) {
-        alertLevel = 'red';
-      } else if (driftScore > 30) {
-        alertLevel = 'yellow';
+      if (!conversation) {
+        return res.status(404).json({
+          success: false,
+          error: 'Conversation not found',
+        });
       }
 
-      return {
-        turnNumber: idx + 1,
-        timestamp: msg.timestamp?.getTime() || Date.now(),
-        driftScore,
-        tokenDelta: driftData?.tokenDelta || 0,
-        vocabDelta: driftData?.vocabDelta || 0,
-        numericDelta: driftData?.numericDelta || 0,
-        alertLevel,
+      // Extract drift data from all AI messages
+      const aiMessages = conversation.messages.filter((m: IMessage) => {
+        const drift = m.metadata?.trustEvaluation?.drift || m.metadata?.drift;
+        return m.sender === 'ai' && drift;
+      });
+
+      if (aiMessages.length === 0) {
+        return res.json({
+          success: true,
+          data: {
+            conversationId,
+            history: [],
+            summary: {
+              avgDriftScore: 0,
+              maxDriftScore: 0,
+              alertCount: { yellow: 0, red: 0 },
+              totalTurns: 0,
+            },
+          },
+          message: 'No drift data available yet',
+        });
+      }
+
+      // Build history
+      const history = aiMessages.map((msg: IMessage, idx: number) => {
+        const driftData = msg.metadata?.trustEvaluation?.drift || msg.metadata?.drift;
+        const driftScore = driftData?.driftScore || 0;
+        let alertLevel: 'none' | 'yellow' | 'red' = 'none';
+        if (driftScore > 60) {
+          alertLevel = 'red';
+        } else if (driftScore > 30) {
+          alertLevel = 'yellow';
+        }
+
+        return {
+          turnNumber: idx + 1,
+          timestamp: msg.timestamp?.getTime() || Date.now(),
+          driftScore,
+          tokenDelta: driftData?.tokenDelta || 0,
+          vocabDelta: driftData?.vocabDelta || 0,
+          numericDelta: driftData?.numericDelta || 0,
+          alertLevel,
+        };
+      });
+
+      // Calculate summary
+      const driftScores = history.map((h) => h.driftScore);
+      const avgDriftScore = driftScores.reduce((a, b) => a + b, 0) / driftScores.length;
+      const maxDriftScore = Math.max(...driftScores);
+      const alertCount = {
+        yellow: history.filter((h) => h.alertLevel === 'yellow').length,
+        red: history.filter((h) => h.alertLevel === 'red').length,
       };
-    });
 
-    // Calculate summary
-    const driftScores = history.map(h => h.driftScore);
-    const avgDriftScore = driftScores.reduce((a, b) => a + b, 0) / driftScores.length;
-    const maxDriftScore = Math.max(...driftScores);
-    const alertCount = {
-      yellow: history.filter(h => h.alertLevel === 'yellow').length,
-      red: history.filter(h => h.alertLevel === 'red').length,
-    };
+      const response: DriftHistory = {
+        conversationId,
+        history,
+        summary: {
+          avgDriftScore: Math.round(avgDriftScore),
+          maxDriftScore,
+          alertCount,
+          totalTurns: history.length,
+        },
+      };
 
-    const response: DriftHistory = {
-      conversationId,
-      history,
-      summary: {
-        avgDriftScore: Math.round(avgDriftScore),
-        maxDriftScore,
-        alertCount,
-        totalTurns: history.length,
-      },
-    };
+      logger.info(`[Drift] Retrieved drift history for conversation ${conversationId}`, {
+        totalTurns: response.summary.totalTurns,
+        avgDriftScore: response.summary.avgDriftScore,
+      });
 
-    logger.info(`[Drift] Retrieved drift history for conversation ${conversationId}`, {
-      totalTurns: response.summary.totalTurns,
-      avgDriftScore: response.summary.avgDriftScore,
-    });
-
-    res.json({
-      success: true,
-      data: response,
-    });
-  } catch (error) {
-    logger.error('[Drift] Error retrieving drift history', {
-      conversationId: req.params.conversationId,
-      error: getErrorMessage(error),
-    });
-    res.status(500).json({
-      success: false,
-      error: 'Failed to retrieve drift history',
-    });
+      res.json({
+        success: true,
+        data: response,
+      });
+    } catch (error) {
+      logger.error('[Drift] Error retrieving drift history', {
+        conversationId: req.params.conversationId,
+        error: getErrorMessage(error),
+      });
+      res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve drift history',
+      });
+    }
   }
-});
+);
 
 /**
  * GET /api/drift/tenant/summary

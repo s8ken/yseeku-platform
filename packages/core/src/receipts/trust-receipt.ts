@@ -43,7 +43,7 @@ let isInitialized = false;
 /**
  * Pre-load the Ed25519 crypto library for better performance.
  * Call this during application startup to avoid cold-start delays.
- * 
+ *
  * @example
  * import { initCrypto } from '@sonate/core';
  * await initCrypto(); // Call once at app startup
@@ -65,7 +65,6 @@ export async function initCrypto(): Promise<void> {
 export function isCryptoReady(): boolean {
   return isInitialized;
 }
-
 
 export interface SonateTrustReceipt {
   id: string; // SHA-256 Hash of the interaction
@@ -104,6 +103,21 @@ export interface TrustReceiptData {
   session_nonce?: string;
 }
 
+function deepFreeze<T>(value: T): T {
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+
+  Object.freeze(value);
+  for (const key of Object.keys(value as Record<string, unknown>)) {
+    const nested = (value as Record<string, unknown>)[key];
+    if (nested && typeof nested === 'object' && !Object.isFrozen(nested)) {
+      deepFreeze(nested);
+    }
+  }
+  return value;
+}
+
 export class TrustReceipt {
   version: string;
   session_id: string;
@@ -121,8 +135,10 @@ export class TrustReceipt {
     this.session_id = data.session_id;
     this.timestamp = data.timestamp;
     this.mode = data.mode;
-    this.ciq_metrics = data.ciq_metrics;
-    this.sonate_trust_receipt = data.sonate_trust_receipt;
+    this.ciq_metrics = deepFreeze(data.ciq_metrics);
+    this.sonate_trust_receipt = data.sonate_trust_receipt
+      ? deepFreeze(data.sonate_trust_receipt)
+      : undefined;
     this.previous_hash = data.previous_hash;
     this.session_nonce = data.session_nonce;
 
@@ -160,6 +176,8 @@ export class TrustReceipt {
    * Algorithm: https://gammatria.com/schemas/trust-receipt#signature
    */
   async sign(privateKey: Uint8Array): Promise<void> {
+    // Recompute just before signing to ensure current payload is what gets signed.
+    this.self_hash = this.calculateHash();
     const messageHash = Buffer.from(this.self_hash, 'hex');
     const ed25519 = await loadEd25519();
     const signature = await ed25519.sign(messageHash, privateKey);
@@ -176,6 +194,11 @@ export class TrustReceipt {
     }
 
     try {
+      const calculatedHash = this.calculateHash();
+      if (calculatedHash !== this.self_hash) {
+        console.warn('[TrustReceipt] Verification failed: Payload hash mismatch');
+        return false;
+      }
       const messageHash = Buffer.from(this.self_hash, 'hex');
       const signature = Buffer.from(this.signature, 'hex');
       const ed25519 = await loadEd25519();
@@ -190,6 +213,8 @@ export class TrustReceipt {
    * Sign with session binding (self_hash + session_id + session_nonce)
    */
   async signBound(privateKey: Uint8Array): Promise<void> {
+    // Recompute just before signing to ensure current payload is what gets signed.
+    this.self_hash = this.calculateHash();
     const payload = JSON.stringify({
       self_hash: this.self_hash,
       session_id: this.session_id,
@@ -207,6 +232,11 @@ export class TrustReceipt {
   async verifyBound(publicKey: Uint8Array): Promise<boolean> {
     if (!this.signature) {
       console.warn('[TrustReceipt] Bound verification failed: No signature present');
+      return false;
+    }
+    const calculatedHash = this.calculateHash();
+    if (calculatedHash !== this.self_hash) {
+      console.warn('[TrustReceipt] Bound verification failed: Payload hash mismatch');
       return false;
     }
     const payload = JSON.stringify({
@@ -253,18 +283,18 @@ export class TrustReceipt {
 
   /**
    * Deserialize from JSON
-   * 
+   *
    * CRITICAL: Preserves the original self_hash from the serialized data to maintain
    * hash-chain integrity. This allows receipts to be restored from storage/transmission
    * without recalculation, which would break chain verification.
-   * 
+   *
    * Behavior:
    * - If data.self_hash is present: uses it (preserves chain)
    * - If data.self_hash is missing: recalculates (fallback for new receipts)
-   * 
+   *
    * Future: Optional skipHashCalculation flag can be added if constructor needs
    * to support raw instantiation without auto-hash-calculation.
-   * 
+   *
    * @param data Serialized receipt JSON
    * @returns TrustReceipt instance with preserved or calculated self_hash
    */
@@ -280,8 +310,12 @@ export class TrustReceipt {
       session_nonce: data.session_nonce,
     });
 
-    // CRITICAL: Preserve the original hash if present to maintain chain integrity
+    // Preserve the original hash only when it matches the actual payload hash.
     if (data.self_hash) {
+      const computedHash = receipt.calculateHash();
+      if (data.self_hash !== computedHash) {
+        throw new Error('Invalid serialized receipt: self_hash does not match payload');
+      }
       receipt.self_hash = data.self_hash;
     }
     // Else: self_hash was already calculated by constructor

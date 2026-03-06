@@ -8,7 +8,17 @@
 
 import { createHash } from 'crypto';
 
-import { ArchiveBenchmarkSuite , ConversationalMetrics, ConversationTurn , ArchiveAnalyzer , ExperimentOrchestrator , StatisticalEngine , EnhancedArchiveAnalyzer, FlaggedConversation , ArchiveCalibrationTool } from '@sonate/lab';
+import {
+  ArchiveBenchmarkSuite,
+  ConversationalMetrics,
+  ConversationTurn,
+  ArchiveAnalyzer,
+  ExperimentOrchestrator,
+  StatisticalEngine,
+  EnhancedArchiveAnalyzer,
+  FlaggedConversation,
+  ArchiveCalibrationTool,
+} from '@sonate/lab';
 import { logger } from '../utils/logger';
 
 import { EnhancedAuditSystem } from './audit-enhanced';
@@ -408,7 +418,9 @@ export class EnhancedResonateValidationSuite {
       });
 
       const correct = alertTriggered === testCase.shouldTriggerAlert;
-      if (correct) {correctDetections++;}
+      if (correct) {
+        correctDetections++;
+      }
 
       details.push(
         `Test case ${index + 1}: expected=${
@@ -566,7 +578,9 @@ export class EnhancedResonateValidationSuite {
     context?: any,
     duration?: number
   ): Promise<void> {
-    if (!this.auditSystem) {return;}
+    if (!this.auditSystem) {
+      return;
+    }
 
     await this.auditSystem.logEvent({
       type: 'COMPREHENSIVE_VALIDATION_RUN',

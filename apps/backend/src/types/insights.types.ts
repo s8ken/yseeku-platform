@@ -1,6 +1,6 @@
 /**
  * Actionable Insights System
- * 
+ *
  * Provides AI-generated recommendations and next steps for platform operators
  * based on real-time trust data, behavioral analysis, and system health.
  */
@@ -10,7 +10,7 @@ export enum InsightPriority {
   HIGH = 'high',
   MEDIUM = 'medium',
   LOW = 'low',
-  INFO = 'info'
+  INFO = 'info',
 }
 
 export enum InsightCategory {
@@ -19,7 +19,7 @@ export enum InsightCategory {
   EMERGENCE = 'emergence',
   PERFORMANCE = 'performance',
   SECURITY = 'security',
-  COMPLIANCE = 'compliance'
+  COMPLIANCE = 'compliance',
 }
 
 export enum InsightAction {
@@ -29,7 +29,7 @@ export enum InsightAction {
   REVIEW = 'review',
   IGNORE = 'ignore',
   ESCALATE = 'escalate',
-  RESOLVE = 'resolve'
+  RESOLVE = 'resolve',
 }
 
 export interface Insight {
@@ -40,14 +40,14 @@ export interface Insight {
   title: string;
   description: string;
   recommendation: string;
-  
+
   // Context
   source: {
     type: 'trust_score' | 'phase_shift' | 'emergence' | 'drift' | 'compliance' | 'alert';
     id?: string;
     details?: Record<string, any>;
   };
-  
+
   // Metrics
   metrics: {
     currentValue: number | string;
@@ -59,20 +59,20 @@ export interface Insight {
       timeframe: string;
     };
   };
-  
+
   // Actions
   suggestedActions: InsightAction[];
   availableActions: InsightAction[];
-  
+
   // Status
   status: 'open' | 'acknowledged' | 'in_progress' | 'resolved' | 'dismissed';
-  
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
   resolvedAt?: Date;
   acknowledgedAt?: Date;
-  
+
   // Metadata
   metadata?: {
     confidence?: number;

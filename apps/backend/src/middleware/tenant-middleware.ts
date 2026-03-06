@@ -28,7 +28,7 @@ export const requireTenant = (req: Request, res: Response, next: NextFunction) =
   if (!tenantContext.isActive()) {
     return res.status(400).json({
       error: 'Tenant context required',
-      code: 'MISSING_TENANT'
+      code: 'MISSING_TENANT',
     });
   }
   next();

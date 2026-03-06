@@ -37,7 +37,7 @@ router.get('/alerts', async (req: Request, res: Response): Promise<void> => {
     res.json({
       tenant: DEMO_TENANT_ID,
       summary,
-      alerts: alerts.map(alert => ({
+      alerts: alerts.map((alert) => ({
         id: alert._id.toString(),
         timestamp: alert.created_at, // Use created_at
         type: alert.type,
@@ -80,22 +80,25 @@ router.get('/live-metrics', async (req: Request, res: Response): Promise<void> =
     ]);
 
     // Calculate metrics from demo receipts
-    const avgClarity = receipts.length > 0
-      ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 4.5), 0) / receipts.length
-      : 4.5;
-    const avgIntegrity = receipts.length > 0
-      ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 4.3), 0) / receipts.length
-      : 4.3;
-    const avgQuality = receipts.length > 0
-      ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 4.2), 0) / receipts.length
-      : 4.2;
+    const avgClarity =
+      receipts.length > 0
+        ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.clarity || 4.5), 0) / receipts.length
+        : 4.5;
+    const avgIntegrity =
+      receipts.length > 0
+        ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.integrity || 4.3), 0) / receipts.length
+        : 4.3;
+    const avgQuality =
+      receipts.length > 0
+        ? receipts.reduce((sum, r) => sum + (r.ciq_metrics?.quality || 4.2), 0) / receipts.length
+        : 4.2;
 
     // Convert CIQ (0-5) to trust score (0-10)
     const trustScore = ((avgClarity + avgIntegrity + avgQuality) / 3) * 2;
 
     // Calculate alert summary
-    const alertCritical = alerts.filter(a => a.severity === 'critical').length;
-    const alertWarning = alerts.filter(a => a.severity === 'medium').length; // Changed 'warning' to 'medium'
+    const alertCritical = alerts.filter((a) => a.severity === 'critical').length;
+    const alertWarning = alerts.filter((a) => a.severity === 'medium').length; // Changed 'warning' to 'medium'
 
     // Calculate principle scores (0-10 scale) based on CIQ metrics
     const principleScores: Record<string, number> = {
@@ -104,11 +107,11 @@ router.get('/live-metrics', async (req: Request, res: Response): Promise<void> =
       validation: Math.min(10, avgQuality * 2),
       ethics: Math.min(10, avgIntegrity * 2.1),
       disconnect: Math.min(10, 8.5 + (avgQuality - 4) * 0.3),
-      moral: Math.min(10, (avgIntegrity + avgQuality)),
+      moral: Math.min(10, avgIntegrity + avgQuality),
     };
 
     // Round all scores to 1 decimal
-    Object.keys(principleScores).forEach(key => {
+    Object.keys(principleScores).forEach((key) => {
       principleScores[key] = Math.round(principleScores[key] * 10) / 10;
     });
 
@@ -210,9 +213,10 @@ router.get('/live-events', async (req: Request, res: Response): Promise<void> =>
       const lastMsg = conv.messages?.[conv.messages.length - 1];
       if (lastMsg) {
         const agentDoc = Array.isArray(conv.agents) ? conv.agents[0] : null;
-        const agentName = agentDoc && typeof agentDoc === 'object' && 'name' in agentDoc
-          ? (agentDoc as { name: string }).name
-          : 'AI Agent';
+        const agentName =
+          agentDoc && typeof agentDoc === 'object' && 'name' in agentDoc
+            ? (agentDoc as { name: string }).name
+            : 'AI Agent';
 
         events.push({
           id: `conv-${conv._id}-${conv.messages.length}`,

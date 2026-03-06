@@ -1,6 +1,6 @@
 /**
  * Prometheus Metrics Routes
- * 
+ *
  * GET /metrics - Prometheus-compatible metrics endpoint
  */
 

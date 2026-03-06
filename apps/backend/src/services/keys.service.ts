@@ -16,15 +16,18 @@ let ed25519Promise: Promise<any> | null = null;
 
 async function loadEd25519(): Promise<any> {
   if (!ed25519Promise) {
-    ed25519Promise = (new Function('return import("@noble/ed25519")')() as Promise<any>).then((ed25519) => {
-      const sha512 = (message: Uint8Array) => new Uint8Array(crypto.createHash('sha512').update(message).digest());
-      if ((ed25519 as any).hashes) {
-        (ed25519 as any).hashes.sha512 = sha512;
-      } else {
-        (ed25519 as any).etc.sha512Sync = (...m: Uint8Array[]) => sha512(m[0]);
+    ed25519Promise = (new Function('return import("@noble/ed25519")')() as Promise<any>).then(
+      (ed25519) => {
+        const sha512 = (message: Uint8Array) =>
+          new Uint8Array(crypto.createHash('sha512').update(message).digest());
+        if ((ed25519 as any).hashes) {
+          (ed25519 as any).hashes.sha512 = sha512;
+        } else {
+          (ed25519 as any).etc.sha512Sync = (...m: Uint8Array[]) => sha512(m[0]);
+        }
+        return ed25519;
       }
-      return ed25519;
-    });
+    );
   }
   return ed25519Promise;
 }
@@ -42,7 +45,8 @@ class KeysService {
 
   constructor() {
     // Store keys in a secure location - can be overridden by env var
-    this.keysPath = process.env.TRUST_KEYS_PATH || path.join(process.cwd(), '.keys', 'trust-signing.json');
+    this.keysPath =
+      process.env.TRUST_KEYS_PATH || path.join(process.cwd(), '.keys', 'trust-signing.json');
   }
 
   /**
@@ -57,7 +61,9 @@ class KeysService {
         const privRef = process.env.TRUST_SIGNING_PRIVATE_KEY_REF as string;
         const privHex = await sm.decrypt(privRef);
         const ed25519 = await loadEd25519();
-        const clean = (privHex as string).startsWith('0x') ? (privHex as string).slice(2) : (privHex as string);
+        const clean = (privHex as string).startsWith('0x')
+          ? (privHex as string).slice(2)
+          : (privHex as string);
         const privateKeyBuf = Buffer.from(clean, 'hex');
         const privateKey = new Uint8Array(privateKeyBuf);
         const publicKey = await ed25519.getPublicKey(privateKey);
@@ -107,7 +113,6 @@ class KeysService {
       // Generate new keys
       await this.generateNewKeys();
       this.initialized = true;
-
     } catch (error: unknown) {
       logger.error('Failed to initialize keys service', { error: getErrorMessage(error) });
       throw error;
@@ -139,11 +144,19 @@ class KeysService {
       fs.mkdirSync(keysDir, { recursive: true });
     }
 
-    fs.writeFileSync(this.keysPath, JSON.stringify({
-      privateKey: privateKeyHex,
-      publicKey: publicKeyHex,
-      generatedAt: new Date().toISOString(),
-    }, null, 2), { mode: 0o600 }); // Restrict file permissions
+    fs.writeFileSync(
+      this.keysPath,
+      JSON.stringify(
+        {
+          privateKey: privateKeyHex,
+          publicKey: publicKeyHex,
+          generatedAt: new Date().toISOString(),
+        },
+        null,
+        2
+      ),
+      { mode: 0o600 }
+    ); // Restrict file permissions
 
     logger.info('Generated new trust signing keys', { publicKey: publicKeyHex });
 
@@ -204,9 +217,7 @@ class KeysService {
     const privateKey = await this.getPrivateKey();
 
     // Convert string to UTF-8 bytes (not hex!)
-    const messageBytes = typeof message === 'string'
-      ? Buffer.from(message, 'utf-8')
-      : message;
+    const messageBytes = typeof message === 'string' ? Buffer.from(message, 'utf-8') : message;
 
     const signature = await ed25519.sign(messageBytes, privateKey);
     return Buffer.from(signature).toString('hex');
@@ -218,15 +229,17 @@ class KeysService {
    * @param signature - Hex-encoded signature
    * @param publicKey - Optional public key (uses stored key if not provided)
    */
-  async verify(message: string | Buffer, signature: string, publicKey?: Uint8Array): Promise<boolean> {
+  async verify(
+    message: string | Buffer,
+    signature: string,
+    publicKey?: Uint8Array
+  ): Promise<boolean> {
     try {
       const ed25519 = await loadEd25519();
-      const pubKey = publicKey || await this.getPublicKey();
+      const pubKey = publicKey || (await this.getPublicKey());
 
       // Convert string to UTF-8 bytes (not hex!)
-      const messageBytes = typeof message === 'string'
-        ? Buffer.from(message, 'utf-8')
-        : message;
+      const messageBytes = typeof message === 'string' ? Buffer.from(message, 'utf-8') : message;
       const signatureBytes = Buffer.from(signature, 'hex');
 
       return await ed25519.verify(signatureBytes, messageBytes, pubKey);

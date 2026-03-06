@@ -89,9 +89,15 @@ export async function gatherSensors(tenantId: string): Promise<SensorData> {
     .filter((score: number) => score > 0); // Exclude unevaluated receipts
 
   // avgTrust on 0-100 scale (normalized CIQ 0-1 × 100)
-  const avgTrust = trustScores.length > 0
-    ? Math.min(100, Math.round((trustScores.reduce((s: number, v: number) => s + v, 0) / trustScores.length) * 100))
-    : 85; // Default to 85/100 when no evaluated receipts exist
+  const avgTrust =
+    trustScores.length > 0
+      ? Math.min(
+          100,
+          Math.round(
+            (trustScores.reduce((s: number, v: number) => s + v, 0) / trustScores.length) * 100
+          )
+        )
+      : 85; // Default to 85/100 when no evaluated receipts exist
 
   // 3. Historical statistics
   const historicalMean = calculateMean(trustScores);
@@ -141,11 +147,12 @@ async function gatherAgentHealth(tenantId: string): Promise<AgentHealthSummary> 
     const tenantAgents = await Agent.find(query).lean();
 
     const banned = tenantAgents.filter((a: any) => a.banStatus?.isBanned);
-    const restricted = tenantAgents.filter((a: any) =>
-      a.banStatus?.restrictions && a.banStatus.restrictions.length > 0 && !a.banStatus?.isBanned
+    const restricted = tenantAgents.filter(
+      (a: any) =>
+        a.banStatus?.restrictions && a.banStatus.restrictions.length > 0 && !a.banStatus?.isBanned
     );
-    const quarantined = tenantAgents.filter((a: any) =>
-      a.banStatus?.severity === 'critical' && a.banStatus?.isBanned
+    const quarantined = tenantAgents.filter(
+      (a: any) => a.banStatus?.severity === 'critical' && a.banStatus?.isBanned
     );
 
     // Calculate average agent trust from recent conversations
@@ -153,25 +160,25 @@ async function gatherAgentHealth(tenantId: string): Promise<AgentHealthSummary> 
     try {
       const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const agentIds = tenantAgents.map((a: any) => a._id);
-      
+
       if (agentIds.length > 0) {
         const trustAggregation = await Conversation.aggregate([
           {
             $match: {
               agents: { $in: agentIds },
-              lastActivity: { $gte: oneWeekAgo }
-            }
+              lastActivity: { $gte: oneWeekAgo },
+            },
           },
           { $unwind: '$messages' },
           {
             $group: {
               _id: null,
               avgTrust: { $avg: '$messages.trustScore' },
-              count: { $sum: 1 }
-            }
-          }
+              count: { $sum: 1 },
+            },
+          },
         ]);
-        
+
         if (trustAggregation.length > 0 && trustAggregation[0].count > 0) {
           // Convert 0-5 scale to 0-100 scale (multiply by 20)
           avgAgentTrust = Math.round(trustAggregation[0].avgTrust * 20);
@@ -243,7 +250,10 @@ export function analyzeTrend(scores: number[]): TrendData {
   const n = Math.min(scores.length, 20);
   const recentScores = scores.slice(0, n);
 
-  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+  let sumX = 0,
+    sumY = 0,
+    sumXY = 0,
+    sumX2 = 0;
   for (let i = 0; i < n; i++) {
     sumX += i;
     sumY += recentScores[i];
@@ -258,9 +268,8 @@ export function analyzeTrend(scores: number[]): TrendData {
   for (let i = 1; i < recentScores.length; i++) {
     diffs.push(Math.abs(recentScores[i] - recentScores[i - 1]));
   }
-  const volatility = diffs.length > 0
-    ? Math.sqrt(diffs.reduce((s, d) => s + d * d, 0) / diffs.length)
-    : 0;
+  const volatility =
+    diffs.length > 0 ? Math.sqrt(diffs.reduce((s, d) => s + d * d, 0) / diffs.length) : 0;
 
   // Recent change (last 5 vs previous 5)
   const recent5 = recentScores.slice(0, 5);
@@ -295,6 +304,6 @@ function calculateMean(arr: number[]): number {
  */
 function calculateStd(arr: number[], mean: number): number {
   if (arr.length < 2) return 0;
-  const squaredDiffs = arr.map(v => (v - mean) ** 2);
+  const squaredDiffs = arr.map((v) => (v - mean) ** 2);
   return Math.sqrt(squaredDiffs.reduce((s, v) => s + v, 0) / arr.length);
 }

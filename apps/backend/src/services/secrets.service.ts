@@ -41,7 +41,10 @@ export async function getSecret(name: string): Promise<string | null> {
   return null;
 }
 
-export async function putSecret(name: string, value: string): Promise<{ reference: string; provider: string } | null> {
+export async function putSecret(
+  name: string,
+  value: string
+): Promise<{ reference: string; provider: string } | null> {
   const source = detectSource();
   const sm = createSecretsManager();
   if (source === 'vault') {

@@ -1,6 +1,6 @@
 /**
  * Request Validation Middleware
- * 
+ *
  * Uses Zod schemas to validate request bodies, query params, and route params.
  * Provides consistent validation error responses.
  */
@@ -145,11 +145,7 @@ export function validate<
   TBody extends ZodSchema = z.ZodAny,
   TQuery extends ZodSchema = z.ZodAny,
   TParams extends ZodSchema = z.ZodAny
->(schemas: {
-  body?: TBody;
-  query?: TQuery;
-  params?: TParams;
-}) {
+>(schemas: { body?: TBody; query?: TQuery; params?: TParams }) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const errors: Array<{ location: string; issues: z.ZodIssue[] }> = [];
 
@@ -214,7 +210,10 @@ export class ValidationError extends Error {
   code = 'VALIDATION_ERROR';
   details?: Array<{ path: string; message: string }>;
 
-  constructor(message = 'Request validation failed', details?: Array<{ path: string; message: string }>) {
+  constructor(
+    message = 'Request validation failed',
+    details?: Array<{ path: string; message: string }>
+  ) {
     super(message);
     this.name = 'ValidationError';
     this.details = details;

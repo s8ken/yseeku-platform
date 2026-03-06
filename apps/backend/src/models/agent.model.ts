@@ -156,13 +156,15 @@ const AgentSchema = new Schema<IAgent>({
       ['ethical_alignment', 5],
       ['creativity', 3],
       ['precision', 3],
-      ['adaptability', 3]
+      ['adaptability', 3],
     ]),
   },
-  connectedAgents: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Agent',
-  }],
+  connectedAgents: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Agent',
+    },
+  ],
   externalSystems: [ExternalSystemSchema],
   metadata: {
     type: Schema.Types.Mixed,
@@ -198,9 +200,11 @@ const AgentSchema = new Schema<IAgent>({
     expiresAt: Date,
     restrictions: [String],
   },
-  restrictedFeatures: [{
-    type: String,
-  }],
+  restrictedFeatures: [
+    {
+      type: String,
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
@@ -239,7 +243,9 @@ AgentSchema.methods.completeBonding = function (accepted: boolean = true): Promi
 };
 
 // Method to add external system connection
-AgentSchema.methods.addExternalSystem = function (systemConfig: Partial<IExternalSystem>): Promise<any> {
+AgentSchema.methods.addExternalSystem = function (
+  systemConfig: Partial<IExternalSystem>
+): Promise<any> {
   this.externalSystems.push({
     name: systemConfig.name!,
     type: systemConfig.type!,
@@ -247,7 +253,7 @@ AgentSchema.methods.addExternalSystem = function (systemConfig: Partial<IExterna
     apiKey: systemConfig.apiKey,
     config: systemConfig.config || {},
     isActive: systemConfig.isActive !== undefined ? systemConfig.isActive : true,
-    lastSync: new Date()
+    lastSync: new Date(),
   } as IExternalSystem);
   return this.save();
 };
@@ -263,7 +269,10 @@ AgentSchema.methods.updateExternalSystemSync = function (systemName: string): Pr
 };
 
 // Method to toggle external system status
-AgentSchema.methods.toggleExternalSystem = function (systemName: string, isActive: boolean): Promise<any> {
+AgentSchema.methods.toggleExternalSystem = function (
+  systemName: string,
+  isActive: boolean
+): Promise<any> {
   const system = this.externalSystems.find((sys: IExternalSystem) => sys.name === systemName);
   if (system) {
     system.isActive = isActive;
@@ -331,11 +340,11 @@ AgentSchema.methods.unban = function (): Promise<any> {
 // Virtual field for DID - computed from _id
 const PLATFORM_DOMAIN = process.env.PLATFORM_DOMAIN || 'yseeku.com';
 
-AgentSchema.virtual('did').get(function() {
+AgentSchema.virtual('did').get(function () {
   return `did:web:${PLATFORM_DOMAIN}:agents:${this._id}`;
 });
 
-AgentSchema.virtual('didDocument').get(function() {
+AgentSchema.virtual('didDocument').get(function () {
   return `https://${PLATFORM_DOMAIN}/.well-known/did/agents/${this._id}/did.json`;
 });
 
@@ -343,4 +352,5 @@ AgentSchema.virtual('didDocument').get(function() {
 AgentSchema.set('toJSON', { virtuals: true });
 AgentSchema.set('toObject', { virtuals: true });
 
-export const Agent: Model<IAgent> = mongoose.models.Agent || mongoose.model<IAgent>('Agent', AgentSchema);
+export const Agent: Model<IAgent> =
+  mongoose.models.Agent || mongoose.model<IAgent>('Agent', AgentSchema);

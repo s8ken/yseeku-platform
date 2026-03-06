@@ -66,10 +66,9 @@ export function canonicalizeJSON(
 ): string {
   if (options.method === 'JCS') {
     return canonicalize(data);
-  } 
-    // URDNA2015 for RDF - placeholder for future implementation
-    throw new Error('URDNA2015 not yet implemented');
-  
+  }
+  // URDNA2015 for RDF - placeholder for future implementation
+  throw new Error('URDNA2015 not yet implemented');
 }
 
 /**

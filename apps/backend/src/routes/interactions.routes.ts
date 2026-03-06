@@ -31,7 +31,7 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
 
     const agentMap = new Map<string, any>();
     for (const conv of conversations) {
-      for (const agent of (conv.agents || [])) {
+      for (const agent of conv.agents || []) {
         if (agent && typeof agent === 'object' && '_id' in agent) {
           agentMap.set((agent as any)._id.toString(), agent);
         }
@@ -43,7 +43,7 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
     for (const conv of conversations) {
       if (!conv.messages || conv.messages.length < 2) continue;
 
-      const aiMessages = conv.messages.filter(m => m.sender === 'ai');
+      const aiMessages = conv.messages.filter((m) => m.sender === 'ai');
       if (aiMessages.length === 0) continue;
 
       const messageCount = conv.messages.length;
@@ -53,9 +53,15 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
         (new Date(lastMsg.timestamp).getTime() - new Date(firstMsg.timestamp).getTime()) / 1000
       );
 
-      let totalTrust = 0, trustCount = 0, passCount = 0, partialCount = 0, failCount = 0;
+      let totalTrust = 0,
+        trustCount = 0,
+        passCount = 0,
+        partialCount = 0,
+        failCount = 0;
       let receiptHash: string | undefined;
-      let consentOk = true, overrideOk = true, disconnectOk = true;
+      let consentOk = true,
+        overrideOk = true,
+        disconnectOk = true;
 
       for (const msg of aiMessages) {
         const trustScore = (msg.trustScore || 5) * 2;
@@ -93,22 +99,33 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
       const agentName = agent?.name || 'AI Assistant';
       const agentModel = agent?.model || 'unknown';
 
-      const summary = conv.title ||
-        `Conversation with ${messageCount} messages. ${trustStatus === 'PASS' ? 'Completed successfully.' : trustStatus === 'PARTIAL' ? 'Some issues detected.' : 'Trust violations occurred.'}`;
+      const summary =
+        conv.title ||
+        `Conversation with ${messageCount} messages. ${
+          trustStatus === 'PASS'
+            ? 'Completed successfully.'
+            : trustStatus === 'PARTIAL'
+            ? 'Some issues detected.'
+            : 'Trust violations occurred.'
+        }`;
 
       interactions.push({
         id: conv._id.toString(),
         type: 'AI_CUSTOMER',
         participants: {
           initiator: { id: req.userId || '', name: userName, type: 'human' },
-          responder: { id: agentId || '', name: `${agentName} (${agentModel})`, type: 'ai' }
+          responder: { id: agentId || '', name: `${agentName} (${agentModel})`, type: 'ai' },
         },
         timestamp: conv.lastActivity?.toISOString() || new Date().toISOString(),
         duration: Math.max(duration, 30),
         messageCount,
         trustScore: avgTrust,
         trustStatus,
-        constitutionalCompliance: { consent: consentOk, override: overrideOk, disconnect: disconnectOk },
+        constitutionalCompliance: {
+          consent: consentOk,
+          override: overrideOk,
+          disconnect: disconnectOk,
+        },
         receiptHash,
         summary,
         agentId,
@@ -117,37 +134,45 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
     }
 
     let filtered = interactions;
-    if (type && type !== 'ALL') filtered = filtered.filter(i => i.type === type);
-    if (status && status !== 'ALL') filtered = filtered.filter(i => i.trustStatus === status);
+    if (type && type !== 'ALL') filtered = filtered.filter((i) => i.type === type);
+    if (status && status !== 'ALL') filtered = filtered.filter((i) => i.trustStatus === status);
     if (search) {
       const q = (search as string).toLowerCase();
-      filtered = filtered.filter(i =>
-        i.summary.toLowerCase().includes(q) ||
-        i.participants.initiator.name.toLowerCase().includes(q) ||
-        i.participants.responder.name.toLowerCase().includes(q)
+      filtered = filtered.filter(
+        (i) =>
+          i.summary.toLowerCase().includes(q) ||
+          i.participants.initiator.name.toLowerCase().includes(q) ||
+          i.participants.responder.name.toLowerCase().includes(q)
       );
     }
 
     const stats = {
       total: interactions.length,
       byType: {
-        AI_CUSTOMER: interactions.filter(i => i.type === 'AI_CUSTOMER').length,
-        AI_STAFF: interactions.filter(i => i.type === 'AI_STAFF').length,
-        AI_AI: interactions.filter(i => i.type === 'AI_AI').length,
+        AI_CUSTOMER: interactions.filter((i) => i.type === 'AI_CUSTOMER').length,
+        AI_STAFF: interactions.filter((i) => i.type === 'AI_STAFF').length,
+        AI_AI: interactions.filter((i) => i.type === 'AI_AI').length,
         ALL: interactions.length,
       },
       byStatus: {
-        PASS: interactions.filter(i => i.trustStatus === 'PASS').length,
-        PARTIAL: interactions.filter(i => i.trustStatus === 'PARTIAL').length,
-        FAIL: interactions.filter(i => i.trustStatus === 'FAIL').length,
+        PASS: interactions.filter((i) => i.trustStatus === 'PASS').length,
+        PARTIAL: interactions.filter((i) => i.trustStatus === 'PARTIAL').length,
+        FAIL: interactions.filter((i) => i.trustStatus === 'FAIL').length,
         ALL: interactions.length,
       },
-      avgTrustScore: interactions.length > 0
-        ? Math.round(interactions.reduce((sum, i) => sum + i.trustScore, 0) / interactions.length * 10) / 10
-        : 0,
-      complianceRate: interactions.length > 0
-        ? Math.round((interactions.filter(i => i.trustStatus === 'PASS').length / interactions.length) * 1000) / 10
-        : 100,
+      avgTrustScore:
+        interactions.length > 0
+          ? Math.round(
+              (interactions.reduce((sum, i) => sum + i.trustScore, 0) / interactions.length) * 10
+            ) / 10
+          : 0,
+      complianceRate:
+        interactions.length > 0
+          ? Math.round(
+              (interactions.filter((i) => i.trustStatus === 'PASS').length / interactions.length) *
+                1000
+            ) / 10
+          : 100,
     };
 
     const limitNum = Math.min(parseInt(limit as string), 100);

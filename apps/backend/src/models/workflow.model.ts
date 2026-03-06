@@ -35,7 +35,7 @@ const WorkflowStepSchema = new Schema({
   inputTemplate: { type: String, default: '' },
   dependencies: [{ type: String }],
   requiredCapabilities: [{ type: String }],
-  retryCount: { type: Number, default: 0 }
+  retryCount: { type: Number, default: 0 },
 });
 
 const WorkflowSchema = new Schema<IWorkflow>({
@@ -44,15 +44,17 @@ const WorkflowSchema = new Schema<IWorkflow>({
   tenantId: { type: String, required: true, index: true },
   steps: [WorkflowStepSchema],
   status: { type: String, enum: ['active', 'draft', 'archived'], default: 'draft' },
-  triggers: [{
-    type: { type: String, enum: ['manual', 'webhook', 'schedule'], default: 'manual' },
-    config: { type: Schema.Types.Mixed }
-  }],
+  triggers: [
+    {
+      type: { type: String, enum: ['manual', 'webhook', 'schedule'], default: 'manual' },
+      config: { type: Schema.Types.Mixed },
+    },
+  ],
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
-WorkflowSchema.pre('save', function() {
+WorkflowSchema.pre('save', function () {
   this.updatedAt = new Date();
 });
 

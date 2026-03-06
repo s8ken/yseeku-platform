@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * Phase 3 Migration CLI Runner
- * 
+ *
  * Runs the Phase 3 database migration for SONATE scoring updates
- * 
+ *
  * Usage:
  *   npm run migrate:phase-3                    (default environment)
  *   NODE_ENV=production npm run migrate:phase-3 (production environment)
@@ -67,7 +67,9 @@ async function runMigration() {
       console.log('Attempting TypeScript import...');
       try {
         // Dynamic import for TypeScript files
-        const { runPhase3Migration, verifyPhase3Migration } = await import('./phase-3-sonate-scoring');
+        const { runPhase3Migration, verifyPhase3Migration } = await import(
+          './phase-3-sonate-scoring'
+        );
         migrateModule = { runPhase3Migration, verifyPhase3Migration };
       } catch (e) {
         throw new Error(`Failed to load migration module: ${error}`);
@@ -87,7 +89,7 @@ async function runMigration() {
         // Verification only
         console.log('Running verification only (no changes)...\n');
         const verified = await verifyPhase3Migration(connection);
-        
+
         if (verified) {
           console.log(`\n${'✓'.repeat(60)}`);
           console.log('✓ Migration verification PASSED');
@@ -130,13 +132,13 @@ async function runMigration() {
           console.log(`\n${'✓'.repeat(60)}`);
           console.log('✓ Phase 3 Migration SUCCESSFUL');
           console.log(`${'✓'.repeat(60)}\n`);
-          
+
           console.log('Next steps:');
           console.log('  Phase 4: Deploy frontend display updates');
           console.log('  Phase 5: Update documentation');
           console.log('  Phase 6: Run full test suite');
           console.log('  Phase 7: Deploy to production\n');
-          
+
           process.exit(0);
         } else {
           console.log(`\n${'✗'.repeat(60)}`);

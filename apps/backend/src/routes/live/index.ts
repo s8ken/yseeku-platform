@@ -22,7 +22,7 @@ export const LIVE_TENANT_ID = 'live-tenant';
 router.post('/init', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
-    
+
     if (!userId) {
       res.status(401).json({
         success: false,
@@ -32,13 +32,16 @@ router.post('/init', protect, async (req: Request, res: Response): Promise<void>
     }
 
     // Check if a default agent already exists for this user
-    let defaultAgent = await Agent.findOne({ 
+    let defaultAgent = await Agent.findOne({
       user: userId,
       name: 'SONATE Assistant',
     });
 
     if (defaultAgent) {
-      logger.info('Live tenant already initialized for user', { userId, agentId: defaultAgent._id });
+      logger.info('Live tenant already initialized for user', {
+        userId,
+        agentId: defaultAgent._id,
+      });
       res.json({
         success: true,
         message: 'Live tenant already initialized',
@@ -58,7 +61,8 @@ router.post('/init', protect, async (req: Request, res: Response): Promise<void>
     // Create default SONATE agent for live tenant
     defaultAgent = await Agent.create({
       name: 'SONATE Assistant',
-      description: 'Your AI assistant with built-in ethical oversight and transparency. Uses Anthropic Claude for thoughtful, harmless responses.',
+      description:
+        'Your AI assistant with built-in ethical oversight and transparency. Uses Anthropic Claude for thoughtful, harmless responses.',
       user: userId,
       provider: 'anthropic',
       model: 'claude-sonnet-4-20250514',
@@ -98,8 +102,8 @@ You are part of the SONATE platform which provides AI trust and transparency inf
       },
     });
 
-    logger.info('Live tenant initialized with default agent', { 
-      userId, 
+    logger.info('Live tenant initialized with default agent', {
+      userId,
       agentId: defaultAgent._id,
       agentName: defaultAgent.name,
     });
@@ -136,9 +140,9 @@ You are part of the SONATE platform which provides AI trust and transparency inf
 router.get('/status', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
-    
+
     // Check for default agent
-    const defaultAgent = await Agent.findOne({ 
+    const defaultAgent = await Agent.findOne({
       user: userId,
       name: 'SONATE Assistant',
     });
@@ -151,13 +155,15 @@ router.get('/status', protect, async (req: Request, res: Response): Promise<void
       data: {
         tenantId: LIVE_TENANT_ID,
         initialized: !!defaultAgent,
-        agent: defaultAgent ? {
-          id: defaultAgent._id,
-          name: defaultAgent.name,
-          provider: defaultAgent.provider,
-          model: defaultAgent.model,
-          lastActive: defaultAgent.lastActive,
-        } : null,
+        agent: defaultAgent
+          ? {
+              id: defaultAgent._id,
+              name: defaultAgent.name,
+              provider: defaultAgent.provider,
+              model: defaultAgent.model,
+              lastActive: defaultAgent.lastActive,
+            }
+          : null,
         services: {
           anthropic: hasAnthropicKey,
         },
@@ -179,8 +185,8 @@ router.get('/status', protect, async (req: Request, res: Response): Promise<void
 router.get('/agent', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
-    
-    let agent = await Agent.findOne({ 
+
+    let agent = await Agent.findOne({
       user: userId,
       name: 'SONATE Assistant',
     });
@@ -193,7 +199,8 @@ router.get('/agent', protect, async (req: Request, res: Response): Promise<void>
         user: userId,
         provider: 'anthropic',
         model: 'claude-sonnet-4-20250514',
-        systemPrompt: 'You are SONATE Assistant, an AI with built-in ethical oversight. Be helpful, harmless, and honest.',
+        systemPrompt:
+          'You are SONATE Assistant, an AI with built-in ethical oversight. Be helpful, harmless, and honest.',
         temperature: 0.7,
         maxTokens: 4096,
         isPublic: false,
@@ -205,7 +212,7 @@ router.get('/agent', protect, async (req: Request, res: Response): Promise<void>
           isDefaultAgent: true,
         },
       });
-      
+
       logger.info('Auto-created default agent for user', { userId, agentId: agent._id });
     }
 

@@ -38,12 +38,7 @@ interface RiskEvent {
 router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.userId;
-    const {
-      resolved = 'false',
-      severity,
-      limit = 50,
-      offset = 0,
-    } = req.query;
+    const { resolved = 'false', severity, limit = 50, offset = 0 } = req.query;
 
     const limitNum = Math.min(Number(limit), 100); // Cap at 100
     const offsetNum = Number(offset);
@@ -91,7 +86,9 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
         id: conv._id.toString(),
         title: conv.title || 'Untitled Conversation',
         severity: eventSeverity,
-        description: `Trust score ${trustPercentage}% with ${violationCount} violation${violationCount !== 1 ? 's' : ''}`,
+        description: `Trust score ${trustPercentage}% with ${violationCount} violation${
+          violationCount !== 1 ? 's' : ''
+        }`,
         category: 'trust_violation',
         resolved: (conv as any).isResolved ?? false,
         created_at: conv.lastActivity.toISOString(),
@@ -113,21 +110,22 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
     }
 
     // Apply pagination after filtering by resolved status if requested
-    const filteredByResolved = resolved === 'true'
-      ? riskEvents.filter(e => e.resolved)
-      : resolved === 'false'
-        ? riskEvents.filter(e => !e.resolved)
+    const filteredByResolved =
+      resolved === 'true'
+        ? riskEvents.filter((e) => e.resolved)
+        : resolved === 'false'
+        ? riskEvents.filter((e) => !e.resolved)
         : riskEvents;
 
     const paginatedEvents = filteredByResolved.slice(offsetNum, offsetNum + limitNum);
 
     // Calculate summary statistics from real data
-    const resolvedCount = riskEvents.filter(e => e.resolved).length;
+    const resolvedCount = riskEvents.filter((e) => e.resolved).length;
     const summary = {
       total: riskEvents.length,
-      critical: riskEvents.filter(e => e.severity === 'critical').length,
-      error: riskEvents.filter(e => e.severity === 'error').length,
-      warning: riskEvents.filter(e => e.severity === 'warning').length,
+      critical: riskEvents.filter((e) => e.severity === 'critical').length,
+      error: riskEvents.filter((e) => e.severity === 'error').length,
+      warning: riskEvents.filter((e) => e.severity === 'warning').length,
       resolved: resolvedCount,
       active: riskEvents.length - resolvedCount,
     };
@@ -147,7 +145,7 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
         total: summary.total,
         limit: limitNum,
         offset: offsetNum,
-        hasMore: (offsetNum + limitNum) < riskEvents.length,
+        hasMore: offsetNum + limitNum < riskEvents.length,
         source: 'database',
       },
       summary,

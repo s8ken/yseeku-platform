@@ -233,10 +233,9 @@ export class ProbabilisticTrustProtocol {
     if (historicalData && historicalData.length >= this.MIN_SAMPLE_SIZE) {
       // Use empirical Bayes with historical data
       return this.empiricalBayesInference(scores, historicalData);
-    } 
-      // Use conjugate prior (Beta distribution for scores normalized to 0-1)
-      return this.conjugatePriorInference(scores);
-    
+    }
+    // Use conjugate prior (Beta distribution for scores normalized to 0-1)
+    return this.conjugatePriorInference(scores);
   }
 
   /**

@@ -429,32 +429,31 @@ export class EnhancedAuditLogger {
 
     if (format === 'json') {
       return JSON.stringify(events, null, 2);
-    } 
-      // CSV export
-      const headers = [
-        'timestamp',
-        'eventType',
-        'severity',
-        'userId',
-        'action',
-        'result',
-        'resource',
-        'ipAddress',
-      ];
+    }
+    // CSV export
+    const headers = [
+      'timestamp',
+      'eventType',
+      'severity',
+      'userId',
+      'action',
+      'result',
+      'resource',
+      'ipAddress',
+    ];
 
-      const rows = events.map((event) => [
-        event.timestamp.toISOString(),
-        event.eventType,
-        event.severity,
-        event.userId || '',
-        event.action,
-        event.result,
-        event.resource || '',
-        event.ipAddress || '',
-      ]);
+    const rows = events.map((event) => [
+      event.timestamp.toISOString(),
+      event.eventType,
+      event.severity,
+      event.userId || '',
+      event.action,
+      event.result,
+      event.resource || '',
+      event.ipAddress || '',
+    ]);
 
-      return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
-    
+    return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
   }
 }
 

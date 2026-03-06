@@ -22,10 +22,10 @@ router.get('/bedau-metrics', protect, async (req: Request, res: Response): Promi
   try {
     const userTenant = req.userTenant || 'default';
     const metrics = await bedauService.getMetrics(userTenant);
-    
+
     res.json({
       success: true,
-      data: metrics
+      data: metrics,
     });
   } catch (error: unknown) {
     logger.error('Get Bedau metrics error', {
@@ -62,17 +62,16 @@ router.get('/experiments', protect, async (req: Request, res: Response): Promise
 
     // Build filter
     const filter: any = { tenantId: userTenant };
-    if (status && ['draft', 'running', 'paused', 'completed', 'archived'].includes(status as string)) {
+    if (
+      status &&
+      ['draft', 'running', 'paused', 'completed', 'archived'].includes(status as string)
+    ) {
       filter.status = status;
     }
 
     // Execute queries
     const [experiments, total] = await Promise.all([
-      Experiment.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(offsetNum)
-        .limit(limitNum)
-        .lean(),
+      Experiment.find(filter).sort({ createdAt: -1 }).skip(offsetNum).limit(limitNum).lean(),
       Experiment.countDocuments(filter),
     ]);
 
@@ -97,7 +96,7 @@ router.get('/experiments', protect, async (req: Request, res: Response): Promise
     res.json({
       success: true,
       data: {
-        experiments: experiments.map(exp => ({
+        experiments: experiments.map((exp) => ({
           id: exp._id.toString(),
           name: exp.name,
           description: exp.description,
@@ -308,7 +307,13 @@ router.post('/experiments', protect, async (req: Request, res: Response): Promis
       stack: getErrorStack(error),
       userId: req.userId,
     });
-    await logFailure(req, 'experiment_create', 'experiment', 'unknown', error instanceof Error ? error : new Error(getErrorMessage(error)));
+    await logFailure(
+      req,
+      'experiment_create',
+      'experiment',
+      'unknown',
+      error instanceof Error ? error : new Error(getErrorMessage(error))
+    );
     res.status(500).json({
       success: false,
       message: 'Failed to create experiment',
@@ -476,182 +481,195 @@ router.patch('/experiments/:id', protect, async (req: Request, res: Response): P
  * - score: number
  * - success: boolean (optional)
  */
-router.post('/experiments/:id/record', protect, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const { variantIndex, score, success } = req.body;
-    const userTenant = req.userTenant || 'default';
+router.post(
+  '/experiments/:id/record',
+  protect,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const { variantIndex, score, success } = req.body;
+      const userTenant = req.userTenant || 'default';
 
-    if (variantIndex === undefined || score === undefined) {
-      res.status(400).json({
-        success: false,
-        message: 'variantIndex and score are required',
-      });
-      return;
-    }
-
-    const experiment = await Experiment.findOne({
-      _id: id,
-      tenantId: userTenant,
-    });
-
-    if (!experiment) {
-      res.status(404).json({
-        success: false,
-        message: 'Experiment not found',
-      });
-      return;
-    }
-
-    if (experiment.status !== 'running') {
-      res.status(400).json({
-        success: false,
-        message: 'Can only record data for running experiments',
-      });
-      return;
-    }
-
-    if (variantIndex < 0 || variantIndex >= experiment.variants.length) {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid variant index',
-      });
-      return;
-    }
-
-    // Update variant statistics
-    const variant = experiment.variants[variantIndex];
-    variant.sampleSize += 1;
-    variant.sumScores += score;
-    variant.sumSquaredScores += score * score;
-    variant.avgScore = variant.sumScores / variant.sampleSize;
-
-    if (success !== undefined) {
-      if (success) {
-        variant.successCount += 1;
-      } else {
-        variant.failureCount += 1;
+      if (variantIndex === undefined || score === undefined) {
+        res.status(400).json({
+          success: false,
+          message: 'variantIndex and score are required',
+        });
+        return;
       }
+
+      const experiment = await Experiment.findOne({
+        _id: id,
+        tenantId: userTenant,
+      });
+
+      if (!experiment) {
+        res.status(404).json({
+          success: false,
+          message: 'Experiment not found',
+        });
+        return;
+      }
+
+      if (experiment.status !== 'running') {
+        res.status(400).json({
+          success: false,
+          message: 'Can only record data for running experiments',
+        });
+        return;
+      }
+
+      if (variantIndex < 0 || variantIndex >= experiment.variants.length) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid variant index',
+        });
+        return;
+      }
+
+      // Update variant statistics
+      const variant = experiment.variants[variantIndex];
+      variant.sampleSize += 1;
+      variant.sumScores += score;
+      variant.sumSquaredScores += score * score;
+      variant.avgScore = variant.sumScores / variant.sampleSize;
+
+      if (success !== undefined) {
+        if (success) {
+          variant.successCount += 1;
+        } else {
+          variant.failureCount += 1;
+        }
+      }
+
+      // Update experiment totals
+      experiment.currentSampleSize += 1;
+
+      // Recalculate statistics if we have at least 2 variants with data
+      if (experiment.variants.every((v) => v.sampleSize >= 30)) {
+        const control = experiment.variants[0];
+        const treatment = experiment.variants[1];
+
+        // Calculate standard deviations
+        const std1 = Math.sqrt(
+          (control.sumSquaredScores -
+            (control.sumScores * control.sumScores) / control.sampleSize) /
+            (control.sampleSize - 1)
+        );
+        const std2 = Math.sqrt(
+          (treatment.sumSquaredScores -
+            (treatment.sumScores * treatment.sumScores) / treatment.sampleSize) /
+            (treatment.sampleSize - 1)
+        );
+
+        // Perform t-test
+        const testResult = twoSampleTTest(
+          { mean: treatment.avgScore, std: std2, n: treatment.sampleSize },
+          { mean: control.avgScore, std: std1, n: control.sampleSize }
+        );
+
+        experiment.metrics.pValue = testResult.pValue;
+        experiment.metrics.effectSize = testResult.effectSize;
+        experiment.metrics.confidenceInterval = testResult.confidenceInterval;
+        experiment.metrics.significant = testResult.significant;
+      }
+
+      await experiment.save();
+
+      res.json({
+        success: true,
+        message: 'Data point recorded',
+        data: {
+          currentSampleSize: experiment.currentSampleSize,
+          progress: experiment.progress,
+          metrics: experiment.metrics,
+        },
+      });
+    } catch (error: unknown) {
+      logger.error('Record experiment data error', {
+        error: getErrorMessage(error),
+        stack: getErrorStack(error),
+        experimentId: req.params.id,
+        userId: req.userId,
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to record data point',
+        error: getErrorMessage(error),
+      });
     }
-
-    // Update experiment totals
-    experiment.currentSampleSize += 1;
-
-    // Recalculate statistics if we have at least 2 variants with data
-    if (experiment.variants.every(v => v.sampleSize >= 30)) {
-      const control = experiment.variants[0];
-      const treatment = experiment.variants[1];
-
-      // Calculate standard deviations
-      const std1 = Math.sqrt(
-        (control.sumSquaredScores - (control.sumScores * control.sumScores) / control.sampleSize) /
-          (control.sampleSize - 1)
-      );
-      const std2 = Math.sqrt(
-        (treatment.sumSquaredScores - (treatment.sumScores * treatment.sumScores) / treatment.sampleSize) /
-          (treatment.sampleSize - 1)
-      );
-
-      // Perform t-test
-      const testResult = twoSampleTTest(
-        { mean: treatment.avgScore, std: std2, n: treatment.sampleSize },
-        { mean: control.avgScore, std: std1, n: control.sampleSize }
-      );
-
-      experiment.metrics.pValue = testResult.pValue;
-      experiment.metrics.effectSize = testResult.effectSize;
-      experiment.metrics.confidenceInterval = testResult.confidenceInterval;
-      experiment.metrics.significant = testResult.significant;
-    }
-
-    await experiment.save();
-
-    res.json({
-      success: true,
-      message: 'Data point recorded',
-      data: {
-        currentSampleSize: experiment.currentSampleSize,
-        progress: experiment.progress,
-        metrics: experiment.metrics,
-      },
-    });
-  } catch (error: unknown) {
-    logger.error('Record experiment data error', {
-      error: getErrorMessage(error),
-      stack: getErrorStack(error),
-      experimentId: req.params.id,
-      userId: req.userId,
-    });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to record data point',
-      error: getErrorMessage(error),
-    });
   }
-});
+);
 
 /**
  * GET /api/lab/experiments/:id/results
  * Get detailed statistical results for an experiment
  */
-router.get('/experiments/:id/results', protect, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const userTenant = req.userTenant || 'default';
+router.get(
+  '/experiments/:id/results',
+  protect,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const userTenant = req.userTenant || 'default';
 
-    const experiment = await Experiment.findOne({
-      _id: id,
-      tenantId: userTenant,
-    }).lean();
+      const experiment = await Experiment.findOne({
+        _id: id,
+        tenantId: userTenant,
+      }).lean();
 
-    if (!experiment) {
-      res.status(404).json({
-        success: false,
-        message: 'Experiment not found',
+      if (!experiment) {
+        res.status(404).json({
+          success: false,
+          message: 'Experiment not found',
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: {
+          experimentId: experiment._id.toString(),
+          name: experiment.name,
+          hypothesis: experiment.hypothesis,
+          status: experiment.status,
+          currentSampleSize: experiment.currentSampleSize,
+          targetSampleSize: experiment.targetSampleSize,
+          progress: experiment.progress,
+          variants: experiment.variants.map((v) => ({
+            name: v.name,
+            sampleSize: v.sampleSize,
+            avgScore: v.avgScore,
+            successCount: v.successCount,
+            failureCount: v.failureCount,
+            successRate: v.sampleSize > 0 ? v.successCount / v.sampleSize : 0,
+          })),
+          metrics: experiment.metrics,
+          startedAt: experiment.startedAt,
+          completedAt: experiment.completedAt,
+          duration:
+            experiment.startedAt && experiment.completedAt
+              ? (new Date(experiment.completedAt).getTime() -
+                  new Date(experiment.startedAt).getTime()) /
+                1000
+              : null,
+        },
       });
-      return;
+    } catch (error: unknown) {
+      logger.error('Get experiment results error', {
+        error: getErrorMessage(error),
+        stack: getErrorStack(error),
+        experimentId: req.params.id,
+        userId: req.userId,
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch experiment results',
+        error: getErrorMessage(error),
+      });
     }
-
-    res.json({
-      success: true,
-      data: {
-        experimentId: experiment._id.toString(),
-        name: experiment.name,
-        hypothesis: experiment.hypothesis,
-        status: experiment.status,
-        currentSampleSize: experiment.currentSampleSize,
-        targetSampleSize: experiment.targetSampleSize,
-        progress: experiment.progress,
-        variants: experiment.variants.map(v => ({
-          name: v.name,
-          sampleSize: v.sampleSize,
-          avgScore: v.avgScore,
-          successCount: v.successCount,
-          failureCount: v.failureCount,
-          successRate: v.sampleSize > 0 ? v.successCount / v.sampleSize : 0,
-        })),
-        metrics: experiment.metrics,
-        startedAt: experiment.startedAt,
-        completedAt: experiment.completedAt,
-        duration: experiment.startedAt && experiment.completedAt
-          ? (new Date(experiment.completedAt).getTime() - new Date(experiment.startedAt).getTime()) / 1000
-          : null,
-      },
-    });
-  } catch (error: unknown) {
-    logger.error('Get experiment results error', {
-      error: getErrorMessage(error),
-      stack: getErrorStack(error),
-      experimentId: req.params.id,
-      userId: req.userId,
-    });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch experiment results',
-      error: getErrorMessage(error),
-    });
   }
-});
+);
 
 /**
  * DELETE /api/lab/experiments/:id

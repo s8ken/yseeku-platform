@@ -51,10 +51,7 @@ export async function remember(
 /**
  * Recall the latest memory of a specific kind
  */
-export async function recall(
-  tenantId: string,
-  kind: string
-): Promise<LeanBrainMemory | null> {
+export async function recall(tenantId: string, kind: string): Promise<LeanBrainMemory | null> {
   return BrainMemory.findOne({ tenantId, kind })
     .sort({ createdAt: -1 })
     .lean() as Promise<LeanBrainMemory | null>;
@@ -84,8 +81,8 @@ export async function recallByTags(
   options?: RecallByTagsOptions
 ): Promise<LeanBrainMemory[]> {
   const query = options?.matchAll
-    ? { tenantId, tags: { $all: tags } }  // Match ALL tags
-    : { tenantId, tags: { $in: tags } };  // Match ANY tag
+    ? { tenantId, tags: { $all: tags } } // Match ALL tags
+    : { tenantId, tags: { $in: tags } }; // Match ANY tag
 
   return BrainMemory.find(query)
     .sort({ createdAt: -1 })
@@ -101,9 +98,7 @@ export async function recallByKindPattern(
   kindPattern: string | RegExp,
   limit: number = 50
 ): Promise<LeanBrainMemory[]> {
-  const pattern = typeof kindPattern === 'string'
-    ? new RegExp(kindPattern)
-    : kindPattern;
+  const pattern = typeof kindPattern === 'string' ? new RegExp(kindPattern) : kindPattern;
 
   return BrainMemory.find({ tenantId, kind: pattern })
     .sort({ createdAt: -1 })
@@ -181,10 +176,7 @@ export async function updateMemory(
 /**
  * Check if a memory of a specific kind exists
  */
-export async function hasMemory(
-  tenantId: string,
-  kind: string
-): Promise<boolean> {
+export async function hasMemory(tenantId: string, kind: string): Promise<boolean> {
   const count = await BrainMemory.countDocuments({ tenantId, kind });
   return count > 0;
 }
@@ -192,10 +184,7 @@ export async function hasMemory(
 /**
  * Get count of memories by kind
  */
-export async function countMemories(
-  tenantId: string,
-  kind?: string
-): Promise<number> {
+export async function countMemories(tenantId: string, kind?: string): Promise<number> {
   const query: Record<string, any> = { tenantId };
   if (kind) {
     query.kind = kind;

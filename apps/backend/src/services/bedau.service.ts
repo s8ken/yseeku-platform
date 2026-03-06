@@ -26,7 +26,7 @@ export interface BedauMetrics {
   bedau_index: number;
   emergence_type: 'LINEAR' | 'WEAK_EMERGENCE' | 'HIGH_WEAK_EMERGENCE';
   kolmogorov_complexity: number; // v2: repurposed as Φ (fleet divergence)
-  semantic_entropy: number;      // v2: repurposed as Ω (cross-agent novelty)
+  semantic_entropy: number; // v2: repurposed as Ω (cross-agent novelty)
   confidence_interval: [number, number];
   effect_size: number;
   // v2 additions (optional, won't break existing consumers)
@@ -56,7 +56,7 @@ interface AgentCIQSeries {
   clarity: number[];
   integrity: number[];
   quality: number[];
-  combined: number[];   // (c+i+q)/3 per receipt, normalized 0-1
+  combined: number[]; // (c+i+q)/3 per receipt, normalized 0-1
   timestamps: number[];
 }
 
@@ -64,20 +64,20 @@ interface AgentCIQSeries {
 
 const THRESHOLDS = {
   LINEAR: 0.15,
-  WEAK_EMERGENCE: 0.65,      // <= 0.65 is WEAK_EMERGENCE (0.15-0.65 range)
+  WEAK_EMERGENCE: 0.65, // <= 0.65 is WEAK_EMERGENCE (0.15-0.65 range)
   HIGH_WEAK_EMERGENCE: 0.65, // > 0.65 is HIGH_WEAK_EMERGENCE
 } as const;
 
 const WEIGHTS = {
-  PHI: 0.35,   // Fleet Divergence
-  PSI: 0.25,   // Temporal Irreducibility
+  PHI: 0.35, // Fleet Divergence
+  PSI: 0.25, // Temporal Irreducibility
   OMEGA: 0.25, // Cross-Agent Novelty
   SIGMA: 0.15, // Drift Coherence
 } as const;
 
-const MIN_AGENTS = 2;       // Need ≥2 agents for emergence
-const MIN_RECEIPTS = 10;    // Need some data per agent
-const HISTOGRAM_BINS = 10;  // For distribution comparisons
+const MIN_AGENTS = 2; // Need ≥2 agents for emergence
+const MIN_RECEIPTS = 10; // Need some data per agent
+const HISTOGRAM_BINS = 10; // For distribution comparisons
 const PREDICTION_WINDOW = 5; // Sliding window for linear predictor
 
 // ─── Utility Functions ───────────────────────────────────────────────────────
@@ -101,7 +101,7 @@ function buildHistogram(values: number[], bins: number = HISTOGRAM_BINS): number
     hist[bin] += 1;
   }
   const total = values.length + pseudoCount * bins;
-  return hist.map(c => (c + pseudoCount) / total);
+  return hist.map((c) => (c + pseudoCount) / total);
 }
 
 /** KL divergence: D_KL(P || Q) — measures how P diverges from Q */
@@ -140,7 +140,9 @@ function pearsonCorrelation(a: number[], b: number[]): number {
   if (n < 3) return 0;
   const ma = mean(a.slice(0, n));
   const mb = mean(b.slice(0, n));
-  let num = 0, denA = 0, denB = 0;
+  let num = 0,
+    denA = 0,
+    denB = 0;
   for (let i = 0; i < n; i++) {
     const da = a[i] - ma;
     const db = b[i] - mb;
@@ -167,11 +169,11 @@ function computeFleetDivergence(agentSeries: AgentCIQSeries[]): number {
   if (agentSeries.length < MIN_AGENTS) return 0;
 
   // Build joint distribution: histogram of all combined CIQ values across all agents
-  const allValues = agentSeries.flatMap(a => a.combined);
+  const allValues = agentSeries.flatMap((a) => a.combined);
   const jointDist = buildHistogram(allValues);
 
   // Build product of marginals: multiply per-agent histograms, then normalize
-  const agentDists = agentSeries.map(a => buildHistogram(a.combined));
+  const agentDists = agentSeries.map((a) => buildHistogram(a.combined));
   const productDist = new Array(HISTOGRAM_BINS).fill(1);
   for (const dist of agentDists) {
     for (let i = 0; i < HISTOGRAM_BINS; i++) {
@@ -179,7 +181,7 @@ function computeFleetDivergence(agentSeries: AgentCIQSeries[]): number {
     }
   }
   const productTotal = productDist.reduce((s, v) => s + v, 0);
-  const normalizedProduct = productDist.map(v => v / (productTotal + 1e-12));
+  const normalizedProduct = productDist.map((v) => v / (productTotal + 1e-12));
 
   // KL divergence, normalized to [0, 1]
   const kl = klDivergence(jointDist, normalizedProduct);
@@ -194,12 +196,14 @@ function computeFleetDivergence(agentSeries: AgentCIQSeries[]): number {
  * Trains a simple linear predictor on sliding windows; the residual error is
  * the irreducibility signal. High error = behavior can't be analytically shortcut.
  */
-function computeTemporalIrreducibility(allReceipts: Array<{ combined: number; timestamp: number }>): number {
+function computeTemporalIrreducibility(
+  allReceipts: Array<{ combined: number; timestamp: number }>
+): number {
   if (allReceipts.length < PREDICTION_WINDOW + 2) return 0;
 
   // Sort by time (oldest first)
   const sorted = [...allReceipts].sort((a, b) => a.timestamp - b.timestamp);
-  const values = sorted.map(r => r.combined);
+  const values = sorted.map((r) => r.combined);
 
   // Linear predictor: for each window, predict next value as linear extrapolation
   let totalError = 0;
@@ -211,7 +215,8 @@ function computeTemporalIrreducibility(allReceipts: Array<{ combined: number; ti
     const n = window.length;
     const xMean = (n - 1) / 2;
     const yMean = mean(window);
-    let num = 0, den = 0;
+    let num = 0,
+      den = 0;
     for (let j = 0; j < n; j++) {
       num += (j - xMean) * (window[j] - yMean);
       den += (j - xMean) ** 2;
@@ -353,7 +358,11 @@ export const bedauService = {
         if (!agentMap.has(agentId)) {
           agentMap.set(agentId, {
             agentId,
-            clarity: [], integrity: [], quality: [], combined: [], timestamps: [],
+            clarity: [],
+            integrity: [],
+            quality: [],
+            combined: [],
+            timestamps: [],
           });
         }
         const series = agentMap.get(agentId)!;
@@ -388,10 +397,7 @@ export const bedauService = {
 
       // 4. Composite index
       const bedau_index = clamp01(
-        WEIGHTS.PHI * phi +
-        WEIGHTS.PSI * psi +
-        WEIGHTS.OMEGA * omega +
-        WEIGHTS.SIGMA * sigma
+        WEIGHTS.PHI * phi + WEIGHTS.PSI * psi + WEIGHTS.OMEGA * omega + WEIGHTS.SIGMA * sigma
       );
 
       const emergence_type = classify(bedau_index);
@@ -405,10 +411,14 @@ export const bedauService = {
       const windowSize = Math.max(10, Math.floor(sorted.length / 10));
       const critical_transitions: number[] = [];
 
-      for (let idx = 0; idx <= sorted.length - windowSize; idx += Math.max(1, Math.floor(windowSize / 2))) {
+      for (
+        let idx = 0;
+        idx <= sorted.length - windowSize;
+        idx += Math.max(1, Math.floor(windowSize / 2))
+      ) {
         const window = sorted.slice(idx, idx + windowSize);
         // Build mini fleet divergence for this window
-        const windowValues = window.map(w => w.combined);
+        const windowValues = window.map((w) => w.combined);
         const windowVar = variance(windowValues);
         // Approximate emergence in window via normalized variance + prediction residual
         const windowPredErr = computeTemporalIrreducibility(window);
@@ -417,7 +427,9 @@ export const bedauService = {
 
         // Detect critical transitions (jumps > 0.15)
         if (trajectoryData.length > 1) {
-          const jump = Math.abs(trajectoryData[trajectoryData.length - 1] - trajectoryData[trajectoryData.length - 2]);
+          const jump = Math.abs(
+            trajectoryData[trajectoryData.length - 1] - trajectoryData[trajectoryData.length - 2]
+          );
           if (jump > 0.15) {
             critical_transitions.push(trajectoryData.length - 1);
           }
@@ -437,7 +449,10 @@ export const bedauService = {
         tenantId,
         agentCount,
         receipts: receipts.length,
-        phi, psi, omega, sigma,
+        phi,
+        psi,
+        omega,
+        sigma,
         bedau_index,
         emergence_type,
       });
@@ -445,8 +460,8 @@ export const bedauService = {
       return {
         bedau_index,
         emergence_type,
-        kolmogorov_complexity: phi,   // Map to legacy field name
-        semantic_entropy: omega,       // Map to legacy field name
+        kolmogorov_complexity: phi, // Map to legacy field name
+        semantic_entropy: omega, // Map to legacy field name
         confidence_interval,
         effect_size,
         v2_components: {
@@ -459,12 +474,11 @@ export const bedauService = {
         },
         trajectory,
       };
-
     } catch (error: unknown) {
       logger.error('Error calculating Bedau v2 metrics', { error: getErrorMessage(error) });
       throw error;
     }
-  }
+  },
 };
 
 function baselineResult(): BedauMetrics & { trajectory: EmergenceTrajectory } {

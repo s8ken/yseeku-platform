@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Receipt hash/signature verification hardening** (`packages/core`, `packages/trust-receipts`): `verify()` now recomputes the payload hash and compares it to `self_hash`/`receiptHash` before checking the Ed25519 signature, preventing a tampered-hash bypass. `sign()` guards against payload drift after construction. `fromJSON()` rejects any serialized receipt whose supplied hash does not match the recomputed value. Nested payload objects (`ciq_metrics`, `scores`, `metadata`) are deep-frozen at construction time to prevent in-process mutation.
+- **Tenant routes admin-only enforcement** (`apps/backend`): All tenant management endpoints (`GET /`, `GET /:id`, `POST /`, `PUT /:id`) now require the `requireAdmin` middleware. Previously only `DELETE /:id` was protected.
+- **Auth error sanitization** (`apps/backend`): Token verification failure, shadow-user provisioning failure, and top-level auth middleware errors now return generic messages, preventing JWT library error details from leaking to clients.
+- **Production login rate-limit default** (`apps/backend`): Login rate limit defaults to 20 attempts in production (was effectively unlimited). Configurable via `AUTH_LOGIN_RATE_LIMIT_MAX` env var with a safety guard against invalid values.
+- **Principle weight validation constraints** (`packages/core`): `PRINCIPLE_WEIGHTS` loaded from `SONATE_PRINCIPLE_WEIGHTS` env are now validated: all six keys must be present, each must be a finite number in [0, 1], and their sum must equal 1.0 (±0.0001). Invalid config falls back to defaults with a warning.
+
 ### Added - Phase 3: Performance Optimization & Empty States
 - Empty state component library with 8 pre-configured states
 - Loading skeleton component library with 7 skeleton components

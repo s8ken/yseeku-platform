@@ -97,8 +97,7 @@ export class TrustProtocol {
       return 'PASS';
     } else if (score.overall >= 5.0) {
       return 'PARTIAL';
-    } 
-      return 'FAIL';
-    
+    }
+    return 'FAIL';
   }
 }

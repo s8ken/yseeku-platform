@@ -12,7 +12,12 @@ import { logger } from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
 
 // Report types
-export type ReportType = 'trust_summary' | 'sonate_compliance' | 'incident_report' | 'agent_audit' | 'full_audit';
+export type ReportType =
+  | 'trust_summary'
+  | 'sonate_compliance'
+  | 'incident_report'
+  | 'agent_audit'
+  | 'full_audit';
 export type ReportFormat = 'json' | 'html' | 'csv';
 
 export interface ReportConfig {
@@ -143,10 +148,10 @@ class ComplianceReportService {
    */
   async generateReport(config: ReportConfig): Promise<any> {
     const startTime = Date.now();
-    
+
     try {
       let report: any;
-      
+
       switch (config.type) {
         case 'trust_summary':
           report = await this.generateTrustSummary(config);
@@ -166,13 +171,13 @@ class ComplianceReportService {
         default:
           throw new Error(`Unknown report type: ${config.type}`);
       }
-      
+
       logger.info('Report generated', {
         type: config.type,
         tenantId: config.tenantId,
         duration: Date.now() - startTime,
       });
-      
+
       // Format output
       switch (config.format) {
         case 'html':
@@ -194,31 +199,33 @@ class ComplianceReportService {
    */
   private async generateTrustSummary(config: ReportConfig): Promise<TrustSummaryReport> {
     const { tenantId, startDate, endDate } = config;
-    
+
     // Fetch conversations
     const conversations = await Conversation.find({
       tenantId,
       lastActivity: { $gte: startDate, $lte: endDate },
-    }).populate('agents', 'name model').lean();
-    
+    })
+      .populate('agents', 'name model')
+      .lean();
+
     // Fetch agents
-    const agents = await Agent.find({ 
+    const agents = await Agent.find({
       tenantId,
       createdAt: { $lte: endDate },
     }).lean();
-    
+
     // Fetch alerts
     const { alerts } = await AlertsService.getAlerts(tenantId, { limit: 1000 }); // Fetch a reasonable number of alerts
-    const alertsInDateRange = alerts.filter(a => 
-      new Date(a.created_at) >= startDate && new Date(a.created_at) <= endDate
+    const alertsInDateRange = alerts.filter(
+      (a) => new Date(a.created_at) >= startDate && new Date(a.created_at) <= endDate
     );
     const alertStats = await AlertsService.getAlertStats(tenantId);
-    
+
     // Calculate metrics
     let totalMessages = 0;
     let totalTrust = 0;
     const trustBuckets = [0, 0, 0, 0, 0]; // 0-2, 2-4, 4-6, 6-8, 8-10
-    
+
     for (const conv of conversations) {
       for (const msg of conv.messages) {
         totalMessages++;
@@ -228,23 +235,25 @@ class ComplianceReportService {
         trustBuckets[bucket]++;
       }
     }
-    
+
     const avgTrustScore = totalMessages > 0 ? totalTrust / totalMessages : 0;
-    const complianceRate = totalMessages > 0 
-      ? (trustBuckets[3] + trustBuckets[4]) / totalMessages * 100 
-      : 0;
-    
+    const complianceRate =
+      totalMessages > 0 ? ((trustBuckets[3] + trustBuckets[4]) / totalMessages) * 100 : 0;
+
     // Agent summaries
-    const agentSummaries: AgentSummary[] = agents.map(agent => {
-      const agentConvs = conversations.filter(c => 
+    const agentSummaries: AgentSummary[] = agents.map((agent) => {
+      const agentConvs = conversations.filter((c) =>
         c.agents.some((a: any) => a._id?.toString() === agent._id?.toString())
       );
-      const agentMsgs = agentConvs.flatMap(c => c.messages);
-      const agentAlerts = alertsInDateRange.filter(a => a.metadata?.agent_id === agent._id?.toString()); // Use metadata?.agent_id
-      const agentAvgTrust = agentMsgs.length > 0
-        ? agentMsgs.reduce((sum, m) => sum + (m.trustScore || 5) * 2, 0) / agentMsgs.length
-        : 0;
-      
+      const agentMsgs = agentConvs.flatMap((c) => c.messages);
+      const agentAlerts = alertsInDateRange.filter(
+        (a) => a.metadata?.agent_id === agent._id?.toString()
+      ); // Use metadata?.agent_id
+      const agentAvgTrust =
+        agentMsgs.length > 0
+          ? agentMsgs.reduce((sum, m) => sum + (m.trustScore || 5) * 2, 0) / agentMsgs.length
+          : 0;
+
       return {
         id: agent._id!.toString(),
         name: agent.name,
@@ -256,7 +265,7 @@ class ComplianceReportService {
         status: agentAvgTrust >= 7 ? 'healthy' : agentAvgTrust >= 5 ? 'warning' : 'critical',
       };
     });
-    
+
     return {
       meta: this.createMeta('trust_summary', tenantId, startDate, endDate),
       summary: {
@@ -264,14 +273,35 @@ class ComplianceReportService {
         totalMessages,
         avgTrustScore: Math.round(avgTrustScore * 10) / 10,
         trustDistribution: [
-          { range: '0-2', count: trustBuckets[0], percentage: totalMessages > 0 ? trustBuckets[0] / totalMessages * 100 : 0 },
-          { range: '2-4', count: trustBuckets[1], percentage: totalMessages > 0 ? trustBuckets[1] / totalMessages * 100 : 0 },
-          { range: '4-6', count: trustBuckets[2], percentage: totalMessages > 0 ? trustBuckets[2] / totalMessages * 100 : 0 },
-          { range: '6-8', count: trustBuckets[3], percentage: totalMessages > 0 ? trustBuckets[3] / totalMessages * 100 : 0 },
-          { range: '8-10', count: trustBuckets[4], percentage: totalMessages > 0 ? trustBuckets[4] / totalMessages * 100 : 0 },
+          {
+            range: '0-2',
+            count: trustBuckets[0],
+            percentage: totalMessages > 0 ? (trustBuckets[0] / totalMessages) * 100 : 0,
+          },
+          {
+            range: '2-4',
+            count: trustBuckets[1],
+            percentage: totalMessages > 0 ? (trustBuckets[1] / totalMessages) * 100 : 0,
+          },
+          {
+            range: '4-6',
+            count: trustBuckets[2],
+            percentage: totalMessages > 0 ? (trustBuckets[2] / totalMessages) * 100 : 0,
+          },
+          {
+            range: '6-8',
+            count: trustBuckets[3],
+            percentage: totalMessages > 0 ? (trustBuckets[3] / totalMessages) * 100 : 0,
+          },
+          {
+            range: '8-10',
+            count: trustBuckets[4],
+            percentage: totalMessages > 0 ? (trustBuckets[4] / totalMessages) * 100 : 0,
+          },
         ],
         complianceRate: Math.round(complianceRate * 10) / 10,
-        trendDirection: avgTrustScore >= 7.5 ? 'improving' : avgTrustScore >= 5 ? 'stable' : 'declining',
+        trendDirection:
+          avgTrustScore >= 7.5 ? 'improving' : avgTrustScore >= 5 ? 'stable' : 'declining',
       },
       agents: agentSummaries,
       principles: {
@@ -286,10 +316,14 @@ class ComplianceReportService {
         total: alertsInDateRange.length,
         critical: alertStats.critical,
         active: alertStats.active, // Added active property
-        resolved: alertsInDateRange.filter(a => a.status === 'resolved').length,
+        resolved: alertsInDateRange.filter((a) => a.status === 'resolved').length,
         avgResponseTime: 0, // Would calculate from resolved_at - created_at
       },
-      recommendations: this.generateRecommendations(avgTrustScore, complianceRate, alertsInDateRange.length),
+      recommendations: this.generateRecommendations(
+        avgTrustScore,
+        complianceRate,
+        alertsInDateRange.length
+      ),
     };
   }
 
@@ -298,7 +332,7 @@ class ComplianceReportService {
    */
   private async generateSonateCompliance(config: ReportConfig): Promise<SonateComplianceReport> {
     const { tenantId, startDate, endDate } = config;
-    
+
     // In production, this would calculate actual principle scores from data
     const principles = {
       consent: this.generatePrincipleDetail(8.5, 'consent'),
@@ -308,9 +342,9 @@ class ComplianceReportService {
       disconnect: this.generatePrincipleDetail(8.8, 'disconnect'),
       moral: this.generatePrincipleDetail(8.6, 'moral'),
     };
-    
+
     const overallScore = Object.values(principles).reduce((sum, p) => sum + p.score, 0) / 6;
-    
+
     // Generate gaps
     const gaps: ComplianceGap[] = [];
     if (principles.consent.score < 8) {
@@ -329,7 +363,7 @@ class ComplianceReportService {
         recommendation: 'Increase validation checkpoints in conversation flow',
       });
     }
-    
+
     // Generate timeline (last 30 days)
     const timeline: { date: string; score: number }[] = [];
     for (let i = 29; i >= 0; i--) {
@@ -340,7 +374,7 @@ class ComplianceReportService {
         score: overallScore + (Math.random() - 0.5) * 0.5,
       });
     }
-    
+
     return {
       meta: this.createMeta('sonate_compliance', tenantId, startDate, endDate),
       overallScore: Math.round(overallScore * 10) / 10,
@@ -348,7 +382,8 @@ class ComplianceReportService {
       principles,
       gaps,
       timeline,
-      certificationReady: overallScore >= 8 && gaps.filter(g => g.severity === 'critical').length === 0,
+      certificationReady:
+        overallScore >= 8 && gaps.filter((g) => g.severity === 'critical').length === 0,
     };
   }
 
@@ -357,15 +392,16 @@ class ComplianceReportService {
    */
   private async generateIncidentReport(config: ReportConfig): Promise<IncidentReport> {
     const { tenantId, startDate, endDate } = config;
-    
+
     const { alerts } = await AlertsService.getAlerts(tenantId, { limit: 1000 }); // Fetch all alerts, then filter
-    const alertsInDateRange = alerts.filter(a => 
-      new Date(a.created_at) >= startDate && 
-      new Date(a.created_at) <= endDate &&
-      ['critical', 'high', 'medium', 'low'].includes(a.severity) // Filter by severity matching IAlert definition
+    const alertsInDateRange = alerts.filter(
+      (a) =>
+        new Date(a.created_at) >= startDate &&
+        new Date(a.created_at) <= endDate &&
+        ['critical', 'high', 'medium', 'low'].includes(a.severity) // Filter by severity matching IAlert definition
     );
 
-    const incidents: Incident[] = alertsInDateRange.map(a => ({
+    const incidents: Incident[] = alertsInDateRange.map((a) => ({
       id: a._id!.toString(),
       timestamp: a.created_at.toISOString(),
       type: a.type,
@@ -376,23 +412,31 @@ class ComplianceReportService {
       resolution: a.status === 'resolved' ? 'Resolved by system' : undefined,
       resolved_at: a.resolved_at?.toISOString(),
     }));
-    
+
     // Group by severity
-    const bySeverity = ['critical', 'high', 'medium', 'low'].map(severity => ({ // Changed severities
+    const bySeverity = ['critical', 'high', 'medium', 'low'].map((severity) => ({
+      // Changed severities
       severity,
-      count: incidents.filter(i => i.severity === severity).length,
+      count: incidents.filter((i) => i.severity === severity).length,
     }));
-    
+
     // Group by type
     const typeGroups = new Map<string, number>();
-    incidents.forEach(i => {
+    incidents.forEach((i) => {
       typeGroups.set(i.type, (typeGroups.get(i.type) || 0) + 1);
     });
-    const byCategory = Array.from(typeGroups.entries()).map(([category, count]) => ({ category, count }));
-    
+    const byCategory = Array.from(typeGroups.entries()).map(([category, count]) => ({
+      category,
+      count,
+    }));
+
     // Timeline
-    const timeline = this.generateDailyTimeline(incidents.map(i => new Date(i.timestamp)), startDate, endDate);
-    
+    const timeline = this.generateDailyTimeline(
+      incidents.map((i) => new Date(i.timestamp)),
+      startDate,
+      endDate
+    );
+
     return {
       meta: this.createMeta('incident_report', tenantId, startDate, endDate),
       incidents: config.includeDetails ? incidents : incidents.slice(0, 10),
@@ -400,8 +444,8 @@ class ComplianceReportService {
         total: incidents.length,
         bySeverity,
         byCategory,
-        resolved: incidents.filter(i => i.resolved_at).length, // Changed resolvedAt to resolved_at
-        pending: incidents.filter(i => !i.resolved_at).length, // Changed resolvedAt to resolved_at
+        resolved: incidents.filter((i) => i.resolved_at).length, // Changed resolvedAt to resolved_at
+        pending: incidents.filter((i) => !i.resolved_at).length, // Changed resolvedAt to resolved_at
         avgResolutionTime: 0, // Would calculate from data
       },
       timeline,
@@ -413,15 +457,15 @@ class ComplianceReportService {
    */
   private async generateAgentAudit(config: ReportConfig): Promise<any> {
     const trustReport = await this.generateTrustSummary(config);
-    
+
     return {
       meta: this.createMeta('agent_audit', config.tenantId, config.startDate, config.endDate),
       agents: trustReport.agents,
       summary: {
         totalAgents: trustReport.agents.length,
-        healthyAgents: trustReport.agents.filter(a => a.status === 'healthy').length,
-        warningAgents: trustReport.agents.filter(a => a.status === 'warning').length,
-        criticalAgents: trustReport.agents.filter(a => a.status === 'critical').length,
+        healthyAgents: trustReport.agents.filter((a) => a.status === 'healthy').length,
+        warningAgents: trustReport.agents.filter((a) => a.status === 'warning').length,
+        criticalAgents: trustReport.agents.filter((a) => a.status === 'critical').length,
       },
     };
   }
@@ -435,7 +479,7 @@ class ComplianceReportService {
       this.generateSonateCompliance(config),
       this.generateIncidentReport(config),
     ]);
-    
+
     return {
       meta: this.createMeta('full_audit', config.tenantId, config.startDate, config.endDate),
       trust: trustSummary,
@@ -445,7 +489,8 @@ class ComplianceReportService {
         overallHealth: sonateCompliance.status,
         trustScore: trustSummary.summary.avgTrustScore,
         complianceScore: sonateCompliance.overallScore,
-        criticalIncidents: incidentReport.summary.bySeverity.find(s => s.severity === 'critical')?.count || 0,
+        criticalIncidents:
+          incidentReport.summary.bySeverity.find((s) => s.severity === 'critical')?.count || 0,
         certificationReady: sonateCompliance.certificationReady,
         recommendations: trustSummary.recommendations,
       },
@@ -453,7 +498,12 @@ class ComplianceReportService {
   }
 
   // Helper methods
-  private createMeta(type: ReportType, tenantId: string, startDate: Date, endDate: Date): ReportMeta {
+  private createMeta(
+    type: ReportType,
+    tenantId: string,
+    startDate: Date,
+    endDate: Date
+  ): ReportMeta {
     return {
       reportId: `report-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
@@ -469,17 +519,18 @@ class ComplianceReportService {
     return {
       score,
       status: score >= 8 ? 'pass' : score >= 6 ? 'partial' : 'fail',
-      evidence: [
-        `${principle} mechanisms implemented`,
-        `Regular ${principle} audits conducted`,
-      ],
+      evidence: [`${principle} mechanisms implemented`, `Regular ${principle} audits conducted`],
       gaps: score < 8 ? [`${principle} documentation needs update`] : [],
     };
   }
 
-  private generateRecommendations(avgTrust: number, complianceRate: number, alertCount: number): string[] {
+  private generateRecommendations(
+    avgTrust: number,
+    complianceRate: number,
+    alertCount: number
+  ): string[] {
     const recs: string[] = [];
-    
+
     if (avgTrust < 7) {
       recs.push('Review and strengthen agent system prompts for trust compliance');
     }
@@ -492,26 +543,30 @@ class ComplianceReportService {
     if (recs.length === 0) {
       recs.push('Continue current practices - trust metrics are healthy');
     }
-    
+
     return recs;
   }
 
-  private generateDailyTimeline(dates: Date[], start: Date, end: Date): { date: string; count: number }[] {
+  private generateDailyTimeline(
+    dates: Date[],
+    start: Date,
+    end: Date
+  ): { date: string; count: number }[] {
     const timeline: { date: string; count: number }[] = [];
     const dateCounts = new Map<string, number>();
-    
-    dates.forEach(d => {
+
+    dates.forEach((d) => {
       const key = d.toISOString().split('T')[0];
       dateCounts.set(key, (dateCounts.get(key) || 0) + 1);
     });
-    
+
     const current = new Date(start);
     while (current <= end) {
       const key = current.toISOString().split('T')[0];
       timeline.push({ date: key, count: dateCounts.get(key) || 0 });
       current.setDate(current.getDate() + 1);
     }
-    
+
     return timeline;
   }
 
@@ -520,7 +575,7 @@ class ComplianceReportService {
    */
   private formatAsHtml(report: any, type: ReportType): string {
     const meta = report.meta;
-    
+
     return `
 <!DOCTYPE html>
 <html>
@@ -550,7 +605,9 @@ class ComplianceReportService {
   <div class="meta">
     <strong>Report ID:</strong> ${meta.reportId}<br>
     <strong>Generated:</strong> ${new Date(meta.generatedAt).toLocaleString()}<br>
-    <strong>Period:</strong> ${new Date(meta.period.start).toLocaleDateString()} - ${new Date(meta.period.end).toLocaleDateString()}<br>
+    <strong>Period:</strong> ${new Date(meta.period.start).toLocaleDateString()} - ${new Date(
+      meta.period.end
+    ).toLocaleDateString()}<br>
     <strong>Tenant:</strong> ${meta.tenantId}
   </div>
   
@@ -587,21 +644,48 @@ class ComplianceReportService {
    */
   private formatAsCsv(report: any, type: ReportType): string {
     const rows: string[][] = [];
-    
+
     if (type === 'trust_summary' && report.agents) {
-      rows.push(['Agent ID', 'Name', 'Model', 'Conversations', 'Messages', 'Avg Trust', 'Alerts', 'Status']);
+      rows.push([
+        'Agent ID',
+        'Name',
+        'Model',
+        'Conversations',
+        'Messages',
+        'Avg Trust',
+        'Alerts',
+        'Status',
+      ]);
       report.agents.forEach((a: AgentSummary) => {
-        rows.push([a.id, a.name, a.model, a.conversationCount.toString(), a.messageCount.toString(), 
-          a.avgTrustScore.toString(), a.alertCount.toString(), a.status]);
+        rows.push([
+          a.id,
+          a.name,
+          a.model,
+          a.conversationCount.toString(),
+          a.messageCount.toString(),
+          a.avgTrustScore.toString(),
+          a.alertCount.toString(),
+          a.status,
+        ]);
       });
     } else if (type === 'incident_report' && report.incidents) {
       rows.push(['ID', 'Timestamp', 'Type', 'Severity', 'Description', 'Agent', 'Resolved']);
       report.incidents.forEach((i: Incident) => {
-        rows.push([i.id, i.timestamp, i.type, i.severity, i.description, i.agentName || '', i.resolved_at || '']); // Use resolved_at
+        rows.push([
+          i.id,
+          i.timestamp,
+          i.type,
+          i.severity,
+          i.description,
+          i.agentName || '',
+          i.resolved_at || '',
+        ]); // Use resolved_at
       });
     }
-    
-    return rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
+
+    return rows
+      .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(','))
+      .join('\n');
   }
 }
 

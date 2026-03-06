@@ -254,7 +254,9 @@ export class HashChain {
    * Get the most recent link in the chain
    */
   getLatestLink(): HashChainLink | undefined {
-    if (this.linkOrder.length === 0) {return undefined;}
+    if (this.linkOrder.length === 0) {
+      return undefined;
+    }
 
     const latestHash = this.linkOrder[this.linkOrder.length - 1];
     return this.links.get(latestHash);
@@ -264,7 +266,9 @@ export class HashChain {
    * Get the genesis link (first link in the chain)
    */
   getGenesisLink(): HashChainLink | undefined {
-    if (this.linkOrder.length === 0) {return undefined;}
+    if (this.linkOrder.length === 0) {
+      return undefined;
+    }
 
     const genesisHash = this.linkOrder[0];
     return this.links.get(genesisHash);
@@ -279,7 +283,9 @@ export class HashChain {
     }
 
     return this.getAllLinks().filter((link) => {
-      if (!link.metadata) {return false;}
+      if (!link.metadata) {
+        return false;
+      }
 
       return Object.entries(metadataQuery).every(([key, value]) => {
         return link.metadata![key] === value;

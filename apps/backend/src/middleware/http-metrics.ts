@@ -12,4 +12,3 @@ export function httpMetrics(req: Request, res: Response, next: NextFunction): vo
   });
   next();
 }
-

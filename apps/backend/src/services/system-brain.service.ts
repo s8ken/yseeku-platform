@@ -1,4 +1,3 @@
-
 import { Agent, IAgent } from '../models/agent.model';
 import { llmService } from './llm.service';
 import logger from '../utils/logger';
@@ -8,7 +7,12 @@ import { analyzeContext, AnalysisResult } from './brain/analyzer';
 import { planActions, PlannedAction, PlanningContext } from './brain/planner';
 import { executeActions, ExecutionResult } from './brain/executor';
 import { brainCyclesTotal, brainCycleDurationSeconds } from '../observability/metrics';
-import { measureActionImpact, getActionRecommendations, getLatestRecommendations, SystemState } from './brain/feedback';
+import {
+  measureActionImpact,
+  getActionRecommendations,
+  getLatestRecommendations,
+  SystemState,
+} from './brain/feedback';
 import { recall, remember } from './brain/memory';
 import { getErrorMessage } from '../utils/error-utils';
 
@@ -50,7 +54,7 @@ export class SystemBrainService {
   async initialize(tenantId: string, userId?: string): Promise<IAgent> {
     const existingBrain = await Agent.findOne({
       'metadata.role': 'system-brain',
-      ciModel: 'system-brain'
+      ciModel: 'system-brain',
     });
 
     if (existingBrain) {
@@ -87,8 +91,8 @@ export class SystemBrainService {
       ciModel: 'system-brain',
       metadata: {
         role: 'system-brain',
-        permissions: ['read_logs', 'manage_agents', 'system_alert']
-      }
+        permissions: ['read_logs', 'manage_agents', 'system_alert'],
+      },
     });
 
     this.brainAgentId = brain._id.toString();
@@ -161,21 +165,21 @@ Respond with valid JSON only:
       logger.debug('Brain already thinking, skipping cycle', { tenantId, mode });
       return;
     }
-    
+
     // Auto-initialize if not initialized
     if (!this.brainAgentId) {
       logger.info('Brain not initialized, initializing now', { tenantId });
       try {
         await this.initialize(tenantId);
       } catch (initError: unknown) {
-        logger.error('Failed to initialize brain agent', { 
-          tenantId, 
-          error: getErrorMessage(initError) 
+        logger.error('Failed to initialize brain agent', {
+          tenantId,
+          error: getErrorMessage(initError),
         });
         return;
       }
     }
-    
+
     this.isThinking = true;
 
     try {
@@ -208,11 +212,11 @@ Respond with valid JSON only:
         mode,
         status: 'started',
         observations: analysis.observations,
-        actions: plannedActions.map(a => ({
+        actions: plannedActions.map((a) => ({
           type: a.type,
           target: a.target,
           reason: a.reason,
-          status: 'planned'
+          status: 'planned',
         })),
         inputContext: {
           avgTrust: sensors.avgTrust,
@@ -225,7 +229,7 @@ Respond with valid JSON only:
         metrics: {
           avgTrust: sensors.avgTrust,
         },
-        startedAt: new Date()
+        startedAt: new Date(),
       });
 
       // 6. Get LLM analysis for enhanced decision making
@@ -242,10 +246,13 @@ Respond with valid JSON only:
           model: brainAgent.model,
           messages: [
             { role: 'system', content: brainAgent.systemPrompt },
-            { role: 'user', content: `Analyze current system state:\n${JSON.stringify(llmContext, null, 2)}` }
+            {
+              role: 'user',
+              content: `Analyze current system state:\n${JSON.stringify(llmContext, null, 2)}`,
+            },
           ],
           temperature: brainAgent.temperature,
-          userId: brainAgent.user.toString()
+          userId: brainAgent.user.toString(),
         });
 
         // Parse LLM response
@@ -256,13 +263,18 @@ Respond with valid JSON only:
           finalActions = this.mergeActions(plannedActions, llmResponse.actions, analysis);
 
           // Store LLM reasoning in memory for learning
-          await remember(tenantId, 'llm:reasoning', {
-            cycleId: cycle._id.toString(),
-            reasoning: llmResponse.reasoning,
-            confidence: llmResponse.confidence,
-            status: llmResponse.status,
-            timestamp: new Date(),
-          }, ['llm', 'reasoning', llmResponse.status]);
+          await remember(
+            tenantId,
+            'llm:reasoning',
+            {
+              cycleId: cycle._id.toString(),
+              reasoning: llmResponse.reasoning,
+              confidence: llmResponse.confidence,
+              status: llmResponse.status,
+              timestamp: new Date(),
+            },
+            ['llm', 'reasoning', llmResponse.status]
+          );
         }
       } catch (llmError: unknown) {
         logger.warn('LLM analysis failed, using rule-based actions', {
@@ -275,7 +287,7 @@ Respond with valid JSON only:
       const execResults = await executeActions(
         tenantId,
         cycle._id.toString(),
-        finalActions.map(a => ({
+        finalActions.map((a) => ({
           type: a.type,
           target: a.target,
           reason: a.reason,
@@ -303,7 +315,7 @@ Respond with valid JSON only:
           actionsPlanned: finalActions.length,
           agentCount: sensors.agentHealth.total,
         },
-        completedAt: new Date()
+        completedAt: new Date(),
       });
 
       brainCyclesTotal.inc({ status: 'completed' });
@@ -315,11 +327,10 @@ Respond with valid JSON only:
         riskScore: analysis.riskScore,
         urgency: analysis.urgency,
         actionsPlanned: finalActions.length,
-        actionsExecuted: execResults.filter(r => r.status === 'executed').length,
+        actionsExecuted: execResults.filter((r) => r.status === 'executed').length,
         llmUsed: !!llmResponse,
         durationMs: durationSeconds * 1000,
       });
-
     } catch (error: unknown) {
       logger.error('System Brain thinking error', { error: getErrorMessage(error) });
       brainCyclesTotal.inc({ status: 'failed' });
@@ -357,7 +368,7 @@ Respond with valid JSON only:
         score: analysis.riskScore,
         status: analysis.status,
         urgency: analysis.urgency,
-        anomalies: analysis.anomalies.map(a => ({
+        anomalies: analysis.anomalies.map((a) => ({
           type: a.type,
           severity: a.severity,
           description: a.description,
@@ -434,19 +445,28 @@ Respond with valid JSON only:
     // Add LLM actions that don't duplicate planned ones
     for (const llmAction of llmActions) {
       const isDuplicate = planned.some(
-        p => p.type === llmAction.type && p.target === llmAction.target
+        (p) => p.type === llmAction.type && p.target === llmAction.target
       );
 
       if (!isDuplicate) {
         // Validate LLM action type
-        const validTypes = ['alert', 'adjust_threshold', 'ban_agent', 'restrict_agent', 'quarantine_agent', 'unban_agent'];
+        const validTypes = [
+          'alert',
+          'adjust_threshold',
+          'ban_agent',
+          'restrict_agent',
+          'quarantine_agent',
+          'unban_agent',
+        ];
         if (!validTypes.includes(llmAction.type)) {
           logger.warn('Invalid LLM action type', { type: llmAction.type });
           continue;
         }
 
         // Don't add enforcement actions in low-risk situations
-        const isEnforcementAction = ['ban_agent', 'restrict_agent', 'quarantine_agent'].includes(llmAction.type);
+        const isEnforcementAction = ['ban_agent', 'restrict_agent', 'quarantine_agent'].includes(
+          llmAction.type
+        );
         if (isEnforcementAction && analysis.riskScore < 50) {
           logger.info('Skipping LLM enforcement action due to low risk', {
             type: llmAction.type,
@@ -531,7 +551,10 @@ Respond with valid JSON only:
   private detectBestProvider(): { provider: string; model: string } {
     const preferred = (process.env.SONATE_LLM_PROVIDER || '').toLowerCase();
 
-    if (preferred === 'gemini' && (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY)) {
+    if (
+      preferred === 'gemini' &&
+      (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY)
+    ) {
       const model = process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash';
       logger.info('Brain agent using Gemini (SONATE_LLM_PROVIDER preference)', { model });
       return { provider: 'gemini', model };

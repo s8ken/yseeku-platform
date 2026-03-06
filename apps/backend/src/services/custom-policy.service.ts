@@ -1,17 +1,17 @@
 /**
  * Custom Policy Service
- * 
+ *
  * Manages tenant-specific policy rules:
  * - CRUD operations for custom rules
  * - Rule evaluation against interactions
  * - Integration with base policy engine
  */
 
-import { 
-  CustomPolicyRuleModel, 
-  CustomPolicyRule, 
+import {
+  CustomPolicyRuleModel,
+  CustomPolicyRule,
   RuleCondition,
-  RuleSeverity 
+  RuleSeverity,
 } from '../models/custom-policy.model';
 import logger from '../utils/logger';
 import { getErrorMessage } from '../utils/error-utils';
@@ -51,7 +51,7 @@ class CustomPolicyService {
   ): Promise<CustomPolicyRule> {
     try {
       const ruleId = `rule_${crypto.randomBytes(8).toString('hex')}`;
-      
+
       const newRule = await CustomPolicyRuleModel.create({
         ...rule,
         tenant_id: tenantId,
@@ -60,11 +60,11 @@ class CustomPolicyService {
         version: 1,
       });
 
-      logger.info('Custom policy rule created', { 
-        tenantId, 
-        ruleId, 
+      logger.info('Custom policy rule created', {
+        tenantId,
+        ruleId,
         name: rule.name,
-        createdBy 
+        createdBy,
       });
 
       return newRule.toObject();
@@ -86,10 +86,10 @@ class CustomPolicyService {
     try {
       const rule = await CustomPolicyRuleModel.findOneAndUpdate(
         { tenant_id: tenantId, rule_id: ruleId },
-        { 
-          ...updates, 
+        {
+          ...updates,
           updated_by: updatedBy,
-          $inc: { version: 1 }
+          $inc: { version: 1 },
         },
         { new: true }
       );
@@ -198,11 +198,12 @@ class CustomPolicyService {
 
       for (const rule of rules) {
         const matchedConditions = this.evaluateRule(rule, context);
-        
+
         if (matchedConditions.length > 0) {
-          const passed = rule.logic === 'AND' 
-            ? matchedConditions.length === rule.conditions.length
-            : matchedConditions.length > 0;
+          const passed =
+            rule.logic === 'AND'
+              ? matchedConditions.length === rule.conditions.length
+              : matchedConditions.length > 0;
 
           if (passed) {
             violations.push({
@@ -217,7 +218,7 @@ class CustomPolicyService {
         }
       }
 
-      const shouldBlock = violations.some(v => v.action === 'block');
+      const shouldBlock = violations.some((v) => v.action === 'block');
       const evaluationTimeMs = Date.now() - startTime;
 
       return {
@@ -254,7 +255,10 @@ class CustomPolicyService {
   /**
    * Get the text value for evaluation based on field
    */
-  private getFieldValue(field: 'prompt' | 'response' | 'combined', context: EvaluationContext): string {
+  private getFieldValue(
+    field: 'prompt' | 'response' | 'combined',
+    context: EvaluationContext
+  ): string {
     switch (field) {
       case 'prompt':
         return context.prompt;
@@ -270,8 +274,8 @@ class CustomPolicyService {
    */
   private evaluateCondition(condition: RuleCondition, text: string): boolean {
     const searchText = condition.caseSensitive ? text : text.toLowerCase();
-    const searchValue = condition.caseSensitive 
-      ? String(condition.value) 
+    const searchValue = condition.caseSensitive
+      ? String(condition.value)
       : String(condition.value).toLowerCase();
 
     switch (condition.type) {
@@ -306,11 +310,11 @@ class CustomPolicyService {
         // Simple sentiment check - could be enhanced with NLP
         const negativeWords = ['hate', 'terrible', 'awful', 'worst', 'horrible', 'bad', 'wrong'];
         const positiveWords = ['love', 'great', 'excellent', 'best', 'amazing', 'good', 'right'];
-        
+
         const lowerText = text.toLowerCase();
-        const negCount = negativeWords.filter(w => lowerText.includes(w)).length;
-        const posCount = positiveWords.filter(w => lowerText.includes(w)).length;
-        
+        const negCount = negativeWords.filter((w) => lowerText.includes(w)).length;
+        const posCount = positiveWords.filter((w) => lowerText.includes(w)).length;
+
         if (condition.value === 'negative') {
           return negCount > posCount;
         } else if (condition.value === 'positive') {
@@ -374,7 +378,7 @@ class CustomPolicyService {
 
     return this.createRule(
       tenantId,
-      { 
+      {
         name: newName,
         description: original.description,
         severity: original.severity,

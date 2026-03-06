@@ -503,7 +503,7 @@ export class SecureAuthService {
 
   /**
    * Validate credentials (environment-based authentication)
-   * 
+   *
    * In production, this should query a real database or use OAuth/SAML
    * For development, uses environment variables for test credentials
    */
@@ -512,7 +512,7 @@ export class SecureAuthService {
   ): Promise<AuthenticatedUser | null> {
     // Check if development authentication is enabled
     const devAuthEnabled = process.env.ENABLE_DEV_AUTH === 'true';
-    
+
     if (!devAuthEnabled) {
       // In production, this would query a real database or use external auth
       // For now, fall back to guest authentication to prevent lockout
@@ -698,8 +698,12 @@ export class SecureAuthService {
 
     return allAttempts
       .filter((attempt) => {
-        if (username && attempt.username !== username) {return false;}
-        if (ipAddress && attempt.ipAddress !== ipAddress) {return false;}
+        if (username && attempt.username !== username) {
+          return false;
+        }
+        if (ipAddress && attempt.ipAddress !== ipAddress) {
+          return false;
+        }
         return true;
       })
       .sort((a, b) => a.timestamp - b.timestamp);

@@ -137,9 +137,15 @@ export function calculateSemanticMirroring(userInput: string, aiResponse: string
   // Calculate mirroring score
   let mirroringScore = 0.5; // Base score
 
-  if (responseAddressesQuestion) {mirroringScore += 0.2;}
-  if (responseFollowsCommand) {mirroringScore += 0.2;}
-  if (Math.abs(userSentiment - responseSentiment) < 0.3) {mirroringScore += 0.1;}
+  if (responseAddressesQuestion) {
+    mirroringScore += 0.2;
+  }
+  if (responseFollowsCommand) {
+    mirroringScore += 0.2;
+  }
+  if (Math.abs(userSentiment - responseSentiment) < 0.3) {
+    mirroringScore += 0.1;
+  }
 
   return Math.min(mirroringScore, 1.0);
 }
@@ -156,7 +162,9 @@ function analyzeSentiment(text: string): number {
   const negativeCount = negativeWords.filter((word) => lowerText.includes(word)).length;
 
   const total = positiveCount + negativeCount;
-  if (total === 0) {return 0;}
+  if (total === 0) {
+    return 0;
+  }
 
   return (positiveCount - negativeCount) / total;
 }
@@ -207,7 +215,8 @@ export function calculateResonanceMetrics(
   options?: ResonanceOptions
 ): ResonanceMetrics {
   // Calculate components — use injected semantic V_align if provided, else Jaccard
-  const vectorAlignment = options?.vAlignOverride ?? calculateVectorAlignment(context.userInput, context.aiResponse);
+  const vectorAlignment =
+    options?.vAlignOverride ?? calculateVectorAlignment(context.userInput, context.aiResponse);
   const contextualContinuity = calculateContextualContinuity(
     context.aiResponse,
     context.conversationHistory

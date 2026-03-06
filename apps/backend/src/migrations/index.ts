@@ -1,6 +1,6 @@
 /**
  * Migrations Index
- * 
+ *
  * Central entry point for all database migrations
  * Each migration is idempotent and can be run independently
  */
@@ -110,7 +110,9 @@ export async function runMigrationByName(
 /**
  * Verify all migrations
  */
-export async function verifyAllMigrations(connection: Connection): Promise<Record<string, boolean>> {
+export async function verifyAllMigrations(
+  connection: Connection
+): Promise<Record<string, boolean>> {
   const results: Record<string, boolean> = {};
 
   for (const migration of migrations) {

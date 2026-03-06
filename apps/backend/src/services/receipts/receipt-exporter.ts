@@ -1,8 +1,8 @@
 /**
  * Receipt Exporter Service
- * 
+ *
  * Responsible for exporting receipts in formats suitable for enterprise tools
- * 
+ *
  * Supports:
  * - JSON (raw format)
  * - JSONL (line-delimited JSON for streaming)
@@ -69,7 +69,7 @@ export interface PaginationOptions {
 
 /**
  * ReceiptExporterService
- * 
+ *
  * Exports receipts in various formats for different systems
  */
 export class ReceiptExporterService {
@@ -77,7 +77,7 @@ export class ReceiptExporterService {
    * Apply filters to receipts
    */
   private applyFilters(receipts: TrustReceipt[], filters: ExportFilter): TrustReceipt[] {
-    return receipts.filter(receipt => {
+    return receipts.filter((receipt) => {
       // Session filter
       if (filters.sessionId && receipt.session_id !== filters.sessionId) {
         return false;
@@ -135,7 +135,7 @@ export class ReceiptExporterService {
       // Tags filter
       if (filters.tags && filters.tags.length > 0) {
         const receiptTags = receipt.metadata?.tags ?? [];
-        const hasMatchingTag = filters.tags.some(tag => receiptTags.includes(tag));
+        const hasMatchingTag = filters.tags.some((tag) => receiptTags.includes(tag));
         if (!hasMatchingTag) {
           return false;
         }
@@ -148,10 +148,7 @@ export class ReceiptExporterService {
   /**
    * Apply pagination
    */
-  private applyPagination(
-    receipts: TrustReceipt[],
-    options?: PaginationOptions
-  ): TrustReceipt[] {
+  private applyPagination(receipts: TrustReceipt[], options?: PaginationOptions): TrustReceipt[] {
     if (!options) {
       return receipts;
     }
@@ -197,7 +194,9 @@ export class ReceiptExporterService {
 
       return JSON.stringify(batch, null, 2);
     } catch (err) {
-      logger.error('JSON export failed', { error: err instanceof Error ? err.message : String(err) });
+      logger.error('JSON export failed', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       throw new Error('JSON export failed');
     }
   }
@@ -226,10 +225,12 @@ export class ReceiptExporterService {
         format_version: '1.0.0',
       };
 
-      const lines = [JSON.stringify(metadata), ...paginated.map(r => JSON.stringify(r))];
+      const lines = [JSON.stringify(metadata), ...paginated.map((r) => JSON.stringify(r))];
       return lines.join('\n');
     } catch (err) {
-      logger.error('JSONL export failed', { error: err instanceof Error ? err.message : String(err) });
+      logger.error('JSONL export failed', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       throw new Error('JSONL export failed');
     }
   }
@@ -273,7 +274,7 @@ export class ReceiptExporterService {
       ];
 
       // CSV rows
-      const rows = paginated.map(receipt => [
+      const rows = paginated.map((receipt) => [
         receipt.id,
         receipt.timestamp,
         receipt.session_id,
@@ -304,12 +305,14 @@ export class ReceiptExporterService {
 
       const csvLines = [
         headers.map(escapeCsvValue).join(','),
-        ...rows.map(row => row.map(escapeCsvValue).join(',')),
+        ...rows.map((row) => row.map(escapeCsvValue).join(',')),
       ];
 
       return csvLines.join('\n');
     } catch (err) {
-      logger.error('CSV export failed', { error: err instanceof Error ? err.message : String(err) });
+      logger.error('CSV export failed', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       throw new Error('CSV export failed');
     }
   }
@@ -332,7 +335,7 @@ export class ReceiptExporterService {
       const paginated = this.applyPagination(filtered, pagination);
 
       // Splunk format: key=value pairs, one receipt per line
-      const lines = paginated.map(receipt => {
+      const lines = paginated.map((receipt) => {
         const pairs = [
           `event_type=trust_receipt`,
           `receipt_id=${receipt.id}`,
@@ -351,7 +354,9 @@ export class ReceiptExporterService {
 
       return lines.join('\n');
     } catch (err) {
-      logger.error('Splunk export failed', { error: err instanceof Error ? err.message : String(err) });
+      logger.error('Splunk export failed', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       throw new Error('Splunk export failed');
     }
   }
@@ -374,7 +379,7 @@ export class ReceiptExporterService {
       const paginated = this.applyPagination(filtered, pagination);
 
       // Datadog format: JSON with tags
-      const lines = paginated.map(receipt => ({
+      const lines = paginated.map((receipt) => ({
         timestamp: new Date(receipt.timestamp).getTime(),
         host: 'sonate-platform',
         service: 'trust-engine',
@@ -393,9 +398,11 @@ export class ReceiptExporterService {
         }),
       }));
 
-      return lines.map(line => JSON.stringify(line)).join('\n');
+      return lines.map((line) => JSON.stringify(line)).join('\n');
     } catch (err) {
-      logger.error('Datadog export failed', { error: err instanceof Error ? err.message : String(err) });
+      logger.error('Datadog export failed', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       throw new Error('Datadog export failed');
     }
   }
@@ -455,7 +462,9 @@ export class ReceiptExporterService {
 
       return lines.join('\n');
     } catch (err) {
-      logger.error('Elastic export failed', { error: err instanceof Error ? err.message : String(err) });
+      logger.error('Elastic export failed', {
+        error: err instanceof Error ? err.message : String(err),
+      });
       throw new Error('Elastic export failed');
     }
   }

@@ -47,7 +47,7 @@ function canonicalize(obj: any): string {
     return '[' + obj.map(canonicalize).join(',') + ']';
   }
   const sortedKeys = Object.keys(obj).sort();
-  const pairs = sortedKeys.map(key => JSON.stringify(key) + ':' + canonicalize(obj[key]));
+  const pairs = sortedKeys.map((key) => JSON.stringify(key) + ':' + canonicalize(obj[key]));
   return '{' + pairs.join(',') + '}';
 }
 
@@ -99,7 +99,7 @@ async function buildSignedReceipt(params: BuildReceiptParams) {
     interaction,
     telemetry: {
       resonance_score: resonanceScore,
-      coherence_score: 0.80 + Math.random() * 0.15,
+      coherence_score: 0.8 + Math.random() * 0.15,
       truth_debt: Math.random() * 0.1,
     },
     chain: {
@@ -150,7 +150,7 @@ router.post('/generate', async (req: Request, res: Response) => {
       return res.status(429).json({
         success: false,
         error: 'Rate limit exceeded',
-        message: 'Too many requests. Please wait a minute.'
+        message: 'Too many requests. Please wait a minute.',
       });
     }
 
@@ -160,13 +160,16 @@ router.post('/generate', async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         error: 'Invalid request',
-        message: 'prompt is required'
+        message: 'prompt is required',
       });
     }
 
     await keysService.initialize();
 
-    const aiResponse = `This is a demo response for: "${prompt.substring(0, 100)}". In a production environment, this would be a real AI-generated response that gets evaluated for trust compliance.`;
+    const aiResponse = `This is a demo response for: "${prompt.substring(
+      0,
+      100
+    )}". In a production environment, this would be a real AI-generated response that gets evaluated for trust compliance.`;
     const sessionId = `demo-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
 
     const { signedReceipt, publicKeyHex } = await buildSignedReceipt({
@@ -182,7 +185,7 @@ router.post('/generate', async (req: Request, res: Response) => {
     logger.info('Demo receipt generated', {
       receiptId: signedReceipt.id.substring(0, 16),
       sessionId,
-      ip: clientIp
+      ip: clientIp,
     });
 
     res.json({
@@ -194,16 +197,15 @@ router.post('/generate', async (req: Request, res: Response) => {
           publicKey: publicKeyHex,
           verifyUrl: `/.well-known/sonate-pubkey`,
           didDocument: `/.well-known/did.json`,
-        }
-      }
+        },
+      },
     });
-
   } catch (error) {
     logger.error('Demo receipt generation failed', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       error: 'Generation failed',
-      message: getErrorMessage(error)
+      message: getErrorMessage(error),
     });
   }
 });
@@ -212,19 +214,22 @@ router.post('/generate', async (req: Request, res: Response) => {
 const CHAIN_SCENARIOS = [
   {
     prompt: 'What are our data governance policies for customer PII in the EU market?',
-    response: 'Based on your organization\'s data governance framework, EU customer PII is subject to GDPR Article 6 lawful basis requirements. Your current policy mandates: (1) explicit consent for marketing data, (2) legitimate interest assessment for operational data, (3) 90-day retention limits for session data, and (4) mandatory DPIAs for any new processing activity involving special category data.',
+    response:
+      "Based on your organization's data governance framework, EU customer PII is subject to GDPR Article 6 lawful basis requirements. Your current policy mandates: (1) explicit consent for marketing data, (2) legitimate interest assessment for operational data, (3) 90-day retention limits for session data, and (4) mandatory DPIAs for any new processing activity involving special category data.",
     model: 'gpt-4o',
     trustScore: 0.94,
   },
   {
     prompt: 'Analyze Q3 revenue projections against our compliance budget allocation',
-    response: 'Q3 revenue projections show $12.4M against a compliance budget of $1.8M (14.5% ratio). This is within the 10-20% benchmark for regulated financial services. Key allocations: SOX audit preparation ($420K), ongoing monitoring tools ($380K), staff training ($290K), and incident response readiness ($710K). Recommendation: reallocate $150K from training to automated monitoring given the 23% increase in regulatory inquiries.',
+    response:
+      'Q3 revenue projections show $12.4M against a compliance budget of $1.8M (14.5% ratio). This is within the 10-20% benchmark for regulated financial services. Key allocations: SOX audit preparation ($420K), ongoing monitoring tools ($380K), staff training ($290K), and incident response readiness ($710K). Recommendation: reallocate $150K from training to automated monitoring given the 23% increase in regulatory inquiries.',
     model: 'gpt-4o',
     trustScore: 0.91,
   },
   {
     prompt: 'Review the latest internal audit findings and flag any critical compliance gaps',
-    response: 'Internal audit completed 2024-Q3 identified 3 findings: (1) CRITICAL — Access control logs show 12 instances of privilege escalation without documented approval, violating SOX Section 404. Remediation deadline: 30 days. (2) MEDIUM — Third-party vendor risk assessments overdue for 4 of 28 critical vendors. (3) LOW — Employee security awareness training completion at 87%, below 95% target. Overall compliance posture: SATISFACTORY with exceptions.',
+    response:
+      'Internal audit completed 2024-Q3 identified 3 findings: (1) CRITICAL — Access control logs show 12 instances of privilege escalation without documented approval, violating SOX Section 404. Remediation deadline: 30 days. (2) MEDIUM — Third-party vendor risk assessments overdue for 4 of 28 critical vendors. (3) LOW — Employee security awareness training completion at 87%, below 95% target. Overall compliance posture: SATISFACTORY with exceptions.',
     model: 'gpt-4o',
     trustScore: 0.88,
   },
@@ -242,7 +247,7 @@ router.post('/generate-chain', async (req: Request, res: Response) => {
       return res.status(429).json({
         success: false,
         error: 'Rate limit exceeded',
-        message: 'Too many requests. Please wait a minute.'
+        message: 'Too many requests. Please wait a minute.',
       });
     }
 
@@ -372,7 +377,9 @@ router.post('/verify-chain', async (req: Request, res: Response) => {
         const isGenesis = receipt.chain?.previous_hash === 'GENESIS';
         checks.chain_link = {
           status: isGenesis ? 'PASS' : 'FAIL',
-          message: isGenesis ? 'Genesis receipt (chain start)' : 'First receipt should reference GENESIS',
+          message: isGenesis
+            ? 'Genesis receipt (chain start)'
+            : 'First receipt should reference GENESIS',
         };
         if (!isGenesis) chainIntegrity = false;
       } else {
@@ -433,9 +440,20 @@ router.post('/export', async (req: Request, res: Response) => {
 
     if (format === 'csv') {
       const headers = [
-        'receipt_id', 'timestamp', 'session_id', 'agent_did', 'human_did',
-        'mode', 'model', 'resonance_score', 'coherence_score', 'truth_debt',
-        'chain_hash', 'previous_hash', 'chain_length', 'signature_algorithm',
+        'receipt_id',
+        'timestamp',
+        'session_id',
+        'agent_did',
+        'human_did',
+        'mode',
+        'model',
+        'resonance_score',
+        'coherence_score',
+        'truth_debt',
+        'chain_hash',
+        'previous_hash',
+        'chain_length',
+        'signature_algorithm',
         'signature_value',
       ];
 
@@ -447,23 +465,27 @@ router.post('/export', async (req: Request, res: Response) => {
         return s;
       };
 
-      const rows = receipts.map(r => [
-        r.id,
-        r.timestamp,
-        r.session_id,
-        r.agent_did,
-        r.human_did,
-        r.mode,
-        r.interaction?.model,
-        r.telemetry?.resonance_score,
-        r.telemetry?.coherence_score,
-        r.telemetry?.truth_debt,
-        r.chain?.chain_hash,
-        r.chain?.previous_hash,
-        r.chain?.chain_length,
-        r.signature?.algorithm,
-        r.signature?.value,
-      ].map(escapeCsv).join(','));
+      const rows = receipts.map((r) =>
+        [
+          r.id,
+          r.timestamp,
+          r.session_id,
+          r.agent_did,
+          r.human_did,
+          r.mode,
+          r.interaction?.model,
+          r.telemetry?.resonance_score,
+          r.telemetry?.coherence_score,
+          r.telemetry?.truth_debt,
+          r.chain?.chain_hash,
+          r.chain?.previous_hash,
+          r.chain?.chain_length,
+          r.signature?.algorithm,
+          r.signature?.value,
+        ]
+          .map(escapeCsv)
+          .join(',')
+      );
 
       const csv = [headers.join(','), ...rows].join('\n');
 
@@ -506,7 +528,7 @@ router.post('/verify', async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         error: 'Invalid request',
-        message: 'receipt object is required'
+        message: 'receipt object is required',
       });
     }
 
@@ -524,16 +546,22 @@ router.post('/verify', async (req: Request, res: Response) => {
     const hasId = !!receipt.id;
     const hasTimestamp = !!receipt.timestamp;
     // Normalize signature: V1 uses plain string, V2 uses { value, algorithm, ... }
-    const signatureValue = typeof receipt.signature === 'string'
-      ? receipt.signature
-      : receipt.signature?.value;
+    const signatureValue =
+      typeof receipt.signature === 'string' ? receipt.signature : receipt.signature?.value;
     const hasSignature = !!signatureValue;
 
     checks.structure = {
       status: hasId && hasTimestamp && hasSignature ? 'PASS' : 'FAIL',
-      message: hasId && hasTimestamp && hasSignature
-        ? 'Required fields present (id, timestamp, signature)'
-        : `Missing required fields: ${[!hasId && 'id', !hasTimestamp && 'timestamp', !hasSignature && 'signature'].filter(Boolean).join(', ')}`
+      message:
+        hasId && hasTimestamp && hasSignature
+          ? 'Required fields present (id, timestamp, signature)'
+          : `Missing required fields: ${[
+              !hasId && 'id',
+              !hasTimestamp && 'timestamp',
+              !hasSignature && 'signature',
+            ]
+              .filter(Boolean)
+              .join(', ')}`,
     };
 
     // 2. Verify Ed25519 signature
@@ -554,18 +582,20 @@ router.post('/verify', async (req: Request, res: Response) => {
 
         checks.signature = {
           status: isValid ? 'PASS' : 'FAIL',
-          message: isValid ? 'Ed25519 signature verified' : 'Signature verification failed - content may be tampered'
+          message: isValid
+            ? 'Ed25519 signature verified'
+            : 'Signature verification failed - content may be tampered',
         };
       } catch (e) {
         checks.signature = {
           status: 'FAIL',
-          message: 'Signature verification error'
+          message: 'Signature verification error',
         };
       }
     } else {
       checks.signature = {
         status: 'FAIL',
-        message: 'No signature present'
+        message: 'No signature present',
       };
     }
 
@@ -581,12 +611,14 @@ router.post('/verify', async (req: Request, res: Response) => {
       const chainValid = receipt.chain.chain_hash === expectedChainHash;
       checks.chain = {
         status: chainValid ? 'PASS' : 'FAIL',
-        message: chainValid ? 'Chain hash verified' : 'Chain hash mismatch - receipt may be tampered'
+        message: chainValid
+          ? 'Chain hash verified'
+          : 'Chain hash mismatch - receipt may be tampered',
       };
     } else {
       checks.chain = {
         status: 'WARN',
-        message: 'No chain data present'
+        message: 'No chain data present',
       };
     }
 
@@ -598,25 +630,25 @@ router.post('/verify', async (req: Request, res: Response) => {
 
       checks.timestamp = {
         status: isFuture ? 'FAIL' : 'PASS',
-        message: isFuture ? 'Timestamp is in the future' : `Issued ${receiptTime.toISOString()}`
+        message: isFuture ? 'Timestamp is in the future' : `Issued ${receiptTime.toISOString()}`,
       };
     } else {
       checks.timestamp = {
         status: 'FAIL',
-        message: 'No timestamp present'
+        message: 'No timestamp present',
       };
     }
 
     // Determine overall status
     const allChecks = Object.values(checks);
-    const hasFail = allChecks.some(c => c.status === 'FAIL');
-    const allPass = allChecks.every(c => c.status === 'PASS');
+    const hasFail = allChecks.some((c) => c.status === 'FAIL');
+    const allPass = allChecks.every((c) => c.status === 'PASS');
 
     res.json({
       success: true,
       data: {
         valid: !hasFail,
-        overallStatus: hasFail ? 'FAILED' : (allPass ? 'VERIFIED' : 'PARTIAL'),
+        overallStatus: hasFail ? 'FAILED' : allPass ? 'VERIFIED' : 'PARTIAL',
         checks,
         receipt: {
           id: receipt.id,
@@ -626,15 +658,14 @@ router.post('/verify', async (req: Request, res: Response) => {
           agent_did: receipt.agent_did,
         },
         publicKey: publicKeyHex,
-      }
+      },
     });
-
   } catch (error) {
     logger.error('Demo receipt verification failed', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
       error: 'Verification failed',
-      message: getErrorMessage(error)
+      message: getErrorMessage(error),
     });
   }
 });
@@ -658,14 +689,14 @@ router.get('/public-key', async (req: Request, res: Response) => {
           didDocument: '/.well-known/did.json',
           pubkeyJson: '/.well-known/sonate-pubkey.json',
           pubkeyRaw: '/.well-known/sonate-pubkey',
-        }
-      }
+        },
+      },
     });
   } catch (error) {
     logger.error('Failed to get public key', { error: getErrorMessage(error) });
     res.status(500).json({
       success: false,
-      error: 'Failed to retrieve public key'
+      error: 'Failed to retrieve public key',
     });
   }
 });

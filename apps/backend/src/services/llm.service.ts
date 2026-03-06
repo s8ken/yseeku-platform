@@ -46,7 +46,7 @@ export interface LLMModel {
   maxTokens: number;
   contextWindow?: number;
   pricing?: {
-    input: number;  // per 1K tokens
+    input: number; // per 1K tokens
     output: number; // per 1K tokens
   };
 }
@@ -71,24 +71,24 @@ export const LLM_PROVIDERS: Record<string, LLMProvider> = {
         name: 'GPT-4 Turbo',
         maxTokens: 4096,
         contextWindow: 128000,
-        pricing: { input: 0.01, output: 0.03 }
+        pricing: { input: 0.01, output: 0.03 },
       },
       {
         id: 'gpt-4',
         name: 'GPT-4',
         maxTokens: 8192,
         contextWindow: 8192,
-        pricing: { input: 0.03, output: 0.06 }
+        pricing: { input: 0.03, output: 0.06 },
       },
       {
         id: 'gpt-3.5-turbo',
         name: 'GPT-3.5 Turbo',
         maxTokens: 4096,
         contextWindow: 16385,
-        pricing: { input: 0.0005, output: 0.0015 }
+        pricing: { input: 0.0005, output: 0.0015 },
       },
     ],
-    endpoint: 'https://api.openai.com/v1/chat/completions'
+    endpoint: 'https://api.openai.com/v1/chat/completions',
   },
   anthropic: {
     id: 'anthropic',
@@ -100,24 +100,24 @@ export const LLM_PROVIDERS: Record<string, LLMProvider> = {
         name: 'Claude Sonnet 4',
         maxTokens: 8192,
         contextWindow: 200000,
-        pricing: { input: 0.003, output: 0.015 }
+        pricing: { input: 0.003, output: 0.015 },
       },
       {
         id: 'claude-opus-4-20250514',
         name: 'Claude Opus 4',
         maxTokens: 4096,
         contextWindow: 200000,
-        pricing: { input: 0.015, output: 0.075 }
+        pricing: { input: 0.015, output: 0.075 },
       },
       {
         id: 'claude-3-haiku-20240307',
         name: 'Claude 3 Haiku',
         maxTokens: 4096,
         contextWindow: 200000,
-        pricing: { input: 0.00025, output: 0.00125 }
+        pricing: { input: 0.00025, output: 0.00125 },
       },
     ],
-    endpoint: 'https://api.anthropic.com/v1/messages'
+    endpoint: 'https://api.anthropic.com/v1/messages',
   },
   gemini: {
     id: 'gemini',
@@ -135,14 +135,14 @@ export const LLM_PROVIDERS: Record<string, LLMProvider> = {
         name: 'Gemini 1.5 Flash',
         maxTokens: 8192,
         contextWindow: 1000000,
-        pricing: { input: 0.00035, output: 0.00105 }
+        pricing: { input: 0.00035, output: 0.00105 },
       },
       {
         id: 'gemini-1.5-pro',
         name: 'Gemini 1.5 Pro',
         maxTokens: 8192,
         contextWindow: 2000000,
-        pricing: { input: 0.00125, output: 0.005 }
+        pricing: { input: 0.00125, output: 0.005 },
       },
       {
         id: 'gemini-2.0-flash',
@@ -151,7 +151,7 @@ export const LLM_PROVIDERS: Record<string, LLMProvider> = {
         contextWindow: 1000000,
       },
     ],
-    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models'
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models',
   },
   together: {
     id: 'together',
@@ -163,17 +163,17 @@ export const LLM_PROVIDERS: Record<string, LLMProvider> = {
         name: 'Llama 3.1 70B Instruct',
         maxTokens: 4096,
         contextWindow: 131072,
-        pricing: { input: 0.0009, output: 0.0009 }
+        pricing: { input: 0.0009, output: 0.0009 },
       },
       {
         id: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
         name: 'Mixtral 8x7B Instruct',
         maxTokens: 4096,
         contextWindow: 32768,
-        pricing: { input: 0.0006, output: 0.0006 }
+        pricing: { input: 0.0006, output: 0.0006 },
       },
     ],
-    endpoint: 'https://api.together.xyz/v1/chat/completions'
+    endpoint: 'https://api.together.xyz/v1/chat/completions',
   },
   cohere: {
     id: 'cohere',
@@ -185,17 +185,17 @@ export const LLM_PROVIDERS: Record<string, LLMProvider> = {
         name: 'Command R+',
         maxTokens: 4000,
         contextWindow: 128000,
-        pricing: { input: 0.003, output: 0.015 }
+        pricing: { input: 0.003, output: 0.015 },
       },
       {
         id: 'command-r',
         name: 'Command R',
         maxTokens: 4000,
         contextWindow: 128000,
-        pricing: { input: 0.0005, output: 0.0015 }
+        pricing: { input: 0.0005, output: 0.0015 },
       },
     ],
-    endpoint: 'https://api.cohere.ai/v1/chat'
+    endpoint: 'https://api.cohere.ai/v1/chat',
   },
 };
 
@@ -217,7 +217,7 @@ export class LLMService {
    * Get all available providers
    */
   getProviders(): Array<{ id: string; name: string; modelCount: number; requiresApiKey: boolean }> {
-    return Object.values(LLM_PROVIDERS).map(provider => ({
+    return Object.values(LLM_PROVIDERS).map((provider) => ({
       id: provider.id,
       name: provider.name,
       modelCount: provider.models.length,
@@ -245,9 +245,7 @@ export class LLMService {
       return undefined;
     }
 
-    const apiKey = user.apiKeys.find(
-      key => key.provider === provider && key.isActive
-    );
+    const apiKey = user.apiKeys.find((key) => key.provider === provider && key.isActive);
     return apiKey?.key || undefined;
   }
 
@@ -255,7 +253,15 @@ export class LLMService {
    * Generate response from LLM
    */
   async generate(options: LLMGenerateOptions): Promise<LLMResponse> {
-    const { provider, model, messages, temperature = 0.7, maxTokens = 1000, userId, apiKey } = options;
+    const {
+      provider,
+      model,
+      messages,
+      temperature = 0.7,
+      maxTokens = 1000,
+      userId,
+      apiKey,
+    } = options;
 
     // Validate provider
     if (!LLM_PROVIDERS[provider]) {
@@ -274,22 +280,34 @@ export class LLMService {
         'llm.provider': provider,
         'llm.model': model,
         'user.id': userId || 'unknown',
-      }
+      },
     });
     try {
       switch (provider) {
-      case 'openai':
-        return await this.generateOpenAI(model, messages, temperature, maxTokens, resolvedApiKey);
-      case 'anthropic':
-        return await this.generateAnthropic(model, messages, temperature, maxTokens, resolvedApiKey);
-      case 'gemini':
-        return await this.generateGemini(model, messages, temperature, maxTokens, resolvedApiKey);
-      case 'together':
-        return await this.generateTogether(model, messages, temperature, maxTokens, resolvedApiKey);
-      case 'cohere':
-        return await this.generateCohere(model, messages, temperature, maxTokens, resolvedApiKey);
-      default:
-        throw new Error(`Provider '${provider}' is not implemented`);
+        case 'openai':
+          return await this.generateOpenAI(model, messages, temperature, maxTokens, resolvedApiKey);
+        case 'anthropic':
+          return await this.generateAnthropic(
+            model,
+            messages,
+            temperature,
+            maxTokens,
+            resolvedApiKey
+          );
+        case 'gemini':
+          return await this.generateGemini(model, messages, temperature, maxTokens, resolvedApiKey);
+        case 'together':
+          return await this.generateTogether(
+            model,
+            messages,
+            temperature,
+            maxTokens,
+            resolvedApiKey
+          );
+        case 'cohere':
+          return await this.generateCohere(model, messages, temperature, maxTokens, resolvedApiKey);
+        default:
+          throw new Error(`Provider '${provider}' is not implemented`);
       }
     } finally {
       span.end();
@@ -306,13 +324,13 @@ export class LLMService {
     backoff = 1000
   ): Promise<T> {
     let lastError: any;
-    
+
     for (let i = 0; i <= retries; i++) {
       try {
         return await operation();
       } catch (error: any) {
         lastError = error;
-        
+
         // Don't retry on auth errors or bad requests
         if (error.status === 401 || error.status === 403 || error.status === 400) {
           throw error;
@@ -322,10 +340,10 @@ export class LLMService {
 
         logger.warn(`LLM operation failed, retrying (${i + 1}/${retries})`, {
           context,
-          error: error.message
+          error: error.message,
         });
 
-        await new Promise(resolve => setTimeout(resolve, backoff * Math.pow(1.5, i)));
+        await new Promise((resolve) => setTimeout(resolve, backoff * Math.pow(1.5, i)));
       }
     }
 
@@ -343,9 +361,7 @@ export class LLMService {
     apiKey?: string
   ): Promise<LLMResponse> {
     // Use provided API key or system client
-    const client = apiKey
-      ? new OpenAI({ apiKey })
-      : this.openaiClient;
+    const client = apiKey ? new OpenAI({ apiKey }) : this.openaiClient;
 
     if (!client) {
       throw new Error('OpenAI API key not configured. Please add your API key in settings.');
@@ -374,11 +390,23 @@ export class LLMService {
     } catch (error: unknown) {
       logger.error('OpenAI API Error', { error: getErrorMessage(error) });
       const msg = getErrorMessage(error);
-      if (msg.toLowerCase().includes('insufficient_quota') || msg.toLowerCase().includes('billing') || msg.toLowerCase().includes('credit')) {
-        throw new Error(`AI_BILLING_ERROR: The OpenAI account has insufficient quota. Please top up at platform.openai.com/billing.`);
+      if (
+        msg.toLowerCase().includes('insufficient_quota') ||
+        msg.toLowerCase().includes('billing') ||
+        msg.toLowerCase().includes('credit')
+      ) {
+        throw new Error(
+          `AI_BILLING_ERROR: The OpenAI account has insufficient quota. Please top up at platform.openai.com/billing.`
+        );
       }
-      if ((error as any)?.status === 429 || msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('too many requests')) {
-        throw new Error(`AI_RATE_LIMIT_ERROR: Too many requests to OpenAI. Please wait a moment before trying again.`);
+      if (
+        (error as any)?.status === 429 ||
+        msg.toLowerCase().includes('rate limit') ||
+        msg.toLowerCase().includes('too many requests')
+      ) {
+        throw new Error(
+          `AI_RATE_LIMIT_ERROR: Too many requests to OpenAI. Please wait a moment before trying again.`
+        );
       }
       throw new Error(`OpenAI API Error: ${msg}`);
     }
@@ -395,9 +423,7 @@ export class LLMService {
     apiKey?: string
   ): Promise<LLMResponse> {
     // Use provided API key or system client
-    const client = apiKey
-      ? new Anthropic({ apiKey })
-      : this.anthropicClient;
+    const client = apiKey ? new Anthropic({ apiKey }) : this.anthropicClient;
 
     if (!client) {
       throw new Error('Anthropic API key not configured. Please add your API key in settings.');
@@ -409,16 +435,16 @@ export class LLMService {
       'claude-3-opus-20240229': 'claude-opus-4-20250514',
       'claude-3-haiku-20240307': 'claude-3-haiku-20240307',
     };
-    
+
     const resolvedModel = modelMapping[model] || model;
 
     try {
       return await this.withRetry(async () => {
         // Convert OpenAI format to Anthropic format
-        const systemMessage = messages.find(msg => msg.role === 'system');
+        const systemMessage = messages.find((msg) => msg.role === 'system');
         const conversationMessages = messages
-          .filter(msg => msg.role !== 'system')
-          .map(msg => ({
+          .filter((msg) => msg.role !== 'system')
+          .map((msg) => ({
             role: msg.role as 'user' | 'assistant',
             content: msg.content,
           }));
@@ -447,11 +473,23 @@ export class LLMService {
     } catch (error: unknown) {
       logger.error('Anthropic API Error', { error: getErrorMessage(error) });
       const msg = getErrorMessage(error);
-      if (msg.toLowerCase().includes('credit balance is too low') || msg.toLowerCase().includes('insufficient credits') || msg.toLowerCase().includes('billing')) {
-        throw new Error(`AI_BILLING_ERROR: The Anthropic account has insufficient credits. Please top up at console.anthropic.com/settings/billing.`);
+      if (
+        msg.toLowerCase().includes('credit balance is too low') ||
+        msg.toLowerCase().includes('insufficient credits') ||
+        msg.toLowerCase().includes('billing')
+      ) {
+        throw new Error(
+          `AI_BILLING_ERROR: The Anthropic account has insufficient credits. Please top up at console.anthropic.com/settings/billing.`
+        );
       }
-      if ((error as any)?.status === 429 || msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('too many requests')) {
-        throw new Error(`AI_RATE_LIMIT_ERROR: Too many requests to Anthropic. Please wait a moment before trying again.`);
+      if (
+        (error as any)?.status === 429 ||
+        msg.toLowerCase().includes('rate limit') ||
+        msg.toLowerCase().includes('too many requests')
+      ) {
+        throw new Error(
+          `AI_RATE_LIMIT_ERROR: Too many requests to Anthropic. Please wait a moment before trying again.`
+        );
       }
       throw new Error(`Anthropic API Error: ${msg}`);
     }
@@ -470,21 +508,23 @@ export class LLMService {
     }
 
     const systemText = messages
-      .filter(msg => msg.role === 'system')
-      .map(msg => msg.content)
+      .filter((msg) => msg.role === 'system')
+      .map((msg) => msg.content)
       .join('\n\n');
 
     const contents = messages
-      .filter(msg => msg.role !== 'system')
-      .map(msg => ({
+      .filter((msg) => msg.role !== 'system')
+      .map((msg) => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.content }],
       }));
 
     try {
       return await this.withRetry(async () => {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
-        
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
+          model
+        )}:generateContent?key=${encodeURIComponent(key)}`;
+
         // Use a longer timeout for Gemini (60s) to avoid 502s on long generations
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 60000);
@@ -511,11 +551,12 @@ export class LLMService {
             throw new Error(`Gemini API error: ${resp.status} - ${errorText}`);
           }
 
-          const data = await resp.json() as any;
-          const text = (data.candidates?.[0]?.content?.parts || [])
-            .map((p: any) => p?.text)
-            .filter(Boolean)
-            .join('') || '';
+          const data = (await resp.json()) as any;
+          const text =
+            (data.candidates?.[0]?.content?.parts || [])
+              .map((p: any) => p?.text)
+              .filter(Boolean)
+              .join('') || '';
 
           return {
             content: text,
@@ -534,11 +575,23 @@ export class LLMService {
     } catch (error: unknown) {
       logger.error('Gemini API Error', { error: getErrorMessage(error) });
       const msg = getErrorMessage(error);
-      if (msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('billing') || msg.toLowerCase().includes('resource has been exhausted')) {
-        throw new Error(`AI_BILLING_ERROR: The Google Gemini quota has been exhausted. Please check your quota at console.cloud.google.com.`);
+      if (
+        msg.toLowerCase().includes('quota') ||
+        msg.toLowerCase().includes('billing') ||
+        msg.toLowerCase().includes('resource has been exhausted')
+      ) {
+        throw new Error(
+          `AI_BILLING_ERROR: The Google Gemini quota has been exhausted. Please check your quota at console.cloud.google.com.`
+        );
       }
-      if (msg.toLowerCase().includes('rate') || msg.toLowerCase().includes('too many') || msg.includes('429')) {
-        throw new Error(`AI_RATE_LIMIT_ERROR: Gemini API is rate limited. Please wait a moment before trying again.`);
+      if (
+        msg.toLowerCase().includes('rate') ||
+        msg.toLowerCase().includes('too many') ||
+        msg.includes('429')
+      ) {
+        throw new Error(
+          `AI_RATE_LIMIT_ERROR: Gemini API is rate limited. Please wait a moment before trying again.`
+        );
       }
       throw new Error(`Gemini API Error: ${msg}`);
     }
@@ -585,11 +638,23 @@ export class LLMService {
     } catch (error: unknown) {
       logger.error('Together AI API Error', { error: getErrorMessage(error) });
       const msg = getErrorMessage(error);
-      if (msg.toLowerCase().includes('insufficient') || msg.toLowerCase().includes('billing') || msg.toLowerCase().includes('credit')) {
-        throw new Error(`AI_BILLING_ERROR: The Together AI account has insufficient credits. Please top up at api.together.xyz/settings/billing.`);
+      if (
+        msg.toLowerCase().includes('insufficient') ||
+        msg.toLowerCase().includes('billing') ||
+        msg.toLowerCase().includes('credit')
+      ) {
+        throw new Error(
+          `AI_BILLING_ERROR: The Together AI account has insufficient credits. Please top up at api.together.xyz/settings/billing.`
+        );
       }
-      if ((error as any)?.status === 429 || msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('too many requests')) {
-        throw new Error(`AI_RATE_LIMIT_ERROR: Too many requests to Together AI. Please wait a moment before trying again.`);
+      if (
+        (error as any)?.status === 429 ||
+        msg.toLowerCase().includes('rate limit') ||
+        msg.toLowerCase().includes('too many requests')
+      ) {
+        throw new Error(
+          `AI_RATE_LIMIT_ERROR: Too many requests to Together AI. Please wait a moment before trying again.`
+        );
       }
       throw new Error(`Together AI API Error: ${msg}`);
     }
@@ -628,9 +693,9 @@ export class LLMService {
 
     const currentMessage = lastMessage.content;
 
-    const chatHistory = historyMessages.map(msg => ({
-      role: msg.role === 'user' ? 'USER' : (msg.role === 'assistant' ? 'CHATBOT' : 'SYSTEM'),
-      message: msg.content
+    const chatHistory = historyMessages.map((msg) => ({
+      role: msg.role === 'user' ? 'USER' : msg.role === 'assistant' ? 'CHATBOT' : 'SYSTEM',
+      message: msg.content,
     }));
 
     try {
@@ -638,9 +703,9 @@ export class LLMService {
         const response = await fetch('https://api.cohere.ai/v1/chat', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${key}`,
+            Authorization: `Bearer ${key}`,
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            Accept: 'application/json',
           },
           body: JSON.stringify({
             model,
@@ -648,7 +713,7 @@ export class LLMService {
             chat_history: chatHistory,
             temperature,
             max_tokens: maxTokens,
-          })
+          }),
         });
 
         if (!response.ok) {
@@ -656,14 +721,16 @@ export class LLMService {
           throw new Error(`Cohere API error: ${response.status} - ${JSON.stringify(errorData)}`);
         }
 
-        const data = await response.json() as any;
+        const data = (await response.json()) as any;
 
         return {
           content: data.text || '',
           usage: {
             promptTokens: data.meta?.billed_units?.input_tokens,
             completionTokens: data.meta?.billed_units?.output_tokens,
-            totalTokens: (data.meta?.billed_units?.input_tokens || 0) + (data.meta?.billed_units?.output_tokens || 0),
+            totalTokens:
+              (data.meta?.billed_units?.input_tokens || 0) +
+              (data.meta?.billed_units?.output_tokens || 0),
           },
           model,
           provider: 'cohere',
@@ -696,7 +763,9 @@ export class LLMService {
     } = options;
 
     const reviewPrompts = {
-      comprehensive: `Please perform a comprehensive code review of the following ${language || 'code'}. Analyze:
+      comprehensive: `Please perform a comprehensive code review of the following ${
+        language || 'code'
+      }. Analyze:
 1. Code quality and best practices
 2. Security vulnerabilities
 3. Performance optimizations
@@ -710,7 +779,9 @@ Code:
 \`\`\`${language}
 ${code}
 \`\`\``,
-      security: `Please perform a security-focused code review of the following ${language || 'code'}. Focus on:
+      security: `Please perform a security-focused code review of the following ${
+        language || 'code'
+      }. Focus on:
 1. Security vulnerabilities (OWASP Top 10)
 2. Input validation issues
 3. Authentication and authorization flaws
@@ -722,7 +793,9 @@ Code:
 \`\`\`${language}
 ${code}
 \`\`\``,
-      performance: `Please perform a performance-focused code review of the following ${language || 'code'}. Analyze:
+      performance: `Please perform a performance-focused code review of the following ${
+        language || 'code'
+      }. Analyze:
 1. Algorithm efficiency
 2. Memory usage optimization
 3. Database query optimization
@@ -734,7 +807,9 @@ Code:
 \`\`\`${language}
 ${code}
 \`\`\``,
-      style: `Please perform a code style and maintainability review of the following ${language || 'code'}. Focus on:
+      style: `Please perform a code style and maintainability review of the following ${
+        language || 'code'
+      }. Focus on:
 1. Code formatting and consistency
 2. Naming conventions
 3. Code organization
@@ -751,7 +826,8 @@ ${code}
     const messages: ChatMessage[] = [
       {
         role: 'system',
-        content: 'You are an expert code reviewer with extensive experience in software development, security, and best practices. Provide detailed, actionable feedback.',
+        content:
+          'You are an expert code reviewer with extensive experience in software development, security, and best practices. Provide detailed, actionable feedback.',
       },
       {
         role: 'user',
@@ -759,7 +835,8 @@ ${code}
       },
     ];
 
-    const selectedModel = model || (provider === 'openai' ? 'gpt-4-turbo' : 'claude-sonnet-4-20250514');
+    const selectedModel =
+      model || (provider === 'openai' ? 'gpt-4-turbo' : 'claude-sonnet-4-20250514');
 
     return this.generate({
       provider,

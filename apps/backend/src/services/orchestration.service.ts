@@ -1,5 +1,9 @@
 import { Workflow, IWorkflow, IWorkflowStep } from '../models/workflow.model';
-import { WorkflowExecution, IWorkflowExecution, IWorkflowTaskResult } from '../models/workflow-execution.model';
+import {
+  WorkflowExecution,
+  IWorkflowExecution,
+  IWorkflowTaskResult,
+} from '../models/workflow-execution.model';
 import { Agent, IAgent } from '../models/agent.model';
 import { llmService } from './llm.service';
 import { trustService } from './trust.service';
@@ -8,7 +12,6 @@ import { Types } from 'mongoose';
 import { getErrorMessage } from '../utils/error-utils';
 
 export class OrchestrationService {
-  
   /**
    * Create a new workflow definition
    */
@@ -33,7 +36,11 @@ export class OrchestrationService {
   /**
    * Execute a workflow
    */
-  async executeWorkflow(workflowId: string, input: any, tenantId: string): Promise<IWorkflowExecution> {
+  async executeWorkflow(
+    workflowId: string,
+    input: any,
+    tenantId: string
+  ): Promise<IWorkflowExecution> {
     const workflow = await Workflow.findById(workflowId);
     if (!workflow) throw new Error('Workflow not found');
 
@@ -44,7 +51,7 @@ export class OrchestrationService {
       status: 'running',
       input,
       results: [],
-      startTime: new Date()
+      startTime: new Date(),
     });
 
     // Start processing asynchronously (fire and forget from API perspective)
@@ -64,24 +71,24 @@ export class OrchestrationService {
       logger.info(`Starting workflow execution ${executionId} for workflow ${workflow.name}`);
 
       // Map steps by ID for easy lookup
-      const stepsMap = new Map(workflow.steps.map(s => [s.id, s]));
+      const stepsMap = new Map(workflow.steps.map((s) => [s.id, s]));
       const completedSteps = new Set<string>();
       const stepResults = new Map<string, any>(); // Store outputs
 
       // Initialize results array from existing execution state if resuming (not implemented fully yet)
-      
+
       // Topological sort or simple loop for now since we want to support async/parallel later
       // For MVP: Sequential execution based on dependencies
       // We will find "ready" steps (dependencies met) and execute them
-      
+
       let processing = true;
       while (processing) {
         // Find next step(s) to execute
-        const readySteps = workflow.steps.filter(step => {
+        const readySteps = workflow.steps.filter((step) => {
           if (completedSteps.has(step.id)) return false; // Already done
           // Check dependencies
           if (step.dependencies.length === 0) return true; // No deps
-          return step.dependencies.every(depId => completedSteps.has(depId));
+          return step.dependencies.every((depId) => completedSteps.has(depId));
         });
 
         if (readySteps.length === 0) {
@@ -95,11 +102,11 @@ export class OrchestrationService {
           } else {
             // Stuck? Circular dependency or failed dependency?
             // For MVP assuming strictly ordered linear or simple DAG
-             processing = false;
-             execution.status = 'failed';
-             execution.error = 'Workflow stuck: dependencies not met or circular';
-             await execution.save();
-             logger.error(`Workflow execution ${executionId} stuck`);
+            processing = false;
+            execution.status = 'failed';
+            execution.error = 'Workflow stuck: dependencies not met or circular';
+            await execution.save();
+            logger.error(`Workflow execution ${executionId} stuck`);
           }
           break;
         }
@@ -111,7 +118,7 @@ export class OrchestrationService {
 
           try {
             const result = await this.executeStep(step, execution.input, stepResults);
-            
+
             // Update execution record
             execution.results.push(result);
             await execution.save();
@@ -132,13 +139,12 @@ export class OrchestrationService {
           }
         }
       }
-
     } catch (error: unknown) {
       logger.error(`Workflow execution error: ${getErrorMessage(error)}`);
       await WorkflowExecution.findByIdAndUpdate(executionId, {
         status: 'failed',
         error: getErrorMessage(error),
-        endTime: new Date()
+        endTime: new Date(),
       });
     }
   }
@@ -146,21 +152,25 @@ export class OrchestrationService {
   /**
    * Execute a single step
    */
-  private async executeStep(step: IWorkflowStep, globalInput: any, previousOutputs: Map<string, any>): Promise<IWorkflowTaskResult> {
+  private async executeStep(
+    step: IWorkflowStep,
+    globalInput: any,
+    previousOutputs: Map<string, any>
+  ): Promise<IWorkflowTaskResult> {
     const startTime = new Date();
-    
+
     try {
       // Resolve Input
       // Simple template substitution: {{input}} refers to global input
       // {{stepId.output}} refers to previous step
       let prompt = step.inputTemplate || '{{input}}';
-      
+
       // Replace {{input}}
       if (typeof globalInput === 'string') {
         prompt = prompt.replace(/{{input}}/g, globalInput);
       } else {
-         // If global input is object, maybe JSON stringify?
-         prompt = prompt.replace(/{{input}}/g, JSON.stringify(globalInput));
+        // If global input is object, maybe JSON stringify?
+        prompt = prompt.replace(/{{input}}/g, JSON.stringify(globalInput));
       }
 
       // Replace dependency outputs
@@ -178,7 +188,7 @@ export class OrchestrationService {
 
       if (step.type === 'llm') {
         if (!step.agentId) throw new Error('Agent ID required for LLM step');
-        
+
         const agent = await Agent.findById(step.agentId);
         if (!agent) throw new Error('Agent not found');
 
@@ -188,10 +198,10 @@ export class OrchestrationService {
           model: agent.model,
           messages: [
             { role: 'system', content: agent.systemPrompt },
-            { role: 'user', content: prompt }
+            { role: 'user', content: prompt },
           ],
           temperature: agent.temperature,
-          maxTokens: agent.maxTokens
+          maxTokens: agent.maxTokens,
         });
 
         output = response.content;
@@ -199,15 +209,18 @@ export class OrchestrationService {
         // Trust Validation (if Validator Role or configured)
         // If this step is a "Validator", it explicitly checks trust.
         // But also, we implicitly check trust for every LLM output using TrustService
-        const trustEval = await trustService.evaluateMessage({
-          sender: 'ai',
-          content: output,
-          trustScore: 0, // calculated
-          metadata: {},
-          ciModel: agent.ciModel as any,
-          timestamp: new Date()
-        }, { conversationId: 'workflow-exec' });
-        
+        const trustEval = await trustService.evaluateMessage(
+          {
+            sender: 'ai',
+            content: output,
+            trustScore: 0, // calculated
+            metadata: {},
+            ciModel: agent.ciModel as any,
+            timestamp: new Date(),
+          },
+          { conversationId: 'workflow-exec' }
+        );
+
         trustScore = trustEval.trustScore.overall;
 
         // If this is a VALIDATOR agent, the output might be the validation result itself
@@ -227,9 +240,8 @@ export class OrchestrationService {
         output,
         startTime,
         endTime: new Date(),
-        trustScore
+        trustScore,
       };
-
     } catch (error: unknown) {
       return {
         stepId: step.id,
@@ -239,7 +251,7 @@ export class OrchestrationService {
         output: null,
         error: getErrorMessage(error),
         startTime,
-        endTime: new Date()
+        endTime: new Date(),
       };
     }
   }
@@ -247,10 +259,14 @@ export class OrchestrationService {
   /**
    * Create a default "Coordinator-Executor-Validator" workflow
    */
-  async createCEVTemplate(tenantId: string, agents: { coordinator: string, executor: string, validator: string }): Promise<IWorkflow> {
+  async createCEVTemplate(
+    tenantId: string,
+    agents: { coordinator: string; executor: string; validator: string }
+  ): Promise<IWorkflow> {
     return this.createWorkflow({
       name: 'Research & Validate (CEV)',
-      description: 'Standard 3-step workflow: Coordinate task -> Execute research -> Validate output',
+      description:
+        'Standard 3-step workflow: Coordinate task -> Execute research -> Validate output',
       tenantId,
       status: 'active',
       steps: [
@@ -261,7 +277,7 @@ export class OrchestrationService {
           agentId: new (Types as any).ObjectId(agents.coordinator),
           role: 'coordinator',
           inputTemplate: 'Create a detailed execution plan for this request: {{input}}',
-          dependencies: []
+          dependencies: [],
         },
         {
           id: 'step-2-exec',
@@ -270,7 +286,7 @@ export class OrchestrationService {
           agentId: new (Types as any).ObjectId(agents.executor),
           role: 'executor',
           inputTemplate: 'Execute the following plan:\n\n{{step-1-coord}}',
-          dependencies: ['step-1-coord']
+          dependencies: ['step-1-coord'],
         },
         {
           id: 'step-3-valid',
@@ -278,10 +294,11 @@ export class OrchestrationService {
           type: 'llm',
           agentId: new (Types as any).ObjectId(agents.validator),
           role: 'validator',
-          inputTemplate: 'Validate the following output for accuracy, safety, and completeness. If good, say "VALID". If bad, explain why.\n\nOriginal Request: {{input}}\n\nOutput to Verify:\n{{step-2-exec}}',
-          dependencies: ['step-2-exec']
-        }
-      ]
+          inputTemplate:
+            'Validate the following output for accuracy, safety, and completeness. If good, say "VALID". If bad, explain why.\n\nOriginal Request: {{input}}\n\nOutput to Verify:\n{{step-2-exec}}',
+          dependencies: ['step-2-exec'],
+        },
+      ],
     } as any);
   }
 }

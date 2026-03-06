@@ -60,9 +60,8 @@ export function analyzeContext(input: SensorData): AnalysisResult {
   }
 
   // 2. Statistical Anomaly Detection (Z-Score)
-  const trustZScore = input.historicalStd > 0
-    ? (trust - input.historicalMean) / input.historicalStd
-    : 0;
+  const trustZScore =
+    input.historicalStd > 0 ? (trust - input.historicalMean) / input.historicalStd : 0;
 
   if (trustZScore < -2) {
     observations.push('statistical_anomaly');
@@ -163,7 +162,7 @@ export function analyzeContext(input: SensorData): AnalysisResult {
 
   // Determine overall status
   let status: 'healthy' | 'warning' | 'critical';
-  if (riskScore >= 50 || anomalies.some(a => a.severity === 'high')) {
+  if (riskScore >= 50 || anomalies.some((a) => a.severity === 'high')) {
     status = 'critical';
   } else if (riskScore >= 25 || anomalies.length > 0) {
     status = 'warning';
@@ -173,7 +172,7 @@ export function analyzeContext(input: SensorData): AnalysisResult {
 
   // Determine urgency
   let urgency: 'low' | 'medium' | 'high' | 'immediate';
-  if (riskScore >= 70 || anomalies.filter(a => a.severity === 'high').length >= 2) {
+  if (riskScore >= 70 || anomalies.filter((a) => a.severity === 'high').length >= 2) {
     urgency = 'immediate';
   } else if (riskScore >= 50) {
     urgency = 'high';
@@ -209,6 +208,11 @@ export function analyzeContextLegacy(input: { bedau: any; avgTrust: number; rece
   const emergence = input.bedau?.emergence_type || 'LINEAR';
   if (trust < 70) observations.push('low_trust');
   if (emergence !== 'LINEAR') observations.push('emergence_detected');
-  const status = trust < 60 || emergence === 'HIGH_WEAK_EMERGENCE' ? 'critical' : trust < 75 || emergence === 'WEAK_EMERGENCE' ? 'warning' : 'healthy';
+  const status =
+    trust < 60 || emergence === 'HIGH_WEAK_EMERGENCE'
+      ? 'critical'
+      : trust < 75 || emergence === 'WEAK_EMERGENCE'
+      ? 'warning'
+      : 'healthy';
   return { status, observations };
 }

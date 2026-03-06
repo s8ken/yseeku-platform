@@ -1,6 +1,6 @@
 /**
  * SSO Routes - OpenID Connect Authentication
- * 
+ *
  * Handles SSO login flow:
  * - List available providers
  * - Initiate login
@@ -32,7 +32,7 @@ const JWT_EXPIRES_SECONDS = 7 * 24 * 60 * 60; // 7 days in seconds
  */
 router.get('/providers', (req: Request, res: Response) => {
   const providers = ssoService.listProviders();
-  
+
   res.json({
     success: true,
     data: {
@@ -56,13 +56,13 @@ router.get('/login/:provider', async (req: Request, res: Response) => {
       res.status(404).json({
         success: false,
         error: `SSO provider '${provider}' not available`,
-        availableProviders: ssoService.listProviders().map(p => p.name),
+        availableProviders: ssoService.listProviders().map((p) => p.name),
       });
       return;
     }
 
     const { url, state } = await ssoService.startLogin(
-      String(provider), 
+      String(provider),
       returnUrl ? String(returnUrl) : undefined
     );
 
@@ -97,7 +97,9 @@ router.get('/callback/:provider', async (req: Request, res: Response) => {
     // Check for OAuth error
     if (error) {
       logger.warn('SSO callback error from provider', { provider, error, error_description });
-      res.redirect(`${FRONTEND_URL}/login?error=${encodeURIComponent(String(error_description || error))}`);
+      res.redirect(
+        `${FRONTEND_URL}/login?error=${encodeURIComponent(String(error_description || error))}`
+      );
       return;
     }
 
@@ -109,9 +111,13 @@ router.get('/callback/:provider', async (req: Request, res: Response) => {
     // Verify state matches cookie
     const cookieState = req.cookies?.sso_state;
     const [sessionState] = String(state).split(':');
-    
+
     if (cookieState && cookieState !== sessionState) {
-      logger.warn('SSO state mismatch', { provider, expected: cookieState, received: sessionState });
+      logger.warn('SSO state mismatch', {
+        provider,
+        expected: cookieState,
+        received: sessionState,
+      });
       res.redirect(`${FRONTEND_URL}/login?error=state_mismatch`);
       return;
     }
@@ -128,11 +134,8 @@ router.get('/callback/:provider', async (req: Request, res: Response) => {
 
     // Find or create user
     const providerStr = String(provider);
-    let dbUser = await UserModel.findOne({ 
-      $or: [
-        { ssoId: user.sub, ssoProvider: providerStr },
-        { email: user.email }
-      ]
+    let dbUser = await UserModel.findOne({
+      $or: [{ ssoId: user.sub, ssoProvider: providerStr }, { email: user.email }],
     });
 
     if (!dbUser && user.email) {
@@ -286,13 +289,13 @@ router.get('/logout/:provider', async (req: Request, res: Response) => {
  */
 router.get('/status', (req: Request, res: Response) => {
   const providers = ssoService.listProviders();
-  
+
   res.json({
     success: true,
     data: {
       enabled: providers.length > 0,
       providerCount: providers.length,
-      providers: providers.map(p => p.name),
+      providers: providers.map((p) => p.name),
       features: {
         pkce: true,
         refreshTokens: true,

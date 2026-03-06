@@ -1,7 +1,10 @@
 type Bucket = { tokens: number; last: number };
 const buckets: Record<string, Bucket> = {};
 
-export function allow(userId: string, maxPerSec = Number(process.env.SOCKET_RPS_MAX) || 5): boolean {
+export function allow(
+  userId: string,
+  maxPerSec = Number(process.env.SOCKET_RPS_MAX) || 5
+): boolean {
   const now = Date.now();
   const b = buckets[userId] || { tokens: maxPerSec, last: now };
   const refill = ((now - b.last) / 1000) * maxPerSec;
@@ -15,4 +18,3 @@ export function allow(userId: string, maxPerSec = Number(process.env.SOCKET_RPS_
   buckets[userId] = b;
   return false;
 }
-

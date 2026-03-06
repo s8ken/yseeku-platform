@@ -1,6 +1,6 @@
 /**
  * Policy Audit Routes
- * 
+ *
  * Audit trail and compliance reporting using @sonate/policy
  */
 
@@ -33,28 +33,33 @@ router.get('/', protect, (req: Request, res: Response): void => {
  * POST /api/policy-audit/compliance-report
  * Generate a compliance report for a time period
  */
-router.post('/compliance-report', protect, requireRole(['admin', 'operator']), async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { startDate, endDate } = req.body;
+router.post(
+  '/compliance-report',
+  protect,
+  requireRole(['admin', 'operator']),
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { startDate, endDate } = req.body;
 
-    if (!startDate || !endDate) {
-      res.status(400).json({ success: false, error: 'startDate and endDate required' });
-      return;
+      if (!startDate || !endDate) {
+        res.status(400).json({ success: false, error: 'startDate and endDate required' });
+        return;
+      }
+
+      const report = auditLogger.generateReport(new Date(startDate), new Date(endDate));
+
+      logger.info('Compliance report generated', {
+        period: `${startDate} → ${endDate}`,
+        evaluations: report.summary.totalEvaluations,
+      });
+
+      res.json({ success: true, data: report });
+    } catch (error) {
+      logger.error('Compliance report generation failed', { error: getErrorMessage(error) });
+      res.status(500).json({ success: false, error: 'Failed to generate report' });
     }
-
-    const report = auditLogger.generateReport(new Date(startDate), new Date(endDate));
-
-    logger.info('Compliance report generated', {
-      period: `${startDate} → ${endDate}`,
-      evaluations: report.summary.totalEvaluations,
-    });
-
-    res.json({ success: true, data: report });
-  } catch (error) {
-    logger.error('Compliance report generation failed', { error: getErrorMessage(error) });
-    res.status(500).json({ success: false, error: 'Failed to generate report' });
   }
-});
+);
 
 export { auditLogger };
 export default router;

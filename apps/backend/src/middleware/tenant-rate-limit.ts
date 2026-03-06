@@ -1,11 +1,11 @@
 /**
  * Tenant-Aware Rate Limiting Middleware
- * 
+ *
  * Implements rate limiting with different limits per tenant type:
  * - Demo tenant: Higher limits for showcase purposes
  * - Live tenant: Standard limits for real usage
  * - Default tenant: Standard limits
- * 
+ *
  * Also implements endpoint-specific rate limits for sensitive operations.
  */
 
@@ -43,18 +43,18 @@ const ENDPOINT_LIMITS: Record<string, { windowMs: number; max: number }> = {
   '/api/auth/login': { windowMs: 15 * 60 * 1000, max: 10 }, // 10 per 15 min
   '/api/auth/register': { windowMs: 60 * 60 * 1000, max: 5 }, // 5 per hour
   '/api/auth/guest': { windowMs: 60 * 1000, max: 30 }, // 30 per minute
-  
+
   // LLM endpoints - moderate limits (expensive operations)
   '/api/llm/generate': { windowMs: 60 * 1000, max: 30 }, // 30 per minute
   '/api/conversations': { windowMs: 60 * 1000, max: 60 }, // 60 per minute
-  
+
   // Trust evaluation - moderate limits
   '/api/trust/evaluate': { windowMs: 60 * 1000, max: 100 }, // 100 per minute
-  
+
   // Overseer endpoints - stricter limits
   '/api/overseer/think': { windowMs: 60 * 1000, max: 10 }, // 10 per minute
   '/api/overseer/actions': { windowMs: 60 * 1000, max: 30 }, // 30 per minute
-  
+
   // Demo endpoints - higher limits
   '/api/demo': { windowMs: 60 * 1000, max: 200 }, // 200 per minute
 };
@@ -86,7 +86,7 @@ function tenantKeyGenerator(req: Request): string {
   const tenantId = getTenantId(req);
   const userId = (req as any).userId || 'anonymous';
   const ip = ipKeyGenerator(req.ip || '');
-  
+
   // Combine tenant, user, and IP for unique rate limiting
   return `${tenantId}:${userId}:${ip}`;
 }
@@ -113,7 +113,7 @@ export function createTenantRateLimiter(): RateLimitRequestHandler {
         ip: req.ip,
         path: req.path,
       });
-      
+
       res.status(429).json({
         success: false,
         error: 'Too many requests',
@@ -136,7 +136,7 @@ export function createEndpointRateLimiter(
   config?: { windowMs: number; max: number }
 ): RateLimitRequestHandler {
   const endpointConfig = config || ENDPOINT_LIMITS[endpoint] || TENANT_LIMITS.default;
-  
+
   return rateLimit({
     windowMs: endpointConfig.windowMs,
     max: endpointConfig.max,
@@ -150,7 +150,7 @@ export function createEndpointRateLimiter(
         userId: (req as any).userId,
         ip: req.ip,
       });
-      
+
       res.status(429).json({
         success: false,
         error: 'Too many requests',
@@ -166,16 +166,16 @@ export function createEndpointRateLimiter(
  */
 export function endpointRateLimiter(req: Request, res: Response, next: NextFunction): void {
   // Find matching endpoint config
-  const matchingEndpoint = Object.keys(ENDPOINT_LIMITS).find(endpoint => 
+  const matchingEndpoint = Object.keys(ENDPOINT_LIMITS).find((endpoint) =>
     req.path.startsWith(endpoint)
   );
-  
+
   if (matchingEndpoint) {
     const limiter = createEndpointRateLimiter(matchingEndpoint);
     limiter(req, res, next);
     return;
   }
-  
+
   next();
 }
 
@@ -185,11 +185,11 @@ export function endpointRateLimiter(req: Request, res: Response, next: NextFunct
 export function rateLimitInfo(req: Request, res: Response, next: NextFunction): void {
   const tenantId = getTenantId(req);
   const config = getTenantConfig(tenantId);
-  
+
   // Add custom headers with rate limit info
   res.setHeader('X-RateLimit-Tenant', tenantId);
   res.setHeader('X-RateLimit-Limit', config.max.toString());
-  
+
   next();
 }
 

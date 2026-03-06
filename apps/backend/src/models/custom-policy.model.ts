@@ -1,6 +1,6 @@
 /**
  * Custom Policy Rule Model
- * 
+ *
  * Stores tenant-specific policy rules that extend the base SONATE framework.
  * Allows enterprises to define their own evaluation criteria.
  */
@@ -8,12 +8,12 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export type RuleSeverity = 'critical' | 'high' | 'medium' | 'low';
-export type RuleConditionType = 
-  | 'contains' 
-  | 'not_contains' 
-  | 'regex' 
-  | 'sentiment' 
-  | 'length_min' 
+export type RuleConditionType =
+  | 'contains'
+  | 'not_contains'
+  | 'regex'
+  | 'sentiment'
+  | 'length_min'
   | 'length_max'
   | 'keyword_density'
   | 'custom_function';
@@ -47,26 +47,38 @@ export interface CustomPolicyRuleDocument extends CustomPolicyRule, Document {
   updatedAt: Date;
 }
 
-const RuleConditionSchema = new Schema({
-  type: {
-    type: String,
-    enum: ['contains', 'not_contains', 'regex', 'sentiment', 'length_min', 'length_max', 'keyword_density', 'custom_function'],
-    required: true,
+const RuleConditionSchema = new Schema(
+  {
+    type: {
+      type: String,
+      enum: [
+        'contains',
+        'not_contains',
+        'regex',
+        'sentiment',
+        'length_min',
+        'length_max',
+        'keyword_density',
+        'custom_function',
+      ],
+      required: true,
+    },
+    field: {
+      type: String,
+      enum: ['prompt', 'response', 'combined'],
+      required: true,
+    },
+    value: {
+      type: Schema.Types.Mixed,
+      required: true,
+    },
+    caseSensitive: {
+      type: Boolean,
+      default: false,
+    },
   },
-  field: {
-    type: String,
-    enum: ['prompt', 'response', 'combined'],
-    required: true,
-  },
-  value: {
-    type: Schema.Types.Mixed,
-    required: true,
-  },
-  caseSensitive: {
-    type: Boolean,
-    default: false,
-  },
-}, { _id: false });
+  { _id: false }
+);
 
 const CustomPolicyRuleSchema = new Schema<CustomPolicyRuleDocument>(
   {

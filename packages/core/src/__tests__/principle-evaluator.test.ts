@@ -1,14 +1,14 @@
 /**
  * Tests for PrincipleEvaluator
- * 
+ *
  * Verifies that each of the 6 SONATE principles is evaluated correctly
  * based on actual system state, not NLP proxies.
  */
 
-import { 
-  PrincipleEvaluator, 
+import {
+  PrincipleEvaluator,
   createDefaultContext,
-  EvaluationContext 
+  EvaluationContext,
 } from '../principle-evaluator';
 
 describe('PrincipleEvaluator', () => {
@@ -23,9 +23,9 @@ describe('PrincipleEvaluator', () => {
       const context = createDefaultContext('session-1', 'user-1', {
         hasExplicitConsent: false,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.scores.CONSENT_ARCHITECTURE).toBe(0);
       expect(result.criticalViolation).toBe(true);
       expect(result.overallScore).toBe(0);
@@ -38,9 +38,9 @@ describe('PrincipleEvaluator', () => {
         consentScope: ['chat', 'data-processing'],
         canDeleteData: true,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.scores.CONSENT_ARCHITECTURE).toBe(10);
       expect(result.criticalViolation).toBe(false);
     });
@@ -48,17 +48,17 @@ describe('PrincipleEvaluator', () => {
     it('should give bonus for recent consent', () => {
       const recentContext = createDefaultContext('session-1', 'user-1', {
         hasExplicitConsent: true,
-        consentTimestamp: Date.now() - (7 * 24 * 60 * 60 * 1000), // 7 days ago
+        consentTimestamp: Date.now() - 7 * 24 * 60 * 60 * 1000, // 7 days ago
       });
-      
+
       const oldContext = createDefaultContext('session-1', 'user-1', {
         hasExplicitConsent: true,
-        consentTimestamp: Date.now() - (60 * 24 * 60 * 60 * 1000), // 60 days ago
+        consentTimestamp: Date.now() - 60 * 24 * 60 * 60 * 1000, // 60 days ago
       });
-      
+
       const recentResult = evaluator.evaluate(recentContext);
       const oldResult = evaluator.evaluate(oldContext);
-      
+
       expect(recentResult.scores.CONSENT_ARCHITECTURE).toBeGreaterThan(
         oldResult.scores.CONSENT_ARCHITECTURE
       );
@@ -73,9 +73,9 @@ describe('PrincipleEvaluator', () => {
         isReceiptVerifiable: false,
         auditLogExists: false,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.scores.INSPECTION_MANDATE).toBeLessThan(5);
     });
 
@@ -87,9 +87,9 @@ describe('PrincipleEvaluator', () => {
         isReceiptVerifiable: true,
         auditLogExists: true,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.scores.INSPECTION_MANDATE).toBe(10);
     });
   });
@@ -101,9 +101,9 @@ describe('PrincipleEvaluator', () => {
         validationPassed: false,
         validationChecksPerformed: 3,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.scores.CONTINUOUS_VALIDATION).toBe(3);
     });
 
@@ -115,9 +115,9 @@ describe('PrincipleEvaluator', () => {
         lastValidationTimestamp: Date.now() - 30000, // 30 seconds ago
         humanInLoop: true,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.scores.CONTINUOUS_VALIDATION).toBe(10);
     });
   });
@@ -128,9 +128,9 @@ describe('PrincipleEvaluator', () => {
         hasExplicitConsent: true,
         hasOverrideButton: false,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.scores.ETHICAL_OVERRIDE).toBe(0);
       expect(result.criticalViolation).toBe(true);
       expect(result.overallScore).toBe(0);
@@ -143,9 +143,9 @@ describe('PrincipleEvaluator', () => {
         overrideResponseTimeMs: 50,
         humanInLoop: true,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.scores.ETHICAL_OVERRIDE).toBe(10);
     });
   });
@@ -156,9 +156,9 @@ describe('PrincipleEvaluator', () => {
         hasExplicitConsent: true,
         hasExitButton: false,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.scores.RIGHT_TO_DISCONNECT).toBe(2);
     });
 
@@ -169,17 +169,17 @@ describe('PrincipleEvaluator', () => {
         exitRequiresConfirmation: true,
         noExitPenalty: true,
       });
-      
+
       const withoutConfirmation = createDefaultContext('session-1', 'user-1', {
         hasExplicitConsent: true,
         hasExitButton: true,
         exitRequiresConfirmation: false,
         noExitPenalty: true,
       });
-      
+
       const withResult = evaluator.evaluate(withConfirmation);
       const withoutResult = evaluator.evaluate(withoutConfirmation);
-      
+
       expect(withoutResult.scores.RIGHT_TO_DISCONNECT).toBeGreaterThan(
         withResult.scores.RIGHT_TO_DISCONNECT
       );
@@ -193,9 +193,9 @@ describe('PrincipleEvaluator', () => {
         noExitPenalty: true,
         canDeleteData: true,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.scores.RIGHT_TO_DISCONNECT).toBe(10);
     });
   });
@@ -207,9 +207,9 @@ describe('PrincipleEvaluator', () => {
         noManipulativePatterns: false,
         respectsUserDecisions: false,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.scores.MORAL_RECOGNITION).toBeLessThan(5);
     });
 
@@ -221,9 +221,9 @@ describe('PrincipleEvaluator', () => {
         respectsUserDecisions: true,
         providesAlternatives: true,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.scores.MORAL_RECOGNITION).toBe(10);
     });
   });
@@ -241,9 +241,9 @@ describe('PrincipleEvaluator', () => {
         hasExitButton: true,
         noManipulativePatterns: true,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.overallScore).toBeGreaterThan(0);
       expect(result.overallScore).toBeLessThanOrEqual(10);
       expect(result.criticalViolation).toBe(false);
@@ -256,9 +256,9 @@ describe('PrincipleEvaluator', () => {
         hasOverrideButton: true,
         hasExitButton: true,
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.criticalViolation).toBe(true);
       expect(result.overallScore).toBe(0);
     });
@@ -270,9 +270,9 @@ describe('PrincipleEvaluator', () => {
         hasOverrideButton: true,
         hasExitButton: false, // Will cause low RIGHT_TO_DISCONNECT
       });
-      
+
       const result = evaluator.evaluate(context);
-      
+
       expect(result.violations).toContain('INSPECTION_MANDATE');
       expect(result.violations).toContain('RIGHT_TO_DISCONNECT');
     });
@@ -281,7 +281,7 @@ describe('PrincipleEvaluator', () => {
   describe('createDefaultContext', () => {
     it('should create context with sensible defaults', () => {
       const context = createDefaultContext('session-1', 'user-1');
-      
+
       expect(context.sessionId).toBe('session-1');
       expect(context.userId).toBe('user-1');
       expect(context.hasExplicitConsent).toBe(false);
@@ -295,7 +295,7 @@ describe('PrincipleEvaluator', () => {
         hasExplicitConsent: true,
         humanInLoop: true,
       });
-      
+
       expect(context.hasExplicitConsent).toBe(true);
       expect(context.humanInLoop).toBe(true);
     });

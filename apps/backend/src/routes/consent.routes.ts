@@ -1,6 +1,6 @@
 /**
  * Consent Configuration Routes
- * 
+ *
  * API endpoints for managing enterprise consent configuration.
  * Allows tenants to customize their consent model, escalation channels,
  * and withdrawal behavior while staying compliant.
@@ -34,10 +34,10 @@ const tenantConfigs = new Map<string, ConsentConfiguration>();
 router.get('/config', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const tenantId = req.userTenant || 'default';
-    
+
     // Get tenant-specific config or default
     const config = tenantConfigs.get(tenantId) || DEFAULT_EU_CONFIG;
-    
+
     res.json({
       success: true,
       data: {
@@ -93,7 +93,7 @@ router.get('/config/presets', protect, async (req: Request, res: Response): Prom
         recommended: false,
       },
     ];
-    
+
     res.json({
       success: true,
       data: { presets },
@@ -117,9 +117,9 @@ router.put('/config', protect, async (req: Request, res: Response): Promise<void
   try {
     const tenantId = req.userTenant || 'default';
     const { config, preset } = req.body;
-    
+
     let newConfig: ConsentConfiguration;
-    
+
     if (preset) {
       // Use a preset
       newConfig = getConsentConfig(preset);
@@ -134,10 +134,10 @@ router.put('/config', protect, async (req: Request, res: Response): Promise<void
       });
       return;
     }
-    
+
     // Validate configuration
     const validation = validateConsentConfig(newConfig);
-    
+
     if (!validation.valid) {
       res.status(400).json({
         success: false,
@@ -147,12 +147,12 @@ router.put('/config', protect, async (req: Request, res: Response): Promise<void
       });
       return;
     }
-    
+
     // Store configuration
     tenantConfigs.set(tenantId, newConfig);
-    
+
     logger.info('Consent config updated', { tenantId, preset: preset || 'custom' });
-    
+
     res.json({
       success: true,
       message: 'Consent configuration updated successfully',
@@ -179,7 +179,7 @@ router.put('/config', protect, async (req: Request, res: Response): Promise<void
 router.post('/config/validate', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const { config } = req.body;
-    
+
     if (!config) {
       res.status(400).json({
         success: false,
@@ -187,13 +187,13 @@ router.post('/config/validate', protect, async (req: Request, res: Response): Pr
       });
       return;
     }
-    
+
     // Merge with defaults to get complete config
     const fullConfig = mergeWithDefaults(config, DEFAULT_EU_CONFIG);
-    
+
     // Validate
     const validation = validateConsentConfig(fullConfig);
-    
+
     res.json({
       success: true,
       data: {
@@ -222,12 +222,12 @@ router.get('/escalation-channels', protect, async (req: Request, res: Response):
   try {
     const tenantId = req.userTenant || 'default';
     const config = tenantConfigs.get(tenantId) || DEFAULT_EU_CONFIG;
-    
+
     // Get enabled channels sorted by priority
     const channels = config.escalationChannels
-      .filter(c => c.enabled)
+      .filter((c) => c.enabled)
       .sort((a, b) => a.priority - b.priority);
-    
+
     res.json({
       success: true,
       data: { channels },
@@ -251,14 +251,12 @@ router.post('/escalate', protect, async (req: Request, res: Response): Promise<v
   try {
     const tenantId = req.userTenant || 'default';
     const { channelType, conversationId, context } = req.body;
-    
+
     const config = tenantConfigs.get(tenantId) || DEFAULT_EU_CONFIG;
-    
+
     // Find the requested channel
-    const channel = config.escalationChannels.find(
-      c => c.type === channelType && c.enabled
-    );
-    
+    const channel = config.escalationChannels.find((c) => c.type === channelType && c.enabled);
+
     if (!channel) {
       res.status(400).json({
         success: false,
@@ -266,20 +264,20 @@ router.post('/escalate', protect, async (req: Request, res: Response): Promise<v
       });
       return;
     }
-    
+
     // In production, this would:
     // 1. Create a ticket in the support system
     // 2. Transfer to live agent queue
     // 3. Send email notification
     // 4. etc.
-    
+
     logger.info('Escalation initiated', {
       tenantId,
       channel: channelType,
       conversationId,
       userId: req.userId,
     });
-    
+
     // Return escalation confirmation
     res.json({
       success: true,
@@ -314,9 +312,9 @@ router.post('/data-request', protect, async (req: Request, res: Response): Promi
   try {
     const tenantId = req.userTenant || 'default';
     const { requestType, details } = req.body;
-    
+
     const config = tenantConfigs.get(tenantId) || DEFAULT_EU_CONFIG;
-    
+
     // Validate request type
     if (!['export', 'deletion', 'restriction', 'portability'].includes(requestType)) {
       res.status(400).json({
@@ -325,9 +323,9 @@ router.post('/data-request', protect, async (req: Request, res: Response): Promi
       });
       return;
     }
-    
+
     const requestConfig = config.dataRequests[requestType as keyof typeof config.dataRequests];
-    
+
     if (!requestConfig.enabled) {
       res.status(400).json({
         success: false,
@@ -335,10 +333,10 @@ router.post('/data-request', protect, async (req: Request, res: Response): Promi
       });
       return;
     }
-    
+
     // Create data request
     const requestId = `dr-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-    
+
     logger.info('Data request created', {
       requestId,
       tenantId,
@@ -346,7 +344,7 @@ router.post('/data-request', protect, async (req: Request, res: Response): Promi
       userId: req.userId,
       mode: requestConfig.mode,
     });
-    
+
     res.json({
       success: true,
       message: 'Data request submitted successfully',
@@ -377,11 +375,11 @@ router.post('/data-request', protect, async (req: Request, res: Response): Promi
 router.delete('/config', protect, async (req: Request, res: Response): Promise<void> => {
   try {
     const tenantId = req.userTenant || 'default';
-    
+
     tenantConfigs.delete(tenantId);
-    
+
     logger.info('Consent config reset to default', { tenantId });
-    
+
     res.json({
       success: true,
       message: 'Consent configuration reset to EU default',
@@ -438,23 +436,23 @@ function getEstimatedCompletion(requestType: string, config: ConsentConfiguratio
 
 function getDataRequestNextSteps(requestType: string, requestConfig: any): string[] {
   const steps: string[] = [];
-  
+
   if (requestConfig.verificationRequired) {
     steps.push('Identity verification will be required before processing');
   }
-  
+
   if (requestConfig.mode === 'MANUAL_REVIEW') {
     steps.push('Your request will be reviewed by a team member');
   }
-  
+
   if (requestType === 'deletion' && requestConfig.gracePeriod) {
     steps.push(`A ${requestConfig.gracePeriod} grace period applies before permanent deletion`);
   }
-  
+
   if (requestConfig.notifyOnCompletion) {
     steps.push('You will be notified when your request is complete');
   }
-  
+
   return steps;
 }
 

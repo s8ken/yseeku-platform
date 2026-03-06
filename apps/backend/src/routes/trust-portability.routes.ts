@@ -1,6 +1,6 @@
 /**
  * Trust Portability API Routes
- * 
+ *
  * Cross-platform trust exchange endpoints:
  * - Export trust data
  * - Import from other platforms
@@ -117,10 +117,7 @@ router.post('/aggregate', protect, async (req: Request, res: Response) => {
       return;
     }
 
-    const aggregated = await trustPortabilityService.aggregateTrust(
-      String(subjectId),
-      sources
-    );
+    const aggregated = await trustPortabilityService.aggregateTrust(String(subjectId), sources);
 
     res.json({
       success: true,

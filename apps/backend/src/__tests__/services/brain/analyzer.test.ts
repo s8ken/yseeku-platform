@@ -67,7 +67,7 @@ describe('Brain Analyzer', () => {
 
       expect(result.status).toBe('critical');
       expect(result.observations).toContain('critical_trust_level');
-      expect(result.anomalies.some(a => a.type === 'trust_critical')).toBe(true);
+      expect(result.anomalies.some((a) => a.type === 'trust_critical')).toBe(true);
       expect(result.riskScore).toBeGreaterThanOrEqual(30);
     });
 
@@ -81,7 +81,7 @@ describe('Brain Analyzer', () => {
 
       // Z-score = (65 - 85) / 5 = -4
       expect(result.observations).toContain('statistical_anomaly');
-      expect(result.anomalies.some(a => a.type === 'zscore_anomaly')).toBe(true);
+      expect(result.anomalies.some((a) => a.type === 'zscore_anomaly')).toBe(true);
       expect(result.context.trustZScore).toBeLessThan(-2);
     });
 
@@ -92,7 +92,7 @@ describe('Brain Analyzer', () => {
       const result = analyzeContext(sensors);
 
       expect(result.observations).toContain('high_emergence_detected');
-      expect(result.anomalies.some(a => a.type === 'emergence_high')).toBe(true);
+      expect(result.anomalies.some((a) => a.type === 'emergence_high')).toBe(true);
       expect(result.riskScore).toBeGreaterThanOrEqual(25);
     });
 
@@ -132,7 +132,7 @@ describe('Brain Analyzer', () => {
       const result = analyzeContext(sensors);
 
       expect(result.observations).toContain('rapid_decline');
-      expect(result.anomalies.some(a => a.type === 'rapid_decline')).toBe(true);
+      expect(result.anomalies.some((a) => a.type === 'rapid_decline')).toBe(true);
     });
 
     it('should detect improving trend and reduce risk', () => {
@@ -162,7 +162,7 @@ describe('Brain Analyzer', () => {
       const result = analyzeContext(sensors);
 
       expect(result.observations).toContain('high_volatility');
-      expect(result.anomalies.some(a => a.type === 'volatility')).toBe(true);
+      expect(result.anomalies.some((a) => a.type === 'volatility')).toBe(true);
     });
 
     it('should detect banned agents', () => {
@@ -299,7 +299,14 @@ describe('Brain Analyzer', () => {
         historicalMean: 90,
         historicalStd: 5,
         trustTrend: { direction: 'declining', slope: -3, volatility: 20, recentChange: -20 },
-        agentHealth: { total: 10, active: 2, banned: 5, restricted: 2, quarantined: 1, avgAgentTrust: 50 },
+        agentHealth: {
+          total: 10,
+          active: 2,
+          banned: 5,
+          restricted: 2,
+          quarantined: 1,
+          avgAgentTrust: 50,
+        },
         activeAlerts: { total: 20, critical: 10, warning: 10, unacknowledged: 15 },
       });
       const result = analyzeContext(badSensors);

@@ -11,41 +11,44 @@ export interface ITenant extends Document {
   updatedAt: Date;
 }
 
-const TenantSchema = new Schema<ITenant>({
-  name: {
-    type: String,
-    required: [true, 'Tenant name is required'],
-    trim: true,
+const TenantSchema = new Schema<ITenant>(
+  {
+    name: {
+      type: String,
+      required: [true, 'Tenant name is required'],
+      trim: true,
+    },
+    description: {
+      type: String,
+      default: '',
+    },
+    status: {
+      type: String,
+      enum: ['active', 'inactive', 'suspended'],
+      default: 'active',
+    },
+    complianceStatus: {
+      type: String,
+      enum: ['compliant', 'warning', 'non-compliant'],
+      default: 'compliant',
+    },
+    trustScore: {
+      type: Number,
+      default: 85,
+      min: 0,
+      max: 100,
+    },
+    lastActivity: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  description: {
-    type: String,
-    default: '',
-  },
-  status: {
-    type: String,
-    enum: ['active', 'inactive', 'suspended'],
-    default: 'active',
-  },
-  complianceStatus: {
-    type: String,
-    enum: ['compliant', 'warning', 'non-compliant'],
-    default: 'compliant',
-  },
-  trustScore: {
-    type: Number,
-    default: 85,
-    min: 0,
-    max: 100,
-  },
-  lastActivity: {
-    type: Date,
-    default: Date.now,
-  },
-}, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true },
-});
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
 
 // Create index for faster lookups
 TenantSchema.index({ name: 1 });

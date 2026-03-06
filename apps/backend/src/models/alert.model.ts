@@ -19,14 +19,23 @@ export interface IAlert extends Document {
 
 const AlertSchema = new Schema<IAlert>({
   tenant_id: { type: String, required: true, index: true },
-  type: { type: String, required: true, enum: ['trust_violation', 'policy_breach', 'emergence_detected', 'consent_withdrawal'] },
+  type: {
+    type: String,
+    required: true,
+    enum: ['trust_violation', 'policy_breach', 'emergence_detected', 'consent_withdrawal'],
+  },
   severity: { type: String, required: true, enum: ['low', 'medium', 'high', 'critical'] },
   title: { type: String, required: true },
   description: { type: String },
   metadata: { type: Schema.Types.Mixed, default: {} },
   receipt_id: { type: String, index: true },
   session_id: { type: String, index: true },
-  status: { type: String, default: 'active', enum: ['active', 'acknowledged', 'resolved'], index: true },
+  status: {
+    type: String,
+    default: 'active',
+    enum: ['active', 'acknowledged', 'resolved'],
+    index: true,
+  },
   acknowledged_by: { type: String },
   acknowledged_at: { type: Date },
   resolved_at: { type: Date },

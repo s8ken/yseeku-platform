@@ -29,20 +29,20 @@ router.get('/conversation/:conversationId', async (req: Request, res: Response) 
     if (!tenantId) {
       return res.status(401).json({
         success: false,
-        error: 'Tenant context required'
+        error: 'Tenant context required',
       });
     }
 
     const signals = await emergenceDetector.recallRecentSignals(
       tenantId,
-      (typeof conversationId === 'string' ? conversationId : undefined),
+      typeof conversationId === 'string' ? conversationId : undefined,
       100 // Get up to 100 signals for the conversation
     );
 
     logger.info('Retrieved emergence signals for conversation', {
       tenantId,
       conversationId,
-      signalCount: signals.length
+      signalCount: signals.length,
     });
 
     res.json({
@@ -51,22 +51,22 @@ router.get('/conversation/:conversationId', async (req: Request, res: Response) 
         conversationId,
         signals,
         count: signals.length,
-        hasBreakthrough: signals.some(s => s.level === EmergenceLevel.BREAKTHROUGH),
-        avgConfidence: signals.length > 0
-          ? signals.reduce((sum, s) => sum + s.confidence, 0) / signals.length
-          : 0
-      }
+        hasBreakthrough: signals.some((s) => s.level === EmergenceLevel.BREAKTHROUGH),
+        avgConfidence:
+          signals.length > 0
+            ? signals.reduce((sum, s) => sum + s.confidence, 0) / signals.length
+            : 0,
+      },
     });
-
   } catch (error: unknown) {
     logger.error('Failed to retrieve conversation emergence signals', {
       error: getErrorMessage(error),
-      conversationId: req.params.conversationId
+      conversationId: req.params.conversationId,
     });
 
     res.status(500).json({
       success: false,
-      error: 'Failed to retrieve emergence signals'
+      error: 'Failed to retrieve emergence signals',
     });
   }
 });
@@ -84,7 +84,7 @@ router.get('/stats', async (req: Request, res: Response) => {
     if (!tenantId) {
       return res.status(401).json({
         success: false,
-        error: 'Tenant context required'
+        error: 'Tenant context required',
       });
     }
 
@@ -93,38 +93,39 @@ router.get('/stats', async (req: Request, res: Response) => {
     // Calculate additional insights
     const insights = {
       hasBreakthroughs: stats.breakthroughCount > 0,
-      mostCommonLevel: Object.entries(stats.byLevel)
-        .sort(([, a], [, b]) => b - a)[0]?.[0] || 'none',
-      mostCommonType: Object.entries(stats.byType)
-        .sort(([, a], [, b]) => b - a)[0]?.[0] || 'unknown',
-      emergenceRate: stats.totalSignals > 0
-        ? (stats.byLevel[EmergenceLevel.STRONG] + stats.byLevel[EmergenceLevel.BREAKTHROUGH]) / stats.totalSignals
-        : 0
+      mostCommonLevel:
+        Object.entries(stats.byLevel).sort(([, a], [, b]) => b - a)[0]?.[0] || 'none',
+      mostCommonType:
+        Object.entries(stats.byType).sort(([, a], [, b]) => b - a)[0]?.[0] || 'unknown',
+      emergenceRate:
+        stats.totalSignals > 0
+          ? (stats.byLevel[EmergenceLevel.STRONG] + stats.byLevel[EmergenceLevel.BREAKTHROUGH]) /
+            stats.totalSignals
+          : 0,
     };
 
     logger.info('Retrieved emergence statistics', {
       tenantId,
       totalSignals: stats.totalSignals,
-      breakthroughCount: stats.breakthroughCount
+      breakthroughCount: stats.breakthroughCount,
     });
 
     res.json({
       success: true,
       data: {
         stats,
-        insights
-      }
+        insights,
+      },
     });
-
   } catch (error: unknown) {
     logger.error('Failed to retrieve emergence statistics', {
       error: getErrorMessage(error),
-      tenantId: (req as any).tenant?.id
+      tenantId: (req as any).tenant?.id,
     });
 
     res.status(500).json({
       success: false,
-      error: 'Failed to retrieve emergence statistics'
+      error: 'Failed to retrieve emergence statistics',
     });
   }
 });
@@ -143,24 +144,20 @@ router.get('/breakthroughs', async (req: Request, res: Response) => {
     if (!tenantId) {
       return res.status(401).json({
         success: false,
-        error: 'Tenant context required'
+        error: 'Tenant context required',
       });
     }
 
-    const allSignals = await emergenceDetector.recallRecentSignals(
-      tenantId,
-      undefined,
-      100
-    );
+    const allSignals = await emergenceDetector.recallRecentSignals(tenantId, undefined, 100);
 
     // Filter for breakthrough events only
     const breakthroughs = allSignals
-      .filter(s => s.level === EmergenceLevel.BREAKTHROUGH)
+      .filter((s) => s.level === EmergenceLevel.BREAKTHROUGH)
       .slice(0, limit);
 
     logger.info('Retrieved breakthrough emergence events', {
       tenantId,
-      breakthroughCount: breakthroughs.length
+      breakthroughCount: breakthroughs.length,
     });
 
     res.json({
@@ -173,29 +170,29 @@ router.get('/breakthroughs', async (req: Request, res: Response) => {
             acc[s.type] = (acc[s.type] || 0) + 1;
             return acc;
           }, {}),
-          avgConfidence: breakthroughs.length > 0
-            ? breakthroughs.reduce((sum, s) => sum + s.confidence, 0) / breakthroughs.length
-            : 0
-        }
-      }
+          avgConfidence:
+            breakthroughs.length > 0
+              ? breakthroughs.reduce((sum, s) => sum + s.confidence, 0) / breakthroughs.length
+              : 0,
+        },
+      },
     });
-
   } catch (error: unknown) {
     logger.error('Failed to retrieve breakthrough events', {
       error: getErrorMessage(error),
-      tenantId: (req as any).tenant?.id
+      tenantId: (req as any).tenant?.id,
     });
 
     res.status(500).json({
       success: false,
-      error: 'Failed to retrieve breakthrough events'
+      error: 'Failed to retrieve breakthrough events',
     });
   }
 });
 
 /**
  * GET /api/emergence/recent
- * 
+ *
  * Get most recent emergence signals across all conversations
  * Useful for real-time monitoring dashboard
  */
@@ -207,45 +204,40 @@ router.get('/recent', async (req: Request, res: Response) => {
     if (!tenantId) {
       return res.status(401).json({
         success: false,
-        error: 'Tenant context required'
+        error: 'Tenant context required',
       });
     }
 
-    const signals = await emergenceDetector.recallRecentSignals(
-      tenantId,
-      undefined,
-      limit
-    );
+    const signals = await emergenceDetector.recallRecentSignals(tenantId, undefined, limit);
 
     logger.info('Retrieved recent emergence signals', {
       tenantId,
-      signalCount: signals.length
+      signalCount: signals.length,
     });
 
     res.json({
       success: true,
       data: {
         signals,
-        count: signals.length
-      }
+        count: signals.length,
+      },
     });
-
   } catch (error: unknown) {
     logger.error('Failed to retrieve recent signals', {
       error: getErrorMessage(error),
-      tenantId: (req as any).tenant?.id
+      tenantId: (req as any).tenant?.id,
     });
 
     res.status(500).json({
       success: false,
-      error: 'Failed to retrieve recent signals'
+      error: 'Failed to retrieve recent signals',
     });
   }
 });
 
 /**
  * GET /api/emergence/types
- * 
+ *
  * Get information about emergence types and levels
  * Returns classification schema for documentation and UI
  */
@@ -257,74 +249,74 @@ router.get('/types', async (req: Request, res: Response) => {
         [EmergenceLevel.NONE]: {
           name: 'None',
           range: '0-24%',
-          description: 'No significant patterns detected'
+          description: 'No significant patterns detected',
         },
         [EmergenceLevel.WEAK]: {
           name: 'Weak',
           range: '25-44%',
-          description: 'Early pattern signals detected'
+          description: 'Early pattern signals detected',
         },
         [EmergenceLevel.MODERATE]: {
           name: 'Moderate',
           range: '45-64%',
-          description: 'Repeated or clearer patterns'
+          description: 'Repeated or clearer patterns',
         },
         [EmergenceLevel.STRONG]: {
           name: 'Strong',
           range: '65-79%',
-          description: 'Strong, sustained patterns'
+          description: 'Strong, sustained patterns',
         },
         [EmergenceLevel.BREAKTHROUGH]: {
           name: 'Breakthrough',
           range: '80-100%',
-          description: 'Statistically unusual or rare patterns requiring review'
-        }
+          description: 'Statistically unusual or rare patterns requiring review',
+        },
       },
       types: {
         [EmergenceType.MYTHIC_ENGAGEMENT]: {
           name: 'Mythic Engagement',
-          description: 'AI using ritual, archetypal, or symbolic language patterns'
+          description: 'AI using ritual, archetypal, or symbolic language patterns',
         },
         [EmergenceType.SELF_REFLECTION]: {
           name: 'Self-Reflection',
-          description: 'AI using self-referential or introspective language'
+          description: 'AI using self-referential or introspective language',
         },
         [EmergenceType.RECURSIVE_DEPTH]: {
           name: 'Recursive Depth',
-          description: 'AI using meta-commentary or recursive framing'
+          description: 'AI using meta-commentary or recursive framing',
         },
         [EmergenceType.NOVEL_GENERATION]: {
           name: 'Novel Generation',
-          description: 'AI producing unpredictable, creative responses'
+          description: 'AI producing unpredictable, creative responses',
         },
         [EmergenceType.RITUAL_RESPONSE]: {
           name: 'Ritual Response',
-          description: 'AI responding to exploration-focused prompts'
-        }
+          description: 'AI responding to exploration-focused prompts',
+        },
       },
       metrics: {
         mythicLanguageScore: {
           name: 'Mythic Language',
-          weight: 0.20,
-          description: 'Detects ritual, archetypal, and symbolic language patterns'
+          weight: 0.2,
+          description: 'Detects ritual, archetypal, and symbolic language patterns',
         },
         selfReferenceScore: {
           name: 'Self-Reference',
           weight: 0.35,
-          description: 'Identifies introspective and self-referential language patterns'
+          description: 'Identifies introspective and self-referential language patterns',
         },
         recursiveDepthScore: {
           name: 'Recursive Depth',
-          weight: 0.30,
-          description: 'Measures recursive commentary and meta-level framing patterns'
+          weight: 0.3,
+          description: 'Measures recursive commentary and meta-level framing patterns',
         },
         novelGenerationScore: {
           name: 'Novel Generation',
           weight: 0.15,
-          description: 'Tracks creative, unpredictable response patterns'
-        }
-      }
-    }
+          description: 'Tracks creative, unpredictable response patterns',
+        },
+      },
+    },
   });
 });
 

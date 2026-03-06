@@ -27,7 +27,7 @@ export async function persistReceipt(
     principle_weights?: Record<string, number>;
     weight_source?: string;
     weight_policy_id?: string;
-  },
+  }
 ): Promise<void> {
   // Unsigned stubs should not be persisted — they would corrupt the chain.
   if (receipt.id === 'unsigned') return;

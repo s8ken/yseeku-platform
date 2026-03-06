@@ -15,6 +15,18 @@ import { canonicalize } from 'json-canonicalize';
 
 import { sha256, sign, verify, bytesToHex, hexToBytes } from './crypto';
 
+function deepFreeze<T>(value: T): T {
+  if (!value || typeof value !== 'object') return value;
+  Object.freeze(value);
+  for (const key of Object.keys(value as Record<string, unknown>)) {
+    const nested = (value as Record<string, unknown>)[key];
+    if (nested && typeof nested === 'object' && !Object.isFrozen(nested)) {
+      deepFreeze(nested);
+    }
+  }
+  return value;
+}
+
 /**
  * Attestation scores for the AI interaction.
  * All scores are user-defined floats between 0 and 1.
@@ -103,9 +115,9 @@ export class TrustReceipt {
     this.agentId = data.agentId ?? null;
     this.promptHash = this.hashContent(data.prompt);
     this.responseHash = this.hashContent(data.response);
-    this.scores = { ...data.scores };
+    this.scores = deepFreeze({ ...data.scores });
     this.prevReceiptHash = data.prevReceiptHash ?? null;
-    this.metadata = data.metadata ?? {};
+    this.metadata = deepFreeze({ ...(data.metadata ?? {}) });
 
     if (data.includeContent) {
       this.promptContent = data.prompt;
@@ -153,6 +165,11 @@ export class TrustReceipt {
    * @param privateKey - 32-byte Ed25519 private key
    */
   async sign(privateKey: Uint8Array): Promise<void> {
+    // Guard: reject if payload has been mutated since construction
+    const currentHash = this.computeReceiptHash();
+    if (currentHash !== this.receiptHash) {
+      throw new Error('Receipt payload mutated after construction; cannot sign');
+    }
     const message = hexToBytes(this.receiptHash);
     const signature = await sign(message, privateKey);
     this._signature = bytesToHex(signature);
@@ -170,6 +187,11 @@ export class TrustReceipt {
     }
 
     try {
+      // Recompute hash from current fields; reject if payload has drifted
+      const currentHash = this.computeReceiptHash();
+      if (currentHash !== this.receiptHash) {
+        return false;
+      }
       const message = hexToBytes(this.receiptHash);
       const signature = hexToBytes(this._signature);
       return await verify(signature, message, publicKey);
@@ -237,20 +259,25 @@ export class TrustReceipt {
    * @param data - Previously serialized receipt
    */
   static fromJSON(data: SignedReceipt): TrustReceipt {
-    // Create with dummy data, then override
     const receipt = Object.create(TrustReceipt.prototype) as TrustReceipt;
 
-    // Assign readonly properties
     (receipt as any).version = data.version;
     (receipt as any).timestamp = data.timestamp;
     (receipt as any).sessionId = data.sessionId;
     (receipt as any).agentId = data.agentId;
     (receipt as any).promptHash = data.promptHash;
     (receipt as any).responseHash = data.responseHash;
-    (receipt as any).scores = data.scores;
+    (receipt as any).scores = deepFreeze({ ...data.scores });
     (receipt as any).prevReceiptHash = data.prevReceiptHash;
-    (receipt as any).metadata = data.metadata;
-    (receipt as any).receiptHash = data.receiptHash;
+    (receipt as any).metadata = deepFreeze({ ...(data.metadata ?? {}) });
+
+    // Validate supplied receiptHash matches actual payload before accepting
+    const computedHash = receipt.computeReceiptHash();
+    if (data.receiptHash && data.receiptHash !== computedHash) {
+      throw new Error('Invalid receipt: receiptHash does not match payload');
+    }
+    (receipt as any).receiptHash = computedHash;
+
     if (data.promptContent !== undefined) {
       (receipt as any).promptContent = data.promptContent;
     }

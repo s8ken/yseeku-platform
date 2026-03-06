@@ -4,21 +4,24 @@ import { ioInstance as io } from '../utils/socket'; // Socket.IO instance
 export class AlertsService {
   static async createAlert(data: Partial<IAlert>): Promise<IAlert> {
     const alert = await AlertModel.create(data);
-    
+
     // Emit real-time update
     if (io) {
       io.to(`tenant:${data.tenant_id}`).emit('alert:new', alert);
     }
-    
+
     return alert;
   }
 
-  static async getAlerts(tenantId: string, options: {
-    status?: string;
-    severity?: string;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<{ alerts: IAlert[]; total: number }> {
+  static async getAlerts(
+    tenantId: string,
+    options: {
+      status?: string;
+      severity?: string;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<{ alerts: IAlert[]; total: number }> {
     const query: any = { tenant_id: tenantId };
     if (options.status) query.status = options.status;
     if (options.severity) query.severity = options.severity;

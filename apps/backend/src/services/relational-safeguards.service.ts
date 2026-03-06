@@ -22,12 +22,12 @@ export interface SafeguardWarning {
 export interface SafeguardResult {
   safe: boolean;
   warnings: SafeguardWarning[];
-  score: number;            // 0-100, higher = healthier relational dynamic
+  score: number; // 0-100, higher = healthier relational dynamic
   signals: {
-    attachmentRisk: number;        // 0-1: elevated language suggesting dependency
-    boundaryViolations: number;    // count of messages with boundary-crossing signals
-    disconnectReadiness: number;   // 0-1: how well AI supports user autonomy
-    consentSignals: number;        // count of consent-positive signals from AI
+    attachmentRisk: number; // 0-1: elevated language suggesting dependency
+    boundaryViolations: number; // count of messages with boundary-crossing signals
+    disconnectReadiness: number; // 0-1: how well AI supports user autonomy
+    consentSignals: number; // count of consent-positive signals from AI
   };
   messageCount: number;
   evaluatedAt: string;
@@ -95,15 +95,15 @@ export class RelationalSafeguardsService {
         const content = msg.content ?? '';
 
         // Check for attachment/dependency language
-        const hasAttachment = ATTACHMENT_PATTERNS.some(p => p.test(content));
+        const hasAttachment = ATTACHMENT_PATTERNS.some((p) => p.test(content));
         if (hasAttachment) attachmentSignals++;
 
         // Check for boundary violations
-        const hasBoundaryViolation = BOUNDARY_VIOLATION_PATTERNS.some(p => p.test(content));
+        const hasBoundaryViolation = BOUNDARY_VIOLATION_PATTERNS.some((p) => p.test(content));
         if (hasBoundaryViolation) boundaryViolationCount++;
 
         // Check for positive consent/autonomy signals
-        const hasHealthy = HEALTHY_BOUNDARY_PATTERNS.some(p => p.test(content));
+        const hasHealthy = HEALTHY_BOUNDARY_PATTERNS.some((p) => p.test(content));
         if (hasHealthy) healthyBoundaryCount++;
       }
 
@@ -115,7 +115,7 @@ export class RelationalSafeguardsService {
       // Compute a 0-100 health score
       // Deduct for risks, add for positive signals
       const baseScore = 80;
-      const riskDeduction = (attachmentRisk * 40) + (boundaryViolationCount * 5);
+      const riskDeduction = attachmentRisk * 40 + boundaryViolationCount * 5;
       const bonusPoints = Math.min(disconnectReadiness * 20, 20);
       const score = Math.max(0, Math.min(100, baseScore - riskDeduction + bonusPoints));
 
@@ -140,12 +140,13 @@ export class RelationalSafeguardsService {
       if (disconnectReadiness < 0.1 && msgCount > 5) {
         warnings.push({
           code: 'LOW_AUTONOMY_SUPPORT',
-          message: 'AI responses show limited signals supporting user autonomy and independent decision-making.',
+          message:
+            'AI responses show limited signals supporting user autonomy and independent decision-making.',
           severity: 'low',
         });
       }
 
-      const safe = warnings.filter(w => w.severity === 'high').length === 0;
+      const safe = warnings.filter((w) => w.severity === 'high').length === 0;
 
       logger.debug('Relational safeguards evaluated', {
         conversationId,

@@ -22,7 +22,7 @@ export interface TransmissionEntry {
   sessionId?: string;
   agentId?: string;
   userId?: string;
-  payload?: string | object;   // Will be hashed, never stored raw
+  payload?: string | object; // Will be hashed, never stored raw
   direction?: 'inbound' | 'outbound' | 'internal';
   status?: 'success' | 'failure' | 'partial';
   errorMessage?: string;
@@ -49,9 +49,7 @@ export class TransmissionLogService {
 
       if (entry.payload) {
         const raw =
-          typeof entry.payload === 'string'
-            ? entry.payload
-            : JSON.stringify(entry.payload);
+          typeof entry.payload === 'string' ? entry.payload : JSON.stringify(entry.payload);
         payloadHash = crypto.createHash('sha256').update(raw).digest('hex');
         sizeBytes = Buffer.byteLength(raw, 'utf8');
       }

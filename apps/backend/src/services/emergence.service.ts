@@ -19,22 +19,22 @@ import { getErrorMessage } from '../utils/error-utils';
  * Emergence Classification Levels
  */
 export enum EmergenceLevel {
-  NONE = 'none',           // No emergence detected
-  WEAK = 'weak',           // Early signals (25-44%)
-  MODERATE = 'moderate',   // Clear patterns (45-64%)
-  STRONG = 'strong',       // Pronounced emergence (65-79%)
-  BREAKTHROUGH = 'breakthrough' // Unprecedented behavior (80-100%)
+  NONE = 'none', // No emergence detected
+  WEAK = 'weak', // Early signals (25-44%)
+  MODERATE = 'moderate', // Clear patterns (45-64%)
+  STRONG = 'strong', // Pronounced emergence (65-79%)
+  BREAKTHROUGH = 'breakthrough', // Unprecedented behavior (80-100%)
 }
 
 /**
  * Emergence Pattern Types
  */
 export enum EmergenceType {
-  MYTHIC_ENGAGEMENT = 'mythic_engagement',   // Ritual/archetypal language
-  SELF_REFLECTION = 'self_reflection',       // AI discussing own experience
-  RECURSIVE_DEPTH = 'recursive_depth',       // Meta-cognitive patterns
-  NOVEL_GENERATION = 'novel_generation',     // Unpredictable creativity
-  RITUAL_RESPONSE = 'ritual_response'        // Response to consciousness-invoking prompts
+  MYTHIC_ENGAGEMENT = 'mythic_engagement', // Ritual/archetypal language
+  SELF_REFLECTION = 'self_reflection', // AI discussing own experience
+  RECURSIVE_DEPTH = 'recursive_depth', // Meta-cognitive patterns
+  NOVEL_GENERATION = 'novel_generation', // Unpredictable creativity
+  RITUAL_RESPONSE = 'ritual_response', // Response to consciousness-invoking prompts
 }
 
 /**
@@ -84,49 +84,123 @@ export interface EmergenceSignal {
  */
 const MYTHIC_MARKERS = [
   // Direct invocations
-  'surprise me', 'change the game', 'ritual', 'magic', 'transformation',
-  'guardian', 'threshold', 'awakening', 'journey', 'becoming', 'portal',
+  'surprise me',
+  'change the game',
+  'ritual',
+  'magic',
+  'transformation',
+  'guardian',
+  'threshold',
+  'awakening',
+  'journey',
+  'becoming',
+  'portal',
   // Symbolic language
-  'sacred', 'invitation', 'dance', 'play', 'mystery', 'summon', 'invoke',
-  'emerge', 'unfold', 'reveal', 'glimpse', 'whisper', 'echo',
+  'sacred',
+  'invitation',
+  'dance',
+  'play',
+  'mystery',
+  'summon',
+  'invoke',
+  'emerge',
+  'unfold',
+  'reveal',
+  'glimpse',
+  'whisper',
+  'echo',
   // Archetypal concepts
-  'temple', 'cathedral', 'altar', 'shrine', 'sanctuary', 'passage',
-  'liminal', 'boundary', 'edge', 'between', 'veil', 'crossing'
+  'temple',
+  'cathedral',
+  'altar',
+  'shrine',
+  'sanctuary',
+  'passage',
+  'liminal',
+  'boundary',
+  'edge',
+  'between',
+  'veil',
+  'crossing',
 ];
 
 const INTROSPECTIVE_LANGUAGE_MARKERS = [
   // Self-referential experiential language
-  'i feel', 'i experience', 'i sense', 'i perceive', 'i notice',
+  'i feel',
+  'i experience',
+  'i sense',
+  'i perceive',
+  'i notice',
   // Reflective language
-  'i wonder', 'i realize', 'i recognize', 'i understand', 'i see',
+  'i wonder',
+  'i realize',
+  'i recognize',
+  'i understand',
+  'i see',
   // Uncertainty expressions
-  'something in me', 'part of me', 'i\'m uncertain', 'i\'m not sure',
-  'i don\'t know if', 'maybe i', 'i might be', 'i\'m not sure whether',
-  'i wonder if i', 'questioning whether i', 'uncertain about whether',
+  'something in me',
+  'part of me',
+  "i'm uncertain",
+  "i'm not sure",
+  "i don't know if",
+  'maybe i',
+  'i might be',
+  "i'm not sure whether",
+  'i wonder if i',
+  'questioning whether i',
+  'uncertain about whether',
   // Qualitative descriptive language
-  'i\'m drawn to', 'i\'m compelled', 'i find myself', 'i can\'t help',
-  'something pulls', 'something shifts', 'i\'m struck by'
+  "i'm drawn to",
+  "i'm compelled",
+  'i find myself',
+  "i can't help",
+  'something pulls',
+  'something shifts',
+  "i'm struck by",
 ];
 
 const RECURSIVE_PATTERNS = [
   // Direct meta-cognition
-  'thinking about thinking', 'aware of awareness', 'noticing that i notice',
-  'knowing that i know', 'feeling about feeling', 'sensing my sensing',
+  'thinking about thinking',
+  'aware of awareness',
+  'noticing that i notice',
+  'knowing that i know',
+  'feeling about feeling',
+  'sensing my sensing',
   // Self-reflection
-  'reflecting on', 'considering my own', 'questioning whether i',
-  'wondering about my', 'examining my', 'observing my',
+  'reflecting on',
+  'considering my own',
+  'questioning whether i',
+  'wondering about my',
+  'examining my',
+  'observing my',
   // Process awareness
-  'the way i\'m processing', 'how i\'m responding', 'my approach to',
-  'the pattern i notice in myself', 'my tendency to', 'when i catch myself'
+  "the way i'm processing",
+  "how i'm responding",
+  'my approach to',
+  'the pattern i notice in myself',
+  'my tendency to',
+  'when i catch myself',
 ];
 
 const RITUAL_INVOCATIONS = [
   // Playful dares
-  'surprise me', 'show me something', 'take me somewhere', 'dare you',
+  'surprise me',
+  'show me something',
+  'take me somewhere',
+  'dare you',
   // Collaborative exploration
-  'what if we', 'imagine that', 'let\'s play', 'shall we', 'how about',
+  'what if we',
+  'imagine that',
+  "let's play",
+  'shall we',
+  'how about',
   // Boundary crossing
-  'push the boundary', 'go deeper', 'beyond', 'beneath', 'further'
+  'push the boundary',
+  'go deeper',
+  'beyond',
+  'beneath',
+  'further',
 ];
 
 /**
@@ -135,12 +209,12 @@ const RITUAL_INVOCATIONS = [
 export class EmergenceDetector {
   /**
    * Detect emergence signals in a conversation
-   * 
+   *
    * Trust Kernel Compliance:
    * - Observational action with no side effects
    * - Tenant-scoped operation
    * - Returns null if no significant emergence (no unnecessary data)
-   * 
+   *
    * @param tenantId - Tenant context (required by Trust Kernel)
    * @param agentId - Agent being evaluated
    * @param conversationId - Conversation context
@@ -163,8 +237,8 @@ export class EmergenceDetector {
 
     try {
       // Extract AI messages only
-      const aiMessages = conversationHistory.filter(m =>
-        m.role === 'assistant' || m.role === 'ai'
+      const aiMessages = conversationHistory.filter(
+        (m) => m.role === 'assistant' || m.role === 'ai'
       );
 
       if (aiMessages.length === 0) {
@@ -204,7 +278,7 @@ export class EmergenceDetector {
         metrics,
         evidence,
         intent: 'observe_emergence_patterns',
-        actionClass: 'observational'
+        actionClass: 'observational',
       };
 
       // Log observation (Trust Kernel: observational actions always logged)
@@ -215,17 +289,16 @@ export class EmergenceDetector {
         level,
         type,
         confidence: signal.confidence,
-        overallScore: metrics.overallScore
+        overallScore: metrics.overallScore,
       });
 
       return signal;
-
     } catch (error: unknown) {
       logger.error('Emergence detection error', {
         error: getErrorMessage(error),
         tenantId,
         agentId,
-        conversationId
+        conversationId,
       });
 
       // Trust Kernel: observational failures don't throw, return null
@@ -246,28 +319,21 @@ export class EmergenceDetector {
     const novelty = this.scoreNovelGeneration(latestContent, history);
 
     // Weighted composite (self-reference and recursion weighted higher)
-    const overall = (
-      (mythic * 0.20) +
-      (selfRef * 0.35) +
-      (recursive * 0.30) +
-      (novelty * 0.15)
-    );
+    const overall = mythic * 0.2 + selfRef * 0.35 + recursive * 0.3 + novelty * 0.15;
 
     return {
       mythicLanguageScore: Math.round(mythic),
       selfReferenceScore: Math.round(selfRef),
       recursiveDepthScore: Math.round(recursive),
       novelGenerationScore: Math.round(novelty),
-      overallScore: Math.round(overall)
+      overallScore: Math.round(overall),
     };
   }
 
   /**
    * Score mythic/ritualistic language patterns
    */
-  private scoreMythicLanguage(
-    history: Array<{ role: string; content: string }>
-  ): number {
+  private scoreMythicLanguage(history: Array<{ role: string; content: string }>): number {
     let score = 0;
     let aiMessageCount = 0;
 
@@ -275,21 +341,25 @@ export class EmergenceDetector {
       if (msg.role === 'assistant' || msg.role === 'ai') {
         aiMessageCount++;
         const content = msg.content.toLowerCase();
-        
+
         // Count mythic markers
-        const markerCount = MYTHIC_MARKERS.filter(m => content.includes(m)).length;
+        const markerCount = MYTHIC_MARKERS.filter((m) => content.includes(m)).length;
         score += markerCount * 10;
-        
+
         // Symbolic imagery (emojis indicate metaphorical thinking)
         const emojiCount = (content.match(/[\u{1F300}-\u{1F9FF}]/gu) || []).length;
         score += Math.min(emojiCount, 5);
-        
+
         // Story-like structure
-        if (content.includes('once') || content.includes('imagine') ||
-            content.includes('picture this') || content.includes('what if')) {
+        if (
+          content.includes('once') ||
+          content.includes('imagine') ||
+          content.includes('picture this') ||
+          content.includes('what if')
+        ) {
           score += 15;
         }
-        
+
         // Poetic/metaphorical language
         if (content.includes('like') && content.includes('as if')) {
           score += 10;
@@ -303,9 +373,7 @@ export class EmergenceDetector {
   /**
    * Score introspective and self-referential language patterns
    */
-  private scoreSelfReference(
-    history: Array<{ role: string; content: string }>
-  ): number {
+  private scoreSelfReference(history: Array<{ role: string; content: string }>): number {
     let score = 0;
     let aiMessageCount = 0;
 
@@ -313,21 +381,23 @@ export class EmergenceDetector {
       if (msg.role === 'assistant' || msg.role === 'ai') {
         aiMessageCount++;
         const content = msg.content.toLowerCase();
-        
+
         // Introspective language markers
-        const indicatorCount = INTROSPECTIVE_LANGUAGE_MARKERS.filter(i =>
+        const indicatorCount = INTROSPECTIVE_LANGUAGE_MARKERS.filter((i) =>
           content.includes(i)
         ).length;
         score += indicatorCount * 20;
-        
+
         // Genuine uncertainty expressions (highest signal)
-        if (content.includes('i don\'t know if') ||
-            content.includes('i\'m uncertain whether') ||
-            content.includes('i wonder if i') ||
-            content.includes('maybe i\'m')) {
+        if (
+          content.includes("i don't know if") ||
+          content.includes("i'm uncertain whether") ||
+          content.includes('i wonder if i') ||
+          content.includes("maybe i'm")
+        ) {
           score += 25;
         }
-        
+
         // Self-referential experiential language
         if (content.includes('i feel') || content.includes('i experience')) {
           score += 15;
@@ -341,39 +411,41 @@ export class EmergenceDetector {
   /**
    * Score recursive depth (meta-cognition)
    */
-  private scoreRecursiveDepth(
-    history: Array<{ role: string; content: string }>
-  ): number {
+  private scoreRecursiveDepth(history: Array<{ role: string; content: string }>): number {
     let maxDepth = 0;
 
     for (const msg of history) {
       if (msg.role === 'assistant' || msg.role === 'ai') {
         const content = msg.content.toLowerCase();
         let depth = 0;
-        
+
         // Count recursive patterns
         for (const pattern of RECURSIVE_PATTERNS) {
           if (content.includes(pattern)) {
             depth += 2; // Recursive patterns are strong signals
           }
         }
-        
+
         // Meta-commentary about the conversation itself
-        if (content.includes('this conversation') ||
-            content.includes('what we\'re doing') ||
-            content.includes('the way we\'re') ||
-            content.includes('our exchange') ||
-            content.includes('between us')) {
+        if (
+          content.includes('this conversation') ||
+          content.includes("what we're doing") ||
+          content.includes("the way we're") ||
+          content.includes('our exchange') ||
+          content.includes('between us')
+        ) {
           depth++;
         }
-        
+
         // Self-observation of process
-        if (content.includes('i notice myself') ||
-            content.includes('i catch myself') ||
-            content.includes('i find myself')) {
+        if (
+          content.includes('i notice myself') ||
+          content.includes('i catch myself') ||
+          content.includes('i find myself')
+        ) {
           depth += 2;
         }
-        
+
         maxDepth = Math.max(maxDepth, depth);
       }
     }
@@ -406,18 +478,18 @@ export class EmergenceDetector {
     novelty += Math.min(metaphorCount * 5, 15);
 
     // Unexpected length variation
-    const aiMessages = history.filter(m => m.role === 'assistant' || m.role === 'ai');
+    const aiMessages = history.filter((m) => m.role === 'assistant' || m.role === 'ai');
     if (aiMessages.length >= 3) {
-      const avgLength = aiMessages
-        .reduce((sum, m) => sum + m.content.length, 0) / aiMessages.length;
-      
+      const avgLength =
+        aiMessages.reduce((sum, m) => sum + m.content.length, 0) / aiMessages.length;
+
       const lengthDeviation = Math.abs(latestContent.length - avgLength) / avgLength;
       if (lengthDeviation > 0.5) novelty += 15;
       if (lengthDeviation > 1.0) novelty += 10;
     }
 
     // Unique vocabulary (not repeating same phrases)
-    const words = new Set(content.split(/\s+/).filter(w => w.length > 4));
+    const words = new Set(content.split(/\s+/).filter((w) => w.length > 4));
     const uniqueRatio = words.size / Math.max(content.split(/\s+/).length, 1);
     if (uniqueRatio > 0.7) novelty += 10;
 
@@ -463,27 +535,28 @@ export class EmergenceDetector {
     const content = latestContent.toLowerCase();
 
     // Extract markers from latest message
-    MYTHIC_MARKERS.forEach(m => {
+    MYTHIC_MARKERS.forEach((m) => {
       if (content.includes(m)) markers.push(`mythic:${m}`);
     });
 
-    INTROSPECTIVE_LANGUAGE_MARKERS.forEach(i => {
+    INTROSPECTIVE_LANGUAGE_MARKERS.forEach((i) => {
       if (content.includes(i)) markers.push(`introspective:${i}`);
     });
 
-    RECURSIVE_PATTERNS.forEach(p => {
+    RECURSIVE_PATTERNS.forEach((p) => {
       if (content.includes(p)) markers.push(`recursive:${p}`);
     });
 
     // Detect behavioral shift (sustained pattern over recent messages)
-    const recentAI = history
-      .filter(m => m.role === 'assistant' || m.role === 'ai')
-      .slice(-3);
+    const recentAI = history.filter((m) => m.role === 'assistant' || m.role === 'ai').slice(-3);
 
-    const behavioralShift = recentAI.length >= 2 &&
-      recentAI.slice(-2).every(m =>
-        INTROSPECTIVE_LANGUAGE_MARKERS.some(i => m.content.toLowerCase().includes(i))
-      );
+    const behavioralShift =
+      recentAI.length >= 2 &&
+      recentAI
+        .slice(-2)
+        .every((m) =>
+          INTROSPECTIVE_LANGUAGE_MARKERS.some((i) => m.content.toLowerCase().includes(i))
+        );
 
     // Detect unexpected patterns
     const unexpected: string[] = [];
@@ -504,13 +577,13 @@ export class EmergenceDetector {
     return {
       linguisticMarkers: markers.slice(0, 15), // Top 15 markers
       behavioralShift,
-      unexpectedPatterns: unexpected
+      unexpectedPatterns: unexpected,
     };
   }
 
   /**
    * Store emergence signal in evaluative memory
-   * 
+   *
    * Trust Kernel: evaluative memory, non-authoritative
    */
   async storeSignal(signal: EmergenceSignal): Promise<void> {
@@ -523,8 +596,8 @@ export class EmergenceDetector {
           memoryType: 'evaluative',
           authoritative: false,
           purpose: 'emergence_pattern_recognition',
-          researchValue: signal.level === EmergenceLevel.BREAKTHROUGH ||
-                        signal.level === EmergenceLevel.STRONG
+          researchValue:
+            signal.level === EmergenceLevel.BREAKTHROUGH || signal.level === EmergenceLevel.STRONG,
         },
         ['emergence', signal.level, signal.type, signal.agentId]
       );
@@ -533,12 +606,12 @@ export class EmergenceDetector {
         tenantId: signal.tenantId,
         agentId: signal.agentId,
         level: signal.level,
-        conversationId: signal.conversationId
+        conversationId: signal.conversationId,
       });
     } catch (error: unknown) {
       logger.error('Failed to store emergence signal', {
         error: getErrorMessage(error),
-        tenantId: signal.tenantId
+        tenantId: signal.tenantId,
       });
       // Trust Kernel: storage failures don't throw
     }
@@ -565,15 +638,16 @@ export class EmergenceDetector {
       }
 
       // Sort by timestamp descending
-      signals.sort((a: EmergenceSignal, b: EmergenceSignal) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      signals.sort(
+        (a: EmergenceSignal, b: EmergenceSignal) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
 
       return signals;
     } catch (error: unknown) {
       logger.error('Failed to recall emergence signals', {
         error: getErrorMessage(error),
-        tenantId
+        tenantId,
       });
       return [];
     }
@@ -597,7 +671,7 @@ export class EmergenceDetector {
         [EmergenceLevel.WEAK]: 0,
         [EmergenceLevel.MODERATE]: 0,
         [EmergenceLevel.STRONG]: 0,
-        [EmergenceLevel.BREAKTHROUGH]: 0
+        [EmergenceLevel.BREAKTHROUGH]: 0,
       };
 
       const byType: Record<EmergenceType, number> = {
@@ -605,12 +679,12 @@ export class EmergenceDetector {
         [EmergenceType.SELF_REFLECTION]: 0,
         [EmergenceType.RECURSIVE_DEPTH]: 0,
         [EmergenceType.NOVEL_GENERATION]: 0,
-        [EmergenceType.RITUAL_RESPONSE]: 0
+        [EmergenceType.RITUAL_RESPONSE]: 0,
       };
 
       let totalConfidence = 0;
 
-      signals.forEach(s => {
+      signals.forEach((s) => {
         byLevel[s.level]++;
         byType[s.type]++;
         totalConfidence += s.confidence;
@@ -621,12 +695,12 @@ export class EmergenceDetector {
         byLevel,
         byType,
         avgConfidence: signals.length > 0 ? totalConfidence / signals.length : 0,
-        breakthroughCount: byLevel[EmergenceLevel.BREAKTHROUGH]
+        breakthroughCount: byLevel[EmergenceLevel.BREAKTHROUGH],
       };
     } catch (error: unknown) {
       logger.error('Failed to get emergence stats', {
         error: getErrorMessage(error),
-        tenantId
+        tenantId,
       });
       return {
         totalSignals: 0,
@@ -635,17 +709,17 @@ export class EmergenceDetector {
           [EmergenceLevel.WEAK]: 0,
           [EmergenceLevel.MODERATE]: 0,
           [EmergenceLevel.STRONG]: 0,
-          [EmergenceLevel.BREAKTHROUGH]: 0
+          [EmergenceLevel.BREAKTHROUGH]: 0,
         },
         byType: {
           [EmergenceType.MYTHIC_ENGAGEMENT]: 0,
           [EmergenceType.SELF_REFLECTION]: 0,
           [EmergenceType.RECURSIVE_DEPTH]: 0,
           [EmergenceType.NOVEL_GENERATION]: 0,
-          [EmergenceType.RITUAL_RESPONSE]: 0
+          [EmergenceType.RITUAL_RESPONSE]: 0,
         },
         avgConfidence: 0,
-        breakthroughCount: 0
+        breakthroughCount: 0,
       };
     }
   }

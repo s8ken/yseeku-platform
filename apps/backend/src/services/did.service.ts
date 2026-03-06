@@ -109,7 +109,7 @@ export async function getPlatformDIDDocument(): Promise<DIDDocument> {
   return {
     '@context': [
       'https://www.w3.org/ns/did/v1',
-      'https://w3id.org/security/suites/ed25519-2020/v1'
+      'https://w3id.org/security/suites/ed25519-2020/v1',
     ],
     id: platformDID,
     verificationMethod: [
@@ -119,7 +119,7 @@ export async function getPlatformDIDDocument(): Promise<DIDDocument> {
         controller: platformDID,
         publicKeyMultibase: publicKeyToMultibase(publicKeyHex),
         publicKeyHex: publicKeyHex, // Include hex for easier verification
-      }
+      },
     ],
     authentication: [`${platformDID}#key-1`],
     assertionMethod: [`${platformDID}#key-1`],
@@ -128,20 +128,20 @@ export async function getPlatformDIDDocument(): Promise<DIDDocument> {
         id: `${platformDID}#trust-protocol`,
         type: 'TrustProtocolService',
         serviceEndpoint: `https://api.${PLATFORM_DOMAIN}/api/trust`,
-        description: 'SONATE Trust Protocol API endpoint'
+        description: 'SONATE Trust Protocol API endpoint',
       },
       {
         id: `${platformDID}#agents`,
         type: 'AgentRegistryService',
         serviceEndpoint: `https://api.${PLATFORM_DOMAIN}/api/agents`,
-        description: 'AI Agent Registry endpoint'
+        description: 'AI Agent Registry endpoint',
       },
       {
         id: `${platformDID}#overseer`,
         type: 'SystemBrainService',
         serviceEndpoint: `https://api.${PLATFORM_DOMAIN}/api/overseer`,
-        description: 'System Brain / Overseer endpoint'
-      }
+        description: 'System Brain / Overseer endpoint',
+      },
     ],
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
@@ -167,18 +167,18 @@ export async function getAgentDIDDocument(
   const platformDID = getPlatformDID();
 
   // Use agent's own key if provided, otherwise use platform key as controller
-  const publicKeyHex = agentPublicKey || await keysService.getPublicKeyHex();
+  const publicKeyHex = agentPublicKey || (await keysService.getPublicKeyHex());
 
   const document: DIDDocument = {
     '@context': [
       'https://www.w3.org/ns/did/v1',
       'https://w3id.org/security/suites/ed25519-2020/v1',
       {
-        'trustScore': 'https://yseeku.com/ns/trust#trustScore',
-        'banStatus': 'https://yseeku.com/ns/trust#banStatus',
-        'provider': 'https://yseeku.com/ns/agent#provider',
-        'model': 'https://yseeku.com/ns/agent#model',
-      }
+        trustScore: 'https://yseeku.com/ns/trust#trustScore',
+        banStatus: 'https://yseeku.com/ns/trust#banStatus',
+        provider: 'https://yseeku.com/ns/agent#provider',
+        model: 'https://yseeku.com/ns/agent#model',
+      },
     ],
     id: agentDID,
     controller: platformDID, // Platform controls agent DIDs
@@ -189,7 +189,7 @@ export async function getAgentDIDDocument(
         controller: agentPublicKey ? agentDID : platformDID,
         publicKeyMultibase: publicKeyToMultibase(publicKeyHex),
         publicKeyHex: publicKeyHex,
-      }
+      },
     ],
     authentication: [`${agentDID}#key-1`],
     assertionMethod: [`${agentDID}#key-1`],
@@ -198,14 +198,14 @@ export async function getAgentDIDDocument(
         id: `${agentDID}#conversation`,
         type: 'ConversationService',
         serviceEndpoint: `https://api.${PLATFORM_DOMAIN}/api/conversations?agent=${agentId}`,
-        description: 'Agent conversation endpoint'
+        description: 'Agent conversation endpoint',
       },
       {
         id: `${agentDID}#trust-receipts`,
         type: 'TrustReceiptService',
         serviceEndpoint: `https://api.${PLATFORM_DOMAIN}/api/trust/receipts?agent=${agentId}`,
-        description: 'Trust receipts for this agent'
-      }
+        description: 'Trust receipts for this agent',
+      },
     ],
     created: metadata?.createdAt || new Date().toISOString(),
     updated: new Date().toISOString(),
@@ -265,7 +265,6 @@ export async function resolveDID(did: string): Promise<DIDDocument | null> {
 
     logger.warn('Unknown DID path structure', { did, parts });
     return null;
-
   } catch (error: unknown) {
     logger.error('Failed to resolve DID', { did, error: getErrorMessage(error) });
     return null;

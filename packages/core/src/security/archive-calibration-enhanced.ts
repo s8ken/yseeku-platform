@@ -563,7 +563,9 @@ If review reveals:
     context?: any,
     duration?: number
   ): Promise<void> {
-    if (!this.calibrationConfig.enableAuditLogging || !this.auditSystem) {return;}
+    if (!this.calibrationConfig.enableAuditLogging || !this.auditSystem) {
+      return;
+    }
 
     await this.auditSystem.logEvent({
       type: 'ARCHIVE_CALIBRATION_RUN',
@@ -591,7 +593,9 @@ If review reveals:
     criticalConversations: EnhancedFlaggedConversation[],
     context?: any
   ): Promise<void> {
-    if (!this.calibrationConfig.enableAuditLogging || !this.auditSystem) {return;}
+    if (!this.calibrationConfig.enableAuditLogging || !this.auditSystem) {
+      return;
+    }
 
     await this.auditSystem.logEvent({
       type: 'CRITICAL_CONVERSATIONS_ESCALATED',

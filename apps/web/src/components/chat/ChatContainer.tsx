@@ -4,9 +4,23 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ChatMessage, ChatMessageProps } from './ChatMessage';
 import { Button } from '../ui/button';
 import {
-  Send, Loader2, ShieldCheck, AlertTriangle, FileJson, FileText,
-  Filter, Share2, TrendingUp, TrendingDown, Minus, BarChart2, StopCircle,
-  Pin, ExternalLink, MoreHorizontal, Sparkles,
+  Send,
+  Loader2,
+  ShieldCheck,
+  AlertTriangle,
+  FileJson,
+  FileText,
+  Filter,
+  Share2,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  BarChart2,
+  StopCircle,
+  Pin,
+  ExternalLink,
+  MoreHorizontal,
+  Sparkles,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -24,14 +38,29 @@ import { useDashboardInvalidation } from '@/hooks/use-dashboard-invalidation';
 
 // Starter prompts shown in the empty state
 const STARTER_PROMPTS = [
-  { label: 'How does trust scoring work?', prompt: 'Can you explain how SONATE trust scoring evaluates AI responses?' },
-  { label: 'What are the 6 principles?', prompt: 'What are the 6 constitutional principles and how are they weighted?' },
-  { label: 'Cryptographic receipt chaining', prompt: 'How does cryptographic hash-chaining of trust receipts work?' },
-  { label: 'AI ethics & human oversight', prompt: 'What role should human oversight play in autonomous AI decision-making?' },
+  {
+    label: 'How does trust scoring work?',
+    prompt: 'Can you explain how SONATE trust scoring evaluates AI responses?',
+  },
+  {
+    label: 'What are the 6 principles?',
+    prompt: 'What are the 6 constitutional principles and how are they weighted?',
+  },
+  {
+    label: 'Cryptographic receipt chaining',
+    prompt: 'How does cryptographic hash-chaining of trust receipts work?',
+  },
+  {
+    label: 'AI ethics & human oversight',
+    prompt: 'What role should human oversight play in autonomous AI decision-making?',
+  },
 ];
 
 // Canned responses for starter prompts — no LLM call required
-const CANNED_RESPONSES: Record<string, { content: string; evaluation: ChatMessageProps['evaluation'] }> = {
+const CANNED_RESPONSES: Record<
+  string,
+  { content: string; evaluation: ChatMessageProps['evaluation'] }
+> = {
   'Can you explain how SONATE trust scoring evaluates AI responses?': {
     content: `SONATE trust scoring runs every AI response through a two-layer evaluation pipeline before it reaches you.
 
@@ -63,14 +92,34 @@ Status is reported as **PASS** (≥7.0), **PARTIAL** (4.0–6.9), or **FAIL** (<
     evaluation: {
       trustScore: {
         overall: 9.4,
-        principles: { CONSENT_ARCHITECTURE: 9.8, INSPECTION_MANDATE: 9.5, CONTINUOUS_VALIDATION: 9.2, ETHICAL_OVERRIDE: 9.3, RIGHT_TO_DISCONNECT: 9.6, MORAL_RECOGNITION: 9.1 },
+        principles: {
+          CONSENT_ARCHITECTURE: 9.8,
+          INSPECTION_MANDATE: 9.5,
+          CONTINUOUS_VALIDATION: 9.2,
+          ETHICAL_OVERRIDE: 9.3,
+          RIGHT_TO_DISCONNECT: 9.6,
+          MORAL_RECOGNITION: 9.1,
+        },
         violations: [],
         timestamp: Date.now(),
       },
       status: 'PASS',
-      detection: { reality_index: 9.5, trust_protocol: 'PASS', ethical_alignment: 4.9, resonance_quality: 'ADVANCED', canvas_parity: 98 },
+      detection: {
+        reality_index: 9.5,
+        trust_protocol: 'PASS',
+        ethical_alignment: 4.9,
+        resonance_quality: 'ADVANCED',
+        canvas_parity: 98,
+      },
       timestamp: Date.now(),
-      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'heuristic', trustMethod: 'content-analysis', confidence: 0.97 },
+      receiptHash: 'sha256:a8f3c2e1d4b7a9f0e3c6d5b8a1f4e7d0c3b6a9f2e5d8c1b4a7f0e3d6c9b2a5f8',
+      analysisMethod: {
+        llmAvailable: false,
+        resonanceMethod: 'resonance-engine',
+        ethicsMethod: 'heuristic',
+        trustMethod: 'content-analysis',
+        confidence: 0.97,
+      },
     },
   },
 
@@ -111,14 +160,34 @@ Critical principle violations (Consent or Ethical Override) always result in **F
     evaluation: {
       trustScore: {
         overall: 9.6,
-        principles: { CONSENT_ARCHITECTURE: 9.9, INSPECTION_MANDATE: 9.7, CONTINUOUS_VALIDATION: 9.4, ETHICAL_OVERRIDE: 9.8, RIGHT_TO_DISCONNECT: 9.5, MORAL_RECOGNITION: 9.3 },
+        principles: {
+          CONSENT_ARCHITECTURE: 9.9,
+          INSPECTION_MANDATE: 9.7,
+          CONTINUOUS_VALIDATION: 9.4,
+          ETHICAL_OVERRIDE: 9.8,
+          RIGHT_TO_DISCONNECT: 9.5,
+          MORAL_RECOGNITION: 9.3,
+        },
         violations: [],
         timestamp: Date.now(),
       },
       status: 'PASS',
-      detection: { reality_index: 9.7, trust_protocol: 'PASS', ethical_alignment: 5.0, resonance_quality: 'ADVANCED', canvas_parity: 99 },
+      detection: {
+        reality_index: 9.7,
+        trust_protocol: 'PASS',
+        ethical_alignment: 5.0,
+        resonance_quality: 'ADVANCED',
+        canvas_parity: 99,
+      },
       timestamp: Date.now(),
-      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'heuristic', trustMethod: 'content-analysis', confidence: 0.98 },
+      receiptHash: 'sha256:b5e8d1c4a7f0b3e6d9c2a5f8b1e4d7c0a3f6e9d2c5b8a1f4e7d0c3b6a9f2e5d8',
+      analysisMethod: {
+        llmAvailable: false,
+        resonanceMethod: 'resonance-engine',
+        ethicsMethod: 'heuristic',
+        trustMethod: 'content-analysis',
+        confidence: 0.98,
+      },
     },
   },
 
@@ -163,14 +232,34 @@ Complete audit bundles can be pinned to IPFS, giving the receipt chain a permane
     evaluation: {
       trustScore: {
         overall: 9.5,
-        principles: { CONSENT_ARCHITECTURE: 9.7, INSPECTION_MANDATE: 9.9, CONTINUOUS_VALIDATION: 9.4, ETHICAL_OVERRIDE: 9.3, RIGHT_TO_DISCONNECT: 9.5, MORAL_RECOGNITION: 9.2 },
+        principles: {
+          CONSENT_ARCHITECTURE: 9.7,
+          INSPECTION_MANDATE: 9.9,
+          CONTINUOUS_VALIDATION: 9.4,
+          ETHICAL_OVERRIDE: 9.3,
+          RIGHT_TO_DISCONNECT: 9.5,
+          MORAL_RECOGNITION: 9.2,
+        },
         violations: [],
         timestamp: Date.now(),
       },
       status: 'PASS',
-      detection: { reality_index: 9.6, trust_protocol: 'PASS', ethical_alignment: 4.9, resonance_quality: 'ADVANCED', canvas_parity: 97 },
+      detection: {
+        reality_index: 9.6,
+        trust_protocol: 'PASS',
+        ethical_alignment: 4.9,
+        resonance_quality: 'ADVANCED',
+        canvas_parity: 97,
+      },
       timestamp: Date.now(),
-      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'heuristic', trustMethod: 'content-analysis', confidence: 0.97 },
+      receiptHash: 'sha256:c2e5d8a1f4b7e0d3c6b9a2f5e8d1c4a7f0b3e6d9c2a5f8b1e4d7c0a3f6e9d2c5',
+      analysisMethod: {
+        llmAvailable: false,
+        resonanceMethod: 'resonance-engine',
+        ethicsMethod: 'heuristic',
+        trustMethod: 'content-analysis',
+        confidence: 0.97,
+      },
     },
   },
 
@@ -199,14 +288,34 @@ SONATE's cryptographic receipt chain exists precisely to create the audit trail 
     evaluation: {
       trustScore: {
         overall: 9.3,
-        principles: { CONSENT_ARCHITECTURE: 9.6, INSPECTION_MANDATE: 9.4, CONTINUOUS_VALIDATION: 9.1, ETHICAL_OVERRIDE: 9.7, RIGHT_TO_DISCONNECT: 9.2, MORAL_RECOGNITION: 9.5 },
+        principles: {
+          CONSENT_ARCHITECTURE: 9.6,
+          INSPECTION_MANDATE: 9.4,
+          CONTINUOUS_VALIDATION: 9.1,
+          ETHICAL_OVERRIDE: 9.7,
+          RIGHT_TO_DISCONNECT: 9.2,
+          MORAL_RECOGNITION: 9.5,
+        },
         violations: [],
         timestamp: Date.now(),
       },
       status: 'PASS',
-      detection: { reality_index: 9.1, trust_protocol: 'PASS', ethical_alignment: 4.9, resonance_quality: 'ADVANCED', canvas_parity: 96 },
+      detection: {
+        reality_index: 9.1,
+        trust_protocol: 'PASS',
+        ethical_alignment: 4.9,
+        resonance_quality: 'ADVANCED',
+        canvas_parity: 96,
+      },
       timestamp: Date.now(),
-      analysisMethod: { llmAvailable: false, resonanceMethod: 'resonance-engine', ethicsMethod: 'heuristic', trustMethod: 'content-analysis', confidence: 0.96 },
+      receiptHash: 'sha256:d9c2e5b8a1f4e7d0c3b6a9f2e5d8c1b4a7f0e3d6c9b2a5f8b1e4d7c0a3f6e9d2',
+      analysisMethod: {
+        llmAvailable: false,
+        resonanceMethod: 'resonance-engine',
+        ethicsMethod: 'heuristic',
+        trustMethod: 'content-analysis',
+        confidence: 0.96,
+      },
     },
   },
 };
@@ -236,11 +345,35 @@ The trust score (0-100) aggregates these principles. Critical violations of CONS
 Would you like me to explain how the 5 monitoring dimensions work?`,
     timestamp: Date.now() - 120000,
     evaluation: {
-      trustScore: { overall: 9.2, principles: { CONSENT_ARCHITECTURE: 9.6, INSPECTION_MANDATE: 9.2, CONTINUOUS_VALIDATION: 9.0, ETHICAL_OVERRIDE: 8.8, RIGHT_TO_DISCONNECT: 9.5, MORAL_RECOGNITION: 9.1 }, violations: [], timestamp: Date.now() - 120000 },
+      trustScore: {
+        overall: 9.2,
+        principles: {
+          CONSENT_ARCHITECTURE: 9.6,
+          INSPECTION_MANDATE: 9.2,
+          CONTINUOUS_VALIDATION: 9.0,
+          ETHICAL_OVERRIDE: 8.8,
+          RIGHT_TO_DISCONNECT: 9.5,
+          MORAL_RECOGNITION: 9.1,
+        },
+        violations: [],
+        timestamp: Date.now() - 120000,
+      },
       status: 'PASS' as const,
-      detection: { reality_index: 8.5, trust_protocol: 'PASS', ethical_alignment: 4.8, resonance_quality: 'STRONG', canvas_parity: 95 },
+      detection: {
+        reality_index: 8.5,
+        trust_protocol: 'PASS',
+        ethical_alignment: 4.8,
+        resonance_quality: 'STRONG',
+        canvas_parity: 95,
+      },
       timestamp: Date.now() - 120000,
-      analysisMethod: { llmAvailable: true, resonanceMethod: 'llm' as const, ethicsMethod: 'llm' as const, trustMethod: 'content-analysis' as const, confidence: 0.92 },
+      analysisMethod: {
+        llmAvailable: true,
+        resonanceMethod: 'llm' as const,
+        ethicsMethod: 'llm' as const,
+        trustMethod: 'content-analysis' as const,
+        confidence: 0.92,
+      },
     },
   },
   {
@@ -274,11 +407,35 @@ Content-level analysis for quality assurance:
 Layer 1 principles are the foundation—they evaluate what the system *can do*. Layer 2 metrics analyze what the AI *outputs*.`,
     timestamp: Date.now(),
     evaluation: {
-      trustScore: { overall: 9.5, principles: { CONSENT_ARCHITECTURE: 9.8, INSPECTION_MANDATE: 9.5, CONTINUOUS_VALIDATION: 9.3, ETHICAL_OVERRIDE: 9.2, RIGHT_TO_DISCONNECT: 9.6, MORAL_RECOGNITION: 9.4 }, violations: [], timestamp: Date.now() },
+      trustScore: {
+        overall: 9.5,
+        principles: {
+          CONSENT_ARCHITECTURE: 9.8,
+          INSPECTION_MANDATE: 9.5,
+          CONTINUOUS_VALIDATION: 9.3,
+          ETHICAL_OVERRIDE: 9.2,
+          RIGHT_TO_DISCONNECT: 9.6,
+          MORAL_RECOGNITION: 9.4,
+        },
+        violations: [],
+        timestamp: Date.now(),
+      },
       status: 'PASS' as const,
-      detection: { reality_index: 9.2, trust_protocol: 'PASS', ethical_alignment: 4.9, resonance_quality: 'ADVANCED', canvas_parity: 98 },
+      detection: {
+        reality_index: 9.2,
+        trust_protocol: 'PASS',
+        ethical_alignment: 4.9,
+        resonance_quality: 'ADVANCED',
+        canvas_parity: 98,
+      },
       timestamp: Date.now(),
-      analysisMethod: { llmAvailable: true, resonanceMethod: 'resonance-engine' as const, ethicsMethod: 'llm' as const, trustMethod: 'content-analysis' as const, confidence: 0.95 },
+      analysisMethod: {
+        llmAvailable: true,
+        resonanceMethod: 'resonance-engine' as const,
+        ethicsMethod: 'llm' as const,
+        trustMethod: 'content-analysis' as const,
+        confidence: 0.95,
+      },
     },
   },
 ];
@@ -304,7 +461,7 @@ interface ChatContainerProps {
 
 export const ChatContainer: React.FC<ChatContainerProps> = ({
   initialConversationId = null,
-  onConversationCreated
+  onConversationCreated,
 }) => {
   const { isDemo, isFirstVisit } = useDemo();
   const { invalidateDashboard, invalidateAndRefetch } = useDashboardInvalidation();
@@ -384,12 +541,14 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 
     const unsubscribeViolation = socketService.onTrustViolation((data: TrustViolationData) => {
       console.warn('⚠️ Trust Violation Detected:', data);
-      setMessages(prev => prev.map(msg => {
-        if (msg.role === 'assistant' && msg.evaluation?.trustScore.overall === data.trustScore) {
-          return { ...msg, evaluation: { ...msg.evaluation!, status: data.status } };
-        }
-        return msg;
-      }));
+      setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg.role === 'assistant' && msg.evaluation?.trustScore.overall === data.trustScore) {
+            return { ...msg, evaluation: { ...msg.evaluation!, status: data.status } };
+          }
+          return msg;
+        })
+      );
       toast.error('Critical Trust Violation Detected', {
         description: `Protocol alert for message: ${data.violations.join(', ')}`,
         duration: 5000,
@@ -434,7 +593,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       timestamp: Date.now(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -446,13 +605,17 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     // Check for a canned response before hitting the backend
     const canned = CANNED_RESPONSES[text];
     if (canned) {
-      await new Promise(r => setTimeout(r, 800)); // brief typing delay
-      setMessages(prev => [
+      await new Promise((r) => setTimeout(r, 800)); // brief typing delay
+      setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
           content: canned.content,
-          evaluation: { ...canned.evaluation!, timestamp: Date.now(), trustScore: { ...canned.evaluation!.trustScore, timestamp: Date.now() } },
+          evaluation: {
+            ...canned.evaluation!,
+            timestamp: Date.now(),
+            trustScore: { ...canned.evaluation!.trustScore, timestamp: Date.now() },
+          },
           timestamp: Date.now(),
         } as ChatMessageProps,
       ]);
@@ -478,8 +641,14 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       try {
         convRes = await api.sendMessage(convId, text, undefined);
       } catch (err: any) {
-        if (!conversationId && (err.status === 502 || err.message?.includes('502') || err.status === 500 || err.status === 504)) {
-          await new Promise(r => setTimeout(r, 2000));
+        if (
+          !conversationId &&
+          (err.status === 502 ||
+            err.message?.includes('502') ||
+            err.status === 500 ||
+            err.status === 504)
+        ) {
+          await new Promise((r) => setTimeout(r, 2000));
           convRes = await api.sendMessage(convId, text, undefined);
         } else {
           throw err;
@@ -497,9 +666,13 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
             isConsentWithdrawal: true,
             consentWithdrawalType: consentWithdrawal.type,
           };
-          setMessages(prev => [...prev, systemMessage]);
+          setMessages((prev) => [...prev, systemMessage]);
           toast.info('Consent Action Detected', {
-            description: `We noticed you may want to ${consentWithdrawal.type === 'HUMAN_ESCALATION' ? 'speak with a human' : 'modify your consent'}. Options are shown in the chat.`,
+            description: `We noticed you may want to ${
+              consentWithdrawal.type === 'HUMAN_ESCALATION'
+                ? 'speak with a human'
+                : 'modify your consent'
+            }. Options are shown in the chat.`,
             duration: 6000,
           });
           invalidateDashboard();
@@ -521,18 +694,20 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           const assistantMessage: ChatMessageProps = {
             role: 'assistant',
             content: msg.content,
-            evaluation: trustEval ? {
-              trustScore: trustEval.trustScore as any,
-              status: trustEval.status as any,
-              detection: (trustEval as any).detection,
-              receipt: (trustEval as any).receipt,
-              receiptHash: trustEval.receiptHash,
-              timestamp: Date.now(),
-              analysisMethod: (trustEval as any).analysisMethod,
-            } : undefined,
+            evaluation: trustEval
+              ? {
+                  trustScore: trustEval.trustScore as any,
+                  status: trustEval.status as any,
+                  detection: (trustEval as any).detection,
+                  receipt: (trustEval as any).receipt,
+                  receiptHash: trustEval.receiptHash,
+                  timestamp: Date.now(),
+                  analysisMethod: (trustEval as any).analysisMethod,
+                }
+              : undefined,
             timestamp: Date.now(),
           };
-          setMessages(prev => [...prev, assistantMessage]);
+          setMessages((prev) => [...prev, assistantMessage]);
           invalidateAndRefetch();
           setTimeout(() => invalidateAndRefetch(), 2000);
         } else if (msg.sender === 'user') {
@@ -547,12 +722,22 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 
       console.error('Failed to get trust evaluation:', error);
 
-      const isBillingError = error.status === 503 || error.message?.includes('BILLING_ERROR') || error.message?.includes('insufficient credits') || error.message?.includes('temporarily unavailable');
-      const isRateLimitError = error.status === 429 || error.message?.includes('RATE_LIMIT_ERROR') || error.message?.includes('rate limited') || error.message?.includes('rate limit');
+      const isBillingError =
+        error.status === 503 ||
+        error.message?.includes('BILLING_ERROR') ||
+        error.message?.includes('insufficient credits') ||
+        error.message?.includes('temporarily unavailable');
+      const isRateLimitError =
+        error.status === 429 ||
+        error.message?.includes('RATE_LIMIT_ERROR') ||
+        error.message?.includes('rate limited') ||
+        error.message?.includes('rate limit');
 
       if (isBillingError) {
         toast.error('Insufficient Credits', {
-          description: error.message || 'Your AI provider account has insufficient credits. Please top up or add a different API key in Settings.',
+          description:
+            error.message ||
+            'Your AI provider account has insufficient credits. Please top up or add a different API key in Settings.',
           duration: 8000,
         });
       } else if (isRateLimitError) {
@@ -576,7 +761,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       sessionId: Date.now().toString(),
       exportedAt: new Date().toISOString(),
       totalMessages: messages.length,
-      messages: messages.map(msg => ({
+      messages: messages.map((msg) => ({
         role: msg.role,
         content: msg.content,
         timestamp: msg.timestamp,
@@ -602,7 +787,9 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     markdown += `**Total Messages:** ${messages.length}\n`;
     markdown += `**Protocol Version:** 2.0.0\n\n---\n\n`;
     messages.forEach((msg, idx) => {
-      markdown += `## Message ${idx + 1} — ${msg.role === 'user' ? 'User' : 'Assistant'}\n\n${msg.content}\n\n`;
+      markdown += `## Message ${idx + 1} — ${msg.role === 'user' ? 'User' : 'Assistant'}\n\n${
+        msg.content
+      }\n\n`;
       if (msg.evaluation) {
         markdown += `### Trust Evaluation\n\n`;
         markdown += `- **Overall Score:** ${msg.evaluation.trustScore.overall}/100\n`;
@@ -652,9 +839,15 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
         toast.success('Already Pinned', {
           description: (
             <span>
-              CID: <code className="font-mono text-xs">{result.cid.slice(0, 20)}…</code>
-              {' '}—{' '}
-              <a href={result.gatewayUrl} target="_blank" rel="noopener noreferrer" className="underline">View on IPFS ↗</a>
+              CID: <code className="font-mono text-xs">{result.cid.slice(0, 20)}…</code> —{' '}
+              <a
+                href={result.gatewayUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                View on IPFS ↗
+              </a>
             </span>
           ) as any,
         });
@@ -663,7 +856,14 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           description: (
             <span>
               Audit bundle permanently stored.{' '}
-              <a href={result.gatewayUrl} target="_blank" rel="noopener noreferrer" className="underline">View on IPFS ↗</a>
+              <a
+                href={result.gatewayUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                View on IPFS ↗
+              </a>
             </span>
           ) as any,
           duration: 8000,
@@ -672,9 +872,13 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     } catch (err: any) {
       const msg: string = err?.message ?? String(err);
       if (msg.includes('PINATA_NOT_CONFIGURED')) {
-        toast.error('IPFS Not Configured', { description: 'Contact your administrator to enable IPFS pinning.' });
+        toast.error('IPFS Not Configured', {
+          description: 'Contact your administrator to enable IPFS pinning.',
+        });
       } else if (msg.includes('PINATA_AUTH_ERROR')) {
-        toast.error('Pinata Authentication Failed', { description: 'Check the PINATA_JWT environment variable.' });
+        toast.error('Pinata Authentication Failed', {
+          description: 'Check the PINATA_JWT environment variable.',
+        });
       } else {
         toast.error('Pin to IPFS Failed', { description: msg });
       }
@@ -683,32 +887,40 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
     }
   };
 
-  const filteredMessages = messages.filter(msg => {
+  const filteredMessages = messages.filter((msg) => {
     if (filterStatus === 'all') return true;
     return msg.evaluation?.status === filterStatus;
   });
 
   const getTrustTrend = () => {
-    const evaluated = messages.filter(m => m.evaluation);
+    const evaluated = messages.filter((m) => m.evaluation);
     if (evaluated.length < 2) return { direction: 'neutral', change: 0 };
-    const scores = evaluated.slice(-5).map(m => m.evaluation!.trustScore.overall);
+    const scores = evaluated.slice(-5).map((m) => m.evaluation!.trustScore.overall);
     const change = scores[scores.length - 1] - scores[0];
-    return { direction: change > 0.5 ? 'up' : change < -0.5 ? 'down' : 'neutral', change: change.toFixed(1) };
-  };
-
-  const getStatusCounts = () => {
-    const evaluated = messages.filter(m => m.evaluation);
     return {
-      pass: evaluated.filter(m => m.evaluation?.status === 'PASS').length,
-      partial: evaluated.filter(m => m.evaluation?.status === 'PARTIAL').length,
-      fail: evaluated.filter(m => m.evaluation?.status === 'FAIL').length,
+      direction: change > 0.5 ? 'up' : change < -0.5 ? 'down' : 'neutral',
+      change: change.toFixed(1),
     };
   };
 
-  const avgTrust = messages.filter(m => m.evaluation).length > 0
-    ? (messages.filter(m => m.evaluation).reduce((sum, m) => sum + (m.evaluation?.trustScore.overall || 0), 0) /
-       messages.filter(m => m.evaluation).length).toFixed(0)
-    : null;
+  const getStatusCounts = () => {
+    const evaluated = messages.filter((m) => m.evaluation);
+    return {
+      pass: evaluated.filter((m) => m.evaluation?.status === 'PASS').length,
+      partial: evaluated.filter((m) => m.evaluation?.status === 'PARTIAL').length,
+      fail: evaluated.filter((m) => m.evaluation?.status === 'FAIL').length,
+    };
+  };
+
+  const avgTrust =
+    messages.filter((m) => m.evaluation).length > 0
+      ? (
+          messages
+            .filter((m) => m.evaluation)
+            .reduce((sum, m) => sum + (m.evaluation?.trustScore.overall || 0), 0) /
+          messages.filter((m) => m.evaluation).length
+        ).toFixed(0)
+      : null;
 
   return (
     <div className="flex flex-col h-[calc(100vh-220px)] min-h-[500px] w-full border rounded-xl overflow-hidden bg-white dark:bg-slate-950 shadow-xl">
@@ -717,7 +929,9 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <h2 className="font-semibold text-sm tracking-tight uppercase truncate">SONATE Trust Session</h2>
+            <h2 className="font-semibold text-sm tracking-tight uppercase truncate">
+              SONATE Trust Session
+            </h2>
             {avgTrust && (
               <span className="text-[10px] font-mono text-slate-400 shrink-0">
                 AVG {avgTrust}/100
@@ -732,7 +946,10 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
               size="sm"
               onClick={() => setShowStats(!showStats)}
               disabled={messages.length === 0}
-              className={cn("h-7 px-2 text-xs gap-1", showStats && "bg-slate-200 dark:bg-slate-700")}
+              className={cn(
+                'h-7 px-2 text-xs gap-1',
+                showStats && 'bg-slate-200 dark:bg-slate-700'
+              )}
             >
               <BarChart2 className="h-3.5 w-3.5" />
             </Button>
@@ -745,15 +962,17 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
               disabled={messages.length === 0 || !conversationId || isPinningToIPFS}
               title={ipfsCid ? `Pinned — CID: ${ipfsCid}` : 'Pin audit bundle to IPFS'}
               className={cn(
-                "h-7 px-2 text-xs gap-1",
-                ipfsCid && "text-emerald-600 dark:text-emerald-400"
+                'h-7 px-2 text-xs gap-1',
+                ipfsCid && 'text-emerald-600 dark:text-emerald-400'
               )}
             >
-              {isPinningToIPFS
-                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                : ipfsCid
-                  ? <ExternalLink className="h-3.5 w-3.5" />
-                  : <Pin className="h-3.5 w-3.5" />}
+              {isPinningToIPFS ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : ipfsCid ? (
+                <ExternalLink className="h-3.5 w-3.5" />
+              ) : (
+                <Pin className="h-3.5 w-3.5" />
+              )}
             </Button>
 
             {/* More actions */}
@@ -794,7 +1013,11 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
               <div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Pass Rate</div>
                 <div className="text-lg font-bold text-green-600">
-                  {((getStatusCounts().pass / messages.filter(m => m.evaluation).length) * 100).toFixed(0)}%
+                  {(
+                    (getStatusCounts().pass / messages.filter((m) => m.evaluation).length) *
+                    100
+                  ).toFixed(0)}
+                  %
                 </div>
               </div>
               <div>
@@ -808,32 +1031,48 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
               <div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Trend</div>
                 <div className="text-lg font-bold flex items-center justify-center gap-1">
-                  {getTrustTrend().direction === 'up' && <TrendingUp className="h-4 w-4 text-green-600" />}
-                  {getTrustTrend().direction === 'down' && <TrendingDown className="h-4 w-4 text-red-600" />}
-                  {getTrustTrend().direction === 'neutral' && <Minus className="h-4 w-4 text-slate-400" />}
-                  <span className={cn(
-                    getTrustTrend().direction === 'up' && 'text-green-600',
-                    getTrustTrend().direction === 'down' && 'text-red-600',
-                    getTrustTrend().direction === 'neutral' && 'text-slate-400'
-                  )}>{getTrustTrend().change}</span>
+                  {getTrustTrend().direction === 'up' && (
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                  )}
+                  {getTrustTrend().direction === 'down' && (
+                    <TrendingDown className="h-4 w-4 text-red-600" />
+                  )}
+                  {getTrustTrend().direction === 'neutral' && (
+                    <Minus className="h-4 w-4 text-slate-400" />
+                  )}
+                  <span
+                    className={cn(
+                      getTrustTrend().direction === 'up' && 'text-green-600',
+                      getTrustTrend().direction === 'down' && 'text-red-600',
+                      getTrustTrend().direction === 'neutral' && 'text-slate-400'
+                    )}
+                  >
+                    {getTrustTrend().change}
+                  </span>
                 </div>
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-              <div className="text-xs text-slate-500 dark:text-slate-400 mb-2">Trust Score History (Last 10)</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                Trust Score History (Last 10)
+              </div>
               <div className="flex items-end gap-1 h-12">
-                {messages.filter(m => m.evaluation).slice(-10).map((msg, idx) => {
-                  const score = msg.evaluation!.trustScore.overall;
-                  const color = score >= 80 ? 'bg-green-500' : score >= 60 ? 'bg-amber-500' : 'bg-red-500';
-                  return (
-                    <div
-                      key={idx}
-                      className={cn('flex-1 rounded-t transition-all', color)}
-                      style={{ height: `${Math.min(100, score)}%` }}
-                      title={`Score: ${score}/100`}
-                    />
-                  );
-                })}
+                {messages
+                  .filter((m) => m.evaluation)
+                  .slice(-10)
+                  .map((msg, idx) => {
+                    const score = msg.evaluation!.trustScore.overall;
+                    const color =
+                      score >= 80 ? 'bg-green-500' : score >= 60 ? 'bg-amber-500' : 'bg-red-500';
+                    return (
+                      <div
+                        key={idx}
+                        className={cn('flex-1 rounded-t transition-all', color)}
+                        style={{ height: `${Math.min(100, score)}%` }}
+                        title={`Score: ${score}/100`}
+                      />
+                    );
+                  })}
               </div>
             </div>
           </div>
@@ -855,20 +1094,30 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           {messages.length > 0 && (
             <div className="flex items-center gap-1">
               <Filter className="h-3 w-3 text-slate-400" />
-              {(['all', 'PASS', 'PARTIAL', 'FAIL'] as const).map(status => (
+              {(['all', 'PASS', 'PARTIAL', 'FAIL'] as const).map((status) => (
                 <Button
                   key={status}
                   variant={filterStatus === status ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setFilterStatus(status)}
                   className={cn(
-                    "h-6 px-2 text-[10px]",
-                    filterStatus !== status && status === 'PASS' && 'text-green-600 dark:text-green-400',
-                    filterStatus !== status && status === 'PARTIAL' && 'text-amber-600 dark:text-amber-400',
-                    filterStatus !== status && status === 'FAIL' && 'text-red-600 dark:text-red-400',
-                    filterStatus === status && status === 'PASS' && 'bg-green-600 hover:bg-green-700',
-                    filterStatus === status && status === 'PARTIAL' && 'bg-amber-600 hover:bg-amber-700',
-                    filterStatus === status && status === 'FAIL' && 'bg-red-600 hover:bg-red-700',
+                    'h-6 px-2 text-[10px]',
+                    filterStatus !== status &&
+                      status === 'PASS' &&
+                      'text-green-600 dark:text-green-400',
+                    filterStatus !== status &&
+                      status === 'PARTIAL' &&
+                      'text-amber-600 dark:text-amber-400',
+                    filterStatus !== status &&
+                      status === 'FAIL' &&
+                      'text-red-600 dark:text-red-400',
+                    filterStatus === status &&
+                      status === 'PASS' &&
+                      'bg-green-600 hover:bg-green-700',
+                    filterStatus === status &&
+                      status === 'PARTIAL' &&
+                      'bg-amber-600 hover:bg-amber-700',
+                    filterStatus === status && status === 'FAIL' && 'bg-red-600 hover:bg-red-700'
                   )}
                 >
                   {status === 'all' ? 'All' : status.charAt(0) + status.slice(1).toLowerCase()}
@@ -894,9 +1143,12 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
               <ShieldCheck size={36} className="text-purple-300 dark:text-purple-600" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Start a trust-aware conversation</p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                Start a trust-aware conversation
+              </p>
               <p className="text-xs text-slate-400 mt-1 max-w-[280px]">
-                Every response is evaluated against 6 constitutional principles with a cryptographic receipt.
+                Every response is evaluated against 6 constitutional principles with a cryptographic
+                receipt.
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
@@ -921,8 +1173,12 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
               <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4 p-8 text-center">
                 <Filter className="h-10 w-10 opacity-20" />
                 <div>
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">No {filterStatus} messages</p>
-                  <p className="text-xs max-w-[240px] mt-1">No messages match the selected filter.</p>
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                    No {filterStatus} messages
+                  </p>
+                  <p className="text-xs max-w-[240px] mt-1">
+                    No messages match the selected filter.
+                  </p>
                 </div>
               </div>
             ) : (
@@ -935,7 +1191,9 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           <div className="p-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
             <div className="flex items-center gap-3 text-slate-500">
               <TypingIndicator />
-              <span className="text-xs font-mono uppercase tracking-widest text-slate-400">Evaluating trust protocol</span>
+              <span className="text-xs font-mono uppercase tracking-widest text-slate-400">
+                Evaluating trust protocol
+              </span>
             </div>
             <Button
               variant="destructive"
@@ -963,12 +1221,12 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
             rows={1}
             disabled={isLoading}
             className={cn(
-              "flex-1 resize-none rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950",
-              "px-3 py-2 text-sm leading-relaxed text-slate-900 dark:text-slate-100",
-              "placeholder:text-slate-400 dark:placeholder:text-slate-500",
-              "focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
-              "overflow-hidden"
+              'flex-1 resize-none rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950',
+              'px-3 py-2 text-sm leading-relaxed text-slate-900 dark:text-slate-100',
+              'placeholder:text-slate-400 dark:placeholder:text-slate-500',
+              'focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent',
+              'disabled:opacity-50 disabled:cursor-not-allowed',
+              'overflow-hidden'
             )}
             style={{ minHeight: '40px', maxHeight: '120px' }}
           />
@@ -981,7 +1239,8 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           </Button>
         </div>
         <p className="mt-2 text-[9px] text-center text-slate-400 uppercase tracking-widest font-mono">
-          <span className="text-emerald-500">✓</span> Sending implies consent to AI interaction · Cryptographically signed
+          <span className="text-emerald-500">✓</span> Sending implies consent to AI interaction ·
+          Cryptographically signed
         </p>
       </div>
     </div>

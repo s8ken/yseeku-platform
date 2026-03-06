@@ -50,7 +50,10 @@ router.post('/evaluate', protect, async (req: Request, res: Response): Promise<v
       return;
     }
 
-    const result = await relationalSafeguardsService.evaluate(conversationId as string, tenantId as string);
+    const result = await relationalSafeguardsService.evaluate(
+      conversationId as string,
+      tenantId as string
+    );
 
     res.json({
       success: true,
@@ -69,24 +72,31 @@ router.post('/evaluate', protect, async (req: Request, res: Response): Promise<v
  * GET /api/safeguards/evaluate/:conversationId
  * GET variant of evaluate for convenience (e.g., from dashboard widgets).
  */
-router.get('/evaluate/:conversationId', protect, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { conversationId } = req.params;
-    const tenantId = (req as any).tenant || 'default';
+router.get(
+  '/evaluate/:conversationId',
+  protect,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { conversationId } = req.params;
+      const tenantId = (req as any).tenant || 'default';
 
-    const result = await relationalSafeguardsService.evaluate(conversationId as string, tenantId as string);
+      const result = await relationalSafeguardsService.evaluate(
+        conversationId as string,
+        tenantId as string
+      );
 
-    res.json({
-      success: true,
-      data: result,
-    });
-  } catch (error) {
-    logger.error('Safeguards GET evaluation error', { error: getErrorMessage(error) });
-    res.status(500).json({
-      success: false,
-      error: 'Safeguards evaluation failed',
-    });
+      res.json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      logger.error('Safeguards GET evaluation error', { error: getErrorMessage(error) });
+      res.status(500).json({
+        success: false,
+        error: 'Safeguards evaluation failed',
+      });
+    }
   }
-});
+);
 
 export default router;
