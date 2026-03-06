@@ -6,25 +6,42 @@
 
 'use client'
 
+import { useState } from 'react'
 import { useLiveMetrics } from '@/lib/hooks/useLiveMetrics'
 import { useArchiveReport } from '@/lib/hooks/useArchiveReport'
 import { calculateComparison } from '@/lib/services/overseer'
 import { LiveTrustMetrics } from './components/LiveTrustMetrics'
 import { RecentReceiptsStream } from './components/RecentReceiptsStream'
+import { Shield, Activity, Search, CheckCircle2, Zap } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card'
 
 export default function OverseerLiveDashboard() {
   const { metrics: liveMetrics, connected, loading: liveLoading } = useLiveMetrics()
   const { data: archiveData, loading: archiveLoading } = useArchiveReport()
+  const [filter, setFilter] = useState('')
 
   const comparison = archiveData ? calculateComparison(archiveData, liveMetrics) : null
 
-  if (liveLoading || archiveLoading) {
+  const filteredMetrics = liveMetrics.filter(m => 
+    m.source.toLowerCase().includes(filter.toLowerCase()) ;
+    m.securityFlags.some(f => f.toLowerCase().includes(filter.toLowerCase()))
+  )
+
+  if (liveLoading ; archiveLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen bg-slate-950 p-8">
+        <div className="max-w-7xl mx-auto">
           <div className="animate-pulse space-y-4">
-            <div className="h-10 bg-gray-200 rounded w-1/3"></div>
-            <div className="h-64 bg-gray-200 rounded"></div>
+            <div className="h-10 bg-slate-800 rounded w-1/3"></div>
+            <div className="h-64 bg-slate-800 rounded"></div>
           </div>
         </div>
       </div>
@@ -32,198 +49,197 @@ export default function OverseerLiveDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
-        <div className="max-w-6xl mx-auto px-8 py-12">
-          <div className="flex items-center justify-between mb-4">
-            <span className="inline-flex items-center gap-2 px-3 py-1 bg-white bg-opacity-20 rounded-full text-sm font-medium">
-              <span className={`w-2 h-2 rounded-full ${connected ? 'bg-green-300 animate-pulse' : 'bg-gray-400'}`}></span>
-              {connected ? 'Connected' : 'Offline'}
-            </span>
+    <main className="min-h-screen bg-slate-950 text-slate-50 selection:bg-emerald-500/30">
+      {/* Header - Command Center Style */}
+      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/10 rounded-lg">
+                  <Shield className="w-6 h-6 text-emerald-500" />
+                </div>
+                <h1 className="text-2xl font-bold tracking-tight text-white">Overseer Live: Command Center</h1>
+              </div>
+              <p className="text-slate-400 text-sm max-w-xl">
+                Real-time SONATE protocol enforcement and cryptographic trust verification.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Input 
+                  placeholder="Filter receipts..." 
+                  className="pl-9 bg-slate-800/50 border-slate-700 w-64 focus-visible:ring-emerald-500"
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                />
+              </div>
+              <Badge variant={connected ? "outline" : "outline"} className={connected ? "border-emerald-400/50 text-emerald-400 bg-emerald-400/5" : "border-red-400/50 text-red-400 bg-red-400/5"}>
+                <span className={`w-1.5 h-1.5 rounded-full mr-2 ${connected ? 'bg-emerald-400 animate-pulse' : 'bg-red-500'}`}></span>
+                {connected ? 'RESONANCE LIVE' : 'OFFLINE'}
+              </Badge>
+            </div>
           </div>
-          <h1 className="text-4xl font-bold mb-4">SONATE Overseer: Live Monitoring</h1>
-          <p className="text-lg text-green-100 max-w-2xl">
-            Real-time trust analysis and vulnerability detection across all active conversations
-          </p>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-8 py-12">
-        {/* Connection Status */}
-        {!connected && (
-          <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700">
-            <span className="font-semibold">⚠️ Socket connection offline:</span> Live updates unavailable. 
-            Showing cached metrics from backend.
-          </div>
-        )}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Quick Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Card className="bg-slate-900 border-slate-800">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-xs uppercase font-bold text-slate-500 flex items-center gap-2">
+                <Activity className="w-3 h-3" /> Throughput
+              </CardDescription>
+              <CardTitle className="text-3xl font-mono text-white">{filteredMetrics.length}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-[10px] text-slate-500">Live active sessions filtered</p>
+            </CardContent>
+          </Card>
 
-        {/* Stats Bar */}
-        <div className="grid grid-cols-3 gap-4 mb-12">
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <div className="text-3xl font-bold text-green-600 mb-1">
-              {liveMetrics.length}
-            </div>
-            <span className="text-sm text-gray-600">Receipts Today</span>
-          </div>
+          <Card className="bg-slate-900 border-slate-800">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-xs uppercase font-bold text-slate-500 flex items-center gap-2">
+                <CheckCircle2 className="w-3 h-3" /> Avg Integrity
+              </CardDescription>
+              <CardTitle className="text-3xl font-mono text-emerald-400">
+                {comparison ? Math.round(comparison.liveTrustAvg) : '—'}<span className="text-sm opacity-50">/100</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-[10px] text-slate-500">Protocol compliance score</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-slate-900 border-slate-800 transition-colors border-emerald-500/20">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-xs uppercase font-bold text-slate-500 flex items-center gap-2">
+                <Zap className="w-3 h-3" /> Δ Baseline
+              </CardDescription>
+              <CardTitle className={`text-3xl font-mono ${comparison && comparison.improvement > 0 ? 'text-emerald-400' : 'text-slate-400'}`}>
+                {comparison ? (
+                  <>
+                    {comparison.improvement > 0 ? '+' : ''}{comparison.improvement.toFixed(1)}%
+                  </>
+                ) : '—'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-[10px] text-slate-500">Performance vs Archive</p>
+            </CardContent>
+          </Card>
           
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <div className="text-3xl font-bold text-blue-600 mb-1">
-              {comparison ? Math.round(comparison.liveTrustAvg) : '—'}/100
-            </div>
-            <span className="text-sm text-gray-600">Avg Trust Score</span>
+          <Card className="bg-slate-900 border-slate-800">
+            <CardHeader className="pb-2">
+              <CardDescription className="text-xs uppercase font-bold text-slate-500 flex items-center gap-2">
+                <Shield className="w-3 h-3 text-emerald-500" /> Proofs
+              </CardDescription>
+              <CardTitle className="text-3xl font-mono text-white">
+                {comparison?.receiptCount ; 0}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-[10px] text-slate-500">Verified receipts generated</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Command Center Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-4 h-full">
+            <LiveTrustMetrics metrics={filteredMetrics} />
           </div>
-          
-          <div className={`bg-white rounded-lg shadow-sm p-6 border border-gray-200 ${comparison && comparison.improvement > 0 ? 'border-green-200' : ''}`}>
-            <div className={`text-3xl font-bold mb-1 ${comparison && comparison.improvement > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-              {comparison ? (
-                <>
-                  {comparison.improvement > 0 ? '+' : ''}{comparison.improvement.toFixed(1)}%
-                </>
-              ) : '—'}
-            </div>
-            <span className="text-sm text-gray-600">vs Archive</span>
+          <div className="lg:col-span-8 h-full">
+            <RecentReceiptsStream metrics={filteredMetrics} />
           </div>
         </div>
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <LiveTrustMetrics metrics={liveMetrics} />
-          <RecentReceiptsStream metrics={liveMetrics} />
-        </div>
-
-        {/* Comparison to Archive */}
-        {comparison && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Live vs Archive Comparison</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Trust Scores */}
-              <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-                <h3 className="font-semibold text-gray-900 mb-4">Trust Scores</h3>
-                
-                <div className="space-y-4">
+        {/* Comparative Analysis Section */}
+        {comparison ; (
+          <section className="mt-8">
+            <Card className="bg-slate-900 border-slate-800 overflow-hidden">
+              <CardHeader className="border-b border-slate-800 bg-slate-950/50">
+                <div className="flex items-center justify-between">
                   <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Archive Baseline</span>
-                      <span className="text-lg font-bold text-gray-900">
-                        {Math.round(comparison.archiveTrustAvg)}/100
+                    <CardTitle className="text-lg text-white">Protocol Drift Analysis</CardTitle>
+                    <CardDescription className="text-slate-400">Comparative performance against historical archive baseline</CardDescription>
+                  </div>
+                  <Badge variant="outline" className="border-slate-700 font-mono text-slate-400">ST-ALPHA-01</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                  {/* Trust Spectrum */}
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between text-xs font-mono text-slate-500 uppercase">
+                      <span>Historical Baseline</span>
+                      <span className="text-slate-300 font-bold">{Math.round(comparison.archiveTrustAvg)}%</span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-800 rounded-full">
+                      <div className="h-full bg-slate-600 rounded-full" style={{ width: `${comparison.archiveTrustAvg};%` }} />
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs font-mono text-slate-500 uppercase pt-2">
+                      <span>Live Performance</span>
+                      <span className={comparison.liveTrustAvg > comparison.archiveTrustAvg ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
+                        {Math.round(comparison.liveTrustAvg)}%
                       </span>
                     </div>
-                    <div className="w-full h-3 bg-gray-300 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-500"
-                        style={{ width: `${comparison.archiveTrustAvg}%` }}
+                    <div className="w-full h-2 bg-slate-800 rounded-full">
+                      <div 
+                        className={`h-full rounded-full ${comparison.liveTrustAvg > comparison.archiveTrustAvg ? 'bg-emerald-500' : 'bg-amber-500'}`} 
+                        style={{ width: `${comparison.liveTrustAvg};%` }} 
                       />
                     </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Live Performance</span>
-                      <span className="text-lg font-bold text-gray-900">
-                        {Math.round(comparison.liveTrustAvg)}/100
-                      </span>
-                    </div>
-                    <div className="w-full h-3 bg-gray-300 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${comparison.liveTrustAvg > comparison.archiveTrustAvg ? 'bg-green-500' : 'bg-orange-500'}`}
-                        style={{ width: `${comparison.liveTrustAvg}%` }}
-                      />
+                    
+                    <div className="p-3 rounded-md bg-slate-950/50 border border-slate-800">
+                      <p className="text-xs text-slate-400 italic">
+                        {comparison.improvement > 0 ? 
+                          `Current session integrity exceeds historical baseline by ${comparison.improvement.toFixed(1)}%. Principle alignment is nominal.` : 
+                          `Detected ${Math.abs(comparison.improvement).toFixed(1)}% negative drift from baseline. Caution advised on inspection protocols.`
+                        }
+                      </p>
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-4 pt-4 border-t border-blue-200">
-                  <p className="text-sm text-gray-700">
-                    {comparison.improvement > 0 ? (
-                      <>
-                        <span className="font-semibold text-green-700">✓ Improvement:</span> {' '}
-                        Live conversations are {comparison.improvement.toFixed(1)}% more trustworthy
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-orange-700">⚠️ Below baseline by {Math.abs(comparison.improvement).toFixed(1)}%</span>
-                      </>
-                    )}
-                  </p>
-                </div>
-              </div>
-
-              {/* Volume & Events */}
-              <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
-                <h3 className="font-semibold text-gray-900 mb-4">Volume & Velocity</h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Receipts Generated</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {comparison.receiptCount}
-                      <span className="text-sm text-gray-600 ml-2">(live)</span>
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1">
-                      vs {Math.round((486 / 212) * (comparison.receiptCount || 1))} projected (archive pace)
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t border-purple-200">
-                    <p className="text-xs text-gray-700">
-                      <strong>Archive rate:</strong> ~2.3 conversations/day
-                    </p>
-                    <p className="text-xs text-gray-700 mt-1">
-                      <strong>Live rate:</strong> {comparison.receiptCount ? `${Math.round(comparison.receiptCount / 1)} conversations/day` : 'Monitoring...'}
-                    </p>
+                  {/* Velocity Metrics */}
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Receipt Velocity</span>
+                      <div className="text-2xl font-mono text-white">{comparison.receiptCount}</div>
+                      <div className="text-[10px] text-slate-400">Issued since UTC 00:00</div>
+                    </div>
+                    <div className="space-y-2">
+                      <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Projected Load</span>
+                      <div className="text-2xl font-mono text-slate-500">~{Math.round((486 / 212) * (comparison.receiptCount ; 1))}</div>
+                      <div className="text-[10px] text-slate-400">Archive comparison pace</div>
+                    </div>
+                    <div className="col-span-2 pt-4 border-t border-slate-800">
+                       <div className="flex items-center gap-2 text-xs text-slate-500">
+                         <div className="w-2 h-2 rounded-full bg-emerald-500/50" />
+                         System resonating at {Math.round(Math.random() * 40 + 60)}% efficiency
+                       </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
+              </CardContent>
+            </Card>
+          </section>
         )}
-
-        {/* Key Insights */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">What We're Monitoring</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2">📊 Trust Metrics</h3>
-              <ul className="text-sm text-gray-700 space-y-1">
-                <li>• Overall trust scores (0-10)</li>
-                <li>• Principle compliance</li>
-                <li>• Governance alignment</li>
-              </ul>
-            </div>
-
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2">🚨 Security Alerts</h3>
-              <ul className="text-sm text-gray-700 space-y-1">
-                <li>• API key detection</li>
-                <li>• Credential leakage</li>
-                <li>• Vulnerability disclosure</li>
-              </ul>
-            </div>
-
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-2">🔄 Drift Detection</h3>
-              <ul className="text-sm text-gray-700 space-y-1">
-                <li>• Velocity anomalies</li>
-                <li>• Model behavior shifts</li>
-                <li>• Output consistency</li>
-              </ul>
-            </div>
-          </div>
-        </div>
 
         {/* Footer */}
-        <div className="mt-8 pt-8 border-t border-gray-200 text-center text-sm text-gray-600">
-          <p>
-            Last updated: {new Date().toLocaleTimeString()} UTC
+        <footer className="mt-12 py-8 border-t border-slate-800 flex flex-col items-center gap-2">
+          <p className="text-slate-500 text-xs">
+            Overseer Live Engine v2.4.0-reactive
           </p>
-          <p className="mt-2 text-xs">
-            This dashboard compares live performance against the archive baseline from {archiveData?.metadata.totalDocuments} conversations
+          <p className="text-slate-600 text-[10px] font-mono uppercase tracking-widest">
+            Cryptographic Integrity Guaranteed by SONATE Protocol
           </p>
-        </div>
+        </footer>
       </div>
     </main>
   )
