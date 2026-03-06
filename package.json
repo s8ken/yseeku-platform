@@ -67,7 +67,8 @@
     "@ethersproject/providers": {
       "ws": "7.5.10"
     },
-    "@noble/hashes": "2.0.1"
+    "@noble/hashes": "2.0.1",
+    "minimatch": ">=9.0.7"
   },
   "engines": {
     "node": "20.x"
