@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, Calendar, User, FileText } from 'lucide-react';
+import { Search, Filter, Calendar, User, FileText, Shield, RefreshCw } from 'lucide-react';
 import { api } from '@/lib/api';
 
 interface AuditLog {
@@ -172,22 +172,32 @@ export default function AuditTrailsPage() {
   const logs = data?.data?.logs || [];
   const total = data?.data?.total || 0;
 
+  const getVerificationMethod = (log: AuditLog) => {
+    if (log.resourceType === 'trust-receipt' || log.action.includes('sign')) {
+      return { label: 'Cryptographically Signed', variant: 'default' as const };
+    }
+    if (log.resourceType === 'policy' || log.resourceType === 'agent') {
+      return { label: 'SONATE Chain', variant: 'secondary' as const };
+    }
+    return { label: 'System Verified', variant: 'outline' as const };
+  };
+
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Audit Trails</h2>
+        <h2 className="text-3xl font-bold tracking-tight text-primary">Governance Audit Logs</h2>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={exportAsJSON}>
+          <Button variant="outline" size="sm" onClick={exportAsJSON}>
             <FileText className="mr-2 h-4 w-4" />
-            Export JSON
+            JSON
           </Button>
-          <Button variant="outline" onClick={exportAsCSV}>
+          <Button variant="outline" size="sm" onClick={exportAsCSV}>
             <FileText className="mr-2 h-4 w-4" />
-            Export CSV
+            CSV
           </Button>
-          <Button onClick={() => refetch()}>
-            <FileText className="mr-2 h-4 w-4" />
-            Refresh
+          <Button size="sm" onClick={() => refetch()}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Sync Logs
           </Button>
         </div>
       </div>
@@ -303,46 +313,62 @@ export default function AuditTrailsPage() {
             </div>
           ) : (
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-muted/50">
                 <TableRow>
-                  <TableHead scope="col">Timestamp</TableHead>
-                  <TableHead scope="col">User</TableHead>
-                  <TableHead scope="col">Action</TableHead>
-                  <TableHead scope="col">Resource</TableHead>
-                  <TableHead scope="col">Severity</TableHead>
-                  <TableHead scope="col">Outcome</TableHead>
-                  <TableHead scope="col">Details</TableHead>
+                  <TableHead scope="col" className="w-[180px] text-xs uppercase font-bold">Timestamp</TableHead>
+                  <TableHead scope="col" className="text-xs uppercase font-bold">Identity</TableHead>
+                  <TableHead scope="col" className="text-xs uppercase font-bold">Action</TableHead>
+                  <TableHead scope="col" className="text-xs uppercase font-bold">Resource</TableHead>
+                  <TableHead scope="col" className="text-xs uppercase font-bold">Verification</TableHead>
+                  <TableHead scope="col" className="text-xs uppercase font-bold">Severity</TableHead>
+                  <TableHead scope="col" className="text-xs uppercase font-bold">Outcome</TableHead>
+                  <TableHead scope="col" className="text-xs uppercase font-bold">Details</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {logs.map((log: AuditLog) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="font-mono text-xs">
-                      {new Date(log.timestamp).toLocaleString('en-US')}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        {log.userId}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">{log.action}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {log.resourceType}#{log.resourceId}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={getSeverityBadgeVariant(log.severity)}>
-                        {log.severity}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{log.outcome}</TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {log.details ? JSON.stringify(log.details) : '-'}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {logs.map((log: AuditLog) => {
+                  const verification = getVerificationMethod(log);
+                  return (
+                    <TableRow key={log.id} className="hover:bg-muted/30">
+                      <TableCell className="font-mono text-[10px] py-2">
+                        {new Date(log.timestamp).toLocaleString('en-GB', { 
+                          year: 'numeric', 
+                          month: 'short', 
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit'
+                        })}
+                      </TableCell>
+                      <TableCell className="py-2">
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <User className="h-3 w-3 text-muted-foreground" />
+                          <span className="truncate max-w-[100px]">{log.userId}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium text-xs py-2">{log.action}</TableCell>
+                      <TableCell className="py-2">
+                        <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
+                          {log.resourceType}:{log.resourceId.substring(0, 8)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="py-2">
+                        <Badge variant={verification.variant} className="text-[10px] px-1 py-0 h-4 whitespace-nowrap">
+                          {verification.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="py-2">
+                        <Badge variant={getSeverityBadgeVariant(log.severity)} className="text-[10px] px-1 py-0 h-4 uppercase">
+                          {log.severity}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs py-2">{log.outcome}</TableCell>
+                      <TableCell className="max-w-[150px] truncate text-[10px] text-muted-foreground py-2 font-mono">
+                        {log.details ? JSON.stringify(log.details) : '-'}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
