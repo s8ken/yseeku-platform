@@ -475,6 +475,11 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
   const [isPinningToIPFS, setIsPinningToIPFS] = useState(false);
   const [ipfsCid, setIpfsCid] = useState<string | null>(null);
+  const [activeViolation, setActiveViolation] = useState<{
+    status: 'FAIL' | 'PARTIAL';
+    trustScore: number;
+    violations: string[];
+  } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -720,6 +725,38 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
             timestamp: Date.now(),
           };
           setMessages((prev) => [...prev, assistantMessage]);
+
+          // Fire alert for trust violations
+          if (trustEval?.status === 'FAIL') {
+            const violations = trustEval.trustScore?.violations ?? [];
+            setActiveViolation({
+              status: 'FAIL',
+              trustScore: trustEval.trustScore?.overall ?? 0,
+              violations,
+            });
+            toast.error('Trust Violation — Overseer Notified', {
+              description: violations.length
+                ? `Principles flagged: ${violations.join(', ')}`
+                : `Trust score: ${trustEval.trustScore?.overall}/100`,
+              duration: 8000,
+            });
+          } else if (trustEval?.status === 'PARTIAL') {
+            const violations = trustEval.trustScore?.violations ?? [];
+            setActiveViolation({
+              status: 'PARTIAL',
+              trustScore: trustEval.trustScore?.overall ?? 0,
+              violations,
+            });
+            toast.warning('Partial Trust Score', {
+              description: violations.length
+                ? `Principles flagged: ${violations.join(', ')}`
+                : `Trust score: ${trustEval.trustScore?.overall}/100 — some principles not fully satisfied`,
+              duration: 6000,
+            });
+          } else {
+            setActiveViolation(null);
+          }
+
           invalidateAndRefetch();
           setTimeout(() => invalidateAndRefetch(), 2000);
         } else if (msg.sender === 'user') {
@@ -1139,6 +1176,49 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
           )}
         </div>
       </div>
+
+      {/* Trust violation alert banner */}
+      {activeViolation && (
+        <div
+          className={cn(
+            'mx-0 px-4 py-3 flex items-start gap-3 text-sm border-b',
+            activeViolation.status === 'FAIL'
+              ? 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+              : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200'
+          )}
+        >
+          <AlertTriangle
+            size={16}
+            className={cn(
+              'mt-0.5 shrink-0',
+              activeViolation.status === 'FAIL' ? 'text-red-500' : 'text-amber-500'
+            )}
+          />
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold">
+              {activeViolation.status === 'FAIL'
+                ? 'Trust Protocol Violation — Overseer Notified'
+                : 'Partial Trust Score — Principles Flagged'}
+            </p>
+            <p className="text-xs mt-0.5 opacity-80">
+              Score: {activeViolation.trustScore}/100
+              {activeViolation.violations.length > 0 &&
+                ` · ${activeViolation.violations.join(', ')}`}
+            </p>
+            {activeViolation.status === 'FAIL' && (
+              <p className="text-xs mt-1 opacity-70">
+                The Overseer has been notified and is monitoring this session for corrective action.
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => setActiveViolation(null)}
+            className="text-xs opacity-50 hover:opacity-100 shrink-0"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Messages */}
       <div
