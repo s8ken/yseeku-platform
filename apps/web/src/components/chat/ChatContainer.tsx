@@ -478,11 +478,22 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // Tracks a conversation we just created in this session — prevents the
+  // initialConversationId effect from wiping optimistic messages before
+  // the AI response returns.
+  const justCreatedConvRef = useRef<string | null>(null);
 
   // Load existing conversation if initialConversationId is provided
   useEffect(() => {
     if (initialConversationId) {
       if (initialConversationId === conversationId && messages.length > 0) return;
+      // Skip reload for conversations we just created here — the handleSend
+      // flow already has the optimistic user message and will add the AI reply.
+      if (justCreatedConvRef.current === initialConversationId) {
+        justCreatedConvRef.current = null;
+        setConversationId(initialConversationId);
+        return;
+      }
       loadExistingConversation(initialConversationId);
     } else {
       setMessages([]);
@@ -631,6 +642,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
         const autoTitle = text.split(/\s+/).slice(0, 6).join(' ');
         const created = await api.createConversation(autoTitle);
         convId = created.id;
+        justCreatedConvRef.current = convId;
         setConversationId(convId);
         if (onConversationCreated) {
           onConversationCreated(convId);
