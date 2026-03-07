@@ -822,9 +822,15 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             providesAlternatives: true,
           };
 
-          // Choose evaluation method: use LLM if flag set OR user has an active API key
+          // Choose evaluation method: use LLM if flag set OR user has an active API key OR system env key is configured
           const hasUserApiKey = currentUser?.apiKeys?.some((k: any) => k.isActive);
-          const shouldUseLLMEval = USE_LLM_TRUST_EVALUATION || !!hasUserApiKey;
+          const hasSystemApiKey = !!(
+            process.env.ANTHROPIC_API_KEY ||
+            process.env.OPENAI_API_KEY ||
+            process.env.GOOGLE_GEMINI_API_KEY ||
+            process.env.GEMINI_API_KEY
+          );
+          const shouldUseLLMEval = USE_LLM_TRUST_EVALUATION || !!hasUserApiKey || hasSystemApiKey;
           let aiTrustEval;
 
           if (shouldUseLLMEval) {
@@ -869,7 +875,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             detection: aiTrustEval.detection,
             receipt: aiTrustEval.receipt,
             receiptHash: aiTrustEval.receiptHash,
-            evaluatedBy: USE_LLM_TRUST_EVALUATION ? 'llm' : 'heuristic',
+            evaluatedBy: shouldUseLLMEval ? 'llm' : 'heuristic',
             analysisMethod: aiTrustEval.analysisMethod,
             timestamp: aiTrustEval.timestamp || Date.now(),
           };
