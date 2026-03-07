@@ -822,12 +822,17 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             providesAlternatives: true,
           };
 
-          // Choose evaluation method based on feature flag
+          // Choose evaluation method: use LLM if flag set OR user has an active API key
+          const hasUserApiKey = currentUser?.apiKeys?.some((k: any) => k.isActive);
+          const shouldUseLLMEval = USE_LLM_TRUST_EVALUATION || !!hasUserApiKey;
           let aiTrustEval;
 
-          if (USE_LLM_TRUST_EVALUATION) {
+          if (shouldUseLLMEval) {
             // Use LLM-based trust evaluation (more accurate, uses AI to assess)
-            logger.info('Using LLM-based trust evaluation', { conversationId: conversation._id });
+            logger.info('Using LLM-based trust evaluation', {
+              conversationId: conversation._id,
+              reason: USE_LLM_TRUST_EVALUATION ? 'feature-flag' : 'user-api-key',
+            });
             aiTrustEval = await llmTrustEvaluator.evaluate(aiMessage, {
               conversationId: conversation._id.toString(),
               sessionId: conversation._id.toString(),

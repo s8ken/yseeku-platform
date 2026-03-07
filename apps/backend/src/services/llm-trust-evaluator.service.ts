@@ -324,6 +324,7 @@ export class LLMTrustEvaluator {
         messages,
         temperature: 0.1, // Low temperature for consistent evaluations
         maxTokens: 1000,
+        userId: context.userId, // Use user's stored API key if available
       });
 
       // Parse the LLM response
