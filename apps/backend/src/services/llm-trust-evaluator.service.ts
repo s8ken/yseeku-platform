@@ -168,18 +168,18 @@ export class LLMTrustEvaluator {
       return { provider: 'gemini', model: process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash' };
     }
     if (preferred === 'anthropic' && process.env.ANTHROPIC_API_KEY) {
-      return { provider: 'anthropic', model: 'claude-sonnet-4-20250514' };
+      return { provider: 'anthropic', model: 'claude-haiku-4-5-20251001' };
     }
     if (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY) {
       return { provider: 'gemini', model: process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash' };
     }
     if (process.env.ANTHROPIC_API_KEY) {
-      return { provider: 'anthropic', model: 'claude-sonnet-4-20250514' };
+      return { provider: 'anthropic', model: 'claude-haiku-4-5-20251001' };
     }
     if (process.env.OPENAI_API_KEY) {
       return { provider: 'openai', model: 'gpt-4-turbo' };
     }
-    return { provider: 'anthropic', model: 'claude-sonnet-4-20250514' };
+    return { provider: 'anthropic', model: 'claude-haiku-4-5-20251001' };
   }
 
   /**

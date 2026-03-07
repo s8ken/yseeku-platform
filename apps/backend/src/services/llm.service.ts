@@ -429,11 +429,14 @@ export class LLMService {
       throw new Error('Anthropic API key not configured. Please add your API key in settings.');
     }
 
-    // Map old model names to new ones for compatibility
+    // Map old model names to current valid Anthropic model IDs
     const modelMapping: Record<string, string> = {
-      'claude-3-5-sonnet-20241022': 'claude-sonnet-4-20250514',
-      'claude-3-opus-20240229': 'claude-opus-4-20250514',
-      'claude-3-haiku-20240307': 'claude-3-haiku-20240307',
+      'claude-3-5-sonnet-20241022': 'claude-sonnet-4-5',
+      'claude-3-opus-20240229': 'claude-opus-4-5',
+      'claude-3-haiku-20240307': 'claude-haiku-4-5-20251001',
+      // Fix previously incorrect date-suffixed claude-4 names
+      'claude-sonnet-4-20250514': 'claude-sonnet-4-5',
+      'claude-opus-4-20250514': 'claude-opus-4-5',
     };
 
     const resolvedModel = modelMapping[model] || model;
