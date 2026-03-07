@@ -418,7 +418,8 @@ export class LLMTrustEvaluator {
       }
 
       // Persist receipt so chain tip survives restarts
-      await persistReceipt(receipt, this.tenantId || 'default', {
+      // Use context.tenantId so receipts appear under the correct tenant in the dashboard
+      await persistReceipt(receipt, context.tenantId || this.tenantId || 'default', {
         evaluated_by: 'llm',
         sonate_principles: evaluation.principles as unknown as Record<string, number>,
         overall_trust_score: trustScore.overall,
@@ -748,7 +749,7 @@ export class LLMTrustEvaluator {
     }
 
     // Persist heuristic receipt so chain tip survives restarts
-    await persistReceipt(receipt, this.tenantId || 'default', {
+    await persistReceipt(receipt, context.tenantId || this.tenantId || 'default', {
       evaluated_by: 'heuristic',
     });
 
