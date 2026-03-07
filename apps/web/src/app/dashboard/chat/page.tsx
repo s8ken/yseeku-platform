@@ -132,7 +132,7 @@ export default function ChatPage() {
         {/* Chat Container */}
         <div className="lg:col-span-3">
           <ChatContainer
-            key={selectedConversationId ?? 'new'}
+            key="chat"
             initialConversationId={selectedConversationId}
             onConversationCreated={(id) => {
               setSelectedConversationId(id);
