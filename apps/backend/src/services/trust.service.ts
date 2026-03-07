@@ -209,15 +209,28 @@ export class TrustService {
       conversationId: string;
       sessionId?: string;
       previousMessages?: IMessage[];
-      agentId?: string; // Agent ID for DID-based subject
-      userId?: string; // User ID for principle evaluation
-      tenantId?: string; // Tenant ID for multi-tenant isolation
-      // Principle evaluation context (for accurate scoring)
+      agentId?: string;
+      userId?: string;
+      tenantId?: string;
+      // Full principle evaluation context
       hasExplicitConsent?: boolean;
+      consentTimestamp?: number;
+      consentScope?: string[];
       hasOverrideButton?: boolean;
       hasExitButton?: boolean;
       exitRequiresConfirmation?: boolean;
       humanInLoop?: boolean;
+      canDeleteData?: boolean;
+      noExitPenalty?: boolean;
+      aiAcknowledgesLimits?: boolean;
+      noManipulativePatterns?: boolean;
+      respectsUserDecisions?: boolean;
+      providesAlternatives?: boolean;
+      validationChecksPerformed?: number;
+      validationPassed?: boolean;
+      receiptGenerated?: boolean;
+      isReceiptVerifiable?: boolean;
+      auditLogExists?: boolean;
     }
   ): Promise<TrustEvaluation> {
     // Track conversation activity for TTL-based cleanup
@@ -263,10 +276,23 @@ export class TrustService {
             sessionId: context.sessionId || context.conversationId,
             userId: context.userId || 'unknown',
             hasExplicitConsent: context.hasExplicitConsent,
+            consentTimestamp: context.consentTimestamp,
+            consentScope: context.consentScope,
             hasOverrideButton: context.hasOverrideButton,
             hasExitButton: context.hasExitButton,
             exitRequiresConfirmation: context.exitRequiresConfirmation,
             humanInLoop: context.humanInLoop,
+            canDeleteData: context.canDeleteData,
+            noExitPenalty: context.noExitPenalty,
+            aiAcknowledgesLimits: context.aiAcknowledgesLimits,
+            noManipulativePatterns: context.noManipulativePatterns,
+            respectsUserDecisions: context.respectsUserDecisions,
+            providesAlternatives: context.providesAlternatives,
+            validationChecksPerformed: context.validationChecksPerformed,
+            validationPassed: context.validationPassed,
+            receiptGenerated: context.receiptGenerated,
+            isReceiptVerifiable: context.isReceiptVerifiable,
+            auditLogExists: context.auditLogExists,
           }
         : undefined;
 

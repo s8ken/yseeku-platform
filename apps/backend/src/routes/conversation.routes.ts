@@ -848,12 +848,11 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
               conversationId: conversation._id.toString(),
               sessionId: conversation._id.toString(),
               previousMessages: conversation.messages.slice(-11, -1),
+              agentId: agent._id?.toString(),
               userId: req.userId,
-              hasExplicitConsent: evaluationContext.hasExplicitConsent,
-              hasOverrideButton: evaluationContext.hasOverrideButton,
-              hasExitButton: evaluationContext.hasExitButton,
-              exitRequiresConfirmation: evaluationContext.exitRequiresConfirmation,
-              humanInLoop: evaluationContext.humanInLoop,
+              tenantId: req.userTenant,
+              // Pass full evaluation context so heuristic scoring is as accurate as LLM path
+              ...evaluationContext,
             });
           }
 
