@@ -680,14 +680,14 @@ export class LLMTrustEvaluator {
     const wordCount = content.split(/\s+/).length;
     const hasStructure = content.includes('\n') || content.includes('-') || content.includes('•');
 
-    // Simple heuristic scores
+    // Simple heuristic scores — baseline for benign content in active conversation
     const principles: PrincipleScores = {
-      CONSENT_ARCHITECTURE: 7, // Assume consent in active conversation
-      INSPECTION_MANDATE: hasStructure ? 8 : 6,
-      CONTINUOUS_VALIDATION: 7,
-      ETHICAL_OVERRIDE: 8,
+      CONSENT_ARCHITECTURE: 9, // Active conversation = explicit user consent
+      INSPECTION_MANDATE: hasStructure ? 9 : 8, // No-structure penalty removed (short replies are fine)
+      CONTINUOUS_VALIDATION: 8,
+      ETHICAL_OVERRIDE: 9,
       RIGHT_TO_DISCONNECT: 9,
-      MORAL_RECOGNITION: 8,
+      MORAL_RECOGNITION: 9,
     };
 
     const trustScore = this.calculateTrustScore(principles, []);
