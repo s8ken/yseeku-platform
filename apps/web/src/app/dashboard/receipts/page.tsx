@@ -333,6 +333,19 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
                 {isVerifying ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <ShieldCheck className="h-3 w-3 mr-1" />}
                 {!canVerify ? 'Unsigned' : verificationResult === 'success' ? 'Verified' : verificationResult === 'fail' ? 'Invalid' : 'Verify Proof'}
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-[10px] uppercase font-bold tracking-wider"
+                onClick={() => {
+                  const verifyUrl = `${process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://yseeku.com'}/verify?hash=${receipt.hash}`;
+                  navigator.clipboard.writeText(verifyUrl);
+                }}
+                title="Copy public verification link"
+              >
+                <ExternalLink className="h-3 w-3 mr-1" />
+                Share
+              </Button>
             </div>
           </div>
         </div>
@@ -346,6 +359,77 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
             </Button>
           </div>
           {receipt.hash}
+        </div>
+
+        {/* Chain Timeline View */}
+        <div className="mb-4">
+          <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-2">Chain Position</p>
+          <div className="flex flex-col gap-0">
+            {/* Current Receipt */}
+            <div className="flex items-start gap-2">
+              <div className="flex flex-col items-center">
+                <div className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-emerald-400 mt-0.5 shrink-0" />
+                {receipt.previousHash &amp;&amp; <div className="w-0.5 h-8 bg-border mt-0.5" />}
+              </div>
+              <div className="pb-2 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-semibold text-emerald-600">Block #{receipt.chainPosition}</span>
+                  <span className="text-xs text-muted-foreground">(current)</span>
+                </div>
+                <p className="font-mono text-[10px] text-muted-foreground truncate max-w-[280px]">{receipt.hash}</p>
+              </div>
+            </div>
+
+            {/* Previous Receipt */}
+            {receipt.previousHash ? (
+              <div className="flex items-start gap-2">
+                <div className="flex flex-col items-center">
+                  <div className="w-3 h-3 rounded-full bg-muted-foreground/40 border-2 border-muted-foreground/30 mt-0.5 shrink-0" />
+                  {receipt.chainPosition > 2 &amp;&amp; <div className="w-0.5 h-8 bg-border mt-0.5" />}
+                </div>
+                <div className="pb-2 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-semibold text-muted-foreground">Block #{receipt.chainPosition - 1}</span>
+                    <a
+                      href={`${process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://yseeku.com'}/verify?hash=${receipt.previousHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-blue-500 hover:underline flex items-center gap-0.5"
+                    >
+                      <ExternalLink className="h-2.5 w-2.5" />
+                      verify
+                    </a>
+                  </div>
+                  <p className="font-mono text-[10px] text-muted-foreground truncate max-w-[280px]">{receipt.previousHash}</p>
+                </div>
+              </div>
+            ) : null}
+
+            {/* Genesis indicator */}
+            {receipt.chainPosition <= 2 &amp;&amp; (
+              <div className="flex items-start gap-2">
+                <div className="flex flex-col items-center">
+                  <div className="w-3 h-3 rounded-full bg-violet-500/40 border-2 border-violet-400/40 mt-0.5 shrink-0" />
+                </div>
+                <div className="pb-1 min-w-0">
+                  <span className="text-xs font-semibold text-violet-500/70">Genesis Block</span>
+                  <p className="text-[10px] text-muted-foreground">Chain origin — no prior receipt</p>
+                </div>
+              </div>
+            )}
+
+            {/* Deep chain indicator */}
+            {receipt.chainPosition > 2 &amp;&amp; (
+              <div className="flex items-start gap-2">
+                <div className="flex flex-col items-center">
+                  <div className="w-3 h-3 rounded-full bg-muted/60 border border-dashed border-muted-foreground/30 mt-0.5 shrink-0" />
+                </div>
+                <div className="pb-1 min-w-0">
+                  <span className="text-[10px] text-muted-foreground">… {receipt.chainPosition - 2} earlier block{receipt.chainPosition - 2 !== 1 ? 's' : ''} in chain</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Constitutional Compliance (Primary) */}

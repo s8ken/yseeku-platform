@@ -47,7 +47,7 @@ They enable anyone — developers, auditors, regulators — to independently ver
 
 The following packages within this monorepo are MIT-licensed:
 
-- `@sonate/trust-receipts` — Receipt generation and validation
+- `@yseeku/trust-receipts` — Receipt generation and validation
 - `@sonate/schemas` — Trust receipt and policy schemas
 - `@sonate/core` — Core utility functions and configuration
 

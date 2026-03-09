@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml"><img src="https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://www.npmjs.com/package/sonate-receipt"><img src="https://img.shields.io/npm/v/sonate-receipt.svg?style=flat-square" alt="npm: sonate-receipt"></a>
+  <a href="https://www.npmjs.com/package/@yseeku/trust-receipts"><img src="https://img.shields.io/npm/v/@yseeku/trust-receipts.svg?style=flat-square" alt="npm: @yseeku/trust-receipts"></a>
   <img src="https://img.shields.io/badge/License-MIT/Proprietary-blue.svg" alt="License: MIT/Proprietary">
   <img src="https://img.shields.io/badge/version-2.0.0-brightgreen.svg" alt="Version: 2.0.0">
 </p>
@@ -43,17 +43,29 @@ This workspace implements a three-layer trust ecosystem for artificial intellige
 ### The Developer Moment (Move 2)
 
 ```bash
-npm install sonate-receipt
+npm install @yseeku/trust-receipts
 ```
 
 ```javascript
-import SONATE from 'sonate-receipt';
+import { TrustReceiptClient, generateKeyPair, bytesToHex } from '@yseeku/trust-receipts';
 
-// 1. Sign an interaction
-const { receipt } = await client.wrap(() => ai.generate(prompt), { context });
+// 1. Generate a key pair (once, store securely)
+const keyPair = await generateKeyPair();
+const client = new TrustReceiptClient(keyPair.privateKey, keyPair.publicKey);
 
-// 2. Verify the truth
-const isValid = await client.verifyReceipt(receipt, publicKey);
+// 2. Wrap any AI call — receipt is automatically signed &amp; hash-chained
+const { receipt } = await client.wrap(
+  () => openai.chat.completions.create({ model: 'gpt-4o', messages }),
+  { agentId: 'my-agent', sessionId: 'session-123' }
+);
+
+// receipt.receiptHash  — SHA-256 hash of this interaction
+// receipt.prevReceiptHash — links to previous receipt (tamper-evident chain)
+// receipt.signature   — Ed25519 signature (verifiable by anyone)
+
+// 3. Verify independently — no platform required
+const isValid = await client.verifyReceipt(receipt);
+console.log(`Verified: ${isValid} | Chain position: ${receipt.chainPosition}`);
 ```
 
 ---
@@ -362,10 +374,11 @@ npm test --workspace @sonate/detect
 
 | Package | Description | npm |
 |---------|-------------|-----|
-| `@sonate/core` | Trust protocol, SONATE principles, cryptographic receipts | [![npm](https://img.shields.io/npm/v/@sonate/core)](https://www.npmjs.com/package/@sonate/core) |
-| `@sonate/detect` | Real-time detection, drift, emergence, Bedau Index | [![npm](https://img.shields.io/npm/v/@sonate/detect)](https://www.npmjs.com/package/@sonate/detect) |
-| `@sonate/lab` | Research experiments, A/B testing, statistics | [![npm](https://img.shields.io/npm/v/@sonate/lab)](https://www.npmjs.com/package/@sonate/lab) |
-| `@sonate/orchestrate` | Production orchestration, DID/VC, RBAC | [![npm](https://img.shields.io/npm/v/@sonate/orchestrate)](https://www.npmjs.com/package/@sonate/orchestrate) |
+| `@yseeku/trust-receipts` | SSL/TLS for AI — cryptographically sign and verify every interaction | [![npm](https://img.shields.io/npm/v/@yseeku/trust-receipts)](https://www.npmjs.com/package/@yseeku/trust-receipts) |
+| `@yseeku/core` | Core trust protocol implementation for SONATE platform | [![npm](https://img.shields.io/npm/v/@yseeku/core)](https://www.npmjs.com/package/@yseeku/core) |
+| `@yseeku/verify-sdk` | Client-side SDK for verifying SONATE trust receipts | [![npm](https://img.shields.io/npm/v/@yseeku/verify-sdk)](https://www.npmjs.com/package/@yseeku/verify-sdk) |
+| `@yseeku/schemas` | Shared schema definitions (JSON Schema + TypeScript) | [![npm](https://img.shields.io/npm/v/@yseeku/schemas)](https://www.npmjs.com/package/@yseeku/schemas) |
+| `@yseeku/trust-protocol` | W3C-compliant trust infrastructure — DID, VC, cryptographic audit trails | [![npm](https://img.shields.io/npm/v/@yseeku/trust-protocol)](https://www.npmjs.com/package/@yseeku/trust-protocol) |
 
 ---
 

@@ -79,6 +79,8 @@ export default function AlertsManagementPage() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [suppressDuration, setSuppressDuration] = useState<string>('24');
+  const [suppressingAlertId, setSuppressingAlertId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -330,26 +332,79 @@ export default function AlertsManagementPage() {
                             </DialogTrigger>
                             <DialogContent>
                               <DialogHeader>
-                                <DialogTitle>{alert.title}</DialogTitle>
+                                <DialogTitle className="flex items-center gap-2">
+                                  {getSeverityIcon(alert.severity)}
+                                  {alert.title}
+                                </DialogTitle>
                                 <DialogDescription>
-                                  Alert Details
+                                  Alert Details &amp; Lifecycle
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4">
+                                {/* Lifecycle Timeline */}
+                                <div className="flex items-center gap-1 text-xs">
+                                  <div className={`px-2 py-1 rounded font-medium ${alert.status === 'active' ? 'bg-red-100 text-red-700' : 'bg-muted text-muted-foreground line-through'}`}>Active</div>
+                                  <div className="text-muted-foreground">→</div>
+                                  <div className={`px-2 py-1 rounded font-medium ${alert.status === 'acknowledged' ? 'bg-yellow-100 text-yellow-700' : alert.status === 'resolved' ? 'bg-muted text-muted-foreground line-through' : 'bg-muted text-muted-foreground'}`}>Acknowledged</div>
+                                  <div className="text-muted-foreground">→</div>
+                                  <div className={`px-2 py-1 rounded font-medium ${alert.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>Resolved</div>
+                                </div>
+
                                 <div>
                                   <Label>Description</Label>
                                   <p className="text-sm text-muted-foreground mt-1">
                                     {alert.description}
                                   </p>
                                 </div>
+
+                                {/* Metadata */}
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                  <div>
+                                    <span className="text-muted-foreground">Severity</span>
+                                    <p className="font-medium capitalize">{alert.severity}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Status</span>
+                                    <p className="font-medium capitalize">{alert.status}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Created</span>
+                                    <p className="font-medium">{formatAlertDate(alert)}</p>
+                                  </div>
+                                  {alert.acknowledgedBy && (
+                                    <div>
+                                      <span className="text-muted-foreground">Acknowledged by</span>
+                                      <p className="font-medium">{alert.acknowledgedBy}</p>
+                                    </div>
+                                  )}
+                                  {alert.acknowledgedAt && (
+                                    <div>
+                                      <span className="text-muted-foreground">Acknowledged at</span>
+                                      <p className="font-medium">{new Date(alert.acknowledgedAt).toLocaleString()}</p>
+                                    </div>
+                                  )}
+                                  {alert.resolvedBy && (
+                                    <div>
+                                      <span className="text-muted-foreground">Resolved by</span>
+                                      <p className="font-medium">{alert.resolvedBy}</p>
+                                    </div>
+                                  )}
+                                  {alert.resolvedAt && (
+                                    <div>
+                                      <span className="text-muted-foreground">Resolved at</span>
+                                      <p className="font-medium">{new Date(alert.resolvedAt).toLocaleString()}</p>
+                                    </div>
+                                  )}
+                                </div>
+
                                 {alert.details && (
                                   <div>
-                                    <Label>Details</Label>
+                                    <Label>Technical Details</Label>
                                     <Textarea
                                       value={JSON.stringify(alert.details, null, 2)}
                                       readOnly
                                       rows={6}
-                                      className="mt-1"
+                                      className="mt-1 font-mono text-xs"
                                     />
                                   </div>
                                 )}
@@ -380,9 +435,20 @@ export default function AlertsManagementPage() {
                           )}
 
                           {alert.status !== 'suppressed' && (
-                            <Dialog>
+                            <Dialog
+                              open={suppressingAlertId === alert.id}
+                              onOpenChange={(open) => {
+                                setSuppressingAlertId(open ? alert.id : null);
+                                if (open) setSuppressDuration('24');
+                              }}
+                            >
                               <DialogTrigger asChild>
-                                <Button variant="outline" size="sm">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setSuppressingAlertId(alert.id)}
+                                  title="Suppress alert"
+                                >
                                   <EyeOff className="h-4 w-4" />
                                 </Button>
                               </DialogTrigger>
@@ -390,13 +456,13 @@ export default function AlertsManagementPage() {
                                 <DialogHeader>
                                   <DialogTitle>Suppress Alert</DialogTitle>
                                   <DialogDescription>
-                                    Suppress this alert for a specified duration.
+                                    Suppress this alert for a specified duration. It will be hidden from the active list but retained in history.
                                   </DialogDescription>
                                 </DialogHeader>
                                 <div className="space-y-4">
                                   <div className="space-y-2">
-                                    <Label>Duration (hours)</Label>
-                                    <Select>
+                                    <Label>Duration</Label>
+                                    <Select value={suppressDuration} onValueChange={setSuppressDuration}>
                                       <SelectTrigger>
                                         <SelectValue placeholder="Select duration" />
                                       </SelectTrigger>
@@ -408,10 +474,25 @@ export default function AlertsManagementPage() {
                                       </SelectContent>
                                     </Select>
                                   </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    Alert: <span className="font-medium">{alert.title}</span>
+                                  </p>
                                 </div>
                                 <DialogFooter>
-                                  <Button variant="outline">Cancel</Button>
-                                  <Button>Suppress Alert</Button>
+                                  <Button variant="outline" onClick={() => setSuppressingAlertId(null)}>Cancel</Button>
+                                  <Button
+                                    onClick={() => {
+                                      suppressMutation.mutate({ alertId: alert.id, duration: parseInt(suppressDuration) });
+                                      setSuppressingAlertId(null);
+                                    }}
+                                    disabled={suppressMutation.isPending}
+                                  >
+                                    {suppressMutation.isPending ? (
+                                      <><RefreshCw className="h-3 w-3 mr-1 animate-spin" />Suppressing...</>
+                                    ) : (
+                                      <>Suppress for {suppressDuration === '1' ? '1 hour' : suppressDuration === '4' ? '4 hours' : suppressDuration === '24' ? '24 hours' : '1 week'}</>
+                                    )}
+                                  </Button>
                                 </DialogFooter>
                               </DialogContent>
                             </Dialog>

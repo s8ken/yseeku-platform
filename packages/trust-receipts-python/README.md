@@ -1,4 +1,4 @@
-# @sonate/trust-receipts-python
+# @yseeku/trust-receipts-python
 
 Python SDK for SONATE Trust Receipts - identical behavior to JavaScript SDK.
 

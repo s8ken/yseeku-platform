@@ -9,7 +9,7 @@
 // OPENAI EXAMPLE
 // ============================================================================
 
-import { TrustReceipts } from '@sonate/trust-receipts';
+import { TrustReceipts } from '@yseeku/trust-receipts';
 import OpenAI from 'openai';
 
 async function exampleOpenAI() {
