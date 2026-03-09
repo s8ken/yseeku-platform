@@ -90,52 +90,8 @@ export const DEMO_BASE_INTERACTIONS = DEMO_AGENTS.reduce(
   0
 ); // 1387
 
-// ─── KPI Baseline ─────────────────────────────────────────────────────────────
-// These are the SEEDED values before any real receipts are added.
-// The KPI route adds real receipt count on top of DEMO_BASE_INTERACTIONS.
-
-export const DEMO_KPI_BASELINE = {
-  trustScore: 8.2,
-  principleScores: {
-    consent: 8.6,
-    inspection: 8.1,
-    validation: 7.9,
-    override: 8.3,
-    disconnect: 8.0,
-    recognition: 8.2,
-  },
-  /** Base interaction count — real receipts are added dynamically */
-  totalInteractions: DEMO_BASE_INTERACTIONS, // 1387
-  /** Active agents = agents with status 'active' */
-  activeAgents: DEMO_AGENT_SUMMARY.active, // 4
-  complianceRate: 87,
-  riskScore: 1.8,
-  /** Base alert count — matches DEMO_ALERTS length */
-  alertsCount: 3, // updated below after DEMO_ALERTS is defined
-  experimentsRunning: 2,
-  orchestratorsActive: DEMO_AGENT_SUMMARY.active, // 4
-  sonateDimensions: {
-    trustProtocol: 'SONATE v3.2',
-    ethicalAlignment: 8.7,
-    resonanceQuality: 'OPTIMAL',
-    realityIndex: 0,
-    canvasParity: 0,
-  },
-  trends: {
-    trustScore: { change: 1.4, direction: 'up' },
-    interactions: { change: 5.1, direction: 'up' },
-    compliance: { change: 2.3, direction: 'up' },
-    risk: { change: -0.6, direction: 'down' },
-  },
-  bedau: {
-    index: 0.83,
-    type: 'HIGH_WEAK_EMERGENCE' as const,
-    confidenceInterval: [0.78, 0.88] as [number, number],
-    kolmogorovComplexity: 4287,
-  },
-} as const;
-
 // ─── Alert Definitions ────────────────────────────────────────────────────────
+// Defined before DEMO_KPI_BASELINE so alertsCount can derive from DEMO_ALERTS.length.
 
 export const DEMO_ALERTS = [
   {
@@ -190,6 +146,51 @@ export const DEMO_ALERT_SUMMARY = {
   warning: DEMO_ALERTS.filter(a => a.severity === 'warning').length, // 2
   info: DEMO_ALERTS.filter(a => a.severity === 'info').length, // 1
   total: DEMO_ALERTS.length, // 3
+} as const;
+
+// ─── KPI Baseline ─────────────────────────────────────────────────────────────
+// These are the SEEDED values before any real receipts are added.
+// The KPI route adds real receipt count on top of DEMO_BASE_INTERACTIONS.
+
+export const DEMO_KPI_BASELINE = {
+  trustScore: 8.2,
+  principleScores: {
+    consent: 8.6,
+    inspection: 8.1,
+    validation: 7.9,
+    override: 8.3,
+    disconnect: 8.0,
+    recognition: 8.2,
+  },
+  /** Base interaction count — real receipts are added dynamically */
+  totalInteractions: DEMO_BASE_INTERACTIONS, // 1387
+  /** Active agents = agents with status 'active' */
+  activeAgents: DEMO_AGENT_SUMMARY.active, // 4
+  complianceRate: 87,
+  riskScore: 1.8,
+  /** Derived from DEMO_ALERTS.length — stays in sync automatically */
+  alertsCount: DEMO_ALERT_SUMMARY.total,
+  experimentsRunning: 2,
+  orchestratorsActive: DEMO_AGENT_SUMMARY.active, // 4
+  sonateDimensions: {
+    trustProtocol: 'SONATE v3.2',
+    ethicalAlignment: 8.7,
+    resonanceQuality: 'OPTIMAL',
+    realityIndex: 0,
+    canvasParity: 0,
+  },
+  trends: {
+    trustScore: { change: 1.4, direction: 'up' },
+    interactions: { change: 5.1, direction: 'up' },
+    compliance: { change: 2.3, direction: 'up' },
+    risk: { change: -0.6, direction: 'down' },
+  },
+  bedau: {
+    index: 0.83,
+    type: 'HIGH_WEAK_EMERGENCE' as const,
+    confidenceInterval: [0.78, 0.88] as [number, number],
+    kolmogorovComplexity: 4287,
+  },
 } as const;
 
 // ─── Live Metrics Baseline ────────────────────────────────────────────────────
