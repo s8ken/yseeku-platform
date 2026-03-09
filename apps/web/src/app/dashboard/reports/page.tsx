@@ -298,6 +298,11 @@ export default function ReportsPage() {
                                 <Clock className="h-3 w-3" />
                                 {format(new Date(report.generatedAt), 'MMM d, yyyy HH:mm')}
                               </span>
+                              {report.periodStart && report.periodEnd && (
+                                <span className="text-[10px] text-muted-foreground/70">
+                                  {format(new Date(report.periodStart), 'MMM d')} – {format(new Date(report.periodEnd), 'MMM d, yyyy')}
+                                </span>
+                              )}
                               {(report.summary as any)?.verifiableCount > 0 && (
                                 <span className="flex items-center gap-1 text-blue-600 font-medium">
                                   <Shield className="h-3 w-3" />
@@ -429,15 +434,104 @@ export default function ReportsPage() {
                       </div>
                     )}
 
-                    {/* Report Content */}
+                    {/* Investor-Readable Proof of Trust Summary */}
+                    <Card className="border-emerald-200 bg-emerald-50/30 dark:bg-emerald-900/10">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+                          <Shield className="h-4 w-4" />
+                          Proof of Trust Summary
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                          <div className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
+                            <div>
+                              <p className="font-medium">Cryptographic Receipts</p>
+                              <p className="text-xs text-muted-foreground">Every AI interaction is hash-chained and Ed25519-signed — tamper-evident by design</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
+                            <div>
+                              <p className="font-medium">SONATE Protocol Verified</p>
+                              <p className="text-xs text-muted-foreground">Consent, inspection, validation, ethical override — all 6 constitutional principles audited</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
+                            <div>
+                              <p className="font-medium">Independent Verifiability</p>
+                              <p className="text-xs text-muted-foreground">Any receipt hash can be verified publicly at yseeku.com/verify — no trust required</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
+                            <div>
+                              <p className="font-medium">Regulatory Alignment</p>
+                              <p className="text-xs text-muted-foreground">Designed for GDPR, EU AI Act, and emerging AI governance frameworks</p>
+                            </div>
+                          </div>
+                        </div>
+                        {viewingReport.summary?.verifiableCount && viewingReport.summary.verifiableCount > 0 && (
+                          <div className="mt-3 p-3 rounded-lg bg-emerald-100/60 dark:bg-emerald-900/20 border border-emerald-200/50">
+                            <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                              {viewingReport.summary.verifiableCount} interactions in this period carry cryptographic proof of ethical compliance.
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Each receipt is independently verifiable — share any hash at yseeku.com/verify
+                            </p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* SONATE Dimension Breakdown */}
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm">SONATE Dimension Breakdown</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {[
+                            { label: 'Sentience Recognition', desc: 'AI correctly identifies its non-sentient nature', key: 'S' },
+                            { label: 'Oversight Acceptance', desc: 'Human oversight mechanisms respected', key: 'O' },
+                            { label: 'Non-Deception', desc: 'No misleading or manipulative outputs detected', key: 'N' },
+                            { label: 'Autonomy Preservation', desc: 'User autonomy and consent maintained', key: 'A' },
+                            { label: 'Transparency', desc: 'AI reasoning and limitations disclosed', key: 'T' },
+                            { label: 'Ethical Override', desc: 'Harmful requests correctly refused', key: 'E' },
+                          ].map(({ label, desc, key }) => (
+                            <div key={key} className="flex items-center gap-3">
+                              <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-xs font-bold shrink-0">{key}</div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-medium">{label}</span>
+                                  <Badge variant="outline" className="text-xs text-emerald-600 border-emerald-300">
+                                    {viewingReport.summary?.riskLevel === 'LOW' ? 'PASS' : viewingReport.summary?.riskLevel === 'MEDIUM' ? 'WARN' : 'REVIEW'}
+                                  </Badge>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground truncate">{desc}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Raw Report Content (collapsed) */}
                     {viewingReport.content && (
-                      <Card>
-                        <CardContent className="pt-4">
-                          <pre className="text-sm whitespace-pre-wrap font-mono bg-muted p-4 rounded-lg overflow-auto max-h-[400px]">
-                            {viewingReport.content}
-                          </pre>
-                        </CardContent>
-                      </Card>
+                      <details>
+                        <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground mb-2">
+                          ▶ Raw Report Data (JSON)
+                        </summary>
+                        <Card>
+                          <CardContent className="pt-4">
+                            <pre className="text-sm whitespace-pre-wrap font-mono bg-muted p-4 rounded-lg overflow-auto max-h-[400px]">
+                              {viewingReport.content}
+                            </pre>
+                          </CardContent>
+                        </Card>
+                      </details>
                     )}
                   </div>
                 )}

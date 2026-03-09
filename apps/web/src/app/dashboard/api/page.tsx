@@ -124,7 +124,22 @@ function ApiKeyRow({ apiKey, onRevoke }: { apiKey: any, onRevoke: (id: string) =
       </TableCell>
       <TableCell className="text-right font-mono">{apiKey.requests24h?.toLocaleString('en-US') || 0}</TableCell>
       <TableCell className="text-sm text-muted-foreground">
-        {apiKey.lastUsed ? new Date(apiKey.lastUsed).toLocaleDateString('en-US') : 'Never'}
+        {(() => {
+          if (!apiKey.lastUsed) {
+            return <span className="flex items-center gap-1 text-amber-500"><AlertTriangle className="w-3 h-3" /> Never used</span>;
+          }
+          const daysSince = Math.floor((Date.now() - new Date(apiKey.lastUsed).getTime()) / (1000 * 60 * 60 * 24));
+          if (daysSince > 30) {
+            return (
+              <span className="flex items-center gap-1 text-amber-500" title={`Last used ${daysSince} days ago — consider revoking if no longer needed`}>
+                <AlertTriangle className="w-3 h-3" />
+                {new Date(apiKey.lastUsed).toLocaleDateString('en-US')}
+                <Badge variant="outline" className="text-xs border-amber-500/40 text-amber-500 ml-1">Stale</Badge>
+              </span>
+            );
+          }
+          return new Date(apiKey.lastUsed).toLocaleDateString('en-US');
+        })()}
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-1">
@@ -293,9 +308,9 @@ export default function ApiGatewayPage() {
             <div className="space-y-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase">1. Install Package</p>
               <div className="flex items-center justify-between bg-slate-950 p-3 rounded-md font-mono text-sm text-slate-300 border border-slate-800">
-                <code>npm install sonate-receipt</code>
+                <code>npm install @sonate/trust-receipts</code>
                 <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-500" onClick={() => {
-                  navigator.clipboard.writeText('npm install sonate-receipt');
+                  navigator.clipboard.writeText('npm install @sonate/trust-receipts');
                   toast.success('Copied to clipboard');
                 }}>
                   <Copy className="h-3 w-3" />
@@ -319,12 +334,20 @@ export default function ApiGatewayPage() {
               </div>
             </div>
 
-            <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white" asChild>
-              <a href="https://www.npmjs.com/package/sonate-receipt" target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View on NPM
-              </a>
-            </Button>
+            <div className="flex gap-2">
+              <Button className="flex-1 bg-purple-600 hover:bg-purple-700 text-white" asChild>
+                <a href="https://www.npmjs.com/package/@sonate/trust-receipts" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View on NPM
+                </a>
+              </Button>
+              <Button variant="outline" className="flex-1" asChild>
+                <Link href="/dashboard/quickstart">
+                  <Code2 className="h-4 w-4 mr-2" />
+                  Quickstart Guide
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

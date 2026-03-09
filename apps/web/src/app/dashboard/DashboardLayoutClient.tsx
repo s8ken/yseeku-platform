@@ -45,7 +45,8 @@ import {
   Compass,
   GraduationCap,
   Eye,
-  Terminal
+  Terminal,
+  Zap
 } from 'lucide-react';
 import { useTutorialStore } from '@/store/useTutorialStore';
 import { dashboardTutorialSteps } from '@/components/tutorial/steps';
@@ -69,6 +70,7 @@ const SIMPLE_NAV_HREFS = new Set([
   '/dashboard/receipts',
   '/dashboard/alerts',
   '/dashboard/overseer',
+  '/dashboard/quickstart',
   '/dashboard/settings',
 ]);
 
@@ -144,6 +146,7 @@ const moduleSections: ModuleSection[] = [
       { title: 'Compliance Reports', href: '/dashboard/reports', icon: ClipboardList, roles: ['admin'], module: 'orchestrate' },
       { title: 'Audit Trails', href: '/dashboard/audit', icon: FileText, roles: ['admin', 'user'], module: 'orchestrate' },
       { title: 'Learn', href: '/dashboard/learn', icon: GraduationCap, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
+      { title: 'Quickstart', href: '/dashboard/quickstart', icon: Zap, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
       { title: 'Docs', href: '/dashboard/docs', icon: Book, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
       { title: 'SONATE Constitution', href: '/dashboard/learn/foundations/what-is-sonate', icon: Shield, roles: ['admin', 'user', 'viewer'], module: 'orchestrate' },
       { title: 'Protocol Access', href: '/dashboard/api', icon: Terminal, roles: ['admin', 'user'], module: 'orchestrate' },
