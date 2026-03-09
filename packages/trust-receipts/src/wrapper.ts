@@ -105,7 +105,7 @@ function extractResponseContent(response: unknown): unknown {
  *
  * @example
  * ```typescript
- * import { TrustReceipts } from '@sonate/trust-receipts';
+ * import { TrustReceipts } from '@yseeku/trust-receipts';
  * import OpenAI from 'openai';
  *
  * const receipts = new TrustReceipts({

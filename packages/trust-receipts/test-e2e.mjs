@@ -1,5 +1,5 @@
 /**
- * End-to-end test for @sonate/trust-receipts
+ * End-to-end test for @yseeku/trust-receipts
  * Verifies the package works correctly without any external dependencies
  */
 
@@ -20,7 +20,7 @@ async function test(name, fn) {
 }
 
 async function run() {
-  console.log('\n@sonate/trust-receipts — End-to-End Verification\n');
+  console.log('\n@yseeku/trust-receipts — End-to-End Verification\n');
 
   // 1. Key generation
   console.log('1. Key Generation');
@@ -207,7 +207,7 @@ async function run() {
     console.log('\nQuick integration example:');
     console.log('─'.repeat(55));
     console.log(`
-import { TrustReceipts } from '@sonate/trust-receipts';
+import { TrustReceipts } from '@yseeku/trust-receipts';
 import OpenAI from 'openai';
 
 const receipts = new TrustReceipts({

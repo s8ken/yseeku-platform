@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml"><img src="https://github.com/s8ken/yseeku-platform/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://www.npmjs.com/package/@sonate/trust-receipts"><img src="https://img.shields.io/npm/v/@sonate/trust-receipts.svg?style=flat-square" alt="npm: @sonate/trust-receipts"></a>
+  <a href="https://www.npmjs.com/package/@yseeku/trust-receipts"><img src="https://img.shields.io/npm/v/@yseeku/trust-receipts.svg?style=flat-square" alt="npm: @yseeku/trust-receipts"></a>
   <img src="https://img.shields.io/badge/License-MIT/Proprietary-blue.svg" alt="License: MIT/Proprietary">
   <img src="https://img.shields.io/badge/version-2.0.0-brightgreen.svg" alt="Version: 2.0.0">
 </p>
@@ -43,11 +43,11 @@ This workspace implements a three-layer trust ecosystem for artificial intellige
 ### The Developer Moment (Move 2)
 
 ```bash
-npm install @sonate/trust-receipts
+npm install @yseeku/trust-receipts
 ```
 
 ```javascript
-import { TrustReceiptClient, generateKeyPair, bytesToHex } from '@sonate/trust-receipts';
+import { TrustReceiptClient, generateKeyPair, bytesToHex } from '@yseeku/trust-receipts';
 
 // 1. Generate a key pair (once, store securely)
 const keyPair = await generateKeyPair();
@@ -374,10 +374,11 @@ npm test --workspace @sonate/detect
 
 | Package | Description | npm |
 |---------|-------------|-----|
-| `@sonate/core` | Trust protocol, SONATE principles, cryptographic receipts | [![npm](https://img.shields.io/npm/v/@sonate/core)](https://www.npmjs.com/package/@sonate/core) |
-| `@sonate/detect` | Real-time detection, drift, emergence, Bedau Index | [![npm](https://img.shields.io/npm/v/@sonate/detect)](https://www.npmjs.com/package/@sonate/detect) |
-| `@sonate/lab` | Research experiments, A/B testing, statistics | [![npm](https://img.shields.io/npm/v/@sonate/lab)](https://www.npmjs.com/package/@sonate/lab) |
-| `@sonate/orchestrate` | Production orchestration, DID/VC, RBAC | [![npm](https://img.shields.io/npm/v/@sonate/orchestrate)](https://www.npmjs.com/package/@sonate/orchestrate) |
+| `@yseeku/trust-receipts` | SSL/TLS for AI — cryptographically sign and verify every interaction | [![npm](https://img.shields.io/npm/v/@yseeku/trust-receipts)](https://www.npmjs.com/package/@yseeku/trust-receipts) |
+| `@yseeku/core` | Core trust protocol implementation for SONATE platform | [![npm](https://img.shields.io/npm/v/@yseeku/core)](https://www.npmjs.com/package/@yseeku/core) |
+| `@yseeku/verify-sdk` | Client-side SDK for verifying SONATE trust receipts | [![npm](https://img.shields.io/npm/v/@yseeku/verify-sdk)](https://www.npmjs.com/package/@yseeku/verify-sdk) |
+| `@yseeku/schemas` | Shared schema definitions (JSON Schema + TypeScript) | [![npm](https://img.shields.io/npm/v/@yseeku/schemas)](https://www.npmjs.com/package/@yseeku/schemas) |
+| `@yseeku/trust-protocol` | W3C-compliant trust infrastructure — DID, VC, cryptographic audit trails | [![npm](https://img.shields.io/npm/v/@yseeku/trust-protocol)](https://www.npmjs.com/package/@yseeku/trust-protocol) |
 
 ---
 

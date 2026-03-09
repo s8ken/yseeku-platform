@@ -27,12 +27,12 @@ const SNIPPETS: Record<Tab, { title: string; lang: string; code: string }[]> = {
     {
       title: '1. Install',
       lang: 'bash',
-      code: `npm install @sonate/trust-receipts openai`,
+      code: `npm install @yseeku/trust-receipts openai`,
     },
     {
       title: '2. Wrap your OpenAI call',
       lang: 'typescript',
-      code: `import { TrustReceipts } from '@sonate/trust-receipts';
+      code: `import { TrustReceipts } from '@yseeku/trust-receipts';
 import OpenAI from 'openai';
 
 const receipts = new TrustReceipts({
@@ -87,12 +87,12 @@ for (const userMessage of conversationMessages) {
     {
       title: '1. Install',
       lang: 'bash',
-      code: `npm install @sonate/trust-receipts @anthropic-ai/sdk`,
+      code: `npm install @yseeku/trust-receipts @anthropic-ai/sdk`,
     },
     {
       title: '2. Wrap your Anthropic call',
       lang: 'typescript',
-      code: `import { TrustReceipts } from '@sonate/trust-receipts';
+      code: `import { TrustReceipts } from '@yseeku/trust-receipts';
 import Anthropic from '@anthropic-ai/sdk';
 
 const receipts = new TrustReceipts({
@@ -126,12 +126,12 @@ console.log('Signature:', receipt.signature);`,
     {
       title: '1. Install',
       lang: 'bash',
-      code: `npm install @sonate/trust-receipts`,
+      code: `npm install @yseeku/trust-receipts`,
     },
     {
       title: '2. Generate a key pair',
       lang: 'typescript',
-      code: `import { generateKeyPair, bytesToHex } from '@sonate/trust-receipts';
+      code: `import { generateKeyPair, bytesToHex } from '@yseeku/trust-receipts';
 
 // Generate a new Ed25519 key pair
 const keyPair = await generateKeyPair();
@@ -148,7 +148,7 @@ console.log('Public Key (share openly):', publicKeyHex);`,
     {
       title: '3. Create a receipt manually',
       lang: 'typescript',
-      code: `import { TrustReceipts } from '@sonate/trust-receipts';
+      code: `import { TrustReceipts } from '@yseeku/trust-receipts';
 
 const receipts = new TrustReceipts({
   privateKey: process.env.SONATE_PRIVATE_KEY,
@@ -171,7 +171,7 @@ console.log(JSON.stringify(receipt, null, 2));`,
     {
       title: '4. Verify a receipt',
       lang: 'typescript',
-      code: `import { verify, hexToBytes, sha256 } from '@sonate/trust-receipts';
+      code: `import { verify, hexToBytes, sha256 } from '@yseeku/trust-receipts';
 
 async function verifyReceipt(receipt: any, publicKeyHex: string): Promise<boolean> {
   // 1. Re-hash the receipt content
@@ -249,7 +249,7 @@ export default function QuickstartPage() {
     },
     {
       q: 'Does the package send data to SONATE servers?',
-      a: 'No. The @sonate/trust-receipts package is entirely local — it generates and signs receipts using your private key without any network calls. You choose when and whether to submit receipts to the platform API.',
+      a: 'No. The @yseeku/trust-receipts package is entirely local — it generates and signs receipts using your private key without any network calls. You choose when and whether to submit receipts to the platform API.',
     },
   ];
 
@@ -270,7 +270,7 @@ export default function QuickstartPage() {
           </p>
         </div>
         <a
-          href="https://www.npmjs.com/package/@sonate/trust-receipts"
+          href="https://www.npmjs.com/package/@yseeku/trust-receipts"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -285,7 +285,7 @@ export default function QuickstartPage() {
       {/* How it works */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { icon: <Terminal className="w-5 h-5 text-blue-400" />, title: 'Install', desc: 'npm install @sonate/trust-receipts' },
+          { icon: <Terminal className="w-5 h-5 text-blue-400" />, title: 'Install', desc: 'npm install @yseeku/trust-receipts' },
           { icon: <Code2 className="w-5 h-5 text-purple-400" />, title: 'Wrap', desc: 'Wrap any AI call with receipts.wrap()' },
           { icon: <Shield className="w-5 h-5 text-green-400" />, title: 'Verify', desc: 'Every interaction is cryptographically signed' },
         ].map((step, i) => (

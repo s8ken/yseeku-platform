@@ -1,5 +1,5 @@
 /**
- * @sonate/trust-receipts
+ * @yseeku/trust-receipts
  *
  * SSL/TLS for AI — cryptographically sign and verify every interaction.
  *
@@ -11,7 +11,7 @@
  *
  * @example
  * ```typescript
- * import { TrustReceipts } from '@sonate/trust-receipts';
+ * import { TrustReceipts } from '@yseeku/trust-receipts';
  * import OpenAI from 'openai';
  *
  * const receipts = new TrustReceipts({

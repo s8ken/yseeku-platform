@@ -308,14 +308,14 @@ All methods must produce scores in the [0.0, 1.0] range.
 
 ### 6.1 JavaScript/TypeScript
 
-- **Library**: `@sonate/trust-receipts`
+- **Library**: `@yseeku/trust-receipts`
 - **Dependencies**: @noble/ed25519, json-canonicalize
 - **Async Wrapper**: `TrustReceipts.wrap(asyncFn, options)`
 - **Key Generation**: Ed25519 keys via @noble/ed25519
 - **Verification**: `TrustReceipt.verify(publicKey)`
 
 ```typescript
-import { TrustReceipts } from '@sonate/trust-receipts';
+import { TrustReceipts } from '@yseeku/trust-receipts';
 
 const receipts = new TrustReceipts();
 
@@ -517,7 +517,7 @@ const receiptJSON = JSON.stringify(receipt);
 // Send receiptJSON to recipient (or log to compliance system)
 
 // 4. Recipient verifies receipt (offline, no server needed)
-import { verifyReceipt } from '@sonate/trust-receipts';
+import { verifyReceipt } from '@yseeku/trust-receipts';
 const verification = verifyReceipt(receipt, publicKey);
 console.log(verification.valid);  // true
 ```

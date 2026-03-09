@@ -6,8 +6,8 @@
  *
  * Usage:
  * ```typescript
- * import { TrustReceipts } from '@sonate/trust-receipts';
- * import { anchor, verifyAnchor } from '@sonate/trust-receipts/anchor';
+ * import { TrustReceipts } from '@yseeku/trust-receipts';
+ * import { anchor, verifyAnchor } from '@yseeku/trust-receipts/anchor';
  *
  * const { receipt } = await receipts.wrap(...);
  * const proof = await anchor(receipt.receiptHash);

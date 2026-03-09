@@ -296,7 +296,7 @@ export default function ApiGatewayPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-purple-700 dark:text-purple-400">
                 <Code2 className="h-5 w-5" />
-                sonate-receipt SDK
+                @yseeku/trust-receipts SDK
               </CardTitle>
               <Badge variant="outline" className="border-purple-300 text-purple-700">v1.2.0-stable</Badge>
             </div>
@@ -308,9 +308,9 @@ export default function ApiGatewayPage() {
             <div className="space-y-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase">1. Install Package</p>
               <div className="flex items-center justify-between bg-slate-950 p-3 rounded-md font-mono text-sm text-slate-300 border border-slate-800">
-                <code>npm install @sonate/trust-receipts</code>
+                <code>npm install @yseeku/trust-receipts</code>
                 <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-500" onClick={() => {
-                  navigator.clipboard.writeText('npm install @sonate/trust-receipts');
+                  navigator.clipboard.writeText('npm install @yseeku/trust-receipts');
                   toast.success('Copied to clipboard');
                 }}>
                   <Copy className="h-3 w-3" />
@@ -321,7 +321,7 @@ export default function ApiGatewayPage() {
             <div className="space-y-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase">2. Wrap Your Agent</p>
               <div className="bg-slate-950 p-3 rounded-md font-mono text-sm text-slate-300 border border-slate-800 overflow-x-auto whitespace-nowrap">
-                <div className="text-purple-400">import</div> {'{ wrap }'} <div className="text-purple-400">from</div> <div className="text-emerald-400">'sonate-receipt'</div>;
+                <div className="text-purple-400">import</div> {'{ TrustReceipts }'} <div className="text-purple-400">from</div> <div className="text-emerald-400">'@yseeku/trust-receipts'</div>;
                 <br />
                 <div className="text-purple-400">const</div> wrapped = wrap(myAgent, {'{'} appId: <div className="text-emerald-400">'{currentTenantId}'</div> {'}'});
               </div>
@@ -336,7 +336,7 @@ export default function ApiGatewayPage() {
 
             <div className="flex gap-2">
               <Button className="flex-1 bg-purple-600 hover:bg-purple-700 text-white" asChild>
-                <a href="https://www.npmjs.com/package/@sonate/trust-receipts" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.npmjs.com/package/@yseeku/trust-receipts" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="h-4 w-4 mr-2" />
                   View on NPM
                 </a>
