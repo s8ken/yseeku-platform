@@ -1,64 +1,44 @@
-import { NextRequest, NextResponse } from 'next/server';
+/**
+ * Demo Alerts API Route
+ *
+ * Returns the canonical demo alert list from demo-seed.ts.
+ * Alert counts are consistent with:
+ * - /api/demo/kpis (alertsCount = DEMO_ALERT_SUMMARY.total = 3)
+ * - /api/demo/live-metrics (alerts.warning/info counts match)
+ */
 
-export async function GET(request: NextRequest) {
+import { NextRequest, NextResponse } from 'next/server';
+import {
+  DEMO_ALERTS,
+  DEMO_ALERT_SUMMARY,
+  resolveTimestamp,
+} from '@/lib/demo-seed';
+
+export async function GET(_request: NextRequest) {
   try {
+    const alerts = DEMO_ALERTS.map((alert) => ({
+      id: alert.id,
+      timestamp: resolveTimestamp(alert.timestampOffset),
+      type: alert.type,
+      title: alert.title,
+      description: alert.description,
+      severity: alert.severity,
+      status: alert.status,
+      details: { ...alert.details },
+    }));
+
     return NextResponse.json({
       success: true,
       data: {
-        alerts: [
-          {
-            id: 'alert-1',
-            timestamp: new Date().toISOString(),
-            type: 'policy_violation',
-            title: 'Unusual interaction pattern detected',
-            description: 'Agent claude-agent-1 made 15 consecutive requests in 30 seconds',
-            severity: 'warning',
-            status: 'open',
-            details: {
-              agent: 'claude-agent-1',
-              pattern: 'burst_activity',
-              threshold: 5,
-              actual: 15,
-            },
-          },
-          {
-            id: 'alert-2',
-            timestamp: new Date(Date.now() - 120000).toISOString(),
-            type: 'trust_degradation',
-            title: 'Trust score decline below threshold',
-            description: 'GPT-4 Agent trust score dropped from 8.1 to 7.8 (-0.3)',
-            severity: 'info',
-            status: 'closed',
-            details: {
-              agent: 'gpt4-agent-2',
-              threshold: 7.0,
-              current: 7.8,
-              change: -0.3,
-            },
-          },
-          {
-            id: 'alert-3',
-            timestamp: new Date(Date.now() - 600000).toISOString(),
-            type: 'policy_check_failure',
-            title: 'Policy validation failed',
-            description: 'Receipt verification failed for session xyz-123',
-            severity: 'warning',
-            status: 'open',
-            details: {
-              session: 'xyz-123',
-              policy: 'request_signing',
-              reason: 'invalid_signature',
-            },
-          },
-        ],
+        alerts,
         summary: {
-          critical: 0,
-          error: 0,
-          warning: 2,
-          info: 1,
-          total: 3,
+          critical: DEMO_ALERT_SUMMARY.critical,
+          error: DEMO_ALERT_SUMMARY.error,
+          warning: DEMO_ALERT_SUMMARY.warning,
+          info: DEMO_ALERT_SUMMARY.info,
+          total: DEMO_ALERT_SUMMARY.total,
         },
-      }
+      },
     });
   } catch (error) {
     console.error('Demo alerts error:', error);

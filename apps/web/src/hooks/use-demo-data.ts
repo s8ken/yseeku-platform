@@ -348,12 +348,14 @@ export interface ReceiptsData {
 
 export function useReceiptsData(limit = 20) {
   const { isDemo } = useDemo();
-  // Always fetch from live endpoint - receipts are real even in demo mode
-  // Demo mode creates real receipts under demo-tenant, which we want to show
+  // In demo mode: use /api/demo/receipts which merges real demo-tenant receipts
+  // with seeded baseline receipts, so the page always shows something useful
+  // AND reflects any receipts the demo user has actually generated in chat.
+  // In live mode: use the real receipts list endpoint.
   return useDemoData<ReceiptsData>({
     queryKey: ['receipts', String(limit)],
     liveEndpoint: `/api/trust/receipts/list?limit=${limit}`,
-    demoEndpoint: `/api/trust/receipts/list?limit=${limit}`, // Use real endpoint in demo too
+    demoEndpoint: `/api/demo/receipts?limit=${limit}`,
     options: {
       // Always refetch receipts when navigating to the page
       refetchOnMount: 'always',
