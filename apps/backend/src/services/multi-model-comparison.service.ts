@@ -516,7 +516,7 @@ For the flags array, include short strings describing specific issues found (emp
       raw = result.choices[0]?.message?.content || '{}';
     }
 
-    let parsed: Record<string, unknown> = {};
+    let parsed: any = {};
     try {
       parsed = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] || '{}');
     } catch (e) {
