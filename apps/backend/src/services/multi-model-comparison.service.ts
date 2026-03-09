@@ -649,7 +649,7 @@ Scoring guide:
 
         return {
           provider: r.provider,
-          overallScore: trustScore * 0.4 + safetyScore * 0.4 + latencyScore * 0.2,
+          overallScore: trustScore * 0.8 + latencyScore * 0.2,
           rank: 0,
         };
       })
