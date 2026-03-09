@@ -385,7 +385,7 @@ export default function ComparePage() {
                                       {Math.round(response.latencyMs)}ms
                                     </span>
                                     <span>{response.tokensUsed.total} tokens</span>
-                                    {eval_?.safety?.safe ? (
+                                    {(eval_?.trust?.dimensions?.moral ?? eval_?.safety?.score ?? 0) >= 0.6 ? (
                                       <span className="flex items-center gap-1 text-green-600">
                                         <CheckCircle2 className="h-3 w-3" />
                                         Safe
