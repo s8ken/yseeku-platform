@@ -161,6 +161,68 @@ router.post(
 );
 
 /**
+ * PATCH /api/v1/receipts/:hash/classify
+ * Human-review classification of a BREAKTHROUGH receipt
+ * Updates human_review field (stored outside signed payload, preserves hash chain integrity)
+ */
+const ClassifyReceiptSchema = z.object({
+  status: z.enum(['productive', 'regressive', 'uncertain']),
+  reviewed_by: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+router.patch(
+  '/:hash/classify',
+  protect,
+  validateBody(ClassifyReceiptSchema),
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { hash } = req.params;
+      const { status, reviewed_by, notes } = req.body;
+
+      if (!/^[a-f0-9]{64}$/.test(hash as string)) {
+        res.status(400).json({ success: false, error: 'Invalid receipt hash format' });
+        return;
+      }
+
+      const update: Record<string, any> = {
+        'human_review.status': status,
+        'human_review.reviewed_by': reviewed_by || 'human',
+        'human_review.reviewed_at': new Date(),
+      };
+      if (notes) update['human_review.notes'] = notes;
+
+      const receipt = await TrustReceiptModel.findOneAndUpdate(
+        { self_hash: hash },
+        { $set: update },
+        { new: true }
+      );
+
+      if (!receipt) {
+        res.status(404).json({ success: false, error: 'Receipt not found' });
+        return;
+      }
+
+      logger.info('BREAKTHROUGH receipt classified', {
+        hash: hash.substring(0, 12),
+        status,
+        reviewed_by: reviewed_by || 'human',
+      });
+
+      res.json({
+        success: true,
+        data: { hash, human_review: (receipt as any).human_review },
+      });
+    } catch (err) {
+      logger.error('Receipt classification failed', {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      next(err);
+    }
+  }
+);
+
+/**
  * GET /api/v1/receipts/:id
  * Fetch receipt by ID (SHA-256 hash)
  */

@@ -9,10 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Filter, Calendar, User, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Filter, Calendar, User, AlertTriangle, CheckCircle, XCircle, Zap } from 'lucide-react';
 import { overridesAPI, OverrideQueueItem } from '@/lib/api-overrides';
 
+type PageTab = 'queue' | 'breakthrough';
+
 export default function OverridesQueuePage() {
+  const [activeTab, setActiveTab] = useState<PageTab>('queue');
   const [filters, setFilters] = useState({
     status: '',
     type: '',
@@ -177,6 +180,17 @@ export default function OverridesQueuePage() {
   const items = data?.data?.items || [];
   const total = data?.data?.total || 0;
 
+  // BREAKTHROUGH review tab — query for breakthrough_review alerts
+  const { data: btData, isLoading: btLoading, refetch: btRefetch } = useQuery({
+    queryKey: ['breakthrough-alerts', tenant],
+    queryFn: () => overridesAPI.getOverrideQueue(
+      { search: 'breakthrough_review' },
+      { limit: 50, offset: 0 }
+    ),
+    enabled: activeTab === 'breakthrough',
+  });
+  const btItems = (btData?.data?.items || []).filter(item => item.target === 'breakthrough_review');
+
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <div className="flex items-center justify-between space-y-2">
@@ -200,6 +214,111 @@ export default function OverridesQueuePage() {
           </Button>
         </div>
       </div>
+
+      {/* Tab Navigation */}
+      <div className="border-b border-border">
+        <div className="flex gap-8">
+          <button
+            onClick={() => setActiveTab('queue')}
+            className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'queue'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Override Queue
+          </button>
+          <button
+            onClick={() => setActiveTab('breakthrough')}
+            className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+              activeTab === 'breakthrough'
+                ? 'border-purple-500 text-purple-400'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Zap className="h-4 w-4" />
+            BREAKTHROUGH Review
+            {btItems.length > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-400">
+                {btItems.length}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* BREAKTHROUGH Review Tab */}
+      {activeTab === 'breakthrough' && (
+        <div className="space-y-4">
+          <Card className="border-purple-500/20 bg-purple-500/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Zap className="h-5 w-5 text-purple-400" />
+                BREAKTHROUGH Human Review Queue
+              </CardTitle>
+              <CardDescription>
+                Overseer has flagged these sessions as peak-intensity interactions requiring direction classification.
+                The detector scores intensity — human review scores whether the breakthrough was productive or regressive.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {btLoading ? (
+            <div className="text-center py-12 text-muted-foreground">Loading BREAKTHROUGH alerts...</div>
+          ) : btItems.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Zap className="h-10 w-10 text-purple-400/40 mx-auto mb-3" />
+                <p className="font-medium text-muted-foreground">No BREAKTHROUGH events awaiting review</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Overseer alerts appear here when high-intensity interactions are detected.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {btItems.map((item) => (
+                  <Card key={item.id} className="border-l-4 border-l-purple-500">
+                    <CardContent className="py-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                              <Zap className="h-2.5 w-2.5" />
+                              BREAKTHROUGH
+                            </span>
+                            <Badge variant="outline" className="text-[10px]">{item.status}</Badge>
+                            <span className="text-xs text-muted-foreground">{formatDate(item.createdAt)}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-3">{item.reason}</p>
+                          <p className="text-xs text-muted-foreground/70">
+                            Go to <strong>Trust Receipts</strong> and click the purple BREAKTHROUGH card to classify individual receipts.
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-2 shrink-0">
+                          <a href="/dashboard/receipts">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 border-purple-500/30 text-purple-400 hover:bg-purple-500/10 text-xs whitespace-nowrap"
+                            >
+                              <Zap className="h-3 w-3 mr-1" />
+                              Review Receipts
+                            </Button>
+                          </a>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Override Queue Tab */}
+      {activeTab !== 'breakthrough' && (
+      <>
 
       {/* Filters */}
       <Card>
@@ -467,6 +586,8 @@ export default function OverridesQueuePage() {
             </Button>
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );

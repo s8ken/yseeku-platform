@@ -88,6 +88,15 @@ export interface SonateTrustReceipt {
     ethics_verified: boolean; // true
   };
 
+  // Human adjudication — stored in DB only, not included in signed payload
+  // Populated after Overseer flags the event and a human reviews it
+  human_review?: {
+    status: 'pending' | 'productive' | 'regressive' | 'uncertain';
+    reviewed_by?: string;
+    reviewed_at?: string; // ISO Date
+    notes?: string;
+  };
+
   // The "Seal"
   signature: string; // Ed25519 signature from the Agent's Private Key
 }

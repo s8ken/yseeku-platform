@@ -231,10 +231,32 @@ export class TrustService {
       receiptGenerated?: boolean;
       isReceiptVerifiable?: boolean;
       auditLogExists?: boolean;
+      // v2.3: Artifact signals — set when the session produced external output
+      artifact_signals?: {
+        type: 'code' | 'schema' | 'document' | 'config' | 'test';
+        count: number;
+        lines_changed?: number;
+        files_changed?: number;
+      };
     }
   ): Promise<TrustEvaluation> {
     // Track conversation activity for TTL-based cleanup
     this.touchConversation(context.conversationId);
+
+    // Build session trajectory from phase-shift tracker if available
+    const tracker = this.phaseShiftTrackers.get(context.conversationId);
+    const turnCount = this.turnCounters.get(context.conversationId) || 0;
+    const sessionTrajectory = tracker
+      ? (() => {
+          const audit = tracker.exportAuditData();
+          const summary = tracker.getMetricsSummary();
+          return {
+            turn_count: turnCount,
+            recent_resonance_scores: audit.turns.map((t) => t.resonance),
+            phase_shift_velocity: summary.phaseShiftVelocity,
+          };
+        })()
+      : undefined;
 
     // Build AIInteraction object for @sonate/detect
     const interaction: AIInteraction = {
@@ -247,6 +269,8 @@ export class TrustService {
         security_flag: false,
         sender: message.sender,
         timestamp: message.timestamp,
+        ...(context.artifact_signals && { artifact_signals: context.artifact_signals }),
+        ...(sessionTrajectory && { session_trajectory: sessionTrajectory }),
       },
     };
 

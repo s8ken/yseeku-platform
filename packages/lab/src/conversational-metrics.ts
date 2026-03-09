@@ -395,6 +395,23 @@ export class ConversationalMetrics {
   }
 
   /**
+   * Get recent resonance scores for trajectory analysis (oldest first)
+   * Used by trust.service.ts to pass session trajectory to the detector
+   */
+  getRecentResonanceScores(): number[] {
+    return this.turns.map(t => t.resonance);
+  }
+
+  /**
+   * Get the most recent phase-shift velocity
+   * Returns 0 if fewer than 2 turns recorded
+   */
+  getLastVelocity(): number {
+    if (this.turns.length < 2) return 0;
+    return this.calculatePhaseShiftMetrics().phaseShiftVelocity;
+  }
+
+  /**
    * Clear metrics history
    */
   clear(): void {

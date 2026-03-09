@@ -92,6 +92,19 @@ export interface AssessmentInput {
     timestamp?: string;
     format?: string;
     context?: string;
+    // v2.3: Artifact signals — passed when session produces external output
+    artifact_signals?: {
+      type: 'code' | 'schema' | 'document' | 'config' | 'test';
+      count: number;
+      lines_changed?: number;
+      files_changed?: number;
+    };
+    // v2.3: Session trajectory — turn-level resonance trend from phase-shift tracker
+    session_trajectory?: {
+      turn_count: number;
+      recent_resonance_scores: number[]; // last N turn scores, oldest first
+      phase_shift_velocity: number;      // current velocity (low = stable convergence)
+    };
   };
 }
 

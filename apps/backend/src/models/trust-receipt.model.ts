@@ -68,6 +68,15 @@ export interface ITrustReceipt extends Document {
     confidence: number;
   };
 
+  // v2.3: BREAKTHROUGH classification — stored separately from signed payload to preserve hash chain
+  resonance_quality?: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
+  human_review?: {
+    status: 'pending' | 'productive' | 'regressive' | 'uncertain';
+    reviewed_by?: string;
+    reviewed_at?: Date;
+    notes?: string;
+  };
+
   createdAt: Date;
 }
 
@@ -194,11 +203,31 @@ const TrustReceiptSchema = new Schema<ITrustReceipt>({
     confidence: Number,
   },
 
+  // v2.3: BREAKTHROUGH classification
+  resonance_quality: {
+    type: String,
+    enum: ['STRONG', 'ADVANCED', 'BREAKTHROUGH'],
+    index: true,
+  },
+  human_review: {
+    status: {
+      type: String,
+      enum: ['pending', 'productive', 'regressive', 'uncertain'],
+      index: true,
+    },
+    reviewed_by: String,
+    reviewed_at: Date,
+    notes: String,
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
+
+// Index for BREAKTHROUGH review queue
+TrustReceiptSchema.index({ resonance_quality: 1, 'human_review.status': 1, tenant_id: 1 });
 
 // Index for DID-based queries
 TrustReceiptSchema.index({ issuer: 1, subject: 1 });

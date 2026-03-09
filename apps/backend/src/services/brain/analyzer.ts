@@ -26,6 +26,8 @@ export interface AnalysisContext {
   trendDirection: string;
   hasActiveAlerts: boolean;
   hasBannedAgents: boolean;
+  unreviewedBreakthroughs: number;
+  recentlyProductiveBreakthroughs: number;
 }
 
 /**
@@ -152,7 +154,27 @@ export function analyzeContext(input: SensorData): AnalysisResult {
     riskScore += 10;
   }
 
-  // 8. Temporal Context (reduce sensitivity during off-hours)
+  // 8. BREAKTHROUGH Classification
+  // Unreviewed BREAKTHROUGHs are flagged as significant — direction unknown
+  const unreviewedBreakthroughs = input.breakthroughEvents?.unreviewed || 0;
+  if (unreviewedBreakthroughs > 0) {
+    observations.push('breakthrough_unreviewed');
+    anomalies.push({
+      type: 'breakthrough_unreviewed',
+      severity: 'medium',
+      value: unreviewedBreakthroughs,
+      threshold: 0,
+      description: `${unreviewedBreakthroughs} BREAKTHROUGH event(s) await human classification (productive / regressive / uncertain)`,
+    });
+  }
+
+  // Recently productive BREAKTHROUGHs — surface as positive signal, no risk
+  const recentlyProductive = input.breakthroughEvents?.recentlyProductive || 0;
+  if (recentlyProductive > 0) {
+    observations.push('breakthrough_productive');
+  }
+
+  // 9. Temporal Context (reduce sensitivity during off-hours)
   if (!input.isBusinessHours && riskScore > 0) {
     riskScore = Math.round(riskScore * 0.8); // 20% reduction during off-hours
   }
@@ -194,6 +216,8 @@ export function analyzeContext(input: SensorData): AnalysisResult {
       trendDirection: trend.direction,
       hasActiveAlerts: input.activeAlerts.total > 0,
       hasBannedAgents: input.agentHealth.banned > 0,
+      unreviewedBreakthroughs: input.breakthroughEvents?.unreviewed || 0,
+      recentlyProductiveBreakthroughs: input.breakthroughEvents?.recentlyProductive || 0,
     },
   };
 }

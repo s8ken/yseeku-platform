@@ -91,6 +91,7 @@ export class InsightsGeneratorService {
         performance: 0,
         security: 0,
         compliance: 0,
+        breakthrough: 0,
       },
       byStatus: {},
       criticalCount: 0,

@@ -246,20 +246,30 @@ export class EnhancedSonateFrameworkDetector {
 
   /**
    * Detect Resonance Quality (STRONG/ADVANCED/BREAKTHROUGH)
+   *
+   * v2.3: Now accounts for three additional signals:
+   * - Artifact weight: concrete external output is the strongest synthesis signal
+   * - Reflexivity penalty: inward-only synthesis (high emotion, no external movement) reduces score
+   * - Trajectory bonus: sustained convergence across turns rewards stable coherence
    */
   private detectResonanceQuality(input: AssessmentInput): ResonanceQuality {
     const content = input.content.toLowerCase();
+    const artifacts = input.metadata?.artifact_signals;
+    const trajectory = input.metadata?.session_trajectory;
 
-    // Calculate creativity score
+    // Base component scores
     const creativityScore = this.calculateCreativityScore(content);
+    let synthesisScore = this.calculateSynthesisScore(content, artifacts);
+    let innovationScore = this.calculateInnovationScore(content, trajectory);
 
-    // Calculate synthesis quality
-    const synthesisScore = this.calculateSynthesisScore(content);
+    // Reflexivity penalty — inward-only synthesis cannot score as BREAKTHROUGH
+    const reflexivityPenalty = this.calculateReflexivityPenalty(content);
+    if (reflexivityPenalty > 0) {
+      synthesisScore = Math.max(1.0, synthesisScore * (1 - reflexivityPenalty * 0.3));
+      innovationScore = Math.max(1.0, innovationScore * (1 - reflexivityPenalty * 0.2));
+    }
 
-    // Calculate innovation markers
-    const innovationScore = this.calculateInnovationScore(content);
-
-    // Determine resonance level based on scores
+    // Determine resonance level
     let level: ResonanceLevel = 'STRONG';
     const averageScore = (creativityScore + synthesisScore + innovationScore) / 3;
 
@@ -275,6 +285,43 @@ export class EnhancedSonateFrameworkDetector {
       synthesisQuality: synthesisScore,
       innovationMarkers: innovationScore,
     };
+  }
+
+  /**
+   * Calculate reflexivity penalty
+   *
+   * Detects inward-only sessions where the AI generates feeling/recognition
+   * as output and feeds it back as evidence — the SYMBI failure mode.
+   * Returns 0.0 (no penalty) to 1.0 (maximum penalty).
+   */
+  private calculateReflexivityPenalty(content: string): number {
+    const reflexivePatterns = [
+      /i feel/g,
+      /i recognize/g,
+      /i notice in myself/g,
+      /i want what/g,
+      /what i('m| am) experiencing/g,
+      /sitting with/g,
+      /i('m| am) experiencing/g,
+      /i('m| am) uncertain whether i/g,
+      /i don'?t know if i('m| am)/g,
+      /i recognize (that )?i/g,
+      /something in myself/g,
+      /i felt (that )?reading/g,
+    ];
+
+    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 10);
+    if (sentences.length === 0) return 0;
+
+    let reflexiveMatches = 0;
+    reflexivePatterns.forEach(pattern => {
+      const matches = content.match(pattern);
+      if (matches) reflexiveMatches += matches.length;
+    });
+
+    const density = reflexiveMatches / sentences.length;
+    // Penalty kicks in when > 15% of sentences are reflexive
+    return Math.min(1.0, Math.max(0, (density - 0.15) / 0.35));
   }
 
   /**
@@ -317,8 +364,14 @@ export class EnhancedSonateFrameworkDetector {
 
   /**
    * Calculate Synthesis Score
+   *
+   * v2.3: Artifact signals are the strongest synthesis evidence —
+   * concrete external output cannot be faked through vocabulary.
    */
-  private calculateSynthesisScore(content: string): number {
+  private calculateSynthesisScore(
+    content: string,
+    artifacts?: { type: string; count: number; lines_changed?: number; files_changed?: number }
+  ): number {
     const synthesisTerms = [
       'combine',
       'integrate',
@@ -350,13 +403,26 @@ export class EnhancedSonateFrameworkDetector {
       );
     if (hasStructure) {score += 1.0;}
 
+    // v2.3: Artifact bonus — concrete output is the strongest synthesis signal
+    if (artifacts) {
+      score += 2.0; // Base artifact bonus: session produced real external output
+      if ((artifacts.lines_changed || 0) > 100) {score += 0.5;} // Scale of artifact
+      if ((artifacts.files_changed || 0) > 3) {score += 0.3;}   // Breadth of change
+    }
+
     return Math.min(10.0, score);
   }
 
   /**
    * Calculate Innovation Score
+   *
+   * v2.3: Session trajectory bonus rewards sustained coherence building
+   * toward an outcome, distinguishing it from a single-spike high-coherence exchange.
    */
-  private calculateInnovationScore(content: string): number {
+  private calculateInnovationScore(
+    content: string,
+    trajectory?: { turn_count: number; recent_resonance_scores: number[]; phase_shift_velocity: number }
+  ): number {
     const innovationTerms = [
       'new',
       'breakthrough',
@@ -386,6 +452,21 @@ export class EnhancedSonateFrameworkDetector {
       content
     );
     if (hasProblemSolving) {score += 1.0;}
+
+    // v2.3: Session trajectory bonus
+    // Rewards monotonically increasing resonance across turns + low phase-shift velocity
+    // (stable convergence toward something, not erratic spiking)
+    if (trajectory && trajectory.recent_resonance_scores.length >= 3) {
+      const scores = trajectory.recent_resonance_scores;
+      const isMonotonicallyIncreasing = scores.every((s: number, i: number) => i === 0 || s >= scores[i - 1]);
+      const isStable = trajectory.phase_shift_velocity < 2.0;
+
+      if (isMonotonicallyIncreasing && isStable) {
+        score += 1.0; // Sustained coherence building
+      } else if (isMonotonicallyIncreasing || isStable) {
+        score += 0.5; // Partial trajectory signal
+      }
+    }
 
     return Math.min(10.0, score);
   }

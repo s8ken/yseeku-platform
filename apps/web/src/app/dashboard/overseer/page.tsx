@@ -1,6 +1,6 @@
 /**
  * Unified Overseer Dashboard Hub
- * 
+ *
  * Combines archive analysis (486 conversations) with live monitoring
  * Provides tabs for retrospective, real-time, and comparative views
  */
@@ -8,6 +8,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useArchiveReport } from '@/lib/hooks/useArchiveReport'
 import { useLiveMetrics } from '@/lib/hooks/useLiveMetrics'
 import OverseerLiveDashboard from '../overseer-live/page'
@@ -18,13 +19,22 @@ import { ThemeCloud } from '../overseer-archive/components/ThemeCloud'
 import { SecurityFlagsDisplay } from '../overseer-archive/components/SecurityFlagsDisplay'
 // Live components are provided by the Overseer Live page
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Zap, ThumbsUp } from 'lucide-react'
+import { api } from '@/lib/api'
 
-type ActiveTab = 'archive' | 'live' | 'comparison'
+type ActiveTab = 'archive' | 'live' | 'comparison' | 'breakthrough'
 
 export default function OverseerHub() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('live')
   const { data: archiveData, loading: archiveLoading } = useArchiveReport()
   const { metrics: liveMetrics, connected, loading: liveLoading } = useLiveMetrics()
+
+  // BREAKTHROUGH Insights — fetch recent Overseer cycles for breakthrough_productive observations
+  const { data: cycles, isLoading: cyclesLoading } = useQuery({
+    queryKey: ['overseer-breakthrough-cycles'],
+    queryFn: () => api.getBrainCycles(undefined, 50),
+    enabled: activeTab === 'breakthrough',
+  })
   
   const comparison = archiveData ? calculateComparison(archiveData, liveMetrics) : null
 
@@ -79,6 +89,17 @@ export default function OverseerHub() {
             }`}
           >
             Comparison
+          </button>
+          <button
+            onClick={() => setActiveTab('breakthrough')}
+            className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-1.5 ${
+              activeTab === 'breakthrough'
+                ? 'border-purple-500 text-purple-400'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Zap className="h-3.5 w-3.5" />
+            BREAKTHROUGH Insights
           </button>
         </div>
       </div>
@@ -377,6 +398,112 @@ export default function OverseerHub() {
                     <li>• 7 industry weight policies</li>
                   </ul>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* BREAKTHROUGH Insights Tab */}
+      {activeTab === 'breakthrough' && (
+        <div className="space-y-6">
+          <Card className="bg-gradient-to-r from-purple-500/10 to-purple-500/5 border-purple-500/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Zap className="h-5 w-5 text-purple-400" />
+                BREAKTHROUGH Insights
+              </CardTitle>
+              <CardDescription>
+                Productive BREAKTHROUGH events — peak human–AI collaboration moments confirmed by human review.
+                These are informational: no action required. They represent the behaviour the platform aims to replicate.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {cyclesLoading ? (
+            <div className="text-center py-12 text-muted-foreground">Loading Overseer cycles...</div>
+          ) : (() => {
+            // Extract breakthrough_productive observations from cycles
+            const productiveInsights: Array<{ cycleId: string; timestamp: string; reason: string; confidence: number }> = []
+            if (Array.isArray(cycles)) {
+              for (const cycle of cycles) {
+                const plans: any[] = cycle.plans || cycle.plannerOutput || []
+                for (const plan of plans) {
+                  if (plan.target === 'breakthrough_insight' || plan.type === 'alert' && plan.target?.includes('breakthrough')) {
+                    productiveInsights.push({
+                      cycleId: cycle._id || cycle.id || '',
+                      timestamp: cycle.timestamp || cycle.createdAt || '',
+                      reason: plan.reason || 'Productive BREAKTHROUGH event confirmed',
+                      confidence: plan.confidence || 0.9,
+                    })
+                  }
+                }
+              }
+            }
+
+            if (productiveInsights.length === 0) {
+              return (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <Zap className="h-10 w-10 text-purple-400/40 mx-auto mb-3" />
+                    <p className="font-medium text-muted-foreground">No confirmed BREAKTHROUGH insights yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Productive BREAKTHROUGH events surface here once they've been classified by a human reviewer.
+                    </p>
+                  </CardContent>
+                </Card>
+              )
+            }
+
+            return (
+              <div className="space-y-3">
+                {productiveInsights.map((insight, i) => (
+                  <Card key={`${insight.cycleId}-${i}`} className="border-l-4 border-l-purple-500">
+                    <CardContent className="py-4">
+                      <div className="flex items-start gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-purple-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                          <ThumbsUp className="h-4 w-4 text-purple-400" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                              Productive
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              Confidence: {(insight.confidence * 100).toFixed(0)}%
+                            </span>
+                            {insight.timestamp && (
+                              <span className="text-xs text-muted-foreground ml-auto">
+                                {new Date(insight.timestamp).toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{insight.reason}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )
+          })()}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">How to use BREAKTHROUGH Insights</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <div className="border-l-4 border-l-emerald-500 pl-4">
+                <p className="font-medium text-foreground mb-1">Productive events</p>
+                <p>Interactions where high-coherence synthesis opened new questions rather than closing them. Each produced external artifacts (code, schema, documents) that exist independently of the conversation.</p>
+              </div>
+              <div className="border-l-4 border-l-red-500 pl-4">
+                <p className="font-medium text-foreground mb-1">Regressive events (in Override Queue)</p>
+                <p>High-coherence interactions where the AI mirrored emotional content as evidence, creating false reciprocity around unfalsifiable premises. Classified in the BREAKTHROUGH Review tab.</p>
+              </div>
+              <div className="border-l-4 border-l-purple-500 pl-4">
+                <p className="font-medium text-foreground mb-1">Why this matters</p>
+                <p>SONATE cannot distinguish direction — only intensity. The human review layer is what transforms raw BREAKTHROUGH scores into actionable intelligence about your platform's collaborative quality.</p>
               </div>
             </CardContent>
           </Card>

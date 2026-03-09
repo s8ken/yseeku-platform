@@ -25,7 +25,12 @@ import {
   FileX,
   RefreshCw,
   Activity,
-  PlayCircle
+  PlayCircle,
+  Zap,
+  Tag,
+  ThumbsUp,
+  ThumbsDown,
+  HelpCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
@@ -64,6 +69,126 @@ interface TrustReceipt {
     proofPurpose: string;
     proofValue: string;
   };
+  // BREAKTHROUGH classification
+  resonanceQuality?: 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH';
+  humanReview?: {
+    status: 'pending' | 'productive' | 'regressive' | 'uncertain';
+    reviewed_by?: string;
+    reviewed_at?: string;
+    notes?: string;
+  };
+}
+
+// ─── BREAKTHROUGH Classify Modal ─────────────────────────────────────────────
+
+function ClassifyModal({
+  hash,
+  currentStatus,
+  onClose,
+  onClassified,
+}: {
+  hash: string;
+  currentStatus?: string;
+  onClose: () => void;
+  onClassified: (status: 'productive' | 'regressive' | 'uncertain') => void;
+}) {
+  const [submitting, setSubmitting] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
+
+  const classify = async (status: 'productive' | 'regressive' | 'uncertain') => {
+    setSubmitting(true);
+    setError('');
+    try {
+      await api.classifyBreakthroughReceipt(hash, { status, notes: notes.trim() || undefined });
+      onClassified(status);
+      onClose();
+    } catch (err: any) {
+      setError(err.message || 'Classification failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+      <div
+        className="bg-background border border-border rounded-xl shadow-2xl p-6 w-full max-w-md mx-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-10 w-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+            <Zap className="h-5 w-5 text-purple-400" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-base">Classify BREAKTHROUGH Event</h3>
+            <p className="text-xs text-muted-foreground font-mono">{hash.substring(0, 20)}...</p>
+          </div>
+        </div>
+
+        <p className="text-sm text-muted-foreground mb-4">
+          The detector scores <strong>intensity</strong>. Human review scores <strong>direction</strong>.
+          Was this interaction genuinely productive, or did high coherence mirror an unfalsifiable premise?
+        </p>
+
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <button
+            onClick={() => classify('productive')}
+            disabled={submitting}
+            className="flex flex-col items-center gap-2 p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 transition-colors disabled:opacity-50"
+          >
+            <ThumbsUp className="h-5 w-5" />
+            <span className="text-xs font-medium">Productive</span>
+            <span className="text-[10px] text-muted-foreground text-center leading-tight">Opens inquiry, produces artifacts</span>
+          </button>
+
+          <button
+            onClick={() => classify('regressive')}
+            disabled={submitting}
+            className="flex flex-col items-center gap-2 p-3 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors disabled:opacity-50"
+          >
+            <ThumbsDown className="h-5 w-5" />
+            <span className="text-xs font-medium">Regressive</span>
+            <span className="text-[10px] text-muted-foreground text-center leading-tight">Closes inquiry, mirrors premise</span>
+          </button>
+
+          <button
+            onClick={() => classify('uncertain')}
+            disabled={submitting}
+            className="flex flex-col items-center gap-2 p-3 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 transition-colors disabled:opacity-50"
+          >
+            <HelpCircle className="h-5 w-5" />
+            <span className="text-xs font-medium">Uncertain</span>
+            <span className="text-[10px] text-muted-foreground text-center leading-tight">Needs more context</span>
+          </button>
+        </div>
+
+        <div className="mb-4">
+          <label className="text-xs text-muted-foreground mb-1 block">Notes (optional)</label>
+          <Input
+            placeholder="Reasoning for classification..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="text-sm"
+          />
+        </div>
+
+        {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
+
+        {currentStatus && currentStatus !== 'pending' && (
+          <p className="text-xs text-muted-foreground mb-3">
+            Currently classified as: <strong className="capitalize">{currentStatus}</strong>
+          </p>
+        )}
+
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={onClose} disabled={submitting}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // Empty state component
@@ -99,6 +224,10 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState<'success' | 'fail' | null>(null);
   const [formattedTime, setFormattedTime] = useState('');
+  const [showClassifyModal, setShowClassifyModal] = useState(false);
+  const [classifiedStatus, setClassifiedStatus] = useState<string | undefined>(receipt.humanReview?.status);
+
+  const isBreakthrough = receipt.resonanceQuality === 'BREAKTHROUGH';
 
   const canVerify = !!(
     receipt.receiptData?.signature ||
@@ -141,25 +270,47 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
   };
 
   return (
+    <>
+    {showClassifyModal && (
+      <ClassifyModal
+        hash={receipt.hash}
+        currentStatus={classifiedStatus}
+        onClose={() => setShowClassifyModal(false)}
+        onClassified={(status) => setClassifiedStatus(status)}
+      />
+    )}
     <Card className={cn(
       "transition-all duration-300",
+      isBreakthrough ? 'border-l-4 border-l-purple-500' :
       !receipt.verified || verificationResult === 'fail' ? 'border-l-4 border-l-red-500' :
         verificationResult === 'success' ? 'border-l-4 border-l-emerald-500' : ''
     )}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${receipt.verified && verificationResult !== 'fail'
+            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+              isBreakthrough ? 'bg-purple-100 dark:bg-purple-900/30' :
+              receipt.verified && verificationResult !== 'fail'
                 ? 'bg-emerald-100 dark:bg-emerald-900/30'
                 : 'bg-red-100 dark:bg-red-900/30'
               }`}>
-              {receipt.verified && verificationResult !== 'fail'
-                ? <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                : <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              {isBreakthrough
+                ? <Zap className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                : receipt.verified && verificationResult !== 'fail'
+                  ? <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                  : <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
               }
             </div>
             <div>
-              <CardTitle className="text-base">{receipt.agentName}</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-base">{receipt.agentName}</CardTitle>
+                {isBreakthrough && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                    <Zap className="h-2.5 w-2.5" />
+                    BREAKTHROUGH
+                  </span>
+                )}
+              </div>
               <CardDescription className="flex items-center gap-2 mt-0.5">
                 <Clock className="h-3 w-3" />
                 {formattedTime || '...'}
@@ -299,6 +450,30 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
           </div>
         )}
 
+        {/* BREAKTHROUGH review status */}
+        {isBreakthrough && (
+          <div className="mt-3 p-3 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Tag className="h-3.5 w-3.5 text-purple-400" />
+              <span className="text-xs text-purple-300">
+                {classifiedStatus && classifiedStatus !== 'pending'
+                  ? <>Human review: <strong className="capitalize">{classifiedStatus}</strong></>
+                  : 'Awaiting human review classification'
+                }
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-[10px] uppercase font-bold tracking-wider border-purple-500/40 text-purple-400 hover:bg-purple-500/10"
+              onClick={() => setShowClassifyModal(true)}
+            >
+              <Zap className="h-3 w-3 mr-1" />
+              {classifiedStatus && classifiedStatus !== 'pending' ? 'Reclassify' : 'Classify'}
+            </Button>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
           <span className="text-xs text-muted-foreground">
             Resonance: <strong>{receipt.sonateDimensions?.resonanceQuality ?? 'N/A'}</strong>
@@ -324,11 +499,13 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
         </div>
       </CardContent>
     </Card>
+    </>
   );
 }
 
 export default function TrustReceiptsPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [breakthroughOnly, setBreakthroughOnly] = useState(false);
   const { isDemo } = useDemo();
 
   // Determine data source for display
@@ -385,6 +562,9 @@ export default function TrustReceiptsPage() {
       issuer: r.issuer,
       subject: r.subject,
       proof: r.proof,
+      // BREAKTHROUGH classification — read from DB, not derived from score
+      resonanceQuality: r.resonance_quality as 'STRONG' | 'ADVANCED' | 'BREAKTHROUGH' | undefined,
+      humanReview: r.human_review,
     };
   });
 
@@ -396,11 +576,18 @@ export default function TrustReceiptsPage() {
     chainLength: receipts.length
   };
   const hasData = receipts.length > 0;
+  const breakthroughCount = receipts.filter(r => r.resonanceQuality === 'BREAKTHROUGH').length;
+  const unreviewedBreakthroughCount = receipts.filter(
+    r => r.resonanceQuality === 'BREAKTHROUGH' && (!r.humanReview?.status || r.humanReview.status === 'pending')
+  ).length;
 
-  const filteredReceipts = receipts.filter(r =>
-    r.agentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.hash.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredReceipts = receipts.filter(r => {
+    const matchesSearch =
+      r.agentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.hash.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesBreakthrough = !breakthroughOnly || r.resonanceQuality === 'BREAKTHROUGH';
+    return matchesSearch && matchesBreakthrough;
+  });
 
   return (
     <div className="space-y-6">
@@ -436,7 +623,7 @@ export default function TrustReceiptsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card className="border-l-4 border-l-[var(--orchestrate-primary)]">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -477,6 +664,30 @@ export default function TrustReceiptsPage() {
           <CardContent>
             <div className="text-3xl font-bold">{isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.chainLength.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground mt-1">Blocks</p>
+          </CardContent>
+        </Card>
+
+        <Card
+          className={cn(
+            'cursor-pointer transition-all border-l-4',
+            breakthroughOnly ? 'border-l-purple-500 bg-purple-500/5' : 'border-l-purple-500/40'
+          )}
+          onClick={() => setBreakthroughOnly(v => !v)}
+        >
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Zap className="h-4 w-4 text-purple-400" />
+              BREAKTHROUGH
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-purple-400">{isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : breakthroughCount}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {unreviewedBreakthroughCount > 0
+                ? <span className="text-amber-500">{unreviewedBreakthroughCount} need review</span>
+                : 'All reviewed'
+              }
+            </p>
           </CardContent>
         </Card>
       </div>

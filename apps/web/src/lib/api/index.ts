@@ -354,6 +354,18 @@ export const api = {
     return res.data?.receipt;
   },
 
+  async classifyBreakthroughReceipt(
+    hash: string,
+    data: { status: 'productive' | 'regressive' | 'uncertain'; notes?: string }
+  ): Promise<{ hash: string; human_review: any }> {
+    const { fetchAPI } = await import('./client');
+    const res = await fetchAPI<{ success: boolean; data: { hash: string; human_review: any } }>(
+      `/api/v1/receipts/${hash}/classify`,
+      { method: 'PATCH', body: JSON.stringify(data) }
+    );
+    return res.data;
+  },
+
   async verifyTrustReceipt(hash: string, receipt?: any): Promise<{ valid: boolean; receipt?: any; verification?: any }> {
     const { fetchAPI } = await import('./client');
     // If receipt provided, send to backend for cryptographic verification

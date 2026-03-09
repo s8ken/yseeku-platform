@@ -29,10 +29,19 @@ export interface SensorData {
   // Active alerts
   activeAlerts: AlertSummary;
 
+  // BREAKTHROUGH events requiring classification
+  breakthroughEvents: BreakthroughSummary;
+
   // Temporal context
   timestamp: Date;
   hourOfDay: number;
   isBusinessHours: boolean;
+}
+
+export interface BreakthroughSummary {
+  unreviewed: number;       // BREAKTHROUGH receipts with no human_review yet
+  recentlyProductive: number; // Marked productive in last 24h — feed to insights
+  receipts: any[];          // Raw unreviewed receipts for Overseer context
 }
 
 export interface TrendData {
@@ -112,7 +121,10 @@ export async function gatherSensors(tenantId: string): Promise<SensorData> {
   // 6. Active alerts
   const activeAlerts = await gatherAlertSummary(tenantId);
 
-  // 7. Temporal context
+  // 7. BREAKTHROUGH events
+  const breakthroughEvents = await gatherBreakthroughSummary(tenantId);
+
+  // 8. Temporal context
   const hourOfDay = timestamp.getHours();
   const dayOfWeek = timestamp.getDay();
   const isBusinessHours = hourOfDay >= 9 && hourOfDay <= 17 && dayOfWeek >= 1 && dayOfWeek <= 5;
@@ -127,10 +139,46 @@ export async function gatherSensors(tenantId: string): Promise<SensorData> {
     historicalStd,
     agentHealth,
     activeAlerts,
+    breakthroughEvents,
     timestamp,
     hourOfDay,
     isBusinessHours,
   };
+}
+
+/**
+ * Gather BREAKTHROUGH event summary for Overseer awareness
+ */
+async function gatherBreakthroughSummary(tenantId: string): Promise<BreakthroughSummary> {
+  try {
+    // Unreviewed BREAKTHROUGHs — no human_review status set yet
+    const unreviewedReceipts = await TrustReceiptModel.find({
+      tenant_id: tenantId,
+      resonance_quality: 'BREAKTHROUGH',
+      'human_review.status': { $exists: false },
+    })
+      .sort({ timestamp: -1 })
+      .limit(20)
+      .lean();
+
+    // Recently marked productive (last 24h) — surface as insights
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const recentlyProductiveCount = await TrustReceiptModel.countDocuments({
+      tenant_id: tenantId,
+      resonance_quality: 'BREAKTHROUGH',
+      'human_review.status': 'productive',
+      'human_review.reviewed_at': { $gte: since24h },
+    });
+
+    return {
+      unreviewed: unreviewedReceipts.length,
+      recentlyProductive: recentlyProductiveCount,
+      receipts: unreviewedReceipts,
+    };
+  } catch (error) {
+    logger.warn('Failed to gather BREAKTHROUGH summary', { error });
+    return { unreviewed: 0, recentlyProductive: 0, receipts: [] };
+  }
 }
 
 /**

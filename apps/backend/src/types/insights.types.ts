@@ -20,6 +20,7 @@ export enum InsightCategory {
   PERFORMANCE = 'performance',
   SECURITY = 'security',
   COMPLIANCE = 'compliance',
+  BREAKTHROUGH = 'breakthrough', // Peak human-AI collaboration events
 }
 
 export enum InsightAction {
@@ -43,7 +44,7 @@ export interface Insight {
 
   // Context
   source: {
-    type: 'trust_score' | 'phase_shift' | 'emergence' | 'drift' | 'compliance' | 'alert';
+    type: 'trust_score' | 'phase_shift' | 'emergence' | 'drift' | 'compliance' | 'alert' | 'breakthrough';
     id?: string;
     details?: Record<string, any>;
   };

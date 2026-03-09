@@ -140,6 +140,15 @@ function planForAnomaly(
         confidence: 0.7,
       };
 
+    case 'breakthrough_unreviewed':
+      return {
+        type: 'alert',
+        target: 'breakthrough_review',
+        reason: `${anomaly.value} BREAKTHROUGH event(s) require human classification. Each must be marked productive, regressive, or uncertain before the archive is considered complete.`,
+        priority: 'high',
+        confidence: 0.95,
+      };
+
     default:
       return null;
   }
@@ -161,6 +170,7 @@ function planForObservation(
     'high_emergence_detected',
     'rapid_decline',
     'high_volatility',
+    'breakthrough_unreviewed',
   ];
   if (anomalyHandled.includes(observation)) {
     return null;
@@ -225,6 +235,16 @@ function planForObservation(
         reason: 'High ratio of banned agents - review agent policies',
         priority: 'medium',
         confidence: 0.7,
+      };
+
+    case 'breakthrough_productive':
+      // No action required — informational insight for human radar
+      return {
+        type: 'alert',
+        target: 'breakthrough_insight',
+        reason: 'Productive BREAKTHROUGH event(s) confirmed in last 24h. Overseer summary: review the conditions that produced peak coherence for potential replication.',
+        priority: 'low',
+        confidence: 0.9,
       };
 
     default:
