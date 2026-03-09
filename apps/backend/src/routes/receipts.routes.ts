@@ -177,10 +177,10 @@ router.patch(
   validateBody(ClassifyReceiptSchema),
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { hash } = req.params;
+      const hash = String(req.params.hash);
       const { status, reviewed_by, notes } = req.body;
 
-      if (!/^[a-f0-9]{64}$/.test(hash as string)) {
+      if (!/^[a-f0-9]{64}$/.test(hash)) {
         res.status(400).json({ success: false, error: 'Invalid receipt hash format' });
         return;
       }
