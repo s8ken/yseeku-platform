@@ -158,6 +158,38 @@ router.post('/:id/resolve', protect, async (req: Request, res: Response): Promis
 });
 
 /**
+ * @route   POST /api/dashboard/alerts/:id/suppress
+ * @desc    Suppress an alert for a given number of hours
+ * @access  Private
+ */
+router.post('/:id/suppress', protect, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const duration = Number(req.body?.duration) || 24;
+
+    const alert = await AlertsService.suppressAlert(String(id), duration);
+
+    if (!alert) {
+      res.status(404).json({ success: false, message: 'Alert not found' });
+      return;
+    }
+
+    res.json({
+      success: true,
+      message: `Alert suppressed for ${duration} hour(s)`,
+      data: { alert },
+    });
+  } catch (error) {
+    logger.error('Failed to suppress alert', { error, stack: getErrorStack(error) });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to suppress alert',
+      error: getErrorMessage(error),
+    });
+  }
+});
+
+/**
  * @route   GET /api/dashboard/alerts
  * @desc    Get alerts summary for dashboard
  * @access  Private

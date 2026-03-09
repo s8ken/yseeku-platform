@@ -32,6 +32,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { fetchAPI } from '@/lib/api/client';
 
 interface Alert {
   id: string;
@@ -94,41 +95,27 @@ export default function AlertsManagementPage() {
   });
 
   const acknowledgeMutation = useMutation({
-    mutationFn: async (alertId: string) => {
-      const response = await fetch(`/api/dashboard/alerts/${alertId}/acknowledge`, {
-        method: 'POST',
-      });
-      if (!response.ok) throw new Error('Failed to acknowledge alert');
-      return response.json();
-    },
+    mutationFn: (alertId: string) =>
+      fetchAPI(`/api/dashboard/alerts/${alertId}/acknowledge`, { method: 'POST' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts-management'] });
     },
   });
 
   const resolveMutation = useMutation({
-    mutationFn: async (alertId: string) => {
-      const response = await fetch(`/api/dashboard/alerts/${alertId}/resolve`, {
-        method: 'POST',
-      });
-      if (!response.ok) throw new Error('Failed to resolve alert');
-      return response.json();
-    },
+    mutationFn: (alertId: string) =>
+      fetchAPI(`/api/dashboard/alerts/${alertId}/resolve`, { method: 'POST' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts-management'] });
     },
   });
 
   const suppressMutation = useMutation({
-    mutationFn: async ({ alertId, duration }: { alertId: string; duration: number }) => {
-      const response = await fetch(`/api/dashboard/alerts/${alertId}/suppress`, {
+    mutationFn: ({ alertId, duration }: { alertId: string; duration: number }) =>
+      fetchAPI(`/api/dashboard/alerts/${alertId}/suppress`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ duration }),
-      });
-      if (!response.ok) throw new Error('Failed to suppress alert');
-      return response.json();
-    },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts-management'] });
     },

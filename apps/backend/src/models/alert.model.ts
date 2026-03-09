@@ -10,10 +10,11 @@ export interface IAlert extends Document {
   metadata: Record<string, any>;
   receipt_id?: string;
   session_id?: string;
-  status: 'active' | 'acknowledged' | 'resolved';
+  status: 'active' | 'acknowledged' | 'resolved' | 'suppressed';
   acknowledged_by?: string;
   acknowledged_at?: Date;
   resolved_at?: Date;
+  suppressed_until?: Date;
   created_at: Date;
 }
 
@@ -33,12 +34,13 @@ const AlertSchema = new Schema<IAlert>({
   status: {
     type: String,
     default: 'active',
-    enum: ['active', 'acknowledged', 'resolved'],
+    enum: ['active', 'acknowledged', 'resolved', 'suppressed'],
     index: true,
   },
   acknowledged_by: { type: String },
   acknowledged_at: { type: Date },
   resolved_at: { type: Date },
+  suppressed_until: { type: Date },
   created_at: { type: Date, default: Date.now, index: true },
 });
 

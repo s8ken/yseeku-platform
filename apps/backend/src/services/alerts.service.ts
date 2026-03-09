@@ -72,6 +72,21 @@ export class AlertsService {
     return alert;
   }
 
+  static async suppressAlert(alertId: string, durationHours: number): Promise<IAlert | null> {
+    const suppressedUntil = new Date(Date.now() + durationHours * 60 * 60 * 1000);
+    const alert = await AlertModel.findByIdAndUpdate(
+      alertId,
+      { status: 'suppressed', suppressed_until: suppressedUntil },
+      { new: true }
+    );
+
+    if (alert && io) {
+      io.to(`tenant:${alert.tenant_id}`).emit('alert:updated', alert);
+    }
+
+    return alert;
+  }
+
   static async getAlertStats(tenantId: string): Promise<{
     total: number;
     active: number;
