@@ -55,8 +55,22 @@ import { ConnectionStatus } from '@/components/connection-status';
 import { DemoModeBanner } from '@/components/demo-mode-banner';
 import { DemoInitializer } from '@/components/demo-initializer';
 import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
+import { SetupWizard } from '@/components/onboarding/SetupWizard';
 import { useDemo } from '@/hooks/use-demo';
 import { AppRole, getCurrentUserFromToken } from '@/lib/current-user';
+
+const NAV_MODE_KEY = 'yseeku-nav-mode';
+
+// Simple mode: 7 core items for new/casual users
+const SIMPLE_NAV_HREFS = new Set([
+  '/dashboard',
+  '/dashboard/chat',
+  '/dashboard/agents',
+  '/dashboard/receipts',
+  '/dashboard/alerts',
+  '/dashboard/overseer',
+  '/dashboard/settings',
+]);
 
 type ModuleType = 'detect' | 'lab' | 'orchestrate';
 
@@ -165,11 +179,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeSearchIndex, setActiveSearchIndex] = useState(-1);
   const [liveUser, setLiveUser] = useState<DashboardUser>(defaultUser);
+  const [navMode, setNavMode] = useState<'simple' | 'advanced'>('simple');
   const searchRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
   const startTutorial = useTutorialStore(state => state.startTutorial);
   const { isDemo, toggleDemo, enableDemo } = useDemo();
+
+  // Load nav mode preference from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(NAV_MODE_KEY) as 'simple' | 'advanced' | null;
+      if (saved) setNavMode(saved);
+    }
+  }, []);
+
+  const toggleNavMode = () => {
+    const next = navMode === 'simple' ? 'advanced' : 'simple';
+    setNavMode(next);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(NAV_MODE_KEY, next);
+    }
+  };
 
   // All flattened nav items for search
   const allNavItems = useMemo(() => moduleSections.flatMap(s => s.items), []);
@@ -360,11 +391,51 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </Link>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-4">
+      {/* Simple / Advanced nav mode toggle */}
+      <div className="flex items-center gap-1 px-3 pt-3 pb-1">
+        <button
+          type="button"
+          onClick={toggleNavMode}
+          className={cn(
+            'flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all',
+            navMode === 'simple'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+          )}
+        >
+          Simple
+        </button>
+        <button
+          type="button"
+          onClick={toggleNavMode}
+          className={cn(
+            'flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all',
+            navMode === 'advanced'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+          )}
+        >
+          Advanced
+        </button>
+      </div>
+      {navMode === 'simple' && (
+        <p className="px-3 pb-1 text-[10px] text-muted-foreground">
+          Core features only.{' '}
+          <button onClick={toggleNavMode} className="underline hover:text-foreground">
+            Show all
+          </button>
+        </p>
+      )}
+
+      <div className="flex-1 overflow-y-auto py-2">
         <nav className="px-3 space-y-1" role="navigation" aria-label="Main navigation">
           {moduleSections.map((section) => {
             const isExpanded = expandedModules.includes(section.id);
-            const filteredItems = section.items.filter(item => item.roles.includes(currentUser.role));
+            const filteredItems = section.items.filter(item => {
+              const roleMatch = item.roles.includes(currentUser.role);
+              const modeMatch = navMode === 'advanced' || SIMPLE_NAV_HREFS.has(item.href);
+              return roleMatch && modeMatch;
+            });
 
             if (filteredItems.length === 0) return null;
 
@@ -435,6 +506,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <HelpCircle className="h-4 w-4" />
           <span>Platform Tutorial</span>
         </Button>
+        {navMode === 'simple' && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+            onClick={toggleNavMode}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+            <span>Show Advanced Nav</span>
+          </Button>
+        )}
 
         <div className="flex items-center gap-3 px-2 pt-2">
           <Avatar className="h-8 w-8">
@@ -461,6 +543,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <Providers>
       <TutorialTour />
       <OnboardingModal />
+      <SetupWizard />
       <div className="grid min-h-screen w-full md:grid-cols-[260px_1fr] lg:grid-cols-[280px_1fr]">
         <a
           href="#main-content"
