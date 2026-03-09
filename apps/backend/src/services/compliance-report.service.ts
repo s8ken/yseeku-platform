@@ -35,6 +35,7 @@ export interface TrustSummaryReport {
   summary: {
     totalConversations: number;
     totalMessages: number;
+    verifiableCount: number;
     avgTrustScore: number;
     trustDistribution: { range: string; count: number; percentage: number }[];
     complianceRate: number;
@@ -239,6 +240,9 @@ class ComplianceReportService {
     const avgTrustScore = totalMessages > 0 ? totalTrust / totalMessages : 0;
     const complianceRate =
       totalMessages > 0 ? ((trustBuckets[3] + trustBuckets[4]) / totalMessages) * 100 : 0;
+    const verifiableCount = conversations.filter((c) =>
+      c.messages.some((m: any) => m.trustScore != null)
+    ).length;
 
     // Agent summaries
     const agentSummaries: AgentSummary[] = agents.map((agent) => {
@@ -271,6 +275,7 @@ class ComplianceReportService {
       summary: {
         totalConversations: conversations.length,
         totalMessages,
+        verifiableCount,
         avgTrustScore: Math.round(avgTrustScore * 10) / 10,
         trustDistribution: [
           {

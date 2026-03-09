@@ -87,7 +87,7 @@ export default function ReportsPage() {
           failedChecks: Math.round((r.summary?.totalConversations || 0) * (1 - (r.summary?.complianceRate || 100) / 100)),
           warnings: 0,
           riskLevel: (r.summary?.complianceRate || 100) >= 90 ? 'LOW' : (r.summary?.complianceRate || 100) >= 70 ? 'MEDIUM' : 'HIGH',
-          verifiableCount: r.summary?.verifiableCount || Math.floor((r.summary?.totalConversations || 0) * 0.95), // Mocking if not present
+          verifiableCount: r.summary?.verifiableCount || 0,
         },
         content: r.payload ? JSON.stringify(r.payload, null, 2) : undefined,
       }));
@@ -161,7 +161,7 @@ export default function ReportsPage() {
           failedChecks: Math.round((r.summary?.totalConversations || 0) * (1 - (r.summary?.complianceRate || 100) / 100)),
           warnings: 0,
           riskLevel: (r.summary?.complianceRate || 100) >= 90 ? 'LOW' : (r.summary?.complianceRate || 100) >= 70 ? 'MEDIUM' : 'HIGH',
-          verifiableCount: r.summary?.verifiableCount || Math.floor((r.summary?.totalConversations || 0) * 0.95),
+          verifiableCount: r.summary?.verifiableCount || 0,
         },
         content: r.payload ? JSON.stringify(r.payload, null, 2) : undefined,
       });
