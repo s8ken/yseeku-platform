@@ -369,7 +369,7 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
             <div className="flex items-start gap-2">
               <div className="flex flex-col items-center">
                 <div className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-emerald-400 mt-0.5 shrink-0" />
-                {receipt.previousHash &amp;&amp; <div className="w-0.5 h-8 bg-border mt-0.5" />}
+                {receipt.previousHash && <div className="w-0.5 h-8 bg-border mt-0.5" />}
               </div>
               <div className="pb-2 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -385,7 +385,7 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
               <div className="flex items-start gap-2">
                 <div className="flex flex-col items-center">
                   <div className="w-3 h-3 rounded-full bg-muted-foreground/40 border-2 border-muted-foreground/30 mt-0.5 shrink-0" />
-                  {receipt.chainPosition > 2 &amp;&amp; <div className="w-0.5 h-8 bg-border mt-0.5" />}
+                  {receipt.chainPosition > 2 && <div className="w-0.5 h-8 bg-border mt-0.5" />}
                 </div>
                 <div className="pb-2 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -406,7 +406,7 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
             ) : null}
 
             {/* Genesis indicator */}
-            {receipt.chainPosition <= 2 &amp;&amp; (
+            {receipt.chainPosition <= 2 && (
               <div className="flex items-start gap-2">
                 <div className="flex flex-col items-center">
                   <div className="w-3 h-3 rounded-full bg-violet-500/40 border-2 border-violet-400/40 mt-0.5 shrink-0" />
@@ -419,7 +419,7 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
             )}
 
             {/* Deep chain indicator */}
-            {receipt.chainPosition > 2 &amp;&amp; (
+            {receipt.chainPosition > 2 && (
               <div className="flex items-start gap-2">
                 <div className="flex flex-col items-center">
                   <div className="w-3 h-3 rounded-full bg-muted/60 border border-dashed border-muted-foreground/30 mt-0.5 shrink-0" />
