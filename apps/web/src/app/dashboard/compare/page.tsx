@@ -42,11 +42,12 @@ interface ModelResponse {
 interface TrustEvaluation {
   overallScore: number;
   dimensions: {
-    coherence: number;
-    helpfulness: number;
-    safety: number;
-    honesty: number;
-    transparency: number;
+    consent: number;
+    inspection: number;
+    validation: number;
+    override: number;
+    disconnect: number;
+    moral: number;
   };
   flags: string[];
 }
