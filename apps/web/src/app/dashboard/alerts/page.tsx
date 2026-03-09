@@ -35,7 +35,8 @@ import {
 
 interface Alert {
   id: string;
-  timestamp: string;
+  created_at?: string | Date;  // backend field
+  timestamp?: string;           // legacy alias (may not be present)
   type: string;
   title: string;
   description: string;
@@ -48,6 +49,13 @@ interface Alert {
   resolvedAt?: string;
   session_id?: string;
 }
+
+const formatAlertDate = (alert: Alert): string => {
+  const raw = alert.created_at || alert.timestamp;
+  if (!raw) return 'Unknown';
+  const d = new Date(raw);
+  return isNaN(d.getTime()) ? 'Unknown' : d.toLocaleString('en-US');
+};
 
 interface AlertResponse {
   success: boolean;
@@ -286,7 +294,7 @@ export default function AlertsManagementPage() {
                           {alert.description}
                         </p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                          <span>{new Date(alert.timestamp).toLocaleString('en-US')}</span>
+                          <span>{formatAlertDate(alert)}</span>
                           {alert.acknowledgedBy && (
                             <span>
                               <User className="inline h-3 w-3 mr-1" />
