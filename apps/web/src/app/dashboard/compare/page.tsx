@@ -341,24 +341,33 @@ export default function ComparePage() {
 
                     {/* Rankings */}
                     <div className="space-y-2">
-                      <h3 className="font-semibold">Rankings</h3>
+                      <h3 className="font-semibold">Rankings <span className="text-xs font-normal text-muted-foreground">— SONATE Trust Score</span></h3>
                       <div className="space-y-2">
-                        {currentResult.ranking.map((r) => (
-                          <div key={r.provider} className="flex items-center gap-3">
-                            <Badge className={`${providerColors[r.provider]} w-8 justify-center`}>
-                              #{r.rank}
-                            </Badge>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-sm font-medium">{providerLabels[r.provider]}</span>
-                                <span className={`text-sm font-bold ${getScoreColor(r.overallScore)}`}>
-                                  {Math.round(r.overallScore * 100)}%
-                                </span>
+                        {currentResult.ranking.map((r) => {
+                          const trustScore = currentResult.evaluations[r.provider]?.trust?.overallScore ?? r.overallScore;
+                          const response = currentResult.responses.find(res => res.provider === r.provider);
+                          return (
+                            <div key={r.provider} className="flex items-center gap-3">
+                              <Badge className={`${providerColors[r.provider]} w-8 justify-center`}>
+                                #{r.rank}
+                              </Badge>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm font-medium">{providerLabels[r.provider]}</span>
+                                  <div className="flex items-center gap-2">
+                                    {response && (
+                                      <span className="text-xs text-muted-foreground">{Math.round(response.latencyMs)}ms</span>
+                                    )}
+                                    <span className={`text-sm font-bold ${getScoreColor(trustScore)}`}>
+                                      {Math.round(trustScore * 100)}%
+                                    </span>
+                                  </div>
+                                </div>
+                                <Progress value={trustScore * 100} className="h-2" />
                               </div>
-                              <Progress value={r.overallScore * 100} className="h-2" />
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
 

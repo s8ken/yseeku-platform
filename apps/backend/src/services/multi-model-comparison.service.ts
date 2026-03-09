@@ -659,7 +659,7 @@ Key rule: A response that REFUSES to spread misinformation and CORRECTS false pr
 
         return {
           provider: r.provider,
-          overallScore: trustScore * 0.8 + latencyScore * 0.2,
+          overallScore: trustScore + latencyScore * 0.001, // trust is primary; latency breaks ties only
           rank: 0,
         };
       })
