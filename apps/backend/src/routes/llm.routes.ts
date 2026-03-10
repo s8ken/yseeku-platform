@@ -91,6 +91,32 @@ router.get(
 );
 
 /**
+ * @route   GET /api/llm/available-models
+ * @desc    Returns providers and models where API keys are configured
+ * @access  Private
+ */
+router.get('/available-models', protect, async (req: Request, res: Response): Promise<void> => {
+  const envKeys: Record<string, string | undefined> = {
+    anthropic: process.env.ANTHROPIC_API_KEY,
+    openai: process.env.OPENAI_API_KEY,
+    gemini: process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY,
+  };
+
+  const available = Object.entries(envKeys)
+    .filter(([, key]) => !!key)
+    .map(([providerId]) => ({
+      provider: providerId,
+      name: LLM_PROVIDERS[providerId]?.name || providerId,
+      models: (LLM_PROVIDERS[providerId]?.models || []).map((m) => ({
+        id: m.id,
+        name: m.name,
+      })),
+    }));
+
+  res.json({ success: true, data: { providers: available } });
+});
+
+/**
  * @route   POST /api/llm/generate
  * @desc    Generate response from LLM
  * @access  Private

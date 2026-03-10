@@ -21,7 +21,18 @@ import {
   ExternalLink,
   MoreHorizontal,
   Sparkles,
+  ChevronDown,
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import { fetchAPI } from '@/lib/api/client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -475,6 +486,8 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
   const [isPinningToIPFS, setIsPinningToIPFS] = useState(false);
   const [ipfsCid, setIpfsCid] = useState<string | null>(null);
+  const [availableModels, setAvailableModels] = useState<{ provider: string; name: string; models: { id: string; name: string }[] }[]>([]);
+  const [selectedModel, setSelectedModel] = useState<{ provider: string; model: string } | null>(null);
   const [activeViolation, setActiveViolation] = useState<{
     status: 'FAIL' | 'PARTIAL';
     trustScore: number;
@@ -551,6 +564,18 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
       });
     }
   }, [isDemo, isFirstVisit, demoPreloaded, messages.length]);
+
+  useEffect(() => {
+    fetchAPI<{ data: { providers: { provider: string; name: string; models: { id: string; name: string }[] }[] } }>('/api/llm/available-models')
+      .then((res) => {
+        const providers = res?.data?.providers ?? [];
+        setAvailableModels(providers);
+        if (providers.length > 0 && providers[0].models.length > 0) {
+          setSelectedModel({ provider: providers[0].provider, model: providers[0].models[0].id });
+        }
+      })
+      .catch(() => {}); // silently fail — chat still works without selector
+  }, []);
 
   useEffect(() => {
     socketService.connect();
@@ -656,7 +681,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 
       let convRes;
       try {
-        convRes = await api.sendMessage(convId, text, undefined);
+        convRes = await api.sendMessage(convId, text, undefined, selectedModel?.provider, selectedModel?.model);
       } catch (err: any) {
         if (
           !conversationId &&
@@ -666,7 +691,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
             err.status === 504)
         ) {
           await new Promise((r) => setTimeout(r, 2000));
-          convRes = await api.sendMessage(convId, text, undefined);
+          convRes = await api.sendMessage(convId, text, undefined, selectedModel?.provider, selectedModel?.model);
         } else {
           throw err;
         }
@@ -1303,6 +1328,34 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
 
       {/* Input */}
       <div className="p-4 border-t bg-slate-50 dark:bg-slate-900 shrink-0">
+        {availableModels.length > 0 && (
+          <div className="mb-2 flex items-center gap-2">
+            <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Model</span>
+            <Select
+              value={selectedModel ? `${selectedModel.provider}::${selectedModel.model}` : undefined}
+              onValueChange={(val) => {
+                const [provider, ...rest] = val.split('::');
+                setSelectedModel({ provider, model: rest.join('::') });
+              }}
+            >
+              <SelectTrigger className="h-7 text-xs w-auto min-w-[180px] border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950">
+                <SelectValue placeholder="Select model" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableModels.map((p) => (
+                  <SelectGroup key={p.provider}>
+                    <SelectLabel className="text-xs">{p.name}</SelectLabel>
+                    {p.models.map((m) => (
+                      <SelectItem key={m.id} value={`${p.provider}::${m.id}`} className="text-xs">
+                        {m.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="flex gap-2 items-end">
           <textarea
             ref={textareaRef}

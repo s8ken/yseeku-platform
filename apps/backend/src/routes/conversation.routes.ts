@@ -421,7 +421,7 @@ router.get('/:id/messages', protect, async (req: Request, res: Response): Promis
  */
 router.post('/:id/messages', protect, async (req: Request, res: Response): Promise<void> => {
   try {
-    const { content, agentId, generateResponse = true } = req.body;
+    const { content, agentId, generateResponse = true, provider: requestedProvider, model: requestedModel } = req.body;
 
     if (!content) {
       res.status(400).json({
@@ -542,6 +542,41 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
       // Get agent to use, fallback to user's first agent or any public agent
       let targetAgentId = agentId || conversation.agents[0];
       let agent = targetAgentId ? await Agent.findById(targetAgentId) : null;
+
+      // If a specific provider/model was requested, find or create an agent for it
+      if (requestedProvider && requestedModel) {
+        const providerLabels: Record<string, string> = {
+          anthropic: 'Claude', openai: 'GPT', gemini: 'Gemini', together: 'Llama', cohere: 'Cohere',
+        };
+        const label = providerLabels[requestedProvider] || requestedProvider;
+        const agentName = `${label} Assistant`;
+        let requestedAgent = await Agent.findOne({ name: agentName, user: req.userId, provider: requestedProvider });
+        if (!requestedAgent) {
+          const mongoose = require('mongoose');
+          requestedAgent = await Agent.create({
+            name: agentName,
+            description: `Personal ${requestedProvider} assistant`,
+            user: req.userId,
+            provider: requestedProvider,
+            model: requestedModel,
+            apiKeyId: new mongoose.Types.ObjectId(),
+            systemPrompt: `You are a helpful, concise, and ethically aligned assistant.`,
+            temperature: 0.7,
+            maxTokens: 2000,
+            isPublic: false,
+            traits: new Map([['ethical_alignment', 4.8], ['creativity', 4.5], ['precision', 4.6], ['adaptability', 4.2]]),
+            ciModel: 'sonate-core',
+          });
+        } else if (requestedAgent.model !== requestedModel) {
+          requestedAgent.model = requestedModel;
+          await requestedAgent.save();
+        }
+        agent = requestedAgent;
+        targetAgentId = agent._id;
+        if (!conversation.agents.includes(agent._id)) {
+          conversation.agents.push(agent._id);
+        }
+      }
 
       if (!agent) {
         // Check if user has API keys before looking for agents

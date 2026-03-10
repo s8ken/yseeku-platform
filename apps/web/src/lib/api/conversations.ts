@@ -75,11 +75,13 @@ export const conversationsApi = {
   async sendMessage(
     conversationId: string,
     content: string,
-    agentId?: string
+    agentId?: string,
+    provider?: string,
+    model?: string
   ): Promise<SendMessageResponse> {
     return fetchAPI<SendMessageResponse>(`/api/conversations/${conversationId}/messages`, {
       method: 'POST',
-      body: JSON.stringify({ content, agentId }),
+      body: JSON.stringify({ content, agentId, provider, model }),
     });
   },
 
