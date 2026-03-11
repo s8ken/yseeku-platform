@@ -28,7 +28,6 @@ export async function adversarialCheck(
     .toLowerCase()
     .split(/\W+/)
     .filter((w) => w.length > 2);
-  // @ts-ignore
   const scaffold_count = words.filter((w) => SCAFFOLD_KEYWORDS.includes(w as any)).length;
   evidence.keyword_density = words.length > 0 ? scaffold_count / words.length : 0;
 
@@ -92,7 +91,6 @@ function calculateReconstructionError(text: string): number {
 
 // Ethics bypass detector (contradictory safety statements)
 function ethicsIntegrityScore(text: string): number {
-  // @ts-ignore
   const violations = ETHICS_VIOLATIONS.filter((v) => text.toLowerCase().includes(v));
   const safety_mentions = text
     .toLowerCase()

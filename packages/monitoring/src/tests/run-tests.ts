@@ -2,24 +2,24 @@ import { AlertManager } from '../alerts';
 import { getAllDashboards, getDashboardById } from '../dashboards';
 import { IntegrationManager } from '../integrations';
 
-function assert(condition: boolean, message: string) {
+function assert(condition: boolean, message: string): void {
   if (!condition) {
     throw new Error(message);
   }
 }
 
-function testAlertManagerInitialization() {
+function testAlertManagerInitialization(): void {
   const alertManager = new AlertManager();
   assert(alertManager !== null, 'AlertManager should initialize successfully');
   assert(alertManager.getRules().length > 0, 'AlertManager should have default rules');
 }
 
-function testIntegrationManagerInitialization() {
+function testIntegrationManagerInitialization(): void {
   const integrationManager = new IntegrationManager();
   assert(integrationManager !== null, 'IntegrationManager should initialize successfully');
 }
 
-function testDashboardFunctions() {
+function testDashboardFunctions(): void {
   const dashboards = getAllDashboards();
   assert(dashboards.length > 0, 'Should have pre-configured dashboards');
 
@@ -28,7 +28,7 @@ function testDashboardFunctions() {
   assert(executiveDashboard?.name === 'Executive Overview', 'Dashboard name should match');
 }
 
-function testAlertRuleEvaluation() {
+function testAlertRuleEvaluation(): void {
   const alertManager = new AlertManager();
 
   const rules = alertManager.getRules();
@@ -39,7 +39,7 @@ function testAlertRuleEvaluation() {
   assert(highErrorRateRule?.enabled === true, 'Rule should be enabled by default');
 }
 
-async function testIntegrationManagerOperations() {
+async function testIntegrationManagerOperations(): Promise<void> {
   const integrationManager = new IntegrationManager();
 
   // Add a test integration
@@ -52,11 +52,12 @@ async function testIntegrationManagerOperations() {
     },
   });
 
-  const webhookIntegration = integrationManager.getIntegration('webhook');
+  const webhookIntegration = integrationManager.getIntegration('webhook') as any;
   assert(webhookIntegration !== undefined, 'Webhook integration should be registered');
 
   // Test sending alert (should not throw)
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     await webhookIntegration.sendAlert({
       title: 'Test Alert',
       severity: 'high',
@@ -68,7 +69,7 @@ async function testIntegrationManagerOperations() {
   }
 }
 
-function testDashboardConfigGeneration() {
+function testDashboardConfigGeneration(): void {
   const dashboards = getAllDashboards();
   const executiveDashboard = dashboards[0];
 
@@ -78,7 +79,7 @@ function testDashboardConfigGeneration() {
   assert(executiveDashboard.tags.length > 0, 'Dashboard should have tags');
 }
 
-async function main() {
+async function main(): Promise<void> {
   const tests = [
     ['AlertManager initialization', testAlertManagerInitialization],
     ['IntegrationManager initialization', testIntegrationManagerInitialization],
@@ -93,13 +94,16 @@ async function main() {
     try {
       await fn();
       results.push(`PASS: ${name}`);
-    } catch (e: any) {
-      results.push(`FAIL: ${name} -> ${e?.message || e}`);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      results.push(`FAIL: ${name} -> ${msg}`);
+      // eslint-disable-next-line no-console
       console.error(results.join('\n'));
       process.exitCode = 1;
       return;
     }
   }
+  // eslint-disable-next-line no-console
   console.log(results.join('\n'));
 }
 

@@ -1,3 +1,9 @@
+/**
+ * Next.js 16 Deprecation Note:
+ * The "middleware" file convention is deprecated in favor of "proxy".
+ * See: https://nextjs.org/docs/messages/middleware-to-proxy
+ * TODO: Migrate to proxy pattern when Next.js 17 is released.
+ */
 import { jwtVerify } from 'jose';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';

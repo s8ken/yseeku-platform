@@ -21,8 +21,7 @@ export function createSocketClient(): SocketClient {
     on(event, handler) {
       console.log(`Mock listener for ${event}`);
     },
-    // @ts-ignore
-    off(event, handler) {
+    off(event, _handler) {
       console.log(`Mock off for ${event}`);
     },
   };

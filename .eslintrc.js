@@ -47,7 +47,7 @@ module.exports = {
     '@typescript-eslint/unbound-method': 'error',
 
     // General JavaScript rules
-    'no-console': 'warn',
+    'no-console': 'error',
     'no-debugger': 'error',
     'no-alert': 'error',
     'no-eval': 'error',

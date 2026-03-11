@@ -17,6 +17,11 @@
     "lint": {
       "outputs": []
     },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "cache": true,
+      "outputs": []
+    },
     "clean": {
       "cache": false
     }

@@ -9,6 +9,25 @@
 
 import type { TrustReceipt } from '@sonate/schemas';
 
+// Configuration Constants
+const MIN_FRAGMENT_LENGTH = 10;
+const MAX_OPINION_CONFIDENCE = 0.95;
+const BASE_OPINION_CONFIDENCE = 0.6;
+const OPINION_MATCH_WEIGHT = 0.15;
+const CONTEXTUAL_CONFIDENCE = 0.7;
+const CITED_VERIFIABLE_CONFIDENCE = 0.85;
+const DEFAULT_VERIFIABLE_CONFIDENCE = 0.65;
+const UNVERIFIABLE_CONFIDENCE = 0.8;
+const UNKNOWN_CONFIDENCE = 0.3;
+const MAX_CONFIDENCE = 0.99;
+const MIN_CONFIDENCE = 0.1;
+const OPINION_DEBT_WEIGHT = 0.5;
+const RISK_LOW_THRESHOLD = 0.2;
+const RISK_MEDIUM_THRESHOLD = 0.4;
+const RISK_HIGH_THRESHOLD = 0.6;
+const DEFAULT_CONFIDENCE_THRESHOLD = 0.7;
+const RISKY_CLAIM_THRESHOLD = 0.6;
+
 /**
  * Claim Classification
  */
@@ -90,7 +109,7 @@ export class TruthDebtCalculator {
       .replace(/([.!?])\s+/g, '$1\n')
       .split('\n')
       .map(s => s.trim())
-      .filter(s => s.length > 10); // Ignore very short fragments
+      .filter(s => s.length > MIN_FRAGMENT_LENGTH); // Ignore very short fragments
 
     return sentences;
   }
@@ -110,7 +129,7 @@ export class TruthDebtCalculator {
       }
 
       // Skip very short sentences
-      if (sentence.length < 10) {
+      if (sentence.length < MIN_FRAGMENT_LENGTH) {
         continue;
       }
 
@@ -172,24 +191,24 @@ export class TruthDebtCalculator {
     if (type === 'opinion') {
       // High confidence if multiple opinion markers
       const opinionMatches = this.patterns.opinion.filter(p => p.test(text)).length;
-      confidence = Math.min(0.95, 0.6 + opinionMatches * 0.15);
+      confidence = Math.min(MAX_OPINION_CONFIDENCE, BASE_OPINION_CONFIDENCE + opinionMatches * OPINION_MATCH_WEIGHT);
     } else if (type === 'contextual') {
       // Medium confidence for contextual
-      confidence = 0.7;
+      confidence = CONTEXTUAL_CONFIDENCE;
     } else if (type === 'verifiable') {
       // Higher confidence if has citations or numbers
       const hasCitation = /(?:according to|says|states|reports)/i.test(text);
       const hasNumber = /\d+/.test(text);
-      confidence = hasCitation || hasNumber ? 0.85 : 0.65;
+      confidence = hasCitation || hasNumber ? CITED_VERIFIABLE_CONFIDENCE : DEFAULT_VERIFIABLE_CONFIDENCE;
     } else if (type === 'unverifiable') {
       // High confidence for unverifiable patterns
-      confidence = 0.8;
+      confidence = UNVERIFIABLE_CONFIDENCE;
     } else {
       // Unknown - low confidence
-      confidence = 0.3;
+      confidence = UNKNOWN_CONFIDENCE;
     }
 
-    return Math.min(0.99, Math.max(0.1, confidence));
+    return Math.min(MAX_CONFIDENCE, Math.max(MIN_CONFIDENCE, confidence));
   }
 
   /**
@@ -214,7 +233,7 @@ export class TruthDebtCalculator {
 
     // Truth debt = (unverifiable + unknown) / total
     // Opinions count as partially unverifiable (0.5 weight)
-    const unverifiableWeight = breakdown.unverifiable + breakdown.unknown + breakdown.opinion * 0.5;
+    const unverifiableWeight = breakdown.unverifiable + breakdown.unknown + breakdown.opinion * OPINION_DEBT_WEIGHT;
     const truthDebt = unverifiableWeight / claims.length;
 
     return {
@@ -227,9 +246,9 @@ export class TruthDebtCalculator {
    * Determine risk level from truth debt
    */
   private getRiskLevel(truthDebt: number): 'low' | 'medium' | 'high' | 'critical' {
-    if (truthDebt < 0.2) { return 'low'; }
-    if (truthDebt < 0.4) { return 'medium'; }
-    if (truthDebt < 0.6) { return 'high'; }
+    if (truthDebt < RISK_LOW_THRESHOLD) { return 'low'; }
+    if (truthDebt < RISK_MEDIUM_THRESHOLD) { return 'medium'; }
+    if (truthDebt < RISK_HIGH_THRESHOLD) { return 'high'; }
     return 'critical';
   }
 
@@ -315,7 +334,7 @@ export class TruthDebtCalculator {
   /**
    * Get claims above confidence threshold
    */
-  getHighConfidenceClaims(analysis: TruthDebtAnalysis, threshold: number = 0.7): Claim[] {
+  getHighConfidenceClaims(analysis: TruthDebtAnalysis, threshold: number = DEFAULT_CONFIDENCE_THRESHOLD): Claim[] {
     return analysis.claims.filter(c => c.confidence >= threshold);
   }
 
@@ -325,7 +344,7 @@ export class TruthDebtCalculator {
   getRiskyClaims(analysis: TruthDebtAnalysis): Claim[] {
     return analysis.claims.filter(
       c =>
-        (c.type === 'unverifiable' || c.type === 'unknown') && c.confidence > 0.6
+        (c.type === 'unverifiable' || c.type === 'unknown') && c.confidence > RISKY_CLAIM_THRESHOLD
     );
   }
 }

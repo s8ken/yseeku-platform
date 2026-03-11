@@ -237,7 +237,8 @@ const nextConfig = {
     '@sonate/detect',
     '@sonate/lab',
     '@sonate/orchestrate',
-    '@sonate/persistence'
+    '@sonate/persistence',
+    '@vercel/analytics'
   ],
   serverExternalPackages: [
     '@noble/hashes',

@@ -300,13 +300,9 @@ async function testDetectToReceiptRoundtrip() {
   assert(receipt2.verifyChain(receipt1), 'Hash chain from receipt 2 → 1 must hold');
   assert(await receipt2.verify(publicKey), 'Receipt 2 signature verification failed');
 
-  // 6. Tamper detection: modifying receipt breaks verification
+  // 6. Tamper detection: modifying signature breaks verification
+  // Note: ciq_metrics is frozen by TrustReceipt, so we test signature tampering instead
   const tampered = TrustReceipt.fromJSON(receipt1.toJSON());
-  tampered.ciq_metrics.clarity = 0.0; // tamper
-  // self_hash was preserved from original but payload was changed
-  // The only way to detect this is via re-hashing, which the receipt doesn't auto-do on fromJSON
-  // But the signature verification on the original hash still holds (by design: hash is the signed thing)
-  // What DOES break is if someone changes the signature:
   const origSig = tampered.signature;
   tampered.signature = '00' + origSig.substring(2);
   assert(!(await tampered.verify(publicKey)), 'Tampered signature must fail verification');
