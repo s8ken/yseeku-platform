@@ -130,8 +130,9 @@ router.post('/guest', async (req: Request, res: Response): Promise<void> => {
 
     // Allow demo-tenant (if demo mode enabled) and live-tenant for blank-slate mode
     const validTenants = ['live-tenant', ...(demoAllowed ? ['demo-tenant'] : [])];
+    // Default to live-tenant for blank-slate mode (not 'default' which creates orphaned data)
     const tenantId =
-      requestedTenantId && validTenants.includes(requestedTenantId) ? requestedTenantId : 'default';
+      requestedTenantId && validTenants.includes(requestedTenantId) ? requestedTenantId : 'live-tenant';
 
     const guestId = `guest_${Math.random().toString(36).substring(2, 10)}`;
     // Use .com to pass email regex validation (requires 2-3 char TLD)
