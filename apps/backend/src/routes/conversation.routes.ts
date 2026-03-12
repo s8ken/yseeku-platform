@@ -1334,6 +1334,9 @@ The SONATE Trust Protocol evaluates every AI response against 6 constitutional p
               receipt: lastMessage.metadata.trustEvaluation.receipt,
               receiptHash: lastMessage.metadata.trustEvaluation.receiptHash,
               analysisMethod: lastMessage.metadata.trustEvaluation.analysisMethod, // v2.1: LLM/Heuristic transparency
+              evaluatedBy: lastMessage.metadata.trustEvaluation.evaluatedBy, // v2.1: 'llm' | 'heuristic' | 'hybrid'
+              reasoning: lastMessage.metadata.trustEvaluation.reasoning, // v2.4: LLM reasoning for brain icon tooltip
+              fallbackReason: lastMessage.metadata.trustEvaluation.fallbackReason, // v2.3: Why LLM eval failed
               timestamp: lastMessage.metadata.trustEvaluation.timestamp || Date.now(),
             }
           : undefined,
