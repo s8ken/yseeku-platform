@@ -5,6 +5,8 @@
  * Supports both static archive data and real-time metrics streaming.
  */
 
+import { fetchAPI } from '@/lib/api/client';
+
 export interface TrustDistribution {
   high: number      // 8-10
   medium: number    // 5-8
@@ -275,32 +277,33 @@ function transformBackendReport(data: any): ArchiveReport {
 /**
  * Fetch live metrics for current session/day
  *
- * Uses /api/trust/receipts/list which returns receipts by tenant
- * (the older /api/trust/receipts endpoint requires conversationId)
+ * Uses /api/trust/receipts/list which returns receipts by tenant.
+ * Must use fetchAPI (not bare fetch) so the Authorization and
+ * X-Tenant-ID headers are included — the backend endpoint is
+ * protected and scoped to the caller's tenant.
  */
 export async function fetchLiveMetrics(): Promise<LiveMetrics[]> {
   try {
-    // Primary: fetch from tenant-scoped receipt list (no conversationId needed)
-    const response = await fetch('/api/trust/receipts/list?limit=50&offset=0')
-    if (response.ok) {
-      const data = await response.json()
-      const receipts = data.data || []
+    // Use fetchAPI which automatically adds auth token + tenant header
+    const data = await fetchAPI<{ success: boolean; data: any[] }>(
+      '/api/trust/receipts/list?limit=50&offset=0'
+    )
+    const receipts = data.data || []
 
-      if (receipts.length > 0) {
-        // Transform TrustReceiptModel documents into LiveMetrics format
-        return receipts.map((receipt: any) => ({
-          timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
-          trustScore: receipt.overall_trust_score ?? receipt.trust_score ?? 80, // 0-100 scale
-          source: receipt.interaction?.model || receipt.agent_model || receipt.evaluated_by || 'unknown',
-          securityFlags: receipt.security_flags || [],
-          velocityScore: receipt.drift_analysis?.velocity || 0,
-          receiptHash: receipt.self_hash || receipt.receipt_id || undefined,
-          trustStatus: receipt.trust_status || undefined,
-          principleScores: receipt.sonate_principles || undefined,
-          evaluatedBy: receipt.evaluated_by || undefined,
-          signaturePresent: !!(receipt.signature),
-        }))
-      }
+    if (receipts.length > 0) {
+      // Transform TrustReceiptModel documents into LiveMetrics format
+      return receipts.map((receipt: any) => ({
+        timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
+        trustScore: receipt.overall_trust_score ?? receipt.trust_score ?? 80, // 0-100 scale
+        source: receipt.interaction?.model || receipt.agent_model || receipt.evaluated_by || 'unknown',
+        securityFlags: receipt.security_flags || [],
+        velocityScore: receipt.drift_analysis?.velocity || 0,
+        receiptHash: receipt.self_hash || receipt.receipt_id || undefined,
+        trustStatus: receipt.trust_status || undefined,
+        principleScores: receipt.sonate_principles || undefined,
+        evaluatedBy: receipt.evaluated_by || undefined,
+        signaturePresent: !!(receipt.signature),
+      }))
     }
   } catch (err) {
     console.warn('Failed to fetch live metrics from receipts/list', err)
