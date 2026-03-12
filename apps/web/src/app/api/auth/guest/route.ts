@@ -2,18 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.INTERNAL_API_URL ?? process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3001';
 
-export async function POST(_request: NextRequest): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+    // Forward tenant header so the guest user is created for the correct tenant
+    const tenantHeader = request.headers.get('x-tenant-id');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (tenantHeader) {
+      headers['X-Tenant-ID'] = tenantHeader;
+    }
 
     const backendResponse = await fetch(
       `${BACKEND_URL}/api/auth/guest`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         signal: controller.signal
       }
     );

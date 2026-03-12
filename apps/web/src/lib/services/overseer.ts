@@ -288,6 +288,12 @@ export async function fetchLiveMetrics(): Promise<LiveMetrics[]> {
     const data = await fetchAPI<{ success: boolean; data: any[] }>(
       '/api/trust/receipts/list?limit=50&offset=0'
     )
+
+    if (!data.success) {
+      console.warn('[Overseer] receipts/list returned success=false', data)
+      return []
+    }
+
     const receipts = data.data || []
 
     if (receipts.length > 0) {
@@ -305,8 +311,12 @@ export async function fetchLiveMetrics(): Promise<LiveMetrics[]> {
         signaturePresent: !!(receipt.signature),
       }))
     }
-  } catch (err) {
-    console.warn('Failed to fetch live metrics from receipts/list', err)
+  } catch (err: any) {
+    console.warn('[Overseer] Failed to fetch live metrics from receipts/list', {
+      message: err?.message,
+      status: err?.status,
+      body: err?.body?.substring?.(0, 200),
+    })
   }
 
   // Fallback: return empty array (no fake data)

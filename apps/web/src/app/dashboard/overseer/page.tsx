@@ -43,9 +43,8 @@ export default function OverseerHub() {
       {/* Hero Section */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Overseer Analytics</h1>
-        <p className="text-lg font-semibold text-primary">What SONATE Would Have Caught</p>
         <p className="text-base text-muted-foreground">
-          Retrospective validation: analyzing 486 conversations that created this framework to prove it works on its own genesis data
+          Real-time trust monitoring, archive analysis, and protocol enforcement.
         </p>
       </div>
 
@@ -512,14 +511,8 @@ export default function OverseerHub() {
 
       {/* Footer */}
       <div className="mt-12 pt-8 border-t text-center text-sm space-y-2">
-        <p className="font-semibold text-foreground">
-          What SONATE Would Have Caught
-        </p>
         <p className="text-muted-foreground">
-          SONATE v2.2 · Overseer System · Framework Self-Validation
-        </p>
-        <p className="text-xs text-muted-foreground">
-          This dashboard compares live performance against the complete archive baseline from 486 conversations spanning the platform's evolution. The framework validates itself on its own genesis data.
+          SONATE v2.4 · Overseer System
         </p>
       </div>
     </div>  )

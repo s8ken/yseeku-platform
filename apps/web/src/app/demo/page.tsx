@@ -225,10 +225,26 @@ export default function DemoPage() {
   const handleEnterDemo = async () => {
     setIsEntering(true);
     try {
-      // Call guest auth
-      await fetch('/api/auth/guest?tenantId=demo-tenant', { method: 'POST' });
+      // Call guest auth with demo-tenant and persist the token
+      const res = await fetch('/api/auth/guest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-ID': 'demo-tenant',
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const token = data.data?.tokens?.accessToken;
+        if (token) {
+          localStorage.setItem('token', token);
+          if (data.data?.tokens?.refreshToken) {
+            localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
+          }
+        }
+      }
     } catch {
-      // Continue even if auth fails — demo mode works via localStorage
+      // Continue even if auth fails — fetchAPI will auto-create guest on first call
     }
     localStorage.setItem('yseeku-demo-mode', 'true');
     router.push('/dashboard?demo=true');
