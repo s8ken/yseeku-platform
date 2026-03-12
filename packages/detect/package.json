@@ -24,8 +24,8 @@
   "license": "MIT",
   "dependencies": {
     "@sonate/core": "*",
-    "axios": "^1.6.0",
-    "ioredis": "^5.9.2",
+    "axios": "^1.13.6",
+    "ioredis": "^5.10.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
