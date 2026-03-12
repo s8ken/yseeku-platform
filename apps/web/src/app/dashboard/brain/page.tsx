@@ -60,6 +60,14 @@ const toTitleCase = (value: string) =>
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
     .join(' ');
 
+/** Safely format a date value — returns 'N/A' if unparseable or missing */
+function safeDate(value: unknown): string {
+  if (!value) return 'N/A';
+  const d = new Date(value as string | number);
+  if (isNaN(d.getTime())) return 'N/A';
+  return d.toLocaleString();
+}
+
 const derivePriorityFromConfidence = (confidence: number): ActionRecommendation['priority'] => {
   if (confidence >= 0.9) return 'critical';
   if (confidence >= 0.75) return 'high';
@@ -174,7 +182,7 @@ function MemoryCard({ memory, onDelete }: { memory: BrainMemory; onDelete: () =>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">
-              {new Date(memory.timestamp).toLocaleString()}
+              {safeDate(memory.timestamp || (memory as any).createdAt)}
             </span>
             <Button variant="ghost" size="sm" onClick={onDelete}>
               <Trash2 className="h-3 w-3 text-red-500" />
@@ -222,7 +230,7 @@ function CycleCard({ cycle }: { cycle: BrainCycle }) {
             <StatusBadge status={cycle.status} />
           </div>
           <span className="text-xs text-muted-foreground">
-            {new Date(cycle.timestamp).toLocaleString()}
+            {safeDate(cycle.timestamp || (cycle as any).startedAt || (cycle as any).completedAt)}
           </span>
         </div>
       </CardHeader>
@@ -496,7 +504,7 @@ export default function SystemBrainDashboard() {
             <div className="text-right">
               <div className="text-sm text-slate-400">Last Thought</div>
               <div className="font-mono">
-                {overseerStatus.lastThought ? new Date(overseerStatus.lastThought).toLocaleString() : 'Never'}
+                {overseerStatus.lastThought ? safeDate(overseerStatus.lastThought) : 'Never'}
               </div>
             </div>
           </CardContent>
@@ -830,7 +838,7 @@ export default function SystemBrainDashboard() {
                               <p className="text-sm bg-muted/30 p-3 rounded-md border border-muted">{rec.reason}</p>
                               <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                                 <span>Confidence: {(rec.confidence * 100).toFixed(0)}%</span>
-                                {rec.suggestedAt && <span>Suggested: {new Date(rec.suggestedAt).toLocaleString()}</span>}
+                                {rec.suggestedAt && <span>Suggested: {safeDate(rec.suggestedAt)}</span>}
                               </div>
 
                               {ACTION_GUIDANCE[rec.actionType] && (

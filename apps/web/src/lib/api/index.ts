@@ -288,7 +288,17 @@ export const api = {
     if (limit) params.set('limit', limit.toString());
     const query = params.toString() ? `?${params.toString()}` : '';
     const res = await fetchAPI<{ success: boolean; data: Array<any> }>(`/api/overseer/cycles${query}`);
-    return res.data || [];
+    // Backend returns Mongoose docs with _id/startedAt/completedAt; normalise to frontend shape
+    return (res.data || []).map((c: any) => ({
+      ...c,
+      id: c.id || c._id,
+      timestamp: c.timestamp || c.completedAt || c.startedAt || c.createdAt,
+      metrics: c.metrics || { agentCount: 0, avgTrust: 0, alertsProcessed: 0, actionsPlanned: 0 },
+      actions: (c.actions || []).map((a: any) => ({
+        ...a,
+        status: a.status || 'pending',
+      })),
+    }));
   },
 
   async deleteBrainMemory(id: string): Promise<void> {
