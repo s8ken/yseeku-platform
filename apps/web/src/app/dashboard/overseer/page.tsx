@@ -27,7 +27,7 @@ type ActiveTab = 'archive' | 'live' | 'comparison' | 'breakthrough'
 export default function OverseerHub() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('live')
   const { data: archiveData, loading: archiveLoading } = useArchiveReport()
-  const { metrics: liveMetrics, connected, loading: liveLoading } = useLiveMetrics()
+  const { metrics: liveMetrics, totalCount, connected, loading: liveLoading } = useLiveMetrics()
 
   // BREAKTHROUGH Insights — fetch recent Overseer cycles for breakthrough_productive observations
   const { data: cycles, isLoading: cyclesLoading } = useQuery({
@@ -36,7 +36,7 @@ export default function OverseerHub() {
     enabled: activeTab === 'breakthrough',
   })
   
-  const comparison = archiveData ? calculateComparison(archiveData, liveMetrics) : null
+  const comparison = archiveData ? calculateComparison(archiveData, liveMetrics, totalCount) : null
 
   return (
     <div className="space-y-6">

@@ -24,11 +24,11 @@ import {
 } from '@/components/ui/card'
 
 export default function OverseerLiveDashboard() {
-  const { metrics: liveMetrics, connected, loading: liveLoading } = useLiveMetrics()
+  const { metrics: liveMetrics, totalCount, verifiedCount, connected, loading: liveLoading } = useLiveMetrics()
   const { data: archiveData, loading: archiveLoading } = useArchiveReport()
   const [filter, setFilter] = useState('')
 
-  const comparison = archiveData ? calculateComparison(archiveData, liveMetrics) : null
+  const comparison = archiveData ? calculateComparison(archiveData, liveMetrics, totalCount) : null
 
   const filteredMetrics = liveMetrics.filter(m => 
     m.source.toLowerCase().includes(filter.toLowerCase()) ||
@@ -94,10 +94,10 @@ export default function OverseerLiveDashboard() {
               <CardDescription className="text-xs uppercase font-bold text-slate-500 flex items-center gap-2">
                 <Activity className="w-3 h-3" /> Throughput
               </CardDescription>
-              <CardTitle className="text-3xl font-mono text-white">{filteredMetrics.length}</CardTitle>
+              <CardTitle className="text-3xl font-mono text-white">{totalCount}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-[10px] text-slate-500">Live active sessions filtered</p>
+              <p className="text-[10px] text-slate-500">Total trust receipts generated</p>
             </CardContent>
           </Card>
 
@@ -151,7 +151,7 @@ export default function OverseerLiveDashboard() {
         {/* Command Center Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div className="lg:col-span-4 h-full">
-            <LiveTrustMetrics metrics={filteredMetrics} />
+            <LiveTrustMetrics metrics={filteredMetrics} totalCount={totalCount} />
           </div>
           <div className="lg:col-span-8 h-full">
             <RecentReceiptsStream metrics={filteredMetrics} />

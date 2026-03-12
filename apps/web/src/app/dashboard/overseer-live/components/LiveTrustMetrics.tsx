@@ -20,9 +20,10 @@ import {
 
 interface LiveTrustMetricsProps {
   metrics: LiveMetrics[]
+  totalCount?: number
 }
 
-export function LiveTrustMetrics({ metrics }: LiveTrustMetricsProps) {
+export function LiveTrustMetrics({ metrics, totalCount }: LiveTrustMetricsProps) {
   if (metrics.length === 0) {
     return (
       <div className="h-full bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col items-center justify-center space-y-4">
@@ -135,7 +136,7 @@ export function LiveTrustMetrics({ metrics }: LiveTrustMetricsProps) {
             <p className="text-xs text-slate-300 font-mono">Live Resonance Active (UTC)</p>
          </div>
          <div className="flex flex-col items-end">
-            <div className="text-[10px] font-mono text-slate-500">{metrics.length} TPS</div>
+            <div className="text-[10px] font-mono text-slate-500">{totalCount ?? metrics.length} TPS</div>
             <div className="text-[8px] uppercase tracking-tighter text-emerald-500/50">Optimal</div>
          </div>
       </div>

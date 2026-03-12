@@ -63,6 +63,12 @@ export interface LiveMetrics {
   signaturePresent?: boolean
 }
 
+export interface LiveMetricsResult {
+  metrics: LiveMetrics[]
+  totalCount: number        // Total receipts in DB for this tenant (not capped by limit)
+  verifiedCount: number     // Receipts with valid signatures
+}
+
 export interface DashboardMetrics {
   archive: ArchiveReport
   live: LiveMetrics[]
@@ -282,23 +288,28 @@ function transformBackendReport(data: any): ArchiveReport {
  * X-Tenant-ID headers are included — the backend endpoint is
  * protected and scoped to the caller's tenant.
  */
-export async function fetchLiveMetrics(): Promise<LiveMetrics[]> {
+export async function fetchLiveMetrics(): Promise<LiveMetricsResult> {
   try {
     // Use fetchAPI which automatically adds auth token + tenant header
-    const data = await fetchAPI<{ success: boolean; data: any[] }>(
-      '/api/trust/receipts/list?limit=50&offset=0'
-    )
+    const data = await fetchAPI<{
+      success: boolean;
+      data: any[];
+      pagination?: { total: number; limit: number; offset: number };
+      stats?: { total: number; verified: number; invalid: number; chainLength: number };
+    }>('/api/trust/receipts/list?limit=50&offset=0')
 
     if (!data.success) {
       console.warn('[Overseer] receipts/list returned success=false', data)
-      return []
+      return { metrics: [], totalCount: 0, verifiedCount: 0 }
     }
 
     const receipts = data.data || []
+    const totalCount = data.pagination?.total ?? data.stats?.total ?? receipts.length
+    const verifiedCount = data.stats?.verified ?? receipts.length
 
     if (receipts.length > 0) {
       // Transform TrustReceiptModel documents into LiveMetrics format
-      return receipts.map((receipt: any) => ({
+      const metrics = receipts.map((receipt: any) => ({
         timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
         trustScore: receipt.overall_trust_score ?? receipt.trust_score ?? 80, // 0-100 scale
         source: receipt.interaction?.model || receipt.agent_model || receipt.evaluated_by || 'unknown',
@@ -310,6 +321,7 @@ export async function fetchLiveMetrics(): Promise<LiveMetrics[]> {
         evaluatedBy: receipt.evaluated_by || undefined,
         signaturePresent: !!(receipt.signature),
       }))
+      return { metrics, totalCount, verifiedCount }
     }
   } catch (err: any) {
     console.warn('[Overseer] Failed to fetch live metrics from receipts/list', {
@@ -319,23 +331,27 @@ export async function fetchLiveMetrics(): Promise<LiveMetrics[]> {
     })
   }
 
-  // Fallback: return empty array (no fake data)
-  return []
+  // Fallback: return empty result (no fake data)
+  return { metrics: [], totalCount: 0, verifiedCount: 0 }
 }
 
 /**
  * Calculate comparison between archive and live metrics
+ * @param totalReceiptCount - The real total from the backend (not capped by page limit)
  */
 export function calculateComparison(
   archive: ArchiveReport,
-  live: LiveMetrics[]
+  live: LiveMetrics[],
+  totalReceiptCount?: number,
 ): DashboardMetrics['comparison'] {
+  const receiptCount = totalReceiptCount ?? live.length
+
   if (live.length === 0) {
     return {
       archiveTrustAvg: archive.stats.trustScoreAvg,
       liveTrustAvg: archive.stats.trustScoreAvg,
       improvement: 0,
-      receiptCount: 0,
+      receiptCount,
     }
   }
   
@@ -347,6 +363,6 @@ export function calculateComparison(
     archiveTrustAvg,
     liveTrustAvg,
     improvement,
-    receiptCount: live.length,
+    receiptCount,
   }
 }
