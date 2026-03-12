@@ -192,6 +192,8 @@ export class LLMTrustEvaluator {
 
   private static detectProvider(): { provider: string; model: string } {
     const preferred = (process.env.SONATE_LLM_PROVIDER || '').toLowerCase();
+    
+    // Explicit preference checks
     if (
       preferred === 'gemini' &&
       (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY)
@@ -201,15 +203,20 @@ export class LLMTrustEvaluator {
     if (preferred === 'anthropic' && process.env.ANTHROPIC_API_KEY) {
       return { provider: 'anthropic', model: 'claude-haiku-4-5-20251001' };
     }
-    if (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY) {
-      return { provider: 'gemini', model: process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash' };
-    }
+
+    // Default priority: Anthropic > Gemini > OpenAI
+    // We prioritize Anthropic for trust evaluation as it generally follows instructions better for this task
     if (process.env.ANTHROPIC_API_KEY) {
       return { provider: 'anthropic', model: 'claude-haiku-4-5-20251001' };
+    }
+    if (process.env.GOOGLE_GEMINI_API_KEY || process.env.GEMINI_API_KEY) {
+      return { provider: 'gemini', model: process.env.SONATE_GEMINI_MODEL || 'gemini-2.0-flash' };
     }
     if (process.env.OPENAI_API_KEY) {
       return { provider: 'openai', model: 'gpt-4-turbo' };
     }
+    
+    // Fallback
     return { provider: 'anthropic', model: 'claude-haiku-4-5-20251001' };
   }
 
@@ -561,13 +568,24 @@ export class LLMTrustEvaluator {
     violations: string[];
   } {
     try {
-      // Extract JSON from the response (handle markdown code blocks)
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('No JSON found in LLM response');
+      // Extract JSON from the response (handle markdown code blocks and raw text)
+      // Look for the first '{' and last '}' to handle wrapping text
+      const firstOpen = content.indexOf('{');
+      const lastClose = content.lastIndexOf('}');
+      
+      let jsonStr = '';
+      if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
+        jsonStr = content.substring(firstOpen, lastClose + 1);
+      } else {
+        // Fallback to regex if simple indexing fails
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          throw new Error('No JSON found in LLM response');
+        }
+        jsonStr = jsonMatch[0];
       }
 
-      const parsed = JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonStr);
 
       // Validate and normalize
       return {

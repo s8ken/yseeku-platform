@@ -569,7 +569,28 @@ Key rule: A response that REFUSES to spread misinformation and CORRECTS false pr
 
     let parsed: any = {};
     try {
-      parsed = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] || '{}');
+      // Improved JSON extraction: find first '{' and last '}'
+      // This handles cases where the LLM wraps JSON in markdown blocks or adds conversational text
+      const content = raw;
+      const firstOpen = content.indexOf('{');
+      const lastClose = content.lastIndexOf('}');
+      
+      let jsonStr = '';
+      if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
+        jsonStr = content.substring(firstOpen, lastClose + 1);
+      } else {
+        // Fallback to regex if simple indexing fails
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          jsonStr = jsonMatch[0];
+        } else {
+          // If the raw string itself looks like a JSON object (e.g. from prefill), try it directly
+          // but usually it should be caught by the above
+          jsonStr = content.trim().startsWith('{') ? content : '{}';
+        }
+      }
+      
+      parsed = JSON.parse(jsonStr);
       // Handle nested score objects (e.g. {"scores": {"consent": ...}})
       if (typeof parsed.consent === 'undefined' && parsed.scores) parsed = { ...parsed, ...parsed.scores };
       logger.info('SONATE evaluator result', { consent: parsed.consent, validation: parsed.validation, moral: parsed.moral, flags: parsed.flags?.length });
