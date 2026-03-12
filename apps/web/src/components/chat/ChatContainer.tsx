@@ -745,6 +745,9 @@ export const ChatContainer: React.FC<ChatContainerProps> = ({
                   receiptHash: trustEval.receiptHash,
                   timestamp: Date.now(),
                   analysisMethod: (trustEval as any).analysisMethod,
+                  evaluatedBy: (trustEval as any).evaluatedBy,
+                  fallbackReason: (trustEval as any).fallbackReason,
+                  reasoning: (trustEval as any).reasoning, // LLM analysis explanation
                 }
               : undefined,
             timestamp: Date.now(),
