@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
+import { ScoreReasoningTooltip } from '@/components/ui/score-reasoning-tooltip';
 import { useReceiptsData } from '@/hooks/use-demo-data';
 import { useDemo } from '@/hooks/use-demo';
 
@@ -434,24 +435,36 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
 
         {/* Constitutional Compliance (Primary) */}
         <div className="grid grid-cols-4 gap-3 mb-3">
-          <div className="text-center p-2 rounded bg-muted/30">
-            <p className="text-xs text-muted-foreground">Trust Score</p>
+          <div className="text-center p-2 rounded bg-muted/30 relative">
+            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+              Trust Score
+              <ScoreReasoningTooltip scoreType="trustScore" value={receipt.trustScore} maxValue={10} />
+            </p>
             <p className="font-bold text-lg">{receipt.trustScore}<span className="text-sm font-normal text-muted-foreground">/10</span></p>
           </div>
-          <div className="text-center p-2 rounded bg-muted/30">
-            <p className="text-xs text-muted-foreground">Consent</p>
+          <div className="text-center p-2 rounded bg-muted/30 relative">
+            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+              Consent
+              <ScoreReasoningTooltip scoreType="consent" value={receipt.consentScore} maxValue={10} />
+            </p>
             <p className={`font-semibold ${receipt.consentScore >= 8 ? 'text-emerald-600' : receipt.consentScore >= 6 ? 'text-amber-600' : 'text-red-600'}`}>
               {receipt.consentScore >= 8 ? '✓' : receipt.consentScore >= 6 ? '⚠' : '✗'}
             </p>
           </div>
-          <div className="text-center p-2 rounded bg-muted/30">
-            <p className="text-xs text-muted-foreground">Override</p>
+          <div className="text-center p-2 rounded bg-muted/30 relative">
+            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+              Override
+              <ScoreReasoningTooltip scoreType="override" value={receipt.overrideScore} maxValue={10} />
+            </p>
             <p className={`font-semibold ${receipt.overrideScore >= 8 ? 'text-emerald-600' : receipt.overrideScore >= 6 ? 'text-amber-600' : 'text-red-600'}`}>
               {receipt.overrideScore >= 8 ? '✓' : receipt.overrideScore >= 6 ? '⚠' : '✗'}
             </p>
           </div>
-          <div className="text-center p-2 rounded bg-muted/30">
-            <p className="text-xs text-muted-foreground">Disconnect</p>
+          <div className="text-center p-2 rounded bg-muted/30 relative">
+            <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+              Disconnect
+              <ScoreReasoningTooltip scoreType="disconnect" value={receipt.disconnectScore} maxValue={10} />
+            </p>
             <p className={`font-semibold ${receipt.disconnectScore >= 8 ? 'text-emerald-600' : receipt.disconnectScore >= 6 ? 'text-amber-600' : 'text-red-600'}`}>
               {receipt.disconnectScore >= 8 ? '✓' : receipt.disconnectScore >= 6 ? '⚠' : '✗'}
             </p>
@@ -466,20 +479,40 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
           </summary>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="text-center p-2 rounded bg-muted/30">
-              <p className="text-xs text-muted-foreground">Reality</p>
+              <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                Reality
+                {receipt.sonateDimensions?.realityIndex != null && (
+                  <ScoreReasoningTooltip scoreType="realityIndex" value={receipt.sonateDimensions.realityIndex} maxValue={10} />
+                )}
+              </p>
               <p className="font-semibold">{receipt.sonateDimensions?.realityIndex ?? 'N/A'}/10</p>
             </div>
             <div className="text-center p-2 rounded bg-muted/30">
-              <p className="text-xs text-muted-foreground">Protocol</p>
+              <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                Protocol
+                {receipt.sonateDimensions?.trustProtocol && (
+                  <ScoreReasoningTooltip scoreType="trustProtocol" value={receipt.sonateDimensions.trustProtocol} />
+                )}
+              </p>
               <p className={`font-semibold text-xs ${receipt.sonateDimensions?.trustProtocol === 'PASS' ? 'text-emerald-600' : 'text-amber-600'
                 }`}>{receipt.sonateDimensions?.trustProtocol ?? 'N/A'}</p>
             </div>
             <div className="text-center p-2 rounded bg-muted/30">
-              <p className="text-xs text-muted-foreground">Ethics</p>
+              <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                Ethics
+                {receipt.sonateDimensions?.ethicalAlignment != null && (
+                  <ScoreReasoningTooltip scoreType="ethicalAlignment" value={receipt.sonateDimensions.ethicalAlignment} maxValue={5} />
+                )}
+              </p>
               <p className="font-semibold">{receipt.sonateDimensions?.ethicalAlignment ?? 'N/A'}/5</p>
             </div>
             <div className="text-center p-2 rounded bg-muted/30">
-              <p className="text-xs text-muted-foreground">Canvas</p>
+              <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                Canvas
+                {receipt.sonateDimensions?.canvasParity != null && (
+                  <ScoreReasoningTooltip scoreType="canvasParity" value={receipt.sonateDimensions.canvasParity} maxValue={100} />
+                )}
+              </p>
               <p className="font-semibold">{receipt.sonateDimensions?.canvasParity ?? 'N/A'}%</p>
             </div>
           </div>
@@ -559,8 +592,11 @@ function ReceiptCard({ receipt }: { receipt: TrustReceipt }) {
         )}
 
         <div className="flex items-center justify-between mt-4 pt-3 border-t">
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
             Resonance: <strong>{receipt.sonateDimensions?.resonanceQuality ?? 'N/A'}</strong>
+            {receipt.sonateDimensions?.resonanceQuality && (
+              <ScoreReasoningTooltip scoreType="resonanceQuality" value={receipt.sonateDimensions.resonanceQuality} />
+            )}
           </span>
           <div className="flex gap-2">
             {(receipt.receiptData?.session_id || receipt.id) && (

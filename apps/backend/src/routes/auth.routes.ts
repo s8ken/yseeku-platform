@@ -120,12 +120,18 @@ router.post(
  */
 router.post('/guest', async (req: Request, res: Response): Promise<void> => {
   try {
-    const requestedTenantIdValue = req.query.tenantId || req.query.tenant;
+    // Accept tenant from query params or X-Tenant-ID header
+    const requestedTenantIdValue =
+      req.query.tenantId || req.query.tenant || req.headers['x-tenant-id'];
     const requestedTenantId =
       typeof requestedTenantIdValue === 'string' ? requestedTenantIdValue : undefined;
     const demoAllowed =
       process.env.ENABLE_DEMO_MODE === 'true' || process.env.NODE_ENV !== 'production';
-    const tenantId = demoAllowed && requestedTenantId === 'demo-tenant' ? 'demo-tenant' : 'default';
+
+    // Allow demo-tenant (if demo mode enabled) and live-tenant for blank-slate mode
+    const validTenants = ['live-tenant', ...(demoAllowed ? ['demo-tenant'] : [])];
+    const tenantId =
+      requestedTenantId && validTenants.includes(requestedTenantId) ? requestedTenantId : 'default';
 
     const guestId = `guest_${Math.random().toString(36).substring(2, 10)}`;
     // Use .com to pass email regex validation (requires 2-3 char TLD)

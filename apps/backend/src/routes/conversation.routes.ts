@@ -17,6 +17,7 @@ import { TrustReceiptModel } from '../models/trust-receipt.model';
 import { trustService } from '../services/trust.service';
 import { llmTrustEvaluator } from '../services/llm-trust-evaluator.service';
 import { overseerEventBus } from '../services/brain/event-bus';
+import { liveMetricsService } from '../services/live-metrics.service';
 import { getErrorMessage } from '../utils/error-utils';
 import logger from '../utils/logger';
 import { EvaluationContext } from '@sonate/core';
@@ -910,14 +911,16 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             detection: aiTrustEval.detection,
             receipt: aiTrustEval.receipt,
             receiptHash: aiTrustEval.receiptHash,
-            evaluatedBy: shouldUseLLMEval ? 'llm' : 'heuristic',
+            evaluatedBy: aiTrustEval.evaluatedBy || (shouldUseLLMEval ? 'llm' : 'heuristic'),
             analysisMethod: aiTrustEval.analysisMethod,
             timestamp: aiTrustEval.timestamp || Date.now(),
+            // v2.3: Surface fallback reason so the UI can inform the user
+            ...(aiTrustEval.fallbackReason && { fallbackReason: aiTrustEval.fallbackReason }),
           };
 
           // Persist receipt in TrustReceipt collection (upsert)
           try {
-            const tenantId = req.userTenant || 'default';
+            const tenantId = req.userTenant || 'live-tenant';
             logger.info('[TRUST RECEIPT] Creating trust receipt', {
               conversationId: conversation._id.toString(),
               tenantId,
@@ -994,7 +997,7 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             logger.error('[TRUST RECEIPT] Failed to persist AI trust receipt', {
               error: persistErr?.message || persistErr,
               conversationId: conversation._id.toString(),
-              tenantId: req.userTenant || 'default',
+              tenantId: req.userTenant || 'live-tenant',
             });
           }
 
@@ -1038,6 +1041,21 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             // PASS: clear any consecutive failure tracking
             overseerEventBus.clearFailureCount(conversation._id.toString());
           }
+
+          // **NEW: Live Metrics Dashboard Integration**
+          // Log the message for system metrics calculations
+          liveMetricsService.recordMessage(aiTrustEval.trustScore.overall);
+          
+          // Emit a trust event to the live dashboard based on the evaluation status
+          liveMetricsService.emitTrustEvent({
+            type: 'evaluation',
+            agentId: agent._id?.toString(),
+            agentName: agent.name,
+            trustScore: aiTrustEval.trustScore.overall,
+            description: `Trust evaluation: ${aiTrustEval.status}`,
+            severity: aiTrustEval.status === 'FAIL' ? 'critical' : 
+                     aiTrustEval.status === 'PARTIAL' ? 'warning' : 'info',
+          });
 
           // Log trust violations for AI responses
           if (aiTrustEval.status === 'FAIL' || aiTrustEval.status === 'PARTIAL') {

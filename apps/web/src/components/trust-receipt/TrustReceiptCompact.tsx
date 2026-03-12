@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { TrustReceiptCard, normalizeTrustEvaluation } from './TrustReceiptCard';
 import type { TrustEvaluation, AnalysisMethod, TrustReceiptProps } from './TrustReceiptCard';
+import { LLMReasoningTooltip } from '../ui/llm-reasoning-tooltip';
 
 function statusClasses(status: string) {
   if (status === 'PASS') return 'text-emerald-400';
@@ -104,6 +105,14 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = (props) =
             <span className="text-xs font-semibold">
               {evaluation.trustScore.overall.toFixed(1)}
             </span>
+            <LLMReasoningTooltip
+              reasoning={evaluation.reasoning}
+              score={evaluation.trustScore.overall}
+              maxScore={10}
+              label="Trust Score Analysis"
+              iconClassName="h-2.5 w-2.5"
+              side="bottom"
+            />
           </div>
           <span className={`text-[10px] font-bold ${statusClass}`}>{evaluation.status}</span>
 
@@ -170,6 +179,19 @@ export const TrustReceiptCompact: React.FC<TrustReceiptCompactProps> = (props) =
       {expanded && (
         <div className="p-3 border-t border-slate-700">
           {/* Expanded view: show all 6 principles */}
+          {/* LLM Reasoning Section */}
+          {evaluation.reasoning && (
+            <div className="mb-3 p-3 rounded bg-slate-800/50 border border-slate-700">
+              <div className="flex items-center gap-2 text-cyan-400 font-semibold text-xs mb-2">
+                <Cpu size={12} />
+                LLM Analysis
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {evaluation.reasoning}
+              </p>
+            </div>
+          )}
+
           {hasPrincipleScores && (
             <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
               {Object.entries(PRINCIPLE_INFO).map(([key, info]) => {

@@ -73,9 +73,14 @@ export async function fetchAPI<T>(
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 8000); // 8 second timeout
 
+      // Pass current tenant to guest login so the user is created with the correct tenant_id
+      const tenant = getCurrentTenant();
       const guestRes = await fetch(`${API_BASE}/api/auth/guest`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-ID': tenant,
+        },
         signal: controller.signal
       });
       
@@ -140,9 +145,14 @@ export async function fetchAPI<T>(
           const controller = new AbortController();
           const timeout = setTimeout(() => controller.abort(), 8000); // 8 second timeout
 
+          // Pass current tenant to guest login so the user is created with the correct tenant_id
+          const retryTenant = getCurrentTenant();
           const guestRes = await fetch(`${API_BASE}/api/auth/guest`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Tenant-ID': retryTenant,
+            },
             signal: controller.signal
           });
           

@@ -57,6 +57,7 @@ export interface TrustEvaluation {
   overall_trust_score?: number; // Recomputed overall score using industry weights
   trust_status?: 'PASS' | 'PARTIAL' | 'FAIL'; // Trust status (may differ from status if weights changed)
   principle_weights?: Record<string, number>; // Industry-specific principle weights
+  reasoning?: string; // LLM's explanation for the evaluation scores
 }
 
 export type TrustReceiptProps =
@@ -105,6 +106,7 @@ export function normalizeTrustEvaluation(input: TrustReceiptProps): TrustEvaluat
     receipt,
     receiptHash: receipt?.receipt_hash || receipt?.hash || receipt?.self_hash,
     timestamp: now,
+    reasoning: receipt?.reasoning, // Pass through LLM reasoning if available
   };
 }
 
