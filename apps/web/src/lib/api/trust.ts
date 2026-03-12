@@ -45,6 +45,9 @@ export interface TrustEvaluation {
   messageId?: string;
   conversationId?: string;
   analysisMethod?: AnalysisMethod;
+  evaluatedBy?: 'llm' | 'heuristic' | 'hybrid';
+  fallbackReason?: string;
+  reasoning?: string; // LLM's explanation for the evaluation scores
 }
 
 export interface TrustAnalyticsResponse {

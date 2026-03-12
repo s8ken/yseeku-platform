@@ -916,6 +916,8 @@ router.post('/:id/messages', protect, async (req: Request, res: Response): Promi
             timestamp: aiTrustEval.timestamp || Date.now(),
             // v2.3: Surface fallback reason so the UI can inform the user
             ...(aiTrustEval.fallbackReason && { fallbackReason: aiTrustEval.fallbackReason }),
+            // v2.4: Include LLM reasoning for tooltip display
+            ...(aiTrustEval.reasoning && { reasoning: aiTrustEval.reasoning }),
           };
 
           // Persist receipt in TrustReceipt collection (upsert)
