@@ -199,8 +199,13 @@ export async function protect(req: Request, res: Response, next: NextFunction): 
     const headerTenant = typeof headerTenantValue === 'string' ? headerTenantValue : undefined;
     const userTenant =
       (user as any).tenant_id || payload.tenant || (payload as any).tenant_id || 'default';
-    const isDemoTenant = headerTenant === 'demo-tenant';
-    if (headerTenant && headerTenant !== userTenant && user.role !== 'admin' && !isDemoTenant) {
+
+    // Public tenants: demo-tenant and live-tenant can be accessed by any authenticated user
+    // This allows guest users to use the platform without strict tenant isolation
+    const publicTenants = ['demo-tenant', 'live-tenant'];
+    const isPublicTenant = headerTenant && publicTenants.includes(headerTenant);
+
+    if (headerTenant && headerTenant !== userTenant && user.role !== 'admin' && !isPublicTenant) {
       res.status(403).json({
         success: false,
         message: 'Not authorized for requested tenant',
@@ -317,7 +322,10 @@ export async function optionalAuth(req: Request, res: Response, next: NextFuncti
         const headerTenant = typeof headerTenantValue === 'string' ? headerTenantValue : undefined;
         const userTenant =
           (user as any).tenant_id || payload.tenant || (payload as any).tenant_id || 'default';
-        req.tenant = headerTenant && headerTenant === userTenant ? headerTenant : userTenant;
+        // Public tenants can be accessed by any user
+        const publicTenants = ['demo-tenant', 'live-tenant'];
+        const isPublicTenant = headerTenant && publicTenants.includes(headerTenant);
+        req.tenant = headerTenant && (headerTenant === userTenant || isPublicTenant) ? headerTenant : userTenant;
       }
     }
   } catch (error) {

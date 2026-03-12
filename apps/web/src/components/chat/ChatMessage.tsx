@@ -180,6 +180,16 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           </div>
         )}
 
+        {/* Heuristic fallback warning banner */}
+        {isAssistant && evaluation?.evaluatedBy === 'heuristic' && evaluation?.fallbackReason && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-xs">
+            <AlertCircle size={14} className="shrink-0" />
+            <span>
+              Trust scoring used heuristic fallback (LLM evaluation unavailable: {evaluation.fallbackReason}). Scores may be less nuanced.
+            </span>
+          </div>
+        )}
+
         {/* FAIL warning banner */}
         {isAssistant && evaluation?.status === 'FAIL' && (
           <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-800 text-red-700 dark:text-red-400 text-xs">

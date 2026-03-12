@@ -11,6 +11,7 @@ import { Conversation, IMessage } from '../models/conversation.model';
 import { Agent } from '../models/agent.model';
 import { llmService } from '../services/llm.service';
 import { trustService } from '../services/trust.service';
+import { liveMetricsService } from '../services/live-metrics.service';
 import { allow } from './rate-limit';
 import { recordSocketEvent } from '../observability/socket-metrics';
 import { tracer, withSpan } from '../observability/tracing';
@@ -277,6 +278,22 @@ export function initializeSocket(io: SocketIOServer): void {
                     trustScore: aiTrustEval.trustScore.overall,
                   });
                 }
+                
+                // **NEW: Live Metrics Dashboard Integration**
+                // Record the message for dashboard system metrics
+                liveMetricsService.recordMessage(aiTrustEval.trustScore.overall);
+                
+                // Emit trust event to dashboard
+                liveMetricsService.emitTrustEvent({
+                  type: 'evaluation',
+                  agentId: String(agent._id),
+                  agentName: agent.name,
+                  trustScore: aiTrustEval.trustScore.overall,
+                  description: `Trust evaluation: ${aiTrustEval.status}`,
+                  severity: aiTrustEval.status === 'FAIL' ? 'critical' : 
+                           aiTrustEval.status === 'PARTIAL' ? 'warning' : 'info',
+                });
+                
               } catch (trustError: unknown) {
                 logger.error('Trust evaluation error (Socket.IO AI message)', {
                   error: getErrorMessage(trustError),

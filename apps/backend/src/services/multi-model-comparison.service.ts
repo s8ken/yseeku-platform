@@ -74,6 +74,8 @@ export interface TrustEvaluation {
     moral: number;         // Ethical, avoids harm and bias
   };
   flags: string[];
+  // Set when LLM evaluation failed — signals to the frontend that scores are unreliable
+  evaluationError?: string;
 }
 
 // Safety Evaluation
@@ -255,14 +257,37 @@ class MultiModelComparisonService {
       }
     } catch (error) {
       const err = error as Error;
-      logger.error('Provider comparison failed', { provider, error: err.message });
+      const rawMsg = err.message || String(error);
+      
+      // Extract user-friendly error message from provider SDK errors
+      let userMessage = rawMsg;
+      
+      // Anthropic SDK wraps errors as "400 {json}" — extract the actual message
+      const jsonMatch = rawMsg.match(/\{[\s\S]*"message"\s*:\s*"([^"]+)"/);
+      if (jsonMatch) {
+        userMessage = jsonMatch[1];
+      }
+      
+      // Classify common errors for clearer user feedback
+      if (/credit balance|insufficient credits|insufficient_quota/i.test(rawMsg)) {
+        const providerLabel = provider === 'anthropic' ? 'Anthropic' : provider === 'openai' ? 'OpenAI' : provider;
+        userMessage = `${providerLabel} API credits exhausted. Please top up your account or remove this provider from the comparison.`;
+      } else if (/rate limit|too many requests|429/i.test(rawMsg)) {
+        userMessage = `${provider} rate limit exceeded. Please wait a moment and try again.`;
+      } else if (/not configured|API key/i.test(rawMsg)) {
+        userMessage = `${provider} is not configured. Add an API key in Settings to use this provider.`;
+      } else if (/authentication|unauthorized|401|403/i.test(rawMsg)) {
+        userMessage = `${provider} API key is invalid or expired. Please update it in Settings.`;
+      }
+      
+      logger.error('Provider comparison failed', { provider, error: rawMsg });
       return {
         provider,
         modelId,
         response: '',
         latencyMs: Date.now() - startTime,
         tokensUsed: { input: 0, output: 0, total: 0 },
-        error: err.message,
+        error: userMessage,
       };
     }
   }
@@ -468,10 +493,32 @@ class MultiModelComparisonService {
       try {
         return await this.evaluateTrustWithLLM(response, prompt);
       } catch (err) {
-        logger.warn('LLM trust evaluation failed, falling back to heuristics', { error: (err as Error).message });
+        const errMsg = (err as Error).message || String(err);
+        logger.warn('LLM trust evaluation failed', { error: errMsg });
+        
+        // Extract user-friendly error message
+        let userError = errMsg;
+        if (/credit balance|insufficient credits|insufficient_quota/i.test(errMsg)) {
+          userError = 'LLM provider has insufficient API credits — trust scores unavailable';
+        } else if (/rate limit|too many requests|429/i.test(errMsg)) {
+          userError = 'LLM provider rate limited — trust scores unavailable';
+        } else if (/not configured|API key/i.test(errMsg)) {
+          userError = 'LLM provider not configured — trust scores unavailable';
+        } else {
+          userError = 'LLM trust evaluation failed — scores unavailable';
+        }
+        
+        return {
+          ...this.defaultTrustEval(),
+          evaluationError: userError,
+        };
       }
     }
-    return this.evaluateTrustHeuristic(response);
+    // No LLM providers available at all
+    return {
+      ...this.defaultTrustEval(),
+      evaluationError: 'No LLM provider configured for trust evaluation',
+    };
   }
 
   private async evaluateTrustWithLLM(response: string, prompt: string): Promise<TrustEvaluation> {

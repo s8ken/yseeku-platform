@@ -85,7 +85,6 @@ export function useDemoInitializer() {
     }
 
     // Small delay to let the page render first
-    /*
     const timeout = setTimeout(() => {
       startTutorial(SONATE_ONBOARDING_STEPS);
       sessionStorage.setItem(DEMO_TUTORIAL_KEY, 'true');
@@ -96,8 +95,8 @@ export function useDemoInitializer() {
         duration: 5000,
       });
     }, 1500);
-    */
-    return () => {}; // clearTimeout(timeout);
+
+    return () => clearTimeout(timeout);
   }, [isDemo, isFirstVisit, hasTriggeredTutorial, hasCompletedTutorial, startTutorial, markFirstVisitComplete]);
 
   // Pre-load chat when entering demo

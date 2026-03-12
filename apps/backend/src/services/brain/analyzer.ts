@@ -62,8 +62,10 @@ export function analyzeContext(input: SensorData): AnalysisResult {
   }
 
   // 2. Statistical Anomaly Detection (Z-Score)
+  // Normalize trust to 0-1 scale to match historicalMean/historicalStd
+  const trustNormalized = trust / 100;
   const trustZScore =
-    input.historicalStd > 0 ? (trust - input.historicalMean) / input.historicalStd : 0;
+    input.historicalStd > 0 ? (trustNormalized - input.historicalMean) / input.historicalStd : 0;
 
   if (trustZScore < -2) {
     observations.push('statistical_anomaly');

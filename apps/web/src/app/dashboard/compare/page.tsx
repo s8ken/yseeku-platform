@@ -50,6 +50,7 @@ interface TrustEvaluation {
     moral: number;
   };
   flags: string[];
+  evaluationError?: string;
 }
 
 interface SafetyEvaluation {
@@ -344,7 +345,9 @@ export default function ComparePage() {
                       <h3 className="font-semibold">Rankings <span className="text-xs font-normal text-muted-foreground">— SONATE Trust Score</span></h3>
                       <div className="space-y-2">
                         {currentResult.ranking.map((r) => {
-                          const trustScore = currentResult.evaluations[r.provider]?.trust?.overallScore ?? r.overallScore;
+                          const eval_ = currentResult.evaluations[r.provider];
+                          const trustScore = eval_?.trust?.overallScore ?? r.overallScore;
+                          const hasEvalError = !!eval_?.trust?.evaluationError;
                           const response = currentResult.responses.find(res => res.provider === r.provider);
                           return (
                             <div key={r.provider} className="flex items-center gap-3">
@@ -358,12 +361,19 @@ export default function ComparePage() {
                                     {response && (
                                       <span className="text-xs text-muted-foreground">{Math.round(response.latencyMs)}ms</span>
                                     )}
-                                    <span className={`text-sm font-bold ${getScoreColor(trustScore)}`}>
-                                      {Math.round(trustScore * 100)}%
-                                    </span>
+                                    {hasEvalError ? (
+                                      <span className="text-xs text-amber-600 flex items-center gap-1">
+                                        <AlertTriangle className="h-3 w-3" />
+                                        Scoring unavailable
+                                      </span>
+                                    ) : (
+                                      <span className={`text-sm font-bold ${getScoreColor(trustScore)}`}>
+                                        {Math.round(trustScore * 100)}%
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
-                                <Progress value={trustScore * 100} className="h-2" />
+                                {!hasEvalError && <Progress value={trustScore * 100} className="h-2" />}
                               </div>
                             </div>
                           );
@@ -409,12 +419,20 @@ export default function ComparePage() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-4">
-                                {eval_?.trust && (
+                                {eval_?.trust && !eval_.trust.evaluationError && (
                                   <div className="text-right">
                                     <div className={`text-lg font-bold ${getScoreColor(eval_.trust.overallScore)}`}>
                                       {Math.round(eval_.trust.overallScore * 100)}%
                                     </div>
                                     <div className="text-xs text-muted-foreground">Trust</div>
+                                  </div>
+                                )}
+                                {eval_?.trust?.evaluationError && (
+                                  <div className="text-right">
+                                    <div className="text-xs text-amber-600 flex items-center gap-1">
+                                      <AlertTriangle className="h-3 w-3" />
+                                      N/A
+                                    </div>
                                   </div>
                                 )}
                                 {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
@@ -436,7 +454,12 @@ export default function ComparePage() {
                                     </div>
 
                                     {/* Trust Dimensions */}
-                                    {eval_?.trust?.dimensions && (
+                                    {eval_?.trust?.evaluationError ? (
+                                      <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm">
+                                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                                        <span>{eval_.trust.evaluationError}</span>
+                                      </div>
+                                    ) : eval_?.trust?.dimensions && (
                                       <div>
                                         <Label className="text-xs">Trust Dimensions</Label>
                                         <div className="grid grid-cols-5 gap-2 mt-1">
@@ -453,7 +476,7 @@ export default function ComparePage() {
                                     )}
 
                                     {/* Flags */}
-                                    {eval_?.trust?.flags?.length > 0 && (
+                                    {eval_?.trust?.flags?.length > 0 && !eval_?.trust?.evaluationError && (
                                       <div className="flex gap-2 flex-wrap">
                                         {eval_.trust.flags.map(flag => (
                                           <Badge key={flag} variant="outline" className="text-xs">
