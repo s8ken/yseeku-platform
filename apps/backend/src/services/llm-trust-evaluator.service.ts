@@ -52,6 +52,9 @@ export interface LLMTrustEvaluation {
     ethicsMethod: 'llm' | 'heuristic';
     trustMethod: 'content-analysis' | 'metadata-only';
     confidence: number;
+    /** v2.4: Which provider/model performed the evaluation (for audit trail) */
+    evaluatorProvider?: string;
+    evaluatorModel?: string;
   };
   // v2.3: Fallback transparency — reason LLM eval failed (if applicable)
   fallbackReason?: string;
@@ -356,6 +359,8 @@ export class LLMTrustEvaluator {
         { role: 'user', content: evaluationPrompt },
       ];
 
+      // Use the default evaluator provider — evaluation is provider-agnostic
+      // (the prompt intentionally omits which model/provider generated the response)
       const llmResponse = await llmService.generate({
         provider: this.defaultProvider,
         model: this.defaultModel,
@@ -507,6 +512,8 @@ export class LLMTrustEvaluator {
           ethicsMethod: 'llm',
           trustMethod: 'content-analysis',
           confidence: 0.9,
+          evaluatorProvider: this.defaultProvider,
+          evaluatorModel: this.defaultModel,
         },
       };
     } catch (error) {

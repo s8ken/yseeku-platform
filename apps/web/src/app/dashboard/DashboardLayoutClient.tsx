@@ -68,6 +68,7 @@ const SIMPLE_NAV_HREFS = new Set([
   '/dashboard/chat',
   '/dashboard/agents',
   '/dashboard/receipts',
+  '/dashboard/compare',
   '/dashboard/alerts',
   '/dashboard/overseer',
   '/dashboard/quickstart',
