@@ -109,6 +109,12 @@ export interface TrustEvaluation {
   // v2.2: Weight metadata for audit trail
   weight_source?: string;
   weight_policy_id?: string;
+
+  // v2.3: Fallback transparency — reason LLM eval failed (if applicable)
+  fallbackReason?: string;
+
+  // v2.4: LLM reasoning explanation for the evaluation
+  reasoning?: string;
 }
 
 export interface TrustAnalytics {
