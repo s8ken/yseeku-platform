@@ -121,25 +121,28 @@ export function RecentReceiptsStream({ metrics }: RecentReceiptsStreamProps) {
                       <pre>
 {JSON.stringify({
   header: {
-    version: "1.0.0",
+    version: "2.0.0",
     alg: "Ed25519",
     timestamp: metric.timestamp,
-    source: metric.source
+    source: metric.source,
+    evaluatedBy: metric.evaluatedBy || 'llm',
   },
   payload: {
-    integrity_score: metric.trustScore / 100,
+    integrity_score: Math.round(metric.trustScore) / 100,
+    trust_status: metric.trustStatus || (metric.trustScore >= 70 ? 'PASS' : metric.trustScore >= 40 ? 'PARTIAL' : 'FAIL'),
     velocity_delta: metric.velocityScore,
     governance_flags: metric.securityFlags,
-    hash_chain: "0x" + Math.random().toString(16).substring(2, 66)
+    receipt_hash: metric.receiptHash || 'pending',
+    ...(metric.principleScores && { sonate_principles: metric.principleScores }),
   },
-  signature: "x509_ed25519_pkcs7_" + Math.random().toString(36).substring(2, 32)
+  signature: metric.signaturePresent ? 'Ed25519 (verified)' : 'unsigned',
 }, null, 2)}
                       </pre>
                     </ScrollArea>
                   </div>
                   <div className="flex justify-end mt-4">
-                     <Badge variant="outline" className="bg-emerald-500/5 text-emerald-500 border-emerald-500/20 text-[10px]">
-                        CRYPTOGRAPHICALLY VERIFIED
+                     <Badge variant="outline" className={`text-[10px] ${metric.signaturePresent ? 'bg-emerald-500/5 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/5 text-amber-500 border-amber-500/20'}`}>
+                        {metric.signaturePresent ? 'CRYPTOGRAPHICALLY VERIFIED' : 'UNSIGNED — HEURISTIC'}
                      </Badge>
                   </div>
                 </DialogContent>

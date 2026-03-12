@@ -53,6 +53,12 @@ export interface LiveMetrics {
   source: string           // GPT4, Claude, Grok, etc
   securityFlags: string[]
   velocityScore: number    // drift indicator
+  // Extended fields from real trust receipts
+  receiptHash?: string
+  trustStatus?: string     // PASS | PARTIAL | FAIL
+  principleScores?: Record<string, number>
+  evaluatedBy?: string     // llm | heuristic
+  signaturePresent?: boolean
 }
 
 export interface DashboardMetrics {
@@ -268,28 +274,39 @@ function transformBackendReport(data: any): ArchiveReport {
 
 /**
  * Fetch live metrics for current session/day
+ *
+ * Uses /api/trust/receipts/list which returns receipts by tenant
+ * (the older /api/trust/receipts endpoint requires conversationId)
  */
 export async function fetchLiveMetrics(): Promise<LiveMetrics[]> {
   try {
-    const response = await fetch('/api/trust/receipts?limit=50&sort=recent')
+    // Primary: fetch from tenant-scoped receipt list (no conversationId needed)
+    const response = await fetch('/api/trust/receipts/list?limit=50&offset=0')
     if (response.ok) {
       const data = await response.json()
-      const receipts = data.data?.receipts || data.data || []
-      
-      // Transform receipts into LiveMetrics format (keep 0-100 scale)
-      return receipts.map((receipt: any) => ({
-        timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
-        trustScore: receipt.trust_score !== undefined ? Number(receipt.trust_score) : 80, // 0-100 scale
-        source: receipt.model || receipt.agent_model || 'unknown',
-        securityFlags: receipt.security_flags || [],
-        velocityScore: receipt.drift_analysis?.velocity || 0
-      }))
+      const receipts = data.data || []
+
+      if (receipts.length > 0) {
+        // Transform TrustReceiptModel documents into LiveMetrics format
+        return receipts.map((receipt: any) => ({
+          timestamp: receipt.timestamp || receipt.createdAt || new Date().toISOString(),
+          trustScore: receipt.overall_trust_score ?? receipt.trust_score ?? 80, // 0-100 scale
+          source: receipt.interaction?.model || receipt.agent_model || receipt.evaluated_by || 'unknown',
+          securityFlags: receipt.security_flags || [],
+          velocityScore: receipt.drift_analysis?.velocity || 0,
+          receiptHash: receipt.self_hash || receipt.receipt_id || undefined,
+          trustStatus: receipt.trust_status || undefined,
+          principleScores: receipt.sonate_principles || undefined,
+          evaluatedBy: receipt.evaluated_by || undefined,
+          signaturePresent: !!(receipt.signature),
+        }))
+      }
     }
   } catch (err) {
-    console.warn('Failed to fetch live metrics', err)
+    console.warn('Failed to fetch live metrics from receipts/list', err)
   }
-  
-  // Fallback: return empty array
+
+  // Fallback: return empty array (no fake data)
   return []
 }
 

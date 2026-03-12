@@ -221,7 +221,7 @@ export default function OverseerLiveDashboard() {
                     <div className="col-span-2 pt-4 border-t border-slate-800">
                        <div className="flex items-center gap-2 text-xs text-slate-500">
                          <div className="w-2 h-2 rounded-full bg-emerald-500/50" />
-                         System resonating at {Math.round(Math.random() * 40 + 60)}% efficiency
+                         System resonating — {comparison?.receiptCount || 0} receipts verified
                        </div>
                     </div>
                   </div>
