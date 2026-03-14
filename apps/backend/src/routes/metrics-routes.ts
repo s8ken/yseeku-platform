@@ -6,6 +6,7 @@
 
 import { Router, Request, Response } from 'express';
 import { getMetrics, getMetricsData } from '../middleware/metrics';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -18,7 +19,7 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
     res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
     res.send(await getMetrics());
   } catch (err) {
-    console.error('Error generating metrics:', err);
+    logger.error('Error generating metrics:', err);
     res.status(500).json({ error: 'Failed to generate metrics' });
   }
 });
@@ -32,7 +33,7 @@ router.get('/data', (_req: Request, res: Response): void => {
     const data = getMetricsData();
     res.json(data);
   } catch (err) {
-    console.error('Error getting metrics data:', err);
+    logger.error('Error getting metrics data:', err);
     res.status(500).json({ error: 'Failed to get metrics data' });
   }
 });
@@ -56,7 +57,7 @@ router.get('/health', (_req: Request, res: Response): void => {
     };
     res.json(health);
   } catch (err) {
-    console.error('Error getting metrics health:', err);
+    logger.error('Error getting metrics health:', err);
     res.status(500).json({ error: 'Failed to get metrics health' });
   }
 });

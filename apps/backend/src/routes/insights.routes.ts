@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { insightsGeneratorService } from '../services/insights-generator.service';
 import { Insight, InsightsSummary } from '../types/insights.types';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -22,7 +23,7 @@ router.get('/', async (req: Request, res: Response) => {
       tenantId,
     });
   } catch (error) {
-    console.error('Error fetching insights:', error);
+    logger.error('Error fetching insights:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch insights',
@@ -46,7 +47,7 @@ router.get('/summary', async (req: Request, res: Response) => {
       tenantId,
     });
   } catch (error) {
-    console.error('Error fetching insights summary:', error);
+    logger.error('Error fetching insights summary:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch insights summary',
@@ -77,7 +78,7 @@ router.patch('/:id/status', async (req: Request, res: Response) => {
       data: insight,
     });
   } catch (error) {
-    console.error('Error updating insight status:', error);
+    logger.error('Error updating insight status:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to update insight status',

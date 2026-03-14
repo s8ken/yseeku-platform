@@ -5,10 +5,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Lightbulb, 
-  AlertTriangle, 
-  CheckCircle2, 
+import {
+  Lightbulb,
+  AlertTriangle,
+  CheckCircle2,
   Clock,
   ArrowRight,
   Activity,
@@ -16,7 +16,8 @@ import {
   Shield,
   FileText,
   MoreVertical,
-  ChevronRight
+  ChevronRight,
+  Sparkles
 } from 'lucide-react';
 import { useDemo } from '@/hooks/use-demo';
 
@@ -34,7 +35,8 @@ enum InsightCategory {
   EMERGENCE = 'emergence',
   PERFORMANCE = 'performance',
   SECURITY = 'security',
-  COMPLIANCE = 'compliance'
+  COMPLIANCE = 'compliance',
+  BREAKTHROUGH = 'breakthrough'
 }
 
 interface Insight {
@@ -110,6 +112,7 @@ const INSIGHT_CATEGORY_MAP = {
   [InsightCategory.PERFORMANCE]: { icon: Clock, label: 'Performance' },
   [InsightCategory.SECURITY]: { icon: Shield, label: 'Security' },
   [InsightCategory.COMPLIANCE]: { icon: FileText, label: 'Compliance' },
+  [InsightCategory.BREAKTHROUGH]: { icon: Sparkles, label: 'Breakthrough' },
 };
 
 export function InsightsPanel({ compact = false, limit = 5 }: { compact?: boolean; limit?: number }) {
@@ -209,7 +212,7 @@ export function InsightsPanel({ compact = false, limit = 5 }: { compact?: boolea
   };
 
   const CategoryIcon = (category: InsightCategory) => {
-    const config = INSIGHT_CATEGORY_MAP[category];
+    const config = INSIGHT_CATEGORY_MAP[category] ?? INSIGHT_CATEGORY_MAP[InsightCategory.TRUST];
     const Icon = config.icon;
     return <Icon className="h-4 w-4 text-muted-foreground" />;
   };
@@ -282,7 +285,7 @@ export function InsightsPanel({ compact = false, limit = 5 }: { compact?: boolea
             {displayInsights.map((insight) => {
               const isExpanded = expandedInsight === insight.id;
               const currentPriorityConfig = INSIGHT_PRIORITY_MAP[insight.priority];
-              const currentCategoryConfig = INSIGHT_CATEGORY_MAP[insight.category];
+              const currentCategoryConfig = INSIGHT_CATEGORY_MAP[insight.category] ?? INSIGHT_CATEGORY_MAP[InsightCategory.TRUST];
               
               return (
                 <div
